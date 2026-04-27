@@ -33,22 +33,23 @@ Run `/init-project` when starting a new project. This configures AI tools and cr
 This is the workflow for any planned change. New features and modifications to existing features follow the same process.
 
 ```
-Phase 1: Spec                    Phase 2: Implement              Phase 3: Ship
-─────────────────                ──────────────────              ──────────────
-1. Check existing specs          6. Read spec diff (git diff)    10. Commit code
-2. Write/update spec             7. Implement changes            11. Verify
-3. Architecture review (opt.)    8. Write tests                  12. Deploy
-4. Get approval                  9. Review
-5. Commit spec  ─────────────────────────────────────────────
-                  ↑ This commit is the handoff point.
-                  The implementation agent reads its diff
-                  to know exactly what to build.
+Phase 1: Spec           Phase 2: Test (TDD)         Phase 3: Implement        Phase 4: Ship
+─────────────────       ───────────────────         ──────────────────        ──────────────
+1. Check existing specs  6. Write tests from ACs     9. Read spec+test diffs   13. Commit code
+2. Write/update spec     7. Run tests (all fail)    10. Implement (pass tests) 14. Verify
+3. Architecture (opt.)   8. Commit tests            11. Run tests (all pass)   15. Deploy
+4. Get approval                                     12. Review
+5. Commit spec  ──────────────────────────────────────────────────────
+                  ↑ Spec commit = intent       ↑ Test commit = contract
+                  The test agent reads its      The implementation agent reads
+                  diff to write tests.          both diffs to know what to build.
 ```
 
-**The key pattern: commit the spec before implementing.** This creates a clean separation:
-- The spec commit captures **intent** (what we decided to build)
-- The implementation commit captures **execution** (how we built it)
-- The `git diff` of the spec commit tells the AI agent the **exact scope** — especially valuable for modifications where only some acceptance criteria changed
+**The key pattern: commit specs AND tests before implementing.** This creates three clean layers:
+- The **spec commit** captures **intent** (what we decided to build)
+- The **test commit** captures the **verification contract** (how we'll know it works — tests fail because no code exists yet)
+- The **implementation commit** captures **execution** (code that makes the tests pass)
+- The `git diff` of each commit tells the AI agent the **exact scope** — especially valuable for modifications where only some ACs changed
 
 ### Workflow 3: Hotfix (production-breaking bugs only)
 
@@ -93,14 +94,17 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 5. Get the spec approved by a teammate
 6. **Commit the spec**: `git add specs/your-spec.md && git commit -m "spec: add [feature] spec"`
 
-### Day 4-5: First implementation (3-4 hours)
+### Day 4-5: First tests and implementation (3-4 hours)
 
-1. With your committed spec, run: `/implement [spec name]`
-2. Notice how the agent reads the spec diff to scope the work
-3. Run: `/write-tests [spec name]`
-4. Review the tests — do they cover each acceptance criterion?
-5. Run: `/review`
-6. Address any findings, then run: `/commit`
+1. With your committed spec, run: `/write-tests [spec name]`
+2. Review the tests — do they cover each acceptance criterion?
+3. Run the tests — they should all fail (this is correct, no code exists yet)
+4. Commit the tests: `git add e2e/ && git commit -m "test: add [feature] tests (red — pending implementation)"`
+5. Now run: `/implement [spec name]`
+6. Notice how the agent reads both the spec diff and the test diff to scope the work
+7. Run tests again — they should all pass now
+8. Run: `/review`
+9. Address any findings, then run: `/commit`
 
 ## Week 2: The full workflow in practice
 
@@ -120,21 +124,25 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 
 4. COMMIT THE SPEC (/commit)
    Commit the approved spec with a spec: prefix.
-   This is the handoff between design and implementation.
+   This is the handoff between design and testing.
 
-5. IMPLEMENT (/implement)
-   Agent reads git diff of the spec commit to know exact scope.
-   Builds only what the spec says — no more, no less.
-
-6. TESTS (/write-tests)
+5. WRITE TESTS (/write-tests) — TDD red phase
    AI writes tests from the spec's acceptance criteria.
-   Verify all tests pass.
+   Run them — they should ALL FAIL (no code exists yet).
 
-7. REVIEW (/review)
+6. COMMIT THE TESTS (/commit)
+   Commit failing tests with test: prefix.
+   This is the handoff between testing and implementation.
+
+7. IMPLEMENT (/implement) — TDD green phase
+   Agent reads git diffs of spec and test commits.
+   Writes code until all tests pass.
+
+8. REVIEW (/review)
    Multi-perspective review: quality, security, UX.
    Address findings.
 
-8. COMMIT (/commit)
+9. COMMIT (/commit)
    Commit implementation with feat: or fix: prefix.
    One logical change per commit.
 ```
@@ -144,8 +152,10 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 Same workflow as above, but:
 1. Update the existing spec (don't create a new one)
 2. Commit the spec update — the diff shows exactly what changed
-3. Run `/implement` — the agent reads the diff and only modifies code for changed acceptance criteria
-4. Existing behavior (unchanged ACs) is preserved automatically
+3. Write/update tests for the new or changed ACs only. Run them — new tests fail, existing tests still pass.
+4. Commit the tests
+5. Run `/implement` — the agent reads both diffs and only modifies code for changed acceptance criteria and their failing tests
+6. Existing behavior (unchanged ACs and their passing tests) is preserved automatically
 
 ### When something breaks
 
@@ -172,9 +182,9 @@ Same workflow as above, but:
 **Problem**: AI guesses your intention, adds features you didn't ask for, misses edge cases.
 **Fix**: Always write a spec first, even for small changes. The spec is the contract.
 
-### 2. Skipping the spec commit
-**Problem**: Implementation agent doesn't know the precise scope, may over- or under-build.
-**Fix**: Always commit the spec before running `/implement`. The git diff is the scope contract.
+### 2. Skipping the spec or test commit
+**Problem**: Implementation agent doesn't know the precise scope, may over- or under-build. Without committed tests, there's no objective "done" criteria.
+**Fix**: Always commit the spec, then write and commit failing tests, before running `/implement`. The spec diff defines scope, the test diff defines "done".
 
 ### 3. Skipping code review
 **Problem**: AI-generated code may look correct but violate project conventions or introduce subtle bugs.
@@ -231,12 +241,12 @@ Same workflow as above, but:
 
 | Prefix | When to use |
 |---|---|
-| `spec:` | Spec changes (new or updated) — committed before implementation |
+| `spec:` | Spec changes (new or updated) — committed before tests and implementation |
+| `test:` | Tests from spec ACs — committed before implementation (should fail until code exists) |
 | `docs:` | Documentation changes (architecture, security, ADRs) |
-| `feat:` | New feature implementation |
+| `feat:` | New feature implementation (makes the tests pass) |
 | `fix:` | Bug fix implementation |
 | `refactor:` | Code restructuring without behavior change |
-| `test:` | Test additions or updates |
 
 ## How to interact with AI effectively
 

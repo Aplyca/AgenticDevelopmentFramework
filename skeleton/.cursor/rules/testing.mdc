@@ -1,12 +1,19 @@
 ---
-description: "Testing guidelines — activate when writing or reviewing tests"
+description: "Testing guidelines — activate when writing or reviewing tests (TDD: tests are written BEFORE implementation)"
 globs: "**/*.test.*,**/*.spec.*,**/e2e/**,**/tests/**,**/__tests__/**"
 alwaysApply: false
 ---
 
-# Testing
+# Testing (TDD — Tests Before Implementation)
 
-When writing or reviewing tests:
+Tests are written from spec acceptance criteria BEFORE implementation code exists. They define the verification contract.
+
+## TDD workflow
+1. Read the spec's acceptance criteria and edge cases
+2. Write tests that describe expected behavior (code doesn't exist yet)
+3. Run tests — they should all fail (red phase)
+4. Commit tests with `test:` prefix
+5. Then implement code to make tests pass (green phase — separate commit)
 
 ## Structure
 - One test file per feature area

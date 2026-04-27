@@ -39,29 +39,41 @@ Use this for any planned change — new features, modifications to existing feat
    spec: update payment flow — add retry logic
    ```
 
-### Phase 2: Implement
+### Phase 2: Test (TDD — tests before code)
 
-6. **Identify scope from diff** — Run `git diff HEAD~1` (or diff against the spec commit) to see exactly what changed. This tells you the precise scope: new acceptance criteria added, existing criteria modified, edge cases added, etc.
-7. **Implement** — Use `/implement`. Build exactly what the spec diff shows — no more, no less.
-8. **Write tests** — Use `/write-tests`. Every acceptance criterion becomes at least one test.
-9. **Review** — Use `/review`. Address findings.
+6. **Write tests from the spec** — Use `/write-tests`. Every acceptance criterion and edge case becomes at least one test. Write tests that describe the expected behavior — they define the verification contract.
+7. **Run tests — they should all fail** — This confirms the tests are meaningful. A test that passes before implementation is either testing the wrong thing or testing something that already exists.
+8. **Commit the tests** — Use `/commit` with the `test:` prefix:
+   ```
+   test: add registration flow tests (red — pending implementation)
+   test: add retry logic tests for payment flow (red — pending implementation)
+   ```
 
-### Phase 3: Ship
+### Phase 3: Implement (make the tests pass)
 
-10. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
+9. **Identify scope from diffs** — Run `git diff` against the spec and test commits to see exactly what was specified and what's being verified. This tells you the precise scope.
+10. **Implement** — Use `/implement`. Write code until all tests pass. Build exactly what the spec says — no more, no less.
+11. **Run tests — they should all pass** — If any test fails, fix the implementation (not the test, unless the test has a bug).
+12. **Review** — Use `/review`. Address findings.
+
+### Phase 4: Ship
+
+13. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
     ```
     feat: implement user registration
     fix: add retry logic to payment flow
     ```
-11. **Verify** — For UI changes, run the app and confirm the result matches the spec.
-12. **Deploy** — Follow the project's deployment process.
+14. **Verify** — For UI changes, run the app and confirm the result matches the spec.
+15. **Deploy** — Follow the project's deployment process.
 
-### Why commit the spec first?
+### Why commit specs and tests before implementing?
 
-- The implementation agent reads `git diff` to know the **exact scope** of what changed
-- For modifications, the diff shows precisely which acceptance criteria were added, changed, or removed — the agent doesn't need to guess what's new vs existing
-- Spec and code changes are separate commits in history — easy to review intent separately from execution
-- If implementation goes wrong, the spec commit is preserved and you can retry cleanly
+- **Spec commit** captures **intent** — the implementation agent reads its `git diff` to know the exact scope
+- **Test commit** captures the **verification contract** — failing tests define exactly what "done" means
+- **Implementation commit** captures **execution** — code that makes the tests pass
+- For modifications, the diffs show precisely which ACs and tests were added or changed — the agent doesn't re-implement or re-test what's unchanged
+- Each commit type is separate in history — easy to review intent, contract, and execution independently
+- If implementation goes wrong, the spec and test commits are preserved and you can retry cleanly
 
 ## Workflow 3: Hotfix (production-breaking bugs only)
 

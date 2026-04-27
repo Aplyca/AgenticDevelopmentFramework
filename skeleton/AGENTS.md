@@ -18,11 +18,12 @@ Stack: [List your tech stack. Example: Next.js 15, React 19, TypeScript, Postgre
 1. **Check existing specs** — Read `specs/` before starting.
 2. **Write or update the spec** — Get approval before coding.
 3. **Architecture review** — For non-trivial changes. Skip for small changes.
-4. **Commit the spec** — Commit approved spec BEFORE implementation (`spec:` prefix). This creates a clean diff that scopes the implementation.
-5. **Implement** — Read `git diff` of the spec commit to know the exact scope.
-6. **Test** — Every acceptance criterion becomes at least one test.
-7. **Review** — Code quality, security, UX as needed.
-8. **Commit and deploy** — `feat:` or `fix:` prefix.
+4. **Commit the spec** — Commit approved spec BEFORE writing tests or code (`spec:` prefix). This creates a clean diff that scopes all subsequent work.
+5. **Write tests** — Write tests from the spec's acceptance criteria. Every AC becomes at least one test. Run them — they should all fail (no implementation yet).
+6. **Commit tests** — Commit the failing tests (`test:` prefix). This captures the verification contract before any code is written.
+7. **Implement** — Read `git diff` of the spec and test commits to know the exact scope. Write code until all tests pass.
+8. **Review** — Code quality, security, UX as needed.
+9. **Commit and deploy** — `feat:` or `fix:` prefix.
 
 ### Hotfix (production-breaking bugs only)
 
@@ -66,12 +67,12 @@ Adapt to your language's idioms (e.g., snake_case for Python, PascalCase for Go 
 
 | Prefix | When to use |
 |---|---|
-| `spec:` | Spec changes (new or updated) — committed before implementation |
+| `spec:` | Spec changes (new or updated) — committed before tests and implementation |
+| `test:` | Tests from spec ACs — committed before implementation (should fail until code exists) |
 | `docs:` | Documentation changes (architecture, security, ADRs) |
-| `feat:` | New feature implementation |
+| `feat:` | New feature implementation (makes the tests pass) |
 | `fix:` | Bug fix implementation |
 | `refactor:` | Code restructuring without behavior change |
-| `test:` | Test additions or updates |
 
 ## Project documentation
 

@@ -36,7 +36,7 @@ Write a feature specification following the spec-driven development workflow.
 
 6. **Set status to draft** — Never mark a spec as approved. Present it to the user for review.
 
-7. **After approval** — Once the user approves, update the status to `approved`. Remind the user to commit the spec before starting implementation — the implementation step uses the spec's git diff to scope the work.
+7. **After approval** — Once the user approves, update the status to `approved`. Remind the user to commit the spec before writing tests — the next step is `/write-tests` (TDD), then `/implement`. The spec's git diff scopes both the tests and the implementation.
 
 ## Principles
 

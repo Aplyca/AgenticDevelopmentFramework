@@ -14,7 +14,7 @@ Review all changes and create a clean, meaningful commit.
 
 2. **Determine the commit type** — What kind of change is this?
 
-   **Spec commits** (specs, docs, architecture decisions — before implementation):
+   **Spec commits** (specs, docs, architecture decisions — before tests and implementation):
    ```
    spec: add user registration spec
    spec: update payment flow — add retry logic
@@ -22,12 +22,17 @@ Review all changes and create a clean, meaningful commit.
    docs: record ADR-001 — choose PostgreSQL over MongoDB
    ```
 
-   **Implementation commits** (code, tests — after spec is committed):
+   **Test commits** (tests from spec ACs — before implementation, tests should fail):
+   ```
+   test: add registration flow tests (red — pending implementation)
+   test: add retry logic tests for payment flow (red — pending implementation)
+   ```
+
+   **Implementation commits** (code that makes the tests pass — after spec and tests are committed):
    ```
    feat: implement user registration
    fix: add retry logic to payment flow
    refactor: extract shared validation into lib/validate
-   test: add e2e tests for registration flow
    ```
 
 3. **Verify before committing**:
@@ -38,7 +43,8 @@ Review all changes and create a clean, meaningful commit.
      - Test artifacts (screenshots, reports, coverage)
      - Debug code (console.log, temporary hacks)
    - **For spec commits**: is the spec approved? Are doc changes accurate?
-   - **For implementation commits**: do tests pass? Does the implementation match the spec?
+   - **For test commits**: do tests fail? (They should — no implementation yet.) Do they map to spec ACs?
+   - **For implementation commits**: do all tests pass? Does the implementation match the spec?
 
 4. **Stage the right files** — Add files by name, not with `git add .` or `git add -A`. This prevents accidentally committing sensitive or unrelated files.
 

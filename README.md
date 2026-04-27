@@ -62,13 +62,12 @@ docs/              → Architecture, security, infrastructure documentation
 ## The workflow
 
 ```
-Requirement → /write-spec → @architect → Approve → /commit spec → /implement → /write-tests → /review → /commit code
-                                                        ↑
-                                              Spec commit creates a git diff
-                                              that scopes the implementation
+Requirement → /write-spec → @architect → Approve → /commit spec → /write-tests → /commit tests → /implement → /review → /commit code
+                                                        ↑                             ↑                ↑
+                                              Spec commit = intent          Test commit = contract   Code makes tests pass
 ```
 
-Three workflows: **Project Setup** (one-time docs + config), **Feature Development** (spec → commit → implement → test → review → ship), **Hotfix** (fix → test → ship → backfill spec). See `/spec-workflow` for details.
+Three workflows: **Project Setup** (one-time docs + config), **Feature Development** (spec → commit spec → write tests → commit tests → implement → review → ship), **Hotfix** (fix → test → ship → backfill spec). See `/spec-workflow` for details.
 
 ## Skills (prompt playbooks)
 
