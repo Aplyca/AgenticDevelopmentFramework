@@ -75,11 +75,14 @@ Hotfixes skip the spec-first process because speed matters. Always backfill afte
 
 1. Install your AI coding tool (Claude Code, Cursor, Antigravity, VS Code + Copilot, etc.)
 2. Read `AGENTS.md` — understand the project, stack, workflows, and critical rules (10 min)
-3. Read the tool-specific config for your tool (see table below) (5 min)
-4. Browse `.claude/agents/` — read 2-3 agent definitions to understand their roles (10 min)
-5. Browse `.claude/skills/` — read 2-3 skill definitions to understand the workflow playbooks (10 min)
-6. Browse `.claude/rules/` — read 2-3 rules to understand the engineering standards (10 min)
-7. Read the development workflows above (10 min)
+3. **Read `docs/SPEC-MODEL.md`** — understand the multi-perspective spec model. This is the most important concept in this workflow; every feature spec uses it. (10 min)
+4. Read the tool-specific config for your tool (see table below) (5 min)
+5. Browse `.claude/agents/` — read 2-3 agent definitions to understand their roles (10 min)
+6. Browse `.claude/skills/` — read 2-3 skill definitions to understand the workflow playbooks (10 min)
+7. Browse `.claude/rules/` — read 2-3 rules to understand the engineering standards (10 min)
+8. Read the development workflows above (10 min)
+
+> **Why the spec model matters before everything else.** Specs in this project aren't just "what the business wants" — they capture input from every relevant role (security, accessibility, testing, deployment, etc.) in one document. The AI enforces required sections before a spec can be approved. If you skim the rest but skip `SPEC-MODEL.md`, you'll write specs that get rejected by the `/write-spec` skill. 10 minutes here saves an hour of confusion later.
 
 **Tool-specific configuration:**
 
@@ -100,6 +103,8 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 4. Iterate until the spec has clear acceptance criteria
 5. Get the spec approved by a teammate
 6. **Commit the spec**: `git add specs/your-spec.md && git commit -m "spec: add [feature] spec"`
+
+> **Read a worked example first.** Before doing your own, walk through [docs/examples/newsletter-signup/](../docs/examples/newsletter-signup/) — a complete cycle (spec → tests → implement → review → commit) on a Next.js + Contentful + Vercel feature. ~15 minutes; saves hours of trial and error.
 
 ### Day 4-5: First tests and implementation (3-4 hours)
 
@@ -191,6 +196,15 @@ Same workflow as above, but:
 3. Tests must pass after every change
 4. Run: /review before committing
 ```
+
+## Situational playbooks
+
+Not every change is a brand-new feature. The patterns differ for these common situations — each has a one-page playbook:
+
+- **[Modifying an existing feature](../docs/scenarios/modifying-existing-feature.md)** — update the spec, let the diff scope the work
+- **[Hotfix](../docs/scenarios/hotfix.md)** — fast path for production-breaking bugs, with the spec backfilled afterward
+- **[Refactor](../docs/scenarios/refactor.md)** — restructure without changing behavior, tests stay green throughout
+- **[Debugging](../docs/scenarios/debugging.md)** — diagnose root cause before patching the symptom
 
 ## Common mistakes
 

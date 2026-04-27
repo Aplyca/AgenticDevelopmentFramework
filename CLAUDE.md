@@ -1,8 +1,10 @@
-# AI-Assisted Development Starter Kit
+# AI-Assisted Development Framework
 
-This is a **reference repository** for bootstrapping professional AI-assisted, spec-driven, test-driven development on any project.
+This is the **source repository** for the AI-Assisted Development Framework — a production-grade framework for professional AI-assisted, spec-driven, test-driven development on any project.
 
 It is NOT a software application. It contains a portable project skeleton, documentation, and a team onboarding guide. Do not try to build, run, or test it.
+
+The repo slug (`ai-dev-starter-kit`) is preserved for URL/reference stability — but the project is positioned and referenced as the **AI-Assisted Development Framework** in all docs and external materials.
 
 ## Repository structure
 
@@ -16,9 +18,9 @@ It is NOT a software application. It contains a portable project skeleton, docum
   - `skeleton/specs/` — spec template
   - `skeleton/docs/` — documentation templates
   - `skeleton/README.md`, `CONTRIBUTING.md` — project file templates
-- `.claude/` — configuration for working on **this starter kit** (not for target projects)
-- `docs/` — starter kit guides (setup, onboarding)
-- `README.md` — about this starter kit
+- `.claude/` — configuration for working on **this framework repo** (not for target projects)
+- `docs/` — framework guides (setup, onboarding, examples, scenarios, spec model)
+- `README.md` — about the framework
 
 ## When editing this repo
 

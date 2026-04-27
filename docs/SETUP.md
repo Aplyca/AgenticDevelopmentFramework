@@ -64,9 +64,19 @@ Open `.claude/settings.json` and update the enforcement hooks for your project. 
 ### 6. Fill in documentation templates
 
 Open each file in `docs/` and replace `[bracketed placeholders]` with your project details. Start with:
+- `docs/SPEC-MODEL.md` — the multi-perspective spec model (read it; usually no edits needed unless your team has different role names or different mandatory sections)
 - `docs/ARCHITECTURE.md` — system context, components, tech stack rationale
 - `docs/security/SECURITY.md` — auth scheme, data classification, threat model
 - `docs/infrastructure/OVERVIEW.md` — platform, environments, CI/CD, monitoring
+
+#### Customizing the spec model (optional)
+
+The spec model in `docs/SPEC-MODEL.md` and `specs/_template.md` ships with sensible defaults for web/website projects. If your team needs to adjust:
+
+- **Role names** — the template uses generic role labels (`client`, `senior-dev`, `designer`, `tech-lead`, `qa`, etc.). Replace with your team's actual role titles in `specs/_template.md` and `docs/SPEC-MODEL.md`.
+- **Mandatory sections** — defaults are Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications (plus Accessibility for UI, Privacy for personal data). To add or remove mandatory sections, update step 9 of `.claude/skills/write-spec/SKILL.md` and the corresponding table in `docs/SPEC-MODEL.md`.
+- **Section list** — to add or remove optional sections (e.g., add a "Compliance" section for regulated industries), update both `specs/_template.md` and `docs/SPEC-MODEL.md`.
+- **Conditional rules** — to change when sections become required (e.g., make Localization mandatory if you're a multi-region shop), update step 9 of `.claude/skills/write-spec/SKILL.md`.
 
 ### 7. Commit
 
@@ -91,7 +101,7 @@ If agents reference your project specifics (from CLAUDE.md), the setup is workin
 
 ## Updating
 
-When the starter kit is updated, copy the new `skeleton/` contents into your project and merge with your customizations. Universal rules and agents can typically be overwritten. Customizable rules need manual merging.
+When the framework is updated, copy the new `skeleton/` contents into your project and merge with your customizations. Universal rules and agents can typically be overwritten. Customizable rules need manual merging.
 
 ## What NOT to customize
 

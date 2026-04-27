@@ -18,14 +18,27 @@ Before running this skill, both the spec and the tests should already be committ
 ## Phase 1: Plan
 
 1. **Identify the scope from git diff** — Run `git diff` against the spec and test commits to see:
-   - What acceptance criteria were added or changed (from the spec diff)
+   - What changed in EACH spec section (not just Functional — see `docs/SPEC-MODEL.md`)
    - What tests are expecting (from the test diff)
    - **New spec + tests** → implement everything from scratch
-   - **Modified spec + tests** → focus on the diff: new/changed ACs and their tests. Don't re-implement unchanged criteria.
+   - **Modified spec + tests** → focus on the diff: new/changed requirements and their tests. Don't re-implement unchanged criteria.
 
 2. **Run the tests — confirm they fail** — Run the test suite to see the current "red" state. The failing tests tell you exactly what the implementation needs to satisfy.
 
-3. **Read the full spec** — Read the complete spec in `specs/` for full context. The diff tells you what's new; the full spec tells you how it fits together.
+3. **Read the full spec — every filled section** — Read the complete spec in `specs/` for full context. The diff tells you what's new; the full spec tells you how it fits together. The implementation plan must address requirements from every filled section, not just Functional:
+   - **Functional** — code that satisfies ACs and edge cases
+   - **Security** — mitigations (validation, rate-limit, auth checks, secret handling)
+   - **Accessibility** — semantic markup, ARIA, keyboard handlers, focus management
+   - **Performance** — anything required to hit the SLA (caching, lazy loading, bundle splitting)
+   - **Privacy** — consent gates, data-handling code, third-party scripts
+   - **SEO** — server rendering, meta tags, structured data, canonical URLs
+   - **Analytics** — event firing at the right moments
+   - **Localization** — locale-aware rendering, translation keys
+   - **Technical** — architecture decisions and integration code
+   - **Observability** — logging / metrics / alert hooks
+   - **Deployment** — env vars and infra changes go in the plan as preconditions, not code (but call them out)
+
+   Skip sections marked `Not applicable` or `Standard applies`.
 
 4. **Check existing code** — Read the files you'll modify. Understand the current patterns, imports, and conventions before making changes. For modifications, understand what already works and must be preserved.
 
@@ -59,6 +72,8 @@ Before running this skill, both the spec and the tests should already be committ
 
 9. **Self-review** — Before presenting to the user:
    - Does each acceptance criterion (especially new/changed ones from the diff) have corresponding code?
+   - Are requirements from EVERY filled spec section addressed (Security, Accessibility, Privacy, Performance, Analytics, Localization, Observability)? Skip sections marked Not applicable or Standard applies.
+   - Are deployment requirements (env vars, infra changes) called out for the operator even though they're not code?
    - Do all tests pass?
    - Are edge cases handled?
    - Does the code follow project rules (naming, typing, error handling)?
@@ -89,6 +104,8 @@ Before running this skill, both the spec and the tests should already be committ
 - [ ] All tests pass — show the test runner output
 - [ ] No type errors — show `tsc --noEmit` output (or equivalent)
 - [ ] Every AC from the spec diff has corresponding code
+- [ ] Every requirement from filled Security / Accessibility / Privacy / Performance / Analytics / Localization / Observability sections is addressed
+- [ ] Deployment requirements (env vars, infra) are explicitly listed for the operator
 - [ ] No speculative features beyond the spec
 - [ ] For UI changes — confirm visual result matches spec (screenshot or manual check)
 - [ ] For API changes — show a sample request/response

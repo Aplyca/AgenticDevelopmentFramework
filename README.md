@@ -1,15 +1,29 @@
-# AI-Assisted Development Starter Kit
+# AI-Assisted Development Framework
 
-A production-ready configuration for professional AI-assisted, spec-driven, test-driven development using Claude Code.
+A production-grade framework for professional AI-assisted, spec-driven, test-driven development. Ships as a portable project skeleton (drop into any codebase), an enforced multi-perspective spec model, specialized AI agents, workflow skills, engineering standards, and a complete team onboarding path.
+
+Works with Claude Code natively; supports Cursor, Antigravity, GitHub Copilot, Aider, and Windsurf via the [AGENTS.md](https://agents.md) standard.
 
 ## What's included
 
+- **Multi-perspective spec model** — every feature spec captures input from all relevant roles (business, functional, security, accessibility, privacy, design, performance, testing, documentation, deployment) in one document. Required sections are enforced by the AI before a spec can be approved. ([What and why](skeleton/docs/SPEC-MODEL.md))
 - **7 specialized AI agents** — spec-writer, code-reviewer, security-reviewer, test-runner, architect, debugger, ux-reviewer
 - **10 workflow skills** — reusable prompt playbooks for common tasks (init, spec, implement, test, review, debug, refactor, commit, evaluate)
 - **9 engineering standards** — code quality, testing, security, git workflow, architecture, UI/UX, deployment, performance, observability
 - **Documentation templates** — architecture, security, infrastructure, glossary, ADRs, dev setup
 - **Enforcement hooks** — automated quality gates that prevent common mistakes
 - **Team onboarding guide** — step-by-step training for adopting the workflow
+
+### Why the spec model matters
+
+Most spec templates capture only what the business wants. Real features need input from multiple roles — security, accessibility, design, deployment, documentation — and skipping any of them creates the "we forgot about X" problem after launch:
+
+- The form that shipped without reCAPTCHA because security wasn't asked.
+- The page invisible to screen readers because accessibility wasn't asked.
+- The deploy that broke because nobody documented the new env var.
+- The feature nobody knows how to use because the docs were "later".
+
+This kit's spec model forces the conversation across all role perspectives **before code is written**. Mandatory sections (Business, Functional, Security, Testing, Documentation — plus Accessibility for UI features and Privacy for personal data) are enforced by the `/write-spec` skill: the spec literally cannot be marked approved if a required section is empty. Optional sections (Design, Performance, SEO, Analytics, Localization, Technical, Observability, Deployment) are filled in only when relevant to the feature. The result: every feature has the full picture before code starts, every AI agent sees the full picture when planning. See [docs/SPEC-MODEL.md](skeleton/docs/SPEC-MODEL.md).
 
 ## Get started
 
@@ -87,7 +101,9 @@ Skills standardize how your team interacts with AI. In Claude Code, invoke with 
 
 ## Team onboarding
 
-See [docs/ONBOARDING.md](docs/ONBOARDING.md) for a week-by-week guide to adopting this workflow.
+- **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — week-by-week guide to adopting the workflow.
+- **[docs/examples/](docs/examples/)** — full end-to-end worked examples on a Next.js + Contentful + Vercel stack. Start with [newsletter-signup](docs/examples/newsletter-signup/) to see spec → tests → implement → review → commit on a real feature.
+- **[docs/scenarios/](docs/scenarios/)** — one-page playbooks for common situations: [modifying an existing feature](docs/scenarios/modifying-existing-feature.md), [hotfix](docs/scenarios/hotfix.md), [refactor](docs/scenarios/refactor.md), [debugging](docs/scenarios/debugging.md).
 
 ## Structure
 
@@ -154,8 +170,8 @@ skeleton/                          Portable project skeleton (copy to your proje
     +-- security/
         +-- SECURITY.md            Threat model, auth, data protection
 
-docs/                              Starter kit documentation
-|-- SETUP.md                       How to adopt the starter kit
+docs/                              Framework documentation
+|-- SETUP.md                       How to adopt the framework
 +-- ONBOARDING.md                  Team training guide
 ```
 

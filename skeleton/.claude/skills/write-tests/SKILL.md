@@ -11,9 +11,19 @@ Write tests from a committed spec's acceptance criteria. This skill follows a pl
 
 ## Phase 1: Plan
 
-1. **Read the spec** — Find the relevant spec in `specs/`. List every acceptance criterion and edge case.
+1. **Read the spec — every section, not just Functional** — Find the relevant spec in `specs/`. The multi-perspective spec model (see `docs/SPEC-MODEL.md`) means test scope is derived from MORE than just acceptance criteria:
+   - **Functional** — every AC, every edge case (always)
+   - **Testing** — explicit test requirements set by QA/tech lead (always)
+   - **Security** — testable mitigations (rate limit, validation, auth checks)
+   - **Accessibility** — testable a11y requirements (axe scan, keyboard navigation, ARIA roles)
+   - **Performance** — testable SLAs (response time, bundle size — usually a separate test type)
+   - **Privacy** — testable consent / data-handling behaviors
+   - **Analytics** — testable event firing (event name, properties)
+   - **Localization** — testable per-locale rendering
 
-2. **Read the spec diff** — Run `git diff HEAD~1 -- specs/` to see what changed. For modifications, focus new tests on new/changed ACs. Don't rewrite tests for unchanged criteria.
+   Skip sections marked `Not applicable` or `Standard applies` (the standard rules already cover them).
+
+2. **Read the spec diff** — Run `git diff HEAD~1 -- specs/` to see what changed. For modifications, focus new tests on new/changed sections. Don't rewrite tests for unchanged criteria. Pay attention: a modification might change the Security or Accessibility section without changing Functional ACs — those still need new tests.
 
 3. **Read test conventions** — Check `.claude/rules/testing.md` for:
    - Test framework and runner
@@ -21,15 +31,26 @@ Write tests from a committed spec's acceptance criteria. This skill follows a pl
    - Mocking strategy (route interception, test doubles, etc.)
    - File organization and naming
 
-4. **Check existing tests** — Look in the test directory for existing tests covering this feature area. Don't duplicate — add tests for new ACs, update tests for changed ACs.
+4. **Check existing tests** — Look in the test directory for existing tests covering this feature area. Don't duplicate — add tests for new requirements, update tests for changed requirements.
 
-5. **Present the test plan** — Show the user a mapping from ACs to tests:
+5. **Present the test plan** — Show the user a mapping from spec sections to tests, organized by source section:
    ```
-   AC1: "user sees X when Y" → test: 'shows X when Y happens'
-   AC2: "clicking Z navigates to W" → test: 'clicking Z navigates to W'
-   Edge: "empty list shows message" → test: 'shows empty state when no items'
+   FROM Functional:
+     AC1: "user sees X when Y" → test: 'shows X when Y happens'
+     AC2: "clicking Z navigates to W" → test: 'clicking Z navigates to W'
+     Edge: "empty list shows message" → test: 'shows empty state when no items'
+
+   FROM Security:
+     "Rate limit 10 req/IP/min, 429 + Retry-After" → test: 'returns 429 with Retry-After when rate-limited'
+
+   FROM Accessibility:
+     "Form errors use role=alert" → test: 'inline error uses role=alert'
+     (plus axe scan added to existing E2E suite)
+
+   FROM Testing (explicit asks):
+     "Visual regression for new component" → Chromatic snapshot added
    ```
-   Include: which test file(s) will be created or modified, which mocks are needed, and which ACs from the diff are covered.
+   Include: which test file(s) will be created or modified, which mocks are needed, which spec sections are covered.
 
 6. **Get approval** — Wait for the user to approve the test plan before writing any test code. Iterate if they want changes.
 
@@ -74,6 +95,8 @@ The implementation phase (`/implement`) will write code to make these tests pass
 
 - [ ] Every acceptance criterion has at least one corresponding test
 - [ ] Every edge case has a corresponding test
+- [ ] Every testable requirement in **Security**, **Accessibility**, **Performance**, **Privacy**, **Analytics**, **Localization** is covered (skip sections marked Not applicable or Standard applies)
+- [ ] Every explicit ask in **Testing** is covered
 - [ ] All new tests fail (red phase confirmed) — show test runner output
 - [ ] Test names read as behavior descriptions
 - [ ] All external services are mocked
@@ -87,4 +110,4 @@ The implementation phase (`/implement`) will write code to make these tests pass
 - Mock external services — tests must not depend on services being up.
 - Use realistic but fake test data. Never real credentials or PII.
 - If a test can't be written for an acceptance criterion, the AC may need to be rewritten.
-- For modifications: only write new tests for new/changed ACs. Existing passing tests for unchanged ACs stay as-is.
+- For modifications: only write new tests for new/changed requirements (across all spec sections, not just Functional). Existing passing tests for unchanged requirements stay as-is.

@@ -4,6 +4,10 @@
 <!-- AGENTS.md contains universal project context (read by all AI tools). -->
 <!-- This file adds: path-scoped rules, specialized agents, workflow skills. -->
 
+## Spec model
+
+This project uses a **multi-perspective spec model** — each spec captures input from all relevant roles (business, functional, security, accessibility, testing, documentation, and more) in one document, with required sections enforced before approval. Full structure in `docs/SPEC-MODEL.md`. Template at `specs/_template.md`.
+
 ## Engineering standards (path-scoped)
 
 Standards are in `.claude/rules/` and auto-load when you touch matching file paths:
@@ -42,9 +46,9 @@ Defined in `.claude/skills/`. Invoke with `/skill-name`. These are step-by-step 
 |---|---|
 | `/spec-workflow` | Complete workflow reference (setup, feature dev, hotfix) |
 | `/init-project` | First-time project setup |
-| `/write-spec` | Draft a feature specification |
-| `/implement` | Build from an approved spec (reads spec git diff for scope) |
-| `/write-tests` | Write tests from spec acceptance criteria |
+| `/write-spec` | Draft a feature specification using the multi-perspective spec model (see `docs/SPEC-MODEL.md`). Enforces required sections before approval. |
+| `/implement` | Build from an approved spec (reads spec git diff for scope, addresses every filled section: functional, security, a11y, perf, etc.) |
+| `/write-tests` | Write tests from spec acceptance criteria AND testable requirements in security / accessibility / performance sections |
 | `/review` | Multi-perspective code review |
 | `/debug` | Systematic root cause analysis |
 | `/refactor` | Safe code restructuring |

@@ -34,7 +34,9 @@ Stack: [List your tech stack. Example: Next.js 15, React 19, TypeScript, Postgre
 3. Commit and deploy (`fix:` prefix)
 4. Backfill the spec afterward if behavior changed
 
-Spec format: use the template at `specs/_template.md`. Specs contain business requirements and acceptance criteria — not implementation details, code snippets, or file paths.
+Spec format: use the template at `specs/_template.md`. This project uses a **multi-perspective spec model** — each spec captures input from all relevant roles (business, functional, security, accessibility, testing, documentation, and more) in one document, with required sections enforced before approval. See `docs/SPEC-MODEL.md` for the full structure.
+
+Specs contain WHAT (business requirements, acceptance criteria, non-functional requirements) — not HOW (code snippets, file paths). Implementation choices live in the code, ADRs (`docs/architecture/decisions/`), or the spec's optional **Technical** section when there's a real reason to constrain HOW.
 
 ## Critical rules
 
