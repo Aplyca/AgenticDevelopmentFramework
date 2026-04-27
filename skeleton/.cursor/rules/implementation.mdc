@@ -1,0 +1,29 @@
+---
+description: "Implementation guidelines — activate when building features from an approved spec"
+globs: ""
+alwaysApply: false
+---
+
+# Implementation from Spec
+
+When implementing a feature from a spec:
+
+## Scope from git diff
+1. Run `git diff HEAD~1 -- specs/` to see what changed in the spec
+2. **New spec** → implement all acceptance criteria
+3. **Modified spec** → focus on the diff: new/changed ACs only. Don't re-implement unchanged criteria.
+
+## Process
+1. Read the full spec for context
+2. Read existing code before modifying — understand current patterns
+3. Plan which files need changes before writing code
+4. Implement each acceptance criterion
+5. Self-review: does each AC have corresponding code?
+
+## Rules
+- Build exactly what the spec says — no more, no less
+- Match existing patterns in neighboring code
+- Handle edge cases listed in the spec
+- Validate at system boundaries
+- No speculative features beyond the spec
+- For modifications: preserve existing behavior where the spec didn't change

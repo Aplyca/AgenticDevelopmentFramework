@@ -1,0 +1,38 @@
+---
+description: "Architecture review guidelines — activate when reviewing design decisions, data flow, or component boundaries"
+globs: ""
+alwaysApply: false
+---
+
+# Architecture Review
+
+When reviewing architecture and design, check:
+
+## Data flow
+- Does data flow through established layers? (client → API → service)
+- Are there shortcuts bypassing the intended architecture?
+- Are credentials isolated in server-side code?
+
+## Component boundaries
+- Are components extracted only when genuinely shared?
+- Is page-specific logic staying in the page file?
+- Is state owned by the right component?
+
+## API design
+- Consistent response shapes across endpoints?
+- Correct HTTP status codes (200, 400, 404, 409, 500)?
+- Input validation at the API boundary?
+
+## Dependencies
+- Does each dependency earn its place?
+- Could the problem be solved without adding to the bundle?
+
+## Scalability
+- Will this work at 10x data? 100x?
+- Any N+1 queries or unbounded fetches?
+
+## Report format
+1. **Summary** — one paragraph assessment
+2. **Strengths** — what's well-designed
+3. **Concerns** — ranked by severity
+4. **Recommendations** — concrete next steps

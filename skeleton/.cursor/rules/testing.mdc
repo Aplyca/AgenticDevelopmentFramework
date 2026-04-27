@@ -1,0 +1,36 @@
+---
+description: "Testing guidelines — activate when writing or reviewing tests"
+globs: "**/*.test.*,**/*.spec.*,**/e2e/**,**/tests/**,**/__tests__/**"
+alwaysApply: false
+---
+
+# Testing
+
+When writing or reviewing tests:
+
+## Structure
+- One test file per feature area
+- Descriptive names that read as behavior descriptions
+- Arrange → Act → Assert structure
+- Group with describe/context blocks
+
+## What to test
+- User flows matching spec acceptance criteria
+- Edge cases listed in specs
+- Error states and empty states
+- View transitions, form submissions, navigation
+
+## What NOT to test
+- Implementation details or internal state
+- CSS classes or styling specifics
+- Third-party library internals
+- Anything not in the spec
+
+## Mocking
+- Mock ALL external services — tests must not depend on services being up
+- Mock responses must match actual API data structures
+- Use the project's mocking approach (check AGENTS.md for conventions)
+
+## Test data
+- Use fake but realistic data
+- Never use real credentials or PII

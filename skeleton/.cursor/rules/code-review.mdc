@@ -1,0 +1,31 @@
+---
+description: "Code review guidelines — activate when reviewing code for quality, conventions, and spec compliance"
+globs: ""
+alwaysApply: false
+---
+
+# Code Review
+
+When reviewing code, check:
+
+## Correctness
+- Does the code match the spec? Check each acceptance criterion.
+- Are edge cases from the spec handled?
+- Are external data sources validated? (null checks, type guards at system boundaries)
+- Is error handling present? (API endpoints catch errors, frontend handles fetch failures)
+
+## Framework conventions
+- Does the code follow patterns established in `AGENTS.md` and the project?
+- Are there SSR/hydration safety issues? (browser-only APIs in render path)
+
+## Code quality
+- No `any` types (TypeScript) — use `unknown` + type guards for external data
+- No premature abstraction — three similar lines beat a wrapper used once
+- No speculative features beyond the spec
+- No commented-out code — git preserves history
+- Comments explain *why*, never *what*
+
+## Report format
+- **[critical]** `file:line` — must fix before commit
+- **[warning]** `file:line` — should fix, potential issue
+- **[nit]** `file:line` — minor suggestion

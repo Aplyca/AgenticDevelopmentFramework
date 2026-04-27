@@ -1,0 +1,27 @@
+---
+description: "Spec writing guidelines — activate when drafting or updating feature specifications in specs/"
+globs: "specs/**"
+alwaysApply: false
+---
+
+# Spec Writing
+
+When writing or updating specs:
+
+## Format
+Use the template at `specs/_template.md`. Include:
+- **Overview**: one paragraph — what and why
+- **User stories**: As a [role], I want [action], so that [value]
+- **Acceptance criteria**: concrete, testable behaviors (user sees X, clicking Y does Z)
+- **Edge cases**: empty states, errors, missing data, boundary conditions
+- **Out of scope**: what this spec intentionally does NOT cover
+
+## Rules
+- Business requirements only — no code, file paths, or implementation details
+- Every acceptance criterion must be testable by an automated test
+- User-facing text must match the application's language
+- For modifications: clearly mark what changed vs what stays the same
+- Set status to `draft` — only the developer can approve specs
+
+## After approval
+Remind to commit the spec before starting implementation. The `git diff` of the spec commit scopes the implementation work.

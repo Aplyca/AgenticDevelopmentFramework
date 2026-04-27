@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "# CUSTOMIZE: Add your project-specific enforcement hooks here.\n# Example: block test files from using the dev server port.\n# if grep -q 'localhost:3000' \"$CLAUDE_FILE_PATH\" 2>/dev/null && echo \"$CLAUDE_FILE_PATH\" | grep -q '\\.spec\\.\\|\\.test\\.'; then echo 'BLOCKED: Test files must use the test port, not the dev port'; exit 1; fi\nexit 0"
+      }
+    ]
+  }
+}

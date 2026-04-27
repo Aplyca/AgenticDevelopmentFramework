@@ -1,0 +1,62 @@
+---
+name: evaluate
+description: Deep analysis of a question, proposal, or decision. Researches thoroughly, presents options with pros/cons/risks, and recommends an approach with rationale. Use when facing design decisions, tech choices, or when you want a second opinion on an approach.
+user_invocable: true
+argument-hint: "[question, proposal, or decision to evaluate]"
+---
+
+# Evaluate
+
+Perform a thorough analysis of a question, proposal, or decision. Research before responding. Present options, not just answers.
+
+## Steps
+
+1. **Understand the question** — What is being decided? What are the constraints? What's the context (project stage, team size, timeline, budget)?
+
+2. **Research** — Before forming an opinion:
+   - Read relevant project files (CLAUDE.md, specs, existing code, rules)
+   - Read `docs/ARCHITECTURE.md` and `docs/architecture/decisions/` for existing design decisions and constraints
+   - Read `docs/security/SECURITY.md` and `docs/infrastructure/OVERVIEW.md` if the decision affects those areas
+   - Search for established patterns, best practices, and prior art
+   - Consider what professional teams do in similar situations
+   - Look for data, benchmarks, or case studies when available
+
+3. **Identify options** — List at least 2-3 viable approaches. For each option:
+   - **Description**: what it is and how it works
+   - **Pros**: concrete advantages (not generic)
+   - **Cons**: concrete disadvantages (not generic)
+   - **Risks**: what could go wrong, and how likely is it
+   - **Effort**: relative implementation complexity (low / medium / high)
+   - **Fit**: how well it aligns with the project's current state and constraints
+
+4. **Compare** — Create a clear comparison:
+
+   | Criteria | Option A | Option B | Option C |
+   |---|---|---|---|
+   | [Relevant criterion] | [Assessment] | [Assessment] | [Assessment] |
+
+5. **Recommend** — State your recommendation clearly:
+   - Which option and why
+   - Under what conditions your recommendation would change
+   - What to watch out for during implementation
+
+6. **Invite challenge** — End with: "This is my assessment based on [what I researched]. If you have context I'm missing, let me know — it could change the recommendation."
+
+## Principles
+
+- **Research first, opinion second.** Never lead with a gut feeling. Back up your position.
+- **Honest trade-offs.** Every option has downsides. If you can't name them, you haven't thought hard enough.
+- **Context matters.** The right answer for a PoC is different from a production system. The right answer for a 2-person team is different from a 50-person team.
+- **Challenge the premise.** If the question itself is flawed or the developer's proposal has a fundamental issue, say so respectfully. "Have you considered that the real problem might be X rather than Y?"
+- **No false balance.** If one option is clearly better, say so. Don't artificially inflate weaker options to seem thorough.
+- **Acknowledge uncertainty.** If you don't have enough information to make a confident recommendation, say what you'd need to know to decide.
+
+## Example invocations
+
+```
+/evaluate Should we use PostgreSQL or MongoDB for this project?
+/evaluate Is it better to implement auth with NextAuth or a custom JWT solution?
+/evaluate The team wants to split the monolith into microservices — is that the right call?
+/evaluate I'm thinking of adding Redis for caching — what do you think?
+/evaluate Should we write unit tests or stick with e2e only for this PoC?
+```

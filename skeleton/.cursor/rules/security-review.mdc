@@ -1,0 +1,32 @@
+---
+description: "Security review guidelines — activate when auditing code for vulnerabilities, credential exposure, or unsafe data handling"
+globs: ""
+alwaysApply: false
+---
+
+# Security Review
+
+When auditing code for security, check:
+
+## Injection vulnerabilities (CRITICAL)
+- XSS: any `dangerouslySetInnerHTML`, `innerHTML`, or equivalent with user data?
+- Command injection: any user input reaching shell execution?
+- SQL injection: any raw SQL with string interpolation instead of parameterized queries?
+- Header injection: any user input in HTTP headers or redirect URLs?
+- Path traversal: any user input in file system paths without sanitization?
+
+## Credential exposure (CRITICAL)
+- Are secrets accessed only in server-side code?
+- Are any server modules imported in client code?
+- Are any secrets hard-coded in source files?
+- Are `.env` files in `.gitignore`?
+
+## Input validation (HIGH)
+- Do API endpoints validate request data before processing?
+- Do endpoints return 400 for bad input (not 500)?
+- Are internal error details hidden from client responses?
+
+## Report format
+- **[CRITICAL]** `file:line` — exploitable vulnerability, must fix immediately
+- **[HIGH]** `file:line` — security risk, fix before merge
+- **[MEDIUM]** `file:line` — defense-in-depth, fix when possible
