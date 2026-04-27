@@ -53,6 +53,32 @@ Write tests from a committed spec's acceptance criteria. This skill follows a pl
 
 The implementation phase (`/implement`) will write code to make these tests pass. The tests should not be modified during implementation unless they contain a bug.
 
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "I'll write tests after implementation — it's faster" | That's not TDD. Tests written after code confirm what you built, not what you should build. They miss edge cases and encode implementation assumptions. |
+| "This AC is too simple to test" | Simple ACs break too. If it's in the spec, it gets a test. No exceptions. |
+| "I'll combine multiple ACs into one test" | Each AC needs its own test. Combined tests hide which requirement failed and make debugging harder. |
+| "I don't need to mock this service, it's reliable" | Tests must not depend on external services. A flaky test suite is worse than no tests. |
+| "The test plan is obvious, I'll skip the approval step" | The plan is the contract. Skipping approval means the user can't catch missing coverage before tests are written. |
+
+## Red flags (stop and reassess)
+
+- A test passes before implementation exists — it's testing the wrong thing or something already built
+- More than 3 mocks needed for a single test — the feature may have too many dependencies; flag for architecture review
+- Can't figure out how to test an AC — the AC is likely ambiguous; go back to the spec and clarify
+- Test names don't read as behavior descriptions — rewrite them; unclear names hide unclear requirements
+
+## Verification
+
+- [ ] Every acceptance criterion has at least one corresponding test
+- [ ] Every edge case has a corresponding test
+- [ ] All new tests fail (red phase confirmed) — show test runner output
+- [ ] Test names read as behavior descriptions
+- [ ] All external services are mocked
+- [ ] Test file organization follows project conventions
+
 ## Principles
 
 - **Plan first, then execute** — present the test plan for approval before writing code.

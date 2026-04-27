@@ -58,6 +58,32 @@ Review all changes and create a clean, meaningful commit.
 
 7. **Verify** — Run `git log -1` and `git status` to confirm the commit looks correct and no files were missed or accidentally included.
 
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "I'll use `git add .` to save time" | This stages everything, including secrets, build artifacts, and unrelated changes. Always stage by name. |
+| "I'll combine the spec and implementation in one commit" | Spec and code are separate commits — intent and execution must be reviewable independently. |
+| "I'll skip the hooks, they're slow" | Hooks exist to catch mistakes. `--no-verify` bypasses safety checks. Fix the hook issue, don't skip it. |
+| "I'll amend the previous commit to keep history clean" | Amending rewrites history and can destroy work. Create a new commit unless the user explicitly asks to amend. |
+| "This debug code is fine to commit, I'll clean it up later" | Console.logs, commented-out code, and temporary hacks don't belong in commits. Clean up now. |
+
+## Red flags (stop and reassess)
+
+- `.env`, credentials, or API keys in the staged files — never commit secrets
+- More than 10 files in a single commit — is this really one logical change?
+- Spec files and implementation files in the same commit — these should be separate
+- Test files and implementation files in the same commit (for new features) — tests come first
+- Untracked files that weren't part of the task — investigate before including them
+
+## Verification
+
+- [ ] `git status` shows only the intended files staged
+- [ ] Commit message follows the project's prefix convention
+- [ ] No secrets, credentials, or debug code in staged files
+- [ ] `git log -1` confirms the commit looks correct
+- [ ] `git status` after commit shows a clean working tree (or only unrelated changes)
+
 ## Principles
 
 - One logical change per commit. Don't bundle unrelated work.

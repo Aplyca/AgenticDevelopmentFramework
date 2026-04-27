@@ -40,6 +40,30 @@ Run a multi-perspective review of code changes before committing.
    - **Warning**: should fix (potential bugs, convention violations)
    - **Nit**: minor suggestions (style, naming preferences)
 
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "The code looks fine, no issues found" | Every change has something worth noting. If you found zero issues, you didn't look hard enough. At minimum, confirm spec compliance explicitly. |
+| "This is a small change, a quick review is enough" | Small changes cause big bugs. SQL injection is one line. Review every changed line regardless of size. |
+| "I'll skip the security review, this doesn't touch user input" | Data flows through layers. A component that doesn't directly handle input may render unsanitized data passed from one that does. Trace the data flow. |
+| "The tests pass, so the code is correct" | Tests verify behavior, not quality. Passing tests don't catch: convention violations, security issues, unnecessary complexity, or missing edge cases not yet tested. |
+
+## Red flags (stop and reassess)
+
+- Change touches authentication, authorization, or payment code — escalate to a thorough security review
+- New dependency added — does it earn its place? Could the problem be solved without it?
+- Error handling catches and silences exceptions — the root cause may be hidden
+- Code duplicated instead of reusing existing patterns — check if a shared utility already exists
+- Git diff is larger than expected for the spec scope — is unrelated work mixed in?
+
+## Verification
+
+- [ ] Every finding includes: file path, line number, severity, and suggested fix
+- [ ] Spec compliance confirmed — each AC from the spec is addressed in code
+- [ ] Security review completed for any file handling data or external input
+- [ ] Test coverage confirmed — each AC has a corresponding test
+
 ## Principles
 
 - Review against the spec, not personal preference.

@@ -73,3 +73,20 @@ These docs serve as persistent context for AI agents throughout the project. The
     ```
 
 12. **Verify** — Run a quick test: ask `@code-reviewer` to review any existing file. If it references project-specific conventions from CLAUDE.md, the setup is working.
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "I'll fill in the docs later, let's start coding" | Docs are persistent AI context. Skipping them means every future agent interaction starts with less context and produces worse output. |
+| "The README is enough, we don't need ARCHITECTURE.md" | README describes what the project is. ARCHITECTURE.md describes how it works. Agents need both to make good design decisions. |
+| "Security docs aren't needed for a PoC" | PoCs become MVPs. Security assumptions made now become tech debt later. Even a rough threat model prevents the worst mistakes. |
+| "I'll use generic placeholder text for now" | Placeholders teach agents nothing. Even rough, incomplete content is better than `[TODO]` markers that persist for months. |
+
+## Verification
+
+- [ ] AGENTS.md has no remaining `[bracketed placeholders]`
+- [ ] At least one `.claude/rules/` file with `<!-- CUSTOMIZE -->` has been updated
+- [ ] `docs/ARCHITECTURE.md` has real content (not just template text)
+- [ ] `docs/GLOSSARY.md` has at least 5 domain terms
+- [ ] `@code-reviewer` references project-specific conventions when reviewing a file

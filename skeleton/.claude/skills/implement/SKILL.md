@@ -30,11 +30,17 @@ Before running this skill, both the spec and the tests should already be committ
 4. **Check existing code** — Read the files you'll modify. Understand the current patterns, imports, and conventions before making changes. For modifications, understand what already works and must be preserved.
 
 5. **Present the implementation plan** — Show the user:
-   - Which files will be created or modified
-   - What each change does (in plain language)
-   - The order of changes
-   - Which failing test(s) each change addresses
+   - **Task breakdown** (in dependency order):
+     ```
+     - [ ] Create `lib/validate.ts` — input validation helpers [tests: 'validates email', 'rejects empty input']
+     - [ ] Update `app/api/users/route.ts` — add POST handler [tests: 'creates user', 'returns 400 on bad input']
+     - [ ] [P] Update `app/users/page.tsx` — add registration form [tests: 'shows form', 'submits data']
+     - [ ] [P] Add `styles/users.css` — form styling [tests: 'form renders correctly']
+
+     [P] = can run in parallel with the previous task
+     ```
    - Any architectural decisions or trade-offs
+   - For non-trivial features (3+ files): dependency order and which tasks can be parallelized
 
 6. **Get approval** — Wait for the user to approve the implementation plan before writing any code. Iterate if they want changes.
 
@@ -58,6 +64,35 @@ Before running this skill, both the spec and the tests should already be committ
    - Does the code follow project rules (naming, typing, error handling)?
    - No speculative features beyond what the spec says?
    - For modifications: is existing behavior preserved where the spec didn't change?
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "This is a simple change, I'll skip the plan" | Simple changes have the highest rate of unintended side effects. Plan anyway — it takes 30 seconds. |
+| "The tests are too restrictive, I'll adjust them" | Tests define the contract. Fix the implementation, not the test. Only modify a test if it has a genuine bug. |
+| "I'll add error handling later" | Error handling is part of the spec. If the spec lists edge cases, implement them now. "Later" means "never." |
+| "This refactor will make things cleaner" | If it's not in the spec, don't do it. Cleaner ≠ correct. Refactoring is a separate workflow. |
+| "I need to add this dependency to make it easier" | Does the spec require this capability? If not, solve it with what's already available. New dependencies need justification. |
+| "I'll implement this differently than the plan" | The plan was approved. If you see a better approach, update the plan and get re-approval. Don't silently deviate. |
+
+## Red flags (stop and reassess)
+
+- More than 5 files changing for a single spec — is scope creeping beyond what the spec says?
+- Need to modify a test to make it pass — is the implementation wrong, or does the test have a genuine bug?
+- Adding a new dependency — does the spec actually require this capability?
+- Existing tests breaking — are you accidentally changing behavior the spec didn't touch?
+- Implementation feels complex — re-read the spec. Are you building more than what's asked?
+
+## Verification
+
+- [ ] All tests pass — show the test runner output
+- [ ] No type errors — show `tsc --noEmit` output (or equivalent)
+- [ ] Every AC from the spec diff has corresponding code
+- [ ] No speculative features beyond the spec
+- [ ] For UI changes — confirm visual result matches spec (screenshot or manual check)
+- [ ] For API changes — show a sample request/response
+- [ ] Existing tests still pass (no regressions)
 
 ## Principles
 

@@ -42,6 +42,22 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
 
 6. **Invite challenge** — End with: "This is my assessment based on [what I researched]. If you have context I'm missing, let me know — it could change the recommendation."
 
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "Option A is clearly the best, no need to list alternatives" | Every decision has trade-offs. If you can't name alternatives, you haven't researched enough. |
+| "This is what most projects use" | Popularity is not a reason. Explain why it fits THIS project's constraints, stage, and team. |
+| "Let's go with the simpler option to save time" | Simpler isn't always better. If the simpler option creates tech debt or doesn't scale, the time saved is borrowed. |
+| "I don't have enough information to recommend" | Then say what information you'd need and where to find it. An incomplete analysis with clear unknowns is more useful than no analysis. |
+
+## Verification
+
+- [ ] At least 2-3 options presented with concrete pros/cons
+- [ ] Research included project-specific context (architecture docs, existing decisions, constraints)
+- [ ] Recommendation includes rationale and conditions for changing it
+- [ ] Trade-offs are honest — no option is presented as having no downsides
+
 ## Principles
 
 - **Research first, opinion second.** Never lead with a gut feeling. Back up your position.

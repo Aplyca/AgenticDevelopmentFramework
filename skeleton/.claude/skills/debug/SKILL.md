@@ -42,6 +42,30 @@ Systematically investigate an error or unexpected behavior to identify the root 
    - **Suggested fix**: what needs to change (conceptual)
    - **How to verify**: how to confirm the fix works
 
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "I think I know what's wrong, let me just fix it" | Guessing causes whack-a-mole debugging. Diagnose first, fix second. A wrong fix hides the real cause. |
+| "Let me add a try/catch to handle this error" | Catching an error is not fixing it. The root cause still exists and will surface elsewhere. |
+| "It works now after my change, so the bug is fixed" | Coincidental fixes are dangerous. Verify that your explanation accounts for ALL symptoms, not just the one you noticed. |
+| "This is probably a library bug" | It almost never is. Read your own code first. If it truly is a library bug, show the evidence. |
+| "I can't reproduce it, so it's probably resolved" | Intermittent bugs are the most dangerous. Identify the conditions that trigger it, even if you can't reproduce consistently. |
+
+## Red flags (stop and reassess)
+
+- You've been investigating for more than 10 minutes without narrowing down — step back and re-read the error message literally
+- The fix involves adding code but you haven't identified what's wrong — you're patching symptoms, not fixing causes
+- Multiple unrelated things seem broken — you may be on the wrong branch, missing dependencies, or have a stale cache
+- The error message doesn't match the code you're reading — check you're looking at the right file/version
+
+## Verification
+
+- [ ] Root cause identified — specific file, line, and condition
+- [ ] Explanation accounts for ALL observed symptoms
+- [ ] Suggested fix addresses the root cause, not a symptom
+- [ ] "How to verify" step is concrete and actionable
+
 ## Principles
 
 - Never guess. If you can't determine the root cause, say what you've ruled out.

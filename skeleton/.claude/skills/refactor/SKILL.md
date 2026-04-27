@@ -41,6 +41,23 @@ Improve code structure without changing external behavior.
 - Adding abstractions "for the future" (that's speculative design)
 - Reformatting code you didn't change (that's noise in the diff)
 
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "I'll refactor this and add the new feature at the same time" | Refactoring and features are separate workflows with separate commits. Mixing them makes both harder to review and revert. |
+| "Tests aren't needed for this refactor, I'm just renaming" | Renames can break imports, references, and string-based lookups. Run tests. |
+| "I'll add this abstraction now since we'll need it later" | YAGNI. Abstractions for hypothetical futures add complexity today. Refactor for what exists, not what might exist. |
+| "Let me clean up the surrounding code while I'm here" | Scope creep. Only change what was asked. Unrelated cleanup belongs in a separate commit. |
+
+## Verification
+
+- [ ] All tests pass after refactoring — show test runner output
+- [ ] No type errors — show `tsc --noEmit` output (or equivalent)
+- [ ] Public API unchanged (same inputs, outputs, behavior)
+- [ ] No new patterns introduced that don't exist elsewhere in the project
+- [ ] Git diff shows only the intended refactoring, no unrelated changes
+
 ## Principles
 
 - Tests are the safety net. No tests = no refactoring.
