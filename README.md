@@ -62,12 +62,12 @@ docs/              → Architecture, security, infrastructure documentation
 ## The workflow
 
 ```
-Requirement → /write-spec → @architect → Approve → /commit spec → /write-tests → /commit tests → /implement → /review → /commit code
-                                                        ↑                             ↑                ↑
-                                              Spec commit = intent          Test commit = contract   Code makes tests pass
+Requirement → /write-spec → @architect → Approve → /commit spec
+  → /write-tests (plan → approve → write) → /commit tests
+  → /implement (plan → approve → code) → /review → /commit code
 ```
 
-Three workflows: **Project Setup** (one-time docs + config), **Feature Development** (spec → commit spec → write tests → commit tests → implement → review → ship), **Hotfix** (fix → test → ship → backfill spec). See `/spec-workflow` for details.
+Every phase follows a **plan-then-execute** pattern: the AI presents a plan for your approval before writing tests or code. Three workflows: **Project Setup** (one-time docs + config), **Feature Development** (spec → test plan → tests → impl plan → implement → review → ship), **Hotfix** (fix → test → ship → backfill spec). See `/spec-workflow` for details.
 
 ## Skills (prompt playbooks)
 

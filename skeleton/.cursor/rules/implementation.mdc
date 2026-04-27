@@ -1,10 +1,10 @@
 ---
-description: "Implementation guidelines — activate when building features from an approved spec with committed tests"
+description: "Implementation guidelines — plan then execute: present a plan for approval before writing code"
 globs: ""
 alwaysApply: false
 ---
 
-# Implementation from Spec (Make the Tests Pass)
+# Implementation from Spec (Plan Then Execute)
 
 When implementing a feature from a spec:
 
@@ -12,25 +12,26 @@ When implementing a feature from a spec:
 - Spec is committed (`spec:` prefix)
 - Tests are committed (`test:` prefix) and currently failing
 
-## Scope from git diff
-1. Run `git diff` against the spec and test commits to see what changed
-2. **New spec + tests** → implement all acceptance criteria, make all tests pass
-3. **Modified spec + tests** → focus on the diff: new/changed ACs and their failing tests only. Don't re-implement unchanged criteria.
+## Phase 1: Plan (present before writing any code)
+1. Run `git diff` against the spec and test commits to see scope
+2. Run tests — confirm they fail (TDD "red" phase)
+3. Read the full spec and existing code
+4. Present the **implementation plan** to the user:
+   - Which files will be created or modified
+   - What each change does
+   - Which failing test(s) each change addresses
+   - Any architectural decisions or trade-offs
+5. Wait for approval before proceeding
 
-## Process
-1. Run tests — confirm they fail (TDD "red" phase)
-2. Read the full spec for context
-3. Read existing code before modifying — understand current patterns
-4. Plan which files need changes before writing code
-5. Implement — write code that makes each failing test pass
-6. Run tests — they should all pass (TDD "green" phase)
-7. Self-review: does each new/changed AC have corresponding code?
+## Phase 2: Execute (after plan approval)
+1. Write code following the approved plan
+2. Run tests — they should all pass (TDD "green" phase)
+3. Self-review: does each new/changed AC have corresponding code?
 
 ## Rules
+- **Plan first, execute after approval** — never write code without an approved plan
 - Build exactly what the spec says — no more, no less
 - The tests define "done" — when all tests pass, implementation is complete
 - Match existing patterns in neighboring code
-- Handle edge cases listed in the spec
-- Validate at system boundaries
 - Never weaken a test to make it pass — fix the implementation instead
 - For modifications: preserve existing behavior where the spec didn't change

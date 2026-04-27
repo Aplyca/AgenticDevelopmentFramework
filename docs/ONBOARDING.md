@@ -33,23 +33,30 @@ Run `/init-project` when starting a new project. This configures AI tools and cr
 This is the workflow for any planned change. New features and modifications to existing features follow the same process.
 
 ```
-Phase 1: Spec           Phase 2: Test (TDD)         Phase 3: Implement        Phase 4: Ship
-─────────────────       ───────────────────         ──────────────────        ──────────────
-1. Check existing specs  6. Write tests from ACs     9. Read spec+test diffs   13. Commit code
-2. Write/update spec     7. Run tests (all fail)    10. Implement (pass tests) 14. Verify
-3. Architecture (opt.)   8. Commit tests            11. Run tests (all pass)   15. Deploy
-4. Get approval                                     12. Review
-5. Commit spec  ──────────────────────────────────────────────────────
-                  ↑ Spec commit = intent       ↑ Test commit = contract
-                  The test agent reads its      The implementation agent reads
-                  diff to write tests.          both diffs to know what to build.
+Phase 1: Spec            Phase 2: Test (TDD)          Phase 3: Implement          Phase 4: Ship
+─────────────────        ────────────────────         ──────────────────          ──────────────
+1. Check existing specs   6. Plan tests (AC → test)   11. Plan implementation     16. Commit code
+2. Write/update spec      7. Approve test plan        12. Approve impl. plan      17. Verify
+3. Architecture (opt.)    8. Write tests              13. Implement (pass tests)  18. Deploy
+4. Get approval           9. Run tests (all fail)     14. Run tests (all pass)
+5. Commit spec           10. Commit tests             15. Review
+       ↑                        ↑                            ↑
+  Spec commit = intent    Test commit = contract    Code commit = execution
+  Plan: what to build     Plan: how to verify it    Plan: how to build it
 ```
 
-**The key pattern: commit specs AND tests before implementing.** This creates three clean layers:
+**Two key patterns:**
+
+**1. Commit specs and tests before implementing.** This creates three clean layers:
 - The **spec commit** captures **intent** (what we decided to build)
 - The **test commit** captures the **verification contract** (how we'll know it works — tests fail because no code exists yet)
 - The **implementation commit** captures **execution** (code that makes the tests pass)
 - The `git diff` of each commit tells the AI agent the **exact scope** — especially valuable for modifications where only some ACs changed
+
+**2. Plan then execute.** Before writing tests or code, the AI presents a plan for your approval:
+- **Test plan**: maps each AC to specific tests — you approve before tests are written
+- **Implementation plan**: outlines which files change, what each change does, which tests it addresses — you approve before code is written
+- This is compatible with plan-then-execute workflows in tools like Cursor and Antigravity
 
 ### Workflow 3: Hotfix (production-breaking bugs only)
 
@@ -97,54 +104,63 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 ### Day 4-5: First tests and implementation (3-4 hours)
 
 1. With your committed spec, run: `/write-tests [spec name]`
-2. Review the tests — do they cover each acceptance criterion?
-3. Run the tests — they should all fail (this is correct, no code exists yet)
-4. Commit the tests: `git add e2e/ && git commit -m "test: add [feature] tests (red — pending implementation)"`
-5. Now run: `/implement [spec name]`
-6. Notice how the agent reads both the spec diff and the test diff to scope the work
-7. Run tests again — they should all pass now
-8. Run: `/review`
-9. Address any findings, then run: `/commit`
+2. The agent presents a **test plan** (AC → test mapping) — review it and approve
+3. After approval, the agent writes the tests
+4. Run the tests — they should all fail (this is correct, no code exists yet)
+5. Commit the tests: `git add e2e/ && git commit -m "test: add [feature] tests (red — pending implementation)"`
+6. Now run: `/implement [spec name]`
+7. The agent presents an **implementation plan** (files to change, what each change does) — review it and approve
+8. After approval, the agent writes code until all tests pass
+9. Run: `/review`
+10. Address any findings, then run: `/commit`
 
 ## Week 2: The full workflow in practice
 
 ### Feature development cycle
 
 ```
-1. REQUIREMENT
-   You or a stakeholder describes what's needed
+ 1. REQUIREMENT
+    You or a stakeholder describes what's needed
 
-2. SPEC (/write-spec)
-   AI drafts the spec. You review and approve.
-   Key: spec has testable acceptance criteria.
+ 2. SPEC (/write-spec)
+    AI drafts the spec. You review and approve.
+    Key: spec has testable acceptance criteria.
 
-3. ARCHITECTURE REVIEW (@architect)
-   For non-trivial features, get a design review.
-   Key: data flow, component boundaries, API design.
+ 3. ARCHITECTURE REVIEW (@architect)
+    For non-trivial features, get a design review.
+    Key: data flow, component boundaries, API design.
 
-4. COMMIT THE SPEC (/commit)
-   Commit the approved spec with a spec: prefix.
-   This is the handoff between design and testing.
+ 4. COMMIT THE SPEC (/commit)
+    Commit the approved spec with a spec: prefix.
+    This is the handoff between design and testing.
 
-5. WRITE TESTS (/write-tests) — TDD red phase
-   AI writes tests from the spec's acceptance criteria.
-   Run them — they should ALL FAIL (no code exists yet).
+ 5. PLAN TESTS (/write-tests)
+    AI maps each AC to tests and presents the test plan.
+    You review and approve before any tests are written.
 
-6. COMMIT THE TESTS (/commit)
-   Commit failing tests with test: prefix.
-   This is the handoff between testing and implementation.
+ 6. WRITE TESTS — TDD red phase
+    AI writes tests following the approved plan.
+    Run them — they should ALL FAIL (no code exists yet).
 
-7. IMPLEMENT (/implement) — TDD green phase
-   Agent reads git diffs of spec and test commits.
-   Writes code until all tests pass.
+ 7. COMMIT THE TESTS (/commit)
+    Commit failing tests with test: prefix.
+    This is the handoff between testing and implementation.
 
-8. REVIEW (/review)
-   Multi-perspective review: quality, security, UX.
-   Address findings.
+ 8. PLAN IMPLEMENTATION (/implement)
+    AI reads spec + test diffs, outlines which files to change.
+    You review and approve before any code is written.
 
-9. COMMIT (/commit)
-   Commit implementation with feat: or fix: prefix.
-   One logical change per commit.
+ 9. IMPLEMENT — TDD green phase
+    AI writes code following the approved plan.
+    Runs tests until all pass.
+
+10. REVIEW (/review)
+    Multi-perspective review: quality, security, UX.
+    Address findings.
+
+11. COMMIT (/commit)
+    Commit implementation with feat: or fix: prefix.
+    One logical change per commit.
 ```
 
 ### Modifying an existing feature

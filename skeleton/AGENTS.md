@@ -19,11 +19,13 @@ Stack: [List your tech stack. Example: Next.js 15, React 19, TypeScript, Postgre
 2. **Write or update the spec** — Get approval before coding.
 3. **Architecture review** — For non-trivial changes. Skip for small changes.
 4. **Commit the spec** — Commit approved spec BEFORE writing tests or code (`spec:` prefix). This creates a clean diff that scopes all subsequent work.
-5. **Write tests** — Write tests from the spec's acceptance criteria. Every AC becomes at least one test. Run them — they should all fail (no implementation yet).
-6. **Commit tests** — Commit the failing tests (`test:` prefix). This captures the verification contract before any code is written.
-7. **Implement** — Read `git diff` of the spec and test commits to know the exact scope. Write code until all tests pass.
-8. **Review** — Code quality, security, UX as needed.
-9. **Commit and deploy** — `feat:` or `fix:` prefix.
+5. **Plan tests** — Map each AC and edge case to a test. Present the test plan for approval.
+6. **Write tests** — After plan approval, write the tests. Run them — they should all fail (no implementation yet).
+7. **Commit tests** — Commit the failing tests (`test:` prefix). This captures the verification contract before any code is written.
+8. **Plan implementation** — Outline which files to change, what each change does, and which failing tests each change addresses. Present the plan for approval.
+9. **Implement** — After plan approval, write code following the plan until all tests pass.
+10. **Review** — Code quality, security, UX as needed.
+11. **Commit and deploy** — `feat:` or `fix:` prefix.
 
 ### Hotfix (production-breaking bugs only)
 

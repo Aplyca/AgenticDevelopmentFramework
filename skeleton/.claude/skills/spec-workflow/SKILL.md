@@ -39,32 +39,35 @@ Use this for any planned change — new features, modifications to existing feat
    spec: update payment flow — add retry logic
    ```
 
-### Phase 2: Test (TDD — tests before code)
+### Phase 2: Test (TDD — plan, then write tests)
 
-6. **Write tests from the spec** — Use `/write-tests`. Every acceptance criterion and edge case becomes at least one test. Write tests that describe the expected behavior — they define the verification contract.
-7. **Run tests — they should all fail** — This confirms the tests are meaningful. A test that passes before implementation is either testing the wrong thing or testing something that already exists.
-8. **Commit the tests** — Use `/commit` with the `test:` prefix:
-   ```
-   test: add registration flow tests (red — pending implementation)
-   test: add retry logic tests for payment flow (red — pending implementation)
-   ```
+6. **Plan the tests** — Use `/write-tests`. The agent reads the spec and its diff, maps each AC and edge case to a test, and presents the **test plan** (AC → test mapping) for your approval. No tests are written yet.
+7. **Approve the test plan** — Review the mapping. Are all ACs covered? Are edge cases included? Iterate until satisfied.
+8. **Write the tests** — After approval, the agent writes the tests following the plan.
+9. **Run tests — they should all fail** — This confirms the tests are meaningful. A test that passes before implementation is either testing the wrong thing or testing something that already exists.
+10. **Commit the tests** — Use `/commit` with the `test:` prefix:
+    ```
+    test: add registration flow tests (red — pending implementation)
+    test: add retry logic tests for payment flow (red — pending implementation)
+    ```
 
-### Phase 3: Implement (make the tests pass)
+### Phase 3: Implement (plan, then make the tests pass)
 
-9. **Identify scope from diffs** — Run `git diff` against the spec and test commits to see exactly what was specified and what's being verified. This tells you the precise scope.
-10. **Implement** — Use `/implement`. Write code until all tests pass. Build exactly what the spec says — no more, no less.
-11. **Run tests — they should all pass** — If any test fails, fix the implementation (not the test, unless the test has a bug).
-12. **Review** — Use `/review`. Address findings.
+11. **Plan the implementation** — Use `/implement`. The agent reads the spec diff, test diff, and existing code, then presents an **implementation plan** (which files to change, what each change does, in what order) for your approval. No code is written yet.
+12. **Approve the implementation plan** — Review the plan. Does it address all failing tests? Is the approach sound? Iterate until satisfied.
+13. **Implement** — After approval, the agent writes code following the plan until all tests pass.
+14. **Run tests — they should all pass** — If any test fails, fix the implementation (not the test, unless the test has a bug).
+15. **Review** — Use `/review`. Address findings.
 
 ### Phase 4: Ship
 
-13. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
+16. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
     ```
     feat: implement user registration
     fix: add retry logic to payment flow
     ```
-14. **Verify** — For UI changes, run the app and confirm the result matches the spec.
-15. **Deploy** — Follow the project's deployment process.
+17. **Verify** — For UI changes, run the app and confirm the result matches the spec.
+18. **Deploy** — Follow the project's deployment process.
 
 ### Why commit specs and tests before implementing?
 

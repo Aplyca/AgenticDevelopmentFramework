@@ -1,13 +1,13 @@
 ---
 name: implement
-description: Implement a feature by making the committed tests pass. Use after spec AND tests have been committed.
+description: Plan and implement a feature by making the committed tests pass. Use after spec AND tests have been committed.
 user_invocable: true
 argument-hint: "[spec name or path]"
 ---
 
-# Implement from Spec (Make the Tests Pass)
+# Implement from Spec (Plan Then Make Tests Pass)
 
-Build the feature by writing code that satisfies the committed spec and makes the committed tests pass.
+Build the feature by writing code that satisfies the committed spec and makes the committed tests pass. This skill follows a plan-then-execute pattern: first present an implementation plan for approval, then write the code.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Before running this skill, both the spec and the tests should already be committ
 - **Spec commit** (`spec:` prefix) — defines what to build
 - **Test commit** (`test:` prefix) — defines how to verify it (tests should currently be failing)
 
-## Steps
+## Phase 1: Plan
 
 1. **Identify the scope from git diff** — Run `git diff` against the spec and test commits to see:
    - What acceptance criteria were added or changed (from the spec diff)
@@ -29,20 +29,29 @@ Before running this skill, both the spec and the tests should already be committ
 
 4. **Check existing code** — Read the files you'll modify. Understand the current patterns, imports, and conventions before making changes. For modifications, understand what already works and must be preserved.
 
-5. **Plan the implementation** — Before writing code, outline which files need changes and what each change does. For non-trivial features, present the plan to the user for alignment.
+5. **Present the implementation plan** — Show the user:
+   - Which files will be created or modified
+   - What each change does (in plain language)
+   - The order of changes
+   - Which failing test(s) each change addresses
+   - Any architectural decisions or trade-offs
 
-6. **Implement** — Write code that makes each failing test pass. Follow the project's rules and conventions:
+6. **Get approval** — Wait for the user to approve the implementation plan before writing any code. Iterate if they want changes.
+
+## Phase 2: Execute
+
+7. **Implement** — Follow the approved plan. Write code that makes each failing test pass. Follow the project's rules and conventions:
    - Match existing patterns in neighboring code
    - Handle edge cases listed in the spec
    - Validate at system boundaries
    - Handle errors gracefully
 
-7. **Run the tests — they should all pass** — This is the TDD "green" phase. If any test fails:
+8. **Run the tests — they should all pass** — This is the TDD "green" phase. If any test fails:
    - Read the failure message carefully
    - Fix the implementation to satisfy the test
    - Only modify a test if it contains a genuine bug (not to make a failing test pass by weakening it)
 
-8. **Self-review** — Before presenting to the user:
+9. **Self-review** — Before presenting to the user:
    - Does each acceptance criterion (especially new/changed ones from the diff) have corresponding code?
    - Do all tests pass?
    - Are edge cases handled?
@@ -52,6 +61,7 @@ Before running this skill, both the spec and the tests should already be committ
 
 ## Principles
 
+- **Plan first, then execute** — present the implementation plan for approval before writing code.
 - Build exactly what the spec says — no more, no less.
 - The tests define "done". When all tests pass, the implementation is complete.
 - For modifications, the git diffs are your scope. Changed ACs = changed code. New tests = new code. Unchanged ACs = unchanged code.
