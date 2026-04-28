@@ -1,6 +1,6 @@
 # Worked examples
 
-Concrete, end-to-end walkthroughs of the spec → test → implement → review → commit cycle.
+Concrete, end-to-end walkthroughs of the spec → tests → docs → implement → review → commit cycle.
 
 These examples use **Next.js (App Router) + Contentful + Vercel**, the most common stack at our shop. The patterns transfer to any stack — only the file paths and code idioms change.
 

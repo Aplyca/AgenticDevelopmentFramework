@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Architecture Review
 
-When reviewing architecture and design, check:
+When reviewing architecture and design, read the relevant spec — particularly the **Technical**, **Security**, **Performance**, and **Deployment** sections — to understand intended boundaries and constraints. Check:
 
 ## Data flow
 - Does data flow through established layers? (client → API → service)

@@ -22,7 +22,7 @@ Before bypassing the normal flow, sanity-check:
 
 - Is the issue affecting users *right now*? (Not "could affect" — *is*.)
 - Is rolling back to the previous deploy faster and safer than fixing forward? If yes, **roll back first**, then debug at leisure.
-- Is the cost of waiting 1-2 hours for a normal spec → test → implement cycle worse than the cost of a less rigorous fix?
+- Is the cost of waiting 1-2 hours for a normal spec → tests → docs → implement cycle worse than the cost of a less rigorous fix?
 
 If you answered no to all three, you're not in a hotfix. Use the [Feature Development workflow](../ONBOARDING.md) instead.
 

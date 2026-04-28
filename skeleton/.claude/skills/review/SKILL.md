@@ -16,26 +16,31 @@ Run a multi-perspective review of code changes before committing.
 2. **Identify what changed** — Check `git diff` and `git status` to see all modified and new files.
 
 3. **Code quality review** — For each changed file, check:
-   - Does it match the spec's acceptance criteria?
+   - Does it match the spec's acceptance criteria AND requirements from every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment)?
    - Does it follow project conventions in `.claude/rules/`?
    - Are there type safety issues, missing error handling, or naming inconsistencies?
    - Is there unnecessary complexity, premature abstraction, or speculative code?
 
-4. **Security review** — For files that handle data or external input:
+4. **Doc accuracy review** — If pre-implementable docs were committed for this feature (admin guides, API contracts, end-user copy):
+   - Do the committed docs still match the implementation?
+   - If the implementation diverged, were doc updates folded into the `feat:` commit (called out in body) OR captured in a separate `docs:` commit?
+   - Flag any silent drift between docs and code.
+
+5. **Security review** — For files that handle data or external input:
    - Any injection vulnerabilities (user input in HTML, SQL, shell, headers)?
    - Any credentials or secrets exposed in client code or committed files?
    - Is input validated at system boundaries?
    - Are error details hidden from client responses?
 
-5. **UX review** — For UI changes:
-   - Does the UI match the spec's user stories?
+6. **UX review** — For UI changes:
+   - Does the UI match the spec's user stories AND committed user-facing docs (admin guides, copy defaults)?
    - Are loading, empty, and error states handled?
    - Is the language consistent with the rest of the app?
    - Are interactive elements accessible (semantic HTML, keyboard support)?
 
-6. **Test coverage** — Are there tests for each acceptance criterion? Do existing tests still pass after the changes?
+7. **Test coverage** — Are there tests for each acceptance criterion AND each testable requirement from filled Security / Accessibility / Performance / Privacy / Analytics sections? Do existing tests still pass after the changes?
 
-7. **Report findings** — Present issues grouped by severity:
+8. **Report findings** — Present issues grouped by severity:
    - **Critical**: must fix before commit (security issues, spec violations, crashes)
    - **Warning**: should fix (potential bugs, convention violations)
    - **Nit**: minor suggestions (style, naming preferences)
@@ -60,7 +65,8 @@ Run a multi-perspective review of code changes before committing.
 ## Verification
 
 - [ ] Every finding includes: file path, line number, severity, and suggested fix
-- [ ] Spec compliance confirmed — each AC from the spec is addressed in code
+- [ ] Spec compliance confirmed — each AC AND each requirement from filled sections (Security, A11y, Perf, etc.) is addressed in code
+- [ ] Doc accuracy confirmed — committed pre-implementable docs match the implementation, or divergences are captured in `docs:` commits / called out in the `feat:` commit
 - [ ] Security review completed for any file handling data or external input
 - [ ] Test coverage confirmed — each AC has a corresponding test
 

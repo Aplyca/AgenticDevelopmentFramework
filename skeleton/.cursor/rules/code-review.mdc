@@ -9,10 +9,14 @@ alwaysApply: false
 When reviewing code, check:
 
 ## Correctness
-- Does the code match the spec? Check each acceptance criterion.
+- Does the code match the spec? Check each acceptance criterion AND requirements from every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment).
 - Are edge cases from the spec handled?
 - Are external data sources validated? (null checks, type guards at system boundaries)
 - Is error handling present? (API endpoints catch errors, frontend handles fetch failures)
+
+## Doc accuracy
+- Do committed pre-implementable docs (admin guides, API contracts, end-user copy) still match the implementation? If the implementation diverged, were docs updated in a `docs:` commit OR called out in the `feat:` commit body?
+- No silent drift between docs and code.
 
 ## Framework conventions
 - Does the code follow patterns established in `AGENTS.md` and the project?

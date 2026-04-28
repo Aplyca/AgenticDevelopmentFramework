@@ -9,11 +9,20 @@ alwaysApply: false
 Tests are written from spec acceptance criteria BEFORE implementation code exists. They define the verification contract.
 
 ## TDD workflow
-1. Read the spec's acceptance criteria and edge cases
+1. Read the spec — every filled section, not just Functional. Multi-perspective spec model means test scope comes from MORE than just ACs:
+   - **Functional** — every AC, every edge case (always)
+   - **Testing** — explicit test requirements (axe scans, perf tests, manual passes)
+   - **Security** — testable mitigations (rate limit, validation, auth checks)
+   - **Accessibility** — testable a11y requirements (axe scan, ARIA roles, keyboard navigation)
+   - **Performance** — testable SLAs (response time, bundle size — usually a separate test type)
+   - **Privacy** — testable data-handling behaviors
+   - **Analytics** — testable event firing
+   - **Localization** — testable per-locale rendering
+   Skip sections marked Not applicable / Standard applies.
 2. Write tests that describe expected behavior (code doesn't exist yet)
 3. Run tests — they should all fail (red phase)
 4. Commit tests with `test:` prefix
-5. Then implement code to make tests pass (green phase — separate commit)
+5. Next phase is docs (write user-facing docs, if any pre-implementable docs are in the spec) — then implement code to make tests pass
 
 ## Structure
 - One test file per feature area
@@ -24,6 +33,7 @@ Tests are written from spec acceptance criteria BEFORE implementation code exist
 ## What to test
 - User flows matching spec acceptance criteria
 - Edge cases listed in specs
+- Testable requirements from Security, Accessibility, Performance, Privacy, Analytics, Localization sections
 - Error states and empty states
 - View transitions, form submissions, navigation
 

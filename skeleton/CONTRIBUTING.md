@@ -10,15 +10,16 @@ Welcome! We're glad you want to contribute. This document explains how to get st
 
 ## Development workflow
 
-This project follows **spec-driven, test-driven development**:
+This project follows **multi-perspective spec-driven, test-driven, docs-first development**:
 
 1. **Check for existing specs** — read `specs/` before starting
-2. **Write or update the spec** — if no spec covers your change, write one first
-3. **Get approval** — specs must be reviewed before implementation begins
-4. **Implement** — build according to the approved spec
-5. **Write tests** — every acceptance criterion gets a test
-6. **Review** — run code and security review before committing
-7. **Open a PR** — one logical change per pull request
+2. **Write or update the spec** — use the multi-perspective spec template at `specs/_template.md`. Required sections (Business, Functional, Out of scope, Security, Testing, Documentation, plus Accessibility for UI and Privacy for personal data) are enforced before approval. See `docs/SPEC-MODEL.md` for the model.
+3. **Get spec approval** — specs must be reviewed before tests, docs, or code begin. Commit with `spec:` prefix.
+4. **Write tests** — every acceptance criterion AND every testable requirement (Security, A11y, Perf) gets a test. Tests are written BEFORE implementation (TDD). Run them — they should fail. Commit with `test:` prefix.
+5. **Write user-facing docs** — if the spec lists pre-implementable docs (admin guides, API contracts, end-user copy defaults), write them now. Commit with `docs:` prefix. Skip cleanly if none.
+6. **Implement** — build according to the approved spec until all tests pass. Reconcile docs with reality as you go (small adjustments fold into `feat:` commit; meaningful revisions get a separate `docs:` commit).
+7. **Review** — run code, security, and (for UI) UX review before committing
+8. **Open a PR** — one logical change per pull request
 
 ## Code standards
 
@@ -38,7 +39,7 @@ test: add e2e tests for email persistence flow
 docs: update architecture overview with new data flow
 ```
 
-Prefixes: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`.
+Prefixes: `spec`, `test`, `docs`, `feat`, `fix`, `refactor`, `chore`, `style`. The first four follow the workflow phase order; see `.claude/rules/git-workflow.md` for details.
 
 ## Pull request process
 

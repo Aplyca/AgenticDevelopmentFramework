@@ -1,6 +1,6 @@
 # AI-Assisted Development Framework
 
-This is the **source repository** for the AI-Assisted Development Framework — a production-grade framework for professional AI-assisted, spec-driven, test-driven development on any project.
+This is the **source repository** for the AI-Assisted Development Framework — a production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development** on any project.
 
 It is NOT a software application. It contains a portable project skeleton, documentation, and a team onboarding guide. Do not try to build, run, or test it.
 

@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Security Review
 
-When auditing code for security, check:
+When auditing code for security, read the relevant spec — particularly the **Security** and **Privacy** sections — to understand the agreed mitigations and what's marked "Standard applies" vs feature-specific. Check:
 
 ## Injection vulnerabilities (CRITICAL)
 - XSS: any `dangerouslySetInnerHTML`, `innerHTML`, or equivalent with user data?

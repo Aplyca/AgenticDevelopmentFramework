@@ -1,6 +1,6 @@
 # Worked example: Newsletter signup
 
-This walkthrough shows the full spec-driven, test-driven, AI-assisted cycle for a small but realistic feature on a **Next.js + Contentful + Vercel** site.
+This walkthrough shows the full **multi-perspective spec-driven, test-driven, docs-first AI-assisted** cycle for a small but realistic feature on a **Next.js + Contentful + Vercel** site.
 
 **Goal:** add a newsletter signup form to article pages. Copy comes from Contentful so marketing can edit it. Submissions go through a Next.js Route Handler that rate-limits and forwards to the email service provider.
 

@@ -4,29 +4,36 @@ globs: ""
 alwaysApply: false
 ---
 
-# Implementation from Spec (Plan Then Execute)
+# Implementation from Spec (Plan Then Execute; Reconcile Docs)
 
 When implementing a feature from a spec:
 
 ## Prerequisites
 - Spec is committed (`spec:` prefix)
 - Tests are committed (`test:` prefix) and currently failing
+- Pre-implementable docs are committed (`docs:` prefix) — if the spec's Documentation Pre-implementable section lists any. (If not applicable, no docs commit required.)
 
 ## Phase 1: Plan (present before writing any code)
-1. Run `git diff` against the spec and test commits to see scope
+1. Run `git diff` against the spec, test, and docs commits to see scope
 2. Run tests — confirm they fail (TDD "red" phase)
-3. Read the full spec and existing code
-4. Present the **implementation plan** to the user:
+3. Read the full spec — every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment, etc., not just Functional)
+4. Read committed pre-implementable docs (admin guides, API contracts, etc.) — they describe how the feature is intended to be used and should drive implementation thinking
+5. Read existing code to match patterns
+6. Present the **implementation plan** to the user:
    - Which files will be created or modified
    - What each change does
    - Which failing test(s) each change addresses
+   - Which doc claims each change satisfies (or which docs may need reconciliation)
    - Any architectural decisions or trade-offs
-5. Wait for approval before proceeding
+7. Wait for approval before proceeding
 
 ## Phase 2: Execute (after plan approval)
 1. Write code following the approved plan
 2. Run tests — they should all pass (TDD "green" phase)
-3. Self-review: does each new/changed AC have corresponding code?
+3. **Reconcile docs with reality** — re-read committed docs. Update any claims that turned out inaccurate (renamed field, edge case discovered, UX adjustment). This is normal, not exceptional.
+   - Small adjustments: fold into the `feat:` commit, call out in the message body
+   - Meaningful revisions: separate `docs:` commit before the `feat:` commit
+4. Self-review: does each new/changed AC have corresponding code? Does the implementation address requirements from every filled spec section? Are docs accurate?
 
 ## Rules
 - **Plan first, execute after approval** — never write code without an approved plan
@@ -34,4 +41,5 @@ When implementing a feature from a spec:
 - The tests define "done" — when all tests pass, implementation is complete
 - Match existing patterns in neighboring code
 - Never weaken a test to make it pass — fix the implementation instead
+- Never ship code that contradicts committed docs without updating the docs
 - For modifications: preserve existing behavior where the spec didn't change

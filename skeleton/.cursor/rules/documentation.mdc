@@ -1,0 +1,64 @@
+---
+description: "Documentation guidelines — activate when writing user-facing docs (admin guides, API contracts, end-user copy defaults). Docs-first delivery: write before implementation, update during."
+globs: "docs/admin/**,docs/copy/**,docs/runbooks/**,docs/support/**,openapi/**,packages/*/README.md"
+alwaysApply: false
+---
+
+# Documentation (Docs-First Delivery)
+
+This project uses **docs-first delivery**: user-facing docs are written and committed before implementation, where they drive implementation thinking by forcing articulation of how the feature will be used. Docs are **living artifacts** — updated deliberately during implementation when reality moves.
+
+The discipline isn't "code must conform to original docs". It's "never let docs go stale".
+
+## Phase 3 — Write user-facing docs (before code)
+
+Run after the spec and tests are committed, before implementation.
+
+### Prerequisites
+- Spec committed (`spec:`) — Documentation Pre-implementable subsection lists what to write
+- Tests committed (`test:`) — describe exact behavior the docs should reflect
+
+### Skip cleanly when
+The spec's Documentation Pre-implementable subsection is empty, marked Not applicable, or only references post-implementable docs (JSDoc, runbooks needing real data). In that case, no docs phase — proceed to implement.
+
+### Phase 1: Plan
+1. Read the spec's Documentation section + Functional section + committed tests
+2. Read existing docs to match tone, structure, length
+3. Present a doc plan: which files, audience, length, what each draws from
+4. Wait for approval
+
+### Phase 2: Execute
+1. Write the docs following the plan
+2. Source every claim from a spec AC, edge case, or test
+3. For UI/code that doesn't exist yet, describe expected behavior — don't fabricate examples or screenshots
+4. Use `docs/GLOSSARY.md` for consistent terminology
+5. Commit with `docs:` prefix
+
+## Phase 4 — Reconcile docs during implementation
+
+Doc updates during implementation are **normal**, not exceptional. As the chosen approach takes shape, watch for divergence from the docs. When you find one:
+
+- **Small adjustments** (a sentence, a renamed field): fold into the `feat:` commit, call out in the message body
+- **Meaningful revisions** (whole new section, behavior change): commit as a separate `docs:` before the `feat:` commit. For substantial revisions, re-invoke the docs planning step (`/write-docs` in update mode for Claude Code users).
+
+**Never** ship code that contradicts committed docs without updating the docs.
+
+## Pre-implementable vs post-implementable
+
+| Pre-implementable (write before code) | Post-implementable (backfill after code) |
+|---|---|
+| Admin / operator guides | Code-level JSDoc / inline comments |
+| API contracts (OpenAPI, GraphQL, type signatures) | Runbooks with real metrics / dashboards |
+| End-user copy / microcopy defaults | Tutorials with screenshots |
+| Public-facing READMEs / SDK docs | Troubleshooting guides built from real failure modes |
+| Architecture sketches for non-trivial features | |
+
+## Rules
+
+- Docs drive implementation thinking — write them sharp, not loose
+- Source every claim from spec + tests + existing docs — never fabricate
+- Match the project's existing doc tone, structure, and length
+- For modifications: only write/update docs for new/changed behavior; existing docs for unchanged behavior stay as-is
+- Doc commits (whether Phase 3 initial or Phase 4 reconciliation) use the `docs:` prefix
+
+See `docs/SPEC-MODEL.md` for how this fits into the larger workflow.

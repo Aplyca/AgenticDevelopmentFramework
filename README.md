@@ -111,7 +111,7 @@ Skills standardize how your team interacts with AI. In Claude Code, invoke with 
 ## Team onboarding
 
 - **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — week-by-week guide to adopting the workflow.
-- **[docs/examples/](docs/examples/)** — full end-to-end worked examples on a Next.js + Contentful + Vercel stack. Start with [newsletter-signup](docs/examples/newsletter-signup/) to see spec → tests → implement → review → commit on a real feature.
+- **[docs/examples/](docs/examples/)** — full end-to-end worked examples on a Next.js + Contentful + Vercel stack. Start with [newsletter-signup](docs/examples/newsletter-signup/) to see spec → tests → docs → implement → review → commit on a real feature.
 - **[docs/scenarios/](docs/scenarios/)** — one-page playbooks for common situations: [modifying an existing feature](docs/scenarios/modifying-existing-feature.md), [hotfix](docs/scenarios/hotfix.md), [refactor](docs/scenarios/refactor.md), [debugging](docs/scenarios/debugging.md).
 
 ## Structure

@@ -1,6 +1,6 @@
 # AI-Assisted Development Onboarding
 
-This guide helps developers adopt the spec-driven, test-driven, AI-assisted workflow used in this project.
+This guide helps developers adopt the **multi-perspective spec-driven, test-driven, docs-first AI-assisted** workflow used in this project.
 
 ## The methodology
 
@@ -113,7 +113,7 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 5. Get the spec approved by a teammate
 6. **Commit the spec**: `git add specs/your-spec.md && git commit -m "spec: add [feature] spec"`
 
-> **Read a worked example first.** Before doing your own, walk through [docs/examples/newsletter-signup/](../docs/examples/newsletter-signup/) — a complete cycle (spec → tests → implement → review → commit) on a Next.js + Contentful + Vercel feature. ~15 minutes; saves hours of trial and error.
+> **Read a worked example first.** Before doing your own, walk through [docs/examples/newsletter-signup/](../docs/examples/newsletter-signup/) — a complete cycle (spec → tests → docs → implement → review → commit) on a Next.js + Contentful + Vercel feature. ~15 minutes; saves hours of trial and error.
 
 ### Day 4-5: First tests, docs, and implementation (3-4 hours)
 

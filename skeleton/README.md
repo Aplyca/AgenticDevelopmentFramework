@@ -47,14 +47,15 @@ The app will be available at `http://localhost:[port]`.
 
 ## Development workflow
 
-This project uses **spec-driven, test-driven, AI-assisted development**.
+This project uses **multi-perspective spec-driven, test-driven, docs-first AI-assisted development**.
 
-1. **Spec first** — check `specs/` for existing specs. Write or update one before coding.
-2. **Test next** — write tests that verify the spec's acceptance criteria.
-3. **Implement** — build to pass the tests.
-4. **Review** — run `@code-reviewer` and `@security-reviewer` before committing.
+1. **Spec first** — check `specs/` for existing specs. Write or update one using the multi-perspective spec model (see `docs/SPEC-MODEL.md`); required sections are enforced before approval. Commit (`spec:`).
+2. **Tests next** — write tests that verify the spec's acceptance criteria AND testable requirements from filled Security / Accessibility / Performance / Privacy sections. Run them — they should fail. Commit (`test:`).
+3. **Docs next** — if the spec lists pre-implementable docs (admin guides, API contracts, end-user copy defaults), write them now to drive implementation thinking. Commit (`docs:`). Skip cleanly if none.
+4. **Implement** — build to pass the tests. Reconcile docs with reality as you go (small adjustments fold into the `feat:` commit; meaningful revisions get a separate `docs:` commit).
+5. **Review** — run `@code-reviewer`, `@security-reviewer`, and (for UI) `@ux-reviewer` before committing.
 
-See [docs/ONBOARDING.md](docs/ONBOARDING.md) for the full workflow and team onboarding guide.
+See [docs/ONBOARDING.md](docs/ONBOARDING.md) for the full workflow and team onboarding guide, and [docs/SPEC-MODEL.md](docs/SPEC-MODEL.md) for the multi-perspective spec model.
 
 ### AI agents
 
