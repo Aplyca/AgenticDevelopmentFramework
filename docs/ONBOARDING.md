@@ -74,9 +74,9 @@ For critical production issues that need immediate resolution:
 1. Fix the issue — use `/debug` for root cause analysis
 2. Write a regression test
 3. Commit and deploy
-4. Backfill the spec afterward if the fix changes behavior
+4. Backfill the spec AND any user-facing docs afterward if the fix changes behavior
 
-Hotfixes skip the spec-first process because speed matters. Always backfill afterward.
+Hotfixes skip the spec-first and docs-first process because speed matters. Always backfill afterward — undocumented behavior changes erode trust in the spec and docs.
 
 ## Week 1: Fundamentals
 
@@ -161,34 +161,61 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 
  7. COMMIT THE TESTS (/commit)
     Commit failing tests with test: prefix.
-    This is the handoff between testing and implementation.
+    This is the handoff between testing and docs.
 
- 8. PLAN IMPLEMENTATION (/implement)
-    AI reads spec + test diffs, outlines which files to change.
+ 8. PLAN DOCS (/write-docs)
+    AI reads the spec's Documentation Pre-implementable section + tests
+    and presents a doc plan (which doc files, audience, length).
+    Skips cleanly if no pre-implementable docs in the spec.
+    You review and approve before any docs are written.
+
+ 9. WRITE DOCS — docs-first phase
+    AI writes user-facing docs (admin guides, API contracts,
+    end-user copy defaults). Sources every claim from spec + tests.
+
+10. COMMIT THE DOCS (/commit)
+    Commit docs with docs: prefix.
+    This is the handoff between docs and implementation.
+
+11. PLAN IMPLEMENTATION (/implement)
+    AI reads spec + test + docs diffs, outlines which files to change
+    and which doc claims each change satisfies.
     You review and approve before any code is written.
 
- 9. IMPLEMENT — TDD green phase
+12. IMPLEMENT — TDD green phase + reconcile docs
     AI writes code following the approved plan.
     Runs tests until all pass.
+    Reconciles docs with reality: small fixes folded into the feat:
+    commit (called out in the body), meaningful revisions land as a
+    separate docs: commit before the feat: commit.
+    This is normal — most features need at least minor doc updates here.
 
-10. REVIEW (/review)
-    Multi-perspective review: quality, security, UX.
+13. REVIEW (/review)
+    Multi-perspective review: quality, security, UX, doc accuracy.
     Address findings.
 
-11. COMMIT (/commit)
+14. COMMIT (/commit)
     Commit implementation with feat: or fix: prefix.
     One logical change per commit.
+
+15. (optional) BACKFILL POST-IMPLEMENTABLE DOCS
+    JSDoc, runbooks with real metrics, troubleshooting from real
+    failure modes — written after code, in a follow-up docs: commit.
 ```
 
 ### Modifying an existing feature
 
-Same workflow as above, but:
+Same workflow as above, but scoped by diffs:
 1. Update the existing spec (don't create a new one)
 2. Commit the spec update — the diff shows exactly what changed
-3. Write/update tests for the new or changed ACs only. Run them — new tests fail, existing tests still pass.
+3. Write/update tests for the new or changed requirements only. Run them — new tests fail, existing tests still pass.
 4. Commit the tests
-5. Run `/implement` — the agent reads both diffs and only modifies code for changed acceptance criteria and their failing tests
-6. Existing behavior (unchanged ACs and their passing tests) is preserved automatically
+5. Run `/write-docs` — the agent updates user-facing docs (admin guides, etc.) for the changed behavior. Skips cleanly if the spec update didn't touch the Documentation section.
+6. Commit the docs (if any were written)
+7. Run `/implement` — the agent reads all three diffs (spec, tests, docs) and only modifies code for changed requirements
+8. Existing behavior (unchanged ACs, passing tests, untouched docs) is preserved automatically
+
+See [docs/scenarios/modifying-existing-feature.md](../docs/scenarios/modifying-existing-feature.md) for the full playbook with a concrete example.
 
 ### When something breaks
 
@@ -198,6 +225,8 @@ Same workflow as above, but:
 3. Write a test that reproduces the bug
 4. Fix the root cause
 5. Verify the test passes
+6. If the fix changes documented behavior, backfill the spec and any
+   affected user-facing docs (admin guides, API contracts, copy defaults).
 ```
 
 ### When refactoring
@@ -224,9 +253,9 @@ Not every change is a brand-new feature. The patterns differ for these common si
 **Problem**: AI guesses your intention, adds features you didn't ask for, misses edge cases.
 **Fix**: Always write a spec first, even for small changes. The spec is the contract.
 
-### 2. Skipping the spec or test commit
-**Problem**: Implementation agent doesn't know the precise scope, may over- or under-build. Without committed tests, there's no objective "done" criteria.
-**Fix**: Always commit the spec, then write and commit failing tests, before running `/implement`. The spec diff defines scope, the test diff defines "done".
+### 2. Skipping the spec, test, or docs commit
+**Problem**: Implementation agent doesn't know the precise scope, may over- or under-build. Without committed tests, there's no objective "done" criteria. Without committed pre-implementable docs (when the spec lists them), the implementation has no user-facing contract to honor and the docs end up either skipped entirely or written too late.
+**Fix**: Always commit in order — spec, then failing tests, then docs (or skip cleanly), THEN run `/implement`. The spec diff defines scope, the test diff defines "done", the docs diff defines what users were promised.
 
 ### 3. Skipping code review
 **Problem**: AI-generated code may look correct but violate project conventions or introduce subtle bugs.

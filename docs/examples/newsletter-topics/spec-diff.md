@@ -127,10 +127,11 @@
 
 ## Why this matters
 
-The two diffs that come next — the test diff (Phase 2) and the implementation diff (Phase 3) — read this spec diff to understand scope. Because:
+The three diffs that come next — the test diff (Phase 2), the doc diff (Phase 3, since the Documentation section gained an entry), and the implementation diff (Phase 4) — read this spec diff to understand scope. Because:
 
 - **AC 1 didn't change**, the existing test for AC 1 stays. AC 1a is new, gets a new test.
 - **AC 2 changed (added a clause)**, the existing test for AC 2 stays (covers the original clause), a new test covers the new clause.
 - **ACs 3-7 didn't change**, none of their tests change, none of the code that satisfies them changes.
+- **The Documentation section gained one Pre-implementable entry** (admin guide section for topics), so `/write-docs` updates only that section — the rest of the admin guide stays as-is.
 
-If we'd rewritten the spec from scratch instead of diffing it, we'd lose this scope signal — and the implementation agent might happily refactor the entire feature.
+If we'd rewritten the spec from scratch instead of diffing it, we'd lose this scope signal — and the test, doc, and implementation agents might happily redo the entire feature.
