@@ -1,14 +1,20 @@
 # AI-Assisted Development Framework
 
-A production-grade framework for professional AI-assisted, spec-driven, test-driven development. Ships as a portable project skeleton (drop into any codebase), an enforced multi-perspective spec model, specialized AI agents, workflow skills, engineering standards, and a complete team onboarding path.
+A production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development.** Ships as a portable project skeleton (drop into any codebase), an enforced multi-perspective spec model, a docs-first delivery workflow, specialized AI agents, workflow skills, engineering standards, and a complete team onboarding path.
+
+The framework is built on three reinforcing disciplines:
+- **Multi-perspective spec-driven design** — every feature spec captures input from all relevant roles (business, functional, security, accessibility, privacy, design, performance, and more) in one document, with required sections enforced before approval.
+- **Test-driven development** — tests are written from the spec and committed before implementation; they define "done".
+- **Docs-first delivery** — user-facing docs (admin guides, API contracts, end-user copy) are written from the spec and tests and committed before implementation. Docs drive implementation thinking and are deliberately updated when reality shifts during implementation — they're living artifacts, never frozen contracts.
 
 Works with Claude Code natively; supports Cursor, Antigravity, GitHub Copilot, Aider, and Windsurf via the [AGENTS.md](https://agents.md) standard.
 
 ## What's included
 
 - **Multi-perspective spec model** — every feature spec captures input from all relevant roles (business, functional, security, accessibility, privacy, design, performance, testing, documentation, deployment) in one document. Required sections are enforced by the AI before a spec can be approved. ([What and why](skeleton/docs/SPEC-MODEL.md))
+- **Docs-first delivery** — user-facing docs are written and committed BEFORE implementation, where they drive implementation thinking by forcing the team to articulate how the feature will be used. Docs are then updated deliberately during implementation when reality moves. The new `/write-docs` skill plans the docs from the spec + tests, writes them, and supports an update mode for substantial mid-implementation revisions.
 - **7 specialized AI agents** — spec-writer, code-reviewer, security-reviewer, test-runner, architect, debugger, ux-reviewer
-- **10 workflow skills** — reusable prompt playbooks for common tasks (init, spec, implement, test, review, debug, refactor, commit, evaluate)
+- **11 workflow skills** — reusable prompt playbooks for common tasks (init, spec, implement, test, docs, review, debug, refactor, commit, evaluate)
 - **9 engineering standards** — code quality, testing, security, git workflow, architecture, UI/UX, deployment, performance, observability
 - **Documentation templates** — architecture, security, infrastructure, glossary, ADRs, dev setup
 - **Enforcement hooks** — automated quality gates that prevent common mistakes
@@ -78,10 +84,12 @@ docs/              → Architecture, security, infrastructure documentation
 ```
 Requirement → /write-spec → @architect → Approve → /commit spec
   → /write-tests (plan → approve → write) → /commit tests
+  → /write-docs (plan → approve → write)  → /commit docs    [skips if no pre-impl docs]
   → /implement (plan → approve → code) → /review → /commit code
+  → backfill post-impl docs (JSDoc, runbooks)
 ```
 
-Every phase follows a **plan-then-execute** pattern: the AI presents a plan for your approval before writing tests or code. Three workflows: **Project Setup** (one-time docs + config), **Feature Development** (spec → test plan → tests → impl plan → implement → review → ship), **Hotfix** (fix → test → ship → backfill spec). See `/spec-workflow` for details.
+Every phase follows a **plan-then-execute** pattern: the AI presents a plan for your approval before writing tests, docs, or code. Three workflows: **Project Setup** (one-time docs + config), **Feature Development** (spec → tests → docs → implement → review → ship), **Hotfix** (fix → test → ship → backfill spec + docs). See `/spec-workflow` for details.
 
 ## Skills (prompt playbooks)
 
@@ -91,8 +99,9 @@ Skills standardize how your team interacts with AI. In Claude Code, invoke with 
 |---|---|
 | `/init-project` | First-time project setup — customize CLAUDE.md, rules, README |
 | `/write-spec` | Starting a new feature — draft a spec from requirements |
-| `/implement` | After spec is approved — build the feature |
-| `/write-tests` | After implementation — write tests from spec ACs |
+| `/write-tests` | After spec is committed — plan tests from ACs (TDD red phase) |
+| `/write-docs` | After tests are committed — write pre-implementable user-facing docs (skips cleanly if none in the spec) |
+| `/implement` | After spec, tests, and docs are committed — build the feature |
 | `/review` | Before committing — multi-perspective code review |
 | `/debug` | When something breaks — systematic root cause analysis |
 | `/refactor` | Cleaning up code — safe restructuring with test coverage |

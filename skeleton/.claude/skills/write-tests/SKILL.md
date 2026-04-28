@@ -72,7 +72,9 @@ Write tests from a committed spec's acceptance criteria. This skill follows a pl
 
 ## After tests are committed
 
-The implementation phase (`/implement`) will write code to make these tests pass. The tests should not be modified during implementation unless they contain a bug.
+The next phase is `/write-docs` (docs-first), which will write any pre-implementable user-facing docs from the spec's Documentation section. If the spec has no pre-implementable docs, `/write-docs` skips cleanly and the workflow proceeds to `/implement`.
+
+The implementation phase (`/implement`) will then write code to make these tests pass and reconcile the committed docs with reality (updating docs deliberately when implementation diverges). The tests should not be modified during implementation unless they contain a bug.
 
 ## Rationalizations (do not accept these)
 

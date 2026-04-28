@@ -134,7 +134,7 @@ Get an expedited review (one teammate, look-once, ship). Merge and confirm Verce
 
 Don't trust that the deploy worked — open the affected page, watch the logs for one minute, confirm the error rate drops. If you have a synthetic monitor for this, watch it recover.
 
-### 9. Backfill the spec
+### 9. Backfill the spec AND any user-facing docs
 
 This is the step everyone skips. Don't.
 
@@ -142,7 +142,13 @@ This is the step everyone skips. Don't.
 /write-spec update specs/article-rendering.md to document the field-rename tolerance and unavailable state
 ```
 
-Open a follow-up PR with just the spec update. Mention the hotfix commit in the PR body. The point: future readers see the design intent, not just the patch.
+If the fix changed any user-facing behavior that's documented (admin guides, API contracts, troubleshooting), update those docs too:
+
+```
+/write-docs article-rendering
+```
+
+Open a follow-up PR with the spec update and doc updates together. Mention the hotfix commit in the PR body. The point: future readers see the design intent and the current user-facing behavior, not just the patch.
 
 If the underlying problem (editors renaming fields without coordinating with engineering) is recurring, this is also the time to open a separate issue or ADR for the systemic fix.
 

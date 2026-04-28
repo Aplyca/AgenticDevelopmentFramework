@@ -10,6 +10,20 @@ paths:
 - Explain *why* the change was made, not *what* changed (the diff shows the what).
 - One logical change per commit. Don't mix unrelated changes in a single commit.
 
+## Commit prefixes (feature-development workflow)
+
+The framework uses these prefixes in a specific order during feature development:
+
+| Prefix | When | What it captures |
+|---|---|---|
+| `spec:` | Phase 1 — committed BEFORE tests | Intent — what to build, scoped by the diff |
+| `test:` | Phase 2 — committed BEFORE docs and code | Verification contract — failing tests that define "done" |
+| `docs:` | Phase 3 — committed BEFORE code (when pre-impl docs exist) | Initial design intent for usage — admin guides, API specs, end-user copy. Drives implementation thinking; updated during Phase 4 when reality moves |
+| `docs:` | Phase 4 — additional commits during implementation | Doc reconciliations when implementation surfaces meaningful divergence from the original docs (preferred over folding into `feat:` for non-trivial revisions) |
+| `feat:` / `fix:` | Phase 4 — committed AFTER spec, tests, docs | Execution — code that makes the tests pass; small doc fixes can fold in here (called out in the message) |
+| `docs:` | Phase 5 (optional follow-up) | Post-implementable backfill — runbooks, JSDoc, troubleshooting that needed real code |
+| `refactor:` | Standalone | Structural change with no behavior change |
+
 ## What NOT to commit
 - Generated files: build output, compiled assets, cache directories.
 - Dependency directories: `node_modules/`, `venv/`, `vendor/` (unless vendoring is the project convention).

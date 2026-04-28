@@ -51,32 +51,49 @@ Use this for any planned change — new features, modifications to existing feat
     test: add retry logic tests for payment flow (red — pending implementation)
     ```
 
-### Phase 3: Implement (plan, then make the tests pass)
+### Phase 3: Docs (docs-first — plan, then write user-facing docs)
 
-11. **Plan the implementation** — Use `/implement`. The agent reads the spec diff, test diff, and existing code, then presents an **implementation plan** (which files to change, what each change does, in what order) for your approval. No code is written yet.
-12. **Approve the implementation plan** — Review the plan. Does it address all failing tests? Is the approach sound? Iterate until satisfied.
-13. **Implement** — After approval, the agent writes code following the plan until all tests pass.
-14. **Run tests — they should all pass** — If any test fails, fix the implementation (not the test, unless the test has a bug).
-15. **Review** — Use `/review`. Address findings.
+11. **Plan the docs** — Use `/write-docs`. The agent reads the spec's Documentation Pre-implementable section, the committed tests, and existing docs, then presents a **doc plan** (which doc files, audience, length) for your approval.
+12. **Skip condition** — If the spec lists no pre-implementable docs (admin guides, API contracts, end-user copy defaults, SDK READMEs), the agent skips cleanly with a note. Proceed to Phase 4.
+13. **Approve the doc plan** — Review. Iterate until satisfied.
+14. **Write the docs** — After approval, the agent writes the docs following the plan, sourcing claims from the spec ACs and tests.
+15. **Commit the docs** — Use `/commit` with the `docs:` prefix:
+    ```
+    docs: add admin guide and end-user defaults for newsletter signup
+    ```
 
-### Phase 4: Ship
+### Phase 4: Implement (plan, then make the tests pass; reconcile docs with reality)
 
-16. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
+16. **Plan the implementation** — Use `/implement`. The agent reads the spec diff, test diff, committed docs, and existing code, then presents an **implementation plan** for your approval. No code is written yet.
+17. **Approve the implementation plan** — Review the plan. Does it address all failing tests? Does it match what the docs describe? Iterate until satisfied.
+18. **Implement** — After approval, the agent writes code following the plan until all tests pass.
+19. **Run tests — they should all pass** — If any test fails, fix the implementation (not the test, unless the test has a bug).
+20. **Reconcile docs with reality** — Re-check the committed docs against what was actually built. **Most features need at least minor doc updates here** — a renamed field, an additional edge case discovered, a UX tweak. Update deliberately:
+    - **Small adjustments** (a sentence, a field name): update inline, fold into the `feat:` commit, call out in the message.
+    - **Meaningful revisions** (whole new section, behavior change): commit separately as `docs:` before the `feat:` commit. For substantial revisions, re-invoke `/write-docs` in update mode for a planning pass.
+    - This is normal, not exceptional. Never ship code that contradicts committed docs without updating the docs.
+21. **Review** — Use `/review`. Address findings.
+
+### Phase 5: Ship
+
+22. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
     ```
     feat: implement user registration
     fix: add retry logic to payment flow
     ```
-17. **Verify** — For UI changes, run the app and confirm the result matches the spec.
-18. **Deploy** — Follow the project's deployment process.
+23. **Verify** — For UI changes, run the app and confirm the result matches the spec.
+24. **Backfill post-implementable docs** — JSDoc, runbooks, troubleshooting guides that need real running code. Either part of the implementation commit (small additions) or a follow-up `docs:` commit.
+25. **Deploy** — Follow the project's deployment process.
 
-### Why commit specs and tests before implementing?
+### Why commit specs, tests, AND docs before implementing?
 
 - **Spec commit** captures **intent** — the implementation agent reads its `git diff` to know the exact scope
 - **Test commit** captures the **verification contract** — failing tests define exactly what "done" means
-- **Implementation commit** captures **execution** — code that makes the tests pass
-- For modifications, the diffs show precisely which ACs and tests were added or changed — the agent doesn't re-implement or re-test what's unchanged
-- Each commit type is separate in history — easy to review intent, contract, and execution independently
-- If implementation goes wrong, the spec and test commits are preserved and you can retry cleanly
+- **Docs commit** captures the **initial design intent for usage** — admins, API consumers, integrators see the agreed behavior before code starts. Docs drive implementation thinking and evolve when reality moves.
+- **Implementation commit** captures **execution** — code that makes the tests pass; any doc revisions discovered during implementation are reconciled here (or in a preceding `docs:` commit when meaningful).
+- For modifications, the diffs show precisely which ACs, tests, and docs were added or changed — the agent doesn't re-implement, re-test, or re-document what's unchanged
+- Each commit type is separate in history — easy to review intent, verification contract, design-for-usage, and execution independently
+- If implementation goes wrong, the spec, test, and doc commits are preserved and you can retry cleanly
 
 ## Workflow 3: Hotfix (production-breaking bugs only)
 
@@ -85,6 +102,6 @@ Use this ONLY for critical production issues that need immediate resolution.
 1. **Fix the issue** — Use `/debug` to find the root cause, then fix it directly
 2. **Write a regression test** — Ensure the bug can't recur
 3. **Commit and deploy** — Use `/commit` with the `fix:` prefix
-4. **Backfill the spec** — After the fix is deployed, update or create a spec if the fix changes behavior. Commit the spec update separately.
+4. **Backfill the spec AND docs** — After the fix is deployed, update or create a spec if the fix changes behavior, and update any user-facing docs the fix affects (admin guides, API contracts). Commit each separately.
 
-Hotfixes skip the spec-first process because speed matters. But always backfill — undocumented behavior changes create confusion later.
+Hotfixes skip the spec-first and docs-first process because speed matters. But always backfill — undocumented behavior changes create confusion later.

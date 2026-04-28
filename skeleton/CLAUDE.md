@@ -47,8 +47,9 @@ Defined in `.claude/skills/`. Invoke with `/skill-name`. These are step-by-step 
 | `/spec-workflow` | Complete workflow reference (setup, feature dev, hotfix) |
 | `/init-project` | First-time project setup |
 | `/write-spec` | Draft a feature specification using the multi-perspective spec model (see `docs/SPEC-MODEL.md`). Enforces required sections before approval. |
-| `/implement` | Build from an approved spec (reads spec git diff for scope, addresses every filled section: functional, security, a11y, perf, etc.) |
 | `/write-tests` | Write tests from spec acceptance criteria AND testable requirements in security / accessibility / performance sections |
+| `/write-docs` | Docs-first: plan and write pre-implementable user-facing docs (admin guides, API contracts, end-user copy defaults) BEFORE implementation. Skips cleanly when the spec has no pre-implementable docs. |
+| `/implement` | Build from an approved spec (reads spec git diff for scope, addresses every filled section: functional, security, a11y, perf, etc.; reads committed docs to drive thinking and reconciles them deliberately when implementation diverges) |
 | `/review` | Multi-perspective code review |
 | `/debug` | Systematic root cause analysis |
 | `/refactor` | Safe code restructuring |

@@ -4,16 +4,18 @@ This guide helps developers adopt the spec-driven, test-driven, AI-assisted work
 
 ## The methodology
 
-We use three practices together:
+We use four reinforcing practices:
 
-1. **Spec-driven development (SDD)** — write business requirements before code
+1. **Multi-perspective spec-driven development (SDD)** — write the spec across all relevant role perspectives (business, functional, security, accessibility, privacy, design, performance, testing, documentation, deployment) before code, with required sections enforced by the AI before approval
 2. **Test-driven development (TDD)** — write tests from spec acceptance criteria
-3. **AI-assisted development** — specialized AI agents handle specific tasks
+3. **Docs-first delivery (DDD)** — write user-facing docs (admin guides, API contracts, end-user copy) from the spec and tests, before code, to drive implementation thinking. Update docs deliberately when implementation reveals reality differs — they're living artifacts, not frozen contracts.
+4. **AI-assisted development** — specialized AI agents handle specific tasks under all three disciplines
 
-Why all three? Each one prevents a different class of mistakes:
-- **Specs** prevent building the wrong thing (scope creep, misunderstood requirements)
+Why all four? Each one prevents a different class of mistakes:
+- **Specs** prevent building the wrong thing (scope creep, misunderstood requirements, forgotten role perspectives)
 - **Tests** prevent breaking what already works (regressions)
-- **AI agents** accelerate the work while maintaining standards
+- **Docs** prevent shipping features nobody can use or operate (and force the team to articulate behavior cleanly enough that admins/integrators can act on it)
+- **AI agents** accelerate the work while maintaining the standards above
 
 ## The three workflows
 
@@ -33,29 +35,36 @@ Run `/init-project` when starting a new project. This configures AI tools and cr
 This is the workflow for any planned change. New features and modifications to existing features follow the same process.
 
 ```
-Phase 1: Spec            Phase 2: Test (TDD)          Phase 3: Implement          Phase 4: Ship
-─────────────────        ────────────────────         ──────────────────          ──────────────
-1. Check existing specs   6. Plan tests (AC → test)   11. Plan implementation     16. Commit code
-2. Write/update spec      7. Approve test plan        12. Approve impl. plan      17. Verify
-3. Architecture (opt.)    8. Write tests              13. Implement (pass tests)  18. Deploy
-4. Get approval           9. Run tests (all fail)     14. Run tests (all pass)
-5. Commit spec           10. Commit tests             15. Review
-       ↑                        ↑                            ↑
-  Spec commit = intent    Test commit = contract    Code commit = execution
-  Plan: what to build     Plan: how to verify it    Plan: how to build it
+Phase 1: Spec        Phase 2: Test       Phase 3: Docs        Phase 4: Implement     Phase 5: Ship
+─────────────        ────────────        ─────────────        ──────────────────     ─────────────
+1. Check specs        6. Plan tests       11. Plan docs        16. Plan impl.         21. Commit code
+2. Write/update       7. Approve plan         (skip if none)   17. Approve plan       22. Verify
+3. Architecture (o)   8. Write tests      12. Approve plan     18. Implement          23. Backfill
+4. Get approval       9. Run (all fail)   13. Write docs       19. Tests pass             post-impl docs
+5. Commit spec       10. Commit tests     14. Validate vs      20. Verify vs docs     24. Deploy
+                                              spec + tests         + Review
+                                          15. Commit docs
+       ↑                  ↑                       ↑                    ↑
+  Spec = intent      Test = verification    Docs = user-facing    Code = execution
+  Plan: what          Plan: how to verify   contract              Plan: how to build
+                                            Plan: what users see
 ```
 
-**Two key patterns:**
+**Three key patterns:**
 
-**1. Commit specs and tests before implementing.** This creates three clean layers:
-- The **spec commit** captures **intent** (what we decided to build)
+**1. Commit specs, tests, AND docs before implementing.** This creates four clean layers:
+- The **spec commit** captures **intent** (what we decided to build, across all role perspectives)
 - The **test commit** captures the **verification contract** (how we'll know it works — tests fail because no code exists yet)
-- The **implementation commit** captures **execution** (code that makes the tests pass)
-- The `git diff` of each commit tells the AI agent the **exact scope** — especially valuable for modifications where only some ACs changed
+- The **docs commit** captures the **initial design intent for usage** (admins, API consumers, integrators see the agreed behavior before code starts; docs evolve as implementation surfaces new reality)
+- The **implementation commit** captures **execution** (code that makes the tests pass; doc revisions surfaced during implementation either land in a preceding `docs:` commit or are folded in and called out in the `feat:` commit body)
+- The `git diff` of each commit tells the AI agent the **exact scope** — especially valuable for modifications where only some requirements changed
 
-**2. Plan then execute.** Before writing tests or code, the AI presents a plan for your approval:
-- **Test plan**: maps each AC to specific tests — you approve before tests are written
-- **Implementation plan**: outlines which files change, what each change does, which tests it addresses — you approve before code is written
+**2. Docs-first is conditional.** The docs phase only fires when the spec lists pre-implementable docs (admin guides, API contracts, end-user copy defaults, SDK READMEs). For features with only post-implementable docs (JSDoc, runbooks needing real data) or no user-facing docs, `/write-docs` skips cleanly with a note and the workflow proceeds to `/implement`.
+
+**3. Plan then execute.** Before writing tests, docs, or code, the AI presents a plan for your approval:
+- **Test plan**: maps each AC and testable requirement to specific tests
+- **Doc plan**: maps each pre-implementable doc entry to a file + audience
+- **Implementation plan**: outlines which files change, what each change does, which tests + docs it addresses
 - This is compatible with plan-then-execute workflows in tools like Cursor and Antigravity
 
 ### Workflow 3: Hotfix (production-breaking bugs only)
@@ -106,18 +115,21 @@ All tools read `AGENTS.md` automatically. The project's workflows, conventions, 
 
 > **Read a worked example first.** Before doing your own, walk through [docs/examples/newsletter-signup/](../docs/examples/newsletter-signup/) — a complete cycle (spec → tests → implement → review → commit) on a Next.js + Contentful + Vercel feature. ~15 minutes; saves hours of trial and error.
 
-### Day 4-5: First tests and implementation (3-4 hours)
+### Day 4-5: First tests, docs, and implementation (3-4 hours)
 
 1. With your committed spec, run: `/write-tests [spec name]`
-2. The agent presents a **test plan** (AC → test mapping) — review it and approve
+2. The agent presents a **test plan** (AC → test mapping, plus testable requirements from Security/A11y/Perf) — review it and approve
 3. After approval, the agent writes the tests
 4. Run the tests — they should all fail (this is correct, no code exists yet)
 5. Commit the tests: `git add e2e/ && git commit -m "test: add [feature] tests (red — pending implementation)"`
-6. Now run: `/implement [spec name]`
-7. The agent presents an **implementation plan** (files to change, what each change does) — review it and approve
-8. After approval, the agent writes code until all tests pass
-9. Run: `/review`
-10. Address any findings, then run: `/commit`
+6. Run: `/write-docs [spec name]`
+7. **If the spec has pre-implementable docs**: the agent presents a **doc plan** (which doc files, audience, length). Review and approve. The agent writes the docs. Commit: `git commit -m "docs: add [feature] docs"`
+8. **If the spec has no pre-implementable docs**: the agent skips cleanly with a note. Proceed.
+9. Now run: `/implement [spec name]`
+10. The agent presents an **implementation plan** (files to change, what each change does, which tests + docs claims each addresses) — review and approve
+11. After approval, the agent writes code until all tests pass; if the chosen approach diverged from doc claims, the agent flags doc updates and you decide whether to commit them separately as `docs:` or fold into the `feat:` commit
+12. Run: `/review`
+13. Address any findings, then run: `/commit`
 
 ## Week 2: The full workflow in practice
 
@@ -241,8 +253,9 @@ Not every change is a brand-new feature. The patterns differ for these common si
 | Set up a new project | `/init-project` |
 | See the full workflow | `/spec-workflow` |
 | Write a feature spec | `/write-spec [feature]` |
+| Write tests (TDD red) | `/write-tests [spec name]` |
+| Write user-facing docs (DDD) | `/write-docs [spec name]` |
 | Implement from a spec | `/implement [spec name]` |
-| Write tests | `/write-tests [spec name]` |
 | Review before commit | `/review` |
 | Investigate a bug | `/debug [error message]` |
 | Refactor safely | `/refactor [file or area]` |
@@ -271,10 +284,10 @@ Not every change is a brand-new feature. The patterns differ for these common si
 
 | Prefix | When to use |
 |---|---|
-| `spec:` | Spec changes (new or updated) — committed before tests and implementation |
-| `test:` | Tests from spec ACs — committed before implementation (should fail until code exists) |
-| `docs:` | Documentation changes (architecture, security, ADRs) |
-| `feat:` | New feature implementation (makes the tests pass) |
+| `spec:` | Spec changes — committed before tests, docs, and implementation |
+| `test:` | Tests from spec ACs — committed before docs and implementation (should fail until code exists) |
+| `docs:` | Pre-implementable user-facing docs — committed before implementation (admin guides, API contracts, end-user copy). Also used for post-implementable backfill (JSDoc, runbooks) and standalone doc updates (architecture, security, ADRs) |
+| `feat:` | New feature implementation (makes the tests pass; small doc fixes can fold in, called out in the message; meaningful doc revisions land in a separate `docs:` commit before the `feat:`) |
 | `fix:` | Bug fix implementation |
 | `refactor:` | Code restructuring without behavior change |
 

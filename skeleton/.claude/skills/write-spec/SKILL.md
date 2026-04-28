@@ -41,7 +41,7 @@ Write a feature specification using the multi-perspective spec model (see `docs/
    - **Localization**: which languages/regions, where translations live?
    - **Technical**: significant architecture decisions, integrations, implementation constraints (sparingly)?
    - **Testing**: anything beyond "every AC has a test" — perf, security, visual regression, manual?
-   - **Documentation**: what audiences need docs (end user, admin, developer), where they live?
+   - **Documentation**: split into pre-implementable (admin guides, API contracts, end-user copy defaults, SDK READMEs — written before code via `/write-docs`) and post-implementable (JSDoc, runbooks, troubleshooting — backfilled after code). Each subsection must be filled or marked Not applicable.
    - **Observability**: logs/metrics/alerts beyond defaults?
    - **Deployment**: env vars, infra changes, schema migrations, rollout strategy, rollback plan?
 
@@ -72,14 +72,20 @@ Write a feature specification using the multi-perspective spec model (see `docs/
    - [ ] Out of scope has at least one item OR explicitly says "nothing intentionally excluded for this iteration"
    - [ ] Security is filled
    - [ ] Testing is filled
-   - [ ] Documentation is filled
+   - [ ] Documentation is filled — BOTH the Pre-implementable and Post-implementable subsections must have content or `Not applicable: [reason]`. An empty Pre-implementable section is the most common gap and blocks `/write-docs`.
    - [ ] Clarifications section exists (may be empty list)
    - [ ] If `feature-type: ui` or `mixed` → Accessibility is filled
    - [ ] If `personal-data: yes` → Privacy is filled
 
    **If any required section is empty, refuse to mark approved.** Tell the user exactly which sections need filling and offer to walk through them.
 
-10. **After approval** — Once all required sections are filled and the user approves, update the status to `approved`. Remind the user to commit the spec before writing tests — the next step is `/write-tests` (TDD), then `/implement`. The spec's git diff scopes both the tests and the implementation.
+10. **After approval** — Once all required sections are filled and the user approves, update the status to `approved`. Remind the user of the next steps:
+    - Commit the spec (`spec:` prefix)
+    - Run `/write-tests` (TDD) → commit (`test:` prefix)
+    - Run `/write-docs` (docs-first) → commit (`docs:` prefix). Skips cleanly if no pre-implementable docs.
+    - Run `/implement` → commit (`feat:` prefix)
+
+    The spec's git diff scopes the tests, docs, and implementation that follow.
 
 ## Rationalizations (do not accept these)
 

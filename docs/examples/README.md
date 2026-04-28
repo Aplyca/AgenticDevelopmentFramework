@@ -16,11 +16,12 @@ These examples use **Next.js (App Router) + Contentful + Vercel**, the most comm
 Each example folder contains:
 
 1. **README.md** — narrative walkthrough. Read this first. Shows the prompts a developer types, the AI's responses, and the rationale at each step.
-2. **spec.md** — the final, approved spec artifact (what gets committed under `specs/`).
-3. **test-plan.md** — the AI's output during the planning phase of `/write-tests`. Shows AC → test mapping that the developer reviewed and approved before tests were written.
-4. **implementation-plan.md** — the AI's output during the planning phase of `/implement`. Shows the file-by-file breakdown that the developer reviewed and approved before code was written.
+2. **spec.md** (or **spec-diff.md** for modifications) — the final spec artifact, using the multi-perspective spec model.
+3. **test-plan.md** — the AI's output during `/write-tests` planning. AC → test mapping (plus testable requirements from Security/A11y/Perf) that the developer approved before tests were written.
+4. **doc-plan.md** — the AI's output during `/write-docs` planning. Pre-implementable doc files mapped to audience and length, approved before docs were written.
+5. **implementation-plan.md** — the AI's output during `/implement` planning. File-by-file breakdown that addresses every filled spec section, uses the committed docs as design context, and flags any places where the chosen approach will require doc reconciliation.
 
-Test code and implementation code are shown as snippets within the README, not as runnable files — these examples are illustrative, not executable.
+Test code, doc content, and implementation code are shown as snippets within the README, not as runnable files — these examples are illustrative, not executable.
 
 ## What examples don't show
 

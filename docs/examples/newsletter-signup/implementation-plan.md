@@ -2,10 +2,11 @@
 
 > This is the AI's output during Phase 1 of `/implement`. The developer reviewed and approved this plan before any code was written.
 
-## Scope (from git diff and spec sections)
+## Scope (from git diff, spec sections, and committed docs)
 
-- **Spec diff** (`git diff a1b2c3d~1 a1b2c3d -- specs/`): the entire spec is net-new (this is a new feature, not a modification).
-- **Test diff** (`git diff d4e5f6g~1 d4e5f6g -- e2e/ lib/ app/`): ~22 failing tests across 3 files.
+- **Spec diff** (`git diff HEAD~3 HEAD~2 -- specs/`): the entire spec is net-new (this is a new feature, not a modification).
+- **Test diff** (`git diff HEAD~2 HEAD~1 -- e2e/ lib/ app/`): ~22 failing tests across 3 files.
+- **Docs diff** (`git diff HEAD~1 HEAD -- docs/`): 2 new files — `docs/admin/newsletter.md` (~250 lines) and `docs/copy/newsletter-defaults.md` (~80 lines). The implementation uses these as design context; any place where the chosen approach will diverge from the docs gets flagged for reconciliation in the implementation phase.
 - **Existing failing tests:** ~22 — all the tests added in the previous commit. No pre-existing tests are red.
 
 The plan must address requirements from every filled spec section (per [docs/SPEC-MODEL.md](../../skeleton/docs/SPEC-MODEL.md)):
@@ -19,6 +20,11 @@ The plan must address requirements from every filled spec section (per [docs/SPE
 - **Deployment** — env var checks, Contentful schema coordination (preconditions, not code)
 
 Skipped (Standard applies / Not applicable in spec): Performance, SEO, Analytics, Localization.
+
+Plus: every claim in the committed admin guide (`docs/admin/newsletter.md`) and copy defaults (`docs/copy/newsletter-defaults.md`) must hold. Notable claims:
+- "Changes appear on the site within ~1 minute" → `revalidate: 60` on the Contentful fetch
+- "If a required Contentful field is empty, the section is omitted from article pages" → null check + return null in the server component
+- The exact field names (`title`, `body`, `ctaLabel`, `successMessage`, `alreadySubscribedMessage`, `errorMessage`) — must match the Contentful content model
 
 ## Existing patterns observed
 

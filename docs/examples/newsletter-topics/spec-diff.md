@@ -101,6 +101,20 @@
 +- Localization of topic names (Contentful supports it; English only this iteration).
 +- Inferring topic interest from article context (e.g. auto-checking "Tech" on tech
 +  articles). Reader picks explicitly.
+
+ ## Documentation
+
+ ### Pre-implementable docs
+
+ ... (existing entries unchanged) ...
+
++| Site administrator (marketing) | Updated section in admin guide: how to add/remove topics in Contentful, how to set the `mailchimpGroupId` for each topic, what users see when no topics are configured | Update existing `docs/admin/newsletter.md` (new section: "Managing topics") |
+
+ ### Post-implementable docs
+
+ ... (existing entries unchanged) ...
+
++| Operator | Add to runbook: how to verify topic-to-Mailchimp-group mapping is correct, what to check when a subscriber is missing expected interest groups | Update existing `docs/runbooks/newsletter.md` (new section, post-impl backfill) |
 ```
 
 ## What didn't change

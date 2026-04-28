@@ -232,19 +232,35 @@ Or list specific requirements (each one should be testable):
 ## Documentation [REQUIRED]
 
 > Owned by: tech writer / dev
-> What documentation must be produced and for whom.
+> What documentation must be produced and for whom. Split into pre-implementable (written via `/write-docs` BEFORE code, become a contract for `/implement`) and post-implementable (backfilled after code). Both must be filled or marked Not applicable.
 
-### Audience and artifact
+### Pre-implementable docs (written before code via `/write-docs`)
+
+These docs describe behavior that can be specified from the spec and tests alone — no running code required. They drive implementation thinking and are updated deliberately during implementation when reality moves (handled by `/implement`).
 
 | Audience | What they need | Where it lives |
 |---|---|---|
-| End user | [e.g. Inline help text on the form explaining what they're subscribing to] | [In-product copy, sourced from Contentful] |
-| Site administrator | [e.g. How to edit the newsletter copy and topics in Contentful] | [`docs/admin/newsletter.md`] |
-| Developer | [e.g. How the rate-limit module works, how to swap ESPs] | [Inline JSDoc + `docs/ARCHITECTURE.md` update] |
+| Site administrator | [e.g. How to edit the newsletter copy and topics in Contentful — fields, what fails gracefully, troubleshooting] | [`docs/admin/newsletter.md`] |
+| End user | [e.g. Default inline copy and microcopy seed values for the CMS] | [`docs/copy/newsletter-defaults.md`] |
+| API consumer | [e.g. OpenAPI schema for the new endpoint] | [`openapi/newsletter.yaml`] |
+| Developer (integrator) | [e.g. README for a new internal SDK] | [`packages/[name]/README.md`] |
+
+If none apply: `> Not applicable: [one-line reason]` (e.g. "no admin/API/SDK surface; only inline JSDoc which is post-implementable").
+
+### Post-implementable docs (backfilled after code)
+
+These need real running code, real metrics, or real failure modes to write accurately. Backfilled in a follow-up commit (or as part of the implementation commit when small).
+
+| Audience | What they need | Where it lives |
+|---|---|---|
+| Developer | [e.g. JSDoc on lib/newsletter/* explaining the rate-limit module, ESP swap path] | [Inline + `docs/ARCHITECTURE.md` paragraph] |
+| Operator | [e.g. Runbook entry: how to investigate a spike in 429 responses] | [`docs/runbooks/newsletter.md`] |
+| Support | [e.g. Troubleshooting guide for "user says they signed up but isn't getting emails"] | [`docs/support/newsletter.md`] |
 
 ### Out of documentation scope
 
 - [e.g. No public API docs needed — internal feature only]
+- [e.g. No localized doc variants — English only]
 
 ## Observability [OPTIONAL — fill if non-default monitoring]
 

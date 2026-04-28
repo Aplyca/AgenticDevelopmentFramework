@@ -15,24 +15,30 @@ Stack: [List your tech stack. Example: Next.js 15, React 19, TypeScript, Postgre
 
 ### Feature development (new features, modifications, bug fixes)
 
+This project uses **multi-perspective spec-driven, test-driven, docs-first** development. Each feature flows through committed artifacts that scope the next phase.
+
 1. **Check existing specs** — Read `specs/` before starting.
-2. **Write or update the spec** — Get approval before coding.
+2. **Write or update the spec** — Use the multi-perspective spec model (see `docs/SPEC-MODEL.md`). Get approval before coding.
 3. **Architecture review** — For non-trivial changes. Skip for small changes.
-4. **Commit the spec** — Commit approved spec BEFORE writing tests or code (`spec:` prefix). This creates a clean diff that scopes all subsequent work.
-5. **Plan tests** — Map each AC and edge case to a test. Present the test plan for approval.
+4. **Commit the spec** — Commit approved spec BEFORE writing tests, docs, or code (`spec:` prefix). This creates a clean diff that scopes all subsequent work.
+5. **Plan tests** — Map each AC, edge case, and testable requirement (security, a11y, perf) to a test. Present the test plan for approval.
 6. **Write tests** — After plan approval, write the tests. Run them — they should all fail (no implementation yet).
 7. **Commit tests** — Commit the failing tests (`test:` prefix). This captures the verification contract before any code is written.
-8. **Plan implementation** — Outline which files to change, what each change does, and which failing tests each change addresses. Present the plan for approval.
-9. **Implement** — After plan approval, write code following the plan until all tests pass.
-10. **Review** — Code quality, security, UX as needed.
-11. **Commit and deploy** — `feat:` or `fix:` prefix.
+8. **Plan docs** — If the spec lists pre-implementable docs (admin guides, API contracts, end-user copy defaults, SDK READMEs), use `/write-docs` to plan and write them. Skips cleanly if no pre-implementable docs.
+9. **Commit docs** — Commit the docs (`docs:` prefix). This captures the initial design intent for usage; docs evolve during implementation when reality moves.
+10. **Plan implementation** — Outline which files to change, what each change does, and which failing tests + docs claims each change addresses. Present the plan for approval.
+11. **Implement** — After plan approval, write code following the plan until all tests pass.
+12. **Reconcile docs with reality** — Re-check committed docs against what was built. Update inline (folded into the `feat:` commit) for small fixes, or as a separate `docs:` commit for meaningful revisions. Most features need at least minor updates here — this is normal.
+13. **Review** — Code quality, security, UX as needed.
+14. **Commit and deploy** — `feat:` or `fix:` prefix.
+15. **Backfill post-implementable docs** — JSDoc, runbooks, troubleshooting (a follow-up `docs:` commit).
 
 ### Hotfix (production-breaking bugs only)
 
 1. Fix the issue directly
 2. Write a regression test
 3. Commit and deploy (`fix:` prefix)
-4. Backfill the spec afterward if behavior changed
+4. Backfill the spec AND any user-facing docs afterward if behavior changed
 
 Spec format: use the template at `specs/_template.md`. This project uses a **multi-perspective spec model** — each spec captures input from all relevant roles (business, functional, security, accessibility, testing, documentation, and more) in one document, with required sections enforced before approval. See `docs/SPEC-MODEL.md` for the full structure.
 

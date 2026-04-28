@@ -100,8 +100,28 @@ The skill counts all three as "filled". An empty section or a section with only 
 |---|---|
 | `/write-spec` | All sections — orchestrates filling them in, enforces mandatory |
 | `/write-tests` | **Functional** ACs, **Edge cases**, **Testing** requirements, plus testable criteria from **Security**, **Accessibility**, **Performance** |
-| `/implement` | All sections — plan must cover functional code, security mitigations, a11y implementation, observability hooks, deployment changes, etc. |
+| `/write-docs` | **Documentation → Pre-implementable** subsection drives what gets written; **Functional** ACs and the committed tests are the source of truth for the docs' claims. Skips cleanly when Pre-implementable is empty / Not applicable. Has an update mode for substantial revisions surfaced during implementation. |
+| `/implement` | All sections — plan must cover functional code, security mitigations, a11y implementation, observability hooks, deployment changes. Reads committed docs to drive thinking; when the chosen approach diverges from doc claims, reconciles docs deliberately (separate `docs:` commit or folded into `feat:`). Doc reconciliation is a normal sub-step, not an exception. |
 | `/review` | All sections — multi-perspective review checks each section's requirements were actually met |
+
+## The Documentation section: pre-implementable vs post-implementable
+
+The Documentation section splits into two subsections to support docs-first development:
+
+**Pre-implementable docs** (written via `/write-docs` BEFORE code, become a contract):
+- Admin / operator guides
+- API contracts (OpenAPI, GraphQL schemas, type signatures of public surfaces)
+- End-user help / microcopy defaults (often seeded into a CMS)
+- Public-facing READMEs / SDK documentation
+- Architecture sketches for non-trivial features
+
+**Post-implementable docs** (backfilled after code, often need real running output):
+- Code-level JSDoc / inline comments (come with the code)
+- Runbooks with real metrics, dashboards, log examples
+- Tutorials with screenshots / exact UI text
+- Troubleshooting guides built from real failure modes
+
+Both subsections must be filled or marked `Not applicable: [reason]`. An empty Pre-implementable subsection is the most common gap and blocks `/write-docs`.
 
 ## Example: which sections get filled for common feature types
 

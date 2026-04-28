@@ -188,7 +188,93 @@ git commit -m "test: add newsletter signup tests (red — pending implementation
 
 ---
 
-## Phase 3 — Implement (TDD green)
+## Phase 3 — Docs (docs-first)
+
+### What the developer typed
+
+```
+/write-docs newsletter-signup
+```
+
+### Phase 3a — Plan
+
+The skill checks whether the spec has any pre-implementable docs. The spec's Documentation section has two entries under **Pre-implementable docs** (admin guide for marketing, end-user copy defaults), so the skill proceeds. (If the spec had only post-implementable entries — JSDoc, runbooks — the skill would skip cleanly here and the developer would proceed to `/implement`.)
+
+The AI:
+1. Re-read the spec's Documentation section.
+2. Read the committed tests — they're the ground truth for what the docs need to describe.
+3. Read existing docs in `docs/admin/` to match tone, structure, and length.
+4. Presented a doc plan.
+
+The plan output: **[doc-plan.md](doc-plan.md)**.
+
+Things to notice:
+
+- **Two doc files, ~330 lines total.** Modest scope — every line is sourced from a spec AC, edge case, or test.
+- **No fabricated content.** Screenshots are placeholders. UI behavior claims point back to specific test names.
+- **Explicit list of what's NOT in scope.** Code-level details, runbook content, end-user troubleshooting all called out as either post-impl or out-of-scope.
+
+The developer reviewed and approved.
+
+### Phase 3b — Execute
+
+The AI wrote the two doc files. Excerpt from the admin guide:
+
+```markdown
+# Newsletter signup — admin guide
+
+## Editing the form copy
+
+The newsletter signup form on every article page pulls its text from a
+single Contentful entry of type **Newsletter Signup** (one entry total —
+it's a singleton).
+
+To edit:
+1. Open Contentful → Content → Newsletter Signup
+2. Edit any of the fields below
+3. Save and publish — changes appear on the site within ~1 minute
+
+## Field reference
+
+| Field | What it controls | Limit | Required |
+|---|---|---|---|
+| Title | The heading shown above the form | 80 chars | Yes |
+| Body | Description text shown below the title | 200 chars | Yes |
+| CTA Label | Text on the submit button | 30 chars | Yes |
+| Success Message | What users see after a successful signup | 200 chars | Yes |
+| Already Subscribed Message | What users see if their email is already on the list | 200 chars | Yes |
+| Error Message | What users see if Mailchimp is unreachable | 200 chars | Yes |
+
+## What happens when
+
+- **You leave a required field empty in Contentful**: the section is
+  omitted from article pages entirely. The site doesn't error — it just
+  doesn't show the form. (Verify by previewing an article page.)
+
+- **Contentful is unreachable from the site**: same as above — the section
+  is omitted. Article pages continue to render normally.
+
+- **Mailchimp is unreachable when a user submits**: the user sees the Error
+  Message you configured. Their email input is preserved so they can
+  retry.
+
+[...]
+```
+
+Every behavior described is backed by a committed test — the docs are precise because the tests are precise.
+
+The developer ran a quick consistency check, made no edits, and committed:
+
+```bash
+git add docs/admin/newsletter.md docs/copy/newsletter-defaults.md
+git commit -m "docs: add admin guide and end-user copy defaults for newsletter signup"
+```
+
+> **Why commit docs before code?** Docs written before implementation **drive thinking** — they force the team to articulate how marketing will use the feature before code constrains the conversation. Docs are living artifacts: when implementation surfaces things the original docs got wrong (a renamed field, an edge case discovered, a UX adjustment), the docs get updated deliberately during Phase 4. The discipline isn't "code must conform to original docs"; it's "never let docs go stale".
+
+---
+
+## Phase 4 — Implement (TDD green)
 
 ### What the developer typed
 
@@ -196,15 +282,17 @@ git commit -m "test: add newsletter signup tests (red — pending implementation
 /implement newsletter-signup
 ```
 
-### Phase 3a — Plan
+### Phase 4a — Plan
 
 Same plan-then-execute pattern. The AI:
 
-1. Ran `git diff HEAD~2 HEAD~1 -- specs/` to see what was added in the spec commit.
-2. Ran `git diff HEAD~1 HEAD -- e2e/ lib/` to see what tests are expecting.
-3. Ran `pnpm test` to confirm the current red state.
-4. Read existing patterns in `app/articles/`, `lib/contentful/`, `app/api/`.
-5. Presented an implementation plan.
+1. Ran `git diff HEAD~3 HEAD~2 -- specs/` to see what was added in the spec commit.
+2. Ran `git diff HEAD~2 HEAD~1 -- e2e/ lib/` to see what tests are expecting.
+3. Ran `git diff HEAD~1 HEAD -- docs/` to see what the docs commit added.
+4. Read the committed `docs/admin/newsletter.md` and `docs/copy/newsletter-defaults.md` — these claims must be made true.
+5. Ran `pnpm test` to confirm the current red state.
+6. Read existing patterns in `app/articles/`, `lib/contentful/`, `app/api/`.
+7. Presented an implementation plan.
 
 The plan output: **[implementation-plan.md](implementation-plan.md)**.
 
@@ -214,8 +302,9 @@ Things to notice:
 - Each task lists which tests it makes pass. This is the linkage between AC, test, and code.
 - Two tasks marked `[P]` — they're independent and could be done in parallel.
 - One architectural decision called out: rate-limit storage. The plan proposes Vercel KV; the developer agreed.
+- Plan also notes: implementation must match the committed admin guide's claims (e.g., "changes appear on the site within ~1 minute" — backed by `revalidate: 60`).
 
-### Phase 3b — Execute
+### Phase 4b — Execute
 
 The AI worked through the tasks. Excerpts:
 
@@ -296,11 +385,38 @@ $ pnpm test:e2e
   ~22 passed
 ```
 
-> **All green — and only the tests that were committed.** The AI didn't add features the spec didn't ask for. No analytics, no double opt-in, no admin dashboard.
+> **All green.** The AI re-checked the committed admin guide and copy defaults against what was actually built. Most matched as-is. One claim turned out to need updating:
+
+#### Reconciling docs with reality (a normal sub-step)
+
+During implementation, the AI noticed that the admin guide said *"changes appear on the site within ~1 minute"*, but the implementation chose `revalidate: 60` AND added on-demand revalidation via a Contentful webhook (a small scope addition the developer accepted to make marketing happier). With the webhook, changes appear in **seconds**, not a minute.
+
+The AI flagged this:
+
+> **AI:** I implemented on-demand revalidation via a Contentful webhook (added to the plan after we discussed it). The admin guide currently says "changes appear within ~1 minute" — with the webhook, it's effectively instant. Two options:
+> - Update the admin guide inline and fold the change into the `feat:` commit (small fix, one sentence)
+> - Separate `docs:` commit before the `feat:` commit
+>
+> Recommend folding inline since it's a single-sentence update.
+
+The developer agreed. The admin guide line was updated to *"changes appear on the site within seconds (via the Contentful webhook)"* and the `feat:` commit body called this out:
+
+```
+feat: add newsletter signup on article pages
+
+Marketing-editable form via Contentful, posts to Mailchimp through a
+rate-limited Route Handler. Section is omitted gracefully when Contentful
+is unreachable.
+
+Also updates docs/admin/newsletter.md to reflect on-demand revalidation
+(seconds, not the originally-documented ~1 minute).
+```
+
+> **This is normal, not exceptional.** Most features have at least minor doc adjustments at this stage. Docs are living artifacts — the discipline is to keep them accurate, not to freeze them.
 
 ---
 
-## Phase 4 — Review
+## Phase 5 — Review
 
 ### What the developer typed
 
@@ -320,7 +436,7 @@ The developer added an inline comment about the IP-trust assumption, opened a fo
 
 ---
 
-## Phase 5 — Commit
+## Phase 6 — Commit
 
 ```
 /commit
@@ -336,17 +452,20 @@ rate-limited Route Handler. Section is omitted gracefully when Contentful
 is unreachable so article pages never error on a CMS outage."
 ```
 
+After the implementation merges, the developer opens a follow-up `docs:` PR for the post-implementable docs (JSDoc on `lib/newsletter/*`, ARCHITECTURE.md paragraph, runbook entry) — those need real running code to write accurately.
+
 ---
 
 ## What the git history looks like at the end
 
 ```
 * feat: add newsletter signup on article pages
+* docs: add admin guide and end-user copy defaults for newsletter signup
 * test: add newsletter signup tests (red — pending implementation)
 * spec: add newsletter signup form for article pages
 ```
 
-Three clean layers — intent, contract, execution. Six months from now when marketing wants to A/B test the rate-limit window, the next developer reads the spec to understand the constraint, the test commit to understand what's verified, and the implementation commit only if they need to touch the code.
+Four clean layers — intent, verification contract, design intent for usage, execution. Six months from now when marketing wants to A/B test the rate-limit window, the next developer reads the spec to understand the constraint, the test commit to understand what's verified, the docs commit to understand what behavior was promised to users (and the inline doc fixes from `feat:` to see how reality moved), and the implementation commit only if they need to touch the code.
 
 ---
 

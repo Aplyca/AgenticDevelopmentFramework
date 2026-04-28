@@ -177,7 +177,82 @@ git commit -m "test: add topic selection tests (red — pending implementation)"
 
 ---
 
-## Phase 3 — Implement
+## Phase 3 — Docs (docs-first, modification)
+
+### What the developer typed
+
+```
+/write-docs newsletter-signup
+```
+
+### Phase 3a — Plan
+
+The skill checks the spec diff for new pre-implementable doc entries. The spec update added one entry (admin guide gains a "Managing topics" section), so the skill proceeds.
+
+The AI:
+1. Read the spec diff to see the Documentation section change.
+2. Read the existing `docs/admin/newsletter.md` (the original feature's admin guide).
+3. Read the new tests to understand exact behavior.
+4. Presented a doc plan.
+
+Plan output: **[doc-plan.md](doc-plan.md)**.
+
+Things to notice (modification-specific):
+
+- **One file modified, ~80 lines added.** Modest delta — only what the modification requires.
+- **The plan extends the existing admin guide rather than creating a new file.** Admin's mental model of the feature stays in one place.
+- **`docs/copy/newsletter-defaults.md` is NOT touched.** Topic names are entered directly per topic in Contentful, not as defaults — the existing copy doc still applies as-is.
+- **Post-impl runbook update is called out but deferred.** Verifying topic-to-Mailchimp-group mappings needs the real implementation to write accurately.
+
+The developer reviewed and approved.
+
+### Phase 3b — Execute
+
+The AI added the "Managing topics" section to `docs/admin/newsletter.md`. Excerpt:
+
+```markdown
+## Managing topics
+
+Topics let subscribers indicate which subjects they want to hear about
+when signing up. Selections forward to Mailchimp interest groups so
+campaigns can be targeted by interest.
+
+### Adding a topic in Contentful
+
+1. Open Contentful → Content → Newsletter Topic → Add entry
+2. Fill in:
+   - **Name** — what readers see in the form (e.g. "Tech", "Business")
+   - **Mailchimp Group ID** — see "Setting the Mailchimp interest group ID" below
+3. Save and publish
+4. Open the Newsletter Signup entry → add the new Newsletter Topic to the
+   `availableTopics` field → save and publish
+
+### What users see when
+
+- **No topics configured** (the `availableTopics` field is empty): the
+  topic selector is omitted from the form. Email-only signup works as
+  before — this is the backwards-compatible path.
+
+- **A topic is missing its Mailchimp Group ID**: the topic still appears
+  in the form (so you notice the omission), but is silently dropped at
+  submission. Users who selected only that topic will be subscribed
+  without any interest group.
+
+[...]
+```
+
+The developer committed:
+
+```bash
+git add docs/admin/newsletter.md
+git commit -m "docs: add 'Managing topics' section to newsletter admin guide"
+```
+
+> **Why update docs as part of the modification?** The admin guide is the marketing team's source of truth. If the modification ships without updating it, marketing won't know how to use the new functionality. Docs-first guarantees the admin path is documented before the feature exists in production.
+
+---
+
+## Phase 4 — Implement
 
 ### What the developer typed
 
@@ -185,17 +260,18 @@ git commit -m "test: add topic selection tests (red — pending implementation)"
 /implement newsletter-signup
 ```
 
-### Phase 3a — Plan
+### Phase 4a — Plan
 
 The AI ran:
 
 ```bash
-git diff HEAD~2 HEAD~1 -- specs/   # what changed in the spec
-git diff HEAD~1 HEAD -- e2e/        # what tests were added
+git diff HEAD~3 HEAD~2 -- specs/   # what changed in the spec
+git diff HEAD~2 HEAD~1 -- e2e/      # what tests were added
+git diff HEAD~1 HEAD -- docs/       # what doc updates landed
 pnpm test:e2e                       # confirm 5 red, 11 green
 ```
 
-Then read the existing implementation files to understand the current patterns. Then presented a plan.
+Then read the updated admin guide and the existing implementation files to understand the current patterns and the new documented behaviors. Then presented a plan.
 
 Plan output: **[implementation-plan.md](implementation-plan.md)**.
 
@@ -205,8 +281,9 @@ Things to notice:
 - File modifications are described as *deltas*, not full file content. ("Add `topics?: TopicId[]` to the request body schema and forward to Mailchimp via `interests` field.")
 - The Contentful schema change is treated as a separate prerequisite — the plan calls out "this code assumes the `newsletterTopic` content type and `availableTopics` field exist in Contentful" and recommends doing the schema change in Contentful first.
 - A specific risk is flagged: **rollout ordering**. If the code ships before the Contentful schema change, the form renders without topics (graceful — backwards-compat AC covers it). If the schema ships before code, marketing can configure topics that nothing reads yet (also fine). Both orderings are safe — but the plan documents this explicitly so the developer doesn't have to think it through under pressure.
+- Plan also commits to honoring the new admin-guide section: e.g., the doc claims "topics with missing `mailchimpGroupId` still appear in the form but are silently dropped at submit" — the implementation must match this exactly.
 
-### Phase 3b — Execute
+### Phase 4b — Execute
 
 The AI worked through the plan. Excerpts:
 
@@ -286,7 +363,7 @@ $ pnpm test:e2e
 
 ---
 
-## Phase 4 — Review
+## Phase 5 — Review
 
 ### What the developer typed
 
@@ -306,7 +383,7 @@ The developer accepted the security finding, added a 5-line server-side intersec
 
 ---
 
-## Phase 5 — Commit
+## Phase 6 — Commit
 
 ```
 /commit
@@ -327,10 +404,12 @@ subscribers are unaffected (no backfill — out of scope per spec)."
 ## What the git history looks like at the end
 
 ```
-* feat: add optional topic selection to newsletter signup    ← THIS CHANGE
+* feat: add optional topic selection to newsletter signup           ← THIS CHANGE
+* docs: add 'Managing topics' section to newsletter admin guide
 * test: add topic selection tests (red — pending implementation)
 * spec: add topic selection to newsletter signup
-* feat: add newsletter signup on article pages               ← original feature
+* feat: add newsletter signup on article pages                      ← original feature
+* docs: add admin guide and end-user copy defaults
 * test: add newsletter signup tests
 * spec: add newsletter signup form for article pages
 ```
@@ -352,10 +431,11 @@ Two clean three-commit groups. Six months from now when marketing wants to *remo
 | | Original (newsletter-signup) | This (newsletter-topics) |
 |---|---|---|
 | Workflow | New feature | Modification |
-| Spec | Net-new, ~7 ACs | Diff against existing, 3 ACs touched |
-| Tests | 11 net-new | 5 added, 11 unchanged |
+| Spec | Net-new, all sections filled | Diff against existing, 3 ACs touched + Documentation section gains 1 entry |
+| Tests | ~22 net-new | 7 added, ~22 unchanged |
+| Docs | 2 net-new doc files | 1 doc file modified (admin guide gains a section) |
 | Files | 7 new, 1 modified | 2 new, 3 modified, 2 explicitly untouched |
 | Backwards compat | Not applicable | Central concern (data + rollout) |
 | Rollout coordination | Not relevant | Called out in plan (Contentful schema vs code) |
 
-The point: the same skills (`/write-spec`, `/write-tests`, `/implement`, `/review`, `/commit`), the same plan-then-execute discipline, but the *scope-finding* mechanism — the spec diff and the test diff — is what keeps a modification from accidentally becoming a rewrite.
+The point: the same skills (`/write-spec`, `/write-tests`, `/write-docs`, `/implement`, `/review`, `/commit`), the same plan-then-execute discipline, but the *scope-finding* mechanism — the spec diff, test diff, and doc diff — is what keeps a modification from accidentally becoming a rewrite.

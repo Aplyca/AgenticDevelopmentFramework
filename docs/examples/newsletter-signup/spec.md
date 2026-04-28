@@ -192,15 +192,24 @@ Project default is WCAG 2.1 AA. Specific testable requirements for this feature:
 
 > Owned by: tech writer / dev
 
+### Pre-implementable docs (written before code via `/write-docs`)
+
 | Audience | What they need | Where it lives |
 |---|---|---|
-| End user | Inline form copy explaining what the newsletter is and what they're subscribing to | In Contentful entry (managed by marketing) |
-| Site administrator (marketing) | How to edit the `newsletterSignup` Contentful entry — which fields are required, where copy appears, how soon edits go live | New page: `docs/admin/newsletter.md` |
+| Site administrator (marketing) | How to edit the `newsletterSignup` Contentful entry — which fields are required, where copy appears, how soon edits go live, how to verify the form on the site | `docs/admin/newsletter.md` |
+| End user (via CMS) | Default copy for title, body, CTA, success message, already-subscribed message, error message — seed values that marketing customizes in Contentful | `docs/copy/newsletter-defaults.md` |
+
+### Post-implementable docs (backfilled after code)
+
+| Audience | What they need | Where it lives |
+|---|---|---|
 | Developer | How rate limiting works, how to swap ESPs, where the Mailchimp wrapper lives | Inline JSDoc on `lib/newsletter/*` + a one-paragraph addition to `docs/ARCHITECTURE.md` |
+| Operator | Runbook entry: how to investigate a spike in 429s, how to verify Mailchimp connectivity, what to do when Contentful is unreachable | `docs/runbooks/newsletter.md` |
 
 ### Out of documentation scope
 
 - No public API docs needed — internal feature only.
+- No support troubleshooting guide for end users — handled by the marketing team's existing FAQ.
 
 ## Observability [filled — non-default monitoring needed]
 

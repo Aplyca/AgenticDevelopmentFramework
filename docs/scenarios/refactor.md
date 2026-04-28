@@ -66,7 +66,13 @@ $ pnpm test
 
 If you have to run a smaller subset for speed during the refactor, that's fine — but run the full suite at the end before committing.
 
-### 4. Run review
+### 4. Skip the docs phase
+
+A refactor that doesn't change observable behavior also doesn't change docs. `/write-docs` is **not** part of the refactor workflow. If you find yourself wanting to update an admin guide or API contract, that's a signal the refactor is actually changing behavior — go back to step 1, write a spec, and use the [Modifying an existing feature](modifying-existing-feature.md) workflow instead.
+
+(Code-level docs like JSDoc may need updates if you renamed an exported symbol — those go in the same commit as the refactor.)
+
+### 5. Run review
 
 ```
 /review
@@ -77,7 +83,7 @@ Review on a refactor focuses on different things than a feature review:
 - **Are the new abstractions used in the way they were extracted to support?** (or are we one-shot abstracting?)
 - **Did public APIs change?** (they shouldn't, in a pure refactor)
 
-### 5. Commit
+### 6. Commit
 
 ```bash
 git add -A
@@ -91,7 +97,7 @@ No behavior change."
 
 The `refactor:` prefix is important. It tells reviewers (and future-you) that the diff is structural, no behavior change, no spec update needed.
 
-### 6. Open a small, single-purpose PR
+### 7. Open a small, single-purpose PR
 
 A refactor PR should be **boring** to review. If your reviewer is asking "wait, did this change behavior?", the PR is doing too much. Split it.
 

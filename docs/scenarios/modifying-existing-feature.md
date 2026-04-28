@@ -81,7 +81,21 @@ git add e2e/newsletter-signup.spec.ts
 git commit -m "test: add first-name field tests (red — pending implementation)"
 ```
 
-### 6. Plan and implement the change
+### 6. Update user-facing docs (docs-first)
+
+```
+/write-docs newsletter-signup
+```
+
+If the spec update added entries to **Pre-implementable docs** (e.g., the admin guide gains a section explaining the new field), the skill plans the doc updates, you approve, the AI writes them, and you commit:
+
+```bash
+git commit -m "docs: update admin guide for first-name field"
+```
+
+If the spec update didn't touch user-facing docs, the skill skips cleanly. Proceed.
+
+### 7. Plan and implement the change
 
 ```
 /implement newsletter-signup
@@ -104,7 +118,7 @@ $ pnpm test:e2e
   9 passed
 ```
 
-### 7. Review and commit
+### 8. Review and commit
 
 ```
 /review
@@ -173,9 +187,11 @@ $ pnpm test:e2e
 
 ```
 * feat: add optional first-name field to newsletter signup
+* docs: update admin guide for first-name field
 * test: add first-name field tests (red — pending implementation)
 * spec: add optional first-name field to newsletter signup
 * feat: add newsletter signup on article pages       ← original feature
+* docs: add admin guide and end-user copy defaults
 * test: add newsletter signup tests
 * spec: add newsletter signup form for article pages
 ```
