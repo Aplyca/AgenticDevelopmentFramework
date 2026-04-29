@@ -238,6 +238,16 @@ See [docs/scenarios/modifying-existing-feature.md](../docs/scenarios/modifying-e
 4. Run: /review before committing
 ```
 
+## How the framework verifies itself
+
+The AI-Assisted Development Framework that produced this project skeleton has its own eval suite — structural checks of every skill, agent, rule, and the spec template, plus dynamic AI-invocation fixtures. It currently passes 48/48 static checks and is run in the framework's CI on every change. **This is why you can trust that `/write-spec` still enforces required sections, `/write-tests` still reads from all spec sections, and `/implement` still refuses to run without committed docs** — the framework eats its own dogfood.
+
+What this means for your project:
+
+- Your project does NOT have the framework's eval suite copied in. Adopting projects don't inherit fixtures (see `evals/README.md` in your project root for why).
+- Your project's `.claude/` rules, skills, and agents are guaranteed to behave per the framework's contract because the framework itself is eval-tested.
+- If your team adds custom skills, custom rules, or project-specific spec patterns and wants automated checks against them, you can adopt the eval pattern. The framework's `evals/STRATEGY.md` documents how — start with static structural checks (bash + grep), add dynamic fixtures only when real regressions surface.
+
 ## Situational playbooks
 
 Not every change is a brand-new feature. The patterns differ for these common situations — each has a one-page playbook:

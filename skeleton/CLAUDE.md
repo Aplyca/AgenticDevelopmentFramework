@@ -8,6 +8,10 @@
 
 This project uses a **multi-perspective spec model** — each spec captures input from all relevant roles (business, functional, security, accessibility, testing, documentation, and more) in one document, with required sections enforced before approval. Full structure in `docs/SPEC-MODEL.md`. Template at `specs/_template.md`.
 
+## Evals (optional pattern)
+
+This project has an empty `evals/` directory by design. **Evals test the framework that produced this skeleton, not your project.** If your team writes custom skills / rules / spec patterns and wants automated checks against them, the framework's eval pattern transfers — see `evals/README.md` in this directory for guidance, then adopt structural checks (bash + grep) and dynamic fixtures (AI invocation) as needed. Add evals only when real regressions surface; don't write speculative coverage.
+
 ## Engineering standards (path-scoped)
 
 Standards are in `.claude/rules/` and auto-load when you touch matching file paths:
