@@ -23,10 +23,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - `README.md` — added pointer to `docs/UPGRADING.md` in the Get started section.
 - `docs/SETUP.md` — replaced the brief "Updating" paragraph with a pointer to the full upgrading guide.
 - `skeleton/CLAUDE.md` cost-model paragraph now points at `.claude/settings.json` as the source of truth for the default model.
+- **Scope cleanup — removed framework-author voice from skeleton-targeted files.** Target-project files should not narrate the framework that produced them; that voice belongs in framework docs only. Changes:
+  - `skeleton/CLAUDE.md` perf tip — "the framework auto-loads…" → "Claude Code auto-loads…" (the original phrasing was ambiguous since "framework" reads as the project's web framework in a target context).
+  - `skeleton/CLAUDE.md` Evals section — removed *"Evals test the framework that produced this skeleton, not your project"* meta-narration; rewritten in target-project voice.
+  - `skeleton/evals/README.md` — full rewrite. Was written as a letter from framework authors to adopters (5 references to "the framework"); now reads like a normal target-project README with one closing reference to the source repo as a worked example.
+  - `skeleton/.claude/skills/spec-drift/SKILL.md` and `skeleton/.claude/rules/git-workflow.md` — single-word swaps: "The framework uses…" / "The framework enforces…" → "This workflow uses…" / "This workflow enforces…".
 
 ### Upgrade impact
 - **Additive**: `docs/UPGRADING.md`, `CHANGELOG.md`. Drop in.
-- **Merge**: `skeleton/CLAUDE.md` (new comment line near the top, updated cost-model paragraph, new Lightweight-mode section — keep your project name and any team-specific notes); `skeleton/.claude/settings.json` (if your project added hooks or extra permissions, merge them on top of the new model + permissions block).
+- **Merge**: `skeleton/CLAUDE.md` (new comment line near the top, updated cost-model paragraph, new Lightweight-mode section, scope-cleanup edits to perf tip + Evals section — keep your project name and any team-specific notes); `skeleton/.claude/settings.json` (if your project added hooks or extra permissions, merge them on top of the new model + permissions block); `skeleton/evals/README.md` (full rewrite — overwrite unless you customized it).
+- **Overwrite**: `skeleton/.claude/skills/spec-drift/SKILL.md` and `skeleton/.claude/rules/git-workflow.md` (single-word phrasing fixes; safe verbatim).
 - **Overwrite-with-care**: `README.md` and `docs/SETUP.md` are framework-owned and not part of the skeleton, so adopting projects don't copy these. The change is internal to the framework repo.
 
 ## ed3d1a1 — 2026-04-29 — Mermaid diagrams + MCP integration

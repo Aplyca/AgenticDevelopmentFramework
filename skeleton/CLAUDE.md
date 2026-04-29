@@ -29,7 +29,7 @@ The spec → tests → docs → implement workflow exists for **features and beh
 
 **Heuristic:** if the change wouldn't appear in a release note, it doesn't need a spec. If a teammate could merge the diff without reading any new docs, it doesn't need `/write-docs`.
 
-**Performance tip:** the framework auto-loads `AGENTS.md`, `CLAUDE.md`, all of `.claude/rules/`, and the skills index on every turn. If a rule file in the table below doesn't apply to your project (e.g. `ui-ux.md` on a backend service, `deployment.md` on a library), delete it — fewer tokens in the prefill means faster responses and better cache hit rates.
+**Performance tip:** Claude Code auto-loads `AGENTS.md`, `CLAUDE.md`, all of `.claude/rules/`, and the skills index on every turn. If a rule file in the table below doesn't apply to your project (e.g. `ui-ux.md` on a backend service, `deployment.md` on a library), delete it — fewer tokens in the prefill means faster responses and better cache hit rates.
 
 ## Memory strategy
 
@@ -41,7 +41,7 @@ For projects with many specs / ADRs / runbooks, an optional MCP server can expos
 
 ## Evals (optional pattern)
 
-This project has an empty `evals/` directory by design. **Evals test the framework that produced this skeleton, not your project.** If your team writes custom skills / rules / spec patterns and wants automated checks against them, the framework's eval pattern transfers — see `evals/README.md` in this directory for guidance, then adopt structural checks (bash + grep) and dynamic fixtures (AI invocation) as needed. Add evals only when real regressions surface; don't write speculative coverage.
+This project has an empty `evals/` directory by design — add evals only if your team writes custom skills, rules, or spec patterns that need automated verification. See `evals/README.md` for the two-tier pattern (static structural checks + dynamic AI-invocation fixtures) and adoption guidance. Add evals only when a real regression surfaces; don't write speculative coverage.
 
 ## Engineering standards (path-scoped)
 

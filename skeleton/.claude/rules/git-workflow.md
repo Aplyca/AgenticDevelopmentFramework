@@ -12,7 +12,7 @@ paths:
 
 ## Commit prefixes (feature-development workflow)
 
-The framework uses these prefixes in a specific order during feature development:
+This workflow uses these prefixes in a specific order during feature development:
 
 | Prefix | When | What it captures |
 |---|---|---|

@@ -9,7 +9,7 @@ argument-hint: "[spec name | --all | --area <path>]"
 
 Compare a committed spec against the current state of the code, tests, and committed user-facing docs. Report divergences. Do NOT fix them — drift detection is an audit; remediation goes through the normal modify-existing-feature workflow.
 
-The framework enforces consistency at *write time* (spec before tests before docs before code). But code evolves through dozens of PRs. Six months later, the spec may no longer accurately describe what ships. This skill catches that decay.
+This workflow enforces consistency at *write time* (spec before tests before docs before code). But code evolves through dozens of PRs. Six months later, the spec may no longer accurately describe what ships. This skill catches that decay.
 
 ## When to use
 

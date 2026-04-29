@@ -1,24 +1,38 @@
-# Evals (pattern reference)
+# Evals
 
-This directory is intentionally minimal — **the AI-Assisted Development Framework's own evals don't ship into adopting projects**. Evals test the framework itself: its skills, agents, rules, and spec template. Your project doesn't have those framework files to test (you have your project's own files).
+This directory is empty by design. Add evals here only if your team writes **custom skills, custom rules, or project-specific patterns** that need automated verification beyond what unit/integration tests cover.
 
-## Want to add evals to your project?
+If everything in `.claude/` is unchanged from what you adopted, there is nothing in here to test — your tests already cover your application code.
 
-If your team writes its own custom skills, custom rules, or has project-specific patterns it wants to verify automatically, the framework's eval pattern transfers directly. Adopt it like this:
+## When to add evals
 
-1. **Read the framework's eval docs** — `evals/README.md` and `evals/STRATEGY.md` in the framework's source repo. They explain the two-tier model (static structural checks + dynamic AI-invocation fixtures), when to add evals, and what good fixtures look like.
-2. **Start with static checks for your custom artifacts.** If you wrote a custom skill at `.claude/skills/my-skill/SKILL.md`, write a bash + grep check that verifies its structure (frontmatter, required sections). Pattern: copy the framework's `evals/static/check-skills.sh` and adapt the checks.
-3. **Add dynamic fixtures only when a real regression surfaces.** Don't pre-write coverage. Bloated eval suites get ignored.
-4. **Run static checks in CI**, dynamic checks nightly or pre-release.
+Add evals when at least one of the following is true:
 
-## Why this directory is empty
+- You wrote a custom skill at `.claude/skills/<name>/SKILL.md` and want to verify its structure (required frontmatter, required sections).
+- You wrote a custom rule at `.claude/rules/<name>.md` and want to assert it loads on the right paths.
+- You have a recurring AI-output regression (e.g. specs missing the Security section) and want a fixture that catches it.
 
-If `skeleton/evals/` shipped with fixtures, adopting projects would inherit eval failures the moment the framework releases a new version that changes a skill's structure. Worse, the fixtures wouldn't actually be testing the project — they'd be testing a framework version snapshot. Confusing and unhelpful.
+If none of these apply, leave this directory empty. Bloated eval suites get ignored.
 
-The right shape is: framework owns its evals, projects own theirs. The pattern is portable; the fixtures aren't.
+## Two-tier pattern
+
+1. **Static checks** — bash + grep, run in CI on every PR. Verify that custom artifacts have the structure you expect (frontmatter keys, required headings, no forbidden phrases). Fast, deterministic, free.
+2. **Dynamic fixtures** — invoke the AI with a known input and assert properties of the output. Run nightly or pre-release, not per-PR. Slower and costs tokens, so reserve for behaviors structural checks can't verify.
+
+## Suggested layout
+
+```
+evals/
+  static/
+    check-skills.sh        # frontmatter + required-section checks for custom skills
+    check-rules.sh         # frontmatter + scope checks for custom rules
+    run.sh                 # runs all static checks; exit non-zero on failure
+  dynamic/
+    fixtures/              # input prompts + expected-output assertions
+    run.sh                 # invokes the AI and grades outputs
+  README.md                # this file
+```
 
 ## Reference
 
-- Framework eval implementation: see the framework's source repository, `evals/` directory.
-- Eval discipline and anti-patterns: framework's `evals/STRATEGY.md`.
-- This file is the only thing that lives in your project's `evals/` directory until you add your own.
+The AI-Assisted Development Framework that ships this skeleton uses the same two-tier pattern internally to verify its own skills, rules, and spec template. If you want a worked example to copy from, see the `evals/` directory in that source repository.
