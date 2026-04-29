@@ -47,7 +47,7 @@ cp -r skeleton/. your-project/
 # 6. .claude/settings.json — enforcement hooks
 ```
 
-See [docs/SETUP.md](docs/SETUP.md) for detailed instructions.
+See [docs/SETUP.md](docs/SETUP.md) for detailed instructions. Already adopted an earlier skeleton version? See [docs/UPGRADING.md](docs/UPGRADING.md) to pull newer changes without losing your customizations, and [CHANGELOG.md](CHANGELOG.md) for per-entry upgrade impact.
 
 ## How it works
 

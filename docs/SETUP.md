@@ -101,7 +101,7 @@ If agents reference your project specifics (from CLAUDE.md), the setup is workin
 
 ## Updating
 
-When the framework is updated, copy the new `skeleton/` contents into your project and merge with your customizations. Universal rules and agents can typically be overwritten. Customizable rules need manual merging.
+To pull newer framework changes into a project that already adopted an earlier skeleton version, follow [docs/UPGRADING.md](./UPGRADING.md). It documents the three-bucket file taxonomy (safe-to-overwrite, merge-required, project-owned), the upgrade procedure with `OLD_SHA → NEW_SHA` discipline, and an AI-assisted upgrade pattern that preserves the plan-then-execute gate.
 
 ## What NOT to customize
 
