@@ -75,14 +75,7 @@ Adapt to your language's idioms (e.g., snake_case for Python, PascalCase for Go 
 
 ## Commit message prefixes
 
-| Prefix | When to use |
-|---|---|
-| `spec:` | Spec changes (new or updated) — committed before tests and implementation |
-| `test:` | Tests from spec ACs — committed before implementation (should fail until code exists) |
-| `docs:` | Documentation changes (architecture, security, ADRs) |
-| `feat:` | New feature implementation (makes the tests pass) |
-| `fix:` | Bug fix implementation |
-| `refactor:` | Code restructuring without behavior change |
+`spec:`, `test:`, `docs:`, `feat:`, `fix:`, `refactor:` — used in the order shown for spec-driven feature development. Full table with phase semantics is in `.claude/rules/git-workflow.md` (the `/commit` skill reads it).
 
 ## Project documentation
 

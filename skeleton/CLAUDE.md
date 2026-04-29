@@ -29,7 +29,7 @@ The spec → tests → docs → implement workflow exists for **features and beh
 
 **Heuristic:** if the change wouldn't appear in a release note, it doesn't need a spec. If a teammate could merge the diff without reading any new docs, it doesn't need `/write-docs`.
 
-**Performance tip:** Claude Code auto-loads `AGENTS.md`, `CLAUDE.md`, all of `.claude/rules/`, and the skills index on every turn. If a rule file in the table below doesn't apply to your project (e.g. `ui-ux.md` on a backend service, `deployment.md` on a library), delete it — fewer tokens in the prefill means faster responses and better cache hit rates.
+**Performance tip:** Claude Code auto-loads `AGENTS.md`, `CLAUDE.md`, and the skills/agents index (frontmatter only) on every turn. Rule bodies in `.claude/rules/` load on demand, not automatically — but Cursor DOES auto-load `.cursor/rules/*.mdc` by glob, so deleting unused rule files there shrinks Cursor's per-turn prefill. Across all tools, the highest-leverage tokens to trim are in `AGENTS.md` and `CLAUDE.md` themselves — keep them lean and stable (each edit busts the prompt cache).
 
 ## Memory strategy
 
@@ -59,39 +59,9 @@ Standards are in `.claude/rules/` and auto-load when you touch matching file pat
 | `performance.md` | Components and dependencies |
 | `observability.md` | API and server code |
 
-## Specialized agents
+## Specialized agents and workflow skills
 
-Defined in `.claude/agents/`. Invoke with `@agent-name`. All agents are generic — they learn project specifics from AGENTS.md, this file, and `.claude/rules/`.
-
-| Agent | Purpose | Access |
-|---|---|---|
-| `@spec-writer` | Drafts specs from business requirements | Read + Write `specs/` |
-| `@code-reviewer` | Reviews quality, conventions, patterns | Read-only |
-| `@security-reviewer` | Audits for vulnerabilities and credential exposure | Read-only |
-| `@test-runner` | Writes and runs tests from spec ACs | Full edit + Bash |
-| `@architect` | Reviews design decisions and data flow | Read-only |
-| `@debugger` | Root cause analysis for errors and failures | Read + Bash (no edit) |
-| `@ux-reviewer` | Reviews UI against specs and UX standards | Read-only |
-
-## Workflow skills
-
-Defined in `.claude/skills/`. Invoke with `/skill-name`. These are step-by-step playbooks for common tasks.
-
-| Skill | Purpose |
-|---|---|
-| `/spec-workflow` | Complete workflow reference (setup, feature dev, hotfix) |
-| `/init-project` | First-time project setup |
-| `/write-spec` | Draft a feature specification using the multi-perspective spec model (see `docs/SPEC-MODEL.md`). Enforces required sections before approval. |
-| `/write-tests` | Write tests from spec acceptance criteria AND testable requirements in security / accessibility / performance sections |
-| `/write-docs` | Docs-first: plan and write pre-implementable user-facing docs (admin guides, API contracts, end-user copy defaults) BEFORE implementation. Skips cleanly when the spec has no pre-implementable docs. |
-| `/implement` | Build from an approved spec (reads spec git diff for scope, addresses every filled section: functional, security, a11y, perf, etc.; reads committed docs to drive thinking and reconciles them deliberately when implementation diverges) |
-| `/spec-drift` | Read-only audit: detect divergences between a committed spec and current code/tests/docs. Reports findings categorized by severity; does not fix. Run periodically (monthly per spec area) to catch silent decay. |
-| `/orchestrate` | Dispatch multiple specialized agents in parallel for thorough reviews or investigations. Built-in task types: `review`, `investigate`, `pre-commit`, `custom`. Costs more than `/review`; use for high-stakes diffs or multi-angle exploration. Does NOT auto-progress through workflow phases. |
-| `/review` | Multi-perspective code review |
-| `/debug` | Systematic root cause analysis |
-| `/refactor` | Safe code restructuring |
-| `/commit` | Review and commit changes |
-| `/evaluate` | Deep analysis with options, pros/cons, risks |
+Agents (`.claude/agents/`, invoke with `@`) and skills (`.claude/skills/`, invoke with `/`) appear in the auto-loaded index — type `@` or `/` to see the live list. Full catalogs (purpose, access scope, model tier, when to use each) are in `AGENTS-REFERENCE.md` and `SKILLS-REFERENCE.md` in the AI-Assisted Development Framework repository — those are framework-owned reference docs and aren't copied into your project. Agents are generic; they learn project specifics from `AGENTS.md`, this file, and `.claude/rules/` at runtime.
 
 ## When to use skills vs agents
 
