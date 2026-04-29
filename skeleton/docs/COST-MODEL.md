@@ -29,6 +29,12 @@ This framework is built around three Claude model tiers. Use the right tier for 
 - **Escalate to Opus** when: (a) the task involves >5 interacting constraints to satisfy simultaneously, (b) the cost of a wrong decision is significantly higher than the cost difference, or (c) you've tried Sonnet and it consistently produces inadequate output. Most teams escalate <10% of work to Opus.
 - **Don't escalate "just in case"** — Opus on tasks Sonnet handles well is pure waste. The framework's anti-rationalization tables, plan-then-execute gates, and verification checklists do most of the quality work that escalation would otherwise paper over.
 
+### Switching tiers in Claude Code
+
+- `/model` — built-in command to switch the session's model (e.g. `/model claude-opus-4-7` before a hard reasoning task, then `/model claude-sonnet-4-6` after).
+- Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default. Use this for `@architect`, `@evaluate`-style work that should always run on Opus, and for `@code-reviewer` / `@security-reviewer` that should always run on Haiku.
+- `/fast` — built-in Claude Code toggle that switches **Opus 4.6** to a faster-output variant of the same model. It does NOT downgrade to a smaller model — capability is unchanged, only latency improves. Only available on Opus 4.6 (not 4.7). Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference, not a project-level setting.
+
 ## Per-skill recommendations
 
 Skills run in your main AI conversation, so they use whatever model your AI tool is set to. The framework can't enforce per-skill model choice — but it can recommend.
