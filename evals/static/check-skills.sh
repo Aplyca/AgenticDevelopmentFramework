@@ -124,7 +124,7 @@ check_skill_has_rationalizations() {
 
     # TDD-discipline skills must have anti-rationalization tables.
     case "$name" in
-        write-spec|write-tests|write-docs|implement|review|commit|refactor|debug|spec-drift)
+        write-spec|write-tests|write-docs|implement|review|commit|refactor|debug|spec-drift|orchestrate)
             if file_contains "$file" '^## Rationalizations'; then
                 local rows
                 rows=$(count_section_table_rows "$file" '^## Rationalizations')
@@ -151,7 +151,7 @@ check_skill_has_verification() {
     [ ! -f "$file" ] && return
 
     case "$name" in
-        write-spec|write-tests|write-docs|implement|review|commit|refactor|debug|spec-drift)
+        write-spec|write-tests|write-docs|implement|review|commit|refactor|debug|spec-drift|orchestrate)
             if file_contains "$file" '^## Verification'; then
                 local checkboxes
                 checkboxes=$(count_matches "$file" '^- \[ \]')

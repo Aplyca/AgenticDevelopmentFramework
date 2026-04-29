@@ -104,6 +104,7 @@ Skills standardize how your team interacts with AI. In Claude Code, invoke with 
 | `/write-docs` | After tests are committed — write pre-implementable user-facing docs (skips cleanly if none in the spec) |
 | `/implement` | After spec, tests, and docs are committed — build the feature |
 | `/spec-drift` | Periodic audit — detect drift between a committed spec and current code/tests/docs (read-only) |
+| `/orchestrate` | Dispatch multiple specialized agents in parallel for thorough reviews or investigations |
 | `/review` | Before committing — multi-perspective code review |
 | `/debug` | When something breaks — systematic root cause analysis |
 | `/refactor` | Cleaning up code — safe restructuring with test coverage |
