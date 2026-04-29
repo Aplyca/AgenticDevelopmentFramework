@@ -115,3 +115,16 @@ For teams that want full automation, common 2026-era tools:
 - **[Anthropic SDK](https://docs.anthropic.com)** directly — for fully custom runners.
 
 The framework doesn't pick one. Document your choice in the project's `evals/dynamic/run-dynamic.md`.
+
+## Cost-conscious eval discipline
+
+Static evals cost nothing — run them on every PR.
+
+Dynamic evals cost real tokens. A single `/write-spec` invocation typically consumes ~5-15k tokens. With ~10 fixtures across the four core skills, a full nightly run can be ~150k-500k tokens. Worth being deliberate:
+
+- **Use a Sonnet-tier or Haiku-tier model for the grader** when LLM-as-judge is required. The thing being tested might need Sonnet, but grading "does the output have these sections" can use Haiku.
+- **Sample, don't run the full suite per PR.** Run static on every PR; dynamic nightly on a sampled subset; full suite weekly or pre-release.
+- **Cache the system prompt.** When evaluating a skill, the SKILL.md is the same across all fixtures — keep it as the cacheable prefix and vary only the user-message input.
+- **Don't graduate flaky evals to CI gates.** A non-deterministic eval that fails 1-in-20 will become noise the team learns to ignore. Stabilize the eval first (use invariants not exact matches), then gate on it.
+
+See [skeleton/docs/COST-MODEL.md](../skeleton/docs/COST-MODEL.md) for the broader cost discipline (model tiering, prompt caching, attribution).

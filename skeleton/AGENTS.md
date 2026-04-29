@@ -98,6 +98,7 @@ Documentation lives in `docs/`. Read the relevant docs before making decisions i
 | `docs/infrastructure/OVERVIEW.md` | Changing deployment, CI/CD, environments, or scaling |
 | `docs/getting-started/DEV-SETUP.md` | Setting up or troubleshooting the dev environment |
 | `docs/GLOSSARY.md` | Writing specs, docs, or user-facing text — use consistent terms |
+| `docs/COST-MODEL.md` | Choosing a model tier for a task, tuning prompt-cache behavior, attributing AI spend |
 
 When documentation contradicts the code, investigate which is correct. Update the one that's wrong.
 
