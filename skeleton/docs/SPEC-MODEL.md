@@ -104,6 +104,12 @@ The skill counts all three as "filled". An empty section or a section with only 
 | `/implement` | All sections — plan must cover functional code, security mitigations, a11y implementation, observability hooks, deployment changes. Reads committed docs to drive thinking; when the chosen approach diverges from doc claims, reconciles docs deliberately (separate `docs:` commit or folded into `feat:`). Doc reconciliation is a normal sub-step, not an exception. |
 | `/review` | All sections — multi-perspective review checks each section's requirements were actually met |
 
+## Diagrams in specs
+
+The Technical section supports an optional **Diagrams (Mermaid)** subsection. Use it when prose alone won't convey a non-trivial data flow, interaction sequence, or data model. Common diagram types: sequence diagrams (request/response flows), flowcharts (decision logic, state machines), ER diagrams (data model relationships), C4 component diagrams (high-level boundaries).
+
+The spec template includes worked examples. Skip diagrams for simple CRUD or pure UI tweaks — they earn their place when the feature is genuinely complex.
+
 ## The Documentation section: pre-implementable vs post-implementable
 
 The Documentation section splits into two subsections to support docs-first development:

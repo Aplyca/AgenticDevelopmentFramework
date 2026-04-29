@@ -198,6 +198,58 @@ Or list specific requirements (each one should be testable):
 
 - [e.g. Must use the framework's built-in form-builder helper — Reason: standardizes validation across the site, used by 4 other forms]
 
+### Diagrams (Mermaid)
+
+> Optional. Use when the feature has non-trivial data flow, sequence of interactions, or data relationships that prose alone won't convey clearly. Skip for simple CRUD or pure UI changes. Diagrams render in GitHub, GitLab, and most markdown viewers.
+
+Common diagram types and when to use each:
+
+- **Sequence diagram** — request/response flows across components, especially when multiple services or async steps are involved
+- **Flowchart** — decision logic, state machines, branching behavior
+- **ER diagram** — data model relationships when adding/changing entities
+- **C4 component diagram** — high-level component boundaries for non-trivial features
+
+Example sequence diagram:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Form (browser)
+    participant API as /api/newsletter
+    participant Limiter as Rate limiter (KV)
+    participant ESP as Mailchimp
+
+    User->>UI: submit email
+    UI->>API: POST { email }
+    API->>Limiter: check IP
+    Limiter-->>API: ok | rate-limited
+    alt rate-limited
+        API-->>UI: 429 + Retry-After
+    else ok
+        API->>ESP: subscribe(email)
+        ESP-->>API: subscribed | already_subscribed | error
+        API-->>UI: 200 { status }
+    end
+    UI->>User: success | already-subscribed | error message
+```
+
+Example flowchart:
+
+```mermaid
+flowchart TD
+    Start([User submits form]) --> Validate{Valid email?}
+    Validate -->|No| Error[Show inline error]
+    Validate -->|Yes| RateLimit{Under rate limit?}
+    RateLimit -->|No| Retry[Show retry-able error]
+    RateLimit -->|Yes| Subscribe[POST to Mailchimp]
+    Subscribe --> Result{Result?}
+    Result -->|subscribed| Success[Show success message]
+    Result -->|already_subscribed| AlreadyMsg[Show already-subscribed message]
+    Result -->|error| RetryMsg[Show retry-able error]
+```
+
+Add diagrams here only when they earn their place — a 30-line spec for a button color change doesn't need a sequence diagram.
+
 ### ADRs
 
 - [Link any ADRs created or referenced for this feature — e.g. `ADR-0007: Choosing Mailchimp over SendGrid`]

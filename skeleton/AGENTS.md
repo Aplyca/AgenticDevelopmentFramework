@@ -100,6 +100,7 @@ Documentation lives in `docs/`. Read the relevant docs before making decisions i
 | `docs/GLOSSARY.md` | Writing specs, docs, or user-facing text — use consistent terms |
 | `docs/COST-MODEL.md` | Choosing a model tier for a task, tuning prompt-cache behavior, attributing AI spend |
 | `docs/MEMORY-STRATEGY.md` | Deciding where a piece of project knowledge belongs (AGENTS.md vs rules vs memory vs spec vs ADR) |
+| `docs/MCP-INTEGRATION.md` | Optional — how to expose specs / ADRs / runbooks as MCP resources for cross-tool queryable access |
 
 When documentation contradicts the code, investigate which is correct. Update the one that's wrong.
 

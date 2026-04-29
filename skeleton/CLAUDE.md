@@ -16,6 +16,10 @@ Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Op
 
 Knowledge has six layers in this project: `AGENTS.md` (identity), `CLAUDE.md` (this file — tool config), `.claude/rules/` (engineering standards), specs (per-feature), ADRs (significant decisions), and persistent memory (recurring gotchas, learned patterns, user preferences). See `docs/MEMORY-STRATEGY.md` for the decision tree on where a given fact belongs. Rule of thumb: if a fact would change more than once a quarter, it doesn't belong in `AGENTS.md` / `CLAUDE.md` / rules — it belongs in memory or a spec.
 
+## MCP integration (optional)
+
+For projects with many specs / ADRs / runbooks, an optional MCP server can expose them as queryable resources (e.g. `mcp://specs/newsletter-signup/security` returns just the Security section). See `docs/MCP-INTEGRATION.md` for when to set one up, what to expose, a reference TypeScript implementation, and how to wire it into Claude Code / Cursor / Antigravity. Not a hard dependency — the framework works without MCP.
+
 ## Evals (optional pattern)
 
 This project has an empty `evals/` directory by design. **Evals test the framework that produced this skeleton, not your project.** If your team writes custom skills / rules / spec patterns and wants automated checks against them, the framework's eval pattern transfers — see `evals/README.md` in this directory for guidance, then adopt structural checks (bash + grep) and dynamic fixtures (AI invocation) as needed. Add evals only when real regressions surface; don't write speculative coverage.

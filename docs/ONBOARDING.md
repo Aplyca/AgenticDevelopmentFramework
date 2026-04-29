@@ -92,6 +92,7 @@ Hotfixes skip the spec-first and docs-first process because speed matters. Alway
 8. Browse `.claude/skills/` — read 2-3 skill definitions to understand the workflow playbooks (10 min)
 9. Browse `.claude/rules/` — read 2-3 rules to understand the engineering standards (10 min)
 10. Read the development workflows above (10 min)
+11. Optional — `docs/MCP-INTEGRATION.md` if your project will run an MCP server for cross-tool spec queries (skip otherwise; not a hard dependency)
 
 > **Why the spec model matters before everything else.** Specs in this project aren't just "what the business wants" — they capture input from every relevant role (security, accessibility, testing, deployment, etc.) in one document. The AI enforces required sections before a spec can be approved. If you skim the rest but skip `SPEC-MODEL.md`, you'll write specs that get rejected by the `/write-spec` skill. 10 minutes here saves an hour of confusion later.
 
