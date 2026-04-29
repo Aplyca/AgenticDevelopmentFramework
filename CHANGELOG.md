@@ -15,14 +15,17 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - `docs/UPGRADING.md` — guide for upgrading a target project to a newer skeleton version. Covers the three-bucket file taxonomy, OLD_SHA → NEW_SHA procedure, AI-assisted upgrade pattern, and four common scenarios.
 - `CHANGELOG.md` (this file) — per-commit changelog so upgrade consumers don't have to read git log.
 - `<!-- Skeleton source: [SHA] ([date]) -->` template line at the top of `skeleton/CLAUDE.md`. Adopting projects fill in their baseline SHA so future upgrades have a known starting point.
+- `skeleton/.claude/settings.json` — wired the default model (`claude-sonnet-4-6`) and a starter `permissions.allow` list of universally-safe read-only commands (git status/diff/log, ls, rg, grep, find). Cuts permission-prompt interruptions and aligns the default with `docs/COST-MODEL.md` instead of relying on each user's tool-level setting.
+- `skeleton/CLAUDE.md` — new "Lightweight mode — when to skip the full workflow" section with a per-change-type table (feature vs bug fix vs typo vs refactor vs tooling vs spike) and a perf tip about deleting unused rule files to shrink the auto-loaded prefill.
 
 ### Changed
 - `README.md` — added pointer to `docs/UPGRADING.md` in the Get started section.
 - `docs/SETUP.md` — replaced the brief "Updating" paragraph with a pointer to the full upgrading guide.
+- `skeleton/CLAUDE.md` cost-model paragraph now points at `.claude/settings.json` as the source of truth for the default model.
 
 ### Upgrade impact
 - **Additive**: `docs/UPGRADING.md`, `CHANGELOG.md`. Drop in.
-- **Merge**: `skeleton/CLAUDE.md` (new comment line near the top — keep your project name and any team-specific notes).
+- **Merge**: `skeleton/CLAUDE.md` (new comment line near the top, updated cost-model paragraph, new Lightweight-mode section — keep your project name and any team-specific notes); `skeleton/.claude/settings.json` (if your project added hooks or extra permissions, merge them on top of the new model + permissions block).
 - **Overwrite-with-care**: `README.md` and `docs/SETUP.md` are framework-owned and not part of the skeleton, so adopting projects don't copy these. The change is internal to the framework repo.
 
 ## ed3d1a1 — 2026-04-29 — Mermaid diagrams + MCP integration

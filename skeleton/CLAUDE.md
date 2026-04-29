@@ -12,7 +12,24 @@ This project uses a **multi-perspective spec model** — each spec captures inpu
 
 ## Cost model
 
-Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Opus only for genuinely complex/novel work (see `docs/COST-MODEL.md` for the decision rules and per-skill recommendations). Specialized agents declare their model in their `agent.md` frontmatter — don't override casually. Keep `AGENTS.md`, `CLAUDE.md`, and rules stable to maximize prompt-cache hits (each edit busts the cache for every subsequent request).
+Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Opus only for genuinely complex/novel work (see `docs/COST-MODEL.md` for the decision rules and per-skill recommendations). The default model is wired in `.claude/settings.json` (`"model": "claude-sonnet-4-6"`); change it there if your team's default differs. Specialized agents declare their model in their `agent.md` frontmatter — don't override casually. Keep `AGENTS.md`, `CLAUDE.md`, and rules stable to maximize prompt-cache hits (each edit busts the cache for every subsequent request).
+
+## Lightweight mode — when to skip the full workflow
+
+The spec → tests → docs → implement workflow exists for **features and behavior changes**. It is overkill for small, low-risk work and will feel unnecessarily slow if applied to everything. Match the ceremony to the change:
+
+| Change type | Workflow |
+|---|---|
+| New feature, behavior change, anything user-facing | Full workflow (`/write-spec` → `/write-tests` → `/write-docs` → `/implement`) |
+| Bug fix with a clear root cause | `/debug` → fix → add a regression test → `/commit`. Skip spec/docs unless the fix changes documented behavior. |
+| Typo, copy tweak, dependency bump (patch), formatting | Edit → `/commit`. No workflow. |
+| Refactor with no behavior change | `/refactor` → ensure tests still pass → `/commit`. No spec. |
+| Internal tooling (scripts, CI tweaks, dev-only config) | Edit → `/commit`. No workflow. |
+| Spike / exploration / throwaway code | No workflow. Delete or promote afterward; if promoted, then write the spec. |
+
+**Heuristic:** if the change wouldn't appear in a release note, it doesn't need a spec. If a teammate could merge the diff without reading any new docs, it doesn't need `/write-docs`.
+
+**Performance tip:** the framework auto-loads `AGENTS.md`, `CLAUDE.md`, all of `.claude/rules/`, and the skills index on every turn. If a rule file in the table below doesn't apply to your project (e.g. `ui-ux.md` on a backend service, `deployment.md` on a library), delete it — fewer tokens in the prefill means faster responses and better cache hit rates.
 
 ## Memory strategy
 
