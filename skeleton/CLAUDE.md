@@ -12,6 +12,10 @@ This project uses a **multi-perspective spec model** — each spec captures inpu
 
 Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Opus only for genuinely complex/novel work (see `docs/COST-MODEL.md` for the decision rules and per-skill recommendations). Specialized agents declare their model in their `agent.md` frontmatter — don't override casually. Keep `AGENTS.md`, `CLAUDE.md`, and rules stable to maximize prompt-cache hits (each edit busts the cache for every subsequent request).
 
+## Memory strategy
+
+Knowledge has six layers in this project: `AGENTS.md` (identity), `CLAUDE.md` (this file — tool config), `.claude/rules/` (engineering standards), specs (per-feature), ADRs (significant decisions), and persistent memory (recurring gotchas, learned patterns, user preferences). See `docs/MEMORY-STRATEGY.md` for the decision tree on where a given fact belongs. Rule of thumb: if a fact would change more than once a quarter, it doesn't belong in `AGENTS.md` / `CLAUDE.md` / rules — it belongs in memory or a spec.
+
 ## Evals (optional pattern)
 
 This project has an empty `evals/` directory by design. **Evals test the framework that produced this skeleton, not your project.** If your team writes custom skills / rules / spec patterns and wants automated checks against them, the framework's eval pattern transfers — see `evals/README.md` in this directory for guidance, then adopt structural checks (bash + grep) and dynamic fixtures (AI invocation) as needed. Add evals only when real regressions surface; don't write speculative coverage.

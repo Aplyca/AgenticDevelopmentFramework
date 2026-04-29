@@ -99,6 +99,7 @@ Documentation lives in `docs/`. Read the relevant docs before making decisions i
 | `docs/getting-started/DEV-SETUP.md` | Setting up or troubleshooting the dev environment |
 | `docs/GLOSSARY.md` | Writing specs, docs, or user-facing text — use consistent terms |
 | `docs/COST-MODEL.md` | Choosing a model tier for a task, tuning prompt-cache behavior, attributing AI spend |
+| `docs/MEMORY-STRATEGY.md` | Deciding where a piece of project knowledge belongs (AGENTS.md vs rules vs memory vs spec vs ADR) |
 
 When documentation contradicts the code, investigate which is correct. Update the one that's wrong.
 

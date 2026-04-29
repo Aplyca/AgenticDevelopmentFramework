@@ -86,11 +86,12 @@ Hotfixes skip the spec-first and docs-first process because speed matters. Alway
 2. Read `AGENTS.md` — understand the project, stack, workflows, and critical rules (10 min)
 3. **Read `docs/SPEC-MODEL.md`** — understand the multi-perspective spec model. This is the most important concept in this workflow; every feature spec uses it. (10 min)
 4. **Read `docs/COST-MODEL.md`** — model tiering and prompt-cache discipline. Most teams overspend by 3-5× by defaulting everything to the most capable model and editing CLAUDE.md continuously. 5 min here saves real money. (5 min)
-5. Read the tool-specific config for your tool (see table below) (5 min)
-6. Browse `.claude/agents/` — read 2-3 agent definitions to understand their roles (10 min)
-7. Browse `.claude/skills/` — read 2-3 skill definitions to understand the workflow playbooks (10 min)
-8. Browse `.claude/rules/` — read 2-3 rules to understand the engineering standards (10 min)
-9. Read the development workflows above (10 min)
+5. **Read `docs/MEMORY-STRATEGY.md`** — where a given fact belongs (AGENTS.md vs rules vs memory vs spec vs ADR). Skipping this means recurring gotchas get re-derived every session, AGENTS.md bloats with feature-specific noise, and the prompt cache stays cold. (5 min)
+6. Read the tool-specific config for your tool (see table below) (5 min)
+7. Browse `.claude/agents/` — read 2-3 agent definitions to understand their roles (10 min)
+8. Browse `.claude/skills/` — read 2-3 skill definitions to understand the workflow playbooks (10 min)
+9. Browse `.claude/rules/` — read 2-3 rules to understand the engineering standards (10 min)
+10. Read the development workflows above (10 min)
 
 > **Why the spec model matters before everything else.** Specs in this project aren't just "what the business wants" — they capture input from every relevant role (security, accessibility, testing, deployment, etc.) in one document. The AI enforces required sections before a spec can be approved. If you skim the rest but skip `SPEC-MODEL.md`, you'll write specs that get rejected by the `/write-spec` skill. 10 minutes here saves an hour of confusion later.
 
