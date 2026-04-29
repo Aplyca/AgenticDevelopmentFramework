@@ -296,6 +296,7 @@ Not every change is a brand-new feature. The patterns differ for these common si
 | Write tests (TDD red) | `/write-tests [spec name]` |
 | Write user-facing docs (DDD) | `/write-docs [spec name]` |
 | Implement from a spec | `/implement [spec name]` |
+| Audit a spec for drift vs current code | `/spec-drift [spec name]` |
 | Review before commit | `/review` |
 | Investigate a bug | `/debug [error message]` |
 | Refactor safely | `/refactor [file or area]` |

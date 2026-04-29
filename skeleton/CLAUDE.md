@@ -58,6 +58,7 @@ Defined in `.claude/skills/`. Invoke with `/skill-name`. These are step-by-step 
 | `/write-tests` | Write tests from spec acceptance criteria AND testable requirements in security / accessibility / performance sections |
 | `/write-docs` | Docs-first: plan and write pre-implementable user-facing docs (admin guides, API contracts, end-user copy defaults) BEFORE implementation. Skips cleanly when the spec has no pre-implementable docs. |
 | `/implement` | Build from an approved spec (reads spec git diff for scope, addresses every filled section: functional, security, a11y, perf, etc.; reads committed docs to drive thinking and reconciles them deliberately when implementation diverges) |
+| `/spec-drift` | Read-only audit: detect divergences between a committed spec and current code/tests/docs. Reports findings categorized by severity; does not fix. Run periodically (monthly per spec area) to catch silent decay. |
 | `/review` | Multi-perspective code review |
 | `/debug` | Systematic root cause analysis |
 | `/refactor` | Safe code restructuring |
