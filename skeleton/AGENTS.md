@@ -46,6 +46,8 @@ Specs contain WHAT (business requirements, acceptance criteria, non-functional r
 
 ## Critical rules
 
+Project-wide non-negotiables live in `docs/CONSTITUTION.md` — specs and plans are checked against it before approval. The rules below are the day-to-day subset every agent needs in context:
+
 <!-- CUSTOMIZE: Add your project's non-negotiable rules here. Examples: -->
 - [Testing port rule: "Tests run on port XXXX — never YYYY"]
 - [Framework-specific rules: "Never read localStorage in useState initializers"]
@@ -99,7 +101,10 @@ When documentation contradicts the code, investigate which is correct. Update th
 
 ## Project structure
 
-<!-- CUSTOMIZE: Replace with your project's actual structure -->
+<!-- CUSTOMIZE: Replace with your project's actual structure. In a monorepo or large
+     codebase, also add nested AGENTS.md files in modules whose local conventions
+     differ from the root (per-app rules, shared-library boundaries). Agents read
+     the file nearest to what they're editing — nearest wins; the root stays general. -->
 ```
 specs/               Feature specs (business requirements)
 src/                 Application source code

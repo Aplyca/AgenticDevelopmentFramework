@@ -1,5 +1,7 @@
 # Glossary
 
+<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: domain and technical terminology -->
+
 Domain-specific and technical terms used in this project. Keep this updated as the team encounters new terms or defines new concepts.
 
 ---

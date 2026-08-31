@@ -1,5 +1,7 @@
 # Infrastructure Overview
 
+<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: hosting, environments, CI/CD, monitoring -->
+
 ## Architecture
 
 [Describe the production infrastructure at a high level. Include a diagram if possible.]

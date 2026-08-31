@@ -79,6 +79,8 @@ Write a feature specification using the multi-perspective spec model (see `docs/
 
    **If any required section is empty, refuse to mark approved.** Tell the user exactly which sections need filling and offer to walk through them.
 
+   Also check the spec against `docs/CONSTITUTION.md` (if present): if any requirement conflicts with a constitutional principle, flag the conflict and refuse to mark approved until it's resolved or an explicit exception is recorded in the spec.
+
 10. **After approval** — Once all required sections are filled and the user approves, update the status to `approved`. Remind the user of the next steps:
     - Commit the spec (`spec:` prefix)
     - Run `/write-tests` (TDD) → commit (`test:` prefix)
@@ -113,6 +115,7 @@ Run this checklist before flipping status to `approved`:
 - [ ] All **always-required** sections are filled (not empty, not just placeholder text)
 - [ ] **Conditionally required** sections (Accessibility for UI, Privacy for personal data) are filled or explicitly marked Not applicable with a reason
 - [ ] Frontmatter `feature-type`, `personal-data`, and `owners` are set
+- [ ] No conflicts with `docs/CONSTITUTION.md` (or conflicts explicitly resolved)
 - [ ] Status is `draft` (never auto-approve)
 
 ## Principles
