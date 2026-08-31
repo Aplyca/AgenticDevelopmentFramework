@@ -24,7 +24,7 @@ This copies everything your project needs: `.claude/`, `specs/`, `docs/`, `AGENT
 - **Project identity**: what the project is, its stage, its stack
 - **Critical rules**: your non-negotiable rules (test ports, framework patterns)
 - **Coding conventions**: naming, file organization specific to your project
-- **Project structure**: your actual directory layout
+- **Project structure**: your actual directory layout. In a monorepo, also add nested `AGENTS.md` files in modules whose conventions differ from the root — agents read the nearest file; nearest wins.
 - **Quick reference**: your dev/test/build commands
 
 `CLAUDE.md` layers Claude Code-specific features (agents, skills, path-scoped rules) on top of AGENTS.md. It requires minimal customization — update it only if you add custom agents or skills.
@@ -64,10 +64,13 @@ Open `.claude/settings.json` and update the enforcement hooks for your project. 
 ### 6. Fill in documentation templates
 
 Open each file in `docs/` and replace `[bracketed placeholders]` with your project details. Start with:
+- `docs/CONSTITUTION.md` — your project's non-negotiable principles (5-10, short). Specs are gate-checked against this before approval; keep day-to-day conventions out of it.
 - `docs/SPEC-MODEL.md` — the multi-perspective spec model (read it; usually no edits needed unless your team has different role names or different mandatory sections)
 - `docs/ARCHITECTURE.md` — system context, components, tech stack rationale
 - `docs/security/SECURITY.md` — auth scheme, data classification, threat model
 - `docs/infrastructure/OVERVIEW.md` — platform, environments, CI/CD, monitoring
+
+Each customizable doc starts with a metadata header — `<!-- owner: … · last_updated: … · scope: … -->`. Fill it in and keep `last_updated` current on every meaningful edit: it lets agents (and humans) judge whether a doc is worth reading and who to ask when it's stale. Context without an owner rots silently.
 
 #### Customizing the spec model (optional)
 

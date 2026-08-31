@@ -17,10 +17,10 @@ This framework is built around three Claude model tiers. Use the right tier for 
 | Tier | Model ID | Use when... | Approximate relative cost (vs Haiku) |
 |---|---|---|---|
 | **Capable** | `claude-haiku-4-5` | Routing, triage, well-bounded checks, drafting commit messages, simple lookups, deterministic-ish work | 1× (cheapest) |
-| **Balanced** | `claude-sonnet-4-6` | Most engineering work — spec writing, test planning, implementation, code review, debugging, refactoring | ~3-5× Haiku input, ~3× Haiku output |
-| **Frontier** | `claude-opus-4-7` | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | ~15× Haiku input, ~15× Haiku output |
+| **Balanced** | `claude-sonnet-5` | Most engineering work — spec writing, test planning, implementation, code review, debugging, refactoring | ~3-5× Haiku input, ~3× Haiku output |
+| **Frontier** | `claude-opus-5` | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | ~15× Haiku input, ~15× Haiku output |
 
-> **Pricing changes** — these are relative ratios as of April 2026. Always check [current Anthropic pricing](https://anthropic.com/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
+> **Pricing changes** — these are relative ratios as of August 2026. Always check [current Anthropic pricing](https://anthropic.com/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
 
 ### Decision rules
 
@@ -31,9 +31,9 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 ### Switching tiers in Claude Code
 
-- `/model` — built-in command to switch the session's model (e.g. `/model claude-opus-4-7` before a hard reasoning task, then `/model claude-sonnet-4-6` after).
+- `/model` — built-in command to switch the session's model (e.g. `/model claude-opus-5` before a hard reasoning task, then `/model claude-sonnet-5` after).
 - Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default. Use this for `@architect`, `@evaluate`-style work that should always run on Opus, and for `@code-reviewer` / `@security-reviewer` that should always run on Haiku.
-- `/fast` — built-in Claude Code toggle that switches **Opus 4.6** to a faster-output variant of the same model. It does NOT downgrade to a smaller model — capability is unchanged, only latency improves. Only available on Opus 4.6 (not 4.7). Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference, not a project-level setting.
+- `/fast` — built-in Claude Code toggle that switches Opus to a faster-output variant of the same model. It does NOT downgrade to a smaller model — capability is unchanged, only latency improves. Available on Opus 5 (and 4.8). Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference, not a project-level setting.
 
 ## Per-skill recommendations
 

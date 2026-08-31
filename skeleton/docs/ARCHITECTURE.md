@@ -1,5 +1,7 @@
 # Architecture Overview
 
+<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: architecture and data flow -->
+
 ## System context
 
 [What does this system do? Who are the users? What external systems does it interact with?]

@@ -1,5 +1,7 @@
 # Development Environment Setup
 
+<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: developer environment setup -->
+
 ## Prerequisites
 
 | Requirement | Version | Check command |

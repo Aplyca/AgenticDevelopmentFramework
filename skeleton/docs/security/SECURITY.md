@@ -1,5 +1,7 @@
 # Security
 
+<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: security posture, threat model, secrets -->
+
 ## Security principles
 
 1. **Defense in depth** — no single control is sufficient. Layer security at network, application, and data levels.

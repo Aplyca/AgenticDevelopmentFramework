@@ -12,6 +12,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 ## Unreleased
 
 ### Added
+- **`skeleton/docs/CONSTITUTION.md`** — non-negotiable principles template (Agentic Development Guide alignment). Short principles list + amendment process; `/write-spec` now gate-checks specs against it before approval (new step in mandatory-section enforcement + verification checklist). Referenced from `AGENTS.md` Critical rules.
+- **Context metadata headers** — `<!-- owner · last_updated · scope -->` on every customizable doc template (ARCHITECTURE, GLOSSARY, SECURITY, OVERVIEW, DEV-SETUP, CONSTITUTION), with guidance in SETUP.md: context without an owner rots silently.
+- **Nested `AGENTS.md` guidance** — monorepo guidance in `skeleton/AGENTS.md` (Project structure) and SETUP.md: nested files per module, nearest wins.
 - **`plugins/aplyca-framework/` + `.claude-plugin/marketplace.json` — the framework repo is now its own Claude Code plugin marketplace.** The plugin carries two skills: `/adopt` (automates `docs/SETUP.md`: inspect the target repo, copy the skeleton, fill placeholders from verified repo facts only, stamp the baseline SHA, deliver an adoption PR) and `/upgrade` (automates `docs/UPGRADING.md`: OLD_SHA → NEW_SHA diff, three-bucket classification, plan-then-execute merge). Install: `claude plugin marketplace add aplyca/ai-dev-starter-kit && claude plugin install aplyca-framework@aplyca`. The plugin contains no framework content — adopted repos still get plain committed files readable by all AI tools; the plugin is installer/updater tooling only.
 - `docs/UPGRADING.md` — guide for upgrading a target project to a newer skeleton version. Covers the three-bucket file taxonomy, OLD_SHA → NEW_SHA procedure, AI-assisted upgrade pattern, and four common scenarios.
 - `CHANGELOG.md` (this file) — per-commit changelog so upgrade consumers don't have to read git log.
@@ -22,6 +25,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - `docs/AGENTS-REFERENCE.md` and `docs/SKILLS-REFERENCE.md` (in the framework repo, NOT in `skeleton/docs/`) — full catalogs of the seven shipped agents and thirteen shipped skills. These document framework-defined deliverables, so they live in the framework repo as the single source of truth — adopting projects don't get a local copy. Skills are grouped (workflow phase / reference + setup / quality + analysis); agents include tool access and model tier.
 
 ### Changed
+- **Model defaults updated to the Claude 5 family** — `skeleton/.claude/settings.json` and `skeleton/CLAUDE.md` now default to `claude-sonnet-5`; `docs/COST-MODEL.md` tier table updated (`claude-sonnet-5`, `claude-opus-5`; Haiku unchanged), `/model` examples updated, `/fast` description corrected (available on Opus 5 and 4.8). Agent frontmatter uses tier aliases (`haiku`/`sonnet`) and needed no change.
 - `README.md` — added pointer to `docs/UPGRADING.md` in the Get started section.
 - `docs/SETUP.md` — replaced the brief "Updating" paragraph with a pointer to the full upgrading guide.
 - `skeleton/CLAUDE.md` cost-model paragraph now points at `.claude/settings.json` as the source of truth for the default model.
@@ -37,6 +41,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - Total per-turn skeleton-side prefill reduction: ~38 lines (~17%). No skill/agent descriptions were trimmed (preserves routing quality). The 15-step workflow in `AGENTS.md` was preserved verbatim — explicit choice to favor procedural visibility over marginal cost savings, since the workflow IS the framework's flagship.
 
 ### Upgrade impact
+- **Additive**: `skeleton/docs/CONSTITUTION.md` — drop in and customize.
+- **Merge**: `skeleton/AGENTS.md` (constitution pointer + nesting guidance), `skeleton/.claude/settings.json` (model id), `skeleton/CLAUDE.md` (model id), customizable docs (metadata headers).
+- **Overwrite**: `skeleton/.claude/skills/write-spec/SKILL.md`, `skeleton/docs/COST-MODEL.md`.
 - **Framework-internal (not copied to adopting projects)**: `plugins/aplyca-framework/`, `.claude-plugin/marketplace.json` — installer tooling lives in the framework repo only; nothing lands in adopted repos beyond what the skeleton already defines.
 - **Additive**: `docs/UPGRADING.md`, `CHANGELOG.md`. Drop in.
 - **Framework-internal (not copied to adopting projects)**: `docs/AGENTS-REFERENCE.md`, `docs/SKILLS-REFERENCE.md` — these live in the framework repo and adopting projects link to them, so there is nothing to merge or copy on upgrade.
