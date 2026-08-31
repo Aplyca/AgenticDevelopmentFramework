@@ -32,10 +32,10 @@ This project follows **multi-perspective spec-driven, test-driven, docs-first de
 Use concise imperative mood. Explain *why*, not *what*:
 
 ```
-feat: add email-based identity for Portal Aliados
-fix: guard against non-array API response in GestionPortal
-refactor: extract ProcessFlowDiagram into shared component
-test: add e2e tests for email persistence flow
+feat: add newsletter signup endpoint
+fix: guard against non-array API response in topics endpoint
+refactor: extract SignupForm into shared component
+test: add e2e tests for signup persistence flow
 docs: update architecture overview with new data flow
 ```
 
