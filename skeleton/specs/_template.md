@@ -46,6 +46,12 @@ references:
 
 ## Business [REQUIRED]
 
+I want to cer
+
+- asfasdf
+- asdfadsf
+- sdfasdfasd
+
 > Owned by: client / PM
 > What the requester wants and why. Keep it brief — one paragraph plus success criteria.
 
@@ -116,6 +122,8 @@ Or list specific requirements:
 # Part 3 — Non-functional requirements
 
 ## Security [REQUIRED]
+
+verify passwords encriptado
 
 > Owned by: security lead / architect
 > Security requirements. If standard rules cover it, say so. Otherwise list concrete, testable mitigations.
@@ -290,12 +298,12 @@ Add diagrams here only when they earn their place — a 30-line spec for a butto
 
 These docs describe behavior that can be specified from the spec and tests alone — no running code required. They drive implementation thinking and are updated deliberately during implementation when reality moves (handled by `/implement`).
 
-| Audience | What they need | Where it lives |
-|---|---|---|
-| Site administrator | [e.g. How to edit the newsletter copy and topics in Contentful — fields, what fails gracefully, troubleshooting] | [`docs/admin/newsletter.md`] |
-| End user | [e.g. Default inline copy and microcopy seed values for the CMS] | [`docs/copy/newsletter-defaults.md`] |
-| API consumer | [e.g. OpenAPI schema for the new endpoint] | [`openapi/newsletter.yaml`] |
-| Developer (integrator) | [e.g. README for a new internal SDK] | [`packages/[name]/README.md`] |
+| Audience               | What they need                                                                                                   | Where it lives                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Site administrator     | [e.g. How to edit the newsletter copy and topics in Contentful — fields, what fails gracefully, troubleshooting] | [`docs/admin/newsletter.md`]         |
+| End user               | [e.g. Default inline copy and microcopy seed values for the CMS]                                                 | [`docs/copy/newsletter-defaults.md`] |
+| API consumer           | [e.g. OpenAPI schema for the new endpoint]                                                                       | [`openapi/newsletter.yaml`]          |
+| Developer (integrator) | [e.g. README for a new internal SDK]                                                                             | [`packages/[name]/README.md`]        |
 
 If none apply: `> Not applicable: [one-line reason]` (e.g. "no admin/API/SDK surface; only inline JSDoc which is post-implementable").
 
@@ -303,11 +311,11 @@ If none apply: `> Not applicable: [one-line reason]` (e.g. "no admin/API/SDK sur
 
 These need real running code, real metrics, or real failure modes to write accurately. Backfilled in a follow-up commit (or as part of the implementation commit when small).
 
-| Audience | What they need | Where it lives |
-|---|---|---|
-| Developer | [e.g. JSDoc on lib/newsletter/* explaining the rate-limit module, ESP swap path] | [Inline + `docs/ARCHITECTURE.md` paragraph] |
-| Operator | [e.g. Runbook entry: how to investigate a spike in 429 responses] | [`docs/runbooks/newsletter.md`] |
-| Support | [e.g. Troubleshooting guide for "user says they signed up but isn't getting emails"] | [`docs/support/newsletter.md`] |
+| Audience  | What they need                                                                       | Where it lives                              |
+| --------- | ------------------------------------------------------------------------------------ | ------------------------------------------- |
+| Developer | [e.g. JSDoc on lib/newsletter/* explaining the rate-limit module, ESP swap path]     | [Inline + `docs/ARCHITECTURE.md` paragraph] |
+| Operator  | [e.g. Runbook entry: how to investigate a spike in 429 responses]                    | [`docs/runbooks/newsletter.md`]             |
+| Support   | [e.g. Troubleshooting guide for "user says they signed up but isn't getting emails"] | [`docs/support/newsletter.md`]              |
 
 ### Out of documentation scope
 
