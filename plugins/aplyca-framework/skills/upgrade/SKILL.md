@@ -31,7 +31,7 @@ Same resolution order as `/adopt` Step 1: repo checkout via `${CLAUDE_PLUGIN_ROO
 (development installs), else the marketplace checkout
 `~/.claude/plugins/marketplaces/<marketplace-name>/` (normal case on installed machines —
 run `claude plugin marketplace update <marketplace-name>` first), else a **full** clone of
-`https://github.com/aplyca/ai-dev-starter-kit` (not shallow — the OLD_SHA → NEW_SHA diff
+`https://github.com/aplyca/AgenticDevelopmentFramework` (not shallow — the OLD_SHA → NEW_SHA diff
 needs history). NEW_SHA is its current HEAD.
 
 Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA — each entry's **Upgrade impact**

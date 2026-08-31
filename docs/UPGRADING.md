@@ -21,7 +21,7 @@ Skip the upgrade when:
 
 ## Versioning convention
 
-The framework does not use semver. Versions are referenced by **commit SHA + date** of the source repo (`ai-dev-starter-kit`).
+The framework does not use semver. Versions are referenced by **commit SHA + date** of the source repo (`AgenticDevelopmentFramework`).
 
 To make future upgrades tractable, record the skeleton baseline in your target project. Add a line to the top of your project's `CLAUDE.md`:
 
@@ -101,8 +101,8 @@ Start with [`CHANGELOG.md`](../CHANGELOG.md) at the framework repo root — each
 For finer detail (or if the changelog hasn't been updated for a recent commit), drop to git:
 
 ```bash
-git -C /path/to/ai-dev-starter-kit log --oneline OLD_SHA..NEW_SHA
-git -C /path/to/ai-dev-starter-kit diff --stat OLD_SHA..NEW_SHA -- skeleton/
+git -C /path/to/AgenticDevelopmentFramework log --oneline OLD_SHA..NEW_SHA
+git -C /path/to/AgenticDevelopmentFramework diff --stat OLD_SHA..NEW_SHA -- skeleton/
 ```
 
 This is your shopping list. Cross-reference each commit against the three buckets above.
@@ -118,10 +118,10 @@ git checkout -b chore/skeleton-upgrade-<NEW_SHA>
 **Bucket 1 — overwrite**: copy each file from the new skeleton over your project's copy. Don't think hard about these.
 
 ```bash
-cp -R /path/to/ai-dev-starter-kit/skeleton/.claude/skills/* .claude/skills/
-cp -R /path/to/ai-dev-starter-kit/skeleton/.claude/agents/* .claude/agents/
-cp /path/to/ai-dev-starter-kit/skeleton/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
-cp /path/to/ai-dev-starter-kit/skeleton/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION,GLOSSARY}.md docs/
+cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/* .claude/skills/
+cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/agents/* .claude/agents/
+cp /path/to/AgenticDevelopmentFramework/skeleton/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
+cp /path/to/AgenticDevelopmentFramework/skeleton/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION,GLOSSARY}.md docs/
 ```
 
 Inspect the diff for surprise (removed files, renamed files). Adjust if the framework has restructured anything.
@@ -130,7 +130,7 @@ Inspect the diff for surprise (removed files, renamed files). Adjust if the fram
 
 ```bash
 git show OLD_SHA:skeleton/AGENTS.md > /tmp/agents-old.md
-cp /path/to/ai-dev-starter-kit/skeleton/AGENTS.md /tmp/agents-new.md
+cp /path/to/AgenticDevelopmentFramework/skeleton/AGENTS.md /tmp/agents-new.md
 git merge-file --diff3 -p AGENTS.md /tmp/agents-old.md /tmp/agents-new.md > /tmp/agents-merged.md
 ```
 
@@ -183,7 +183,7 @@ You can have Claude Code do most of step 4 for you. The pattern preserves the pl
 ```
 Upgrade this project's skeleton from <OLD_SHA> to <NEW_SHA>.
 
-Framework repo: /path/to/ai-dev-starter-kit
+Framework repo: /path/to/AgenticDevelopmentFramework
 Refer to docs/UPGRADING.md in that repo for the file taxonomy and procedure.
 
 Step 1 (now): produce the merge plan as a checklist — for each
@@ -206,7 +206,7 @@ For ambiguous merge decisions (e.g., "the framework removed a rule we relied on"
 You don't need a full upgrade. Cherry-pick:
 
 ```bash
-cp -R /path/to/ai-dev-starter-kit/skeleton/.claude/skills/spec-drift .claude/skills/
+cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/spec-drift .claude/skills/
 ```
 
 Add a row to your `CLAUDE.md` skills table referencing it. Done.
@@ -224,7 +224,7 @@ Existing filled-in specs are project-owned and unaffected — they don't retroac
 ```bash
 # Generate the 3-way diff
 git show OLD_SHA:skeleton/.claude/rules/architecture.md > /tmp/arch-old.md
-diff /tmp/arch-old.md /path/to/ai-dev-starter-kit/skeleton/.claude/rules/architecture.md
+diff /tmp/arch-old.md /path/to/AgenticDevelopmentFramework/skeleton/.claude/rules/architecture.md
 # Manually paste the new "Module boundaries" section into your project's
 # architecture.md, preserving your "Custom: API client patterns" section.
 ```

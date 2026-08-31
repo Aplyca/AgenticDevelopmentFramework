@@ -37,7 +37,7 @@ Resolve the skeleton, in order:
    normal case on installed machines**: installed plugins run from a version cache, so
    `${CLAUDE_PLUGIN_ROOT}` does not sit inside the repo. Run
    `claude plugin marketplace update <marketplace-name>` first so the checkout is current.
-3. Otherwise clone fresh: `git clone --depth 1 https://github.com/aplyca/ai-dev-starter-kit`
+3. Otherwise clone fresh: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`
    into a temporary directory.
 
 The framework docs sit next to the skeleton at `<framework-root>/docs/`.
@@ -91,7 +91,7 @@ Present the table to the user before proceeding. Wrong facts here poison every f
 ## Step 5 — Stamp the baseline
 
 Top of the target's `CLAUDE.md`:
-`<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) — see docs/UPGRADING.md in ai-dev-starter-kit -->`
+`<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
 Without this line, future `/upgrade` runs have no baseline to diff against.
 
 ## Step 6 — Verify: agentic-readiness checklist
