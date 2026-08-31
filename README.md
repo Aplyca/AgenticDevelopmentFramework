@@ -47,6 +47,25 @@ cp -r skeleton/. your-project/
 # 6. .claude/settings.json — enforcement hooks
 ```
 
+### Or install via the Claude Code plugin
+
+Instead of copying and customizing by hand, Claude Code users can install the framework's
+installer plugin and let it do the adoption:
+
+```bash
+claude plugin marketplace add aplyca/ai-dev-starter-kit
+claude plugin install aplyca-framework@aplyca
+```
+
+Then run `/adopt` in any repo — it inspects the project, copies the skeleton, fills the
+placeholders from verified repo facts, and stamps the baseline SHA. Later, `/upgrade`
+syncs an adopted repo to a newer skeleton version following the three-bucket taxonomy.
+Both deliver a reviewable PR; neither commits to your default branch. See
+[plugins/aplyca-framework](plugins/aplyca-framework/README.md).
+
+The plugin contains **no framework content** — adopted repos get plain committed files
+readable by every AI tool, exactly as with the manual copy.
+
 See [docs/SETUP.md](docs/SETUP.md) for detailed instructions. Already adopted an earlier skeleton version? See [docs/UPGRADING.md](docs/UPGRADING.md) to pull newer changes without losing your customizations, and [CHANGELOG.md](CHANGELOG.md) for per-entry upgrade impact.
 
 ## How it works
@@ -181,6 +200,9 @@ skeleton/                          Portable project skeleton (copy to your proje
     |   +-- OVERVIEW.md            Platform, environments, CI/CD, monitoring
     +-- security/
         +-- SECURITY.md            Threat model, auth, data protection
+
+plugins/
++-- aplyca-framework/              Claude Code installer plugin (/adopt, /upgrade)
 
 docs/                              Framework documentation
 |-- SETUP.md                       How to adopt the framework
