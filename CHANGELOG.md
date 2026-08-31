@@ -12,6 +12,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 ## Unreleased
 
 ### Added
+- **`plugins/aplyca-framework/` + `.claude-plugin/marketplace.json` — the framework repo is now its own Claude Code plugin marketplace.** The plugin carries two skills: `/adopt` (automates `docs/SETUP.md`: inspect the target repo, copy the skeleton, fill placeholders from verified repo facts only, stamp the baseline SHA, deliver an adoption PR) and `/upgrade` (automates `docs/UPGRADING.md`: OLD_SHA → NEW_SHA diff, three-bucket classification, plan-then-execute merge). Install: `claude plugin marketplace add aplyca/ai-dev-starter-kit && claude plugin install aplyca-framework@aplyca`. The plugin contains no framework content — adopted repos still get plain committed files readable by all AI tools; the plugin is installer/updater tooling only.
 - `docs/UPGRADING.md` — guide for upgrading a target project to a newer skeleton version. Covers the three-bucket file taxonomy, OLD_SHA → NEW_SHA procedure, AI-assisted upgrade pattern, and four common scenarios.
 - `CHANGELOG.md` (this file) — per-commit changelog so upgrade consumers don't have to read git log.
 - `<!-- Skeleton source: [SHA] ([date]) -->` template line at the top of `skeleton/CLAUDE.md`. Adopting projects fill in their baseline SHA so future upgrades have a known starting point.
@@ -36,6 +37,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - Total per-turn skeleton-side prefill reduction: ~38 lines (~17%). No skill/agent descriptions were trimmed (preserves routing quality). The 15-step workflow in `AGENTS.md` was preserved verbatim — explicit choice to favor procedural visibility over marginal cost savings, since the workflow IS the framework's flagship.
 
 ### Upgrade impact
+- **Framework-internal (not copied to adopting projects)**: `plugins/aplyca-framework/`, `.claude-plugin/marketplace.json` — installer tooling lives in the framework repo only; nothing lands in adopted repos beyond what the skeleton already defines.
 - **Additive**: `docs/UPGRADING.md`, `CHANGELOG.md`. Drop in.
 - **Framework-internal (not copied to adopting projects)**: `docs/AGENTS-REFERENCE.md`, `docs/SKILLS-REFERENCE.md` — these live in the framework repo and adopting projects link to them, so there is nothing to merge or copy on upgrade.
 - **Merge**: `skeleton/AGENTS.md` (Development workflows + Commit prefixes sections were trimmed to pointers — if your project customized either, condense your customizations the same way and keep the pointers); `skeleton/CLAUDE.md` (new comment line near the top, updated cost-model paragraph, new Lightweight-mode section, scope-cleanup edits, perf tip rewritten, agent/skill tables replaced with pointers — keep your project name and any team-specific notes); `skeleton/.claude/settings.json` (if your project added hooks or extra permissions, merge them on top of the new model + permissions block); `skeleton/evals/README.md` (full rewrite — overwrite unless you customized it).

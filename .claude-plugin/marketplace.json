@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "aplyca",
+  "description": "Aplyca's AI-agentic development tooling — installer and upgrader for the AI-Assisted Development Framework skeleton",
+  "owner": {
+    "name": "Aplyca",
+    "email": "dev@aplyca.com"
+  },
+  "plugins": [
+    {
+      "name": "aplyca-framework",
+      "description": "Adopt and upgrade the Aplyca AI-Assisted Development Framework in any repository. /adopt bootstraps a repo (copies the skeleton, fills placeholders from verified repo facts, stamps the baseline SHA); /upgrade syncs an adopted repo to a newer skeleton version using the three-bucket taxonomy.",
+      "author": {
+        "name": "Aplyca",
+        "email": "dev@aplyca.com"
+      },
+      "category": "productivity",
+      "source": "./plugins/aplyca-framework"
+    }
+  ]
+}
