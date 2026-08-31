@@ -1,3 +1,21 @@
+# .claudeignore — paths AI coding tools should NOT read or index.
+#
+# Why this file exists:
+#   1. Context quality — an agent's context window is finite; feeding it lockfiles,
+#      build output, or dependency directories crowds out the code that matters and
+#      degrades its output. Point agents at source, not at what's generated from it.
+#   2. Secrets — .env files must never enter an AI context window. Ignoring them
+#      here is defense in depth on top of .gitignore.
+#   3. Cost/speed — huge generated files burn tokens and time for zero insight.
+#
+# How it's enforced: gitignore-style patterns. Tool support varies — some AI tools
+# honor ignore files natively; for Claude Code, hard read-protection belongs in
+# .claude/settings.json permission rules. Treat this file as the tool-agnostic
+# declaration of what agents have no business reading.
+#
+# CUSTOMIZE: prune entries that cannot apply to your stack (e.g. Python artifacts
+# in a JS-only repo) and add your project's own generated/secret paths.
+
 # Build and runtime
 .next/
 dist/

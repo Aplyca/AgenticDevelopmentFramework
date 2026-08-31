@@ -69,6 +69,10 @@ Present the table to the user before proceeding. Wrong facts here poison every f
 - Ask which AI tools the team uses, then delete unused layers per `docs/SETUP.md`:
   `CLAUDE.md` + `.claude/` (Claude Code), `GEMINI.md` + `.agents/` (Antigravity/Gemini),
   `.cursor/` (Cursor). `AGENTS.md` always stays.
+- Ask whether the team writes custom skills, rules, or spec patterns that need
+  automated checks. If not — the common case — delete `evals/`: it is scaffold for
+  testing team-authored framework artifacts, not the project itself, and can be
+  re-adopted later from the framework repo when the need appears.
 
 ## Step 4 — Fill placeholders from the facts table
 
@@ -80,6 +84,8 @@ Present the table to the user before proceeding. Wrong facts here poison every f
   read-only commands; adapt or remove the example hook.
 - Large monorepo? Add nested `AGENTS.md` files in modules where local context differs
   from the root (per-app conventions, per-lib boundaries). Nearest file wins.
+- Prune `.claudeignore` entries that cannot apply to this stack (keep its explanatory
+  header) and add project-specific generated/secret paths.
 - Every unknown: `<!-- TODO(team): <question> -->`.
 
 ## Step 5 — Stamp the baseline

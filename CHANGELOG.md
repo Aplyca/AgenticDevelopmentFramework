@@ -11,6 +11,10 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Changed
+- **`/adopt` refinements from the first pilot adoption** (`aplyca-framework` 0.1.2, framework-internal): `evals/` is now opt-in — the skill asks whether the team writes custom skills/rules/spec patterns needing automated checks and deletes the scaffold otherwise (the pilot's review dropped it as unused); the skill also prunes `.claudeignore` entries that can't apply to the target stack.
+- **`skeleton/.claudeignore` is now self-documenting** — explanatory header covering why the file exists (context quality, secret defense-in-depth, token cost), how it's enforced (advisory patterns; Claude Code's hard read-protection lives in `.claude/settings.json` permissions), and a CUSTOMIZE note to tailor entries per stack. Also added `.claudeignore` to UPGRADING.md's merge-required bucket — teams tailor its entries.
+
 ### Fixed
 - **Plugin skills' skeleton resolution on installed machines** (`aplyca-framework` 0.1.1) — installed plugins run from a version cache (`~/.claude/plugins/cache/…`), so `${CLAUDE_PLUGIN_ROOT}/../../skeleton` never resolves there (found during the first live `/upgrade` run). Both skills now resolve in order: repo checkout (dev installs) → marketplace checkout (`~/.claude/plugins/marketplaces/<name>/`, the normal installed case, after a `marketplace update`) → fresh clone. `/upgrade`'s clone fallback is now explicitly a full clone — the OLD_SHA → NEW_SHA diff needs history. Framework-internal; nothing lands in adopted repos.
 
@@ -44,6 +48,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - Total per-turn skeleton-side prefill reduction: ~38 lines (~17%). No skill/agent descriptions were trimmed (preserves routing quality). The 15-step workflow in `AGENTS.md` was preserved verbatim — explicit choice to favor procedural visibility over marginal cost savings, since the workflow IS the framework's flagship.
 
 ### Upgrade impact
+- **Merge**: `.claudeignore` — reapply your pruned/extended entries under the new header (newly classified as merge-required).
 - **Additive**: `skeleton/docs/CONSTITUTION.md` — drop in and customize.
 - **Merge**: `skeleton/AGENTS.md` (constitution pointer + nesting guidance), `skeleton/.claude/settings.json` (model id), `skeleton/CLAUDE.md` (model id), customizable docs (metadata headers).
 - **Overwrite**: `skeleton/.claude/skills/write-spec/SKILL.md`, `skeleton/docs/COST-MODEL.md`.
