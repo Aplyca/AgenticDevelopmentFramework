@@ -27,8 +27,12 @@ If the line is missing, infer the baseline from `git log` on skeleton-derived fi
 
 ## Step 2 — Locate the framework source and NEW_SHA
 
-Same resolution as `/adopt`: `${CLAUDE_PLUGIN_ROOT}/../../` if present, else clone
-`https://github.com/aplyca/ai-dev-starter-kit`. NEW_SHA is its current HEAD.
+Same resolution order as `/adopt` Step 1: repo checkout via `${CLAUDE_PLUGIN_ROOT}/../../`
+(development installs), else the marketplace checkout
+`~/.claude/plugins/marketplaces/<marketplace-name>/` (normal case on installed machines —
+run `claude plugin marketplace update <marketplace-name>` first), else a **full** clone of
+`https://github.com/aplyca/ai-dev-starter-kit` (not shallow — the OLD_SHA → NEW_SHA diff
+needs history). NEW_SHA is its current HEAD.
 
 Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA — each entry's **Upgrade impact**
 line pre-classifies changes into the buckets below. Summarize for the user what the

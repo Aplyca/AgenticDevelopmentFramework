@@ -30,11 +30,17 @@ intent, read the source doc (locations in step 1).
 
 Resolve the skeleton, in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/../../skeleton` — present when the plugin runs from a
-   marketplace checkout of the framework repo. The framework docs are then at
-   `${CLAUDE_PLUGIN_ROOT}/../../docs/`.
-2. Otherwise clone fresh: `git clone --depth 1 https://github.com/aplyca/ai-dev-starter-kit`
+1. `${CLAUDE_PLUGIN_ROOT}/../../skeleton` — present only when the plugin runs from a
+   checkout of the framework repo (development / skills-dir installs).
+2. The marketplace checkout: `~/.claude/plugins/marketplaces/<marketplace-name>/skeleton`
+   (the marketplace this plugin was installed from — usually `aplyca`). **This is the
+   normal case on installed machines**: installed plugins run from a version cache, so
+   `${CLAUDE_PLUGIN_ROOT}` does not sit inside the repo. Run
+   `claude plugin marketplace update <marketplace-name>` first so the checkout is current.
+3. Otherwise clone fresh: `git clone --depth 1 https://github.com/aplyca/ai-dev-starter-kit`
    into a temporary directory.
+
+The framework docs sit next to the skeleton at `<framework-root>/docs/`.
 
 Record the source SHA and date: `git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
 You will stamp this into the target's `CLAUDE.md` in step 5.

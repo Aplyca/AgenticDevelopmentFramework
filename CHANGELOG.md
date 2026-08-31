@@ -11,6 +11,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Fixed
+- **Plugin skills' skeleton resolution on installed machines** (`aplyca-framework` 0.1.1) — installed plugins run from a version cache (`~/.claude/plugins/cache/…`), so `${CLAUDE_PLUGIN_ROOT}/../../skeleton` never resolves there (found during the first live `/upgrade` run). Both skills now resolve in order: repo checkout (dev installs) → marketplace checkout (`~/.claude/plugins/marketplaces/<name>/`, the normal installed case, after a `marketplace update`) → fresh clone. `/upgrade`'s clone fallback is now explicitly a full clone — the OLD_SHA → NEW_SHA diff needs history. Framework-internal; nothing lands in adopted repos.
+
 ### Added
 - **`skeleton/docs/CONSTITUTION.md`** — non-negotiable principles template (Agentic Development Guide alignment). Short principles list + amendment process; `/write-spec` now gate-checks specs against it before approval (new step in mandatory-section enforcement + verification checklist). Referenced from `AGENTS.md` Critical rules.
 - **Context metadata headers** — `<!-- owner · last_updated · scope -->` on every customizable doc template (ARCHITECTURE, GLOSSARY, SECURITY, OVERVIEW, DEV-SETUP, CONSTITUTION), with guidance in SETUP.md: context without an owner rots silently.
