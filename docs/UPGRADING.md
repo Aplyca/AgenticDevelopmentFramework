@@ -73,6 +73,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `.claude/rules/deployment.md` | Customize for your infra |
 | `.claude/rules/performance.md` | Customize for your perf budget and stack |
 | `.claude/rules/observability.md` | Customize for your logging/tracing stack |
+| `.claudeignore` | Teams prune/extend entries for their stack |
 
 ### Project-owned
 

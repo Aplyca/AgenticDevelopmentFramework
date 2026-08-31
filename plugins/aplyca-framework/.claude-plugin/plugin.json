@@ -1,7 +1,7 @@
 {
   "name": "aplyca-framework",
   "description": "Installer and upgrader for the Aplyca AI-Assisted Development Framework. /adopt bootstraps a repository for agentic development; /upgrade syncs an adopted repository to a newer skeleton version. The framework itself ships as committed files in each repo (AGENTS.md standard, multi-tool); this plugin is the tooling that installs and maintains those files.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
