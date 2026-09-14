@@ -123,7 +123,7 @@ Use an **AI gateway** (Helicone, LiteLLM) that routes by client and tags every r
 | **[Braintrust](https://braintrust.dev)** | Eval-focused but tracks per-run cost. Good if you're already running dynamic evals (see `evals/`). | ~1 hour |
 | **Custom (Anthropic API direct)** | Full control. Read `usage` from response headers, log to your own DB. | Variable |
 
-For a typical Aplyca-style consultancy, the recommended stack is:
+For a typical consultancy or agency running AI-assisted work across several client projects, the recommended stack is:
 - **Anthropic Console** for high-level monthly visibility (free, built-in)
 - **Helicone or LiteLLM gateway** for per-client attribution and budget enforcement (when monthly spend is meaningful enough to justify the setup)
 

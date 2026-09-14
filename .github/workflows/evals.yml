@@ -1,0 +1,17 @@
+name: Framework evals
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run static evals
+        run: ./evals/run-evals.sh

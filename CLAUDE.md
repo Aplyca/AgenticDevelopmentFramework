@@ -29,3 +29,4 @@ The repo slug (`ai-dev-starter-kit`) is preserved for URL/reference stability �
 - Universal rules (code-quality, testing, security, git-workflow) apply to any language/framework
 - Customizable rules (architecture, ui-ux, deployment, performance, observability) have `<!-- CUSTOMIZE -->` markers
 - Skills reference CLAUDE.md and rules for project context — never hardcode specifics
+- The repo is public — never include client, customer, or internal project names anywhere (files, examples, commit messages, PR descriptions); use the fictional newsletter feature from `docs/examples/` instead
