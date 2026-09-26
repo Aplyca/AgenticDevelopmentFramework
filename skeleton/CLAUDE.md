@@ -1,6 +1,6 @@
 # [PROJECT NAME] — Claude Code Instructions
 
-<!-- Skeleton source: [SHA] ([YYYY-MM-DD]) — update on every framework upgrade. See docs/UPGRADING.md in ai-dev-starter-kit. -->
+<!-- Skeleton source: [SHA] ([YYYY-MM-DD]) — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->
 
 <!-- This file extends AGENTS.md with Claude Code-specific features. -->
 <!-- AGENTS.md contains universal project context (read by all AI tools). -->

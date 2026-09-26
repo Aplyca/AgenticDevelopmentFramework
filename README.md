@@ -53,7 +53,7 @@ Instead of copying and customizing by hand, Claude Code users can install the fr
 installer plugin and let it do the adoption:
 
 ```bash
-claude plugin marketplace add aplyca/ai-dev-starter-kit
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework
 claude plugin install aplyca-framework@aplyca
 ```
 

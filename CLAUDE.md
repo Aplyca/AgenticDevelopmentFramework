@@ -4,7 +4,7 @@ This is the **source repository** for the AI-Assisted Development Framework — 
 
 It is NOT a software application. It contains a portable project skeleton, documentation, and a team onboarding guide. Do not try to build, run, or test it.
 
-The repo slug (`ai-dev-starter-kit`) is preserved for URL/reference stability — but the project is positioned and referenced as the **AI-Assisted Development Framework** in all docs and external materials.
+The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit`; GitHub redirects the old URLs). The project is positioned and referenced as the **AI-Assisted Development Framework** in all docs and external materials.
 
 ## Repository structure
 
