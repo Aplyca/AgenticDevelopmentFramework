@@ -13,7 +13,7 @@ Works with Claude Code natively; supports Cursor, Antigravity, GitHub Copilot, A
 
 - **Multi-perspective spec model** — every feature spec captures input from all relevant roles (business, functional, security, accessibility, privacy, design, performance, testing, documentation, deployment) in one document. Required sections are enforced by the AI before a spec can be approved. ([What and why](skeleton/docs/SPEC-MODEL.md))
 - **Docs-first delivery** — user-facing docs are written and committed BEFORE implementation, where they drive implementation thinking by forcing the team to articulate how the feature will be used. Docs are then updated deliberately during implementation when reality moves. The new `/write-docs` skill plans the docs from the spec + tests, writes them, and supports an update mode for substantial mid-implementation revisions.
-- **Eval framework** — the framework's own skills, agents, rules, and spec template are covered by an eval suite at `evals/`. Static structural checks run in CI on every PR (zero token cost, currently 48/48 passing), plus dynamic fixture-based AI-invocation evals that catch behavior regressions. The framework eats its own dogfood; adopting projects don't get evals copied in but can adopt the pattern for their own custom artifacts. ([How and why](evals/README.md))
+- **Eval framework** — the framework's own skills, agents, rules, and spec template are covered by an eval suite at `evals/`. Static structural checks run in CI on every PR (zero token cost), plus dynamic fixture-based AI-invocation evals that catch behavior regressions. The framework eats its own dogfood; adopting projects don't get evals copied in but can adopt the pattern for their own custom artifacts. ([How and why](evals/README.md))
 - **7 specialized AI agents** — spec-writer, code-reviewer, security-reviewer, test-runner, architect, debugger, ux-reviewer
 - **11 workflow skills** — reusable prompt playbooks for common tasks (init, spec, implement, test, docs, review, debug, refactor, commit, evaluate)
 - **9 engineering standards** — code quality, testing, security, git workflow, architecture, UI/UX, deployment, performance, observability
@@ -209,6 +209,12 @@ docs/                              Framework documentation
 +-- ONBOARDING.md                  Team training guide
 ```
 
+## Contributing
+
+Contributions are welcome — bug reports, skeleton improvements, new scenarios, and fixes to the `/adopt` and `/upgrade` skills. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request: every change to the skeleton ships into other teams' repositories, so it has to stay generic and carry a CHANGELOG entry with its upgrade impact.
+
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [SECURITY.md](SECURITY.md), not in public issues.
+
 ## License
 
-MIT
+[MIT](LICENSE) © Aplyca

@@ -25,7 +25,7 @@ Structural checks of skill / agent / rule / template files. Zero AI invocation. 
 ./evals/static/check-skills.sh
 ```
 
-Currently passes **48/48 checks** against the framework. Any drop is a regression.
+Every check must pass against the framework, and CI enforces it on every pull request (`.github/workflows/evals.yml`). Any failure is a regression.
 
 See [`static/README.md`](static/README.md) for the full check list.
 

@@ -139,8 +139,8 @@ Recommended split:
 - **Per-client memory entries** (project-type) — gotchas specific to that client's setup. Stored in your local memory, scoped to their repo's project slug.
 - **Cross-client memory entries** (reference or project) — recurring patterns (e.g., "Contentful gotchas that affect every Contentful project we build"). Stored at user-level memory, available across all projects.
 
-Aplyca-style example:
-- `Aplyca-style consultancy uses Next.js + Contentful + Vercel as the default stack` → cross-client (user-level memory)
+Example:
+- `Our consultancy uses Next.js + Contentful + Vercel as the default stack` → cross-client (user-level memory)
 - `Client X's Mailchimp instance has list ID 12345 (production) and 67890 (staging)` → per-client (project memory)
 - `For Client Y, the editorial team prefers WhatsApp over Slack for content reviews` → per-client (project memory)
 - `Contentful's staging environment naming convention varies per client; always confirm before assuming` → cross-client (user memory)
