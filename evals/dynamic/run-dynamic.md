@@ -46,13 +46,15 @@ def run_case(skill: str, case: str):
     input_text, expected_text = load_fixture(skill, case)
     skill_prompt = load_skill_prompt(skill)
 
+    # The Messages API needs a full model ID; Claude Code aliases like `sonnet` don't work here.
     response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
+        model="claude-sonnet-5-5",
+        max_tokens=16000,  # headroom: adaptive thinking is on by default and counts toward max_tokens
         system=skill_prompt,
         messages=[{"role": "user", "content": input_text}],
     )
-    actual = response.content[0].text
+    # Thinking blocks may precede the answer, so take the first text block, not content[0]
+    actual = next((b.text for b in response.content if b.type == "text"), "")
 
     invariants = parse_invariants(expected_text)
     results = [(inv, check_invariant(actual, inv)) for inv in invariants]

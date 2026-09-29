@@ -12,7 +12,7 @@ This project uses a **multi-perspective spec model** — each spec captures inpu
 
 ## Cost model
 
-Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Opus only for genuinely complex/novel work (see `docs/COST-MODEL.md` for the decision rules and per-skill recommendations). The default model is wired in `.claude/settings.json` (`"model": "claude-sonnet-5"`); change it there if your team's default differs. Specialized agents declare their model in their `agent.md` frontmatter — don't override casually. Keep `AGENTS.md`, `CLAUDE.md`, and rules stable to maximize prompt-cache hits (each edit busts the cache for every subsequent request).
+Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Opus only for genuinely complex/novel work (see `docs/COST-MODEL.md` for the decision rules and per-skill recommendations). The default model is wired in `.claude/settings.json` as the version-less `sonnet` alias, which follows the latest Sonnet as Claude Code updates (keep Claude Code current with `claude update`); change it there if your team's default differs. Specialized agents declare their model in their `agent.md` frontmatter with the same `haiku` / `sonnet` / `opus` aliases — don't override casually. Use a full model ID only where the team needs to pin a version. Keep `AGENTS.md`, `CLAUDE.md`, and rules stable to maximize prompt-cache hits (each edit busts the cache for every subsequent request).
 
 ## Lightweight mode — when to skip the full workflow
 
