@@ -90,20 +90,21 @@ List the server's tools (`/mcp` in Claude Code), then allow only the read-only o
 
 Leave every write tool off the allow list, so each one prompts. <!-- CUSTOMIZE: adjust the prefixes to your server's real tool names. -->
 
-## Status vocabulary for requesters
+## Client updates
 
-The requester sees status in their terms, mapped to the branching model in `CONTRIBUTING.md`:
+`/client-update` drafts the client-facing message for a delivered task, verifies every claim, posts
+it on the pull request for the team to relay, and writes to the tracker only when the developer
+asks. It uses the status words in `CONTRIBUTING.md` and these project settings:
 
-<!-- CUSTOMIZE to your branching and release model -->
+<!-- CUSTOMIZE: fill these in; delete lines that don't apply. -->
 
-| Repository state | Say |
-|---|---|
-| Pull request open | "in review" |
-| Merged to the integration or preview environment | "in acceptance testing" |
-| Released to production | "live" |
-
-`/stakeholder-update` drafts the requester-facing message in these terms, verifies every claim, and
-posts nothing without the developer's approval.
+- **Live site:** [https://www.example.com]
+- **Previews:** [where each pull request's preview deploys — e.g. the host's comment on the PR]
+- **CMS entry links:** [the URL pattern the client clicks to edit content — e.g.
+  `https://app.contentful.com/spaces/<space-id>/environments/master/entries/<entry-id>`, space ID
+  `<space-id>` (an identifier, not a secret)]
+- **Task statuses:** [how to list a task's valid statuses with the tracker's tools — e.g. the
+  get-task tool with statuses expanded]
 
 ## Optional: a usage guide on the task
 

@@ -3,7 +3,7 @@
 This walkthrough follows one feature through the whole workflow, from the tracker task to the
 draft pull request and the message back to the requester: **triage → spec folder → plan with its
 change surface → an independent check → one approval gate → docs first → one TDD commit per task →
-reconciled docs → gate results → review → draft PR → stakeholder update.**
+reconciled docs → gate results → review → draft PR → client update.**
 
 The project is a marketing site built with **Next.js (App Router) + Contentful + Vercel**;
 subscribers go to **Mailchimp**. The feature is small enough to read in one sitting, yet it touches a
@@ -750,7 +750,7 @@ squash-merged on 2026-06-15.
 The task came from the tracker, so the requester hears back in their own terms:
 
 ```
-/stakeholder-update MKT-412 142
+/client-update MKT-412 142
 ```
 
 The skill verifies each claim — the merged PR, production's article pages (no section yet, as

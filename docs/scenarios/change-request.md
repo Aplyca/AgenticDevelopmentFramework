@@ -73,7 +73,7 @@ So the work starts from the **delta** — the request now against what the spec 
 10. **Deliver when asked.** `/open-pr` pushes and opens a **draft** naming `specs/NNN-<slug>/ (CR N)`
     — Claude Code asks you to confirm the push and the pull request — and records its URL in
     `pull-requests:` with `· CR N`. A human QCs the preview before it's marked ready; the agent runs
-    `gh pr ready` only if that person asks. For a tracker task, `/stakeholder-update` drafts the reply
+    `gh pr ready` only if that person asks. For a tracker task, `/client-update` drafts the reply
     when the developer asks.
 
 ### A legacy single-file spec

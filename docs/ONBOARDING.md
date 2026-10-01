@@ -36,7 +36,7 @@ A feature or behavior change then flows:
 | Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
 | Deliver, when asked | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified | — |
-| Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
+| Close the loop, when asked | `/client-update` | The requester's update, shown to you first | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
 `specs/_templates/`; the slug joins folder, branch (`<type>/<slug>`), and pull request.
@@ -94,7 +94,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | A person confirms pushes, pull request and issue writes, releases, GitHub API writes | `permissions.ask` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/open-pr` and `/stakeholder-update` start only when a person types them | `disable-model-invocation` |
+| `/open-pr` and `/client-update` start only when a person types them | `disable-model-invocation` |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
 | Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
@@ -279,7 +279,7 @@ framework's own [decision records](decisions/README.md) are examples.
 - **Link, don't copy** — the tracker and the repository have different audiences and access.
 
 Tracker-originated work — light changes included — ends with an update to the requester, sent only
-when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
+when the developer says so. **Exercise:** `/client-update` for the signup (paste the Day 2 brief
 if there's no tracker task). Check for business language, verified claims, and your status words —
 "in review", "in acceptance testing", "live". Post nothing.
 ([TRACKER-INTEGRATION.md](../skeleton/docs/TRACKER-INTEGRATION.md))
@@ -345,7 +345,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | Review against the spec folder | `/review` |
 | One clean commit | `/commit` |
 | Push and open a draft pull request (you type it) | `/open-pr` |
-| Draft the requester's update (you type it) | `/stakeholder-update` |
+| Draft the requester's update (you type it) | `/client-update` |
 | Record an ADR or PDR | `/record-decision` |
 | Root-cause a bug | `/debug` |
 | Restructure code safely | `/refactor` |

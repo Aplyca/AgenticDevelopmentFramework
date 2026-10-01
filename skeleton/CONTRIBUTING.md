@@ -72,7 +72,7 @@ schema back).
 
 ## Status words for requesters
 
-<!-- CUSTOMIZE to the branching model above. /stakeholder-update uses this table. -->
+<!-- CUSTOMIZE to the branching model above. /client-update uses this table. -->
 
 | State | Say |
 |---|---|

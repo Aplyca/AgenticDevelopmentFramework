@@ -72,9 +72,9 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr client-update record-decision context-audit dispatch"
 # Skills with side effects outside this machine: user-invoked only.
-OUTWARD_SKILLS="open-pr stakeholder-update"
+OUTWARD_SKILLS="open-pr client-update"
 
 is_discipline_skill() {
     case " $DISCIPLINE_SKILLS " in *" $1 "*) return 0 ;; esac

@@ -41,7 +41,7 @@ honest TODO beats a plausible invention.
    with this repository's routine read-only commands.
 
 7. **Customize `README.md` and `CONTRIBUTING.md`** — real setup steps, the branching and release
-   model, and the stakeholder status vocabulary.
+   model, and the status words for client updates.
 
 8. **Add nested `AGENTS.md` files** in modules whose rules differ from the root (monorepo apps,
    shared libraries, the database folder). Nearest file wins; keep each one short:

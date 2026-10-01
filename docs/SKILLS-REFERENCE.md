@@ -25,7 +25,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/review` | Review against the spec folder: acceptance criteria and every filled section, change-surface compliance, constitution, conventions (including the comments rule), security, UX, test evidence, doc accuracy, PR description vs diff. |
 | `/commit` | One clean commit: the spec folder, a doc, or one task (test and code together). Stages by name, never bypasses hooks, never pushes. |
 | `/open-pr` | **User-invoked only.** Push and open a **draft** pull request naming the spec folder and tracker task, with what was and wasn't verified. Never marks it ready. |
-| `/stakeholder-update` | **User-invoked only.** Draft the requester-facing update (why, what, status in the project's vocabulary, verified findings, direct questions); post it only as the developer directs. |
+| `/client-update` | **User-invoked only.** Draft the client-facing update for a tracker task (why, what, status in the project's words, verified findings, direct questions), show it, and post it on the pull request for the team to relay; the tracker only when the developer asks. Project settings — links, CMS entries, task statuses — live in `docs/TRACKER-INTEGRATION.md`. |
 
 ## Reference and setup skills
 
