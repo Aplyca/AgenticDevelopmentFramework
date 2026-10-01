@@ -2,184 +2,192 @@
 
 ## When to use this
 
-A bug is **actively affecting users in production right now** and the normal Feature Development workflow is too slow. Examples:
-- Article pages are returning 500 because a Contentful field rename broke the renderer.
-- Newsletter signups are silently dropping because a Mailchimp API change broke the integration.
-- A deploy went out 20 minutes ago and the homepage is blank.
+Production is broken **now** — users are affected at this moment — and the fix can't wait for the
+normal path:
+
+- Every newsletter signup fails since this morning.
+- Article pages return 500 after a CMS model change.
+- A deploy went out twenty minutes ago and the homepage is blank.
 
 **Not this scenario:**
-- A bug that's annoying but not breaking → use the full [Feature Development workflow](../ONBOARDING.md). Write a spec update, write a regression test, fix.
-- A bug discovered during development → just fix it; you're already in a workflow.
-- A "we should improve this" request from a stakeholder → that's a feature, not a hotfix.
 
-The hotfix workflow trades the spec-first discipline for **speed**. The trade-off is only worth it when the cost of waiting (lost revenue, lost users, broken trust) exceeds the cost of working out of order. Use it sparingly — most "urgent" bugs aren't.
+- A bug that's annoying but not breaking → [Debugging](debugging.md): diagnose, regression test, fix, a normal pull request.
+- A bug you found while building something → fix it in the task you're on.
+- "This should work differently" → [Change request](change-request.md).
+
+A hotfix skips spec-first for speed. It never skips the diagnosis, the regression test, the human
+review, or the backfill. Most "urgent" bugs aren't hotfixes — be honest about which this is.
 
 ## Steps
 
-### 1. Confirm it's actually a hotfix
+1. **Mitigate if you can.** Rolling back to the previous deployment or release, reverting a content
+   or configuration change, turning off a flag: if one restores service faster and more safely than
+   a fix, do it first. Once service is back you're no longer in a hotfix — the fix takes the normal
+   path in [Debugging](debugging.md).
 
-Before bypassing the normal flow, sanity-check:
+2. **Triage, fast** (`/triage`): deliverable change; kind hotfix; environment needed (the regression
+   test runs); spec folder none for now — backfilled afterwards.
 
-- Is the issue affecting users *right now*? (Not "could affect" — *is*.)
-- Is rolling back to the previous deploy faster and safer than fixing forward? If yes, **roll back first**, then debug at leisure.
-- Is the cost of waiting 1-2 hours for a normal spec → tests → docs → implement cycle worse than the cost of a less rigorous fix?
+3. **Branch on the project's hotfix path** (`CONTRIBUTING.md` § Branching and release — both models
+   are in the [skeleton's CONTRIBUTING.md](../../skeleton/CONTRIBUTING.md)):
 
-If you answered no to all three, you're not in a hotfix. Use the [Feature Development workflow](../ONBOARDING.md) instead.
+   | Branching model | Hotfix path |
+   |---|---|
+   | **A** — feature branches into `main` | `fix/<slug>` from `main`; pull request into `main`; merging deploys |
+   | **B** — integration branch, tagged releases | `hotfix/<slug>` from the **released tag**; pull request into `main`; tag a patch release; back-merge `main` into the integration branch immediately. Hotfixes are code-only — migrations go through the integration branch |
 
-### 2. Branch from main
+   Never commit to `main` directly: the git guard refuses, and branch protection on the Git host is
+   the real boundary.
 
-```bash
-git checkout main
-git pull
-git checkout -b hotfix/article-500-contentful-field-rename
-```
+4. **Diagnose** (`/debug`, or the read-only `@debugger` agent) — even when the cause looks obvious.
+   Five minutes here catches the fix that would only hide the symptom.
 
-> Always branch even for hotfixes. You want the fix reviewable and reversible, not a direct push to main.
+5. **Regression test first.** Reproduce the failure as a test, run it, and watch it fail for the
+   right reason — the reported symptom, not a broken fixture.
 
-### 3. Diagnose the root cause
+6. **Smallest fix, then green** — the new test, then the fast gate (lint, typecheck, unit tests). If
+   the fix needs a decision nothing documents ("what should happen when X is down?"), stop and ask:
+   the developer or the area's owner decides, and the backfill records it.
 
-```
-/debug article pages returning 500. error in Vercel logs: "TypeError: Cannot read properties of undefined (reading 'fields')". started after deploy <sha>.
-```
+7. **One commit, test and fix together** — `fix: …`, with a body that says why and records the
+   red-then-green evidence (a hotfix has no `tasks.md`). Hooks run; under pressure is exactly when
+   `--no-verify` is tempting, and the guard blocks it anyway.
 
-The `/debug` skill walks you through systematic root cause analysis — don't skip it even when you think you know the cause. The five extra minutes catches the case where the obvious fix is wrong.
+8. **Quick `/review`, then deliver when asked.** `/open-pr` pushes and opens a **draft** pull
+   request; each push and pull request action is confirmed. A human QCs it — the preview, the
+   reproduction — and only then is it marked ready, reviewed, and merged. In model B someone also tags
+   the patch release and opens the back-merge. The agent does any of these only when asked, never on
+   its own initiative.
 
-In this example the AI traces it: a Contentful editor renamed the `body` field to `articleBody` in the model. The renderer at `app/articles/[slug]/page.tsx` still reads `entry.fields.body`, which is now undefined.
+9. **Watch production recover** — the affected page, the error rate, the logs.
 
-### 4. Write a regression test FIRST
+10. **Backfill — the step everyone skips.** If the hotfix changed behavior or settled a question the
+    spec didn't answer, amend the feature's spec folder in a follow-up pull request
+    (`specs/README.md` § Hotfix backfill): a `CR N — hotfix: <title> (date)` section with what changed,
+    why, and the Delivered → Change table; the acceptance criteria it changed; a Clarification
+    recording the decision (who, when); and the hotfix pull request in `pull-requests:`
+    (`<url> · hotfix`). Update the user-facing docs and runbooks it affects. There's no approval gate
+    for recording what already shipped — the backfill pull request is reviewed like any change. If
+    the fix only restored documented behavior, the regression test is the record — there's nothing to
+    backfill.
 
-Even under time pressure, the regression test comes before the fix. It's the cheapest way to ensure the same bug doesn't reappear in three weeks.
-
-```
-/write-tests add a regression test for the article renderer: when Contentful entry is missing the expected body field, the page should render an error state, not throw.
-```
-
-Snippet of what gets written:
-
-```ts
-// e2e/articles.spec.ts (addition)
-test('renders an error state when Contentful entry is missing body', async ({ page }) => {
-  // mock Contentful to return an entry without 'articleBody' / 'body' field
-  await page.route('**/contentful/**', route =>
-    route.fulfill({ json: { fields: { title: 'Test' /* no body */ } } }),
-  );
-  const response = await page.goto('/articles/test');
-  expect(response?.status()).toBe(200);  // not 500
-  await expect(page.getByText(/article unavailable/i)).toBeVisible();
-});
-```
-
-Run it. It should fail (the bug still exists):
-
-```bash
-$ pnpm test:e2e -g 'missing body'
-  ✘ renders an error state when Contentful entry is missing body
-```
-
-### 5. Fix the root cause
-
-Now write the smallest possible change that makes the test pass. For this example:
-
-```diff
- // app/articles/[slug]/page.tsx
- export default async function ArticlePage({ params }) {
-   const entry = await getArticle(params.slug);
--  return <ArticleRenderer body={entry.fields.body} />;
-+  const body = entry.fields.articleBody ?? entry.fields.body;
-+  if (!body) return <ArticleUnavailable />;
-+  return <ArticleRenderer body={body} />;
- }
-```
-
-Run the test:
-
-```bash
-$ pnpm test:e2e -g 'missing body'
-  ✓ renders an error state when Contentful entry is missing body
-```
-
-Run the full suite to make sure you didn't break anything:
-
-```bash
-$ pnpm test:e2e
-  ✓ ... (all pass)
-```
-
-### 6. Quick review
-
-```
-/review
-```
-
-The review may surface concerns ("you're masking the underlying field-rename problem instead of fixing the Contentful model"). For a hotfix that's often acceptable — note the concern, ship the fix, and address the deeper issue in the backfill spec (step 8).
-
-### 7. Commit, push, deploy
-
-```bash
-git add -A
-git commit -m "fix: handle Contentful body field rename gracefully
-
-Article pages were 500ing because editors renamed the 'body' field to
-'articleBody' in the Contentful model. Renderer now accepts either name
-and shows an unavailable state when both are missing. Backfill spec to
-follow."
-
-git push -u origin hotfix/article-500-contentful-field-rename
-gh pr create --title "Hotfix: article 500 from Contentful field rename" --body "..."
-```
-
-Get an expedited review (one teammate, look-once, ship). Merge and confirm Vercel auto-deploys.
-
-### 8. Verify in production
-
-Don't trust that the deploy worked — open the affected page, watch the logs for one minute, confirm the error rate drops. If you have a synthetic monitor for this, watch it recover.
-
-### 9. Backfill the spec AND any user-facing docs
-
-This is the step everyone skips. Don't.
-
-```
-/write-spec update specs/article-rendering.md to document the field-rename tolerance and unavailable state
-```
-
-If the fix changed any user-facing behavior that's documented (admin guides, API contracts, troubleshooting), update those docs too:
-
-```
-/write-docs article-rendering
-```
-
-Open a follow-up PR with the spec update and doc updates together. Mention the hotfix commit in the PR body. The point: future readers see the design intent and the current user-facing behavior, not just the patch.
-
-If the underlying problem (editors renaming fields without coordinating with engineering) is recurring, this is also the time to open a separate issue or ADR for the systemic fix.
-
-## Common mistakes
-
-| Mistake | What happens | Fix |
-|---|---|---|
-| Skipping the regression test "to save time" | Same bug returns in a month. Costs more total time. | Write the test first. It takes 5 minutes. |
-| Pushing directly to main | No review, no rollback path beyond `git revert` | Always branch and PR, even for hotfixes |
-| Committing the fix without explaining *why* in the message | Six months later nobody knows why the renderer reads two field names | Always explain the *why*; future-you depends on it |
-| Skipping the backfill spec | Spec drifts from reality; next change to this area is built on a wrong mental model | Always backfill within the same week |
-| Treating non-urgent bugs as hotfixes | Spec discipline erodes; "everything is urgent" becomes the norm | Be honest with yourself in step 1. Most bugs aren't hotfixes. |
-| Hotfixing forward when rollback would work | Adds risk in a moment of stress | Always consider rollback first. Roll back, then fix forward calmly. |
+With the parallel-agents module, a model-B hotfix branches from the release tag:
+`scripts/agent/worktree-new.sh hotfix/<slug> --from v1.6.0`.
 
 ## Example
 
-**The page:** article pages started returning 500 around 14:30. Vercel logs show `TypeError: Cannot read properties of undefined (reading 'fields')` from `app/articles/[slug]/page.tsx:14`.
+The newsletter site uses model A: `main` is production.
 
-**Timeline:**
+**09:40** — the error-rate alert fires: since 09:12 every signup shows "Something went wrong, please
+try again". Article pages are fine.
 
-| Time | Action |
-|---|---|
-| 14:35 | On-call sees the alert, opens Vercel logs |
-| 14:37 | Confirmed: started exactly at 14:28, every article page affected. Considered rollback — last deploy was at 13:50, no urgent commits since. Rollback would work but cost 30 minutes of legitimate content updates. |
-| 14:40 | Branched `hotfix/article-500-contentful-field-rename`, ran `/debug`, traced to Contentful field rename |
-| 14:45 | Wrote regression test, confirmed it fails on current code |
-| 14:50 | Wrote the 3-line fix, regression test passes, full suite green |
-| 14:55 | `/review`, opened PR, got teammate approval |
-| 14:58 | Merged, Vercel deploy started |
-| 15:02 | Deploy live, error rate dropping |
-| 15:05 | Synthetic monitor green, incident closed |
-| Next morning | Backfill spec PR opened: documents the field-rename tolerance, links to the hotfix commit, opens a separate ADR for "Contentful model change coordination process" |
+**09:44 — mitigate?** There has been no deploy since Tuesday, so a rollback won't help. The logs
+show the rate limiter's store rejecting every call: a campaign mention overnight used up the store
+plan's monthly request quota, and raising it needs the account owner, who is out until tomorrow.
+Fix forward.
 
-Total: 30 minutes from alert to recovery, ~1 hour the next morning to backfill. The git history shows all of it.
+**Triage**
+
+```
+Triage — Every newsletter signup fails since 09:12 (on-call alert)
+- Deliverable: change
+- Kind: hotfix — production broken now; no deploy since Tuesday, so a rollback won't help
+- Environment: needed now — the regression test runs against the signup route
+- Spec folder: none now; backfill specs/007-newsletter-signup/ afterwards
+- Open questions: 1) While the limiter's store is unavailable, accept signups without rate limiting
+  (fail open) or reject them (fail closed)? The spec doesn't say.
+- Next: fix/newsletter-rate-limit-outage from main, then /debug
+```
+
+**Diagnosis** (`/debug`): the route calls the rate limiter before anything else; the limiter throws
+when its store rejects a request; nothing catches it, so the route returns 500 and the form shows its
+generic error. The spec's Security section sets the limit — 10 requests per IP per minute — but not
+what happens when the limiter itself is down. That's a decision, so it goes to the developer, who
+asks the security owner: **fail open** — accept the signup, log an error event, alert on it — because
+losing every signup costs more than a short window without the limit.
+
+**Regression test**, red for the right reason:
+
+```
+✘ accepts a valid signup when the rate-limit store is unavailable
+    expected status 200, received 500
+```
+
+**Fix**: the route catches the store failure, logs `newsletter.rate_limit.store_unavailable`, and
+carries on. The test passes; the unit suite and lint pass.
+
+**Delivery**: the developer asked for the pull request; `/open-pr` opened a draft into `main`. The
+on-call lead checked the preview, marked it ready, reviewed, and merged; the merge deployed. By 10:25
+the error rate was back to normal.
+
+**Backfill**, the next morning, on a fresh branch, `docs/newsletter-signup-rate-limit-outage`:
+`spec.md` gains a `CR N — hotfix: Accept signups when the rate-limit store is unavailable` section
+(the next free number) whose Delivered → Change row reads *rate-limit store unavailable: every signup
+fails with a 500 → the signup is accepted, and an error is logged and alerted*; a new criterion
+tagged `(CR N)` states the rule; a Clarification records the decision, the security owner, and the
+date; and the hotfix pull request goes into `pull-requests:` as `<url> · hotfix`. The runbook gets a
+section on the store's quota.
+
+**The same hotfix in model B** (integration branch `staging`, releases tagged on `main`, last release
+`v1.6.0`):
+
+```
+git switch -c hotfix/newsletter-rate-limit-outage v1.6.0   # from the released tag, not from staging
+# … the same diagnosis, test, fix, commit, and draft pull request into main …
+# after the merge, by a human (or by the agent, when asked):
+git tag -a v1.6.1 -m "Accept signups when the rate-limit store is unavailable"
+git push origin v1.6.1                                       # the tag ships
+# then, immediately: a pull request from main into staging — the back-merge
+```
+
+Branching from `staging` instead would ship unreleased work with the fix; skipping the back-merge
+would let the next release from `staging` bring the bug back.
+
+## Commits it produces
+
+```
+$ git log --oneline main..fix/newsletter-rate-limit-outage
+4c2e8f1 fix: accept signups when the rate-limit store is unavailable
+```
+
+The commit body carries what a hotfix has no `tasks.md` for:
+
+```
+fix: accept signups when the rate-limit store is unavailable
+
+Since 09:12 the rate limiter's store has rejected every call (monthly
+request quota used up), and the uncaught error turned every signup into
+a 500. Per the security owner's decision during the incident, the route
+now fails open: it accepts the signup and logs
+newsletter.rate_limit.store_unavailable, which is alerted.
+
+Red: "accepts a valid signup when the rate-limit store is unavailable"
+failed with 500. Green after the fix; unit suite and lint pass.
+Spec backfill to follow on specs/007-newsletter-signup/.
+```
+
+And the backfill, a day later:
+
+```
+$ git log --oneline main..docs/newsletter-signup-rate-limit-outage
+b7d0e3a docs: add the rate-limit store quota check to the newsletter runbook
+2a9f6c4 spec: record the rate-limiter outage rule from the hotfix
+```
+
+## Common mistakes
+
+| Mistake | What happens | Instead |
+|---|---|---|
+| Skipping the diagnosis because the cause "is obvious" | The fix hides the symptom — raise the rate limit, add a retry — and the cause stays | `/debug` first; it takes minutes |
+| Skipping the regression test | The same failure is back in a month | Test first, watch it fail, then fix |
+| Pushing straight to `main` | No review and no clean revert — and the guard refuses | Branch and draft pull request, expedited review |
+| Letting the agent settle an open question | A security trade-off made by a tool, unrecorded | Ask; the backfill records who decided |
+| Fixing forward when a rollback would do | More risk at the worst moment | Mitigate first, then fix calmly on the normal path |
+| Model B: branching from the integration branch | Unreleased work ships with the hotfix | Branch from the released tag |
+| Model B: forgetting the back-merge | The next release brings the bug back | Back-merge `main` into the integration branch right away |
+| Skipping the backfill | The spec describes a system that no longer exists | Backfill within days — it's part of the hotfix |
+
+**Reference:** [`/debug`](../../skeleton/.claude/skills/debug/SKILL.md) ·
+[`CONTRIBUTING.md` § Branching and release](../../skeleton/CONTRIBUTING.md#branching-and-release) ·
+[`/open-pr`](../../skeleton/.claude/skills/open-pr/SKILL.md) ·
+[testing rules — red, then green](../../skeleton/.claude/rules/testing.md)
