@@ -26,6 +26,10 @@ __pycache__/
 *.pyc
 target/
 
+# Agent worktrees — full copies of the repository (Claude Code creates them under .claude/worktrees/).
+# Searching them returns stale duplicates of every file. Also add this path to .gitignore.
+.claude/worktrees/
+
 # Test artifacts
 test-results/
 playwright-report/
