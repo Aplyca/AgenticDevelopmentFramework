@@ -50,7 +50,7 @@ Project-specific values (protected branches, append-only paths, the env template
 
 ## Cost model
 
-The default model is the version-less alias `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates. Agents use the `haiku` / `sonnet` / `opus` aliases the same way — don't override them casually. Escalate to Opus for genuinely hard reasoning; workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Decision rules and per-skill tiers: `docs/COST-MODEL.md`.
+The default model is the version-less alias `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates (keep Claude Code current with `claude update`). Agents use the `haiku` / `sonnet` / `opus` aliases the same way — don't override them casually; pin a full model ID only when the team needs a fixed version. Escalate to Opus for genuinely hard reasoning; workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Decision rules and per-skill tiers: `docs/COST-MODEL.md`.
 
 ## Memory
 

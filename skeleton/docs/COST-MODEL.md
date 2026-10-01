@@ -2,11 +2,11 @@
 
 How to manage AI development costs in a project that uses this framework. Covers the three model tiers, per-skill / per-agent recommendations, prompt-caching strategy, cost attribution patterns, and tool integrations.
 
-The framework is opinionated about WHEN to use which model and HOW to structure context for cache efficiency. Teams that follow these recommendations typically see ~3-5x lower token costs than teams that default everything to the most capable model.
+The framework is opinionated about WHEN to use which model and HOW to structure context for cache efficiency. Teams that follow these recommendations spend noticeably less than teams that default everything to Opus: at current list prices Sonnet costs about half as much per token and Haiku about a quarter, and a stable, cache-friendly context cuts input costs further. The overall saving depends on your mix of work — measure it rather than assuming a multiple.
 
 ## Why this matters
 
-By 2026, AI engineering workflows are the #1 line item in many teams' LLM token spend. The difference between "default to Opus for everything" and "default to Sonnet, escalate to Opus only when needed, route triage through Haiku, cache aggressively" is often 5-10x in monthly bill.
+By 2026, AI engineering workflows are the #1 line item in many teams' LLM token spend. The difference between "default to Opus for everything" and "default to Sonnet, escalate to Opus only when needed, route triage through Haiku, cache aggressively" shows up directly in the monthly bill — roughly 2× per token from the Sonnet-vs-Opus choice alone, with prompt caching (cache reads bill at a tenth of the base input price or less) often mattering as much as the model choice.
 
 For consultancies billing AI-assisted work to clients, cost attribution per feature/per project is also a billing requirement, not just an internal concern.
 
@@ -14,17 +14,15 @@ For consultancies billing AI-assisted work to clients, cost attribution per feat
 
 This framework is built around three Claude model tiers. Use the right tier for the task — over-spec'ing wastes money; under-spec'ing produces worse output that costs more to iterate on.
 
-| Tier | Alias (current model, September 2026) | Use when... | Relative cost per token (vs Haiku) |
+| Tier | Model alias (current model, September 2026) | Use when... | Approximate relative cost (vs Haiku) |
 |---|---|---|---|
 | **Capable** | `haiku` (Haiku 4.5) | Routing, triage, well-bounded checks, drafting commit messages, simple lookups, deterministic-ish work | 1× (cheapest) |
-| **Balanced** | `sonnet` (Sonnet 5.5) | Most engineering work — spec writing, planning, implementation, code review, debugging, refactoring | 2× |
-| **Frontier** | `opus` (Opus 5.5) | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | 4× |
+| **Balanced** | `sonnet` (Sonnet 5.5) | Most engineering work — spec writing, test planning, implementation, code review, debugging, refactoring | 2× Haiku input and output |
+| **Frontier** | `opus` (Opus 5.5) | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | 4× Haiku input and output |
 
-**Configure models with these aliases, not full model IDs** — in `.claude/settings.json`, in agent frontmatter, and with `/model`. An alias resolves to the latest model in its family and moves forward as Claude Code updates, so new releases arrive without a config change (keep Claude Code current; older versions resolve aliases to older models). Use a full model ID such as `claude-sonnet-5-5` only when you must pin a version.
+Configure models with these aliases everywhere Claude Code takes one: `.claude/settings.json` (`"model": "sonnet"`), agent frontmatter (`model: haiku`), and `/model`. They're version-less — each resolves to the current model of its tier and moves forward as Claude Code updates, so keep Claude Code current with `claude update` (Sonnet 5.5 needs v2.1.284+, Opus 5.5 v2.1.280+). On Amazon Bedrock, Google Cloud, and Microsoft Foundry an alias can resolve to an older model (e.g. `sonnet` → Sonnet 4.5); pin the provider's model ID there with `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Pin a full model ID (e.g. `claude-sonnet-5-5`) only when your team needs a fixed version.
 
-> **Pricing changes** — list prices per million input/output tokens as of September 2026: Haiku 4.5 $1/$5, Sonnet 5.5 $2/$10, Opus 5.5 $4/$20. Newer models such as Opus 5.5 use a tokenizer that can produce up to ~35% more tokens than Haiku 4.5 for the same text, so the effective gap per task can be wider than the per-token ratio — measure with token counting rather than assuming. Always check [current Anthropic pricing](https://anthropic.com/pricing) before detailed projections; the decision rules below stay valid as absolute prices shift.
-
-> **Not a tier: Fable** (`fable`, currently Claude Fable 5.1) is Anthropic's most capable model, at 10× Haiku per token (2.5× Opus 5.5). The decision rules below escalate no further than Opus; reach for Fable only by explicit, deliberate choice.
+> **Pricing changes** — ratios are from list prices per million input / output tokens as of September 2026: Haiku 4.5 $1 / $5, Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Sonnet 5.5 and Opus 5.5 use a newer tokenizer that produces roughly 30% more tokens than Haiku 4.5 for the same text, so per unit of work their gap to Haiku is somewhat wider than the per-token ratio. Cache reads cost $0.20 / MTok on both Sonnet 5.5 and Opus 5.5, so in cache-heavy sessions the Sonnet–Opus difference is mostly in output and uncached input. `fable` (Fable 5.1, $10 / $50, 10× Haiku) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
 
 ### Decision rules
 
@@ -35,9 +33,9 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 ### Switching tiers in Claude Code
 
-- `/model` — switch the session's model (e.g. `/model opus` before a hard reasoning task, then `/model sonnet` after).
+- `/model` — built-in command to switch the session's model (e.g. `/model opus` before a hard reasoning task, then `/model sonnet` after).
 - Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default (aliases here too). Use it for work that should always run on a given tier, e.g. `@code-reviewer` / `@security-reviewer` on `haiku`.
-- `/fast` — runs **Opus** in fast mode: the same model with up to ~2.5× faster output, at premium pricing (2× the standard rate on Opus 5.5). It does NOT downgrade to a smaller model — capability is unchanged, only latency improves. Available on the Anthropic API, not on cloud-provider platforms. Turn it on at the start of a session — enabling it mid-conversation bills the existing context at the fast-mode rate. It's a per-user preference, not a project setting.
+- `/fast` — built-in Claude Code toggle (research preview) that runs Opus in a faster-output configuration. It is the same model — it does NOT downgrade to a smaller one — with up to ~2.5× faster output at premium pricing ($8 / $40 per MTok on Opus 5.5, vs $4 / $20 standard). Supported on Opus 5.5, Opus 5, and Opus 4.8, and only through the Anthropic API or subscription plans' usage credits (not Bedrock, Google Cloud, or Foundry). Turn it on at the start of a session: enabling it mid-conversation bills the whole existing context at the fast-mode uncached input rate. Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference (`fastMode` in user settings), not a project-level setting.
 
 ## Per-skill recommendations
 
@@ -183,6 +181,6 @@ If your monthly bill jumps unexpectedly:
 ## See also
 
 - [`AGENTS.md`](../AGENTS.md) — project-wide AI conventions
-- [Anthropic pricing](https://anthropic.com/pricing) — current rates
+- [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) — current rates
 - [Helicone docs](https://docs.helicone.ai) — gateway setup
 - [LiteLLM docs](https://docs.litellm.ai) — multi-provider proxy setup
