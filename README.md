@@ -134,24 +134,121 @@ the steps that find defects (a test that proves the change, the hooks, CI, a rev
 request, the human QC) run in every lane; what changes is how much is written down and approved
 before the code exists.
 
+### Triage — every task
+
+```mermaid
+flowchart TD
+    task(["A task: a request, a tracker link, a bug report"]) --> triage["/triage<br/>reads the task in full, looks for prior work,<br/>states deliverable · kind · lane · model<br/>before any branch or file"]
+    dev(["The developer: 'full lane on this' · 'just a quick fix'"]) -.->|raising is always honored;<br/>lowering keeps a risk checklist| triage
+    triage -->|asks for an answer| answer["Investigate read-only and deliver the answer<br/>no lane · no spec · no environment"]
+    triage -->|precise request, about 3 files,<br/>no risk trigger| fast["FAST lane<br/>sonnet"]
+    triage -->|the same, in a risk area<br/>or a sensitive area| careful["CAREFUL lane<br/>sonnet, high effort"]
+    triage -->|something to decide| full["FULL lane<br/>opus up to the gate"]
+    triage -->|a bug, cause unknown| debug["/debug<br/>then the lane the fix needs"]
+    fast -.->|the diff grows, a trigger appears,<br/>or no test can prove it| careful
+    careful -.->|something to decide| full
 ```
-task ─▶ /triage ─┬─▶ answer ─────────▶ deliver the answer (no lane, no spec, no environment)
-                 ├─▶ FAST lane ──────▶ restate + "done when" → edit → targeted test → /commit
-                 │   (precise request, few files, no risk trigger; light CR N if recorded behavior changes)
-                 ├─▶ CAREFUL lane ───▶ fast + the risk area's checklist + the developer's yes
-                 │   (migration, authorization, personal data, shared contract, sensitive area)
-                 └─▶ FULL lane — something to decide, a new feature, cross-layer work
-                        │
-   /write-spec ──▶ /write-plan (+ @spec-analyzer) ──▶ APPROVAL GATE ──▶ spec: commit
-   (spec.md)       (plan.md, tasks.md)                 scope · change surface · assumptions
-                        │   opus up to the gate ┄┄┄ a fresh sonnet session after it
-   /write-docs ──▶ /implement: per task  test ✗ → code → test ✓ → commit ──▶ reconcile docs
-   (docs:)                                                                     gate results
-                        │
-   every lane: /review ──▶ /open-pr (draft, when asked) ──▶ human QC ──▶ ready ──▶ merge
-                        │
-   /stakeholder-update ("update the client") — drafted, shown, posted on the PR for the team to relay
+
+### Fast and careful lanes — a precise change, proved by a test
+
+```mermaid
+flowchart TD
+    line["One-line triage<br/>the request · done when · files · model"] --> search["Search every use of what changes"]
+    search --> isbug{"A bug?"}
+    isbug -->|yes| red["Regression test — watch it fail"]
+    isbug -->|no| edit["Edit"]
+    red --> edit
+    edit --> green["Targeted test passes"]
+    green --> iscareful{"Careful lane?"}
+    iscareful -->|yes| checklist["The area's checklist<br/>@security-reviewer for authorization, data, payments<br/>the developer's yes on the risky part"]
+    iscareful -->|no| recorded
+    checklist --> recorded{"Changes behavior<br/>a spec records?"}
+    recorded -->|yes| lightcr["Light CR N in spec.md<br/>in the same commit"]
+    recorded -->|no| commitfast["/commit"]
+    lightcr --> commitfast
+    commitfast --> delivery(["Delivery"])
 ```
+
+### Full lane — decide, approve, then build test-first
+
+```mermaid
+flowchart TD
+    subgraph decide["Decide — opus"]
+        spec["/write-spec<br/>spec.md: every role's requirements,<br/>questions answered in Clarifications"]
+        plan["/write-plan<br/>plan.md: change surface, test strategy, docs plan<br/>tasks.md: one task per commit"]
+        analyzer["@spec-analyzer<br/>adversarial check of the folder"]
+        gate{{"APPROVAL GATE<br/>scope · change surface · assumptions"}}
+        spec --> plan --> analyzer --> gate
+        gate -->|changes asked| spec
+    end
+    gate -->|approved| speccommit["spec: commit"]
+    speccommit --> docs
+    subgraph build["Build — a fresh sonnet session"]
+        docs["/write-docs<br/>pre-implementable docs first"]
+        writetest["/implement, one task at a time<br/>write its test · watch it fail"]
+        writecode["Write the code · watch it pass"]
+        taskcommit["One commit · tick the task"]
+        moretasks{"More tasks?"}
+        reconcile["Reconcile the docs<br/>full gate · results in tasks.md"]
+        docs --> writetest --> writecode --> taskcommit --> moretasks
+        moretasks -->|yes| writetest
+        moretasks -->|no| reconcile
+    end
+    reconcile --> delivery(["Delivery"])
+```
+
+### Delivery — every lane
+
+```mermaid
+sequenceDiagram
+    actor Dev as Developer
+    participant Agent
+    participant PR as Pull request
+    participant Tracker as Tracker task
+    Agent->>Agent: /review — the lane, the spec, constitution, security, tests, docs
+    Dev->>Agent: asks to open the pull request
+    Agent->>PR: /open-pr — a draft with the lane, the evidence, and what was not verified
+    Dev->>PR: QC on the preview, then marks it ready
+    Dev->>PR: reviews and merges — CI is a signal, the review is the gate
+    Dev->>Agent: asks to update the client
+    Agent->>Dev: /stakeholder-update — the draft, in the client's terms
+    Agent->>PR: posts it as one comment, for the team to relay
+    opt only on a yes to the exact text
+        Agent->>Tracker: posts the update
+    end
+```
+
+### Change requests — amend the delivered spec
+
+```mermaid
+flowchart TD
+    request(["A change to delivered work"]) --> find["Find its spec folder<br/>by tracker link, slug, keywords, git log"]
+    find --> found{"Found?"}
+    found -->|no| askdev["Ask — never rebuild the old<br/>requirement from the code"]
+    found -->|yes| compare["Compare the request with what<br/>the spec records as delivered"]
+    compare --> decided{"Has the requester decided<br/>the new behavior?"}
+    decided -->|yes| light["Fast or careful lane<br/>a light CR N, committed with the change"]
+    decided -->|no — something to decide| fullcr["Full lane for the delta only<br/>CR N in spec, plan, and tasks · the gate"]
+    light --> branch["A fresh branch: feat/slug-change<br/>and a new pull request"]
+    fullcr --> branch
+```
+
+### Bugs and hotfixes
+
+```mermaid
+flowchart TD
+    broken(["Something is broken"]) --> prod{"Production<br/>broken now?"}
+    prod -->|yes| hotfix["Careful lane, without delay<br/>root cause · regression test · fix · ship<br/>backfill the spec after"]
+    prod -->|no| clear{"Cause clear?"}
+    clear -->|yes| fastfix["Fast lane<br/>regression test fails · fix · it passes · /commit"]
+    clear -->|no| debug["/debug — symptom, trace, root cause<br/>sonnet; opus after two disproven hypotheses"]
+    debug --> fix{"The fix…"}
+    fix -->|restores documented behavior| fastfix
+    fix -->|touches a risk area| carefulfix["Careful lane"]
+    fix -->|changes documented behavior| changereq["A change request"]
+```
+
+### Which workflow for which situation
 
 | Situation | Lane and workflow | Model | Playbook |
 |---|---|---|---|
@@ -167,6 +264,8 @@ task ─▶ /triage ─┬─▶ answer ─────────▶ deliver t
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | `sonnet` | — |
 | Several tasks at once | `/dispatch` from the main checkout; each task in its own worktree (`parallel-agents` module) | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
 | High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | each agent its own | [Skills catalog](docs/SKILLS-REFERENCE.md) |
+
+### Effort, model, and cost
 
 **The developer's intuition counts.** Say "full lane on this", "be careful here", or "just a quick
 fix": raising the lane is always honored; lowering it keeps a risk area's checklist unless the
