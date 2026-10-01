@@ -1,0 +1,46 @@
+#!/bin/sh
+# pre-push: refuse pushes to protected branches, then run the fast checks.
+# Enable once per clone: git config core.hooksPath .githooks
+#
+# Only the fast layers belong here. Integration, end-to-end, and visual tests run in CI — a slow
+# hook is a hook people learn to push past.
+
+# CUSTOMIZE: the fast checks, run in order from the repository root. Empty skips them.
+FAST_CHECKS=""
+# e.g. FAST_CHECKS="npm run lint
+# npx tsc --noEmit
+# npm run test:unit"
+
+root="$(git rev-parse --show-toplevel)" || exit 1
+
+PROTECTED_BRANCHES="main master"
+# One source of truth with the Claude Code guard hook, when it is installed.
+if [ -f "$root/.claude/hooks/config.sh" ]; then
+  # shellcheck disable=SC1091
+  . "$root/.claude/hooks/config.sh"
+fi
+
+fail() {
+  printf '\n  pre-push: %s\n\n' "$1" >&2
+  exit 1
+}
+
+# Read the refs being pushed from stdin rather than the current branch, so that
+# `git push origin HEAD:main` and `git push origin feature:main` are caught too.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  branch="${remote_ref#refs/heads/}"
+  case " $PROTECTED_BRANCHES " in
+    *" $branch "*) fail "pushing directly to '$branch' is not allowed. Open a pull request instead." ;;
+  esac
+done
+
+if [ -n "$FAST_CHECKS" ]; then
+  cd "$root" || exit 1
+  printf '%s\n' "$FAST_CHECKS" | while IFS= read -r check; do
+    [ -n "$check" ] || continue
+    printf '  pre-push: %s\n' "$check"
+    sh -c "$check" </dev/null || exit 1
+  done || fail "a check failed. Fix it before pushing — don't bypass the hook."
+fi
+
+exit 0

@@ -1,0 +1,12 @@
+# Issues here are a queue for engineering-originated work — bugs, chores, CI and toolchain defects
+# with no tracker task. Business requirements go to the tracker and are built against a spec folder
+# (AGENTS.md § Requirements & traceability). Blank issues stay enabled because most of that work is
+# a chore that fits no form; the contact link still redirects requirements to the tracker.
+blank_issues_enabled: true
+contact_links:
+  - name: Business requirement
+    url: https://example.com/your-tracker # CUSTOMIZE: your tracker's intake for requirements
+    about: >-
+      New requirements go to the tracker, not to GitHub issues — it is the channel for all
+      requester communication. The user stories that fulfill a requirement live in the work's
+      spec folder under specs/.
