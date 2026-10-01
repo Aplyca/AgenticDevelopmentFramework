@@ -615,6 +615,17 @@ check_marketplace_snippets() {
     fi
 }
 
+check_no_tracked_junk() {
+    git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    local hits
+    hits=$(git -C "$REPO_ROOT" ls-files | grep -E '(^|/)__pycache__/|\.py[cod]$|(^|/)\.DS_Store$|(^|/)Thumbs\.db$|\.swp$|(^|/)\.claude/settings\.local\.json$|(^|/)\.claude/worktrees/|(^|/)\.env(\.[^/]*)?$' | grep -v '\.env\.example$' | tr '\n' ' ')
+    if [ -z "$hits" ]; then
+        pass "no bytecode, OS files, local settings, worktrees, or env files are committed"
+    else
+        fail "committed files that .gitignore should keep out: $hits"
+    fi
+}
+
 # ─── Main ──────────────────────────────────────────────────────────────────
 
 echo ""
@@ -660,6 +671,7 @@ check_modules
 check_marketplace_snippets
 check_lanes
 check_plugin
+check_no_tracked_junk
 
 echo ""
 echo "==========================================="
