@@ -59,6 +59,7 @@ Build a facts table (`fact → evidence file:line`):
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
 - **Ways of working** — ask: several agent sessions in parallel, each needing a running app? A requester who gets status updates?
 - **Boundaries & antipatterns** — frozen or legacy directories, deliberate deviations (ask; rarely has file evidence)
+- **Sensitive areas** — ask: which parts of the code need care whatever the size of the change (billing, auth, migrations, data exports…)? Past incidents and fragile modules are good evidence
 - **CI & enforcement** — what pipelines exist, what branch protection is known; if none, record that as a fact
 
 Present the table before going further. Wrong facts here poison every file downstream.
@@ -88,7 +89,8 @@ Present the table before going further. Wrong facts here poison every file downs
 ## Step 4 — Fill placeholders from the facts table
 
 - **`AGENTS.md`** — identity, stack, ground rules, delivery rules (base branch, protected branches),
-  boundaries & antipatterns, conventions, structure, quick reference (commands exactly as typed).
+  sensitive areas, boundaries & antipatterns, conventions, structure, quick reference (commands
+  exactly as typed).
   Under ~200 lines; link instead of inlining. Monorepo: nested `AGENTS.md` per module whose rules
   differ (template in `/init-project`).
 - **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
@@ -96,7 +98,8 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`CLAUDE.md`** — keep `@AGENTS.md` as its first instruction (Claude Code reads `CLAUDE.md` instead
   of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5.
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
-  (migrations), `GENERATED_GLOBS` (add generated types/clients), `ENV_TEMPLATE` if not auto-detected.
+  (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
+  areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
 - **`.claude/rules/*`** — `<!-- CUSTOMIZE -->` sections and `paths:` frontmatter to the real
