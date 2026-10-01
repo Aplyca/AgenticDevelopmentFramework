@@ -1,54 +1,43 @@
 ---
-description: "Spec writing guidelines — activate when drafting or updating feature specifications in specs/ (multi-perspective spec model)"
+description: "Spec writing — activate when drafting or amending a spec folder in specs/ (multi-perspective spec.md, plan.md, tasks.md, approval gate)"
 globs: "specs/**"
 alwaysApply: false
 ---
 
-# Spec Writing (Multi-Perspective Spec Model)
+# Spec Writing (spec folders + multi-perspective spec model)
 
-This project uses a **multi-perspective spec model**: every spec captures input from all relevant roles in one document. Required sections are enforced — a spec cannot be marked approved if a required section is empty. Optional sections are filled only when relevant.
+Every change with something to decide gets a **spec folder**: `specs/NNN-<slug>/` with `spec.md`
+(WHAT and WHY), `plan.md` (HOW), and `tasks.md` (commit-sized tasks). Templates in
+`specs/_templates/`; the process in `specs/README.md`; the spec model in `docs/SPEC-MODEL.md`.
 
-See `docs/SPEC-MODEL.md` for the full structure.
-
-## Format
-
-Use the template at `specs/_template.md`. Specs have six parts:
+## spec.md — six parts
 
 | Part | Sections |
 |---|---|
-| **1. Intent** | Business [REQUIRED], Functional [REQUIRED], Out of scope [REQUIRED] |
+| **1. Intent** | Business [REQUIRED], Functional [REQUIRED] (user stories, numbered ACs, edge cases), Out of scope [REQUIRED] |
 | **2. User experience** | Design (if UI), Accessibility [REQUIRED if UI] |
 | **3. Non-functional** | Security [REQUIRED], Privacy [REQUIRED if personal data], Performance, SEO, Analytics, Localization |
-| **4. Technical** | Technical (architecture, integrations, implementation constraints) |
-| **5. Validation & delivery** | Testing [REQUIRED], Documentation [REQUIRED], Observability, Deployment |
+| **4. Constraints** | Constraints & prior decisions (business rules, compliance, ADRs/PDRs to respect) |
+| **5. Validation & delivery** | Testing [REQUIRED], Documentation [REQUIRED] (pre- and post-implementable), Observability, Deployment |
 | **6. Meta** | Clarifications [REQUIRED], References |
 
-## Required sections
+A section is filled with concrete content, "Standard project [area] applies", or "Not applicable:
+[reason]". Optional sections that don't apply are left out.
 
-Every spec must fill these (a section can be filled with concrete content, "Standard project [area] applies", or "Not applicable: [reason]"):
+## plan.md and tasks.md
 
-- **Always required**: Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications
-- **Conditionally required**: Accessibility (if `feature-type: ui` or `mixed`), Privacy (if `personal-data: yes`)
-
-## Documentation section split
-
-The Documentation section has two subsections:
-
-- **Pre-implementable docs** — admin guides, API contracts, end-user copy defaults, SDK READMEs. Written before code via the docs phase. Drives implementation thinking; updated deliberately when implementation reveals reality differs.
-- **Post-implementable docs** — JSDoc, runbooks needing real metrics, troubleshooting from real failure modes. Backfilled after code.
-
-Both subsections must be filled or marked Not applicable.
+- `plan.md`: constitution check, approach, architecture & integrations, **change surface** (every file
+  and layer, verified by reading the code), data & contracts, test strategy (every AC → a test),
+  documentation plan, rollout, risks, **assumptions**, open questions.
+- `tasks.md`: one task per commit, in dependency order; each names its test and the ACs it serves;
+  docs-first tasks before implementation tasks; a Gate results section for evidence.
 
 ## Rules
 
-- Business requirements only in Business and Functional — no code, file paths, or implementation details
-- Implementation-level decisions go in the Technical section, sparingly
-- Every acceptance criterion must be testable by an automated test
-- User-facing text must match the application's language
-- For modifications: clearly mark what changed vs what stays the same; the git diff scopes the test, doc, and implementation work that follows
-- Set status to `draft` — only the user can approve specs
-- Frontmatter must include `feature-type` and `personal-data` (these drive conditional-required logic)
-
-## After approval
-
-Remind to commit the spec before starting tests, docs, or code. The `git diff` of the spec commit scopes everything downstream. The full workflow is: spec → tests → docs → implement → review → ship.
+- Requirements come from the tracker task or the requester — if neither states them, stop and ask. Never invent them.
+- Link the tracker task in frontmatter; never copy its text.
+- WHAT and WHY in `spec.md`; HOW in `plan.md`. No code or file paths in Business or Functional.
+- Every AC is numbered and independently testable; numbers never change.
+- Change requests on delivered work **amend the same folder** with a `CR N` section (intent + Delivered → Change table) and new ACs tagged `(CR N)`. If the delta can't be recovered, ask.
+- **Approval gate:** after plan and tasks, stop and show the developer the scope, the change surface, and the assumptions. Only the developer approves (`status: approved` + an `approvals:` line). Then commit the folder with `spec:`.
+- Workflow after approval: docs first (`docs:`) → one task per commit (test red → green) → reconcile docs → gate results → draft PR when asked.

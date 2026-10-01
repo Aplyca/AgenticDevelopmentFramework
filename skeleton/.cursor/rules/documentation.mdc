@@ -10,36 +10,28 @@ This project uses **docs-first delivery**: user-facing docs are written and comm
 
 The discipline isn't "code must conform to original docs". It's "never let docs go stale".
 
-## Phase 3 — Write user-facing docs (before code)
-
-Run after the spec and tests are committed, before implementation.
+## Docs first — after the approval gate, before implementation
 
 ### Prerequisites
-- Spec committed (`spec:`) — Documentation Pre-implementable subsection lists what to write
-- Tests committed (`test:`) — describe exact behavior the docs should reflect
+- The spec folder is approved and committed (`spec:`). `plan.md` § Documentation plan lists what to write — it was approved with the plan, so there's no separate doc-plan approval
 
 ### Skip cleanly when
-The spec's Documentation Pre-implementable subsection is empty, marked Not applicable, or only references post-implementable docs (JSDoc, runbooks needing real data). In that case, no docs phase — proceed to implement.
+The documentation plan lists no pre-implementable docs (or `spec.md` marks Pre-implementable Not applicable). Proceed to implementation.
 
-### Phase 1: Plan
-1. Read the spec's Documentation section + Functional section + committed tests
+### Write
+1. Read the documentation plan, the spec's Functional and Documentation sections, and the test strategy — the planned tests are the precise statement of behavior
 2. Read existing docs to match tone, structure, length
-3. Present a doc plan: which files, audience, length, what each draws from
-4. Wait for approval
+3. Write each doc in its planned location; source every claim from an AC, edge case, or planned test
+4. For UI/code that doesn't exist yet, describe expected behavior — don't fabricate examples or screenshots
+5. Use `docs/GLOSSARY.md` for consistent terminology
+6. Tick the docs tasks in `tasks.md` and commit with `docs:` — before any implementation commit
 
-### Phase 2: Execute
-1. Write the docs following the plan
-2. Source every claim from a spec AC, edge case, or test
-3. For UI/code that doesn't exist yet, describe expected behavior — don't fabricate examples or screenshots
-4. Use `docs/GLOSSARY.md` for consistent terminology
-5. Commit with `docs:` prefix
-
-## Phase 4 — Reconcile docs during implementation
+## Reconcile docs during implementation
 
 Doc updates during implementation are **normal**, not exceptional. As the chosen approach takes shape, watch for divergence from the docs. When you find one:
 
-- **Small adjustments** (a sentence, a renamed field): fold into the `feat:` commit, call out in the message body
-- **Meaningful revisions** (whole new section, behavior change): commit as a separate `docs:` before the `feat:` commit. For substantial revisions, re-invoke the docs planning step (`/write-docs` in update mode for Claude Code users).
+- **Small adjustments** (a sentence, a renamed field): fold into the task's commit, call out in the message body
+- **Meaningful revisions** (whole new section, behavior change): commit as a separate `docs:` commit. For substantial revisions, re-invoke the docs planning step (`/write-docs` in update mode for Claude Code users).
 
 **Never** ship code that contradicts committed docs without updating the docs.
 
@@ -59,6 +51,6 @@ Doc updates during implementation are **normal**, not exceptional. As the chosen
 - Source every claim from spec + tests + existing docs — never fabricate
 - Match the project's existing doc tone, structure, and length
 - For modifications: only write/update docs for new/changed behavior; existing docs for unchanged behavior stay as-is
-- Doc commits (whether Phase 3 initial or Phase 4 reconciliation) use the `docs:` prefix
+- Doc commits (docs first, reconciliation, or backfill) use the `docs:` prefix
 
 See `docs/SPEC-MODEL.md` for how this fits into the larger workflow.

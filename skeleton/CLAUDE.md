@@ -1,71 +1,79 @@
-# [PROJECT NAME] — Claude Code Instructions
+<!-- Skeleton source: [SHA] ([YYYY-MM-DD]) · modules: [none] — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->
+@AGENTS.md
 
-<!-- Skeleton source: [SHA] ([YYYY-MM-DD]) — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->
+# [PROJECT NAME] — Claude Code
 
-<!-- This file extends AGENTS.md with Claude Code-specific features. -->
-<!-- AGENTS.md contains universal project context (read by all AI tools). -->
-<!-- This file adds: path-scoped rules, specialized agents, workflow skills. -->
+<!-- The import above loads AGENTS.md (the instructions every AI tool shares) first. When a CLAUDE.md exists, Claude Code reads CLAUDE.md instead of AGENTS.md — so never remove the import. This file only adds what is specific to Claude Code. HTML comments like this one are stripped before loading and cost no context. -->
 
-## Spec model
+## Skills, agents, and workflows
 
-This project uses a **multi-perspective spec model** — each spec captures input from all relevant roles (business, functional, security, accessibility, testing, documentation, and more) in one document, with required sections enforced before approval. Full structure in `docs/SPEC-MODEL.md`. Template at `specs/_template.md`.
+- **Skills** (`.claude/skills/`, invoke with `/`) — the workflow playbooks: `/triage`, `/write-spec`, `/write-plan`, `/write-docs`, `/implement`, `/review`, `/commit`, `/open-pr`, and more. They run in this conversation, which already has the rules loaded — the cheapest option.
+- **Agents** (`.claude/agents/`, invoke with `@`) — isolated specialists for an independent second opinion, restricted tools (reviewers can't edit), or work that runs alongside yours. `@spec-analyzer` checks a spec folder adversarially before the approval gate.
+- **Workflows** (`.claude/workflows/`, invoke with `/deep-…`) — deterministic multi-agent fan-outs with adversarial verification: `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`. Several times the cost of the skill they extend — use them for high-stakes changes and broad sweeps.
+
+| Situation | Use |
+|---|---|
+| Sequential work in this conversation | Skill |
+| Independent second opinion, restricted tools, or parallel to your own work | Agent |
+| Broad fan-out with verification — a large diff, every spec, every instruction file | Workflow |
+
+Full catalogs (purpose, tools, model tier) are `SKILLS-REFERENCE.md` and `AGENTS-REFERENCE.md` in the framework repository. Agents and skills are generic: they learn this project from `AGENTS.md`, this file, and `.claude/rules/`.
+
+## Guardrails enforced by configuration
+
+Instructions are context, not enforcement. These hold regardless of what the model decides:
+
+| Guardrail | Enforced by |
+|---|---|
+| Outward actions — `git push`, PR create / ready / merge / comment / review, releases, issue writes — need your confirmation | `permissions.ask` in `.claude/settings.json` |
+| Secret env files (`.env`, `.env.local`, `.env.*.local`) are never read into context — extend the list for your other secret files | `permissions.deny` in `.claude/settings.json` |
+| No `--no-verify`; no commits or pushes on protected branches; no force-push to them | `.claude/hooks/guard-git.sh` (PreToolUse) |
+| Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |
+| Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
+| Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
+
+Project-specific values (protected branches, append-only paths, the env template) live in `.claude/hooks/config.sh`. Skills that act outside this machine (`/open-pr`, `/stakeholder-update`) run only when you invoke them.
+
+## Lightweight mode — match ceremony to the change
+
+| Change | Workflow |
+|---|---|
+| New feature, behavior change, anything user-facing | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` |
+| Change request on delivered work | `/triage` → `/write-spec` (amend the folder) → `/write-plan` → approval → `/write-docs` (if documented behavior changes) → `/implement` → `/review` |
+| Investigation, impact analysis, estimate | `/triage` → deliver the answer. No spec, no environment unless needed |
+| Bug with a clear root cause, behavior restored as documented | `/debug` → regression test → fix → `/commit` |
+| Refactor with no behavior change | `/refactor` → tests still green → `/commit` |
+| Typo, copy tweak, version bump, formatting, dev-only tooling | Edit → `/commit` |
+| Spike or throwaway code | No workflow. If promoted, it gets a spec |
+
+**Heuristic:** if there's nothing to decide, there's nothing to spec. If a teammate could merge the diff without reading new docs, there's nothing for `/write-docs`.
 
 ## Cost model
 
-Default to Sonnet for skill invocations; use Haiku for `/commit`; escalate to Opus only for genuinely complex/novel work (see `docs/COST-MODEL.md` for the decision rules and per-skill recommendations). The default model is wired in `.claude/settings.json` (`"model": "claude-sonnet-5"`); change it there if your team's default differs. Specialized agents declare their model in their `agent.md` frontmatter — don't override casually. Keep `AGENTS.md`, `CLAUDE.md`, and rules stable to maximize prompt-cache hits (each edit busts the cache for every subsequent request).
+The default model is the version-less alias `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates. Agents use the `haiku` / `sonnet` / `opus` aliases the same way — don't override them casually. Escalate to Opus for genuinely hard reasoning; workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Decision rules and per-skill tiers: `docs/COST-MODEL.md`.
 
-## Lightweight mode — when to skip the full workflow
+## Memory
 
-The spec → tests → docs → implement workflow exists for **features and behavior changes**. It is overkill for small, low-risk work and will feel unnecessarily slow if applied to everything. Match the ceremony to the change:
+Knowledge lives in layers — `AGENTS.md` (identity and rules), this file (Claude Code config), `.claude/rules/` (standards), spec folders (per feature), ADRs and PDRs (decisions), `docs/reference/` (how subsystems work), and auto memory (learned preferences). If a fact changes more than once a quarter, it doesn't belong in the always-loaded files. Decision tree: `docs/MEMORY-STRATEGY.md`.
 
-| Change type | Workflow |
+## Engineering standards (path-scoped rules)
+
+Rules in `.claude/rules/` load when Claude reads a file matching their `paths:` frontmatter:
+
+| Rule | Scope |
 |---|---|
-| New feature, behavior change, anything user-facing | Full workflow (`/write-spec` → `/write-tests` → `/write-docs` → `/implement`) |
-| Bug fix with a clear root cause | `/debug` → fix → add a regression test → `/commit`. Skip spec/docs unless the fix changes documented behavior. |
-| Typo, copy tweak, dependency bump (patch), formatting | Edit → `/commit`. No workflow. |
-| Refactor with no behavior change | `/refactor` → ensure tests still pass → `/commit`. No spec. |
-| Internal tooling (scripts, CI tweaks, dev-only config) | Edit → `/commit`. No workflow. |
-| Spike / exploration / throwaway code | No workflow. Delete or promote afterward; if promoted, then write the spec. |
-
-**Heuristic:** if the change wouldn't appear in a release note, it doesn't need a spec. If a teammate could merge the diff without reading any new docs, it doesn't need `/write-docs`.
-
-**Performance tip:** Claude Code auto-loads `AGENTS.md`, `CLAUDE.md`, and the skills/agents index (frontmatter only) on every turn. Rule bodies in `.claude/rules/` load on demand, not automatically — but Cursor DOES auto-load `.cursor/rules/*.mdc` by glob, so deleting unused rule files there shrinks Cursor's per-turn prefill. Across all tools, the highest-leverage tokens to trim are in `AGENTS.md` and `CLAUDE.md` themselves — keep them lean and stable (each edit busts the prompt cache).
-
-## Memory strategy
-
-Knowledge has six layers in this project: `AGENTS.md` (identity), `CLAUDE.md` (this file — tool config), `.claude/rules/` (engineering standards), specs (per-feature), ADRs (significant decisions), and persistent memory (recurring gotchas, learned patterns, user preferences). See `docs/MEMORY-STRATEGY.md` for the decision tree on where a given fact belongs. Rule of thumb: if a fact would change more than once a quarter, it doesn't belong in `AGENTS.md` / `CLAUDE.md` / rules — it belongs in memory or a spec.
-
-## MCP integration (optional)
-
-For projects with many specs / ADRs / runbooks, an optional MCP server can expose them as queryable resources (e.g. `mcp://specs/newsletter-signup/security` returns just the Security section). See `docs/MCP-INTEGRATION.md` for when to set one up, what to expose, a reference TypeScript implementation, and how to wire it into Claude Code / Cursor / Antigravity. Not a hard dependency — the framework works without MCP.
-
-## Evals (optional pattern)
-
-This project has an empty `evals/` directory by design — add evals only if your team writes custom skills, rules, or spec patterns that need automated verification. See `evals/README.md` for the two-tier pattern (static structural checks + dynamic AI-invocation fixtures) and adoption guidance. Add evals only when a real regression surfaces; don't write speculative coverage.
-
-## Engineering standards (path-scoped)
-
-Standards are in `.claude/rules/` and auto-load when you touch matching file paths:
-
-| Rule file | Scope |
-|---|---|
-| `code-quality.md` | All source code |
+| `code-quality.md` | Source code — typing, naming, error handling, comments |
+| `security.md` | Source code |
 | `testing.md` | Test files |
-| `security.md` | All source code |
-| `git-workflow.md` | All files |
+| `git-workflow.md` | All files — commits, branches, pull requests |
 | `architecture.md` | App structure (customize paths) |
 | `ui-ux.md` | UI components and styles |
-| `deployment.md` | Infrastructure files |
-| `performance.md` | Components and dependencies |
+| `deployment.md` | Infrastructure and CI files |
+| `performance.md` | Components and dependency manifests |
 | `observability.md` | API and server code |
 
-## Specialized agents and workflow skills
+Delete rules that can't apply to this stack — fewer, sharper rules are followed more consistently.
 
-Agents (`.claude/agents/`, invoke with `@`) and skills (`.claude/skills/`, invoke with `/`) appear in the auto-loaded index — type `@` or `/` to see the live list. Full catalogs (purpose, access scope, model tier, when to use each) are in `AGENTS-REFERENCE.md` and `SKILLS-REFERENCE.md` in the AI-Assisted Development Framework repository — those are framework-owned reference docs and aren't copied into your project. Agents are generic; they learn project specifics from `AGENTS.md`, this file, and `.claude/rules/` at runtime.
+## MCP servers
 
-## When to use skills vs agents
-
-- **Use skills** (`/name`) for sequential tasks in your current conversation — they run in the main context, which already has CLAUDE.md and rules loaded. More token-efficient.
-- **Use agents** (`@name`) when you need parallel execution (e.g., run security review while continuing implementation), a second opinion in isolation, or specialized tool restrictions (read-only reviewers can't accidentally edit code).
-- **Default to skills** for: review, implement, test, debug, refactor, commit.
-- **Use agents** for: parallel reviews before a big merge, independent security audits, architecture reviews where isolation prevents bias.
+Servers in `.mcp.json` are shared with the team; approve them once per machine. A tracker server lets agents read requirements directly — see `docs/TRACKER-INTEGRATION.md` for the rules of engagement and a read-only permission allowlist. Exposing specs and ADRs as MCP resources is optional: `docs/MCP-INTEGRATION.md`.

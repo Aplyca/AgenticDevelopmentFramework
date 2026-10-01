@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Security Review
 
-When auditing code for security, read the relevant spec — particularly the **Security** and **Privacy** sections — to understand the agreed mitigations and what's marked "Standard applies" vs feature-specific. Check:
+When auditing code for security, read the relevant spec folder — particularly `spec.md`'s **Security** and **Privacy** sections and `plan.md`'s change surface — and the security principles in `docs/CONSTITUTION.md`, to understand the agreed mitigations and what's marked "Standard applies" vs feature-specific. Check:
 
 ## Injection vulnerabilities (CRITICAL)
 - XSS: any `dangerouslySetInnerHTML`, `innerHTML`, or equivalent with user data?
@@ -20,6 +20,10 @@ When auditing code for security, read the relevant spec — particularly the **S
 - Are any server modules imported in client code?
 - Are any secrets hard-coded in source files?
 - Are `.env` files in `.gitignore`?
+
+## Authorization (HIGH)
+- Is any access check, policy, or database-level rule removed, loosened, or bypassed to make data appear? Broadening access must be an explicit, justified decision in the spec
+- Is authorization enforced on the server, not only by hiding UI?
 
 ## Input validation (HIGH)
 - Do API endpoints validate request data before processing?

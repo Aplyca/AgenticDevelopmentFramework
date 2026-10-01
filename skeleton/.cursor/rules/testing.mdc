@@ -1,53 +1,36 @@
 ---
-description: "Testing guidelines — activate when writing or reviewing tests (TDD: tests are written BEFORE implementation)"
+description: "Testing — activate when writing or reviewing tests (TDD per task: the test is written and seen failing before the code that satisfies it)"
 globs: "**/*.test.*,**/*.spec.*,**/e2e/**,**/tests/**,**/__tests__/**"
 alwaysApply: false
 ---
 
-# Testing (TDD — Tests Before Implementation)
+# Testing (TDD — red before green, per task)
 
-Tests are written from spec acceptance criteria BEFORE implementation code exists. They define the verification contract.
+Tests are written from the spec folder before the code that satisfies them. `plan.md` § Test
+strategy maps every requirement to a test; each task in `tasks.md` names the test that proves it.
 
-## TDD workflow
-1. Read the spec — every filled section, not just Functional. Multi-perspective spec model means test scope comes from MORE than just ACs:
-   - **Functional** — every AC, every edge case (always)
-   - **Testing** — explicit test requirements (axe scans, perf tests, manual passes)
-   - **Security** — testable mitigations (rate limit, validation, auth checks)
-   - **Accessibility** — testable a11y requirements (axe scan, ARIA roles, keyboard navigation)
-   - **Performance** — testable SLAs (response time, bundle size — usually a separate test type)
-   - **Privacy** — testable data-handling behaviors
-   - **Analytics** — testable event firing
-   - **Localization** — testable per-locale rendering
-   Skip sections marked Not applicable / Standard applies.
-2. Write tests that describe expected behavior (code doesn't exist yet)
-3. Run tests — they should all fail (red phase)
-4. Commit tests with `test:` prefix
-5. Next phase is docs (write user-facing docs, if any pre-implementable docs are in the spec) — then implement code to make tests pass
+## Test scope comes from every filled spec section
+- **Functional** — every AC and edge case (always)
+- **Testing** — explicit asks (accessibility scans, visual regression, manual passes)
+- **Security, Accessibility, Performance, Privacy, Analytics, Localization** — every testable requirement
+Skip sections marked Not applicable or Standard applies.
+
+## The loop
+1. Write the task's test
+2. Run it — it must **fail for the right reason** (the missing behavior, not an import or fixture error). A test that never failed proves nothing
+3. Write the code, run it to green, commit test and code together as the task's commit
+4. If a new test passes before any code exists, stop: the behavior exists or the test is wrong
+
+Contract-first option: when the plan asks for it, end-to-end acceptance tests encoding the ACs are written first and committed red (`test:`); the task loop turns them green.
+
+## Evidence
+- Record the red failure and the green result, the commands run with their counts, and what could not run (and why) in `tasks.md` § Gate results
+- Green tests are necessary, not sufficient — verify the behavior
 
 ## Structure
-- One test file per feature area
-- Descriptive names that read as behavior descriptions
-- Arrange → Act → Assert structure
-- Group with describe/context blocks
-
-## What to test
-- User flows matching spec acceptance criteria
-- Edge cases listed in specs
-- Testable requirements from Security, Accessibility, Performance, Privacy, Analytics, Localization sections
-- Error states and empty states
-- View transitions, form submissions, navigation
+- One test file per feature area; names that read as behavior; Arrange → Act → Assert
+- Mock ALL external services; mock data matches real contracts
+- Fake but realistic test data — never real credentials or PII
 
 ## What NOT to test
-- Implementation details or internal state
-- CSS classes or styling specifics
-- Third-party library internals
-- Anything not in the spec
-
-## Mocking
-- Mock ALL external services — tests must not depend on services being up
-- Mock responses must match actual API data structures
-- Use the project's mocking approach (check AGENTS.md for conventions)
-
-## Test data
-- Use fake but realistic data
-- Never use real credentials or PII
+- Implementation details or internal state; CSS specifics; third-party internals; anything not in the spec

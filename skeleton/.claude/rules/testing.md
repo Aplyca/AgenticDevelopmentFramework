@@ -42,9 +42,20 @@ paths:
 - Anything not described in a spec or requirement.
 
 ## When to write tests
-- New feature: write tests that verify each acceptance criterion.
+- New feature: every acceptance criterion and testable requirement gets a test, mapped in the spec folder's `plan.md` and named on its task in `tasks.md`.
 - Bug fix: write a test that reproduces the bug first, then fix it.
-- Behavior change: update affected tests to match the new spec.
+- Behavior change: update affected tests to match the amended spec.
+
+## Red, then green — per task
+- **Write the test, run it, and watch it fail** before writing the code that satisfies it. A test that never failed proves nothing: it may be testing something that already exists, or nothing at all.
+- **Make it pass with the smallest change**, run it to green, then commit the test and the code together as that task's commit.
+- If a new test passes before any code exists, stop: either the behavior already exists (say so) or the test is wrong.
+- Never weaken an assertion to get to green. Fix the implementation — or, if the test itself is wrong, say why in the commit body.
+
+## Evidence, not claims
+- Green tests are necessary, not sufficient — verify the behavior, not just the pass.
+- Record what you ran in the spec folder's `tasks.md` § Gate results: the red failure you saw, the green that followed, the commands and their counts, and anything you could **not** run (no environment, shared database, needs a preview) and why.
+- Layers that need services (integration, end-to-end, visual) may live outside the per-commit loop; say which layers ran before delivery.
 
 ## Test data
 - Use fake but realistic data (example emails, names, IDs).

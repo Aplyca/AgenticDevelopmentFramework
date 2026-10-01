@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Architecture Review
 
-When reviewing architecture and design, read the relevant spec — particularly the **Technical**, **Security**, **Performance**, and **Deployment** sections — to understand intended boundaries and constraints. Check:
+When reviewing architecture and design, read the relevant spec folder — `plan.md` (architecture, change surface, data and contracts) and, in `spec.md`, the **Constraints & prior decisions**, **Security**, **Performance**, and **Deployment** sections — plus `docs/CONSTITUTION.md` and the relevant ADRs. Check:
 
 ## Data flow
 - Does data flow through established layers? (client → API → service)
@@ -22,6 +22,11 @@ When reviewing architecture and design, read the relevant spec — particularly 
 - Consistent response shapes across endpoints?
 - Correct HTTP status codes (200, 400, 404, 409, 500)?
 - Input validation at the API boundary?
+
+## Change surface
+- Does the plan's change surface match what the design really touches (callers, shared components, config, migrations)?
+- Are other consumers of changed shared code listed and safe?
+- Does any domain rule leak into UI components or data plumbing?
 
 ## Dependencies
 - Does each dependency earn its place?
