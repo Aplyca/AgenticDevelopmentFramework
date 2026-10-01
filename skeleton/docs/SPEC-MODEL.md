@@ -1,31 +1,45 @@
 # Spec model
 
-This project uses a **multi-perspective spec model**: every feature spec captures input from all relevant roles in one document, with required sections enforced by the AI before the spec can be approved.
+This project uses a **multi-perspective spec model**: every feature's `spec.md` captures input from
+all relevant roles in one document, with required sections enforced before the spec can go to
+planning. The spec lives in a **spec folder** (`specs/NNN-<slug>/`) next to the `plan.md` that says
+how it will be built and the `tasks.md` that breaks the plan into commits — see `specs/README.md` for
+the process.
+
+| File | Answers | Written by |
+|---|---|---|
+| `spec.md` | WHAT and WHY — every role's requirements | `/write-spec` |
+| `plan.md` | HOW — architecture, change surface, test strategy, documentation plan, assumptions | `/write-plan` |
+| `tasks.md` | In what order, one commit at a time — each task names its test | `/write-plan` |
 
 ## Why this model
 
-Most "spec templates" capture only what the business wants. Real features need input from multiple roles — security, accessibility, design, deployment, documentation — and skipping any of them creates the "we forgot about X" problem after launch:
+Most spec templates capture only what the business wants. Real features need input from multiple
+roles — security, accessibility, design, deployment, documentation — and skipping any of them creates
+the "we forgot about X" problem after launch:
 
-- The form that shipped without reCAPTCHA because security wasn't asked.
+- The form that shipped without bot protection because security wasn't asked.
 - The page that's invisible to screen readers because accessibility wasn't asked.
-- The deploy that broke because nobody documented the new env var.
+- The deploy that broke because nobody documented the new environment variable.
 - The feature nobody knows how to use because the docs were "later".
 
-This model forces the conversation across all role perspectives **before code is written**, while keeping the spec readable and the diff useful.
+This model forces the conversation across all perspectives **before code is written**, while keeping
+the spec readable and its diff useful.
 
-## Structure
+## Structure of spec.md
 
-A spec has six parts. Sections within each part are either **required**, **conditional** (required when a flag in the frontmatter says so), or **optional** (fill only when relevant).
+Six parts. Sections are **required**, **conditional** (required when a frontmatter flag says so), or
+**optional** (filled only when relevant).
 
 ### Part 1 — Intent (required)
 
 | Section | Status | Owned by |
 |---|---|---|
 | Business | Required | Client / PM |
-| Functional | Required | Senior dev / tech lead |
+| Functional (user stories, numbered ACs, edge cases) | Required | Senior dev / tech lead |
 | Out of scope | Required | Senior dev / tech lead |
 
-### Part 2 — User experience (required for UI features)
+### Part 2 — User experience
 
 | Section | Status | Owned by |
 |---|---|---|
@@ -43,153 +57,158 @@ A spec has six parts. Sections within each part are either **required**, **condi
 | Analytics | Optional | Analytics lead / marketing |
 | Localization | Optional | Localization lead / tech lead |
 
-### Part 4 — Technical
+### Part 4 — Constraints
 
 | Section | Status | Owned by |
 |---|---|---|
-| Technical (architecture, integrations, implementation constraints) | Optional | Architect / tech lead |
+| Constraints & prior decisions (business rules, compliance, ADRs and PDRs to respect, reasoned constraints on HOW) | Optional | Tech lead |
 
-### Part 5 — Validation & delivery (mostly required)
+The design itself — architecture, integrations, diagrams, the files that change — is not part of the
+spec. It lives in `plan.md`, and is approved together with the spec at the approval gate.
+
+### Part 5 — Validation & delivery
 
 | Section | Status | Owned by |
 |---|---|---|
 | Testing | Required | QA / tech lead |
-| Documentation | Required | Tech writer / dev |
+| Documentation (pre- and post-implementable) | Required | Tech writer / dev |
 | Observability | Optional | DevOps / SRE |
 | Deployment | Optional | DevOps |
 
-### Part 6 — Meta (required)
+### Part 6 — Meta
 
 | Section | Status | Owned by |
 |---|---|---|
 | Clarifications | Required | Whoever wrote the spec |
-| References | Required | Whoever wrote the spec |
+| References | Optional | Whoever wrote the spec |
+
+### Change requests
+
+When delivered work changes, the same `spec.md` gets a `CR N` section — intent plus a Delivered →
+Change table — and new acceptance criteria tagged `(CR N)`. Retired criteria are struck through, not
+deleted. The folder stays the single record of the feature, before and after.
 
 ## Mandatory enforcement
 
-The `/write-spec` skill **refuses to mark a spec as approved** if any required section is empty. Specifically:
+`/write-spec` **refuses to hand a spec to planning** while a required section is empty:
 
-**Always required (every spec):**
-- Business
-- Functional (with at least one acceptance criterion)
-- Out of scope
-- Security
-- Testing
-- Documentation
-- Clarifications (can be empty list, but section must exist)
+**Always required:** Business · Functional (at least one numbered AC) · Out of scope · Security ·
+Testing · Documentation (both subsections) · Clarifications (may be an empty list, but it exists).
 
 **Conditionally required:**
-- **Accessibility** — required when `feature-type` is `ui` or `mixed`. For `api`, `infra`, or `content`, mark `> Not applicable: [reason]`.
-- **Privacy** — required when `personal-data: yes`. Note: collecting an email address counts as personal data.
+- **Accessibility** — when `feature-type` is `ui` or `mixed`. For `api`, `infra`, or `content`, mark `> Not applicable: [reason]`.
+- **Privacy** — when `personal-data: yes`. Collecting an email address counts.
 
-**Optional sections:** filled only when relevant. Empty optional sections don't block approval.
+**Approval** happens later, at the gate in `/write-plan`, once the change surface is known: the
+developer signs off on scope, change surface, and assumptions together, and `status` becomes
+`approved` with an `approvals:` line.
 
 ## How to "fill" a section
 
-Three valid ways:
+1. **Concrete content** — requirements, mockup links, environment variables.
+2. **Standard rules apply** — `> Standard project [area] applies (see .claude/rules/[file].md). No additional requirements.` Common for Security and Accessibility on routine features.
+3. **Not applicable** — `> Not applicable: [one-line reason]`, only when the section truly doesn't apply.
 
-1. **Concrete content.** List requirements, mockup links, env vars, etc.
-2. **Standard rules apply.** Write `> Standard project [area] applies (see .claude/rules/[file].md). No additional requirements.` This is the right choice when defaults cover the feature — common for Security and Accessibility on routine features.
-3. **Not applicable.** Write `> Not applicable: [one-line reason]`. Use only when the section truly doesn't apply (e.g., Accessibility for an API endpoint with no UI).
-
-The skill counts all three as "filled". An empty section or a section with only the placeholder text is "empty" and blocks approval.
+All three count as filled. An empty section, or one holding only template text, blocks planning.
 
 ## How the AI uses each section
 
-| Skill | Sections it reads |
+| Skill / agent | Reads |
 |---|---|
-| `/write-spec` | All sections — orchestrates filling them in, enforces mandatory |
-| `/write-tests` | **Functional** ACs, **Edge cases**, **Testing** requirements, plus testable criteria from **Security**, **Accessibility**, **Performance** |
-| `/write-docs` | **Documentation → Pre-implementable** subsection drives what gets written; **Functional** ACs and the committed tests are the source of truth for the docs' claims. Skips cleanly when Pre-implementable is empty / Not applicable. Has an update mode for substantial revisions surfaced during implementation. |
-| `/implement` | All sections — plan must cover functional code, security mitigations, a11y implementation, observability hooks, deployment changes. Reads committed docs to drive thinking; when the chosen approach diverges from doc claims, reconciles docs deliberately (separate `docs:` commit or folded into `feat:`). Doc reconciliation is a normal sub-step, not an exception. |
-| `/review` | All sections — multi-perspective review checks each section's requirements were actually met |
-
-## Diagrams in specs
-
-The Technical section supports an optional **Diagrams (Mermaid)** subsection. Use it when prose alone won't convey a non-trivial data flow, interaction sequence, or data model. Common diagram types: sequence diagrams (request/response flows), flowcharts (decision logic, state machines), ER diagrams (data model relationships), C4 component diagrams (high-level boundaries).
-
-The spec template includes worked examples. Skip diagrams for simple CRUD or pure UI tweaks — they earn their place when the feature is genuinely complex.
+| `/write-spec` | All sections — orchestrates filling them and enforces the required ones |
+| `/write-plan` | All sections — turns them into the change surface, a test for every testable requirement, and doc tasks |
+| `@spec-analyzer` | The whole folder — every AC → task → test, constitution conflicts, change-surface gaps, unstated assumptions |
+| `/write-tests` | **Functional** ACs and edge cases, **Testing**, and testable criteria from **Security**, **Accessibility**, **Performance**, **Privacy**, **Analytics**, **Localization** |
+| `/write-docs` | **Documentation → Pre-implementable**, via the plan's documentation plan; ACs and planned tests are the source of truth for every claim |
+| `/implement` | All sections, through `tasks.md` — every task's code satisfies the requirements its ACs and sections carry |
+| `/review` | All sections — checks each requirement was actually met, inside the approved change surface |
 
 ## The Documentation section: pre-implementable vs post-implementable
 
-The Documentation section splits into two subsections to support docs-first development:
+**Pre-implementable docs** (written via `/write-docs` before code):
+- Admin and operator guides
+- API contracts (OpenAPI, GraphQL schemas, public type signatures)
+- End-user help and copy defaults (often seeded into a CMS)
+- Public READMEs and SDK documentation
 
-**Pre-implementable docs** (written via `/write-docs` BEFORE code, become a contract):
-- Admin / operator guides
-- API contracts (OpenAPI, GraphQL schemas, type signatures of public surfaces)
-- End-user help / microcopy defaults (often seeded into a CMS)
-- Public-facing READMEs / SDK documentation
-- Architecture sketches for non-trivial features
-
-**Post-implementable docs** (backfilled after code, often need real running output):
-- Code-level JSDoc / inline comments (come with the code)
-- Runbooks with real metrics, dashboards, log examples
-- Tutorials with screenshots / exact UI text
+**Post-implementable docs** (backfilled after code — they need real output):
+- Runbooks with real metrics, dashboards, and logs
+- Tutorials with real screenshots
 - Troubleshooting guides built from real failure modes
 
-Both subsections must be filled or marked `Not applicable: [reason]`. An empty Pre-implementable subsection is the most common gap and blocks `/write-docs`.
+Both subsections must be filled or marked `Not applicable: [reason]`.
 
-## Example: which sections get filled for common feature types
+## Which sections get filled for common feature types
 
 ### Newsletter signup form (UI + form + third-party integration)
 
-Filled: Business, Functional, Out of scope, Design, Accessibility, Security, Privacy, Testing, Documentation, Deployment, Clarifications, References. Not filled: Performance (default applies), SEO (form not SEO-relevant), Analytics (separate ticket), Localization (English only this iteration), Observability (default applies).
+Filled: Business, Functional, Out of scope, Design, Accessibility, Security, Privacy, Constraints &
+prior decisions (subscribers live only in the email provider), Testing, Documentation, Deployment,
+Clarifications, References. Not filled: Performance (default applies), SEO (form not SEO-relevant),
+Analytics (separate task), Localization (English only this iteration), Observability (default
+applies).
 
-### `/health` API endpoint (no UI, no personal data, simple infra)
+### Health-check API endpoint (no UI, no personal data)
 
-Filled: Business, Functional, Out of scope, Security ("Standard applies"), Accessibility ("Not applicable: no UI"), Testing, Documentation, Observability, Clarifications. Not filled: Design, Privacy (no personal data), most others.
+Filled: Business, Functional, Out of scope, Security ("Standard applies"), Accessibility ("Not
+applicable: no UI"), Testing, Documentation, Observability, Clarifications.
 
-### CMS content model change (Contentful field rename, no UI change)
+### CMS content-model change (field rename, no UI change)
 
-Filled: Business, Functional, Out of scope, Accessibility ("Not applicable: no UI change"), Security ("Standard applies"), Testing, Documentation, Deployment (coordinate schema change with code deploy), Clarifications. Not filled: Design, Privacy, etc.
+Filled: Business, Functional, Out of scope, Accessibility ("Not applicable: no UI change"), Security
+("Standard applies"), Testing, Documentation, Deployment (schema change ordered before the code
+deploy), Clarifications.
 
-### Adding analytics tracking to existing pages (no new UI, integration only)
+### Analytics tracking on existing pages (integration only)
 
-Filled: Business, Functional, Out of scope, Security ("Standard applies"), Accessibility ("Not applicable: no new UI"), Privacy (tracking implications), Analytics, Testing, Documentation, Deployment (env vars), Clarifications. Not filled: Design, Performance, SEO, Localization, Observability.
+Filled: Business, Functional, Out of scope, Security ("Standard applies"), Accessibility ("Not
+applicable: no new UI"), Privacy (tracking implications), Analytics, Testing, Documentation,
+Deployment (env vars), Clarifications.
 
 ## Owners and handoffs
 
-The `owners:` map in the frontmatter records who's responsible for each filled section. This matters because:
-
-- **Reviewers know who to ping** when a section needs changes.
-- **Spec updates** can be partial — when only the Security section changes, only the security lead reviews the diff.
-- **Clarification questions** route to the right person automatically.
-
-Owner names are role labels by default (`client`, `senior-dev`, `designer`, `tech-lead`, `qa`, `tech-writer`, `devops`, `security-lead`, `a11y-lead`, `privacy`). Replace with team-member names if your team prefers.
+The `owners:` map in the frontmatter records who is responsible for each filled section:
+reviewers know who to ask, partial updates (only Security changed) go to the right person, and
+clarification questions route themselves. Role labels by default (`client`, `senior-dev`,
+`designer`, `tech-lead`, `qa`, `tech-writer`, `devops`, `security-lead`, `a11y-lead`, `privacy`);
+replace them with names if your team prefers.
 
 ## Frontmatter reference
 
 ```yaml
 ---
-title: ""                      # short, descriptive
+title: ""
 area: ""                       # e.g. "marketing", "auth", "checkout"
-status: draft | review | approved | implemented
+status: draft                  # draft → in-review → approved → implemented
 feature-type: ui | api | infra | content | mixed
 personal-data: yes | no        # collecting email/name/IP/etc. counts as yes
+tracker: ""                    # link to the requirement — never a copy of it
+approvals: []                  # "YYYY-MM-DD · <who> · initial scope" / "… · CR 1"
+pull-requests: []              # "<url> · initial delivery" / "<url> · CR 1"
 owners:
   business: client
   functional: senior-dev
-  # ...one entry per filled section
+  # one entry per filled section
 references:
   figma: ""
   adrs: []
-  rfcs: []
+  pdrs: []
   related-specs: []
 ---
 ```
 
 ## When the model gets in the way
 
-Two failure modes to watch for:
-
-1. **Bureaucracy on tiny features.** A 5-line copy change probably doesn't need 10 sections. For trivial changes, skip the spec entirely and use the [hotfix](./scenarios/hotfix.md) workflow with backfill — or use a single-AC spec with most optional sections empty.
-2. **Speculative filling.** Tempting to write Performance and Deployment sections "just in case" — don't. Empty optional sections are a feature, not a bug. They tell the next reader "this didn't apply" rather than "we forgot to think about it" (the difference between empty and "Not applicable: [reason]" matters here).
-
-The model is designed for routine engineering work where forgetting a perspective has real cost. For everything else, smaller is better.
+1. **Ceremony on changes with nothing to decide.** A typo, a version bump, or a one-line copy edit
+   needs no spec folder at all (`specs/README.md` § When a change needs a spec folder). The test is
+   "is there anything to decide?", not "is it big?".
+2. **Speculative filling.** Writing Performance and Deployment "just in case" is worse than leaving
+   them out. An absent optional section says "this didn't apply"; a guessed one says "we didn't
+   really think about it" while looking like we did.
 
 ## Related
 
-- [Spec template](../specs/_template.md) — the actual file to copy
-- [ADR template](./architecture/decisions/0000-template.md) — for technical decisions that span features
-- [Worked example: newsletter-signup](../../docs/examples/newsletter-signup/) — full spec using this model
-- Skill files: `.claude/skills/write-spec/SKILL.md`, `write-tests/SKILL.md`, `implement/SKILL.md`
+- `specs/README.md` — the process: when a folder is needed, the flow, the approval gate, change requests
+- `specs/_templates/` — the files to copy (`spec.md`, `plan.md`, `tasks.md`)
+- `docs/CONSTITUTION.md` — the gate every spec and plan is checked against
+- `.claude/skills/write-spec/`, `write-plan/`, `implement/` — the playbooks

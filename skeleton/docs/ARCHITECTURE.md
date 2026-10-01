@@ -59,9 +59,9 @@ For detailed rationale on individual decisions, see [Architecture Decision Recor
 
 [Link to the most important ADRs that shape this system.]
 
-- [ADR-0001: Choice of framework](architecture/decisions/0001-framework.md)
-- [ADR-0002: Database selection](architecture/decisions/0002-database.md)
-- [ADR-0003: Deployment platform](architecture/decisions/0003-deployment-platform.md)
+- [ADR-0001: Choice of framework — `architecture/decisions/0001-framework.md`]
+- [ADR-0002: Database selection — `architecture/decisions/0002-database.md`]
+- [ADR-0003: Deployment platform — `architecture/decisions/0003-deployment-platform.md`]
 
 ## Diagrams
 

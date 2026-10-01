@@ -95,21 +95,36 @@ Once your environment is working, try this to build confidence:
 
 ## AI-assisted development
 
-This project uses Claude Code with specialized agents and workflows:
+This project is set up for AI coding agents: `AGENTS.md` is the shared instruction file, and
+`CLAUDE.md` adds the Claude Code layer (skills, agents, workflows, hooks).
 
 ```bash
 claude  # Start Claude Code in the project directory
 ```
 
 Key commands:
-- `/write-spec [feature]` — draft a feature specification
-- `/implement [spec]` — build from an approved spec
-- `/review` — review code before committing
-- `/commit` — create a clean commit
-- `@code-reviewer review [file]` — get a code review
+- `/triage [task link]` — read a task in full and decide what it needs, before setting anything up
+- `/write-spec [feature]` → `/write-plan [spec folder]` — spec, plan, and the approval gate
+- `/implement [spec folder]` — one task at a time: test red, code, test green, commit
+- `/review` — review a change before delivering it
+- `/open-pr` — push and open a draft pull request (only when you ask)
+- `@code-reviewer review [file]` — an isolated, read-only review
 - `@debugger [error message]` — investigate a bug
 
-See [ONBOARDING.md](../ONBOARDING.md) for the full workflow guide.
+How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
+
+## Command surface for humans and agents
+
+<!-- CUSTOMIZE: one documented way to install, run, test, and lint — make targets, package scripts,
+     just recipes — used identically by developers and agents. Agents can only run what is written
+     down; every manual step an agent can't discover is a step it will guess. -->
+
+| Task | Command |
+|---|---|
+| Install | `[command]` |
+| Run | `[command]` |
+| Test | `[command]` |
+| Lint / typecheck | `[command]` |
 
 ## Troubleshooting
 
@@ -134,6 +149,6 @@ See [ONBOARDING.md](../ONBOARDING.md) for the full workflow guide.
 
 ### Still stuck?
 
-- Check the project's [FAQ](../references/FAQ.md) (if it exists)
+- Check the project's FAQ, if it has one
 - Ask in [team channel]
 - Tag [team lead or maintainer]

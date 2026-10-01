@@ -14,13 +14,17 @@ For consultancies billing AI-assisted work to clients, cost attribution per feat
 
 This framework is built around three Claude model tiers. Use the right tier for the task — over-spec'ing wastes money; under-spec'ing produces worse output that costs more to iterate on.
 
-| Tier | Model ID | Use when... | Approximate relative cost (vs Haiku) |
+| Tier | Alias (current model, September 2026) | Use when... | Relative cost per token (vs Haiku) |
 |---|---|---|---|
-| **Capable** | `claude-haiku-4-5` | Routing, triage, well-bounded checks, drafting commit messages, simple lookups, deterministic-ish work | 1× (cheapest) |
-| **Balanced** | `claude-sonnet-5` | Most engineering work — spec writing, test planning, implementation, code review, debugging, refactoring | ~3-5× Haiku input, ~3× Haiku output |
-| **Frontier** | `claude-opus-5` | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | ~15× Haiku input, ~15× Haiku output |
+| **Capable** | `haiku` (Haiku 4.5) | Routing, triage, well-bounded checks, drafting commit messages, simple lookups, deterministic-ish work | 1× (cheapest) |
+| **Balanced** | `sonnet` (Sonnet 5.5) | Most engineering work — spec writing, planning, implementation, code review, debugging, refactoring | 2× |
+| **Frontier** | `opus` (Opus 5.5) | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | 4× |
 
-> **Pricing changes** — these are relative ratios as of August 2026. Always check [current Anthropic pricing](https://anthropic.com/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
+**Configure models with these aliases, not full model IDs** — in `.claude/settings.json`, in agent frontmatter, and with `/model`. An alias resolves to the latest model in its family and moves forward as Claude Code updates, so new releases arrive without a config change (keep Claude Code current; older versions resolve aliases to older models). Use a full model ID such as `claude-sonnet-5-5` only when you must pin a version.
+
+> **Pricing changes** — list prices per million input/output tokens as of September 2026: Haiku 4.5 $1/$5, Sonnet 5.5 $2/$10, Opus 5.5 $4/$20. Newer models such as Opus 5.5 use a tokenizer that can produce up to ~35% more tokens than Haiku 4.5 for the same text, so the effective gap per task can be wider than the per-token ratio — measure with token counting rather than assuming. Always check [current Anthropic pricing](https://anthropic.com/pricing) before detailed projections; the decision rules below stay valid as absolute prices shift.
+
+> **Not a tier: Fable** (`fable`, currently Claude Fable 5.1) is Anthropic's most capable model, at 10× Haiku per token (2.5× Opus 5.5). The decision rules below escalate no further than Opus; reach for Fable only by explicit, deliberate choice.
 
 ### Decision rules
 
@@ -31,9 +35,9 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 ### Switching tiers in Claude Code
 
-- `/model` — built-in command to switch the session's model (e.g. `/model claude-opus-5` before a hard reasoning task, then `/model claude-sonnet-5` after).
-- Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default. Use this for `@architect`, `@evaluate`-style work that should always run on Opus, and for `@code-reviewer` / `@security-reviewer` that should always run on Haiku.
-- `/fast` — built-in Claude Code toggle that switches Opus to a faster-output variant of the same model. It does NOT downgrade to a smaller model — capability is unchanged, only latency improves. Available on Opus 5 (and 4.8). Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference, not a project-level setting.
+- `/model` — switch the session's model (e.g. `/model opus` before a hard reasoning task, then `/model sonnet` after).
+- Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default (aliases here too). Use it for work that should always run on a given tier, e.g. `@code-reviewer` / `@security-reviewer` on `haiku`.
+- `/fast` — runs **Opus** in fast mode: the same model with up to ~2.5× faster output, at premium pricing (2× the standard rate on Opus 5.5). It does NOT downgrade to a smaller model — capability is unchanged, only latency improves. Available on the Anthropic API, not on cloud-provider platforms. Turn it on at the start of a session — enabling it mid-conversation bills the existing context at the fast-mode rate. It's a per-user preference, not a project setting.
 
 ## Per-skill recommendations
 
@@ -42,7 +46,9 @@ Skills run in your main AI conversation, so they use whatever model your AI tool
 | Skill | Recommended tier | Why |
 |---|---|---|
 | `/init-project` | Sonnet | Multi-perspective setup decisions; one-time so cost is small |
+| `/triage` | Sonnet | Reading a task in full and deciding what it needs; cheap, and it prevents the most expensive mistakes |
 | `/write-spec` | Sonnet | Multi-section reasoning + mandatory enforcement + clarification interrogation. Escalate to Opus only for genuinely complex/novel features. |
+| `/write-plan` | Sonnet (Opus for cross-cutting changes) | The change surface and test strategy decide everything downstream; escalate when the change spans many layers or shared code |
 | `/write-tests` | Sonnet | AC → test mapping is moderate complexity |
 | `/write-docs` | Sonnet | Synthesis from spec + tests; matters for tone and accuracy |
 | `/implement` | Sonnet | Multi-file changes with multiple constraints. Escalate to Opus for >5 file changes or non-trivial architectural decisions. |
@@ -50,6 +56,8 @@ Skills run in your main AI conversation, so they use whatever model your AI tool
 | `/debug` | Sonnet | Root cause analysis. Escalate to Opus for tricky bugs (race conditions, distributed-system issues, anything you've tried to fix twice) |
 | `/refactor` | Sonnet | Pattern extraction + maintaining test parity |
 | `/commit` | **Haiku** | Drafting a commit message from a diff is well-bounded — Haiku handles it fine |
+| `/open-pr`, `/stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
+| `/record-decision`, `/context-audit`, `/spec-drift` | Sonnet | Reading and comparing many files; precision matters more than depth |
 | `/evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
 | `/spec-workflow` | n/a | Reference doc, no AI invocation |
 
@@ -68,8 +76,18 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 | `@architect` | `model: haiku` | **Trade-off** — Haiku is fast and cheap, but architecture review involves cross-cutting reasoning. Consider escalating to Sonnet if your team finds the agent missing important concerns. The framework defaults to Haiku because most architecture review is convention-checking; complex architecture decisions should use `/evaluate` instead. |
 | `@debugger` | `model: sonnet` | Root cause analysis benefits from stronger reasoning |
 | `@ux-reviewer` | `model: haiku` | Pattern-matching UI against spec ACs; Haiku handles it |
+| `@spec-analyzer` | `model: sonnet` | Adversarial coverage and change-surface analysis needs real reasoning; it runs once per spec folder, before the gate |
 
 **To override** for a specific project, edit the agent's `agent.md` frontmatter. Document your override and why.
+
+## Dynamic workflows
+
+The `/deep-*` workflows in `.claude/workflows/` fan out to many agents — one per review dimension,
+spec lens, file, or spec — and then spend more agents verifying each finding. A `/deep-review` of a
+moderate diff typically runs 6–7 reviewers plus one verifier per finding: several times the cost of
+`/review`, for higher coverage and fewer false positives. Use them where that trade pays — high-stakes
+changes, pre-gate analysis of risky specs, periodic sweeps — and the single-context skills
+everywhere else. Workflow agents inherit the session model unless the script pins one.
 
 ## Prompt caching strategy
 
@@ -146,7 +164,7 @@ The framework's structural choices already help cost. To get the most savings:
 3. **Compact long conversations.** Most AI tools (Claude Code, Cursor) auto-compact when the context window fills. Don't fight it.
 4. **Use memory for repeated context.** Per-project gotchas, terminology, recurring patterns — these belong in memory (where they're loaded just-in-time) not in CLAUDE.md (where they bloat every request).
 5. **Use the smallest model that works for the job.** Default to Sonnet, not Opus. Use Haiku for well-bounded tasks like commit drafting.
-6. **Run static evals in CI, not dynamic evals.** Static checks cost nothing. Dynamic evals cost real tokens — run them nightly or pre-release, not on every PR. (See `evals/STRATEGY.md`.)
+6. **Run static evals in CI, not dynamic evals.** Static checks cost nothing. Dynamic evals cost real tokens — run them nightly or pre-release, not on every PR (see `evals/README.md`, if this project keeps evals).
 7. **Cache aggressively.** Keep AGENTS.md / CLAUDE.md / rules stable. Batch edits. Don't put per-feature content in shared files.
 
 ## Quick reference: when costs spike
@@ -164,7 +182,6 @@ If your monthly bill jumps unexpectedly:
 
 ## See also
 
-- [`evals/STRATEGY.md`](../../evals/STRATEGY.md) — cost-conscious eval discipline
 - [`AGENTS.md`](../AGENTS.md) — project-wide AI conventions
 - [Anthropic pricing](https://anthropic.com/pricing) — current rates
 - [Helicone docs](https://docs.helicone.ai) — gateway setup

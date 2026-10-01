@@ -42,9 +42,10 @@ For most projects adopting this framework:
 
 | Resource family | URI pattern (example) | Use |
 |---|---|---|
-| Specs | `mcp://specs/<name>` | Full spec content |
-| Spec sections | `mcp://specs/<name>/<section>` | E.g. `mcp://specs/newsletter-signup/security` |
-| Spec metadata | `mcp://specs/<name>/meta` | Frontmatter only — feature-type, status, owners |
+| Specs | `mcp://specs/<folder>` | Full `spec.md` content (or a legacy single-file spec) |
+| Spec sections | `mcp://specs/<folder>/section/<heading>` | E.g. `mcp://specs/007-newsletter-signup/section/Security` |
+| Spec metadata | `mcp://specs/<folder>/meta` | Frontmatter only — feature-type, status, owners, approvals |
+| Plan and tasks | `mcp://specs/<folder>/plan`, `…/tasks` | The change surface, test strategy, and gate results |
 | Spec list | `mcp://specs?filter=<query>` | Filtered list — e.g. `?feature-type=ui&status=approved` |
 | ADRs | `mcp://adrs/<number>` | Full ADR content |
 | Admin docs | `mcp://docs/admin/<name>` | Pre-implementable user-facing docs |
@@ -65,62 +66,86 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { readdir, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import matter from 'gray-matter';
 
 const SPECS_DIR = join(process.cwd(), 'specs');
 
+// Spec folders (specs/NNN-<slug>/spec.md, plan.md, tasks.md) and legacy single-file specs (specs/<name>.md).
+async function listSpecs() {
+  const entries = await readdir(SPECS_DIR, { withFileTypes: true });
+  return entries
+    .filter(entry => !entry.name.startsWith('_') && entry.name !== 'README.md')
+    .flatMap(entry => {
+      if (entry.isDirectory() && existsSync(join(SPECS_DIR, entry.name, 'spec.md'))) {
+        return [{ name: entry.name, folder: join(SPECS_DIR, entry.name) }];
+      }
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        return [{ name: basename(entry.name, '.md'), folder: null }];
+      }
+      return [];
+    });
+}
+
+function specFile(name, part = 'spec') {
+  const folder = join(SPECS_DIR, name);
+  return existsSync(folder) ? join(folder, `${part}.md`) : join(SPECS_DIR, `${name}.md`);
+}
+
+// The text from a "## <heading>" line up to the next "## " heading.
+function extractSection(content, heading) {
+  const lines = content.split('\n');
+  const start = lines.findIndex(line => line.toLowerCase().startsWith(`## ${heading.toLowerCase()}`));
+  if (start === -1) return null;
+  const end = lines.findIndex((line, index) => index > start && line.startsWith('## '));
+  return lines.slice(start, end === -1 ? undefined : end).join('\n');
+}
+
 const server = new Server(
-  { name: 'spec-mcp-server', version: '0.1.0' },
+  { name: 'spec-mcp-server', version: '0.2.0' },
   { capabilities: { resources: {} } },
 );
 
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  const files = await readdir(SPECS_DIR);
-  const specs = files.filter(f => f.endsWith('.md') && !f.startsWith('_'));
-
+  const specs = await listSpecs();
   return {
-    resources: specs.flatMap(file => {
-      const name = basename(file, '.md');
-      return [
-        { uri: `mcp://specs/${name}`, name, mimeType: 'text/markdown' },
-        { uri: `mcp://specs/${name}/meta`, name: `${name} (frontmatter)`, mimeType: 'application/json' },
-      ];
-    }),
+    resources: specs.flatMap(({ name, folder }) => [
+      { uri: `mcp://specs/${name}`, name, mimeType: 'text/markdown' },
+      { uri: `mcp://specs/${name}/meta`, name: `${name} (frontmatter)`, mimeType: 'application/json' },
+      ...(folder
+        ? [
+            { uri: `mcp://specs/${name}/plan`, name: `${name} (plan)`, mimeType: 'text/markdown' },
+            { uri: `mcp://specs/${name}/tasks`, name: `${name} (tasks)`, mimeType: 'text/markdown' },
+          ]
+        : []),
+    ]),
   };
 });
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const url = new URL(request.params.uri);
-  const [, , name, section] = url.pathname.split('/');
-  const filePath = join(SPECS_DIR, `${name}.md`);
-  const raw = await readFile(filePath, 'utf-8');
-  const { data: frontmatter, content } = matter(raw);
+  const uri = request.params.uri;
+  // In mcp://specs/<folder>/<part>, "specs" parses as the URL's host; the path starts at the folder.
+  const [, name, part, ...rest] = new URL(uri).pathname.split('/');
+  const respond = (mimeType, text) => ({ contents: [{ uri, mimeType, text }] });
 
-  if (section === 'meta') {
-    return {
-      contents: [{ uri: request.params.uri, mimeType: 'application/json', text: JSON.stringify(frontmatter, null, 2) }],
-    };
+  if (part === 'plan' || part === 'tasks') {
+    return respond('text/markdown', await readFile(specFile(name, part), 'utf-8'));
   }
 
-  if (section) {
-    // Extract a specific section by ## heading
-    const sectionRe = new RegExp(`^## ${section}.*?(?=^## |\\Z)`, 'ims');
-    const match = content.match(sectionRe);
-    return {
-      contents: [{ uri: request.params.uri, mimeType: 'text/markdown', text: match?.[0] ?? `Section "${section}" not found in ${name}` }],
-    };
+  const { data: frontmatter, content } = matter(await readFile(specFile(name), 'utf-8'));
+  if (part === 'meta') return respond('application/json', JSON.stringify(frontmatter, null, 2));
+  if (part === 'section') {
+    const heading = decodeURIComponent(rest.join('/'));
+    return respond('text/markdown', extractSection(content, heading) ?? `Section "${heading}" not found in ${name}`);
   }
-
-  return {
-    contents: [{ uri: request.params.uri, mimeType: 'text/markdown', text: content }],
-  };
+  return respond('text/markdown', content);
 });
 
 await server.connect(new StdioServerTransport());
 ```
 
-This is ~60 lines and supports listing specs, reading full specs, reading frontmatter as JSON, and reading individual sections. Extend with: ADRs, runbooks, admin docs, search/filter, authenticated access, write capability if your team wants AI-driven spec edits via MCP (most teams don't — keep MCP read-only).
+This is ~90 lines and supports listing spec folders (and legacy single-file specs), reading a spec, its plan and tasks, its frontmatter as JSON, and individual sections. Extend with: ADRs, runbooks, admin docs, search/filter, authenticated access, write capability if your team wants AI-driven spec edits via MCP (most teams don't — keep MCP read-only).
 
 ## Wiring it into AI tools
 

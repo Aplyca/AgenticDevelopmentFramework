@@ -45,4 +45,4 @@ When a decision changes:
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| [0001](0001-framework.md) | [Framework selection] | [Accepted] | [YYYY-MM-DD] |
+| 0001 | [`0001-framework.md` — Framework selection] | [Accepted] | [YYYY-MM-DD] |

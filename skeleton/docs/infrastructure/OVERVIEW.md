@@ -122,7 +122,7 @@ Push to main
 
 [Link to operational runbooks for common tasks.]
 
-- [Deployment rollback](../operations/rollback.md)
-- [Database recovery](../operations/database-recovery.md)
-- [Scaling up](../operations/scaling.md)
-- [Incident response](../security/INCIDENT-RESPONSE.md)
+- [Deployment rollback — e.g. `docs/operations/rollback.md`]
+- [Database recovery — e.g. `docs/operations/database-recovery.md`]
+- [Scaling up — e.g. `docs/operations/scaling.md`]
+- [Incident response — e.g. `docs/security/INCIDENT-RESPONSE.md`]
