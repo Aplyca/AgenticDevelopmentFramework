@@ -48,7 +48,8 @@ network calls are reads: the task in step 1, and the `git fetch` inside the work
    Follow AGENTS.md end to end, starting with triage.
    ```
    Don't restate the workflow: the worker reads it in `AGENTS.md`, and a copy in a handoff message is
-   one more thing that drifts.
+   one more thing that drifts. If the developer set a lane or asked for more effort, pass it on in
+   their words — `Developer: full lane — the billing rules are fragile` — since triage honors it.
 
 ## Rationalizations (do not accept these)
 

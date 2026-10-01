@@ -31,6 +31,11 @@ agent on any machine.
 | `scripts/agent/worktree-ls.sh` | Lists every worktree: branch, port, whether something is listening, uncommitted changes — and warns when two claim the same port |
 | `scripts/agent/worktree-rm.sh <type>/<slug> [--force]` | Stops the environment (`STOP_CMD`), removes the worktree, deletes the branch only if git sees it as merged |
 
+**Match the environment to the lane.** A fast-lane fix usually needs only `--setup-only` — the
+dependencies the git hooks and unit tests use — not a running app or database; start the app when a
+test or check actually needs it. Every service a worktree starts is setup time and log output the
+session pays for.
+
 Settings live in `scripts/agent/worktree.conf`. Never create or remove agent worktrees with raw
 `git worktree add` / `docker compose` — the scripts keep ports, env files, and projects consistent.
 

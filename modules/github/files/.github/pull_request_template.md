@@ -3,11 +3,13 @@
 ## Traceability
 
 <!-- Required. The spec folder is the record of intent; the tracker task is the requirement it
-     fulfills. Work with nothing to decide has no spec folder — say so and cite the task alone.
+     fulfills. Fast- and careful-lane work has no spec folder — say so and cite the task alone
+     (on delivered work, cite the light CR entry).
      Add `Closes #N` as well if this resolves an engineering issue. -->
 
-**Spec:** `specs/NNN-slug/` <!-- add "(CR N)" when amending a delivered feature -->
+**Spec:** `specs/NNN-slug/` <!-- add "(CR N)" when amending a delivered feature, "(CR N, light)" for a fast- or careful-lane adjustment; "none" in the fast lane with nothing to record -->
 **Tracker task:**
+**Lane:** <!-- fast | careful | full — why, and who set it: the triggers, a sensitive area, or the developer. Careful: which checklist was applied. Lowered by the developer: their reason. -->
 
 ## What changed and why
 
@@ -44,7 +46,7 @@ Quality gates (`AGENTS.md` § Quick reference): <!-- CUSTOMIZE: your real comman
 
 Constitution gates (`docs/CONSTITUTION.md`): <!-- CUSTOMIZE: one box per principle -->
 
-- [ ] **Scope** — every changed file is inside the spec folder's approved change surface
+- [ ] **Scope** — every changed file is inside the approved change surface (full lane) or the files stated at triage (fast and careful lanes)
 - [ ] **Secrets** — no tokens, keys, or `.env` files in the diff; new environment variables are declared in the template
 - [ ] **Authorization** — no access check loosened; any broadening is justified above
 - [ ] **History** — no existing migration edited or deleted
