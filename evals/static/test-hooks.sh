@@ -108,6 +108,17 @@ printf 'package svc\nimport "os"\nvar a = os.Getenv("SERVICE_TOKEN")\n' > "$T/sr
 run check-env-declared.sh 2 "$(file_event Write "$T/src/svc.go")" "reads Go os.Getenv"
 
 # session-context
+# careful-paths — sensitive areas stop the first edit per area per session
+careful_event() { printf '{"tool_name":"Edit","session_id":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$1" "$T" "$2"; }
+export TMPDIR="$WORK/tmp"; mkdir -p "$TMPDIR"
+run careful-paths.sh 0 "$(careful_event s-off "$T/src/billing/invoice.ts")" "does nothing while CAREFUL_GLOBS is empty"
+echo 'CAREFUL_GLOBS="src/billing/* */auth/*"' >> "$T/.claude/hooks/config.sh"
+run careful-paths.sh 2 "$(careful_event s1 "$T/src/billing/invoice.ts")" "stops the first edit in a sensitive area"
+run careful-paths.sh 0 "$(careful_event s1 "$T/src/billing/tax.ts")" "lets later edits in that area through, same session"
+run careful-paths.sh 2 "$(careful_event s1 "$T/src/api/auth/session.ts")" "stops again for a different sensitive area"
+run careful-paths.sh 2 "$(careful_event s2 "$T/src/billing/invoice.ts")" "stops again in a new session"
+run careful-paths.sh 0 "$(careful_event s1 "$T/src/app.ts")" "ignores paths outside the sensitive areas"
+
 out=$(printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$T" | "$H/session-context.sh")
 if echo "$out" | grep -q 'specs/007-newsletter-signup/ (status: approved)'; then
     PASS=$((PASS+1)); echo "✓ session-context.sh: finds the branch's spec folder and status"

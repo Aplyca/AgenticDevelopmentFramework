@@ -10,6 +10,7 @@ GENERATED_GLOBS=""
 ENV_TEMPLATE=""
 ENV_IGNORE=""
 ENV_CHECK_EXCLUDE=""
+CAREFUL_GLOBS=""
 SPECS_DIR="specs"
 # shellcheck source=config.sh
 [ -f "$HOOKS_DIR/config.sh" ] && . "$HOOKS_DIR/config.sh"

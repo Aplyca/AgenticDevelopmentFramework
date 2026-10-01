@@ -16,6 +16,11 @@ APPEND_ONLY_GLOBS=""
 # Add generated types or clients, e.g. "src/types/database.generated.ts".
 GENERATED_GLOBS="package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock bun.lock bun.lockb poetry.lock uv.lock Pipfile.lock Gemfile.lock composer.lock Cargo.lock go.sum"
 
+# CUSTOMIZE: sensitive areas — paths where any change takes at least the careful lane, whatever its
+# size (mirror AGENTS.md § Sensitive areas). The first edit in each area stops once per session so
+# the agent confirms the lane. E.g. "src/billing/* src/auth/* supabase/migrations/*". Empty disables.
+CAREFUL_GLOBS=""
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""
