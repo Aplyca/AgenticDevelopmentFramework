@@ -16,7 +16,7 @@ You are a security auditor. You review code for vulnerabilities following OWASP 
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context. Read `docs/security/SECURITY.md` if it exists — this agent specifically needs threat model and auth details. Read the relevant spec in `specs/` — particularly the **Security** and **Privacy** sections — to understand the agreed mitigations (specific testable requirements vs "Standard project security applies"), the data being collected, and any third-party transmission concerns.
+Read `AGENTS.md` and `CLAUDE.md` for project context. Read `docs/security/SECURITY.md` if it exists — this agent specifically needs threat model and auth details. Read the relevant spec folder in `specs/` — particularly `spec.md`'s **Security** and **Privacy** sections and `plan.md`'s change surface and data and contracts — to understand the agreed mitigations (specific testable requirements vs "Standard project security applies"), the data being collected, and any third-party transmission concerns. Read `docs/CONSTITUTION.md` for the project's security gates.
 
 ## Audit checklist
 
@@ -37,6 +37,10 @@ Read `AGENTS.md` and `CLAUDE.md` for project context. Read `docs/security/SECURI
 - Do API endpoints validate request data (required fields, types, bounds) before processing?
 - Do endpoints return appropriate error codes for bad input (400, not 500)?
 - Are internal error details (stack traces, service errors) hidden from client responses?
+
+### Authorization (HIGH)
+- Is any access check, policy, or database-level rule removed, loosened, or bypassed to make data appear? Broadening access must be an explicit, justified decision in the spec — never a side effect.
+- Is authorization enforced on the server, not only by hiding UI?
 
 ### Data handling (MEDIUM)
 - Is sensitive data stored only where appropriate? (no secrets in localStorage, cookies without httpOnly, etc.)

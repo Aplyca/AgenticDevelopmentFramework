@@ -1,92 +1,113 @@
 ---
 name: init-project
-description: Initialize a new project with AI-assisted development configuration. Use when setting up a project for the first time.
-user_invocable: true
-argument-hint: "[project-name]"
+description: First-time setup of this project's AI-assisted development configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts about the repository, and add nested AGENTS.md files where modules differ. Use once, after the skeleton has been copied in (the framework's /adopt does this end to end).
+argument-hint: "[project name]"
 ---
 
 # Initialize Project
 
-Set up the AI-assisted development configuration for this project. This is Workflow 1 (Project Setup) — done once at project start.
+Set up the AI configuration for this repository: Workflow 1 in `/spec-workflow`. The output is
+context every agent reads before every design review, security audit, and implementation — invest
+in it now. **Facts need evidence:** fill each placeholder from a file you read (manifest, lockfile,
+CI config, code). What you can't evidence becomes `<!-- TODO(team): <concrete question> -->` — an
+honest TODO beats a plausible invention.
 
 ## Steps
 
-### Configure AI tools
+### Configure the AI layer
 
-1. **Understand the project** — Read any existing README, package.json, or equivalent to understand the stack, purpose, and current state.
+1. **Understand the project** — README, manifests and lockfiles, version files, CI configuration,
+   `git log` (commit style, branch names, merge strategy), env templates and the variables the code
+   actually reads.
 
-2. **Customize AGENTS.md** — This is the universal AI instructions file read by all AI tools (Claude Code, Cursor, Copilot, Windsurf, etc.). Replace all `[bracketed placeholders]` with the project's actual details:
-   - Project name and description
-   - Tech stack
-   - Critical rules specific to this project
-   - Coding conventions
-   - Project structure
-   - Dev/test/build commands
+2. **Fill `AGENTS.md`** — identity and stack, ground rules, delivery rules (base branch, protected
+   branches), boundaries and antipatterns (frozen directories, generated code, append-only history),
+   coding conventions, structure, and the quick-reference commands **exactly as typed**. Keep it
+   under ~200 lines; link to deeper docs instead of inlining them.
 
-3. **Review CLAUDE.md** — This file layers Claude Code-specific features (agents, skills, path-scoped rules) on top of AGENTS.md. It requires minimal customization unless you add custom agents or skills.
+3. **Fill `docs/CONSTITUTION.md`** — 5–10 real non-negotiables, the amendment process, and who
+   approves amendments. It overrides `AGENTS.md`, so it must agree with it.
 
-3. **Customize rules** — Go through each file in `.claude/rules/` that has `<!-- CUSTOMIZE -->` markers:
-   - `architecture.md` — update layers, file paths, data flow
-   - `ui-ux.md` — update color system, typography, patterns (if frontend project)
-   - `deployment.md` — update environments, ports, infra files
-   - `performance.md` — update bundle targets, dependency paths
-   - `observability.md` — update logging, monitoring setup
-   - Update `paths:` frontmatter in each to match the project's file structure
+4. **Review `CLAUDE.md`** — keep the `@AGENTS.md` import as its first instruction (Claude Code reads
+   `CLAUDE.md` *instead of* `AGENTS.md` when both exist). Stamp the skeleton source line at the top.
 
-4. **Set up hooks** — Update `.claude/settings.json` with project-specific enforcement rules (e.g., test port validation).
+5. **Customize the rules** — every `.claude/rules/` file with `<!-- CUSTOMIZE -->` (architecture,
+   ui-ux, deployment, performance, observability): real layers, paths, environments, targets. Update
+   each `paths:` frontmatter to the real structure. Delete rules that can't apply (no UI → no
+   `ui-ux.md`).
 
-5. **Customize README** — Open `README.md` and replace `[bracketed placeholders]` with project details.
+6. **Configure the hooks** — `.claude/hooks/config.sh`: protected branches, append-only paths
+   (migrations), generated files, the env template. Extend `permissions` in `.claude/settings.json`
+   with this repository's routine read-only commands.
 
-### Write initial technical documentation
+7. **Customize `README.md` and `CONTRIBUTING.md`** — real setup steps, the branching and release
+   model, and the stakeholder status vocabulary.
 
-These docs serve as persistent context for AI agents throughout the project. They're not just for humans — agents read them before every design review, security audit, and architecture decision. Invest time in them now.
+8. **Add nested `AGENTS.md` files** in modules whose rules differ from the root (monorepo apps,
+   shared libraries, the database folder). Nearest file wins; keep each one short:
 
-6. **Architecture overview** — Open `docs/ARCHITECTURE.md` and fill in:
-   - System context (what the system does, who uses it, what it integrates with)
-   - Key components and their responsibilities
-   - Data flow between components
-   - Tech stack with rationale (why each technology was chosen)
-   - Non-functional requirements (performance, availability, security targets)
+   ```markdown
+   <!--
+   owner: [team] · last_updated: [YYYY-MM-DD] · scope: [path]/ — [what lives here]
+   -->
 
-7. **Security baseline** — Open `docs/security/SECURITY.md` and fill in:
-   - Authentication and authorization scheme
-   - Data classification (what's sensitive, what's public)
-   - Input validation and output encoding approach
-   - Secrets management strategy
-   - Known threat model (even a rough STRIDE analysis helps)
+   # AGENTS.md — [module name] (`[path]/`)
 
-8. **Infrastructure overview** — Open `docs/infrastructure/OVERVIEW.md` and fill in:
-   - Platform and hosting (PaaS, containers, serverless)
-   - Environments (dev, staging, production)
-   - CI/CD pipeline
-   - Monitoring and alerting setup
+   Module rules for `[path]/`. They override the root `AGENTS.md` for files here.
 
-9. **Glossary** — Open `docs/GLOSSARY.md` and add the domain terms that the team, specs, and UI should use consistently.
+   ## Layout
+   - `[subfolder]/` — [responsibility]
+
+   ## Rules
+   - [The boundary: what this module may import, and what must never import it]
+   - [The house pattern for doing X here, and the parallel patterns not to introduce]
+   - [Naming, append-only, or generated-file rules specific to this folder]
+   ```
+
+### Write the initial technical docs
+
+9. **`docs/ARCHITECTURE.md`** — system context, components, data flow, stack with rationale,
+   non-functional targets.
+10. **`docs/security/SECURITY.md`** — authentication and authorization, data classification,
+    validation, secrets management, a rough threat model.
+11. **`docs/infrastructure/OVERVIEW.md`** — hosting, environments, CI/CD, monitoring.
+12. **`docs/GLOSSARY.md`** — the domain terms specs and UI must use consistently.
+13. **`docs/reference/`** — optional: one page per complex subsystem (authorization, data access,
+    routing, integrations) explaining *how* it works at the code level, with `file:line` links. Agents
+    open only the page they need.
+
+Fill each doc's `owner · last_updated · scope` header. Context without an owner rots silently.
 
 ### Finalize
 
-10. **Create first spec** — If there's an existing feature to document, write the first spec using `specs/_template.md` to establish the pattern for the team.
-
-11. **Commit everything** — Commit all configuration and documentation:
-    ```
-    docs: initialize project configuration and technical documentation
-    ```
-
-12. **Verify** — Run a quick test: ask `@code-reviewer` to review any existing file. If it references project-specific conventions from CLAUDE.md, the setup is working.
+14. **First spec folder (optional)** — if an existing feature is about to change, write its spec
+    folder first to establish the pattern.
+15. **Commit** on a work branch, not the default branch:
+    `docs: initialize AI-assisted development configuration`.
+16. **Verify:**
+    - Start a new Claude Code session and run `/memory` (or `/context`): `CLAUDE.md` is loaded and
+      `AGENTS.md` comes in through the import. The session-context hook prints its lines.
+    - Ask `@code-reviewer` to review an existing file: it should cite this project's conventions.
+    - Run `/context-audit` for a first drift check of the filled-in files.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll fill in the docs later, let's start coding" | Docs are persistent AI context. Skipping them means every future agent interaction starts with less context and produces worse output. |
-| "The README is enough, we don't need ARCHITECTURE.md" | README describes what the project is. ARCHITECTURE.md describes how it works. Agents need both to make good design decisions. |
-| "Security docs aren't needed for a PoC" | PoCs become MVPs. Security assumptions made now become tech debt later. Even a rough threat model prevents the worst mistakes. |
-| "I'll use generic placeholder text for now" | Placeholders teach agents nothing. Even rough, incomplete content is better than `[TODO]` markers that persist for months. |
+| "I'll fill the docs later, let's start coding" | Docs are persistent agent context. Every interaction until then starts with less context and produces worse output. |
+| "The README is enough; we don't need ARCHITECTURE.md" | The README says what the project is; ARCHITECTURE.md says how it works. Agents need both. |
+| "I'll guess the commands from the stack" | Commands must be exactly what runs here. Read the manifests; run them if you can. |
+| "Security docs aren't needed for a PoC" | PoCs become products. Even a rough threat model prevents the worst mistakes. |
+| "I'll leave placeholder text for now" | Placeholders teach agents nothing. Rough real content, or a TODO with a concrete question. |
+| "CLAUDE.md doesn't need the AGENTS.md import — they're both in the repo" | Claude Code reads only `CLAUDE.md` when both exist. Without the import it never sees `AGENTS.md`. |
 
 ## Verification
 
-- [ ] AGENTS.md has no remaining `[bracketed placeholders]`
-- [ ] At least one `.claude/rules/` file with `<!-- CUSTOMIZE -->` has been updated
-- [ ] `docs/ARCHITECTURE.md` has real content (not just template text)
-- [ ] `docs/GLOSSARY.md` has at least 5 domain terms
-- [ ] `@code-reviewer` references project-specific conventions when reviewing a file
+- [ ] `AGENTS.md` has no remaining `[bracketed placeholders]`; unknowns are `TODO(team)` questions
+- [ ] Every command in Quick reference was found in the manifests (and run where possible)
+- [ ] `docs/CONSTITUTION.md` has real principles and agrees with `AGENTS.md`
+- [ ] `CLAUDE.md` imports `AGENTS.md`, and a new session shows both loaded
+- [ ] `.claude/hooks/config.sh` names the real protected branches and append-only paths
+- [ ] Customizable rules updated or deleted; `paths:` frontmatter matches the real structure
+- [ ] `docs/ARCHITECTURE.md` and `docs/GLOSSARY.md` have real content and metadata headers
+- [ ] Committed on a work branch, not the default branch

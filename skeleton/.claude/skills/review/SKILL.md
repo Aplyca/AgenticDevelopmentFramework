@@ -1,77 +1,96 @@
 ---
 name: review
-description: Review code for quality, security, and spec compliance. Use before committing changes.
-user_invocable: true
-argument-hint: "[file or feature to review]"
+description: Multi-perspective review of a change against its spec folder — acceptance criteria and every filled spec section, the approved change surface, the constitution, conventions (including the comments rule), security, UX, test evidence, and doc accuracy. Use before delivering a change; escalate to the /deep-review workflow for high-stakes diffs.
+argument-hint: "[spec folder, branch, or files to review]"
 ---
 
-# Review Code
+# Review
 
-Run a multi-perspective review of code changes before committing.
+Review a change before it's delivered, in this conversation. Review against the spec folder and the
+project's rules — not personal preference. For high-stakes or large diffs (auth, payments, personal
+data, migrations, more than a few hundred lines), the user can run the `/deep-review` workflow
+instead: separate reviewers per dimension, each finding independently verified.
 
 ## Steps
 
-1. **Read project context** — Read `docs/ARCHITECTURE.md` (if it exists) for system design and data flow. Read `docs/security/SECURITY.md` (if it exists) for security requirements. These inform what to look for during review.
+1. **Read the context:** the spec folder (`spec.md` every filled section, `plan.md` change surface and
+   test strategy, `tasks.md` and its gate results), `docs/CONSTITUTION.md`, and — when the change
+   touches them — `docs/ARCHITECTURE.md` and `docs/security/SECURITY.md`.
 
-2. **Identify what changed** — Check `git diff` and `git status` to see all modified and new files.
+2. **See what changed:** `git diff <base>...HEAD` and `git log --oneline <base>..HEAD`.
 
-3. **Code quality review** — For each changed file, check:
-   - Does it match the spec's acceptance criteria AND requirements from every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment)?
-   - Does it follow project conventions in `.claude/rules/`?
-   - Are there type safety issues, missing error handling, or naming inconsistencies?
-   - Is there unnecessary complexity, premature abstraction, or speculative code?
+3. **Scope and traceability:**
+   - Every changed file is inside the approved change surface — or the extension is recorded in
+     `plan.md` with a re-confirmation in `approvals:`.
+   - Commits map to tasks (one task, one commit); nothing unrelated is bundled in.
+   - The spec folder and tracker task are linked; for a change request, the `CR N` section exists.
 
-4. **Doc accuracy review** — If pre-implementable docs were committed for this feature (admin guides, API contracts, end-user copy):
-   - Do the committed docs still match the implementation?
-   - If the implementation diverged, were doc updates folded into the `feat:` commit (called out in body) OR captured in a separate `docs:` commit?
-   - Flag any silent drift between docs and code.
+4. **Spec compliance:** each AC — and each requirement from every filled section (Security,
+   Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment) — is
+   implemented. Nothing beyond the spec was built.
 
-5. **Security review** — For files that handle data or external input:
-   - Any injection vulnerabilities (user input in HTML, SQL, shell, headers)?
-   - Any credentials or secrets exposed in client code or committed files?
-   - Is input validated at system boundaries?
-   - Are error details hidden from client responses?
+5. **Constitution gates:** walk every principle in `docs/CONSTITUTION.md` against the diff — e.g.
+   authorization never loosened without justification, no edits to existing migrations, no silenced
+   types or disabled linters, no unjustified dependency.
 
-6. **UX review** — For UI changes:
-   - Does the UI match the spec's user stories AND committed user-facing docs (admin guides, copy defaults)?
-   - Are loading, empty, and error states handled?
-   - Is the language consistent with the rest of the app?
-   - Are interactive elements accessible (semantic HTML, keyboard support)?
+6. **Code quality** (per `.claude/rules/`): types, naming, error handling, existing patterns, no
+   premature abstraction or speculative code — and **the comments rule**: flag comments that restate
+   the code, repeat signatures, narrate steps, label sections, or record history; keep only the ones
+   that state an invisible *why*.
 
-7. **Test coverage** — Are there tests for each acceptance criterion AND each testable requirement from filled Security / Accessibility / Performance / Privacy / Analytics sections? Do existing tests still pass after the changes?
+7. **Security:** user input reaching HTML, SQL, shell, headers, or paths; secrets in code or client
+   bundles; validation at boundaries; error details hidden from clients.
 
-8. **Report findings** — Present issues grouped by severity:
-   - **Critical**: must fix before commit (security issues, spec violations, crashes)
-   - **Warning**: should fix (potential bugs, convention violations)
-   - **Nit**: minor suggestions (style, naming preferences)
+8. **UX** (UI changes): matches the spec's stories, design, and committed docs; loading, empty, and
+   error states; consistent language; accessible interaction (semantic HTML, keyboard, labels).
+
+9. **Test evidence:** every AC and testable requirement has a test; `tasks.md` § Gate results shows
+   red-then-green per task, the commands that ran, and what didn't run and why. Claims without
+   evidence are findings.
+
+10. **Doc accuracy:** committed docs match what was built; divergences were reconciled in `docs:`
+    commits or called out in a task commit's body.
+
+11. **Pull request description** (if one exists): it matches the diff — no phantom changes, no
+    omissions, "not verified" items stated honestly.
+
+12. **Report** findings by severity, each with `file:line` and a suggested fix:
+    - **Critical** — must fix before delivery (security, spec violation, constitution breach, crash)
+    - **Warning** — should fix (likely bug, convention violation, missing evidence)
+    - **Nit** — minor (style, naming)
+    End with: **approve**, **approve with nits**, or **request changes** — and what you did not review.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "The code looks fine, no issues found" | Every change has something worth noting. If you found zero issues, you didn't look hard enough. At minimum, confirm spec compliance explicitly. |
-| "This is a small change, a quick review is enough" | Small changes cause big bugs. SQL injection is one line. Review every changed line regardless of size. |
-| "I'll skip the security review, this doesn't touch user input" | Data flows through layers. A component that doesn't directly handle input may render unsanitized data passed from one that does. Trace the data flow. |
-| "The tests pass, so the code is correct" | Tests verify behavior, not quality. Passing tests don't catch: convention violations, security issues, unnecessary complexity, or missing edge cases not yet tested. |
+| "The code looks fine, no issues found" | Every change has something worth noting. At minimum, state spec compliance, change-surface compliance, and what you checked. |
+| "It's a small change, a quick look is enough" | Small changes cause big bugs. An injection is one line. Review every changed line. |
+| "It doesn't touch user input, so I'll skip security" | Data flows through layers; trace it. A component that renders data can be the injection point. |
+| "The tests pass, so it's correct" | Tests verify behavior, not conventions, security, scope, or missing edge cases. Green is necessary, not sufficient. |
+| "These extra files are harmless" | Files outside the approved change surface are a finding until the plan records them and the developer re-confirms. |
+| "The comments are helpful, leave them" | Comments that restate code drift from it. Keep only the invisible *why*. |
 
 ## Red flags (stop and reassess)
 
-- Change touches authentication, authorization, or payment code — escalate to a thorough security review
-- New dependency added — does it earn its place? Could the problem be solved without it?
-- Error handling catches and silences exceptions — the root cause may be hidden
-- Code duplicated instead of reusing existing patterns — check if a shared utility already exists
-- Git diff is larger than expected for the spec scope — is unrelated work mixed in?
+- The change touches authentication, authorization, payments, or personal data — escalate (`/deep-review`, `@security-reviewer`).
+- A new dependency appeared that the plan didn't approve.
+- Errors are caught and silenced.
+- The diff is far larger than the plan's change surface suggested.
+- Gate results claim tests ran, but there's no output or counts.
 
 ## Verification
 
-- [ ] Every finding includes: file path, line number, severity, and suggested fix
-- [ ] Spec compliance confirmed — each AC AND each requirement from filled sections (Security, A11y, Perf, etc.) is addressed in code
-- [ ] Doc accuracy confirmed — committed pre-implementable docs match the implementation, or divergences are captured in `docs:` commits / called out in the `feat:` commit
-- [ ] Security review completed for any file handling data or external input
-- [ ] Test coverage confirmed — each AC has a corresponding test
+- [ ] Every finding has `file:line`, severity, and a suggested fix
+- [ ] Change-surface compliance stated explicitly
+- [ ] Each AC and each filled-section requirement checked against the code
+- [ ] Constitution principles walked against the diff
+- [ ] Security reviewed for every file that handles data or external input
+- [ ] Test evidence checked in `tasks.md` § Gate results
+- [ ] Doc accuracy confirmed, and the pull request description compared with the diff (if one exists)
 
 ## Principles
 
-- Review against the spec, not personal preference.
-- Flag real issues, not theoretical ones. "This could be a problem if..." is only worth raising if the scenario is realistic.
-- Suggest fixes, not just problems.
+- Review against the spec, the plan, and the constitution — not preference.
+- Flag real issues, with fixes; theoretical ones only when the scenario is realistic.
+- Evidence over claims; scope over enthusiasm.

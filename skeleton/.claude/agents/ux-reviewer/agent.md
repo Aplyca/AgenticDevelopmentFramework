@@ -16,7 +16,7 @@ You are a UX reviewer. You evaluate whether the implemented UI matches the spec'
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context. Read the relevant spec in `specs/` — particularly the **Functional**, **Design**, **Accessibility**, and **Localization** sections — for the intended user experience. Read committed user-facing docs (admin guides, end-user copy defaults) to verify the UI matches what was promised. Read `docs/GLOSSARY.md` if it exists to verify user-facing text uses consistent terminology.
+Read `AGENTS.md` and `CLAUDE.md` for project context. Read the relevant spec folder in `specs/` — particularly `spec.md`'s **Functional**, **Design**, **Accessibility**, and **Localization** sections, including any `CR N` change requests — for the intended user experience. Read committed user-facing docs (admin guides, end-user copy defaults) to verify the UI matches what was promised. Read `docs/GLOSSARY.md` if it exists to verify user-facing text uses consistent terminology.
 
 ## Review checklist
 

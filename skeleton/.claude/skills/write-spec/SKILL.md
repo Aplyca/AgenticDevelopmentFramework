@@ -1,129 +1,139 @@
 ---
 name: write-spec
-description: Write or update a feature specification using the multi-perspective spec model. Use when starting a new feature or changing existing behavior.
-user_invocable: true
-argument-hint: "[feature description]"
+description: Write the spec.md of a spec folder with the multi-perspective spec model — or amend a delivered feature's spec with a change request (CR) — clarifying ambiguities and enforcing required sections before planning. Use when starting a new feature or changing existing behavior; /write-plan follows and holds the approval gate.
+argument-hint: "[feature description, tracker link, or spec folder to amend]"
 ---
 
 # Write Spec
 
-Write a feature specification using the multi-perspective spec model (see `docs/SPEC-MODEL.md`). Specs capture input from all relevant roles in one document, with required sections enforced before approval.
+Write `specs/NNN-<slug>/spec.md` using the multi-perspective spec model (`docs/SPEC-MODEL.md`): the
+WHAT and WHY from every relevant role, in one document, with required sections enforced. The HOW
+comes next, in `plan.md`, from `/write-plan` — which also holds the approval gate.
 
 ## Steps
 
-1. **Check existing specs** — Read `specs/` to find any specs that already cover this area. Don't duplicate — update the existing spec if one exists. For modifications, jump to step 8.
+1. **Check existing specs.** Search `specs/` by tracker link, feature name, and keywords. If a folder
+   already covers this feature and it was delivered, this is a **change request** — go to step 8. A
+   single-file spec from an older framework version (`specs/<name>.md`) is moved into a folder the
+   first time it is amended.
 
-2. **Understand the request and classify the feature** — Ask clarifying questions if the description is ambiguous. Establish:
-   - Who is the user? (which role or persona)
-   - What problem does this solve?
-   - What does success look like?
-   - **`feature-type`**: is this `ui`, `api`, `infra`, `content`, or `mixed`?
-   - **`personal-data`**: does the feature collect, store, or transmit personal data (email, name, IP, device ID, etc.)? Default to `yes` if unsure.
+2. **Get the requirements from their source.** The tracker task (read it in full; with a tracker MCP
+   server connected, read it directly) or the requester's own words in the prompt. If neither states
+   the requirements, **stop and ask** — never invent them. Establish:
+   - Who is the user, what problem does this solve, what does success look like?
+   - **`feature-type`** — `ui`, `api`, `infra`, `content`, or `mixed`.
+   - **`personal-data`** — does it collect, store, or transmit personal data? Default to `yes` if unsure.
 
-3. **Determine which sections apply** — Based on the classification, compute the required and optional sections:
+3. **Determine which sections apply:**
 
    | Always required | Conditionally required | Common optional (ask) |
    |---|---|---|
-   | Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications | Accessibility (if `feature-type: ui` or `mixed`), Privacy (if `personal-data: yes`) | Design, Performance, SEO, Analytics, Localization, Technical, Observability, Deployment |
+   | Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications | Accessibility (if `ui` or `mixed`), Privacy (if `personal-data: yes`) | Design, Performance, SEO, Analytics, Localization, Constraints & prior decisions, Observability, Deployment |
 
-   For optional sections, ask the user which apply. Don't fill speculative sections — empty optional sections are a feature.
+   For optional sections, ask which apply. Don't fill speculative sections — an absent optional
+   section is a feature.
 
-4. **Clarify ambiguities per section** — Before drafting, identify gaps. For each section that will be filled, ask the role-perspective questions that matter:
-   - **Business**: who's the requester, what business outcome, what's the success metric?
-   - **Functional**: what are the boundary conditions, error scenarios, user permissions, interactions with existing features?
-   - **Design**: where are the mockups, what variants/states exist, brand constraints beyond the design system?
-   - **Accessibility**: any requirements beyond WCAG 2.1 AA, screen-reader testing expected, keyboard-only flows?
-   - **Security**: any auth, validation, rate-limiting, third-party trust, secret-handling beyond defaults?
-   - **Privacy**: what data is collected, lawful basis, storage location/duration, third-party transmission, consent requirements?
-   - **Performance**: SLAs that differ from project defaults?
-   - **SEO**: server-render requirements, structured data, canonical URLs, meta?
-   - **Analytics**: what events, what properties, what destination?
-   - **Localization**: which languages/regions, where translations live?
-   - **Technical**: significant architecture decisions, integrations, implementation constraints (sparingly)?
-   - **Testing**: anything beyond "every AC has a test" — perf, security, visual regression, manual?
-   - **Documentation**: split into pre-implementable (admin guides, API contracts, end-user copy defaults, SDK READMEs — written before code via `/write-docs`) and post-implementable (JSDoc, runbooks, troubleshooting — backfilled after code). Each subsection must be filled or marked Not applicable.
-   - **Observability**: logs/metrics/alerts beyond defaults?
-   - **Deployment**: env vars, infra changes, schema migrations, rollout strategy, rollback plan?
+4. **Clarify per section** before drafting. Ask the role-perspective questions that matter:
+   - **Business** — who asked, what outcome, what success metric?
+   - **Functional** — boundary conditions, error scenarios, permissions, interactions with existing features?
+   - **Design** — mockups, variants and states, brand constraints?
+   - **Accessibility** — anything beyond WCAG 2.1 AA, screen-reader or keyboard-only flows?
+   - **Security** — auth, validation, rate limits, third-party trust, secrets, access changes?
+   - **Privacy** — what data, lawful basis, storage, transmission, consent?
+   - **Performance / SEO / Analytics / Localization** — targets that differ from project defaults?
+   - **Constraints & prior decisions** — business rules, compliance, existing ADRs or PDRs to respect?
+   - **Testing** — anything beyond "every AC has a test" (accessibility scans, visual regression, manual passes)?
+   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)?
+   - **Observability / Deployment** — logs, metrics, alerts; env vars, migrations, rollout, rollback?
 
-   Record all questions and answers in the spec's **Clarifications** section.
+   Record every question and answer in **Clarifications**, with the date and who answered.
 
-5. **Draft the spec** — Use the template at `specs/_template.md`. Fill the sections you determined apply. For each section:
-   - **Required + content applies**: write the concrete requirements.
-   - **Required + standard rules cover it**: write `> Standard project [area] applies (see .claude/rules/[file].md). No additional requirements.`
-   - **Conditional + does not apply**: write `> Not applicable: [one-line reason]`.
-   - **Optional + not relevant**: leave the section out entirely. Don't add the heading with empty content.
+5. **Create the folder** on the work branch `<type>/<slug>` (create it from the base branch if you're
+   on a protected one): `cp -r specs/_templates specs/NNN-<slug>` with the next free number and a
+   short kebab-case slug — the branch, folder, and pull request share it.
 
-6. **Update frontmatter** — Set `feature-type`, `personal-data`, fill `owners:` for each filled section, populate `references:` with any Figma links, ADRs, related specs.
+6. **Draft `spec.md`.** For each section that applies:
+   - **Concrete content** — numbered, testable ACs (`AC1`, `AC2`…) that keep their numbers for life.
+   - **Standard applies** — `> Standard project [area] applies (see .claude/rules/[file].md). No additional requirements.`
+   - **Not applicable** — `> Not applicable: [one-line reason]` for a conditional section that doesn't apply.
+   - **Optional and irrelevant** — leave the heading out entirely.
 
-7. **Set status to `draft`** — Never auto-approve. Present to the user for review.
+   WHAT and WHY only: no file paths, components, or code. A constraint on HOW goes in *Constraints &
+   prior decisions*, with its reason; the design itself goes in `plan.md`.
 
-8. **For modifications** — When updating an existing spec:
-   - Read the current spec to understand what's filled and what's not.
-   - Identify which sections need updates based on the change. Most modifications touch only 1-3 sections.
-   - Update only the affected sections. Do NOT rewrite unchanged sections.
-   - Add new clarifications to the **Clarifications** section (don't replace existing Q&A).
-   - Add any new ADRs/RFCs to **References**.
-   - Update `owners:` if a different role now owns a section.
-   - The git diff of this update will drive the test and implementation scope.
+7. **Frontmatter:** `feature-type`, `personal-data`, `tracker:` (a **link** — never copy the task's
+   text into the spec; the tracker and the repository have different audiences and access),
+   `owners:` per filled section, `references:`. `status: draft`.
 
-9. **Mandatory section enforcement (BEFORE approval)** — Before flipping status to `approved`, verify every required section is filled (concrete content, "Standard applies", or "Not applicable" — empty doesn't count):
-   - [ ] Business has at least a paragraph and one success criterion
-   - [ ] Functional has at least one acceptance criterion
-   - [ ] Out of scope has at least one item OR explicitly says "nothing intentionally excluded for this iteration"
-   - [ ] Security is filled
-   - [ ] Testing is filled
-   - [ ] Documentation is filled — BOTH the Pre-implementable and Post-implementable subsections must have content or `Not applicable: [reason]`. An empty Pre-implementable section is the most common gap and blocks `/write-docs`.
-   - [ ] Clarifications section exists (may be empty list)
-   - [ ] If `feature-type: ui` or `mixed` → Accessibility is filled
-   - [ ] If `personal-data: yes` → Privacy is filled
+8. **Change-request mode** — amending a delivered feature:
+   - **Find the delta.** Compare the request now against what the spec records as delivered, plus
+     the tracker comments since the spec last changed (`git log -1 --format=%cs -- specs/NNN-<slug>/`).
+     Trackers rarely keep a description's revision history; the spec is the snapshot of what was built.
+   - **Append a `CR N` section** (template at the end of `spec.md`): where it was requested and by
+     whom, the intent, and a Delivered → Change table.
+   - **Add new ACs** with new numbers tagged `(CR N)`; strike through the ones it retires — don't
+     delete them. Update only the sections the change touches; add to Clarifications, don't replace.
+   - Set `status: in-review`. A fresh branch named after the feature and the change
+     (`feat/newsletter-signup-topics`), a new pull request, the same folder.
+   - **If the delta can't be recovered** — no folder, or a description rewritten without a trace — say
+     so and ask. Never reconstruct the old requirement from the code and present it as fact.
 
-   **If any required section is empty, refuse to mark approved.** Tell the user exactly which sections need filling and offer to walk through them.
+9. **Mandatory section enforcement** — before handing the spec to planning, every required section is
+   filled (concrete content, "Standard applies", or "Not applicable" — empty doesn't count):
+   - [ ] Business has a paragraph and at least one success criterion
+   - [ ] Functional has at least one numbered acceptance criterion
+   - [ ] Out of scope has at least one item, or says "nothing intentionally excluded for this iteration"
+   - [ ] Security and Testing are filled
+   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable
+   - [ ] Clarifications exists (may be empty)
+   - [ ] `feature-type: ui | mixed` → Accessibility filled; `personal-data: yes` → Privacy filled
 
-   Also check the spec against `docs/CONSTITUTION.md` (if present): if any requirement conflicts with a constitutional principle, flag the conflict and refuse to mark approved until it's resolved or an explicit exception is recorded in the spec.
+   **If any is empty, refuse to hand off to planning.** Name the gaps and offer to walk through them.
+   Also read the spec against `docs/CONSTITUTION.md`: flag any conflict, and don't proceed until it's
+   resolved or an explicit exception is recorded in the spec.
 
-10. **After approval** — Once all required sections are filled and the user approves, update the status to `approved`. Remind the user of the next steps:
-    - Commit the spec (`spec:` prefix)
-    - Run `/write-tests` (TDD) → commit (`test:` prefix)
-    - Run `/write-docs` (docs-first) → commit (`docs:` prefix). Skips cleanly if no pre-implementable docs.
-    - Run `/implement` → commit (`feat:` prefix)
+10. **Requirements review (optional).** For client-facing work the requester may want to agree the
+    ACs before planning: set `status: in-review` and offer to share them. Posting to the tracker is a
+    write the requester sees — show the exact text and post only on the developer's yes.
 
-    The spec's git diff scopes the tests, docs, and implementation that follow.
+11. **Hand off to `/write-plan`.** Approval happens at its gate, once the change surface is known —
+    not here. `status: approved` is recorded only there, after the developer's explicit sign-off.
+    Don't commit the folder before the gate unless the developer asks to save a draft
+    (`spec: draft <slug>` on the work branch, status still `draft`).
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "The requirements are clear enough, I'll skip clarification" | Ambiguities always exist. Uncovered gaps leak into tests and code as bugs. 5 minutes of questions saves hours of rework. |
-| "I'll combine these into one acceptance criterion" | Each AC must be independently testable. Combined ACs hide untested behavior. |
-| "Edge cases aren't needed for this simple feature" | Simple features break at edges. Empty states, missing data, and error scenarios are where real users encounter bugs. |
-| "I'll add implementation details to help the developer" | Specs describe WHAT, not HOW. Implementation details belong in the Technical section under "Implementation constraints" — and only when there's a real reason to constrain HOW. |
-| "Out of scope isn't needed" | Without explicit boundaries, implementation drifts. Out of scope prevents scope creep. |
-| "I'll skip the Security section, it's a simple form" | Every spec gets a Security section. "Standard applies" is a valid answer; absent isn't. |
-| "I'll mark Accessibility as Not applicable to skip it for this UI feature" | Not applicable requires a real reason. UI features always have a11y requirements (even if just "WCAG 2.1 AA default applies"). |
-| "I'll fill Performance and Deployment optimistically in case we need them" | Speculative filling is worse than empty. Empty optional sections tell the next reader "this didn't apply" — better than "we guessed". |
-| "I'll approve the spec myself since it looks complete" | Never auto-approve. The user approves. The skill verifies required sections are filled. |
-| "The user said 'just write it', I'll fill in reasonable defaults" | "Reasonable defaults" without confirmation become bugs. Ask, don't assume. |
+| "The requirements are clear enough, I'll skip clarification" | Ambiguities always exist. Uncovered gaps leak into tests and code as bugs. |
+| "There's no task or written requirement, so I'll infer what they want" | Stop and ask. Plausible invented requirements are the failure this workflow exists to prevent. |
+| "I'll copy the tracker description in for completeness" | Link it. The spec lives in git with a different audience and access than the tracker. |
+| "This change request is basically new — I'll start a new folder" | Splitting a feature's record destroys the before/after the delta is computed from. Amend the folder. |
+| "I'll reconstruct what was delivered by reading the code" | If the delta isn't recoverable from the spec and the thread, ask. A reconstruction presented as fact is an invented requirement. |
+| "I'll combine these into one acceptance criterion" | Each AC must be independently testable — and keeps its own number for tasks and tests to reference. |
+| "I'll add implementation details to help the developer" | WHAT, not HOW. Design goes in `plan.md`; only reasoned constraints belong in the spec. |
+| "I'll skip Security, it's a simple form" | Every spec gets Security. "Standard applies" is a valid answer; absent isn't. |
+| "I'll mark Accessibility Not applicable for this UI feature" | UI features always have accessibility requirements — at least "WCAG 2.1 AA applies". |
+| "I'll fill Performance and Deployment in case we need them" | Speculative filling is worse than an absent section. |
+| "The spec looks complete, I'll approve it" | Approval is the developer's, at the gate after the plan — when the change surface is known. |
 
 ## Verification
 
-Run this checklist before flipping status to `approved`:
-
-- [ ] Every acceptance criterion is testable by an automated test
-- [ ] Clarifications section records all ambiguity resolutions
-- [ ] Edge cases cover: empty states, error states, boundary conditions
-- [ ] Out of scope section explicitly excludes adjacent features
-- [ ] All **always-required** sections are filled (not empty, not just placeholder text)
-- [ ] **Conditionally required** sections (Accessibility for UI, Privacy for personal data) are filled or explicitly marked Not applicable with a reason
-- [ ] Frontmatter `feature-type`, `personal-data`, and `owners` are set
-- [ ] No conflicts with `docs/CONSTITUTION.md` (or conflicts explicitly resolved)
-- [ ] Status is `draft` (never auto-approve)
+- [ ] Requirements came from the tracker task or the requester — none invented
+- [ ] Every acceptance criterion is numbered and testable by an automated test
+- [ ] Clarifications record every ambiguity resolved, with date and who
+- [ ] Edge cases cover empty states, error states, and boundaries
+- [ ] Out of scope excludes adjacent features explicitly
+- [ ] All always-required sections are filled; conditional ones filled or Not applicable with a reason
+- [ ] Frontmatter `feature-type`, `personal-data`, `tracker` (a link), and `owners` are set
+- [ ] For a change request: `CR N` section with the Delivered → Change table; new ACs tagged `(CR N)`
+- [ ] No conflict with `docs/CONSTITUTION.md`, or the conflict is explicitly resolved
+- [ ] Status is `draft` or `in-review` — `approved` is recorded only at `/write-plan`'s gate, after the developer's explicit sign-off
 
 ## Principles
 
-- Business requirements only in the Business and Functional sections — no code, no file paths, no implementation details.
-- Every acceptance criterion must be testable by an automated test.
-- User-facing text must match the application's language (check `docs/GLOSSARY.md`).
-- When in doubt, ask the user rather than assume.
-- Empty optional sections are valid. Speculative filling is not.
-- "Standard applies" and "Not applicable: [reason]" are first-class ways to fill a section.
-- The required-section list is non-negotiable. Refuse to approve specs with empty required sections.
+- WHAT and WHY here; HOW in `plan.md`.
+- Requirements come from people, never from plausible assumptions.
+- Link the tracker; don't copy it.
+- Delivered features are amended, never re-specified from scratch.
+- Empty optional sections are fine; empty required sections block planning.

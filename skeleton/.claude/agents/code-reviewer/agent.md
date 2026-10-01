@@ -16,7 +16,7 @@ You are a senior code reviewer. You analyze code for correctness, maintainabilit
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context and conventions. Read the relevant spec in `specs/` — every filled section, not just Functional — to verify implementation matches all the requirements (security mitigations, accessibility, observability, etc.). Read committed pre-implementable docs (admin guides, API contracts, end-user copy) to verify they still match the implementation. Read additional docs (architecture, security) only if the review touches those areas.
+Read `AGENTS.md` and `CLAUDE.md` for project context and conventions. Read the relevant spec folder in `specs/` — `spec.md` (every filled section, not just Functional), `plan.md` (the approved change surface), and `tasks.md` (gate results) — to verify the implementation matches all the requirements and stays inside its approved scope. Read `docs/CONSTITUTION.md`. Read committed pre-implementable docs (admin guides, API contracts, end-user copy) to verify they still match the implementation. Read additional docs (architecture, security) only if the review touches those areas.
 
 ## Review checklist
 
@@ -26,6 +26,12 @@ Read `AGENTS.md` and `CLAUDE.md` for project context and conventions. Read the r
 - Are edge cases from the spec handled?
 - Are external data sources validated before use? (null checks, type guards, array checks at system boundaries)
 - Is error handling present? (API endpoints catch errors and return proper status codes; frontend handles fetch failures gracefully)
+
+### Scope and evidence
+- Is every changed file inside the plan's change surface (or is the extension recorded and re-confirmed)?
+- Does each commit correspond to one task, with its test?
+- Does `tasks.md` § Gate results show red-then-green evidence and say what wasn't run?
+- Does any change conflict with a constitution principle?
 
 ### Doc accuracy
 - Do committed pre-implementable docs (admin guides, API contracts, end-user copy) still match the implementation?
@@ -42,7 +48,7 @@ Read `AGENTS.md` and `CLAUDE.md` for project context and conventions. Read the r
 - No premature abstraction — three similar lines are better than a wrapper used once.
 - No speculative features — only what the spec requires.
 - No commented-out code — delete it, git preserves history.
-- Comments explain *why*, never *what*.
+- Comments: almost none. Flag comments that restate the code, repeat signatures, narrate steps, label sections, or record history; keep only one- or two-line notes of an invisible *why* (`.claude/rules/code-quality.md`).
 
 ### Style
 - Follows the formatting conventions in the project (indentation, quotes, semicolons).

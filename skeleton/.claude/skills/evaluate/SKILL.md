@@ -1,7 +1,6 @@
 ---
 name: evaluate
 description: Deep analysis of a question, proposal, or decision. Researches thoroughly, presents options with pros/cons/risks, and recommends an approach with rationale. Use when facing design decisions, tech choices, or when you want a second opinion on an approach.
-user_invocable: true
 argument-hint: "[question, proposal, or decision to evaluate]"
 ---
 
