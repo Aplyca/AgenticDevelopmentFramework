@@ -15,7 +15,7 @@ Most of what's here was proven in real client projects first — some built on t
 
 - **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](skeleton/docs/SPEC-MODEL.md))
 - **One approval gate on the change surface** — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
-- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, stakeholder update, decision records, context and drift audits, and more (`/dispatch` comes with a module). ([Catalog](docs/SKILLS-REFERENCE.md))
+- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the client update, decision records, context and drift audits, and more (`/dispatch` comes with a module). ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents** — including `@spec-analyzer`, which adversarially checks a spec folder before the gate. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
 - **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Each push and pull-request action needs a human to confirm it, and `.env` files are never read.
@@ -26,27 +26,69 @@ Most of what's here was proven in real client projects first — some built on t
 - **Evals** — structural checks plus functional tests of the hooks and module scripts, run in CI on every pull request at zero token cost; dynamic fixtures for AI behavior. ([Evals](evals/README.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
-## Get started
+## Install in a project
 
-### With Claude Code — the installer plugin
+### With Claude Code — the installer plugin (recommended)
 
-```bash
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework
-claude plugin install aplyca-framework@aplyca
-```
+1. **Install the plugin** — once per machine:
 
-Then run `/adopt` in any repository. It inspects the project and copies the skeleton plus the modules you choose. It fills the placeholders from verified repository facts and configures the guardrail hooks. It records the adoption as a process decision, stamps the baseline SHA, and prepares a draft pull request. Later, `/upgrade` brings an adopted repository to a newer version without losing its customizations. Neither ever commits to your default branch.
+   ```bash
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework
+   claude plugin install aplyca-framework@aplyca
+   ```
 
-The plugin contains **no framework content** — adopted repositories get plain committed files that every AI tool can read.
+2. **Run `/adopt`** in the project. It inspects the repository (stack, commands, branching model,
+   tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
+   skeleton, fills the placeholders from verified repository facts only, and configures the guardrail
+   hooks (`.claude/hooks/config.sh`). It records the adoption as a process decision (PDR-0001), stamps
+   the baseline version at the top of `CLAUDE.md`, verifies the hooks and the `@AGENTS.md` import, and
+   prepares a **draft pull request** on its own branch. It never commits to your default branch.
+3. **Finish what only the team knows** in that pull request: the remaining `[PLACEHOLDER]`s, the
+   constitution's principles, and the client-update settings in `docs/TRACKER-INTEGRATION.md`
+   (live site, previews, CMS entry links, task statuses). Then review and merge it like any change.
+4. **Optional — the whole team:** let `/adopt` register the marketplace in the project's
+   `.claude/settings.json`, so every teammate is offered the plugin (and `/upgrade`) when they trust
+   the folder.
+5. **Add a module later:** run `/adopt` again in the adopted repository. It detects the adoption and
+   offers the modules you don't have yet.
+
+The plugin contains **no framework content** — adopted repositories get plain committed files that
+every AI tool can read, with or without the plugin.
 
 ### By hand
 
 ```bash
-cp -Rn skeleton/. your-project/                         # never overwrites your files
-cp -Rn modules/github/files/. your-project/             # optional modules
+git clone https://github.com/aplyca/AgenticDevelopmentFramework.git
+cp -Rn AgenticDevelopmentFramework/skeleton/. your-project/                 # never overwrites your files
+cp -Rn AgenticDevelopmentFramework/modules/github/files/. your-project/     # each optional module you want
 ```
 
-Then follow [docs/SETUP.md](docs/SETUP.md): fill `AGENTS.md` and the constitution, configure the hooks, and stamp the baseline. Already adopted an earlier version? See [docs/UPGRADING.md](docs/UPGRADING.md) and [CHANGELOG.md](CHANGELOG.md). The field-practices release fixes defects that affect every adopted repository.
+Then follow [docs/SETUP.md](docs/SETUP.md): fill `AGENTS.md` and the constitution, configure the
+hooks, stamp the baseline, and verify.
+
+## Update a project
+
+The framework is copied in, not installed as a dependency, so updates are deliberate and keep your
+customizations. Read the **Upgrade impact** of each release in [CHANGELOG.md](CHANGELOG.md) first —
+the field-practices release fixes defects that affect every adopted repository and lists three
+migration steps.
+
+1. **Update the plugin** — then restart Claude Code:
+
+   ```bash
+   claude plugin marketplace update aplyca
+   claude plugin update aplyca-framework@aplyca
+   ```
+
+2. **Run `/upgrade`** in the adopted project. It reads the baseline stamp
+   (`<!-- Skeleton source: <SHA> (<date>) · modules: … -->`) and diffs the framework from that
+   version to the latest. It sorts every changed file into overwrite, merge, or additive, applies the
+   CHANGELOG migration steps, and shows you the plan before changing anything. Then it updates the
+   files — your project-specific content stays — re-stamps, and prepares a draft pull request.
+3. **Review the pull request** and run the verification in [docs/UPGRADING.md](docs/UPGRADING.md):
+   valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
+
+By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.md).
 
 ## How it works
 
@@ -75,7 +117,10 @@ docs/              → Constitution, architecture, ADRs, PDRs, reference pages, 
 
 When a repository has both a `CLAUDE.md` and an `AGENTS.md`, Claude Code reads `CLAUDE.md` **instead** — so the skeleton's `CLAUDE.md` imports `AGENTS.md` on its first line. Keep that import.
 
-## The workflow
+## The workflows
+
+Every task starts with `/triage`. It states what the task is and picks the workflow — the agent
+says it in its first message and carries on, and the developer can redirect it.
 
 ```
 task ─▶ /triage ─┬─▶ answer only ─────────────▶ deliver the answer (no spec, no environment)
@@ -90,10 +135,26 @@ task ─▶ /triage ─┬─▶ answer only ───────────�
                         │
    /review (or /deep-review) ──▶ /open-pr (draft, when asked) ──▶ human QC ──▶ ready ──▶ merge
                         │
-   /stakeholder-update (when asked)
+   /client-update (when asked) — the client's update, posted on the PR for the team to relay
 ```
 
-Change requests on delivered work amend the same spec folder (`CR N`). Hotfixes fix first and backfill. Process changes become PDRs. The full reference is the `/spec-workflow` skill.
+| Situation | Workflow | Playbook |
+|---|---|---|
+| New feature or behavior change | `/triage` → `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → `/open-pr` → `/client-update` | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
+| Change request on delivered work | `/triage` finds the spec folder and the delta → `/write-spec` amends it as `CR N` → the same gate and loop, for the delta only, on a fresh branch | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
+| Investigation, impact analysis, estimate | `/triage` → the answer, where the task asks for it — no spec, no environment | [Answer-only task](docs/scenarios/answer-only-task.md) |
+| Bug | `/debug` → regression test (red) → fix (green) → `/commit`; a behavior change becomes a change request | [Debugging](docs/scenarios/debugging.md) |
+| Production is broken | Root cause → regression test → fix → draft PR → ship; then backfill the spec folder as `CR N — hotfix` | [Hotfix](docs/scenarios/hotfix.md) |
+| Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; an ADR for lasting structural decisions | [Refactor](docs/scenarios/refactor.md) |
+| Typo, copy, version bump, dev tooling | Edit → verify → `/commit` | — |
+| A change to how the team works | `/record-decision` → a PDR in `docs/process/` | — |
+| Several tasks at once | `/dispatch` from the main checkout; each task in its own worktree (`parallel-agents` module) | [Parallel agents](docs/scenarios/parallel-agents.md) |
+| High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | [Skills catalog](docs/SKILLS-REFERENCE.md) |
+
+What holds in every workflow: nothing leaves the machine unless a human asks — no push, pull
+request, tracker comment, or message — and the hooks and permissions enforce the rules that must
+hold every time. The full reference is the `/spec-workflow` skill and
+[`skeleton/specs/README.md`](skeleton/specs/README.md).
 
 ## Team onboarding
 

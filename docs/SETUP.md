@@ -144,8 +144,16 @@ Open the pull request as a draft; merge after review like any other change.
 
 ## Updating
 
-To pull newer framework changes into an adopted repository, see [UPGRADING.md](./UPGRADING.md) — or
-run `/upgrade`.
+Update the plugin, restart Claude Code, then run `/upgrade` in the adopted repository — it plans the
+update from the baseline stamp, keeps your customizations, and prepares a draft pull request:
+
+```bash
+claude plugin marketplace update aplyca
+claude plugin update aplyca-framework@aplyca
+```
+
+By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's
+**Upgrade impact** in the [CHANGELOG](../CHANGELOG.md) first.
 
 ## What not to customize
 
