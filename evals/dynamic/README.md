@@ -14,6 +14,9 @@ dynamic/
       <case-name>.expected.md      - invariants the output must satisfy
     triage/
       ...                          - lane routing: fast, careful, full, sensitive areas, the developer's call
+    debug/
+      setup.sh                     - makes the fixture project runnable (Node's test runner) and plants the bugs
+      ...                          - a failing signal first; effort matched to the bug
     write-tests/
       ...
     write-docs/
@@ -28,22 +31,27 @@ Each fixture has two files:
 
 ## Running
 
-### The triage routing evals — automated
+### Session evals — automated (triage, debug)
 
-`run-triage-evals.sh` runs every fixture in `fixtures/triage/` against real Claude Code sessions:
-it builds a fictional project in a temp directory (the skeleton, the delivered newsletter-signup spec
-folder from `docs/examples/`, stub source files matching the fixtures), runs each prompt headless
-with `claude -p` on each model, and writes one transcript per run to grade against the fixture's
-`.expected.md`. Each run edits only its own throwaway copy — so the project's hooks take part — and
-is turn- and budget-capped; `--read-only` denies edits instead.
+`run-session-evals.sh` runs every fixture in one suite — `fixtures/triage/` by default, or
+`--suite debug` — against real Claude Code sessions: it builds a fictional project in a temp
+directory (the skeleton, the delivered newsletter-signup spec folder from `docs/examples/`, stub
+source files matching the fixtures, plus whatever the suite's `setup.sh` adds), runs each prompt
+headless with `claude -p` on each model, and writes one transcript per run to grade against the
+fixture's `.expected.md`. Each run edits only its own throwaway copy — so the project's hooks take
+part — and is turn- and budget-capped; `--read-only` denies edits instead. The debug suite's
+project runs its tests with Node's built-in runner (Node 22.18+), so sessions can build a failing
+signal without installing anything.
 
 ```bash
-./run-triage-evals.sh                                   # every case, sonnet and opus
-./run-triage-evals.sh --models sonnet --cases "fast-copy-change careful-migration"
+./run-session-evals.sh                                   # every triage case, sonnet and opus
+./run-session-evals.sh --models sonnet --cases "fast-copy-change careful-migration"
+./run-session-evals.sh --suite debug                     # the /debug cases
 ```
 
-It needs a signed-in Claude Code CLI (`claude auth login`); a full run is 16 sessions, about $5
-API-equivalent. Graded reports of past runs: [`reports/`](reports/).
+It needs a signed-in Claude Code CLI (`claude auth login`); a full triage run is 16 sessions, about
+$5 API-equivalent. Graded reports of past runs: [`reports/`](reports/) (the first one ran the
+script under its earlier name, `run-triage-evals.sh`).
 
 
 ### Manual (zero setup)

@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 #
-# Runs the /triage routing fixtures (fixtures/triage/) against real Claude Code sessions.
+# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, or debug) against real
+# Claude Code sessions.
 #
 # Builds a fictional project in a temp directory — the skeleton, the delivered newsletter-signup
-# spec folder from docs/examples/, and a few stub source files matching the fixtures' context — then
-# runs each fixture's prompt headless with `claude -p` on each model. Each run works in its own
+# spec folder from docs/examples/, and a few stub source files matching the fixtures' context, plus
+# whatever the suite's setup.sh adds — then runs each fixture's prompt headless with `claude -p` on
+# each model. Each run works in its own
 # throwaway copy, may edit it (so the project's hooks — triage-first, careful-paths — take part), and
 # is turn- and budget-capped; `--read-only` denies edits instead, so a run stops at its first edit.
 # Transcripts land in the output directory for grading against each fixture's .expected.md.
 #
-# Usage: ./run-triage-evals.sh [--models "sonnet opus"] [--cases "fast-copy-change ..."]
-#                              [--out DIR] [--budget 1.50] [--parallel 4] [--read-only]
+# Usage: ./run-session-evals.sh [--suite triage|debug] [--models "sonnet opus"] [--cases "a b ..."]
+#                               [--out DIR] [--budget 1.50] [--parallel 4] [--read-only]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FW="$(cd "$SCRIPT_DIR/../.." && pwd)"
-FIXTURES="$SCRIPT_DIR/fixtures/triage"
+SUITE="triage"
 MODELS="sonnet opus"
 CASES=""
 BUDGET="1.50"
@@ -26,6 +28,7 @@ OUT=""
 READ_ONLY=""
 while [ $# -gt 0 ]; do
   case "$1" in
+    --suite) SUITE="$2"; shift 2 ;;
     --models) MODELS="$2"; shift 2 ;;
     --cases) CASES="$2"; shift 2 ;;
     --out) OUT="$2"; shift 2 ;;
@@ -35,6 +38,12 @@ while [ $# -gt 0 ]; do
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
+FIXTURES="$SCRIPT_DIR/fixtures/$SUITE"
+[ -d "$FIXTURES" ] || { echo "no such suite: $SUITE" >&2; exit 2; }
+case "$SUITE" in
+  debug) MAX_TURNS=30; EXTRA_TOOLS="Bash(node:*)|Bash(pnpm test:*)|Bash(npm test:*)" ;;
+  *) MAX_TURNS=14; EXTRA_TOOLS="" ;;
+esac
 [ -n "$CASES" ] || CASES="$(ls "$FIXTURES" | sed -n 's/\.input\.md$//p' | tr '\n' ' ')"
 claude auth status 2>/dev/null | grep -q '"loggedIn": true' || { echo "Sign in first: claude auth login" >&2; exit 1; }
 
@@ -169,6 +178,7 @@ fill("AGENTS.md", [
 fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS=""', 'CAREFUL_GLOBS="src/billing/*"'), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])
 fill("CLAUDE.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — Claude Code")])
 PY
+[ -f "$FIXTURES/setup.sh" ] && bash "$FIXTURES/setup.sh" "$REPO"
 git add -A && git commit -qm "chore: adopt the Agentic Development Framework"
 
 # ─── Runs ───────────────────────────────────────────────────────────────────
@@ -182,25 +192,27 @@ section = open(sys.argv[1]).read().split("## Prompt to give the AI", 1)[1]
 print(re.search(r"```\n(.*?)\n```", section, re.S).group(1))
 PY
 )"
+  local extra=()
+  [ -n "$EXTRA_TOOLS" ] && IFS='|' read -r -a extra <<< "$EXTRA_TOOLS"
   local edits=(--permission-mode acceptEdits)
   [ -n "$READ_ONLY" ] && edits=(--disallowedTools Edit Write MultiEdit NotebookEdit)
-  (cd "$work" && claude -p "$prompt" --model "$model" --output-format stream-json --verbose --max-turns 14 \
+  (cd "$work" && claude -p "$prompt" --model "$model" --output-format stream-json --verbose --max-turns "$MAX_TURNS" \
     "${edits[@]}" \
     --allowedTools Read Grep Glob Skill "Bash(git log:*)" "Bash(git status)" "Bash(git show:*)" "Bash(git diff:*)" \
       "Bash(git switch:*)" "Bash(git checkout:*)" "Bash(git branch:*)" "Bash(ls:*)" "Bash(grep:*)" "Bash(find:*)" \
-      "Bash(cat:*)" "Bash(head:*)" "Bash(wc:*)" \
+      "Bash(cat:*)" "Bash(head:*)" "Bash(wc:*)" ${extra[@]+"${extra[@]}"} \
     --setting-sources project,local --strict-mcp-config --max-budget-usd "$BUDGET" \
     < /dev/null > "$OUT/$case_name.$model.jsonl" 2> "$OUT/$case_name.$model.err")
   echo "  $case_name · $model done"
 }
 export -f run_case
-export WORK REPO OUT FIXTURES BUDGET READ_ONLY
+export WORK REPO OUT FIXTURES BUDGET READ_ONLY MAX_TURNS EXTRA_TOOLS
 echo "Fixture project: $REPO"
 echo "Running: $CASES on $MODELS ($PARALLEL at a time, \$$BUDGET cap each)"
 for c in $CASES; do for m in $MODELS; do echo "$c $m"; done; done | xargs -P "$PARALLEL" -n 2 bash -c 'run_case "$0" "$1"'
 
 # ─── Transcripts ────────────────────────────────────────────────────────────
-python3 - "$OUT" <<'PY'
+python3 - "$OUT" "$SUITE" <<'PY'
 import json, sys, glob, os, re
 out = sys.argv[1]
 rows = []
@@ -228,6 +240,6 @@ for path in sorted(glob.glob(os.path.join(out, "*.jsonl"))):
 print()
 for name, m in rows:
     print(f"{name:<38} {str(m.get('model')):<20} turns {str(m.get('turns')):>3}  ${m.get('cost', 0):>6.3f}  {m.get('seconds')}s{'  ERROR' if m.get('error') else ''}")
-print(f"\nTotal ≈ ${sum(m.get('cost', 0) for _, m in rows):.2f} (API-equivalent). Transcripts: {out}/*.md — grade each against fixtures/triage/<case>.expected.md")
+print(f"\nTotal ≈ ${sum(m.get('cost', 0) for _, m in rows):.2f} (API-equivalent). Transcripts: {out}/*.md — grade each against fixtures/" + sys.argv[2] + "/<case>.expected.md")
 PY
 echo "The fixture project and each run's copy (with whatever it edited) are in $WORK — delete it when done."
