@@ -76,9 +76,10 @@ hooks, stamp the baseline, and verify.
 ## Update a project
 
 The framework is copied in, not installed as a dependency, so updates are deliberate and keep your
-customizations. Read the **Upgrade impact** of each release in [CHANGELOG.md](CHANGELOG.md) first —
-the field-practices release fixes defects that affect every adopted repository and lists three
-migration steps, and if your settings pin a model ID, switch it to the `sonnet` alias.
+customizations. Read the **Upgrade impact** of each release in [CHANGELOG.md](CHANGELOG.md) first.
+The `3eb7777` release (2026-10-01) fixes defects that affect every adopted repository and opens with
+the order to upgrade in from an older baseline; if your settings pin a model ID, switch it to the
+`sonnet` alias.
 
 1. **Update the plugin** — then restart Claude Code:
 

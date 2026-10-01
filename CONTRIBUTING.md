@@ -32,6 +32,11 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 5. Run the checks below.
 6. Open a pull request that explains what changed and *why*, and lists the checks you ran.
 
+**Cutting a release** (maintainers): when `Unreleased` holds changes adopting teams should take, rename
+it to `## <SHA> — <date> — <title>` with the SHA of the last commit it covers. Open it with the
+order to upgrade in when it spans several parts, and add an empty `Unreleased` above it. Adopting
+repositories stamp the commit they upgraded to, so the heading's SHA tells them which entries apply.
+
 ## Checks
 
 The static suites verify the structural contract of skills, agents, workflows, rules, settings, hooks, templates, links, and modules, and functionally test the hooks and module scripts in throwaway repositories. They're deterministic, take seconds, and cost no tokens (they need `bash`, `git`, `python3`, and `node` for the workflow syntax check):
