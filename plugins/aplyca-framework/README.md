@@ -1,6 +1,6 @@
 # aplyca-framework plugin
 
-Installer and upgrader for the [AI-Assisted Development Framework](../../README.md).
+Installer and upgrader for the [Agentic Development Framework](../../README.md).
 
 The framework itself ships as **committed files in each adopting repo** (the
 [AGENTS.md](https://agents.md) standard plus tool-specific layers) so that every AI tool —

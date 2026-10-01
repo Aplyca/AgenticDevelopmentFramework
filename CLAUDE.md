@@ -1,10 +1,10 @@
-# AI-Assisted Development Framework
+# Agentic Development Framework
 
-This is the **source repository** for the AI-Assisted Development Framework — a production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development** on any project.
+This is the **source repository** for the Agentic Development Framework — a production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development** on any project.
 
 It is NOT a software application. It contains a portable project skeleton, optional modules, an installer plugin, documentation, evals, and a team onboarding guide. There is no app to build or run — but there are evals to run (below).
 
-The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit`; GitHub redirects the old URLs). The project is positioned and referenced as the **AI-Assisted Development Framework** in all docs and external materials.
+The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit`; GitHub redirects the old URLs). The project is named and referenced as the **Agentic Development Framework** in all docs and external materials (formerly the Agentic Development Framework).
 
 ## Repository structure
 

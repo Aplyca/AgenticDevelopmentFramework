@@ -1,6 +1,6 @@
 # Framework evals
 
-This directory holds evals for the **AI-Assisted Development Framework itself** — fixtures and checkers that verify the framework's skills, agents, rules, and spec template still produce the right behavior.
+This directory holds evals for the **Agentic Development Framework itself** — fixtures and checkers that verify the framework's skills, agents, rules, and spec template still produce the right behavior.
 
 This is "eating our own dogfood": if the framework promotes evals as a discipline, the framework's own files have to pass them. A skill that loses its anti-rationalization table, a spec template that drops its `feature-type` frontmatter, or an agent description that regresses to the old "use after implementation" wording — these are silent failures that code-style tests can't catch. Evals catch them.
 

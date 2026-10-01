@@ -169,7 +169,7 @@ fill("AGENTS.md", [
 fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS=""', 'CAREFUL_GLOBS="src/billing/*"'), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])
 fill("CLAUDE.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — Claude Code")])
 PY
-git add -A && git commit -qm "chore: adopt the AI-assisted development framework"
+git add -A && git commit -qm "chore: adopt the Agentic Development Framework"
 
 # ─── Runs ───────────────────────────────────────────────────────────────────
 run_case() { # run_case <case> <model>

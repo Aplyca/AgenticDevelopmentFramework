@@ -1,6 +1,6 @@
 # Skills and workflows reference
 
-The AI-Assisted Development Framework ships **nineteen skills** in `skeleton/.claude/skills/`, one
+The Agentic Development Framework ships **nineteen skills** in `skeleton/.claude/skills/`, one
 more in the `parallel-agents` module, and **four dynamic workflows** in `skeleton/.claude/workflows/`.
 Adopting projects copy them verbatim. In Claude Code, invoke a skill with `/skill-name`; other tools
 read the `SKILL.md` and follow it. Skills run in the main conversation; workflows fan out to many
