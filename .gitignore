@@ -1,0 +1,2 @@
+# Python bytecode written when the plugin scripts and their tests run
+__pycache__/
