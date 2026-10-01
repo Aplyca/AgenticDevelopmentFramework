@@ -594,7 +594,7 @@ check_plugin() {
     local script
     for script in "$plugin"/skills/*/*.py; do
         [ -f "$script" ] || continue
-        if python3 -m py_compile "$script" 2>/dev/null; then
+        if python3 -c 'import sys; compile(open(sys.argv[1], encoding="utf-8").read(), sys.argv[1], "exec")' "$script" 2>/dev/null; then
             pass "plugin script '$(basename "$script")': compiles"
         else
             fail "plugin script '$(basename "$script")': does not compile"
