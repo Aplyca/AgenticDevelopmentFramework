@@ -7,7 +7,7 @@ every pull request (`.github/workflows/evals.yml`). Three suites, all run by `..
 |---|---|
 | `check-skills.sh` | **Structure** — skills, agents, workflows, settings and hook wiring, instruction files, spec templates, links, modules |
 | `test-hooks.sh` | **Behavior of the guardrail hooks** — feeds real tool events (JSON on stdin, exactly as Claude Code sends them) into `skeleton/.claude/hooks/` against a throwaway repository and checks block / allow |
-| `test-modules.sh` | **Behavior of the module scripts** — the `git-hooks` `pre-push` against a bare remote, and the `parallel-agents` worktree scripts (create, idempotent rerun, env seeding, port reservation under a lock, setup/start, removal) in throwaway repositories |
+| `test-modules.sh` | **Behavior of the module scripts** — the `git-hooks` `pre-push` against a bare remote, and the `parallel-agents` worktree scripts (create, idempotent rerun, env seeding, port reservation under a lock, setup/start, removal), and the `clickup` installer (merges into existing `.mcp.json` and settings, idempotent, keeps customizations, refuses invalid JSON) in throwaway repositories |
 
 ## What `check-skills.sh` checks
 
@@ -27,6 +27,7 @@ every pull request (`.github/workflows/evals.yml`). Three suites, all run by `..
 | Workflow-integrity phrases in `/write-spec`, `/write-plan`, `/implement`, `/write-docs`, `/open-pr` | Removing them silently removes a gate |
 | Spec scaffold: `specs/README.md`, `_templates/{spec,plan,tasks}.md` exist, the legacy template is gone, required frontmatter and sections, the plan's change surface / constitution check / test strategy / documentation plan / assumptions, the tasks' TDD loop and gate results | The templates are the contract every skill reads |
 | Every relative link in `skeleton/` and `modules/*/files/` resolves inside an adopting repository | Framework-only links shipped once and broke in every adopted repo |
+| A module's `settings-fragment.json` pre-approves only MCP tools that read, and its `.mcp.json` carries no credentials | A write tool on the allowlist would post to the client without a prompt |
 | Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks | Modules install with `cp -R`; a README would overwrite the target's |
 
 ## Running

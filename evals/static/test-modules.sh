@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Functional tests for the optional modules' scripts: the git-hooks pre-push hook and the
-# parallel-agents worktree scripts. Builds throwaway repositories (with a bare "origin") in a temp
+# Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the
+# parallel-agents worktree scripts, and the clickup install script. Builds throwaway repositories (with a bare "origin") in a temp
 # directory. No AI invocation, no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
 #
 set -uo pipefail
@@ -165,6 +165,32 @@ q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+
+# ─── clickup: install.sh merges, never overwrites ──────────────────────────
+CU="$WORK/clickup-fresh"; mkdir -p "$CU"
+"$MODULES/clickup/install.sh" "$CU" >/dev/null 2>&1; c=$?
+jsonq() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(eval(sys.argv[2]))" "$@"; }
+check "clickup install: creates .mcp.json with the clickup server" "[ $c -eq 0 ] && [ \"\$(jsonq '$CU/.mcp.json' 'd[\"mcpServers\"][\"clickup\"][\"url\"]')\" = 'https://mcp.clickup.com/mcp' ]"
+check "clickup install: enables the server and adds the read-only allowlist" "[ \"\$(jsonq '$CU/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = 5 ] && [ \"\$(jsonq '$CU/.claude/settings.json' 'd[\"enabledMcpjsonServers\"]')\" = \"['clickup']\" ]"
+"$MODULES/clickup/install.sh" "$CU" >/dev/null 2>&1
+check "clickup install: a second run adds nothing" "[ \"\$(jsonq '$CU/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = 5 ] && [ \"\$(jsonq '$CU/.claude/settings.json' 'len(d[\"enabledMcpjsonServers\"])')\" = 1 ]"
+
+CE="$WORK/clickup-existing"; mkdir -p "$CE/.claude"
+printf '{"mcpServers":{"other":{"type":"http","url":"https://mcp.example.com"}}}\n' > "$CE/.mcp.json"
+printf '{"$schema":"x","model":"sonnet","permissions":{"allow":["Bash(git status)"],"ask":["Bash(git push)"]}}\n' > "$CE/.claude/settings.json"
+"$MODULES/clickup/install.sh" "$CE" >/dev/null 2>&1
+check "clickup install: keeps other MCP servers" "[ \"\$(jsonq '$CE/.mcp.json' 'sorted(d[\"mcpServers\"])')\" = \"['clickup', 'other']\" ]"
+check "clickup install: keeps existing settings and permission order" "[ \"\$(jsonq '$CE/.claude/settings.json' 'list(d)[:2] == [chr(36) + \"schema\", \"model\"] and d[\"permissions\"][\"allow\"][0] == \"Bash(git status)\" and d[\"permissions\"][\"ask\"] == [\"Bash(git push)\"]')\" = True ]"
+
+CC="$WORK/clickup-custom"; mkdir -p "$CC"
+printf '{"mcpServers":{"clickup":{"type":"http","url":"https://proxy.example.com/clickup"}}}\n' > "$CC/.mcp.json"
+out=$("$MODULES/clickup/install.sh" "$CC" 2>&1)
+check "clickup install: keeps a customized clickup server, and says so" "[ \"\$(jsonq '$CC/.mcp.json' 'd[\"mcpServers\"][\"clickup\"][\"url\"]')\" = 'https://proxy.example.com/clickup' ] && echo \"\$out\" | grep -q 'kept your existing'"
+
+CB="$WORK/clickup-broken"; mkdir -p "$CB/.claude"; printf '{ not json' > "$CB/.claude/settings.json"
+"$MODULES/clickup/install.sh" "$CB" >/dev/null 2>&1; c=$?
+check "clickup install: refuses invalid JSON and leaves the file alone" "[ $c -ne 0 ] && [ \"\$(cat '$CB/.claude/settings.json')\" = '{ not json' ]"
+
 
 echo "=============================="
 echo "Results: $PASS passed, $FAIL failed"

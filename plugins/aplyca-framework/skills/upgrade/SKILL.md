@@ -22,7 +22,10 @@ blind sync.
 Read the baseline from the top of the target's `CLAUDE.md`:
 `<!-- Skeleton source: <SHA> (<date>) · modules: <list> -->` (older stamps have no `modules:` part —
 treat it as `none`, and check for module files on disk: `.github/pull_request_template.md`,
-`.githooks/pre-push`, `scripts/agent/`).
+`.githooks/pre-push`, `scripts/agent/`, a `clickup` server in `.mcp.json`).
+
+For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
+it merges new read-only patterns into `.claude/settings.json` and keeps everything else.
 
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.

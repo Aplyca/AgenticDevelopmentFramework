@@ -52,7 +52,7 @@ folders; one spec folder is one feature.
 ## Connecting the tracker (MCP)
 
 Most trackers publish an official MCP server. Add it to `.mcp.json` at the repository root so the
-whole team shares the configuration:
+whole team shares the configuration: <!-- CUSTOMIZE: ClickUp teams get this section's `.mcp.json` and allowlist from the framework's `clickup` module. -->
 
 ```json
 {

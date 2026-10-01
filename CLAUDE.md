@@ -17,7 +17,7 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
   - `skeleton/.cursor/rules/` — Cursor rule files (`.mdc`)
   - `skeleton/specs/` — `README.md` (the process) and `_templates/{spec,plan,tasks}.md`
   - `skeleton/docs/` — constitution, spec model, process (PDRs), reference, tracker integration, and documentation templates
-- `modules/` — optional additions (`github/`, `git-hooks/`, `parallel-agents/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo
+- `modules/` — optional additions (`github/`, `git-hooks/`, `clickup/`, `parallel-agents/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo
 - `plugins/aplyca-framework/` — the Claude Code installer plugin (`/adopt`, `/upgrade`); contains no framework content
 - `docs/` — framework guides (setup, upgrading, onboarding, catalogs, examples, scenarios) and `docs/decisions/` (why the framework works the way it does)
 - `evals/` — static checks, hook and module functional tests, dynamic fixtures

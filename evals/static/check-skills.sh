@@ -512,6 +512,43 @@ check_modules() {
             fail "module '$name': files/README.md would overwrite the adopting repo's README"
         fi
     done
+    local fragment problems
+    for fragment in "$MODULES_DIR"/*/settings-fragment.json; do
+        [ -f "$fragment" ] || continue
+        name=$(basename "$(dirname "$fragment")")
+        # A module may pre-approve MCP tools only if they read: a write tool must always prompt.
+        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" <<'PY'
+import json, re, sys
+fragment, mcp = sys.argv[1], sys.argv[2]
+out = []
+try:
+    allow = json.load(open(fragment)).get("permissions", {}).get("allow", [])
+except Exception as e:
+    print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
+write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
+for rule in allow:
+    if rule.startswith("mcp__"):
+        tool = rule.split("__", 2)[-1]
+        if tool in ("", "*") or write.search(tool):
+            out.append(f"allows a tool that may write: {rule}")
+try:
+    servers = json.load(open(mcp)).get("mcpServers", {})
+    for name, cfg in servers.items():
+        if set(cfg) & {"headers", "env"} or re.search(r"(token|key|secret)=", json.dumps(cfg), re.I):
+            out.append(f".mcp.json server '{name}' carries credentials or env")
+except FileNotFoundError:
+    pass
+except Exception as e:
+    out.append(f"files/.mcp.json is not valid JSON: {e}")
+print("; ".join(out))
+PY
+)
+        if [ -z "$problems" ]; then
+            pass "module '$name': pre-approves read-only MCP tools only; no credentials in .mcp.json"
+        else
+            fail "module '$name': $problems"
+        fi
+    done
     local skill
     for skill in "$MODULES_DIR"/*/files/.claude/skills/*/; do
         [ -d "$skill" ] || continue

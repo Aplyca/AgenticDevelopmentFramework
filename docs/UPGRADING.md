@@ -79,7 +79,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `specs/README.md` | The spec process — teams sometimes adjust it |
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
-| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push` |
+| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |

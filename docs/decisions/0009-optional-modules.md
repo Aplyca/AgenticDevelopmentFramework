@@ -14,10 +14,11 @@ adopter to delete them; leaving them out meant every team rebuilt them, slightly
 
 ## Decision
 
-- A top-level `modules/` directory holds opt-in additions: `github/`, `git-hooks/`,
+- A top-level `modules/` directory holds opt-in additions: `github/`, `git-hooks/`, `clickup/`,
   `parallel-agents/`. Each has a `MODULE.md` (what it adds, how to customize, limits — not copied)
   and a `files/` tree mirroring the target repository, installed with
-  `cp -R modules/<name>/files/. <repo>/`.
+  `cp -R modules/<name>/files/. <repo>/`. A module that changes files every repository already has
+  (`clickup`: `.mcp.json`, `.claude/settings.json`) ships an install script that merges instead.
 - `/adopt` offers each module from the discovered facts; the installed list is recorded in the
   `Skeleton source:` stamp (`· modules: github, parallel-agents`) so `/upgrade` updates them.
 - Module scripts and configuration follow the same three-bucket upgrade taxonomy: scripts are

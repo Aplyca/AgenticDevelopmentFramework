@@ -76,8 +76,12 @@ Present the table before going further. Wrong facts here poison every file downs
 - **Offer the modules** (`modules/README.md`), recommending from the facts:
   - `github` — when the repo is on GitHub
   - `git-hooks` — when the team wants local gates for every git client
+  - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
+    commits, or the README are good evidence)
   - `parallel-agents` — when several agent sessions work at once and each needs a running app
-  Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule).
+  Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
+  except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
+  `modules/clickup/install.sh <repo>`.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -100,8 +104,10 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`CONTRIBUTING.md`** — keep the branching model that matches (A or B), the status vocabulary,
   and an honest "what's enforced" section.
 - **`docs/TRACKER-INTEGRATION.md`** — the tracker, `.mcp.json` (if it has an MCP server), and a
-  read-only `mcp__<server>__…` allowlist from the server's real tool names. Delete the page if there
-  is no tracker.
+  read-only `mcp__<server>__…` allowlist from the server's real tool names. With the `clickup`
+  module, fill the values its `MODULE.md` § Customize lists (task links, statuses via
+  `clickup_get_task` with `expand_statuses: true`, where PR links go). Delete the page if there is no
+  tracker.
 - **Modules** — `scripts/agent/worktree.conf`; the PR template's quality and constitution checklists;
   `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
   `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`.

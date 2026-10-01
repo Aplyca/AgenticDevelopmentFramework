@@ -21,7 +21,7 @@ Most of what's here was proven in real client projects first — some built on t
 - **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Each push and pull-request action needs a human to confirm it, and `.env` files are never read.
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
-- **Optional modules** — `github` (PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `parallel-agents` (one worktree per task with its own env file and port; the main checkout only dispatches). ([Modules](modules/README.md))
+- **Optional modules** — `github` (PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server with a read-only allowlist), `parallel-agents` (one worktree per task with its own env file and port; the main checkout only dispatches). ([Modules](modules/README.md))
 - **Installer plugin** — `/adopt` and `/upgrade` for Claude Code. ([Plugin](plugins/aplyca-framework/README.md))
 - **Evals** — structural checks plus functional tests of the hooks and module scripts, run in CI on every pull request at zero token cost; dynamic fixtures for AI behavior. ([Evals](evals/README.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
@@ -61,6 +61,7 @@ every AI tool can read, with or without the plugin.
 git clone https://github.com/aplyca/AgenticDevelopmentFramework.git
 cp -Rn AgenticDevelopmentFramework/skeleton/. your-project/                 # never overwrites your files
 cp -Rn AgenticDevelopmentFramework/modules/github/files/. your-project/     # each optional module you want
+AgenticDevelopmentFramework/modules/clickup/install.sh your-project          # clickup merges instead of copying
 ```
 
 Then follow [docs/SETUP.md](docs/SETUP.md): fill `AGENTS.md` and the constitution, configure the
@@ -184,7 +185,7 @@ skeleton/                 Portable project skeleton — what an adopting reposit
                           architecture/decisions/ (ADRs), reference/, security/, infrastructure/,
                           getting-started/
 
-modules/                  Optional additions: github/, git-hooks/, parallel-agents/
+modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/
 plugins/aplyca-framework/ Claude Code installer plugin (/adopt, /upgrade)
 docs/                     Framework docs: SETUP, UPGRADING, ONBOARDING, references, examples,
                           scenarios, decisions
