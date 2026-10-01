@@ -21,6 +21,7 @@ projects.
 | [0008](0008-dispatcher-and-worker-worktrees.md) | The main checkout dispatches; worktrees do the work (optional module) | accepted |
 | [0009](0009-optional-modules.md) | Host- and team-specific harness ships as optional modules | accepted |
 | [0010](0010-model-aliases.md) | Configure models with version-less aliases | accepted |
+| [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

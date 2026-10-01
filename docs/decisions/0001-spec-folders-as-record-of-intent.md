@@ -2,6 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-10-01
+- **Refined by:** [0011](0011-lanes-ceremony-follows-risk.md) — spec folders belong to the full lane; precise adjustments leave a light change request
 
 ## Context
 

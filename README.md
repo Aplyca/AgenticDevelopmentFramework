@@ -14,7 +14,8 @@ Most of what's here was proven in real client projects first — some built on t
 ## What's included
 
 - **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](skeleton/docs/SPEC-MODEL.md))
-- **One approval gate on the change surface** — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
+- **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist and the developer's yes), and full (something to decide: the spec-driven flow). The developer can always raise the lane; sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [cost](skeleton/docs/COST-MODEL.md))
+- **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
 - **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, decision records, context and drift audits, and more (`/dispatch` comes with a module). ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents** — including `@spec-analyzer`, which adversarially checks a spec folder before the gate. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
@@ -22,7 +23,7 @@ Most of what's here was proven in real client projects first — some built on t
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
 - **Optional modules** — `github` (PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server with a read-only allowlist), `parallel-agents` (one worktree per task with its own env file and port; the main checkout only dispatches). ([Modules](modules/README.md))
-- **Installer plugin** — `/adopt` and `/upgrade` for Claude Code. ([Plugin](plugins/aplyca-framework/README.md))
+- **Installer plugin** — `/adopt` and `/upgrade` for Claude Code, plus `/cost-report` to see what agent sessions cost. ([Plugin](plugins/aplyca-framework/README.md))
 - **Evals** — structural checks plus functional tests of the hooks and module scripts, run in CI on every pull request at zero token cost; dynamic fixtures for AI behavior. ([Evals](evals/README.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
@@ -44,7 +45,8 @@ Most of what's here was proven in real client projects first — some built on t
    the baseline version at the top of `CLAUDE.md`, verifies the hooks and the `@AGENTS.md` import, and
    prepares a **draft pull request** on its own branch. It never commits to your default branch.
 3. **Finish what only the team knows** in that pull request: the remaining `[PLACEHOLDER]`s, the
-   constitution's principles, and the stakeholder-update settings in `docs/TRACKER-INTEGRATION.md`
+   constitution's principles, the sensitive areas (`AGENTS.md` and `CAREFUL_GLOBS`), and the
+   stakeholder-update settings in `docs/TRACKER-INTEGRATION.md`
    (live site, previews, CMS entry links, task statuses). Then review and merge it like any change.
 4. **Optional — the whole team:** let `/adopt` register the marketplace in the project's
    `.claude/settings.json`, so every teammate is offered the plugin (and `/upgrade`) when they trust
@@ -120,13 +122,18 @@ When a repository has both a `CLAUDE.md` and an `AGENTS.md`, Claude Code reads `
 
 ## The workflows
 
-Every task starts with `/triage`. It states what the task is and picks the workflow — the agent
-says it in its first message and carries on, and the developer can redirect it.
+Every task starts with `/triage`. It states what the task is and picks the **lane** — how much
+process the change gets. The lane follows risk and uncertainty, not size: the steps that find
+defects (a test that proves the change, the hooks, CI, a reviewed draft pull request, the human QC)
+run in every lane; what changes is how much is written down and approved before the code exists.
 
 ```
-task ─▶ /triage ─┬─▶ answer only ─────────────▶ deliver the answer (no spec, no environment)
-                 ├─▶ nothing to decide ────────▶ edit → verify → /commit
-                 └─▶ change with something to decide
+task ─▶ /triage ─┬─▶ answer ─────────▶ deliver the answer (no lane, no spec, no environment)
+                 ├─▶ FAST lane ──────▶ restate + "done when" → edit → targeted test → /commit
+                 │   (precise request, few files, no risk trigger; light CR N on delivered work)
+                 ├─▶ CAREFUL lane ───▶ fast + the risk area's checklist + the developer's yes
+                 │   (migration, authorization, personal data, shared contract, sensitive area)
+                 └─▶ FULL lane — something to decide, a new feature, cross-layer work
                         │
    /write-spec ──▶ /write-plan (+ @spec-analyzer) ──▶ APPROVAL GATE ──▶ spec: commit
    (spec.md)       (plan.md, tasks.md)                 scope · change surface · assumptions
@@ -134,23 +141,36 @@ task ─▶ /triage ─┬─▶ answer only ───────────�
    /write-docs ──▶ /implement: per task  test ✗ → code → test ✓ → commit ──▶ reconcile docs
    (docs:)                                                                     gate results
                         │
-   /review (or /deep-review) ──▶ /open-pr (draft, when asked) ──▶ human QC ──▶ ready ──▶ merge
+   every lane: /review ──▶ /open-pr (draft, when asked) ──▶ human QC ──▶ ready ──▶ merge
                         │
    /stakeholder-update ("update the client") — drafted, shown, posted on the PR for the team to relay
 ```
 
-| Situation | Workflow | Playbook |
+| Situation | Lane and workflow | Playbook |
 |---|---|---|
-| New feature or behavior change | `/triage` → `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → `/open-pr` → `/stakeholder-update` | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
-| Change request on delivered work | `/triage` finds the spec folder and the delta → `/write-spec` amends it as `CR N` → the same gate and loop, for the delta only, on a fresh branch | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
-| Investigation, impact analysis, estimate | `/triage` → the answer, where the task asks for it — no spec, no environment | [Answer-only task](docs/scenarios/answer-only-task.md) |
-| Bug | `/debug` → regression test (red) → fix (green) → `/commit`; a behavior change becomes a change request | [Debugging](docs/scenarios/debugging.md) |
-| Production is broken | Root cause → regression test → fix → draft PR → ship; then backfill the spec folder as `CR N — hotfix` | [Hotfix](docs/scenarios/hotfix.md) |
-| Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; an ADR for lasting structural decisions | [Refactor](docs/scenarios/refactor.md) |
-| Typo, copy, version bump, dev tooling | Edit → verify → `/commit` | — |
+| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided | **Fast** — one-line triage → edit → targeted test → `/commit`; a light `CR N` on delivered work | [Change request § Light or full?](docs/scenarios/change-request.md#light-or-full) |
+| The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, data, or payments, and the developer's yes | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
+| New feature, unclear requirement, a design choice, cross-layer work | **Full** — `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → `/open-pr` | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
+| Change request with something to decide | **Full** — `/write-spec` amends the folder as `CR N` → the same gate and loop, for the delta only, on a fresh branch | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
+| Bug | `/debug` → then the lane the fix needs: regression test (red) → fix (green) → `/commit` | [Debugging](docs/scenarios/debugging.md) |
+| Production is broken | **Careful**, without delay — root cause → regression test → fix → draft PR → ship; then backfill the spec folder | [Hotfix](docs/scenarios/hotfix.md) |
+| Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; full lane or an ADR for a structure others must follow | [Refactor](docs/scenarios/refactor.md) |
+| Investigation, impact analysis, estimate | No lane — `/triage` → the answer, where the task asks for it | [Answer-only task](docs/scenarios/answer-only-task.md) |
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | — |
 | Several tasks at once | `/dispatch` from the main checkout; each task in its own worktree (`parallel-agents` module) | [Parallel agents](docs/scenarios/parallel-agents.md) |
 | High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | [Skills catalog](docs/SKILLS-REFERENCE.md) |
+
+**The developer's intuition counts.** Say "full lane on this", "be careful here", or "just a quick
+fix": raising the lane is always honored; lowering it keeps a risk area's checklist unless the
+developer explicitly accepts the risk. More effort has other dials too — questions before any code,
+`/evaluate` to compare designs, a higher effort level or model, `/deep-review` — each with its cost in
+[`COST-MODEL.md` § Effort](skeleton/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
+Teams list their **sensitive areas** once (`AGENTS.md`, mirrored in `CAREFUL_GLOBS`), and a hook stops
+a fast-lane edit there.
+
+**Cost.** A session costs roughly *calls × context*. The lanes, one task per session, and short tool
+output are the big levers; [`COST-MODEL.md`](skeleton/docs/COST-MODEL.md) has the measured numbers,
+and the plugin's `/cost-report` shows what your own sessions cost.
 
 What holds in every workflow: nothing leaves the machine unless a human asks — no push, pull
 request, tracker comment, or message — and the hooks and permissions enforce the rules that must

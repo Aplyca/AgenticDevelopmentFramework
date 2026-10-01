@@ -20,12 +20,27 @@ confidence; **docs first** prevent shipping what nobody can use; **guardrails** 
 publishing, and posting waiting for a person.
 
 **Every task starts with triage** (`/triage`): read the task in full, check for prior work, and state
-the deliverable (an answer or a change), the kind, whether an environment is needed, and whether a
-spec folder is created, amended, or skipped. Most waste happens in the first minutes — an environment
-built or a spec written for a task that wanted an answer, or delivered work re-analyzed from scratch.
+the deliverable (an answer or a change), the kind, the **lane**, and whether an environment is needed.
+Most waste happens in the first minutes — an environment built or a spec written for a task that
+wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
 ([decision 0004](decisions/0004-triage-before-setup.md))
 
-A feature or behavior change then flows:
+**The lane follows risk and uncertainty, not size** ([decision 0011](decisions/0011-lanes-ceremony-follows-risk.md)):
+
+- **Fast** — a precise request (or a bug with a clear cause), a few files, no risk trigger: restate it
+  with "done when…", edit, prove it with a test, `/commit`. On delivered work, a light `CR N` entry.
+- **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
+  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist and
+  your yes on the risky part.
+- **Full** — something to decide, a new feature, cross-layer work: the flow below.
+
+What finds defects — a test that proves the change, the hooks, CI, review, your QC on the preview —
+runs in every lane. **Your intuition sets the lane too:** "full lane on this" or "be careful here" is
+always honored; "just a quick fix" never silently drops a risk area's checklist. Other ways to ask for
+more effort — questions first, `/evaluate`, a higher effort level or model, `/deep-review` — and what
+each costs are in the skeleton's `docs/COST-MODEL.md` § Effort.
+
+The full lane flows:
 
 | Step | Skill | Output | Commit |
 |---|---|---|---|
@@ -64,22 +79,23 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 
 ## Which workflow applies
 
-| The task is… | Do this | Spec folder |
-|---|---|---|
-| A new feature or behavior change | The full flow | New |
-| A change request on delivered work | Amend the folder with a `CR N` section; same gate | Amend |
-| An investigation, impact analysis, or estimate | Deliver the answer where the task asks | None |
-| A bug restoring documented behavior | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
-| A bug whose fix changes documented behavior | A change request | Amend |
-| A hotfix — production is broken now | `/debug` → fix + regression test → ship via the hotfix path in `CONTRIBUTING.md` | Backfill |
-| A refactor | `/refactor`, green after every step → `refactor:` | None |
-| A typo, copy edit, version bump, formatting, dev-only tooling | Edit → verify → `/commit` | None |
-| A change to how the team works | `/record-decision` (a PDR) | None |
-| A spike or throwaway code | No workflow; promoted code gets a spec | — |
+| The task is… | Lane | Do this | Spec folder |
+|---|---|---|---|
+| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` on delivered work |
+| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + your yes | None — or a light `CR N` |
+| A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
+| A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
+| A bug whose fix changes documented behavior | By the change | A change request — light or full | Amend |
+| A hotfix — production is broken now | Careful, without delay | `/debug` → fix + regression test → ship via the hotfix path in `CONTRIBUTING.md` | Backfill |
+| A refactor | Fast, or full for a structure others follow | `/refactor`, green after every step → `refactor:` | None |
+| An investigation, impact analysis, or estimate | — | Deliver the answer where the task asks | None |
+| A change to how the team works | — | `/record-decision` (a PDR) | None |
+| A spike or throwaway code | — | No workflow; promoted code gets a lane | — |
 
-The test is **"is there anything to decide?"**, not "is it big?": ceremony on a typo teaches people to
-skip the process, and a one-line change with a real decision in it still gets a spec. An answer that
-recommends a change gets a spec once someone approves the change.
+The test is **"is there anything to decide, and how risky is the area?"** — not "is it big?".
+Ceremony on a typo teaches people to skip the process; a one-line change to an authorization check
+still gets the careful lane; a one-line change with a real decision in it still gets a spec. An
+answer that recommends a change gets a lane once someone approves the change.
 
 ## What's enforced, and what's a convention
 
@@ -92,6 +108,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
+| An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | A person confirms pushes, pull request and issue writes, releases, GitHub API writes | `permissions.ask` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
 | `/open-pr` starts only when a person types it; `/stakeholder-update` also starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |
@@ -103,6 +120,7 @@ Everything above the module rows is Claude Code configuration; Cursor, Copilot, 
 none of it. Hooks match the command text an agent writes, so they stop mistakes, not attackers.
 
 **Conventions** — written in `AGENTS.md`, checked by reviewers, but nothing stops a skip: triage first;
+choosing the lane (outside the sensitive areas, `/review` checks it after the fact);
 **the approval gate** (`/implement` refuses without `status: approved`, so reviewers check the
 `approvals:` line); red before green; one task per commit; docs first; never marking a pull request
 ready; confirming tracker writes (mechanical only while the tracker's write tools stay off
@@ -181,9 +199,12 @@ for each task, then run `/triage` (add "triage only, then stop") and compare:
 1. Change · new feature · environment later, for the tests · new spec folder · open questions: the
    success metric, what counts as a valid email, what visitors see when Mailchimp is down…
 2. **Answer** — an estimate · no environment · no spec folder.
-3. Change · nothing to decide · edit → `/commit`.
-4. Bug, cause unclear → `/debug`. A spec is touched only if the fix changes documented behavior.
-5. **Change request** — amend the signup's spec folder as `CR N`.
+3. Change · **fast lane** — a one-line triage, edit, check, `/commit`.
+4. Bug, cause unclear → `/debug`, then the lane the fix needs. A spec is touched only if the fix
+   changes documented behavior.
+5. **Change request** with something to decide (which topics? how chosen?) — the **full lane**:
+   amend the signup's spec folder as `CR N`. Had marketing sent a precise list of topics and where
+   they go, the fast or careful lane with a light `CR N` entry would do.
 6. Process change → a PDR. The branch rules on the Git host are an admin's job.
 
 </details>

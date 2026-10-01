@@ -2,6 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-10-01
+- **Refined by:** [0011](0011-lanes-ceremony-follows-risk.md) — the gate applies to the full lane; the fast and careful lanes rely on the diff's review
 
 ## Context
 

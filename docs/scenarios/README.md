@@ -32,16 +32,17 @@ the task. The approval gate comes later, before implementation code.
 | Change · **new feature** | No playbook — the standard flow in [`specs/README.md`](../../skeleton/specs/README.md), worked end to end in the [newsletter-signup example](../examples/newsletter-signup/) |
 | Change · **change request** — requester feedback, or different behavior on delivered work | [Change request](change-request.md) |
 | Change · **bug**, cause unknown | [Debugging](debugging.md) |
-| Change · **bug**, clear cause, the fix restores documented behavior | [Debugging § After the diagnosis](debugging.md#after-the-diagnosis) — regression test and fix, no spec |
+| Change · **bug**, clear cause, the fix restores documented behavior | Fast lane (careful in a risk area) — [Debugging § After the diagnosis](debugging.md#after-the-diagnosis): regression test and fix, no spec |
 | Change · **hotfix** — production is broken now | [Hotfix](hotfix.md) |
 | Change · **refactor** — structure only, no behavior change | [Refactor](refactor.md) |
-| Change · **nothing to decide** — typo, copy edit, version bump, formatting, dev-only tooling | No playbook: edit → verify → `/commit` |
+| Change · **fast lane** — typo, copy, version bump, dev tooling, a precise adjustment the requester already decided | No playbook: a one-line triage, edit, a targeted test, `/commit`; a light `CR N` entry on delivered work ([`specs/README.md` § Lanes](../../skeleton/specs/README.md#lanes--how-much-process-a-change-gets)) |
+| Change · **careful lane** — the same, in a risk area (migration, authorization, personal data, shared contract, infrastructure, a sensitive area) | The fast lane plus the area's checklist and the developer's yes ([checklists](../../skeleton/specs/README.md#careful-lane-checklists)) |
 | A **change to how we work** | No playbook: a PDR in `docs/process/` (`/record-decision`), with the instruction files that describe the old way updated in the same pull request |
 | **Several agent sessions at once**, on any of the above | [Parallel agents](parallel-agents.md) — applies on top of whichever scenario each task is in |
 
 ## The playbooks
 
-- **[Change request](change-request.md)** — feedback or a behavior change on delivered work: find the delta against the spec folder, amend the same folder with a `CR N` section, same gate, new branch and pull request.
+- **[Change request](change-request.md)** — feedback or a behavior change on delivered work: find the delta against the spec folder, then a light `CR N` entry (precise adjustment, fast or careful lane) or a full one with the gate (something to decide); new branch and pull request either way.
 - **[Hotfix](hotfix.md)** — production is broken now: diagnose, regression test red then green, ship through the project's hotfix path, backfill the spec and docs afterwards.
 - **[Debugging](debugging.md)** — something misbehaves and nobody knows why: diagnosis first, then decide whether it's a fix, a change request, or a hotfix.
 - **[Refactor](refactor.md)** — the structure changes, the behavior doesn't: tests green throughout; a spec folder (and maybe an ADR) only when there's a structural decision to make.

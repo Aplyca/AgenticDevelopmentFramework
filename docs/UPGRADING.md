@@ -73,7 +73,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `CLAUDE.md` | Project identity + tool-specific config; may include team-specific notes |
 | `GEMINI.md` | Same as CLAUDE.md, for Antigravity |
 | `.claude/settings.json` | Hooks, permissions, env vars — team-customized |
-| `.claude/hooks/config.sh` | Protected branches, append-only and generated paths, env template |
+| `.claude/hooks/config.sh` | Protected branches, append-only and generated paths, sensitive paths (`CAREFUL_GLOBS`), env template |
 | `CONTRIBUTING.md` | Your branching model, status vocabulary, what's enforced |
 | `docs/CONSTITUTION.md` | Your principles (the template's wording around them changes) |
 | `specs/README.md` | The spec process — teams sometimes adjust it |

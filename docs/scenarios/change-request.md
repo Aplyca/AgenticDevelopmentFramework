@@ -15,7 +15,7 @@ wants it to behave differently:
 - Nothing delivered yet → a new feature: the flow in [`specs/README.md`](../../skeleton/specs/README.md), worked end to end in the [newsletter-signup example](../examples/newsletter-signup/).
 - The code doesn't do what the spec says → a bug: [Debugging](debugging.md) — regression test and fix, no spec change.
 - Production is broken now → [Hotfix](hotfix.md).
-- Nothing to decide — a copy tweak in code, a label → edit, verify, `/commit`. Copy that lives in the CMS isn't a code change at all.
+- A typo or a change the spec doesn't record → the fast lane, no change request: edit, test, `/commit`. Copy that lives in the CMS isn't a code change at all.
 
 ## Why it has its own playbook
 
@@ -25,7 +25,46 @@ agreed and built, and the comments since it last changed are usually where the c
 So the work starts from the **delta** — the request now against what the spec records as delivered
 — and everything after it (plan, tests, docs, code) covers only that delta.
 
-## Steps
+## Light or full?
+
+Decide by whether anything is left to decide — not by size:
+
+| The request | Change request | Lane |
+|---|---|---|
+| Precise: the requester said exactly what changes ("the label reads *Your email*", "show 20 per page") | **Light** — a short `CR N … · light` entry in `spec.md`, committed with the change; no plan, no gate | Fast, or careful in a risk area |
+| Leaves something to us: behavior, scope, or design to choose ("make it less intrusive"), or it conflicts with an agreed criterion | **Full** — the steps below | Full |
+
+A light change request still starts from the delta (steps 1–2 below) and still records the change
+in the folder — the next request is computed against it. If it turns out to need a decision, it
+becomes a full one.
+
+**A light example.** Marketing asks, in the original task, for the email field's label to read
+"Your email". The spec records the label as fixed text, so the change shows against the record —
+but the wording is given, it touches one component and its test, and no trigger applies:
+
+```
+Fast lane — the email field's label reads "Your email" instead of "Email address"; done when the form
+shows it and the label test asserts it; files: NewsletterForm.client.tsx, NewsletterForm.test.tsx,
+specs/007-newsletter-signup/spec.md (light CR 3).
+```
+
+`spec.md` gains, in the same commit as the change (`feat: label the newsletter email field "Your
+email"`):
+
+```markdown
+# CR 3 — Email field label (2026-10-08) · light
+
+- **Requested:** https://tracker.example.com/t/MKT-412 (comment of 2026-10-06) · Dana (marketing lead)
+
+| Aspect | Delivered (CR 2, PR …) | Change |
+| --- | --- | --- |
+| Email field label | Fixed text "Email address" | Fixed text "Your email" |
+```
+
+— and the Design section's fixed-text line now reads "Your email" (CR 3). No plan, no gate: the
+pull request's review approves the diff, and its URL joins `pull-requests:` as `· CR 3`.
+
+## Steps — a full change request
 
 1. **Triage** (`/triage`). Search `specs/` by tracker link, slug, and keywords;
    `git log -- specs/NNN-<slug>/` shows when each part landed. State the kind as a change request on
@@ -173,6 +212,8 @@ With a legacy single-file spec the history looks the same: the move is part of
 | Mistake | What happens | Instead |
 |---|---|---|
 | Re-analyzing the task from scratch | Delivered scope is dropped or redone; the new analysis contradicts the record | Start from the spec folder and compute the delta |
+| A precise adjustment through the full change request | Spec, plan, gate, and analyzer for a decision nobody had to make — several times the cost, no more defects found | A light `CR N` in the fast or careful lane |
+| A decision passed off as a precise adjustment | The agent picks the behavior, and the light entry records a requirement nobody agreed | If you'd have to choose how it behaves, it's a full change request |
 | Opening a new spec folder for the change | The feature's record splits; the next request has no single "delivered" to compare against | Amend the same folder with `CR N` |
 | Reconstructing what was agreed from the code | An accident of implementation becomes a "requirement" | If the spec and the thread don't say, ask |
 | Copying the tracker text into the CR section | Two versions of the requirement drift; client text lands in git | Link the comment; state the intent in a sentence |

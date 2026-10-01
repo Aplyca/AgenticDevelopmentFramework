@@ -45,10 +45,10 @@ change request, or a hotfix.
 
 | The diagnosis says | Next | Spec folder | Commits |
 |---|---|---|---|
-| A defect: the fix restores documented behavior (a spec criterion, a committed doc) or changes nothing documented | Regression test → watch it fail → fix the root cause → green | None — the regression test is the record | One `fix:`, test and fix together |
-| The code does what the spec says; someone wants different behavior | [Change request](change-request.md) | Amend with `CR N` | `spec:` first, then the CR's tasks |
+| A defect: the fix restores documented behavior (a spec criterion, a committed doc) or changes nothing documented | Fast lane (careful in a risk area): regression test → watch it fail → fix the root cause → green | None — the regression test is the record | One `fix:`, test and fix together |
+| The code does what the spec says; someone wants different behavior | [Change request](change-request.md) | A light `CR N` when the requester decided the new behavior; a full one when there's something to decide | Light: one commit with the change. Full: `spec:` first, then the CR's tasks |
 | Nothing documents what should happen | It's a decision: ask, then record the answer as a `CR N` on the feature's folder | Amend | `spec:` first |
-| Production is broken now | [Hotfix](hotfix.md) | Backfilled afterwards | `fix:` |
+| Production is broken now | [Hotfix](hotfix.md) — the careful lane, without delay | Backfilled afterwards | `fix:` |
 | The cause is outside the repository — configuration, a platform setting, a third party | Report it; the fix is a human action. Change code only where it made the failure worse | None | `fix:` only if code changed |
 | The task asked only why | Deliver the diagnosis as the answer — [Answer-only task](answer-only-task.md) | None | None |
 
@@ -132,4 +132,4 @@ that helps.
 
 **Reference:** [`/debug`](../../skeleton/.claude/skills/debug/SKILL.md) ·
 [testing rules — red, then green](../../skeleton/.claude/rules/testing.md) ·
-[`specs/README.md` § When a change needs a spec folder](../../skeleton/specs/README.md#when-a-change-needs-a-spec-folder)
+[`specs/README.md` § Lanes](../../skeleton/specs/README.md#lanes--how-much-process-a-change-gets)
