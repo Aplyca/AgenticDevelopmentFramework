@@ -18,7 +18,7 @@ echo "Framework evals"
 echo "========================================"
 
 STATUS=0
-for suite in check-skills.sh test-hooks.sh test-modules.sh; do
+for suite in check-skills.sh test-hooks.sh test-modules.sh test-plugin.sh; do
     "$SCRIPT_DIR/static/$suite" || STATUS=1
 done
 

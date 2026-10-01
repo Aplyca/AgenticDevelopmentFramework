@@ -1,13 +1,14 @@
 # Static evals
 
 Deterministic checks of the framework's own files — zero AI invocation, seconds to run, run in CI on
-every pull request (`.github/workflows/evals.yml`). Three suites, all run by `../run-evals.sh`:
+every pull request (`.github/workflows/evals.yml`). Four suites, all run by `../run-evals.sh`:
 
 | Suite | What it does |
 |---|---|
 | `check-skills.sh` | **Structure** — skills, agents, workflows, settings and hook wiring, instruction files, spec templates, links, modules |
 | `test-hooks.sh` | **Behavior of the guardrail hooks** — feeds real tool events (JSON on stdin, exactly as Claude Code sends them) into `skeleton/.claude/hooks/` against a throwaway repository and checks block / allow |
 | `test-modules.sh` | **Behavior of the module scripts** — the `git-hooks` `pre-push` against a bare remote, and the `parallel-agents` worktree scripts (create, idempotent rerun, env seeding, port reservation under a lock, setup/start, removal), and the `clickup` installer (merges into existing `.mcp.json` and settings, idempotent, keeps customizations, refuses invalid JSON) in throwaway repositories |
+| `test-plugin.sh` | **Behavior of the plugin's scripts** — `/cost-report`'s `session_cost.py` against synthetic transcripts: which folders count, the cost arithmetic, the model tier, and each flag (long context, pauses, browser loops, spec-heavy) |
 
 ## What `check-skills.sh` checks
 
@@ -22,12 +23,14 @@ every pull request (`.github/workflows/evals.yml`). Three suites, all run by `..
 | `settings.json`: valid JSON, alias model, every hook entry nests a `hooks` array, no `$CLAUDE_FILE_PATH`, referenced scripts exist and are executable, outward actions are in `permissions.ask` | The flat hook schema silently never ran; outward actions must need a human |
 | Hook scripts pass `bash -n` | Syntax errors would turn a guardrail into a notice |
 | `CLAUDE.md` imports `AGENTS.md` and carries the stamp line | Without the import, Claude Code never reads `AGENTS.md` when a `CLAUDE.md` exists |
-| `AGENTS.md` covers triage, the approval gate, the change surface, docs first, red before green, change requests, boundaries — in ≤200 lines | The always-loaded contract must be complete and lean |
+| `AGENTS.md` covers triage with the lane, the three lanes, the approval gate, the change surface, docs first, red before green, change requests, sensitive areas, working economically, boundaries — in ≤200 lines | The always-loaded contract must be complete and lean |
 | The git-workflow rule lists the commit prefixes and the draft / outward-action rules | Workflow integrity |
 | Workflow-integrity phrases in `/write-spec`, `/write-plan`, `/implement`, `/write-docs`, `/open-pr` | Removing them silently removes a gate |
 | Spec scaffold: `specs/README.md`, `_templates/{spec,plan,tasks}.md` exist, the legacy template is gone, required frontmatter and sections, the plan's change surface / constitution check / test strategy / documentation plan / assumptions, the tasks' TDD loop and gate results | The templates are the contract every skill reads |
 | Every relative link in `skeleton/` and `modules/*/files/` resolves inside an adopting repository | Framework-only links shipped once and broke in every adopted repo |
 | A module's `settings-fragment.json` pre-approves only MCP tools that read, and its `.mcp.json` carries no credentials | A write tool on the allowlist would post to the client without a prompt |
+| Lanes: `specs/README.md` defines them (triggers, checklists, the developer's call, light change requests); `/triage` decides them; `/review` checks them; `CAREFUL_GLOBS` and the `careful-paths` hook are wired; the spec template has the light form | Ceremony follows risk only while every piece of the routing is in place |
+| Plugin skills have valid frontmatter; plugin scripts compile | The plugin ships to every machine that installs it |
 | Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks | Modules install with `cp -R`; a README would overwrite the target's |
 
 ## Running

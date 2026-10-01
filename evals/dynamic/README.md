@@ -12,6 +12,8 @@ dynamic/
     write-spec/
       <case-name>.input.md         - what to give the AI (prompt + context)
       <case-name>.expected.md      - invariants the output must satisfy
+    triage/
+      ...                          - lane routing: fast, careful, full, sensitive areas, the developer's call
     write-tests/
       ...
     write-docs/

@@ -336,8 +336,12 @@ check_agents_md_workflow() {
     file_contains "$AGENTS_MD" '[Cc]hange request' || missing+=("change requests")
     file_contains "$AGENTS_MD" '[Dd]on.t invent requirements' || missing+=("don't invent requirements")
     file_contains "$AGENTS_MD" '[Bb]oundaries' || missing+=("boundaries section")
+    file_contains "$AGENTS_MD" '\*\*Lane\*\*' || missing+=("lane in the triage")
+    file_contains "$AGENTS_MD" '\*\*Fast\*\*' && file_contains "$AGENTS_MD" '\*\*Careful\*\*' && file_contains "$AGENTS_MD" '\*\*Full\*\*' || missing+=("the three lanes")
+    file_contains "$AGENTS_MD" '^## Sensitive areas' || missing+=("sensitive areas section")
+    file_contains "$AGENTS_MD" '^## Working economically' || missing+=("working economically section")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "AGENTS.md: workflow covers triage, gate, change surface, docs first, red-green, change requests, boundaries"
+        pass "AGENTS.md: workflow covers triage, lanes, gate, change surface, docs first, red-green, change requests, sensitive areas, economy, boundaries"
     else
         fail "AGENTS.md: workflow is missing" "${missing[*]}"
     fi
@@ -558,6 +562,44 @@ PY
     done
 }
 
+check_lanes() {
+    local readme="$SKELETON/specs/README.md" triage="$SKILLS_DIR/triage/SKILL.md" missing=()
+    file_contains "$readme" '^## Lanes' || missing+=("specs/README.md § Lanes")
+    file_contains "$readme" '^### Escalation triggers' || missing+=("specs/README.md § Escalation triggers")
+    file_contains "$readme" '^### Careful-lane checklists' || missing+=("specs/README.md § Careful-lane checklists")
+    file_contains "$readme" '^### The developer decides' || missing+=("specs/README.md § The developer decides")
+    file_contains "$readme" '\*\*Light\*\*' || missing+=("specs/README.md light change request")
+    for lane in fast careful full; do
+        file_contains "$triage" "$lane" || missing+=("/triage: $lane lane")
+    done
+    file_contains "$triage" "developer's call" || missing+=("/triage: the developer's call")
+    file_contains "$SKILLS_DIR/review/SKILL.md" 'Check the lane' || missing+=("/review: lane check")
+    file_contains "$HOOKS_DIR/config.sh" '^CAREFUL_GLOBS=' || missing+=("config.sh: CAREFUL_GLOBS")
+    grep -q 'careful-paths.sh' "$SETTINGS" || missing+=("settings.json: careful-paths hook")
+    file_contains "$TEMPLATES/spec.md" '· light' || missing+=("spec template: light change request")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "lanes: defined in specs/README.md, decided by /triage, checked by /review, enforced for sensitive paths"
+    else
+        fail "lanes: missing" "${missing[*]}"
+    fi
+}
+
+check_plugin() {
+    local plugin="$REPO_ROOT/plugins/aplyca-framework" skill
+    for skill in "$plugin"/skills/*/; do
+        [ -d "$skill" ] && check_skill_frontmatter "$skill"
+    done
+    local script
+    for script in "$plugin"/skills/*/*.py; do
+        [ -f "$script" ] || continue
+        if python3 -m py_compile "$script" 2>/dev/null; then
+            pass "plugin script '$(basename "$script")': compiles"
+        else
+            fail "plugin script '$(basename "$script")': does not compile"
+        fi
+    done
+}
+
 check_marketplace_snippets() {
     # extraKnownMarketplaces is an object keyed by marketplace name; an array is silently ignored,
     # so a team registration copied from the docs would never offer the plugin.
@@ -614,6 +656,8 @@ echo ""
 check_links
 check_modules
 check_marketplace_snippets
+check_lanes
+check_plugin
 
 echo ""
 echo "==========================================="
