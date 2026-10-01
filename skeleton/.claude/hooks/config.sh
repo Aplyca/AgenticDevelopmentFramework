@@ -21,6 +21,10 @@ GENERATED_GLOBS="package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock 
 # the agent confirms the lane. E.g. "src/billing/* src/auth/* supabase/migrations/*". Empty disables.
 CAREFUL_GLOBS=""
 
+# The triage — the lane and why — comes before the first file change. "1" stops the first edit of a
+# session once, as a reminder, when its reply text states no lane yet. Empty disables.
+TRIAGE_FIRST="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""

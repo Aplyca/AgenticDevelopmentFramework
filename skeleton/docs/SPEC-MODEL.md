@@ -201,7 +201,7 @@ references:
 
 1. **Ceremony on changes with nothing to decide.** A typo, a version bump, or a precise adjustment
    the requester already decided needs no spec folder — it takes the fast or careful lane
-   (`specs/README.md` § Lanes), with a light `CR N` entry on delivered work. The test is "is there
+   (`specs/README.md` § Lanes), with a light `CR N` entry when it changes recorded behavior. The test is "is there
    anything to decide, and how risky is the area?", not "is it big?".
 2. **Speculative filling.** Writing Performance and Deployment "just in case" is worse than leaving
    them out. An absent optional section says "this didn't apply"; a guessed one says "we didn't

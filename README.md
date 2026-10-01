@@ -130,7 +130,7 @@ run in every lane; what changes is how much is written down and approved before 
 ```
 task ─▶ /triage ─┬─▶ answer ─────────▶ deliver the answer (no lane, no spec, no environment)
                  ├─▶ FAST lane ──────▶ restate + "done when" → edit → targeted test → /commit
-                 │   (precise request, few files, no risk trigger; light CR N on delivered work)
+                 │   (precise request, few files, no risk trigger; light CR N if recorded behavior changes)
                  ├─▶ CAREFUL lane ───▶ fast + the risk area's checklist + the developer's yes
                  │   (migration, authorization, personal data, shared contract, sensitive area)
                  └─▶ FULL lane — something to decide, a new feature, cross-layer work
@@ -148,7 +148,7 @@ task ─▶ /triage ─┬─▶ answer ─────────▶ deliver t
 
 | Situation | Lane and workflow | Playbook |
 |---|---|---|
-| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided | **Fast** — one-line triage → edit → targeted test → `/commit`; a light `CR N` on delivered work | [Change request § Light or full?](docs/scenarios/change-request.md#light-or-full) |
+| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided | **Fast** — one-line triage → edit → targeted test → `/commit`; a light `CR N` when it changes recorded behavior | [Change request § Light or full?](docs/scenarios/change-request.md#light-or-full) |
 | The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, data, or payments, and the developer's yes | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
 | New feature, unclear requirement, a design choice, cross-layer work | **Full** — `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → `/open-pr` | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
 | Change request with something to decide | **Full** — `/write-spec` amends the folder as `CR N` → the same gate and loop, for the delta only, on a fresh branch | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |

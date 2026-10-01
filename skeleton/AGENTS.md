@@ -27,7 +27,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 
 ### 1. Triage first
 
-Read the task in full — description, comments, attachments — before creating any file or starting anything. Then state in your first message:
+Read the task in full — description, comments, attachments — before creating any branch or file or starting anything. Then state in your first message:
 
 - **Deliverable** — an *answer* (investigation, impact analysis, estimate) or a *change* to the repository.
 - **Kind** — new feature, change request on delivered work, bug or hotfix, refactor, chore, or a change to how we work.

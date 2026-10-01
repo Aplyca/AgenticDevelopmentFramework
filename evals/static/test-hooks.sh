@@ -119,6 +119,17 @@ run careful-paths.sh 2 "$(careful_event s1 "$T/src/api/auth/session.ts")" "stops
 run careful-paths.sh 2 "$(careful_event s2 "$T/src/billing/invoice.ts")" "stops again in a new session"
 run careful-paths.sh 0 "$(careful_event s1 "$T/src/app.ts")" "ignores paths outside the sensitive areas"
 
+# triage-first — the first edit waits for a stated lane, once per session
+printf '%s\n' '{"type":"user","message":{"content":"fix the label"}}' '{"type":"assistant","message":{"content":[{"type":"text","text":"Looking at the form."}]}}' > "$WORK/no-lane.jsonl"
+printf '%s\n' '{"type":"user","message":{"content":"fix the label"}}' '{"type":"assistant","message":{"content":[{"type":"text","text":"Fast lane — the label reads Your email; done when the test passes; files: Form.tsx."}]}}' > "$WORK/lane.jsonl"
+triage_event() { printf '{"tool_name":"Edit","session_id":"%s","transcript_path":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$1" "$2" "$T" "$T/src/app.ts"; }
+run triage-first.sh 2 "$(triage_event t1 "$WORK/no-lane.jsonl")" "stops the first edit when no lane was stated"
+run triage-first.sh 0 "$(triage_event t1 "$WORK/no-lane.jsonl")" "reminds once per session — a nudge, never a lock"
+run triage-first.sh 0 "$(triage_event t2 "$WORK/lane.jsonl")" "lets edits through once a lane is stated"
+run triage-first.sh 0 "$(printf '{"tool_name":"Edit","session_id":"t3","agent_id":"a1","transcript_path":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$WORK/no-lane.jsonl" "$T" "$T/src/app.ts")" "leaves subagents alone"
+echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
+run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
+
 out=$(printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$T" | "$H/session-context.sh")
 if echo "$out" | grep -q 'specs/007-newsletter-signup/ (status: approved)'; then
     PASS=$((PASS+1)); echo "✓ session-context.sh: finds the branch's spec folder and status"

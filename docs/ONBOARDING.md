@@ -81,7 +81,7 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 
 | The task is… | Lane | Do this | Spec folder |
 |---|---|---|---|
-| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` on delivered work |
+| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` when it changes recorded behavior |
 | The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + your yes | None — or a light `CR N` |
 | A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
 | A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
@@ -109,6 +109,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
+| The triage comes before the first file change, in text you can read — a session's first edit with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
 | A person confirms pushes, pull request and issue writes, releases, GitHub API writes | `permissions.ask` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
 | `/open-pr` starts only when a person types it; `/stakeholder-update` also starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |

@@ -35,7 +35,8 @@ implementation; invest in them early.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
    code, contract, infrastructure), run `@security-reviewer` for authorization, data, or payments,
    and get the developer's yes on the risky part.
-5. **Commit** (`/commit`) — on delivered work, with a light `CR N` entry in `spec.md`.
+5. **Commit** (`/commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded
+   behavior (a fix that restores documented behavior needs none).
 6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
    fails, or no test can prove the change.
 7. **Deliver when asked** — a draft pull request stating the lane (`/open-pr`); the human review and

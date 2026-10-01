@@ -32,6 +32,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
 | Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
+| The triage — the lane and why — comes before the first file change, in reply text you can read: the first edit of a session with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 
 Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` runs only when you invoke it. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
 
@@ -39,7 +40,7 @@ Project-specific values (protected branches, append-only paths, the env template
 
 | Change | Lane | Workflow | Model |
 |---|---|---|---|
-| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → edit → targeted test → `/commit`; on delivered work, a light `CR N` in the same commit | `sonnet` |
+| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → edit → targeted test → `/commit`; a light `CR N` in the same commit when it changes recorded behavior | `sonnet` |
 | The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part | `sonnet`, high effort |
 | New feature, unclear requirement, a design choice, cross-layer work, a change request with something to decide | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus` up to the gate; a fresh `sonnet` session from `/write-docs` on |
 | Bug, cause unknown | — | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |

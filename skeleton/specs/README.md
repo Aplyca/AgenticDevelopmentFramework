@@ -20,8 +20,8 @@ lane changes is how much gets written down and approved *before* the code exists
 
 | Lane | When | What happens |
 | --- | --- | --- |
-| **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. About 3 files or fewer, in one layer, and no escalation trigger | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → edit → prove it with a targeted test (for a bug: the regression test fails, then passes) → `/commit`. On delivered work, add a [light change request](#change-requests) in the same commit |
-| **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the developer confirms the risky part before the commit. Still no spec folder: a light change request on delivered work, a regression test for a bug |
+| **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. About 3 files or fewer, in one layer, and no escalation trigger | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → edit → prove it with a targeted test (for a bug: the regression test fails, then passes) → `/commit`. When it changes what a spec records as delivered, add a [light change request](#change-requests) in the same commit; a fix that restores documented behavior needs none |
+| **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the developer confirms the risky part before the commit. Still no spec folder: a light change request when it changes recorded behavior, a regression test for a bug |
 | **Full** | Something to decide: a requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves the design to us. Also a new feature, a new dependency, or work across layers or more than ~3 files | A spec folder and the [flow](#flow) below: spec → plan → tasks → approval gate → docs first → one red → green commit per task → review |
 
 Answers (investigations, impact analyses, estimates) and changes to how the team works (PDRs in
@@ -164,7 +164,19 @@ gets silently dropped or redone. Find the delta first:
      the Delivered → Change row, and any acceptance criterion it adds or changes, tagged `(CR N)` —
      and commit it **with the change it records**. No plan or tasks part and no approval gate: the
      pull request's review approves the diff, and its URL goes into `pull-requests:` as `· CR N`.
-     The status stays `implemented`.
+     The status stays `implemented`. Appended at the end of `spec.md`:
+
+     ```markdown
+     # CR 2 — Email field label (2026-10-08) · light
+
+     - **Requested:** https://tracker.example.com/t/MKT-530 · by Dana (marketing lead)
+
+     | Aspect | Delivered (PR …) | Change |
+     | --- | --- | --- |
+     | Email field label | Fixed text "Email address" | Fixed text "Your email" |
+     ```
+
+     — and the line it changes in place gets `(CR 2)`.
    - **Full** — the request leaves something to decide. Append a `CR N` section (intent + a
      Delivered → Change table), add new ACs tagged `(CR N)`, and append a `# CR N — <title>` part to
      `plan.md` and `tasks.md` covering only the delta — tasks numbered from `T<N>00` (T100 for CR 1),

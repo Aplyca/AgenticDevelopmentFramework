@@ -38,7 +38,7 @@ not a research project.
    | **Kind** | new feature · change request · bug · hotfix · refactor · chore · process change | Prior work from step 2; who reported it; whether production is broken now; whether observable behavior changes |
    | **Lane** (changes) | fast · careful · full | The entry criteria and escalation triggers in `specs/README.md` § Lanes; the paths in `AGENTS.md` § Sensitive areas; the developer's instruction (below) |
    | **Environment** | none · needed for a named step | Only when the next step runs the app, the tests, or the database. Reading code and docs needs none |
-   | **Model** (Claude Code) | `sonnet` · `opus` | `sonnet` when the task has a clear spec and a way to check the result: the fast and careful lanes, bug fixes, investigations, reviews, implementing an approved plan. `opus` for judgment: the full lane's spec and plan, ambiguous or long-horizon work, a bug that resists two hypotheses. Say it only when the session's model doesn't fit — switching right after triage is cheap, while the context is still small |
+   | **Model** (Claude Code) | `sonnet` · `opus` | `sonnet` when the task has a clear spec and a way to check the result: the fast and careful lanes, bug fixes, investigations, reviews, implementing an approved plan. `opus` for judgment: the full lane's spec and plan, ambiguous or long-horizon work, a bug that resists two hypotheses. Name it for every change, and the switch when the session runs on the other model — switching right after triage is cheap, while the context is still small |
    | **Requirements** | sufficient · gaps | List every gap about *what* is wanted as a question; never fill one with a plausible assumption. A gap rules out the fast lane |
 
    **The developer's call** — in the task, the arguments (`/triage <task> careful`), or any message:
@@ -49,11 +49,15 @@ not a research project.
    - Other effort they ask for — questions first, `/evaluate`, extra tests, `@security-reviewer`,
      `/deep-review` — goes into the plan of action as stated.
 
-4. **State the triage in your first message.** For a fast-lane change, one line:
+4. **State the triage in your first message — before you create a branch, a file, or anything
+   else.** Searching and reading come first; changing anything comes after the triage is on the
+   page — in your reply text, where the developer can read and correct it. A triage decided in your
+   thinking doesn't count: nobody sees it. For a fast-lane change, one line:
 
    ```
    Fast lane — make the "Company" field optional on the signup form; done when an empty value submits
-   and the existing validation tests pass; files: SignupForm.tsx, signupSchema.ts, signupSchema.test.ts.
+   and the existing validation tests pass; files: SignupForm.tsx, signupSchema.ts, signupSchema.test.ts;
+   model: sonnet.
    ```
 
    Otherwise, the full form:
@@ -63,6 +67,7 @@ not a research project.
    - Deliverable: change — the signup form must accept a second email field
    - Kind: change request on specs/007-newsletter-signup/ (delivered in <PR link>; this changes AC3)
    - Lane: full — the request leaves open who receives the confirmation (source: triggers)
+   - Model: opus for the spec and plan; after the gate, a fresh sonnet session for /implement
    - Environment: needed later, for the TDD loop — not for planning
    - Open questions: 1) Is the second email optional? 2) Does it receive the confirmation email?
    - Next: /write-spec (CR 2), then /write-plan
@@ -71,8 +76,8 @@ not a research project.
    For the careful lane, name the trigger and its checklist: `Lane: careful — adds a migration
    (trigger); checklist: new file, fresh-database run, compatible with the running code`.
 
-   When the session's model doesn't fit the lane, add one line: `Model: sonnet is enough for this —
-   /model sonnet` (on Opus, fast lane), or `Model: opus for the spec and plan — /model opus; after
+   When the session runs on the other model, say so in that line: `model: sonnet — this session is
+   on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; after
    the gate, a fresh sonnet session for /implement` (on Sonnet, full lane).
 
 5. **Proceed per the triage** without waiting for permission — the developer redirects you if you
@@ -87,7 +92,7 @@ not a research project.
 
 | Triage | Next |
 |---|---|
-| Change · fast lane | Search every use of what you change → edit → targeted test (a bug's regression test fails first) → `/commit`. Delivered work: a light `CR N` entry in the same commit (`/write-spec`, light mode) |
+| Change · fast lane | Search every use of what you change → edit → targeted test (a bug's regression test fails first) → `/commit`. When it changes what a spec records as delivered: a light `CR N` entry in the same commit (`/write-spec`, light mode); a fix that restores documented behavior needs none |
 | Change · careful lane | As fast, plus the area's checklist and `@security-reviewer` for authorization, personal data, or payments; the developer confirms the risky part before the commit |
 | Change · full lane, new feature | `/write-spec` → `/write-plan` → approval gate |
 | Change · full lane, change request | `/write-spec` in amend mode (full `CR N`) → `/write-plan` → approval gate |
@@ -113,7 +118,7 @@ not a research project.
 
 ## Red flags (stop and reassess)
 
-- You have started a build, installed dependencies, or created a spec folder before stating the triage.
+- You have created a branch, started a build, installed dependencies, or created a file before stating the triage.
 - A fast-lane change now touches more files than you stated, or a file in a sensitive area.
 - The task links to delivered work but you found no spec folder — the delta may be unrecoverable; say so and ask.
 - You can't tell whether the deliverable is an answer or a change — ask; it decides everything downstream.
@@ -123,9 +128,9 @@ not a research project.
 
 - [ ] The task was read in full (description, comments, attachments), not just its title
 - [ ] Prior work was searched when the task points at a feature, a tracker task, or delivered work
-- [ ] The first message states the deliverable and, for a change, the lane with its reason and source
+- [ ] The first message states the deliverable and, for a change, the lane with its reason and source, and the model
 - [ ] A fast-lane change states its request, its "done when", and its files
-- [ ] No environment, spec folder, or file was created before the triage was stated
+- [ ] Nothing — no branch, file, spec folder, or environment — was created before the triage was stated
 - [ ] Every gap about what is wanted is a question, not an assumption
 
 ## Principles

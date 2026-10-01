@@ -576,6 +576,8 @@ check_lanes() {
     file_contains "$SKILLS_DIR/review/SKILL.md" 'Check the lane' || missing+=("/review: lane check")
     file_contains "$HOOKS_DIR/config.sh" '^CAREFUL_GLOBS=' || missing+=("config.sh: CAREFUL_GLOBS")
     grep -q 'careful-paths.sh' "$SETTINGS" || missing+=("settings.json: careful-paths hook")
+    file_contains "$HOOKS_DIR/config.sh" '^TRIAGE_FIRST=' || missing+=("config.sh: TRIAGE_FIRST")
+    grep -q 'triage-first.sh' "$SETTINGS" || missing+=("settings.json: triage-first hook")
     file_contains "$TEMPLATES/spec.md" '· light' || missing+=("spec template: light change request")
     if [ ${#missing[@]} -eq 0 ]; then
         pass "lanes: defined in specs/README.md, decided by /triage, checked by /review, enforced for sensitive paths"
