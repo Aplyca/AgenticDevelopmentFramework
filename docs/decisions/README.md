@@ -23,6 +23,7 @@ projects.
 | [0010](0010-model-aliases.md) | Configure models with version-less aliases | accepted |
 | [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted |
 | [0012](0012-choose-the-model-by-the-work.md) | Choose the model by the work — Sonnet for well-specified work, Opus for judgment | accepted |
+| [0013](0013-adapt-practices-not-a-second-workflow.md) | Adapt practices from other skill collections into our skills — never a second workflow | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

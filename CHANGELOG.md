@@ -11,6 +11,67 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Sharper process — practices adapted from a public skills collection
+
+Practices from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT), rewritten into the
+skills, rules, and docs we already have rather than installed beside them
+([0013](docs/decisions/0013-adapt-practices-not-a-second-workflow.md)).
+
+#### Changed
+- **`/debug` and `@debugger` start with a failing signal:**
+  - One command that fails on *this* bug — run, and shown — before any theory. When the cause is
+    plain from the code, the regression test is that command.
+  - Then a shrunk reproduction, and 3–5 ranked hypotheses, each with what would disprove it, shown
+    to the developer and tested one at a time.
+  - Debug logs are tagged so one search removes them; the report adds the signal and what was ruled
+    out.
+  - If no correct level for the regression test exists, that's a finding for the pull request.
+- **Questions come in rounds** (`AGENTS.md` § Working economically; `/triage`, `/write-spec`,
+  `/write-plan`): every question that doesn't depend on another open answer, numbered, each with a
+  recommended answer — so the developer can reply "as recommended". Facts are looked up, not asked.
+- **An opinionated glossary:** `docs/GLOSSARY.md` holds one term per concept, the words to avoid,
+  and no implementation details. `/write-spec` uses its terms and adds new ones as they settle. The
+  naming rule in `code-quality.md` points at it, and `AGENTS.md` reads it whenever anything is named.
+- **Merge danger** in `/open-pr` and the github module's PR template: does a revert undo the change,
+  and what it affects if wrong. `/review` checks it fits the diff.
+- **Tests that can fail** (`.claude/rules/testing.md`, `.cursor/rules/testing.mdc`): expected values
+  from outside the code; checks through the public interface; mocks only at the system boundary.
+- **`/record-decision` has a threshold:** an ADR only when the decision is hard to reverse,
+  surprising without its context, and a real trade-off; every team rule still gets a PDR.
+- **`/triage` checks prior decisions:** for new behavior, *already built?* (search by concept) and
+  *declined before?* (the *Out of scope* sections and decision records, surfaced with their reason).
+- **`COST-MODEL.md` § Between phases:** continue, `/clear`, hand off, hand to an agent, or `/compact` —
+  asked in that order, at a phase boundary.
+- **`/context-audit` and `/deep-context-audit`** also flag:
+  - instructions that change nothing;
+  - copies of what the repository already shows;
+  - material only some tasks need, in an always-loaded file;
+  - a "don't" with no statement of what to do instead.
+
+#### Added — framework-internal
+- Evals:
+  - A static check that these practices stay in place.
+  - A `debug` suite for the session evals: a fixture project runnable with Node's test runner, a
+    clear-cause case, and an unclear-cause case.
+  - A `declined-before` triage case.
+  - `evals/dynamic/run-triage-evals.sh` is now `run-session-evals.sh` (`--suite triage|debug`).
+- The debugging scenario follows the new method; the catalogs and the README's bug diagram match.
+
+#### Upgrade impact
+- **Overwrite:**
+  - Skills: `.claude/skills/{debug,triage,write-spec,write-plan,open-pr,review,record-decision,context-audit,spec-workflow}/SKILL.md`.
+  - Agent: `.claude/agents/debugger/agent.md`.
+  - Rules: `.claude/rules/{testing,code-quality}.md` and `.cursor/rules/testing.mdc`.
+  - `.claude/workflows/deep-context-audit.js` and `docs/COST-MODEL.md`.
+- **Merge:**
+  - `AGENTS.md` — § Working economically gains the question-round and between-phases bullets; the
+    glossary row in § Project documentation changes.
+  - `GEMINI.md` — the glossary row.
+  - `CONTRIBUTING.md` — the glossary and decision-record bullets.
+  - `docs/GLOSSARY.md` — keep your terms; turn *Aliases* into *Avoid*, and move implementation
+    details to `docs/reference/`.
+  - With the github module: `.github/pull_request_template.md` gains § Merge danger.
+
 ### Field-practices reconciliation (`aplyca-framework` 0.2.0)
 
 Practices proven in client projects — some built on this framework, some grown alongside it — reconciled into the skeleton, generalized for any stack, and tested. The rationale for each decision is in [`docs/decisions/`](docs/decisions/README.md).
