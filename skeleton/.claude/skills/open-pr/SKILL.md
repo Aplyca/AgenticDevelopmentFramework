@@ -57,12 +57,18 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    - Verified: <commands run, counts — from tasks.md § Gate results>
    - Not verified: <what you could not check, and why — e.g. "UI on the preview deployment">
 
+   ## Merge danger
+   **Reversible:** yes — reverting the merge undoes it | no — <what a revert leaves changed>
+   **Blast radius:** <who or what is affected if this is wrong — one page, every form, an API's callers>
+
    ## Screenshots
    <before / after for UI changes; delete otherwise>
    ```
 
    Fill checklists honestly: leave a box unchecked and say why, rather than checking something you
-   didn't do or deleting the line.
+   didn't do or deleting the line. **Merge danger** is the reviewer's first read on risk: a
+   migration that drops or rewrites data, a sent email, a published URL or API contract, or a
+   changed external integration is not undone by a revert — say what isn't.
 
 5. **Show the title and body to the developer**, then push and open the draft:
    ```bash
@@ -107,6 +113,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
 - [ ] The description matches the diff — no phantom or missing changes
+- [ ] Merge danger says whether a revert undoes the change and what it affects if wrong
 - [ ] The pull request URL is recorded in `spec.md` `pull-requests:`
 - [ ] No tracker write was made without the developer's explicit yes on the exact text
 

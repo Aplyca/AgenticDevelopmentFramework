@@ -67,7 +67,8 @@ instead: separate reviewers per dimension, each finding independently verified.
     commits or called out in a task commit's body.
 
 12. **Pull request description** (if one exists): it matches the diff — no phantom changes, no
-    omissions, "not verified" items stated honestly.
+    omissions, "not verified" items stated honestly, and a merge danger that fits the diff (a
+    migration or a published contract is not "reversible").
 
 13. **Report** findings by severity, each with `file:line` and a suggested fix:
     - **Critical** — must fix before delivery (security, spec violation, constitution breach, crash)

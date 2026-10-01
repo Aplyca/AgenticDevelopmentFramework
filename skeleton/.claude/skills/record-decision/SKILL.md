@@ -1,6 +1,6 @@
 ---
 name: record-decision
-description: Record a decision as an ADR (about the application — structure, dependencies, interfaces, data, platform) or a PDR (about how the team works — workflow, gates, branching, tooling, requirements flow), keep the index current, supersede or correct earlier records without rewriting them, and update the docs that describe the decision in the same change. Use when a significant technical or process decision is made, or the constitution is amended.
+description: Record a decision as an ADR (about the application — structure, dependencies, interfaces, data, platform) or a PDR (about how the team works — workflow, gates, branching, tooling, requirements flow), keep the index current, supersede or correct earlier records without rewriting them, and update the docs that describe the decision in the same change. Use when a technical decision is hard to reverse, surprising without its context, and a real trade-off — or when a team rule is made or changed, or the constitution is amended.
 argument-hint: "[the decision, in a sentence]"
 ---
 
@@ -18,9 +18,22 @@ rejected alternatives ends the re-argument, or makes the next one faster.
 Borderline — a branching and release model, say — shapes both how code reaches production and how
 people work. Pick one home per project, say so in both indexes, and stay consistent.
 
+## When a record is worth it
+
+- **ADR — when all three hold:** it's **hard to reverse** (changing your mind later costs real
+  work), **surprising without the context** (a future reader would wonder why — and might "fix" it),
+  and **a real trade-off** (there were genuine alternatives). Typical: the architecture's shape, a
+  technology with lock-in, a boundary between modules or services, a deliberate deviation from the
+  obvious path, a constraint the code can't show (compliance, a partner's response-time contract),
+  an alternative that was rejected for reasons someone will forget. If one of the three is missing,
+  skip the record and give the reason in the commit or pull request body.
+- **PDR — every rule the team is expected to follow**, and every change to one. Constitution
+  amendments always.
+
 ## Steps
 
-1. **Classify** the decision (table above). A constitution amendment is always a PDR.
+1. **Classify** the decision (table above) and check it's worth a record (above). A constitution
+   amendment is always a PDR.
 
 2. **Look for related records** in both indexes. Does this supersede one (fully or in part), correct
    one, or depend on one? Read them.
@@ -63,6 +76,7 @@ people work. Pick one home per project, say so in both indexes, and stay consist
 | Agent says... | Why it's wrong |
 |---|---|
 | "It's a small process tweak — no record needed" | Process rules get re-argued exactly like architecture. A one-page record costs minutes; the next debate costs hours. |
+| "Let's record every technical choice we made" | Records nobody needs bury the ones that matter. An easy-to-reverse, unsurprising choice with no real alternative gets a line in the commit body, not an ADR. |
 | "I'll update the old record to reflect the new decision" | Records are append-only. Rewriting history erases why the old decision made sense — supersede it instead. |
 | "There are no real downsides to list" | Every decision has a cost. Leaving it out makes the record read as advocacy, and nobody trusts it. |
 | "I'll fix AGENTS.md and the other docs later" | A decision recorded in one place and contradicted in another is worse than none. Same change. |
@@ -79,6 +93,7 @@ people work. Pick one home per project, say so in both indexes, and stay consist
 ## Verification
 
 - [ ] Classified correctly — ADR (application) or PDR (process); amendments are PDRs
+- [ ] An ADR passes the threshold: hard to reverse, surprising without context, a real trade-off
 - [ ] Uses the template, with the next free number, and is listed in the index
 - [ ] Context cites evidence; consequences include the cost; alternatives explain each rejection
 - [ ] Superseded records changed only their status line; corrections are dated notes

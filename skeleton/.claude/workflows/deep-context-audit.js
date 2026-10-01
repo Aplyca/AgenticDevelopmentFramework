@@ -97,7 +97,7 @@ const checked = await pipeline(files, (file) =>
 - What it says hooks, CI, and git hooks do matches the scripts and workflow files.
 - Enforcement claims ("required", "protected", "blocked"): check what you can read-only; report the rest as UNVERIFIED, never as true.
 - Versions and environment variables match the version files, manifests, and env template.
-- Hygiene: owner/last_updated/scope metadata present and not older than the file's last meaningful change (git log -1 --format=%cs -- ${file}); leftover template placeholders; generic advice; over ~200 lines for always-loaded files.
+- Hygiene: owner/last_updated/scope metadata present and not older than the file's last meaningful change (git log -1 --format=%cs -- ${file}); leftover template placeholders; generic advice; over ~200 lines for always-loaded files; instructions the agent follows by default anyway; copies of what one command or file already shows (script lists, trees, versions); material only some tasks need in an always-loaded file; a "don't" with no statement of what to do instead.
 Also extract every POLICY statement it makes (base branch, protected branches, merge method, release process, review rule, pull request draft/ready state, commit convention, branch naming, when a spec is required, the approval gate, outward actions), with line numbers.`,
     { label: `check:${file}`, phase: 'Check', schema: FILE_SCHEMA },
   ),

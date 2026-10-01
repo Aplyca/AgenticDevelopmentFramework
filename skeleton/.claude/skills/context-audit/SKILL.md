@@ -64,7 +64,16 @@ agent tool, not only Claude Code.
     whose linked code has moved.
 11. **Bloat** — always-loaded files over ~200 lines; the same rule stated in several files (each copy
     drifts separately); generic advice ("follow best practices") that guides nothing; leftover
-    template placeholders (`[...]`, `TODO(team)`).
+    template placeholders (`[...]`, `TODO(team)`). Also:
+    - **No-ops** — an instruction the agent already follows by default. The test is whether
+      behavior would change without it; a sentence that fails is deleted, not trimmed.
+    - **Copies of the repository** — a list of scripts, a directory tree, versions, or config values
+      that one command or one file already shows. They go stale; keep only what can't be looked up
+      (an unwritten convention, the reason behind a choice, a gotcha no config admits).
+    - **In the wrong tier** — material in an always-loaded file that only some tasks need belongs in
+      a doc read on demand, behind a pointer that says *when* to read it ("Read `docs/X.md` before
+      changing the payment flow"), not a bare "see X".
+    - **Prohibitions without the target** — "don't do X" with no statement of what to do instead.
 
 ### Phase 5: Report
 

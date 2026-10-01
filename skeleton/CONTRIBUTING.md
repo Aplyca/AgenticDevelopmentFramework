@@ -128,8 +128,8 @@ Prefixes and their order: `.claude/rules/git-workflow.md`.
 ## Documentation
 
 - Update docs in the same pull request when a change affects architecture, APIs, or setup
-- Add domain terms to [docs/GLOSSARY.md](docs/GLOSSARY.md)
-- Record significant decisions: technical ones as ADRs (`docs/architecture/decisions/`), process ones as PDRs (`docs/process/`)
+- Add domain terms to [docs/GLOSSARY.md](docs/GLOSSARY.md) when they're settled — one term per concept, with the words to avoid
+- Record decisions: technical ones as ADRs (`docs/architecture/decisions/`) when they're hard to reverse, surprising without their context, and a real trade-off; process ones as PDRs (`docs/process/`)
 
 ## Questions?
 

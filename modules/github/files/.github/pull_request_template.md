@@ -31,6 +31,14 @@
 - Verified:
 - Not verified:
 
+## Merge danger
+
+<!-- The reviewer's first read on risk. A migration that drops or rewrites data, a sent email, a
+     published URL or API contract, or a changed external integration is not undone by a revert. -->
+
+**Reversible:** <!-- yes — reverting the merge undoes it | no — what a revert leaves changed -->
+**Blast radius:** <!-- who or what is affected if this is wrong — one page, every form, an API's callers -->
+
 ## Screenshots
 
 <!-- UI changes: before / after. Delete this section otherwise. -->
