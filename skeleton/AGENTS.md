@@ -106,11 +106,11 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 
 Every call re-reads the whole conversation, so cost and time grow with how long a session runs and how much it has printed.
 
-- **One task per session** — `/clear` before the next one.
+- **One task per session** — `/clear` before the next one. Between phases of one task, continue while the next phase needs this conversation as it happened; otherwise clear, hand off, or compact (`docs/COST-MODEL.md` § Between phases).
 - **Keep output small** — quiet test reporters, `| tail -n 40`, read the lines you need; whatever a command prints stays in context.
 - **Targeted tests while iterating; the full gate once**, before delivery.
 - **Browser checks only when asked or for a visual change** — the human QC on the preview is the real check.
-- **Ask blocking questions together, in one message.** Ask about *what* is wanted; state minor implementation choices as assumptions in the pull request instead of waiting.
+- **Ask questions in rounds.** A round holds every question that doesn't depend on another open answer, numbered, each with your recommended answer and why — so the developer can reply "as recommended" or correct one. Look facts up yourself (code, docs, the tracker) instead of asking. Ask about *what* is wanted; state minor implementation choices as assumptions in the pull request instead of waiting.
 
 ## AI interaction rules
 
@@ -159,7 +159,7 @@ Read the relevant doc before deciding anything in its area. When a doc contradic
 | `docs/infrastructure/OVERVIEW.md` | Changing deployment, CI/CD, environments |
 | `docs/getting-started/DEV-SETUP.md` | Setting up or troubleshooting the dev environment |
 | `docs/TRACKER-INTEGRATION.md` | Reading or writing tracker tasks |
-| `docs/GLOSSARY.md` | Writing specs, docs, or user-facing text |
+| `docs/GLOSSARY.md` | Naming anything — in specs, code, tests, docs, or user-facing text |
 | `docs/COST-MODEL.md` · `docs/MEMORY-STRATEGY.md` | Choosing a model tier · deciding where a piece of knowledge belongs |
 
 ## Project structure

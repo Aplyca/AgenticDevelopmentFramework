@@ -46,6 +46,23 @@ comes next, in `plan.md`, from `/write-plan` — which also holds the approval g
    - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)?
    - **Observability / Deployment** — logs, metrics, alerts; env vars, migrations, rollout, rollback?
 
+   **Ask in rounds** (`AGENTS.md` § Working economically). A round holds every question that doesn't
+   depend on another open answer — numbered, each with your recommended answer and why; the answers
+   decide the next round. Look up what the code, the docs, or the tracker can tell you instead of
+   asking. Stop when nothing is left silently assumed.
+
+   ```
+   1. When the address is already subscribed, show the usual success message or say so?
+      → Recommended: the usual message — saying so reveals who is on the list (Privacy).
+   2. Does the form appear only in the article footer, or also in the blog sidebar?
+      → Recommended: the footer only; the sidebar goes to Out of scope for this iteration.
+   ```
+
+   **Use the project's words.** Name concepts with the terms in `docs/GLOSSARY.md`. When the request
+   uses a word the glossary lists under *Avoid*, or one word for two concepts, say which term you'll
+   use or ask which is meant; when a new domain term is settled, add it to the glossary in the same
+   change.
+
    Record every question and answer in **Clarifications**, with the date and who answered.
 
 5. **Create the folder** on the work branch `<type>/<slug>` (create it from the base branch if you're
@@ -129,6 +146,7 @@ comes next, in `plan.md`, from `/write-plan` — which also holds the approval g
 - [ ] Requirements came from the tracker task or the requester — none invented
 - [ ] Every acceptance criterion is numbered and testable by an automated test
 - [ ] Clarifications record every ambiguity resolved, with date and who
+- [ ] Concepts use the glossary's terms; a newly settled domain term was added to `docs/GLOSSARY.md`
 - [ ] Edge cases cover empty states, error states, and boundaries
 - [ ] Out of scope excludes adjacent features explicitly
 - [ ] All always-required sections are filled; conditional ones filled or Not applicable with a reason

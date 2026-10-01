@@ -14,7 +14,7 @@ For the routing decision (skill vs agent vs workflow), see **Skills, agents, and
 | `@security-reviewer` | Audits for injection, credential exposure, loosened authorization, unsafe data handling, and OWASP-style issues | Read-only | Sonnet |
 | `@test-runner` | Writes the tests a spec folder's tasks name, runs them red for the right reason before the code exists and green after, and reports the evidence for the gate results | Full edit + Bash | Sonnet |
 | `@architect` | Reviews a plan's architecture, change surface, data flow, component boundaries, and system design | Read-only | Opus |
-| `@debugger` | Root cause analysis for errors, failures, and unexpected behavior | Read + Bash (no edit) | Sonnet |
+| `@debugger` | Root cause analysis for errors, failures, and unexpected behavior — a failing signal first, then ranked hypotheses | Read + Bash (no edit) | Sonnet |
 | `@ux-reviewer` | Reviews UI against specs and UX standards — layout, flow, consistency, accessibility basics, user-facing text | Read-only | Sonnet |
 
 ## Why agents vs skills

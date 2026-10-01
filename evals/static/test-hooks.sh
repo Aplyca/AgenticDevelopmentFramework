@@ -127,6 +127,12 @@ run triage-first.sh 2 "$(triage_event t1 "$WORK/no-lane.jsonl")" "stops the firs
 run triage-first.sh 0 "$(triage_event t1 "$WORK/no-lane.jsonl")" "reminds once per session — a nudge, never a lock"
 run triage-first.sh 0 "$(triage_event t2 "$WORK/lane.jsonl")" "lets edits through once a lane is stated"
 run triage-first.sh 0 "$(printf '{"tool_name":"Edit","session_id":"t3","agent_id":"a1","transcript_path":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$WORK/no-lane.jsonl" "$T" "$T/src/app.ts")" "leaves subagents alone"
+triage_bash() { printf '{"tool_name":"Bash","session_id":"%s","transcript_path":"%s","cwd":"%s","tool_input":{"command":%s}}' "$1" "$2" "$T" "$(printf '%s' "$3" | json_string)"; }
+run triage-first.sh 0 "$(triage_bash b1 "$WORK/no-lane.jsonl" 'git status && git branch --show-current')" "ignores Bash commands that create no branch"
+run triage-first.sh 2 "$(triage_bash b1 "$WORK/no-lane.jsonl" 'git switch -c fix/label')" "stops a new branch when no lane was stated"
+run triage-first.sh 0 "$(triage_event b1 "$WORK/no-lane.jsonl")" "one reminder per session — the edit after it passes"
+run triage-first.sh 2 "$(triage_bash b2 "$WORK/no-lane.jsonl" 'cd repo && git checkout -b fix/label')" "catches git checkout -b inside a compound command"
+run triage-first.sh 0 "$(triage_bash b3 "$WORK/lane.jsonl" 'git switch -c fix/label')" "lets a new branch through once a lane is stated"
 echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
 run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
 

@@ -17,6 +17,12 @@ paths:
 - Mock ALL external API responses. Use your framework's mocking approach (route interception, MSW, test doubles, dependency injection, etc.).
 - Never rely on real external services (databases, APIs, email servers) during tests.
 - Mock responses must return realistic data structures matching actual API contracts.
+- **Mock only at the system boundary** — external services, the clock, randomness. Your own modules run for real: a test that mocks internal collaborators breaks on every refactor and proves only the wiring.
+
+## Tests that can fail
+- **Expected values come from outside the code** — a literal, a worked example, the spec. A test that recomputes the expected value the way the code does (`expect(total(items)).toBe(items.reduce(sum))`) passes by construction and can never disagree with the code.
+- **Verify through the public interface** — call the module and check what it returns or does. Querying its database directly or asserting which internal function was called couples the test to the implementation: it breaks when behavior hasn't changed.
+- **Assert the behavior the spec names**, not that the code ran: "the 11th signup in a minute is rejected", not "no error was thrown".
 
 ## File organization
 - One test file per feature area or module.

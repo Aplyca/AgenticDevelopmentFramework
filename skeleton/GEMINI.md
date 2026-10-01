@@ -46,5 +46,5 @@ If this project uses Antigravity's `.agent/` directory:
 | `docs/ARCHITECTURE.md` | Designing features, reviewing data flow |
 | `docs/security/SECURITY.md` | Touching auth, data handling, endpoints |
 | `docs/infrastructure/OVERVIEW.md` | Changing deployment, CI/CD, environments |
-| `docs/GLOSSARY.md` | Writing specs or user-facing text |
+| `docs/GLOSSARY.md` | Naming anything — in specs, code, tests, docs, or user-facing text |
 | `docs/architecture/decisions/` · `docs/process/` | Making or revisiting a technical (ADR) or process (PDR) decision |

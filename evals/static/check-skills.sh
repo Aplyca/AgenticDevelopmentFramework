@@ -577,12 +577,38 @@ check_lanes() {
     file_contains "$HOOKS_DIR/config.sh" '^CAREFUL_GLOBS=' || missing+=("config.sh: CAREFUL_GLOBS")
     grep -q 'careful-paths.sh' "$SETTINGS" || missing+=("settings.json: careful-paths hook")
     file_contains "$HOOKS_DIR/config.sh" '^TRIAGE_FIRST=' || missing+=("config.sh: TRIAGE_FIRST")
-    grep -q 'triage-first.sh' "$SETTINGS" || missing+=("settings.json: triage-first hook")
+    python3 - "$SETTINGS" <<'PY' || missing+=("settings.json: triage-first hook on Edit|Write|MultiEdit and Bash")
+import json, sys
+pre = json.load(open(sys.argv[1]))["hooks"]["PreToolUse"]
+wired = {e["matcher"] for e in pre for h in e["hooks"] if h["command"].endswith("triage-first.sh")}
+sys.exit(0 if {"Bash", "Edit|Write|MultiEdit"} <= wired else 1)
+PY
     file_contains "$TEMPLATES/spec.md" '· light' || missing+=("spec template: light change request")
     if [ ${#missing[@]} -eq 0 ]; then
         pass "lanes: defined in specs/README.md, decided by /triage, checked by /review, enforced for sensitive paths"
     else
         fail "lanes: missing" "${missing[*]}"
+    fi
+}
+
+check_practices() {
+    local missing=()
+    file_contains "$SKILLS_DIR/debug/SKILL.md" 'Get a failing signal' || missing+=("/debug: failing signal first")
+    file_contains "$SKILLS_DIR/debug/SKILL.md" 'Rank 3–5 hypotheses' || missing+=("/debug: ranked hypotheses")
+    file_contains "$SKILLS_DIR/debug/SKILL.md" 'DEBUG-' || missing+=("/debug: tagged debug logs")
+    file_contains "$AGENTS_MD" 'Ask questions in rounds' || missing+=("AGENTS.md: question rounds")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Ask in rounds' || missing+=("/write-spec: question rounds")
+    file_contains "$SKELETON/docs/GLOSSARY.md" '\*\*Avoid:\*\*' || missing+=("GLOSSARY.md: Avoid list")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '## Merge danger' || missing+=("/open-pr: merge danger")
+    file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '## Merge danger' || missing+=("PR template: merge danger")
+    file_contains "$SKELETON/.claude/rules/testing.md" 'Expected values come from outside the code' || missing+=("testing rule: independent expected values")
+    file_contains "$SKILLS_DIR/record-decision/SKILL.md" 'hard to reverse' || missing+=("/record-decision: threshold")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" 'Declined before' || missing+=("/triage: declined-before check")
+    file_contains "$SKELETON/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold"
+    else
+        fail "practices: missing" "${missing[*]}"
     fi
 }
 
@@ -670,6 +696,7 @@ check_links
 check_modules
 check_marketplace_snippets
 check_lanes
+check_practices
 check_plugin
 check_no_tracked_junk
 

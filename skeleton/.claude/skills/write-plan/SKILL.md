@@ -42,7 +42,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Data model & contracts** — new migrations (never edits to existing ones), API or contract changes, environment variables (declared in the env template), CMS model changes.
    - **Test strategy** — every acceptance criterion, edge case, and testable requirement from Security, Accessibility, Performance, Privacy, Analytics, and Localization mapped to a named test.
    - **Documentation plan** — from spec § Documentation: pre-implementable docs become Phase 1 tasks; post-implementable ones Phase 5.
-   - **Rollout, risks, assumptions, open questions.** Every assumption you are relying on is written down — an unstated assumption is how an invented requirement gets in.
+   - **Rollout, risks, assumptions, open questions.** Every assumption you are relying on is written down — an unstated assumption is how an invented requirement gets in. Ask the open questions in rounds, each with your recommended answer (`AGENTS.md` § Working economically); name modules and concepts with the terms in `docs/GLOSSARY.md`.
 
 ## Phase 2: Tasks (`tasks.md`)
 

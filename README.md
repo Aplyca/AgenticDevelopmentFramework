@@ -241,7 +241,7 @@ flowchart TD
     prod -->|yes| hotfix["Careful lane, without delay<br/>root cause · regression test · fix · ship<br/>backfill the spec after"]
     prod -->|no| clear{"Cause clear?"}
     clear -->|yes| fastfix["Fast lane<br/>regression test fails · fix · it passes · /commit"]
-    clear -->|no| debug["/debug — symptom, trace, root cause<br/>sonnet; opus after two disproven hypotheses"]
+    clear -->|no| debug["/debug — a command that fails on the bug,<br/>ranked hypotheses, the root cause<br/>sonnet; opus after two disproven hypotheses"]
     debug --> fix{"The fix…"}
     fix -->|restores documented behavior| fastfix
     fix -->|touches a risk area| carefulfix["Careful lane"]
