@@ -128,7 +128,7 @@ Fill the first line of `CLAUDE.md`:
 
 ```bash
 git add AGENTS.md CLAUDE.md .claude/ specs/ docs/ CONTRIBUTING.md README.md .claudeignore  # plus tool layers and modules you kept
-git commit -m "docs: adopt AI-assisted development framework (skeleton <SHA>)"
+git commit -m "docs: adopt the Agentic Development Framework (skeleton <SHA>)"
 ```
 
 Open the pull request as a draft; merge after review like any other change.

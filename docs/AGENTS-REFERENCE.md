@@ -1,6 +1,6 @@
 # Agents reference
 
-The AI-Assisted Development Framework ships eight specialized agents in `skeleton/.claude/agents/`. Adopting projects copy them verbatim and invoke them with `@agent-name` in Claude Code. All agents are generic — they learn project specifics from the project's `AGENTS.md`, `CLAUDE.md`, and `.claude/rules/` at runtime.
+The Agentic Development Framework ships eight specialized agents in `skeleton/.claude/agents/`. Adopting projects copy them verbatim and invoke them with `@agent-name` in Claude Code. All agents are generic — they learn project specifics from the project's `AGENTS.md`, `CLAUDE.md`, and `.claude/rules/` at runtime.
 
 For the routing decision (skill vs agent vs workflow), see **Skills, agents, and workflows** in `skeleton/CLAUDE.md`. For model-tier rationale, see `skeleton/docs/COST-MODEL.md`.
 

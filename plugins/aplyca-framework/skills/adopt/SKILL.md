@@ -3,7 +3,7 @@ name: adopt
 description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Also adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
 ---
 
-# Adopt the AI-Assisted Development Framework
+# Adopt the Agentic Development Framework
 
 Bring a repository to "Context & Harness" maturity: committed, multi-tool AI configuration
 (`AGENTS.md`, tool layers, rules, hooks, spec-folder scaffold) derived from **verified facts about
@@ -148,7 +148,7 @@ GAPs go in the PR description; they're findings, not failures to hide.
 
 ## Step 7 — Deliver
 
-1. Commit on the feature branch: `docs: adopt AI-assisted development framework (skeleton <SHA>)`.
+1. Commit on the feature branch: `docs: adopt the Agentic Development Framework (skeleton <SHA>)`.
 2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, open TODOs as
    a checklist, verification results.
 3. Push and open the PR **as a draft, only after the user approves**.

@@ -594,7 +594,7 @@ check_plugin() {
     local script
     for script in "$plugin"/skills/*/*.py; do
         [ -f "$script" ] || continue
-        if python3 -m py_compile "$script" 2>/dev/null; then
+        if python3 -c 'import sys; compile(open(sys.argv[1], encoding="utf-8").read(), sys.argv[1], "exec")' "$script" 2>/dev/null; then
             pass "plugin script '$(basename "$script")': compiles"
         else
             fail "plugin script '$(basename "$script")': does not compile"
@@ -612,6 +612,17 @@ check_marketplace_snippets() {
         pass "extraKnownMarketplaces snippets use the object form"
     else
         fail "extraKnownMarketplaces must be an object keyed by marketplace name: $hits"
+    fi
+}
+
+check_no_tracked_junk() {
+    git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    local hits
+    hits=$(git -C "$REPO_ROOT" ls-files | grep -E '(^|/)__pycache__/|\.py[cod]$|(^|/)\.DS_Store$|(^|/)Thumbs\.db$|\.swp$|(^|/)\.claude/settings\.local\.json$|(^|/)\.claude/worktrees/|(^|/)\.env(\.[^/]*)?$' | grep -v '\.env\.example$' | tr '\n' ' ')
+    if [ -z "$hits" ]; then
+        pass "no bytecode, OS files, local settings, worktrees, or env files are committed"
+    else
+        fail "committed files that .gitignore should keep out: $hits"
     fi
 }
 
@@ -660,6 +671,7 @@ check_modules
 check_marketplace_snippets
 check_lanes
 check_plugin
+check_no_tracked_junk
 
 echo ""
 echo "==========================================="

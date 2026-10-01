@@ -36,4 +36,4 @@ evals/
 
 ## Reference
 
-The AI-Assisted Development Framework that ships this skeleton uses the same two-tier pattern internally to verify its own skills, rules, and spec template. If you want a worked example to copy from, see the `evals/` directory in that source repository.
+The Agentic Development Framework that ships this skeleton uses the same two-tier pattern internally to verify its own skills, rules, and spec template. If you want a worked example to copy from, see the `evals/` directory in that source repository.

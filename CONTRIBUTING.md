@@ -1,4 +1,4 @@
-# Contributing to the AI-Assisted Development Framework
+# Contributing to the Agentic Development Framework
 
 Thanks for helping improve the framework. This repository is not an application — it is a portable skeleton, optional modules, documentation, and the `aplyca-framework` Claude Code plugin. Its "code" is mostly prompts, rules, and templates that end up inside other teams' repositories, so a one-line change here changes how many AI agents behave. The guidelines below exist to keep those changes safe to adopt.
 
