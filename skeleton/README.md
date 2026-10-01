@@ -53,6 +53,8 @@ agents working under the same rules as people:
 1. **Triage** — read the task in full; decide what it needs before setting anything up, including
    its **lane**: fast (a precise change — edit, prove it with a test, commit), careful (the same in a
    risk area, plus its checklist and a confirmation), or full (something to decide — the steps below).
+   In Claude Code it also names the model: Sonnet for work with a clear spec and a way to check it,
+   Opus for the full lane's spec and plan (`CLAUDE.md` § Lanes).
 2. **Spec folder** (full lane) — `specs/NNN-<slug>/`: requirements from every role (`spec.md`), the
    plan and its change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
 3. **Approval gate** — scope, change surface, and assumptions are signed off before implementation.
