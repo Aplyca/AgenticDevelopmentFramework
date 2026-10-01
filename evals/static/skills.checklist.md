@@ -12,10 +12,10 @@ behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no
 - [ ] Discipline skills have `## Rationalizations (do not accept these)` with ≥4 rows and `## Verification` with ≥4 checkboxes
 
 Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-docs`, `implement`,
-`review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `client-update`,
+`review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
 `record-decision`, `context-audit`, `dispatch`.
 
-- [ ] `/open-pr` and `/client-update` set `disable-model-invocation: true`
+- [ ] `/open-pr` sets `disable-model-invocation: true`; `/stakeholder-update` shows the draft and asks before posting when nobody asked for it
 
 ## Agents and workflows
 

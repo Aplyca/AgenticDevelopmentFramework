@@ -54,7 +54,7 @@ Skills run in your main AI conversation, so they use whatever model your AI tool
 | `/debug` | Sonnet | Root cause analysis. Escalate to Opus for tricky bugs (race conditions, distributed-system issues, anything you've tried to fix twice) |
 | `/refactor` | Sonnet | Pattern extraction + maintaining test parity |
 | `/commit` | **Haiku** | Drafting a commit message from a diff is well-bounded — Haiku handles it fine |
-| `/open-pr`, `/client-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
+| `/open-pr`, `/stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
 | `/record-decision`, `/context-audit`, `/spec-drift` | Sonnet | Reading and comparing many files; precision matters more than depth |
 | `/evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
 | `/spec-workflow` | n/a | Reference doc, no AI invocation |

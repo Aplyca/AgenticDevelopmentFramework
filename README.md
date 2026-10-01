@@ -15,7 +15,7 @@ Most of what's here was proven in real client projects first — some built on t
 
 - **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](skeleton/docs/SPEC-MODEL.md))
 - **One approval gate on the change surface** — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
-- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the client update, decision records, context and drift audits, and more (`/dispatch` comes with a module). ([Catalog](docs/SKILLS-REFERENCE.md))
+- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, decision records, context and drift audits, and more (`/dispatch` comes with a module). ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents** — including `@spec-analyzer`, which adversarially checks a spec folder before the gate. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
 - **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Each push and pull-request action needs a human to confirm it, and `.env` files are never read.
@@ -44,7 +44,7 @@ Most of what's here was proven in real client projects first — some built on t
    the baseline version at the top of `CLAUDE.md`, verifies the hooks and the `@AGENTS.md` import, and
    prepares a **draft pull request** on its own branch. It never commits to your default branch.
 3. **Finish what only the team knows** in that pull request: the remaining `[PLACEHOLDER]`s, the
-   constitution's principles, and the client-update settings in `docs/TRACKER-INTEGRATION.md`
+   constitution's principles, and the stakeholder-update settings in `docs/TRACKER-INTEGRATION.md`
    (live site, previews, CMS entry links, task statuses). Then review and merge it like any change.
 4. **Optional — the whole team:** let `/adopt` register the marketplace in the project's
    `.claude/settings.json`, so every teammate is offered the plugin (and `/upgrade`) when they trust
@@ -135,12 +135,12 @@ task ─▶ /triage ─┬─▶ answer only ───────────�
                         │
    /review (or /deep-review) ──▶ /open-pr (draft, when asked) ──▶ human QC ──▶ ready ──▶ merge
                         │
-   /client-update (when asked) — the client's update, posted on the PR for the team to relay
+   /stakeholder-update ("update the client") — drafted, shown, posted on the PR for the team to relay
 ```
 
 | Situation | Workflow | Playbook |
 |---|---|---|
-| New feature or behavior change | `/triage` → `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → `/open-pr` → `/client-update` | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
+| New feature or behavior change | `/triage` → `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → `/open-pr` → `/stakeholder-update` | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
 | Change request on delivered work | `/triage` finds the spec folder and the delta → `/write-spec` amends it as `CR N` → the same gate and loop, for the delta only, on a fresh branch | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
 | Investigation, impact analysis, estimate | `/triage` → the answer, where the task asks for it — no spec, no environment | [Answer-only task](docs/scenarios/answer-only-task.md) |
 | Bug | `/debug` → regression test (red) → fix (green) → `/commit`; a behavior change becomes a change request | [Debugging](docs/scenarios/debugging.md) |

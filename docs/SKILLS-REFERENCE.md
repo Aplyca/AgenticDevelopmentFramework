@@ -25,7 +25,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/review` | Review against the spec folder: acceptance criteria and every filled section, change-surface compliance, constitution, conventions (including the comments rule), security, UX, test evidence, doc accuracy, PR description vs diff. |
 | `/commit` | One clean commit: the spec folder, a doc, or one task (test and code together). Stages by name, never bypasses hooks, never pushes. |
 | `/open-pr` | **User-invoked only.** Push and open a **draft** pull request naming the spec folder and tracker task, with what was and wasn't verified. Never marks it ready. |
-| `/client-update` | **User-invoked only.** Draft the client-facing update for a tracker task (why, what, status in the project's words, verified findings, direct questions), show it, and post it on the pull request for the team to relay; the tracker only when the developer asks. Project settings — links, CMS entries, task statuses — live in `docs/TRACKER-INTEGRATION.md`. |
+| `/stakeholder-update` | **Starts from a plain request** ("update the client", "reply on the task") or by name. Draft the client-facing update for a tracker task (why, what, status in the project's words, verified findings, direct questions), show it, and post it on the pull request for the team to relay; the tracker only when the developer asks. Project settings — links, CMS entries, task statuses — live in `docs/TRACKER-INTEGRATION.md`. |
 
 ## Reference and setup skills
 
@@ -68,5 +68,6 @@ the skill they extend; use them where coverage and confidence are worth it.
 
 Projects can add their own skills in `.claude/skills/` (project-owned; never touched by upgrades).
 Use hyphenated frontmatter keys — `argument-hint`, `disable-model-invocation`, `user-invocable` —
-because unknown keys are silently ignored, and give skills that act outside the machine
-`disable-model-invocation: true`. Document custom skills in the project's own docs.
+because unknown keys are silently ignored. Give a skill that acts outside the machine as soon as it
+runs `disable-model-invocation: true`; one that only drafts until a person approves can start from
+a plain request, with the posting command behind `permissions.ask`. Document custom skills in the project's own docs.

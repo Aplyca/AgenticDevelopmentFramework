@@ -15,7 +15,7 @@ every pull request (`.github/workflows/evals.yml`). Three suites, all run by `..
 |---|---|
 | Every skill has frontmatter with `name` (matching its directory) and a meaningful `description` | Required to load; the description routes invocation |
 | Frontmatter keys are hyphenated (`argument-hint`, `disable-model-invocation`, `user-invocable`) — never `user_invocable` and the like | Unknown keys are silently ignored; this defect shipped once |
-| Skills with outward side effects (`/open-pr`, `/client-update`) set `disable-model-invocation: true` | They act outside the machine only when a human invokes them |
+| `/open-pr` sets `disable-model-invocation: true`; `/stakeholder-update`, which can start from a plain request, shows its draft and asks before posting when nobody asked for it | Nothing leaves the machine unless a human asked for it |
 | Every skill has `## Steps`, `## Phase`, or `## Workflow` sections; discipline skills have a Rationalizations table (≥4 rows) and a Verification checklist (≥4 items) | Explicit steps and anti-rationalization are the main defenses against agent drift |
 | Agents: `name` matches the directory, a meaningful description, `model` is an alias, `inherit`, or a full ID | Loadable, routable, and future-proof |
 | Workflows: `meta` is a pure literal with a matching name and a description, phase titles match, no `Date.now()` / `Math.random()`, the script parses | Workflows fail at load or break resume otherwise |

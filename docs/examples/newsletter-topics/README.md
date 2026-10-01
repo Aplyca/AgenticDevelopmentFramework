@@ -476,7 +476,7 @@ included, and asked the agent to push the link commit and mark the pull request 
 ## Step 9 — Close the loop
 
 ```
-/client-update MKT-412 187
+/stakeholder-update MKT-412 187
 ```
 
 > **For the team:** suggested reply for the tracker task [Newsletter signup on article pages](https://tracker.example.com/t/MKT-412).

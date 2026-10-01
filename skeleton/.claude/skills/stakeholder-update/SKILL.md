@@ -1,11 +1,10 @@
 ---
-name: client-update
-description: Draft the client-facing update for a tracker task once its pull request is open or merged — why it wasn't working or what was needed, what was done, its status, verified findings, and direct questions, in the client's terms — and post it on the pull request so the team can relay it. Posts on the tracker only when the developer asks. Use when asked to update the client, reply on the tracker task, or write the final message to the client or requester.
+name: stakeholder-update
+description: Draft the client-facing update for a tracker task once its pull request is open or merged — why it wasn't working or what was needed, what was done, its status, verified findings, and direct questions, in the client's terms — show it, and post it on the pull request so the team can relay it. Posts on the tracker only when the developer asks. Use when asked to update the client, stakeholder, or requester, to reply on the tracker task, to tell the client what was done, or to write the final message to the client.
 argument-hint: "[tracker task link or ID] [pull request number]"
-disable-model-invocation: true
 ---
 
-# Client Update
+# Stakeholder Update
 
 Write the message that tells the client what was done on their tracker task. "Client" means whoever
 asked for the work — a customer, a product owner, another team. The team relays the message, so the
@@ -20,7 +19,7 @@ Read these before writing; they hold what this skill doesn't hardcode:
 
 - **Status words** — `CONTRIBUTING.md` § Status words for requesters (mapped to the branching model).
 - **Links the client can act on, and the tracker's valid statuses** — `docs/TRACKER-INTEGRATION.md`
-  § Client updates: the live site, preview URLs, CMS entry links, and how to list task statuses.
+  § Stakeholder updates: the live site, preview URLs, CMS entry links, and how to list task statuses.
 
 ## Steps
 
@@ -47,7 +46,8 @@ Read these before writing; they hold what this skill doesn't hardcode:
    may not display.
 
 5. **Post it on the pull request** as a single comment, with the team note from the template on top
-   (Claude Code asks you to confirm `gh pr comment`). For revisions, edit that same comment instead
+   (Claude Code asks you to confirm `gh pr comment`). If the developer didn't ask for the update —
+   you started this yourself, say at the end of a delivery — ask before posting. For revisions, edit that same comment instead
    of adding new ones:
    `gh api -X PATCH repos/<owner>/<repo>/issues/comments/<id> -F body=@<file>`.
    With no pull request — an answer-only task — the draft in chat is the deliverable.
@@ -117,6 +117,7 @@ Thanks!
 | "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
 | "I'll add every finding to be thorough" | Only verified findings that matter to them. Noise buries the questions you need answered. |
 | "I'll post a new comment with the revised text" | Edit the same comment, so the team relays one current version. |
+| "The work is done — I'll post the update now" | Drafting on your own is fine; posting isn't. Show the draft and ask, unless the developer asked for the update. |
 
 ## Red flags (stop and reassess)
 

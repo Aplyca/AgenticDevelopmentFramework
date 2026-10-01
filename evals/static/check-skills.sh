@@ -72,9 +72,11 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr client-update record-decision context-audit dispatch"
-# Skills with side effects outside this machine: user-invoked only.
-OUTWARD_SKILLS="open-pr client-update"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch"
+# Skills with side effects outside this machine as soon as they run: user-invoked only.
+OUTWARD_SKILLS="open-pr"
+# Skills that may start from a plain request but post only after showing the draft.
+DRAFT_FIRST_SKILLS="stakeholder-update"
 
 is_discipline_skill() {
     case " $DISCIPLINE_SKILLS " in *" $1 "*) return 0 ;; esac
@@ -166,6 +168,16 @@ check_outward_skills_user_invoked() {
             pass "skill '$name': user-invoked only (disable-model-invocation: true)"
         else
             fail "skill '$name': acts outside the machine but can be auto-invoked" "add 'disable-model-invocation: true'"
+        fi
+    done
+    for name in $DRAFT_FIRST_SKILLS; do
+        file="$SKILLS_DIR/$name/SKILL.md"
+        if [ ! -f "$file" ]; then
+            fail "draft-first skill '$name' exists"
+        elif grep -q 'Show the full draft' "$file" && grep -q 'ask before posting' "$file"; then
+            pass "skill '$name': shows the draft, and asks before posting when nobody asked for it"
+        else
+            fail "skill '$name': can start from a plain request but doesn't show the draft and ask before posting"
         fi
     done
 }

@@ -29,7 +29,7 @@ implementation; invest in them early.
 | 6 | Implement, per task | `/implement` (`/write-tests` inside) | Test + code per task | `feat:` / `fix:` per task |
 | 7 | Reconcile + verify | `/implement`, `/review` | Docs updated; `tasks.md` § Gate results | `docs:` |
 | 8 | Deliver (when asked) | `/open-pr` | Draft pull request | — |
-| 9 | Close the loop (when asked) | `/client-update` | Requester-facing message | — |
+| 9 | Close the loop (when asked) | `/stakeholder-update` | Requester-facing message | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change

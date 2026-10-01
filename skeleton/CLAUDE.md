@@ -32,7 +32,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
 | Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
 
-Project-specific values (protected branches, append-only paths, the env template) live in `.claude/hooks/config.sh`. Skills that act outside this machine (`/open-pr`, `/client-update`) run only when you invoke them.
+Project-specific values (protected branches, append-only paths, the env template) live in `.claude/hooks/config.sh`. `/open-pr` runs only when you invoke it. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
 
 ## Lightweight mode — match ceremony to the change
 

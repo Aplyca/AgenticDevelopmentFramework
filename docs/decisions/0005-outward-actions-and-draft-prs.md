@@ -28,8 +28,10 @@ distinction became information instead of decoration.
   the change promotes it — or asks the agent to, and the permission prompt confirms it.
 - **Requester-visible writes are confirmed every time**, with the exact text shown first.
 - Enforced, not only written: `permissions.ask` in the skeleton's `.claude/settings.json` prompts
-  for every push and pull request action; `/open-pr` and `/client-update` are user-invoked only
-  (`disable-model-invocation`); `guard-git.sh` blocks pushes to protected branches outright.
+  for every push and pull request action; `/open-pr` is user-invoked only
+  (`disable-model-invocation`); `/stakeholder-update` can start from a plain request ("update the
+  client") because it only drafts until the developer approves, and posting stays behind
+  `permissions.ask`; `guard-git.sh` blocks pushes to protected branches outright.
 
 ## Consequences
 

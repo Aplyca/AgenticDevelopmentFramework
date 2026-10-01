@@ -90,9 +90,9 @@ List the server's tools (`/mcp` in Claude Code), then allow only the read-only o
 
 Leave every write tool off the allow list, so each one prompts. <!-- CUSTOMIZE: adjust the prefixes to your server's real tool names. -->
 
-## Client updates
+## Stakeholder updates
 
-`/client-update` drafts the client-facing message for a delivered task, verifies every claim, posts
+`/stakeholder-update` drafts the client-facing message for a delivered task, verifies every claim, posts
 it on the pull request for the team to relay, and writes to the tracker only when the developer
 asks. It uses the status words in `CONTRIBUTING.md` and these project settings:
 
