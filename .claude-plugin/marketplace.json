@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "aplyca-framework",
-      "description": "Adopt and upgrade the Aplyca AI-Assisted Development Framework in any repository. /adopt bootstraps a repo (copies the skeleton, fills placeholders from verified repo facts, stamps the baseline SHA); /upgrade syncs an adopted repo to a newer skeleton version using the three-bucket taxonomy.",
+      "description": "Adopt and upgrade the Aplyca AI-Assisted Development Framework in any repository. /adopt bootstraps a repo (copies the skeleton and chosen modules, fills placeholders from verified repo facts, configures guardrail hooks, stamps the baseline SHA); /upgrade syncs an adopted repo to a newer skeleton version using the three-bucket taxonomy; /cost-report measures what agent sessions cost.",
       "author": {
         "name": "Aplyca",
         "email": "dev@aplyca.com"

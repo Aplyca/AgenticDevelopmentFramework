@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+#
+# Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the
+# parallel-agents worktree scripts, and the clickup install script. Builds throwaway repositories (with a bare "origin") in a temp
+# directory. No AI invocation, no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
+#
+set -uo pipefail
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT="${REPO_ROOT:-$( cd "$SCRIPT_DIR/../.." && pwd )}"
+MODULES="$REPO_ROOT/modules"
+
+PASS=0
+FAIL=0
+WORK="$(cd "$(mktemp -d)" && pwd -P)"
+trap 'rm -rf "$WORK"' EXIT
+
+check() { # check <description> <shell condition>
+    if eval "$2"; then PASS=$((PASS+1)); echo "✓ $1"; else FAIL=$((FAIL+1)); echo "✘ $1"; fi
+}
+replace() { # replace <file> <old> <new> — literal, first occurrence, portable across sed flavors
+    python3 - "$1" "$2" "$3" <<'PY'
+import sys
+path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
+text = open(path).read()
+if old not in text:
+    sys.exit(f"replace: '{old}' not found in {path}")
+open(path, "w").write(text.replace(old, new, 1))
+PY
+}
+new_repo() { # new_repo <dir> — a repo with a commit on main and an identity
+    git init -q -b main "$1"
+    git -C "$1" config user.email test@example.com
+    git -C "$1" config user.name test
+}
+
+echo ""
+echo "Module tests — modules/*/files"
+echo "=============================="
+
+# ─── git-hooks: pre-push ────────────────────────────────────────────────────
+G="$WORK/hooks"
+mkdir -p "$G" && git init -q --bare "$G/origin.git" && new_repo "$G/repo"
+R="$G/repo"
+cp -R "$MODULES/git-hooks/files/." "$R/" && chmod +x "$R/.githooks/pre-push"
+git -C "$R" config core.hooksPath .githooks
+mkdir -p "$R/.claude/hooks" && printf 'PROTECTED_BRANCHES="main staging"\n' > "$R/.claude/hooks/config.sh"
+echo a > "$R/a" && git -C "$R" add -A && git -C "$R" commit -qm init
+git -C "$R" remote add origin "$G/origin.git"
+pushes() { git -C "$R" push -q origin "$@" >/dev/null 2>&1; }
+
+check "pre-push: refuses a push to main" "! pushes main"
+git -C "$R" switch -q -c feat/x
+check "pre-push: allows a work branch" "pushes feat/x"
+check "pre-push: refuses feat/x:staging (protected list read from .claude/hooks/config.sh)" "! pushes feat/x:staging"
+check "pre-push: refuses HEAD:refs/heads/main" "! pushes HEAD:refs/heads/main"
+replace "$R/.githooks/pre-push" 'FAST_CHECKS=""' 'FAST_CHECKS="true
+false"'
+echo b > "$R/b" && git -C "$R" add -A && git -C "$R" commit -qm b
+check "pre-push: a failing fast check refuses the push" "! pushes feat/x"
+replace "$R/.githooks/pre-push" 'false"' 'true"'
+check "pre-push: passing fast checks allow the push" "pushes feat/x"
+
+# ─── parallel-agents: worktree scripts ──────────────────────────────────────
+P="$WORK/proj"
+mkdir -p "$P" && git init -q --bare "$WORK/origin.git"
+git clone -q "$WORK/origin.git" "$P/main" 2>/dev/null
+M="$P/main"
+git -C "$M" config user.email test@example.com
+git -C "$M" config user.name test
+git -C "$M" symbolic-ref HEAD refs/heads/main   # the clone is empty; don't depend on init.defaultBranch
+cp -R "$MODULES/parallel-agents/files/." "$M/" && chmod +x "$M"/scripts/agent/*.sh
+printf 'SECRET=\nAPP_PORT=\n' > "$M/.env.example"
+printf '.env\nsetup.txt\nstarted.txt\n' > "$M/.gitignore"
+CONF="$M/scripts/agent/worktree.conf"
+replace "$CONF" 'REQUIRED_ENV=""' 'REQUIRED_ENV="SECRET"'
+replace "$CONF" 'SETUP_CMD=""' 'SETUP_CMD="echo setup-${SLUG} > setup.txt"'
+replace "$CONF" 'START_CMD=""' 'START_CMD="echo started-${APP_PORT} > started.txt"'
+replace "$CONF" 'STOP_CMD=""' 'STOP_CMD="echo stopped > ../stopped-${SLUG}.txt"'
+replace "$CONF" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}'" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}
+SITE_URL=http://localhost:\${APP_PORT}'"
+git -C "$M" add -A && git -C "$M" commit -qm init && git -C "$M" push -q -u origin main 2>/dev/null
+printf 'SECRET=abc\nAPP_PORT=1\nCOMPOSE_PROJECT_NAME=stale\n' > "$M/.env"
+port_of() { sed -n 's/^APP_PORT=//p' "$1/.env"; }
+
+cd "$M" || exit 1
+out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
+W1="$P/feat-newsletter-signup"
+check "worktree-new: creates a sibling worktree on a new branch" "[ $code -eq 0 ] && [ -f '$W1/.git' ] && git -C '$M' show-ref --verify --quiet refs/heads/feat/newsletter-signup"
+check "worktree-new: the new branch has no upstream" "! git -C '$W1' rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1"
+check "worktree-new: inherits secrets from the main checkout" "grep -q '^SECRET=abc$' '$W1/.env'"
+P1=$(port_of "$W1")
+check "worktree-new: replaces stale overrides with exactly one port ($P1)" "[ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ] && [ '$P1' != 1 ] && [ \$(grep -c '^COMPOSE_PROJECT_NAME=' '$W1/.env') -eq 1 ]"
+check "worktree-new: expands placeholders; project prefix is the repository name" "grep -q '^COMPOSE_PROJECT_NAME=origin-feat-newsletter-signup$' '$W1/.env' && grep -q '^SITE_URL=http://localhost:$P1$' '$W1/.env'"
+check "worktree-new: --no-start runs no commands" "[ ! -f '$W1/setup.txt' ] && [ ! -f '$W1/started.txt' ]"
+out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
+check "worktree-new: rerunning with --no-start changes nothing" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'Worktree exists' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ ! -f '$W1/setup.txt' ]"
+out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --setup-only 2>&1); code=$?
+check "worktree-new: --setup-only on an existing worktree runs only the setup" "[ $code -eq 0 ] && [ -f '$W1/setup.txt' ] && [ ! -f '$W1/started.txt' ]"
+out=$(scripts/agent/worktree-new.sh feat/newsletter-signup 2>&1); code=$?
+check "worktree-new: rerunning without --no-start starts an existing worktree" "[ $code -eq 0 ] && grep -q 'started-$P1' '$W1/started.txt'"
+replace "$M/.env" 'SECRET=abc' 'SECRET=rotated'
+out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --refresh-env --no-start 2>&1); code=$?
+check "worktree-new: --refresh-env re-seeds secrets and keeps the port" "[ $code -eq 0 ] && grep -q '^SECRET=rotated$' '$W1/.env' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ]"
+replace "$M/.env" 'SECRET=rotated' 'SECRET=abc'
+
+echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
+cd "$W1" || exit 1
+out=$(scripts/agent/worktree-new.sh fix/other-thing 2>&1); code=$?
+W2="$P/fix-other-thing"
+P2=$(port_of "$W2" 2>/dev/null)
+check "worktree-new: works from inside another worktree, with setup and start" "[ $code -eq 0 ] && grep -q setup-fix-other-thing '$W2/setup.txt' && grep -q 'started-$P2' '$W2/started.txt'"
+check "worktree-new: seeds from the MAIN checkout, never the calling worktree" "! grep -q LOCAL_EXPERIMENT '$W2/.env'"
+check "worktree-new: gives each worktree its own port ($P1, $P2)" "[ -n '$P2' ] && [ '$P1' != '$P2' ]"
+
+cd "$M" || exit 1
+replace "$M/.env" 'SECRET=abc' 'SECRET='
+out=$(scripts/agent/worktree-new.sh feat/needs-secret 2>&1); code=$?
+check "worktree-new: refuses to start with a required variable empty" "[ $code -ne 0 ] && echo \"\$out\" | grep -q SECRET"
+replace "$M/.env" 'SECRET=' 'SECRET=abc'
+
+git -C "$M" branch -q feat/from-remote && git -C "$M" push -q origin feat/from-remote 2>/dev/null && git -C "$M" branch -q -D feat/from-remote
+out=$(scripts/agent/worktree-new.sh feat/from-remote --no-start 2>&1); code=$?
+check "worktree-new: tracks a branch that exists on origin" "[ $code -eq 0 ] && [ \"\$(git -C '$P/feat-from-remote' rev-parse --abbrev-ref '@{u}')\" = origin/feat/from-remote ]"
+
+mkdir -p "$P/.origin-worktree-ports.lock" && echo 999999 > "$P/.origin-worktree-ports.lock/pid"
+out=$(scripts/agent/worktree-new.sh chore/stale-lock --no-start 2>&1); code=$?
+check "worktree-new: reclaims a lock left by a dead process" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'stale port lock' && [ ! -d '$P/.origin-worktree-ports.lock' ]"
+
+git -C "$M" tag -a v1.0.0 -m "Release v1.0.0"
+echo later > "$M/later.txt" && git -C "$M" add later.txt && git -C "$M" commit -qm later && git -C "$M" push -q origin main 2>/dev/null
+out=$(scripts/agent/worktree-new.sh hotfix/broken-login --from v1.0.0 --no-start 2>&1); code=$?
+check "worktree-new: --from starts a new branch at a release tag" "[ $code -eq 0 ] && [ \"\$(git -C '$P/hotfix-broken-login' rev-parse HEAD)\" = \"\$(git -C '$M' rev-parse 'v1.0.0^{commit}')\" ]"
+
+git -C "$M" branch -q feat/old-delivery v1.0.0
+out=$(scripts/agent/worktree-new.sh feat/old-delivery --no-start 2>&1); code=$?
+check "worktree-new: warns when reusing a local branch that is behind the base" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'behind origin/main'"
+
+out=$(scripts/agent/worktree-ls.sh 2>&1)
+check "worktree-ls: lists every worktree and marks the main checkout" "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
+
+echo work > "$W2/work.txt" && git -C "$W2" add work.txt && git -C "$W2" commit -qm work
+echo dirty > "$W2/dirty.txt"
+out=$(scripts/agent/worktree-rm.sh fix/other-thing 2>&1); code=$?
+check "worktree-rm: refuses uncommitted changes" "[ $code -ne 0 ] && [ -d '$W2' ]"
+out=$(scripts/agent/worktree-rm.sh fix/other-thing --force 2>&1); code=$?
+check "worktree-rm: --force stops, removes, and keeps an unmerged branch" "[ $code -eq 0 ] && [ ! -d '$W2' ] && [ -f '$P/stopped-fix-other-thing.txt' ] && echo \"\$out\" | grep -q 'kept branch'"
+out=$(scripts/agent/worktree-rm.sh chore-stale-lock 2>&1); code=$?
+check "worktree-rm: by slug, deletes a merged branch" "[ $code -eq 0 ] && ! git -C '$M' show-ref --verify --quiet refs/heads/chore/stale-lock"
+out=$(scripts/agent/worktree-rm.sh main 2>&1); code=$?
+check "worktree-rm: refuses the main checkout" "[ $code -ne 0 ] && [ -d '$M' ]"
+
+X="$WORK/slots"
+mkdir -p "$X" && new_repo "$X/repo"
+XR="$X/repo"
+cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/scripts/agent/*.sh
+printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
+replace "$XR/scripts/agent/worktree.conf" 'PORT_SLOTS=180' 'PORT_SLOTS=2'
+git -C "$XR" add -A && git -C "$XR" commit -qm init
+cd "$XR" || exit 1
+scripts/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
+scripts/agent/worktree-new.sh feat/two --no-start >/dev/null 2>&1; c2=$?
+o3=$(scripts/agent/worktree-new.sh feat/three --no-start 2>&1); c3=$?
+q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
+check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
+check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
+check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+
+# ─── clickup: install.sh merges, never overwrites ──────────────────────────
+CU="$WORK/clickup-fresh"; mkdir -p "$CU"
+"$MODULES/clickup/install.sh" "$CU" >/dev/null 2>&1; c=$?
+jsonq() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(eval(sys.argv[2]))" "$@"; }
+check "clickup install: creates .mcp.json with the clickup server" "[ $c -eq 0 ] && [ \"\$(jsonq '$CU/.mcp.json' 'd[\"mcpServers\"][\"clickup\"][\"url\"]')\" = 'https://mcp.clickup.com/mcp' ]"
+check "clickup install: enables the server and adds the read-only allowlist" "[ \"\$(jsonq '$CU/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = 5 ] && [ \"\$(jsonq '$CU/.claude/settings.json' 'd[\"enabledMcpjsonServers\"]')\" = \"['clickup']\" ]"
+"$MODULES/clickup/install.sh" "$CU" >/dev/null 2>&1
+check "clickup install: a second run adds nothing" "[ \"\$(jsonq '$CU/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = 5 ] && [ \"\$(jsonq '$CU/.claude/settings.json' 'len(d[\"enabledMcpjsonServers\"])')\" = 1 ]"
+
+CE="$WORK/clickup-existing"; mkdir -p "$CE/.claude"
+printf '{"mcpServers":{"other":{"type":"http","url":"https://mcp.example.com"}}}\n' > "$CE/.mcp.json"
+printf '{"$schema":"x","model":"sonnet","permissions":{"allow":["Bash(git status)"],"ask":["Bash(git push)"]}}\n' > "$CE/.claude/settings.json"
+"$MODULES/clickup/install.sh" "$CE" >/dev/null 2>&1
+check "clickup install: keeps other MCP servers" "[ \"\$(jsonq '$CE/.mcp.json' 'sorted(d[\"mcpServers\"])')\" = \"['clickup', 'other']\" ]"
+check "clickup install: keeps existing settings and permission order" "[ \"\$(jsonq '$CE/.claude/settings.json' 'list(d)[:2] == [chr(36) + \"schema\", \"model\"] and d[\"permissions\"][\"allow\"][0] == \"Bash(git status)\" and d[\"permissions\"][\"ask\"] == [\"Bash(git push)\"]')\" = True ]"
+
+CC="$WORK/clickup-custom"; mkdir -p "$CC"
+printf '{"mcpServers":{"clickup":{"type":"http","url":"https://proxy.example.com/clickup"}}}\n' > "$CC/.mcp.json"
+out=$("$MODULES/clickup/install.sh" "$CC" 2>&1)
+check "clickup install: keeps a customized clickup server, and says so" "[ \"\$(jsonq '$CC/.mcp.json' 'd[\"mcpServers\"][\"clickup\"][\"url\"]')\" = 'https://proxy.example.com/clickup' ] && echo \"\$out\" | grep -q 'kept your existing'"
+
+CB="$WORK/clickup-broken"; mkdir -p "$CB/.claude"; printf '{ not json' > "$CB/.claude/settings.json"
+"$MODULES/clickup/install.sh" "$CB" >/dev/null 2>&1; c=$?
+check "clickup install: refuses invalid JSON and leaves the file alone" "[ $c -ne 0 ] && [ \"\$(cat '$CB/.claude/settings.json')\" = '{ not json' ]"
+
+
+echo "=============================="
+echo "Results: $PASS passed, $FAIL failed"
+echo ""
+[ "$FAIL" -gt 0 ] && exit 1
+exit 0

@@ -1,45 +1,40 @@
 ---
-description: "Implementation guidelines — plan then execute: present a plan for approval before writing code"
+description: "Implementation — activate when implementing an approved spec folder: one task at a time, test red then green, one commit per task, plan and docs kept true"
 globs: ""
 alwaysApply: false
 ---
 
-# Implementation from Spec (Plan Then Execute; Reconcile Docs)
+# Implementation (one task, one red → green cycle, one commit)
 
-When implementing a feature from a spec:
+## Prerequisites — don't write code without them
+- `spec.md` reads `status: approved` with an `approvals:` line (the developer signed off on scope, change surface, and assumptions)
+- The spec folder is committed (`spec:`)
+- Pre-implementable docs from the plan are committed (`docs:`), if any
 
-## Prerequisites
-- Spec is committed (`spec:` prefix)
-- Tests are committed (`test:` prefix) and currently failing
-- Pre-implementable docs are committed (`docs:` prefix) — if the spec's Documentation Pre-implementable section lists any. (If not applicable, no docs commit required.)
+## Before the first task
+1. Read `spec.md` (every filled section, not just Functional), `plan.md` (change surface, test strategy, assumptions), `tasks.md`, and the committed docs
+2. Run the existing tests to know the baseline
 
-## Phase 1: Plan (present before writing any code)
-1. Run `git diff` against the spec, test, and docs commits to see scope
-2. Run tests — confirm they fail (TDD "red" phase)
-3. Read the full spec — every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment, etc., not just Functional)
-4. Read committed pre-implementable docs (admin guides, API contracts, etc.) — they describe how the feature is intended to be used and should drive implementation thinking
-5. Read existing code to match patterns
-6. Present the **implementation plan** to the user:
-   - Which files will be created or modified
-   - What each change does
-   - Which failing test(s) each change addresses
-   - Which doc claims each change satisfies (or which docs may need reconciliation)
-   - Any architectural decisions or trade-offs
-7. Wait for approval before proceeding
+## For each task in tasks.md, in order
+1. Write the test the task names
+2. Run it — **watch it fail for the right reason** (the missing behavior, not an import or fixture error)
+3. Write the smallest code that makes it pass, **inside the plan's change surface**
+4. Run it to green, plus neighboring tests
+5. Tick the task and commit test + code together (`feat:` / `fix:` / `refactor:`)
 
-## Phase 2: Execute (after plan approval)
-1. Write code following the approved plan
-2. Run tests — they should all pass (TDD "green" phase)
-3. **Reconcile docs with reality** — re-read committed docs. Update any claims that turned out inaccurate (renamed field, edge case discovered, UX adjustment). This is normal, not exceptional.
-   - Small adjustments: fold into the `feat:` commit, call out in the message body
-   - Meaningful revisions: separate `docs:` commit before the `feat:` commit
-4. Self-review: does each new/changed AC have corresponding code? Does the implementation address requirements from every filled spec section? Are docs accurate?
+## When reality departs from the plan
+- Small deviation inside the change surface → update `plan.md` in the same commit
+- The change surface grows (new layer, file outside the table, dependency, migration) → **stop** and get the developer's re-confirmation
+- A requirement turns out ambiguous → stop and ask; never guess
+- Committed docs turn out wrong → small fix folded into the task commit (say so in the body); meaningful revision as its own `docs:` commit
+
+## Finish
+- Reconcile docs; backfill post-implementable docs
+- Run the full gate; record **Gate results** in `tasks.md`: red-then-green evidence, commands and counts, what was not run and why
+- Review; push and open a **draft** pull request only when asked
 
 ## Rules
-- **Plan first, execute after approval** — never write code without an approved plan
 - Build exactly what the spec says — no more, no less
-- The tests define "done" — when all tests pass, implementation is complete
-- Match existing patterns in neighboring code
-- Never weaken a test to make it pass — fix the implementation instead
-- Never ship code that contradicts committed docs without updating the docs
-- For modifications: preserve existing behavior where the spec didn't change
+- Never weaken a test to make it pass
+- Never ship code that contradicts committed docs
+- Never bypass git hooks; never push, open, or ready a pull request unasked

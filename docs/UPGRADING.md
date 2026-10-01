@@ -8,7 +8,8 @@ The framework ships as a copy-in skeleton, not a runtime dependency. There is no
 
 Upgrade when there is a concrete benefit you can name:
 
-- A new skill or agent you want (e.g., `/spec-drift`, `/orchestrate`)
+- A new skill, agent, or workflow you want (e.g., `/triage`, `/write-plan`, `/deep-review`)
+- A fix you need (e.g., the `@AGENTS.md` import and the hook schema in the field-practices release)
 - A rule update you want enforced across the team
 - A spec-template change that improves clarity (e.g., the Mermaid diagrams section)
 - A docs improvement your team would reference (e.g., `MEMORY-STRATEGY.md`, `COST-MODEL.md`)
@@ -23,13 +24,13 @@ Skip the upgrade when:
 
 The framework does not use semver. Versions are referenced by **commit SHA + date** of the source repo (`AgenticDevelopmentFramework`).
 
-To make future upgrades tractable, record the skeleton baseline in your target project. Add a line to the top of your project's `CLAUDE.md`:
+To make future upgrades tractable, record the skeleton baseline — and the optional modules you installed — in the first line of your project's `CLAUDE.md`:
 
 ```markdown
-<!-- Skeleton source: ed3d1a1 (2026-04-29) -->
+<!-- Skeleton source: ed3d1a1 (2026-04-29) · modules: github, parallel-agents -->
 ```
 
-This gives every future upgrade a known baseline to diff against. Update it after each successful upgrade.
+This gives every future upgrade a known baseline to diff against. Update it after each successful upgrade. Older stamps without `modules:` mean none were installed.
 
 If your project doesn't have this line yet, infer the baseline from `git log` on skeleton-derived files (rules, skills, agents) and pick the latest framework commit SHA whose changes are reflected.
 
@@ -49,6 +50,8 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 |---|---|
 | `.claude/skills/*` | All skill SKILL.md files. Skills are framework playbooks; rewrite by replacement. |
 | `.claude/agents/*` | All agent definitions. The `model:` field in frontmatter is a framework decision — don't override casually (see `docs/COST-MODEL.md`). |
+| `.claude/workflows/*` | Dynamic workflow scripts |
+| `.claude/hooks/*.sh` | Hook scripts — project values live in `config.sh` (merge bucket), so the scripts stay replaceable. Keep their executable bit |
 | `.claude/rules/code-quality.md` | Universal — language-agnostic engineering standards |
 | `.claude/rules/testing.md` | Universal — testing discipline |
 | `.claude/rules/security.md` | Universal — OWASP-style baseline |
@@ -57,8 +60,10 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `docs/COST-MODEL.md` | Framework reference doc |
 | `docs/MEMORY-STRATEGY.md` | Framework reference doc |
 | `docs/MCP-INTEGRATION.md` | Framework reference doc |
-| `docs/GLOSSARY.md` | Framework reference doc |
-| `specs/_template.md` | The spec template itself. Your filled-in specs are project-owned (next bucket). |
+| `docs/process/0000-pdr-template.md` | The PDR template |
+| `.cursor/rules/*.mdc` | Cursor mirrors of the rules |
+| `specs/_templates/*` | The spec-folder templates (`spec.md`, `plan.md`, `tasks.md`) — merge instead if your team customized them. Your filled-in specs are project-owned |
+| Module scripts | `scripts/agent/*.sh`, `.github/workflows/secret-scan.yml` |
 
 ### Merge required
 
@@ -68,6 +73,13 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `CLAUDE.md` | Project identity + tool-specific config; may include team-specific notes |
 | `GEMINI.md` | Same as CLAUDE.md, for Antigravity |
 | `.claude/settings.json` | Hooks, permissions, env vars — team-customized |
+| `.claude/hooks/config.sh` | Protected branches, append-only and generated paths, sensitive paths (`CAREFUL_GLOBS`), env template |
+| `CONTRIBUTING.md` | Your branching model, status vocabulary, what's enforced |
+| `docs/CONSTITUTION.md` | Your principles (the template's wording around them changes) |
+| `specs/README.md` | The spec process — teams sometimes adjust it |
+| `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
+| `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
+| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |
@@ -79,8 +91,9 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 
 | Path | Notes |
 |---|---|
-| `specs/<feature>.md` | Your filled-in specs. Never overwritten. |
-| `docs/adr/*` | Architecture decision records |
+| `specs/NNN-<slug>/*` and legacy `specs/<feature>.md` | Your spec folders and specs. Never overwritten. |
+| `docs/architecture/decisions/*`, `docs/process/pdr-*` | ADRs and PDRs |
+| `docs/reference/*` pages | Your code-level reference pages |
 | `docs/architecture/*` | Project-specific architecture docs you authored |
 | Any source code | Out of scope for the upgrade |
 
@@ -118,10 +131,13 @@ git checkout -b chore/skeleton-upgrade-<NEW_SHA>
 **Bucket 1 — overwrite**: copy each file from the new skeleton over your project's copy. Don't think hard about these.
 
 ```bash
-cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/* .claude/skills/
-cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/agents/* .claude/agents/
-cp /path/to/AgenticDevelopmentFramework/skeleton/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
-cp /path/to/AgenticDevelopmentFramework/skeleton/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION,GLOSSARY}.md docs/
+FW=/path/to/AgenticDevelopmentFramework/skeleton
+cp -R $FW/.claude/skills/* .claude/skills/
+cp -R $FW/.claude/agents/* .claude/agents/
+mkdir -p .claude/workflows && cp $FW/.claude/workflows/*.js .claude/workflows/
+cp $FW/.claude/hooks/*.sh $FW/.claude/hooks/README.md .claude/hooks/   # not config.sh — that one merges
+cp $FW/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
+cp $FW/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION}.md docs/
 ```
 
 Inspect the diff for surprise (removed files, renamed files). Adjust if the framework has restructured anything.
@@ -140,20 +156,18 @@ Resolve conflicts manually. The principle: keep your customizations (project ide
 
 ### 5. Verify
 
-If your team has copied the framework's eval pattern into the target project:
-
-```bash
-bash evals/static/run.sh
-```
-
-Otherwise, do a manual smoke test: invoke a skill that changed (e.g., `/spec-drift` if it's new for you), confirm it runs and references the right project paths.
+- **Configuration is valid:** `python3 -m json.tool .claude/settings.json`, and every hook entry nests its command in a `hooks` array.
+- **Hooks fire:** pipe a sample event into each — e.g. `printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh; echo $?` prints `2`.
+- **Both instruction files load:** start a new Claude Code session and check `/memory` — `CLAUDE.md`, with `AGENTS.md` through the import.
+- **Your own evals,** if the project keeps any (`evals/`).
+- **A smoke test** of a skill that changed — invoke it and confirm it references the right project paths.
 
 ### 6. Update the baseline
 
 Edit the top of `CLAUDE.md`:
 
 ```markdown
-<!-- Skeleton source: <NEW_SHA> (<today's date>) -->
+<!-- Skeleton source: <NEW_SHA> (<today's date>) · modules: <list or none> -->
 ```
 
 Commit with a clear message:
@@ -201,21 +215,44 @@ For ambiguous merge decisions (e.g., "the framework removed a rule we relied on"
 
 ## Common upgrade scenarios
 
-### "I just want the new /spec-drift skill"
+### "We adopted before the field-practices release (plugin 0.2.0)"
 
-You don't need a full upgrade. Cherry-pick:
+That release fixes three defects that affect every adopting repository — do these first, even if you
+upgrade nothing else (details in [`CHANGELOG.md`](../CHANGELOG.md)):
+
+1. **Add `@AGENTS.md` as the first instruction of `CLAUDE.md`.** Without it, Claude Code never reads
+   `AGENTS.md` when a `CLAUDE.md` exists.
+2. **Fix the hook schema in `.claude/settings.json`.** Flat `{"matcher", "command"}` entries never
+   ran, and `$CLAUDE_FILE_PATH` doesn't exist. Copy `.claude/hooks/`, set `config.sh`, and wire the
+   hooks as nested `hooks` arrays. A custom hook you wrote on the old pattern (for example, "every
+   env var read in code is declared in the template") is now `check-env-declared.sh` — or port yours
+   to read `tool_input.file_path` from stdin and exit 2 to report.
+3. **Remove `user_invocable:` from custom skills** — the key is ignored.
+
+Then decide how far to go: the spec-folder workflow (new skills, templates, `specs/README.md`) is the
+main benefit. Existing single-file specs stay as they are; new work uses folders, and a legacy spec
+moves into a folder the next time it changes.
+
+### "I just want one new skill" (e.g. `/triage`)
+
+You don't need a full upgrade. Cherry-pick the skill directory:
 
 ```bash
-cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/spec-drift .claude/skills/
+cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/triage .claude/skills/
 ```
 
-Add a row to your `CLAUDE.md` skills table referencing it. Done.
+Skills appear in Claude Code's `/` menu automatically. Check that the skill doesn't depend on
+something you don't have yet — `/write-plan`, for example, expects the spec-folder templates.
 
-### "I want the spec-template Mermaid section"
+### "I want the spec-folder templates"
 
-`specs/_template.md` is in the safe-to-overwrite bucket if your team uses the template unmodified. If you've customized the template, do a 2-way merge: keep your customizations, paste in the new Mermaid section.
+`specs/_templates/` is new. Copy it and `specs/README.md`; keep your existing specs where they are.
+If your team customized the old single-file `specs/_template.md`, carry those changes into
+`specs/_templates/spec.md` (the multi-perspective sections are the same; the Technical section moved
+to `plan.md`), then delete the old template.
 
-Existing filled-in specs are project-owned and unaffected — they don't retroactively get a Mermaid section unless you add one.
+Existing filled-in specs are project-owned and unaffected — a legacy spec moves into a folder the next
+time it changes.
 
 ### "Rules changed but I customized architecture.md"
 

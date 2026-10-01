@@ -1,12 +1,32 @@
+@AGENTS.md
+
 # [PROJECT NAME] — Antigravity / Gemini Instructions
 
-<!-- This file extends AGENTS.md with Antigravity and Gemini-specific features. -->
-<!-- AGENTS.md contains universal project context (read by all AI tools). -->
-<!-- This file adds: Antigravity agent structure references, Gemini-specific guidance. -->
+<!-- This file extends AGENTS.md (imported above) with Antigravity and Gemini-specific notes. AGENTS.md holds the instructions every AI tool shares — read it first; it wins over anything here except the constitution. If your Gemini tooling doesn't expand @-imports, configure it to load AGENTS.md as a context file. -->
+
+## How work flows here
+
+`AGENTS.md` is the operating contract. In short, every task starts with **triage** (deliverable,
+kind, lane, environment). The lane follows risk, not size: **fast** (a precise request, a few files,
+no risk area — edit, prove it with a test, commit), **careful** (the same in a risk area, plus its
+checklist and the developer's yes), or **full** — the spec-driven flow:
+
+1. **Spec folder** — `specs/NNN-<slug>/spec.md` from `specs/_templates/`: the multi-perspective spec (`docs/SPEC-MODEL.md`).
+2. **Plan and tasks** — `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions) and `tasks.md` (one task per commit, each naming its test).
+3. **Approval gate** — stop and show the developer the scope, the change surface, and the assumptions; no implementation code until `status: approved`. Commit the folder (`spec:`).
+4. **Docs first** — pre-implementable docs (`docs:`), when the plan lists any.
+5. **One task at a time** — write the test, watch it fail, write the code, watch it pass, commit (`feat:` / `fix:`), tick the task.
+6. **Reconcile docs, run the full gate, record the gate results** in `tasks.md`.
+7. **Deliver only when asked** — push and open a **draft** pull request; a human QCs it and marks it ready.
+
+Change requests amend the existing spec folder (a light `CR N` for a precise adjustment, a full one
+when there's something to decide); answers need no lane; changes to how the team works become PDRs in `docs/process/`. The skills in
+`.claude/skills/` (shared through `.agents/skills`) are the step-by-step playbooks — read the one
+for the step you're on.
 
 ## Antigravity agent structure
 
-If this project uses Antigravity's `.agent/` directory, the structure is:
+If this project uses Antigravity's `.agent/` directory:
 
 | Directory | Purpose |
 |---|---|
@@ -14,34 +34,17 @@ If this project uses Antigravity's `.agent/` directory, the structure is:
 | `.agent/skills/` | Reusable skill definitions |
 | `.agent/workflows/` | Multi-step operation definitions |
 
-<!-- CUSTOMIZE: Remove this section if your project does not use Antigravity's .agent/ structure. -->
-<!-- If your project uses .claude/ for Claude Code, Antigravity reads AGENTS.md for project context instead. -->
-
-## Development workflows
-
-See `AGENTS.md` for the complete development workflow (feature development, hotfix, commit conventions). This project uses **multi-perspective spec-driven, test-driven, docs-first AI-assisted development** — see `docs/SPEC-MODEL.md` for the spec model.
-
-When using Antigravity:
-- Use `AGENTS.md` as the primary source of project context, conventions, and workflows
-- Read `docs/SPEC-MODEL.md` to understand the multi-perspective spec model — required sections are enforced before approval
-- Specs live in `specs/` — read the relevant spec (every filled section, not just Functional) before implementing
-- Follow the full phase order: **spec → tests → docs → implement → review → ship**
-- Commit each phase separately so the next phase has a clean diff to scope from:
-  - `spec:` — the multi-perspective spec, before tests
-  - `test:` — failing tests from ACs and testable requirements (Security, A11y, Perf), before docs
-  - `docs:` — pre-implementable user-facing docs (admin guides, API contracts, end-user copy), before implementation. Skip cleanly when the spec lists no pre-implementable docs.
-  - `feat:` / `fix:` — code that makes the tests pass; small doc reconciliations fold in here, called out in the message body
-- Follow the commit message prefixes defined in `AGENTS.md` and `.claude/rules/git-workflow.md`
+<!-- CUSTOMIZE: remove this section if the project doesn't use Antigravity's .agent/ structure. -->
 
 ## Documentation references
 
-Read these docs for context before making decisions in the relevant area:
-
-| Document | Read when... |
+| Document | Read when… |
 |---|---|
-| `docs/SPEC-MODEL.md` | Writing or reviewing any spec (the multi-perspective spec model is mandatory) |
+| `docs/CONSTITUTION.md` | Always — the gate every spec, plan, and review checks against |
+| `specs/README.md` | Starting any change |
+| `docs/SPEC-MODEL.md` | Writing or reviewing a spec |
 | `docs/ARCHITECTURE.md` | Designing features, reviewing data flow |
-| `docs/security/SECURITY.md` | Touching auth, data handling, API endpoints |
+| `docs/security/SECURITY.md` | Touching auth, data handling, endpoints |
 | `docs/infrastructure/OVERVIEW.md` | Changing deployment, CI/CD, environments |
 | `docs/GLOSSARY.md` | Writing specs or user-facing text |
-| `docs/architecture/decisions/` | Making or revisiting a technical decision (ADRs) |
+| `docs/architecture/decisions/` · `docs/process/` | Making or revisiting a technical (ADR) or process (PDR) decision |

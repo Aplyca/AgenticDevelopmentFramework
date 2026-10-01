@@ -1,0 +1,16 @@
+# gitleaks configuration — used by .github/workflows/secret-scan.yml, which scans only the commits
+# a pull request adds. Extends the default rule set and holds the project allowlist.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project allowlist"
+
+# Env *templates* hold placeholder values only and are allowlisted because placeholders (or public,
+# publishable keys) can trip high-entropy rules. Keeping real secrets out of them is enforced by
+# review. Real env files (.env, .env.local) are git-ignored and are NOT allowlisted.
+# CUSTOMIZE: your template's name.
+paths = [
+  '''(^|/)\.env\.(example|sample|template|dist)$''',
+]

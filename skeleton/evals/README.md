@@ -10,6 +10,7 @@ Add evals when at least one of the following is true:
 
 - You wrote a custom skill at `.claude/skills/<name>/SKILL.md` and want to verify its structure (required frontmatter, required sections).
 - You wrote a custom rule at `.claude/rules/<name>.md` and want to assert it loads on the right paths.
+- You changed or added a hook in `.claude/hooks/` and want a test that feeds it sample events (a tool call as JSON on stdin) and checks it blocks or allows as intended.
 - You have a recurring AI-output regression (e.g. specs missing the Security section) and want a fixture that catches it.
 
 If none of these apply, leave this directory empty. Bloated eval suites get ignored.

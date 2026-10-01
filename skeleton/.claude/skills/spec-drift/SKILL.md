@@ -1,15 +1,14 @@
 ---
 name: spec-drift
-description: Detect drift between a committed spec and the current code + tests + docs. Reports divergences without fixing them. Run periodically (e.g., monthly per spec area) to catch silent decay after the spec has aged through many PRs.
-user_invocable: true
-argument-hint: "[spec name | --all | --area <path>]"
+description: Detect drift between a committed spec folder (spec, plan, tasks) and the current code, tests, and docs. Reports divergences without fixing them. Run periodically (e.g., monthly per spec area) to catch silent decay after a spec has aged through many pull requests.
+argument-hint: "[spec folder | --all | --area <path>]"
 ---
 
 # Spec Drift Detection (Read-Only Audit)
 
-Compare a committed spec against the current state of the code, tests, and committed user-facing docs. Report divergences. Do NOT fix them — drift detection is an audit; remediation goes through the normal modify-existing-feature workflow.
+Compare a committed spec folder against the current state of the code, tests, and committed user-facing docs. Report divergences. Do NOT fix them — drift detection is an audit; remediation goes through the change-request workflow (`specs/README.md` § Change requests).
 
-This workflow enforces consistency at *write time* (spec before tests before docs before code). But code evolves through dozens of PRs. Six months later, the spec may no longer accurately describe what ships. This skill catches that decay.
+This workflow enforces consistency at *write time* (spec and plan before docs before code). But code evolves through dozens of PRs. Six months later, the spec may no longer accurately describe what ships. This skill catches that decay.
 
 ## When to use
 
@@ -20,7 +19,7 @@ This workflow enforces consistency at *write time* (spec before tests before doc
 
 ## When NOT to use
 
-- **During active feature development** — the [modifying an existing feature](../../docs/scenarios/modifying-existing-feature.md) workflow already handles spec updates as part of the change
+- **During active feature development** — the change-request workflow already amends the spec as part of the change
 - **When the change is in flight** — drift detection is for stable code, not work-in-progress
 - **For trivial copy changes** — cost-of-audit exceeds the value
 
@@ -28,8 +27,8 @@ This workflow enforces consistency at *write time* (spec before tests before doc
 
 | Argument | Behavior |
 |---|---|
-| `<spec-name>` | Audit a single spec |
-| `--all` | Audit every spec under `specs/`. Slow. Use sparingly. |
+| `<spec folder>` | Audit a single spec folder (or a legacy single-file spec) |
+| `--all` | Audit every spec under `specs/`. Slow — for a parallel sweep, the user can run the `/deep-drift-sweep` workflow. |
 | `--area <path>` | Audit specs in a path. Useful when you've reorganized one part of the codebase. |
 | (no argument) | Ask the user which spec(s) to audit. |
 
@@ -37,19 +36,21 @@ This workflow enforces consistency at *write time* (spec before tests before doc
 
 ### Phase 1: Read the spec and identify the surface
 
-1. **Read the committed spec.** Every section, not just Functional. Pay attention to:
-   - Functional ACs (what should be observable)
+1. **Read the committed spec folder.** `spec.md` — every section, not just Functional, including every `CR N` section (the latest change request is the current requirement). Pay attention to:
+   - Functional ACs (what should be observable), including those tagged `(CR N)` and those struck through
    - Edge cases (what failure modes were promised)
    - Security / Privacy / Accessibility / Performance (testable requirements that may have eroded)
-   - Documentation references (which doc files were committed)
-   - Technical section (which files / modules / integrations were referenced)
-   - References (which ADRs / RFCs / Figma links exist)
+   - Documentation (which doc files were committed)
+   - Constraints & prior decisions, and References (ADRs, PDRs, designs)
+
+   Then `plan.md` (architecture, change surface, contracts) and `tasks.md` (the test each task named, and the gate results). A legacy single-file spec has no plan or tasks — rely on its Technical section and the heuristics below.
 
 2. **Identify the implementation surface.** Use these signals:
-   - File paths or module names mentioned in the Technical section
-   - Test file paths committed alongside the spec (run `git log --diff-filter=A -- e2e/ tests/ '**/*.test.*' '**/*.spec.*'` near the spec's commit date)
+   - The change surface table in `plan.md` — the files the feature was built in
+   - The tests named on each task in `tasks.md`
    - Doc file paths from the Documentation section
-   - Heuristics: feature name appears in file names, in component names, in route paths
+   - For legacy specs: the Technical section, and test files added near the spec's commit date (`git log --diff-filter=A -- e2e/ tests/ '**/*.test.*' '**/*.spec.*'`)
+   - Heuristics: the slug or feature name in file, component, and route names
 
 3. **Read the current state of those files.** Use the smallest set that gives you the picture.
 
@@ -62,7 +63,7 @@ This workflow enforces consistency at *write time* (spec before tests before doc
    - **Edge cases**: are they all still tested?
    - **Security / Privacy / Accessibility / Performance**: are the testable requirements still enforced? Is the rate limit still 10/min, or did someone change it without updating the spec?
    - **Documentation**: do the committed admin guides still describe what the code actually does? Has marketing copy in CMS diverged from documented defaults?
-   - **Technical**: are the integrations / patterns still as described? Did someone swap Vercel KV for an in-memory cache without updating the spec?
+   - **Plan** (`plan.md`): are the architecture, integrations, and contracts still as described? Did someone swap the rate-limit store for an in-memory cache without updating the plan? Has the feature spread far beyond its change surface?
    - **Out of scope**: did anything from the out-of-scope list get implemented anyway? (Scope creep that bypassed spec update.)
 
 6. **Categorize each divergence:**
@@ -74,7 +75,7 @@ This workflow enforces consistency at *write time* (spec before tests before doc
 
 7. **Present the drift report.** Structured format:
    ```
-   Spec: specs/newsletter-signup.md (last spec commit: 2025-11-12, 7 PRs since)
+   Spec: specs/007-newsletter-signup/ (last spec commit: 2025-11-12, 7 PRs since)
 
    ✓ AC1 (form renders with Contentful copy) — code matches, test in place
    ✓ AC2 (success message after valid submission) — matches
@@ -91,19 +92,19 @@ This workflow enforces consistency at *write time* (spec before tests before doc
        (changed in commit a7b8c9d "increase rate limit per marketing request",
        no spec update)
        Recommendation: spec update required — this is a deliberate change that
-       bypassed the modify-existing-feature workflow
+       bypassed the change-request workflow
 
    Summary: 1 CONTRADICTION, 1 DRIFT, 1 MISSING — spec is meaningfully out of date.
    Recommended action: open a spec update PR addressing the three findings.
    ```
 
-8. **Do NOT auto-fix.** This skill reports; it does not modify. The fix goes through the normal [modify-existing-feature](../../docs/scenarios/modifying-existing-feature.md) workflow with a spec update, test changes, and doc updates as needed.
+8. **Do NOT auto-fix.** This skill reports; it does not modify. The fix goes through the change-request workflow (`specs/README.md` § Change requests): a `CR N` amendment of the spec folder, test changes, and doc updates as needed.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll fix the drift while I'm here" | Drift detection is read-only. Fixing without going through the modify-existing-feature workflow bypasses the team's review process. Report only. |
+| "I'll fix the drift while I'm here" | Drift detection is read-only. Fixing without going through the change-request workflow bypasses the team's review process. Report only. |
 | "This drift is minor, I won't report it" | Categorize and report everything. The user decides what's worth acting on. Suppressing findings undermines the audit's purpose. |
 | "The spec is wrong, the code is right — I'll mark it 'spec needs update' and move on" | Both possibilities matter. Sometimes the code drifted; sometimes the spec was always aspirational. Surface the divergence; let the user decide which side is "right". |
 | "I can't find the implementation surface, I'll skip the audit" | If you can't identify what implements the spec, that's itself a signal — the spec may be too abstract or the code may have moved without updating references. Report THAT as a finding. |
@@ -131,4 +132,4 @@ This workflow enforces consistency at *write time* (spec before tests before doc
 - **Categorize, don't suppress.** Every divergence is a data point. The user decides what to act on.
 - **One spec at a time by default.** Batch mode (`--all`) exists but is slow and noisy.
 - **Recommend, don't prescribe.** Each finding has a "recommendation" but the team makes the call (update spec, restore behavior, change tests, etc.).
-- **Hand off to the modify-existing-feature workflow** when the user wants to act on findings — don't try to fix things here.
+- **Hand off to the change-request workflow** when the user wants to act on findings — don't try to fix things here.

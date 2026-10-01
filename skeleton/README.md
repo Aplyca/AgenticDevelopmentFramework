@@ -47,27 +47,25 @@ The app will be available at `http://localhost:[port]`.
 
 ## Development workflow
 
-This project uses **multi-perspective spec-driven, test-driven, docs-first AI-assisted development**.
+This project uses **multi-perspective spec-driven, test-driven, docs-first development**, with AI
+agents working under the same rules as people:
 
-1. **Spec first** — check `specs/` for existing specs. Write or update one using the multi-perspective spec model (see `docs/SPEC-MODEL.md`); required sections are enforced before approval. Commit (`spec:`).
-2. **Tests next** — write tests that verify the spec's acceptance criteria AND testable requirements from filled Security / Accessibility / Performance / Privacy sections. Run them — they should fail. Commit (`test:`).
-3. **Docs next** — if the spec lists pre-implementable docs (admin guides, API contracts, end-user copy defaults), write them now to drive implementation thinking. Commit (`docs:`). Skip cleanly if none.
-4. **Implement** — build to pass the tests. Reconcile docs with reality as you go (small adjustments fold into the `feat:` commit; meaningful revisions get a separate `docs:` commit).
-5. **Review** — run `@code-reviewer`, `@security-reviewer`, and (for UI) `@ux-reviewer` before committing.
+1. **Triage** — read the task in full; decide what it needs before setting anything up, including
+   its **lane**: fast (a precise change — edit, prove it with a test, commit), careful (the same in a
+   risk area, plus its checklist and a confirmation), or full (something to decide — the steps below).
+2. **Spec folder** (full lane) — `specs/NNN-<slug>/`: requirements from every role (`spec.md`), the
+   plan and its change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
+3. **Approval gate** — scope, change surface, and assumptions are signed off before implementation.
+4. **Docs first, then one task at a time** — each task's test fails first, then passes; one commit per task.
+5. **Review and a draft pull request** (every lane) — QC'd by a person, then marked ready.
 
-See [docs/ONBOARDING.md](docs/ONBOARDING.md) for the full workflow and team onboarding guide, and [docs/SPEC-MODEL.md](docs/SPEC-MODEL.md) for the multi-perspective spec model.
+How it works in detail: [AGENTS.md](AGENTS.md), [specs/README.md](specs/README.md),
+[docs/SPEC-MODEL.md](docs/SPEC-MODEL.md), and [CONTRIBUTING.md](CONTRIBUTING.md).
 
-### AI agents
+### AI agents and skills
 
-| Agent | Purpose |
-|---|---|
-| `@spec-writer` | Drafts feature specifications |
-| `@code-reviewer` | Reviews code quality and conventions |
-| `@security-reviewer` | Audits for security vulnerabilities |
-| `@test-runner` | Writes and runs tests |
-| `@architect` | Reviews architecture and design |
-| `@debugger` | Investigates errors and failures |
-| `@ux-reviewer` | Reviews UI against specs |
+`AGENTS.md` is read by every AI coding tool. Claude Code adds skills (type `/`), specialized agents
+(type `@`), dynamic workflows (`/deep-…`), and guardrail hooks — see `CLAUDE.md`.
 
 ## Environment variables
 
@@ -85,7 +83,4 @@ Copy `.env.example` to `.env.local` and fill in the values.
 
 ## Contributing
 
-1. Create a feature branch from `main`
-2. Write or update the spec in `specs/`
-3. Implement with tests
-4. Open a PR — CI runs tests and type checks automatically
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the branching model, pull request flow, and standards.

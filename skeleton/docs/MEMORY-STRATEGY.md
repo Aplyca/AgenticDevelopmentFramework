@@ -1,19 +1,22 @@
 # Memory strategy
 
-How to decide where a piece of project knowledge belongs — `AGENTS.md`, `CLAUDE.md`, engineering rules, persistent memory, specs, ADRs, or runbooks. Each layer has a different cadence, scope, and load behavior; using the wrong one wastes tokens, bloats context, or causes facts to go stale.
+How to decide where a piece of project knowledge belongs — `AGENTS.md`, `CLAUDE.md`, engineering rules, persistent memory, spec folders, decision records, reference pages, or the tracker. Each layer has a different cadence, scope, and load behavior; using the wrong one wastes tokens, bloats context, or causes facts to go stale.
 
 ## The persistence layers
 
-This framework has **six** layers where project knowledge can live. Each has a different role.
+This framework has **nine** places where project knowledge can live. Each has a different role.
 
 | Layer | Where | Loaded when | Change cadence | Owned by |
 |---|---|---|---|---|
-| **Project identity** | `AGENTS.md` | Every session, every AI tool | Slow (months) | Tech lead |
-| **Tool-specific config** | `CLAUDE.md`, `GEMINI.md` | Every session, by the matching tool | Slow (months) | Tech lead |
-| **Engineering rules** | `.claude/rules/*.md` | Auto-loaded when matching file paths are touched | Slow (months) | Tech lead |
+| **Non-negotiables** | `docs/CONSTITUTION.md` | Read before every spec, plan, and review; overrides everything below | Rare (amendments) | Tech lead + approvers |
+| **Project identity & rules** | `AGENTS.md` (+ nested `AGENTS.md` per module) | Every session, every AI tool (Claude Code via the `@AGENTS.md` import); nested files when working in their folder | Slow (months) | Tech lead |
+| **Tool-specific config** | `CLAUDE.md`, `GEMINI.md`, `.claude/settings.json`, hooks | Every session, by the matching tool | Slow (months) | Tech lead |
+| **Engineering rules** | `.claude/rules/*.md` | When Claude reads a file matching the rule's `paths:` | Slow (months) | Tech lead |
+| **Per-feature knowledge** | `specs/NNN-<slug>/` (spec, plan, tasks), plus the user-facing docs they produce | On demand when working on that feature | Per feature and per change request | The team |
+| **Decisions** | `docs/architecture/decisions/` (ADRs) and `docs/process/` (PDRs) | On demand when revisiting a decision | Per decision (rare) | Architect / tech lead / team |
+| **How subsystems work** | `docs/reference/` | On demand — one page per subsystem | When the subsystem changes (same PR) | The team |
 | **Persistent memory** | Tool-specific memory (Claude Code: `~/.claude/projects/<slug>/memory/`) | Just-in-time, by the AI | Fast (per learning) | The AI + the user |
-| **Per-feature knowledge** | `specs/*.md`, `docs/admin/*`, `docs/copy/*` | On-demand when working on that feature | Per feature | The team |
-| **Architectural decisions** | `docs/architecture/decisions/*.md` (ADRs) | On-demand when revisiting a decision | Per decision (rare) | Architect / tech lead |
+| **Requirements & conversation** | The tracker (linked, never copied) | When a task is read | Continuous | Requester + team |
 
 Plus operational layers (out of scope for this doc):
 - Runbooks (`docs/runbooks/`) — operational knowledge for incident response
@@ -23,17 +26,26 @@ Plus operational layers (out of scope for this doc):
 
 ```
 Is this knowledge about... ?
+├── ...a principle no change may violate?
+│   └── docs/CONSTITUTION.md (amended via a PDR, never casually)
+│
 ├── ...the project's identity, stack, or workflow conventions?
-│   └── AGENTS.md (universal) or CLAUDE.md / GEMINI.md (tool-specific)
+│   └── AGENTS.md (universal; nested AGENTS.md for one module) or CLAUDE.md / GEMINI.md (tool-specific)
 │
 ├── ...how to write/review code in a specific path?
-│   └── .claude/rules/<area>.md (path-scoped, auto-loaded)
+│   └── .claude/rules/<area>.md (path-scoped)
 │
-├── ...a specific feature's requirements, behavior, or design?
-│   └── specs/<feature>.md
+├── ...a specific feature's requirements, behavior, design, or delivery evidence?
+│   └── specs/NNN-<slug>/ (spec.md, plan.md, tasks.md — change requests amend the same folder)
 │
 ├── ...a significant technical decision (framework choice, integration pattern)?
 │   └── docs/architecture/decisions/NNNN-<title>.md (ADR)
+│
+├── ...a decision about how the team works (gates, workflow, hand-offs)?
+│   └── docs/process/NNNN-<title>.md (PDR)
+│
+├── ...how a subsystem works at the code level?
+│   └── docs/reference/<subsystem>.md
 │
 ├── ...a learned fact, gotcha, or pattern that recurs across features?
 │   └── Memory (persistent, just-in-time loaded)
@@ -64,6 +76,7 @@ Memory is the right choice when **all of these** are true:
 
 - "The `validateEmail` function is at `lib/newsletter/validate-email.ts`." (read the code; this rots immediately)
 - "Specs go in the `specs/` directory." (project structure — belongs in AGENTS.md)
+- "We decided PRs open as drafts." (a process decision — belongs in a PDR, reflected in AGENTS.md)
 - "Tests go before implementation." (workflow rule — belongs in AGENTS.md / rules)
 - "The newsletter signup spec has 5 ACs." (per-feature — belongs in the spec, will go stale as the spec evolves)
 - "Today is 2026-04-28." (factual but ephemeral — re-derive each session)
@@ -121,7 +134,7 @@ A memory that names a specific function, file, or flag is a claim that it existe
 |---|---|---|
 | "This project uses Next.js 15 + Contentful + Vercel" | AGENTS.md | Project identity, stable, every session needs it |
 | "All TypeScript files use strict mode; no `any`" | `.claude/rules/code-quality.md` | Engineering standard, path-scoped |
-| "The newsletter signup form rate-limits to 10/IP/min" | `specs/newsletter-signup.md` | Feature requirement, per-spec |
+| "The newsletter signup form rate-limits to 10/IP/min" | `specs/007-newsletter-signup/spec.md` | Feature requirement, per spec folder |
 | "We chose Mailchimp over SendGrid in Q4 2025 because of legacy list compatibility" | ADR | Significant decision, captures rationale for future readers |
 | "Contentful's `staging-2024` env name is non-default; default in SDK is wrong" | Memory (project) | Recurring gotcha, not a per-feature concern, easy to forget |
 | "User prefers terse PR descriptions; doesn't want emoji in commits" | Memory (user) | User-specific preference |

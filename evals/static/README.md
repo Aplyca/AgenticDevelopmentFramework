@@ -1,67 +1,67 @@
-# Static evals — framework structural checks
+# Static evals
 
-Structural checks of the framework's own skill / agent / rule / template files (under `skeleton/`). Zero AI invocation, runs in milliseconds, suitable for CI on every PR.
+Deterministic checks of the framework's own files — zero AI invocation, seconds to run, run in CI on
+every pull request (`.github/workflows/evals.yml`). Four suites, all run by `../run-evals.sh`:
 
-## What's checked
+| Suite | What it does |
+|---|---|
+| `check-skills.sh` | **Structure** — skills, agents, workflows, settings and hook wiring, instruction files, spec templates, links, modules |
+| `test-hooks.sh` | **Behavior of the guardrail hooks** — feeds real tool events (JSON on stdin, exactly as Claude Code sends them) into `skeleton/.claude/hooks/` against a throwaway repository and checks block / allow |
+| `test-modules.sh` | **Behavior of the module scripts** — the `git-hooks` `pre-push` against a bare remote, and the `parallel-agents` worktree scripts (create, idempotent rerun, env seeding, port reservation under a lock, setup/start, removal), and the `clickup` installer (merges into existing `.mcp.json` and settings, idempotent, keeps customizations, refuses invalid JSON) in throwaway repositories |
+| `test-plugin.sh` | **Behavior of the plugin's scripts** — `/cost-report`'s `session_cost.py` against synthetic transcripts: which folders count, the cost arithmetic, the model tier, and each flag (long context, pauses, browser loops, spec-heavy) |
 
-The suite verifies that the framework's contract — the structure each skill / agent / rule / template must have — is preserved across edits.
+## What `check-skills.sh` checks
 
 | Check | Why it matters |
 |---|---|
-| All skills have YAML frontmatter with `name` and `description` | Required for AI tools to load them |
-| User-invocable skills declare `user_invocable: true` | Otherwise they're not callable as `/name` |
-| All workflow skills have a `## Steps` or `## Phase` section | Skills without explicit steps drift toward vague guidance |
-| TDD-discipline skills (`/write-spec`, `/write-tests`, `/write-docs`, `/implement`) have a `## Rationalizations (do not accept these)` table | Anti-rationalization is the framework's primary defense against agent drift |
-| `/write-spec` SKILL references mandatory section enforcement | If removed, the spec model loses its enforcement leg |
-| `/implement` SKILL references reading committed docs as design context | If removed, docs-first becomes write-only |
-| Spec template has `feature-type` and `personal-data` in frontmatter | These drive conditional-mandatory rules |
-| Spec template has Pre-implementable and Post-implementable subsections under Documentation | Required for `/write-docs` to function |
-| AGENTS.md references the full workflow including docs phase | Out-of-sync workflow descriptions confuse adopters |
-| Commit-prefix table lists all four pre-impl prefixes (`spec:`, `test:`, `docs:`, `feat:`) | Workflow integrity |
+| Every skill has frontmatter with `name` (matching its directory) and a meaningful `description` | Required to load; the description routes invocation |
+| Frontmatter keys are hyphenated (`argument-hint`, `disable-model-invocation`, `user-invocable`) — never `user_invocable` and the like | Unknown keys are silently ignored; this defect shipped once |
+| `/open-pr` sets `disable-model-invocation: true`; `/stakeholder-update`, which can start from a plain request, shows its draft and asks before posting when nobody asked for it | Nothing leaves the machine unless a human asked for it |
+| Every skill has `## Steps`, `## Phase`, or `## Workflow` sections; discipline skills have a Rationalizations table (≥4 rows) and a Verification checklist (≥4 items) | Explicit steps and anti-rationalization are the main defenses against agent drift |
+| Agents: `name` matches the directory, a meaningful description, `model` is an alias, `inherit`, or a full ID | Loadable, routable, and future-proof |
+| Workflows: `meta` is a pure literal with a matching name and a description, phase titles match, no `Date.now()` / `Math.random()`, the script parses | Workflows fail at load or break resume otherwise |
+| `settings.json`: valid JSON, alias model, every hook entry nests a `hooks` array, no `$CLAUDE_FILE_PATH`, referenced scripts exist and are executable, outward actions are in `permissions.ask` | The flat hook schema silently never ran; outward actions must need a human |
+| Hook scripts pass `bash -n` | Syntax errors would turn a guardrail into a notice |
+| `CLAUDE.md` imports `AGENTS.md` and carries the stamp line | Without the import, Claude Code never reads `AGENTS.md` when a `CLAUDE.md` exists |
+| `AGENTS.md` covers triage with the lane, the three lanes, the approval gate, the change surface, docs first, red before green, change requests, sensitive areas, working economically, boundaries — in ≤200 lines | The always-loaded contract must be complete and lean |
+| The git-workflow rule lists the commit prefixes and the draft / outward-action rules | Workflow integrity |
+| Workflow-integrity phrases in `/write-spec`, `/write-plan`, `/implement`, `/write-docs`, `/open-pr` | Removing them silently removes a gate |
+| Spec scaffold: `specs/README.md`, `_templates/{spec,plan,tasks}.md` exist, the legacy template is gone, required frontmatter and sections, the plan's change surface / constitution check / test strategy / documentation plan / assumptions, the tasks' TDD loop and gate results | The templates are the contract every skill reads |
+| Every relative link in `skeleton/` and `modules/*/files/` resolves inside an adopting repository | Framework-only links shipped once and broke in every adopted repo |
+| A module's `settings-fragment.json` pre-approves only MCP tools that read, and its `.mcp.json` carries no credentials | A write tool on the allowlist would post to the client without a prompt |
+| Lanes: `specs/README.md` defines them (triggers, checklists, the developer's call, light change requests); `/triage` decides them; `/review` checks them; `CAREFUL_GLOBS` and the `careful-paths` hook are wired; the spec template has the light form | Ceremony follows risk only while every piece of the routing is in place |
+| Plugin skills have valid frontmatter; plugin scripts compile | The plugin ships to every machine that installs it |
+| Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks | Modules install with `cp -R`; a README would overwrite the target's |
 
 ## Running
 
 From the framework repo root:
 
 ```bash
-./evals/static/check-skills.sh
+./evals/run-evals.sh             # all three suites
+./evals/static/check-skills.sh   # one suite
 ```
 
-Exit 0 if all checks pass, non-zero on any failure. The script prints each check's result with a `✓` or `✘`.
-
-For CI integration:
-
-```yaml
-# .github/workflows/evals.yml example
-- name: Framework static evals
-  run: ./evals/static/check-skills.sh
-```
+Each prints `✓` / `✘` per check and exits non-zero on any failure. Requirements: `bash`, `git`,
+`python3`; `node` for the workflow syntax check; `jq` or `python3` for the hooks.
 
 ## Adding a check
 
-Each check is a function in `check-skills.sh` that:
-1. Returns 0 on pass, non-zero on fail
-2. Prints `✓ <description>` on pass or `✘ <description>: <reason>` on fail
-3. Is added to the `RUN_CHECKS` array in the script's main section
+- **Structure:** add a function to `check-skills.sh` that calls `pass` / `fail`, and call it from the
+  main section. One assertion per check.
+- **Hook behavior:** add a `run <hook> <expected-exit> <event-json> <description>` line to
+  `test-hooks.sh`.
+- **Module behavior:** add a `check <description> <condition>` to `test-modules.sh`.
 
-See the existing checks for examples. Follow the principle in [STRATEGY.md](../STRATEGY.md): one check per assertion, atomic, fast.
+Follow [STRATEGY.md](../STRATEGY.md): add a check when a real regression surfaces, keep each one
+atomic and fast. If a check fails, fix the file, not the check — unless the framework genuinely
+changed, in which case update the check and say why in the commit message.
 
 ## What this catches vs. doesn't catch
 
-**Catches:**
-- Someone deletes the rationalization table from `/write-spec`
-- Someone breaks the spec template's frontmatter schema
-- Someone removes a phase from a numbered workflow list
-- Someone forgets to add `/write-docs` to the skill index
+**Catches:** a deleted rationalization table or gate phrase; broken template structure; configuration
+that loads but silently does nothing (flat hooks, underscore keys, a missing import); hooks that stop
+blocking what they should; module scripts that regress; links that break in adopting repos.
 
-**Doesn't catch:**
-- Whether the skill, when invoked, actually produces a good output
-- Whether the AI rationalizes past the table
-- Whether the spec template's instructions match the skill's instructions semantically
-- Token cost or runtime regressions
-
-For those, use [dynamic evals](../dynamic/).
-
-## See also
-
-- [Manual checklist](skills.checklist.md) — same checks expressed for human or AI review (when you don't want to run a script)
+**Doesn't catch:** whether a skill, invoked, produces good output; whether an agent rationalizes past a
+table; whether instructions agree semantically. That's what the dynamic fixtures in `../dynamic/` are for.

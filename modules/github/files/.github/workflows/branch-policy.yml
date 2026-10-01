@@ -1,0 +1,80 @@
+name: Branch policy
+
+# Flags a pull request that targets the wrong base branch and comments how to fix it — the comment
+# is what people actually read. Advisory until a ruleset requires this check.
+#
+# CUSTOMIZE one of the two models (CONTRIBUTING.md § Branching and release):
+#   Integration-branch model — only ALLOWED_HEADS may target GUARDED_BASE
+#     (e.g. GUARDED_BASE=main, ALLOWED_HEADS="staging hotfix/*").
+#   Trunk model with an integration branch — FORBIDDEN_HEADS must never target GUARDED_BASE
+#     (e.g. GUARDED_BASE=main, FORBIDDEN_HEADS="dev").
+# Patterns are shell globs, space-separated.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  GUARDED_BASE: main
+  ALLOWED_HEADS: ''
+  FORBIDDEN_HEADS: ''
+
+jobs:
+  base-branch:
+    name: Pull request targets the right branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the base branch
+        id: check
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          set -f # patterns are matched against branch names, never expanded as file globs
+          ok=true
+          if [ "$BASE" = "$GUARDED_BASE" ]; then
+            if [ -n "$ALLOWED_HEADS" ]; then
+              ok=false
+              for pattern in $ALLOWED_HEADS; do
+                case "$HEAD" in $pattern) ok=true ;; esac
+              done
+            fi
+            for pattern in $FORBIDDEN_HEADS; do
+              case "$HEAD" in $pattern) ok=false ;; esac
+            done
+          fi
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
+
+      - name: Explain the rule
+        if: steps.check.outputs.ok == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- branch-policy -->';
+            const head = context.payload.pull_request.head.ref;
+            const body = `${marker}
+            ### This pull request targets \`${process.env.GUARDED_BASE}\` from \`${head}\`
+
+            That combination isn't part of this repository's branching model — see CONTRIBUTING.md
+            § Branching and release. Retarget it with:
+
+            \`gh pr edit ${context.issue.number} --base <the right base branch>\``;
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo, issue_number: context.issue.number,
+            });
+            const existing = comments.find((comment) => comment.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
+            }
+
+      - name: Fail when the base branch is wrong
+        if: steps.check.outputs.ok == 'false'
+        run: |
+          echo "::error::This head branch may not target ${GUARDED_BASE} (CONTRIBUTING.md § Branching and release)."
+          exit 1

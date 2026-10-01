@@ -19,10 +19,10 @@ The framework's primary artifacts are prompts and instructions (SKILL.md files, 
 
 ### Static evals — fast, deterministic, free
 
-Structural checks of skill / agent / rule / template files. Zero AI invocation. Run in milliseconds. Suitable for CI on every PR.
+Structural checks of skills, agents, workflows, rules, settings, hooks, templates, links, and modules, plus functional tests that feed real tool events into the hooks and run the module scripts in throwaway repositories. Zero AI invocation. Run in seconds. Suitable for CI on every PR.
 
 ```bash
-./evals/static/check-skills.sh
+./evals/run-evals.sh
 ```
 
 Every check must pass against the framework, and CI enforces it on every pull request (`.github/workflows/evals.yml`). Any failure is a regression.
@@ -48,10 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: ./evals/static/check-skills.sh
+      - run: ./evals/run-evals.sh
 ```
 
-If anyone modifies a skill, agent, rule, or template in a way that breaks the structural contract, the PR fails CI. The discipline is enforced, not just documented.
+If anyone modifies a skill, agent, workflow, rule, hook, template, or module in a way that breaks the structural contract — or a hook stops blocking what it should — the PR fails CI. The discipline is enforced, not just documented.
 
 ## When to add a new eval
 
@@ -81,7 +81,9 @@ evals/
   run-evals.sh         ← top-level runner
   static/
     README.md          ← what each static check covers
-    check-skills.sh    ← the bash + grep checker (48 checks)
+    check-skills.sh    ← structural checks (skills, agents, workflows, settings, hooks, templates, links, modules)
+    test-hooks.sh      ← functional tests of the guardrail hooks
+    test-modules.sh    ← functional tests of the module scripts
     skills.checklist.md ← human / AI-readable checklist (same checks, prose form)
   dynamic/
     README.md

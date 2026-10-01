@@ -42,7 +42,38 @@ Adapt to your language's idioms (e.g., snake_case for Python, PascalCase for Go 
 - **No premature abstraction** — three similar lines are better than a wrapper used once. Extract only when genuinely shared.
 - **No speculative features** — build what the spec says, nothing more. No feature flags, config options, or extension points "for the future."
 - **Delete, don't comment** — when removing code, delete it. Git preserves history. No commented-out blocks or `// removed` markers.
-- **Comment *why*, never *what*** — self-evident code needs no comments. Comments explain intent, constraints, or non-obvious decisions.
+- **Types are load-bearing** — don't silence the type system to clear an error (`any`, `@ts-ignore`, `# type: ignore`, non-null assertions forced through). Fix the underlying type.
+
+## Comments — write almost none
+
+Names, types, and structure carry the meaning — aim for code whose architecture "screams" what it
+does. A comment is a **last resort**, used only when the code cannot be made to say it. Ten lines of
+prose over two lines of code is a defect, not diligence.
+
+**Delete the comment, fix the code.** Before writing one, try a better name, a named constant, an
+extracted function, or a narrower type.
+
+**Never write a comment that:**
+
+- restates the code (`// loop over users`, `// set status to error`);
+- repeats the signature or types as doc-comment boilerplate (`@param userId The user id`) — the type system already says it;
+- labels a section (`// --- helpers ---`) or narrates steps (`// Step 1: validate`);
+- describes what a well-named function plainly does;
+- records history (`// changed to fix X`, `// previously used Y`) — that is what git is for.
+
+**A comment earns its place only when it captures something invisible in the code** — in one or
+two lines, never a paragraph:
+
+- a non-obvious external behavior (a library sends the session token instead of the key; a service rejects a valid-looking request);
+- a constraint someone will "clean up" and break (why validation must not run twice; why this call must come first);
+- a deliberate deviation from the obvious approach, so it isn't refactored back;
+- a security or authorization invariant that must survive edits.
+
+Write the **why**, never the what. If the reason is a bug it prevents, name the bug and back it with
+a test, so the comment isn't the only guard. The same rule applies to config files (CI YAML, env
+templates, tool configs): one line when a value is surprising, nothing otherwise. Public API
+documentation (the docs a library's consumers read) is documentation, not commentary — write it
+where the project's conventions call for it.
 
 ## Error handling
 

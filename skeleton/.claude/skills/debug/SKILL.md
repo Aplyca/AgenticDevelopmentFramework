@@ -1,7 +1,6 @@
 ---
 name: debug
 description: Investigate an error or unexpected behavior to find the root cause. Use when something breaks.
-user_invocable: true
 argument-hint: "[error message or description of the problem]"
 ---
 
@@ -33,7 +32,7 @@ Systematically investigate an error or unexpected behavior to identify the root 
    - A downstream failure (that's a consequence)
    - "It doesn't work" (that's a description, not a cause)
 
-5. **Verify the hypothesis** — Confirm the root cause explains ALL observed symptoms. If it doesn't explain everything, keep investigating.
+5. **Verify the hypothesis** — Confirm the root cause explains ALL observed symptoms. If it doesn't explain everything, keep investigating. When two hypotheses have been disproven, or the bug involves concurrency, caching, or distributed state, suggest `opus` (and a higher effort) for the rest of the diagnosis — `sonnet` is the right default for the rest.
 
 6. **Report** — Present findings:
    - **Symptom**: what was observed
@@ -41,6 +40,18 @@ Systematically investigate an error or unexpected behavior to identify the root 
    - **Explanation**: how the root cause produces the symptom
    - **Suggested fix**: what needs to change (conceptual)
    - **How to verify**: how to confirm the fix works
+
+## After the diagnosis
+
+- **Behavior restored as documented** — the fast lane, or careful when the fix touches a risk area
+  (a migration, authorization, personal data, shared code — `specs/README.md` § Lanes): write a
+  regression test that reproduces the bug and watch it fail, then fix the root cause and watch it
+  pass; commit both together (`fix:`). No spec folder.
+- **The fix changes documented behavior** — it's a change request: light when the requester has
+  decided the new behavior, full (`/write-spec`, `/write-plan`, the gate) when there's something to
+  decide.
+- **Production is broken now** — the careful lane, without delay: the hotfix path in
+  `CONTRIBUTING.md`; backfill the spec and docs after.
 
 ## Rationalizations (do not accept these)
 

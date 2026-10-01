@@ -1,384 +1,431 @@
 # AI-Assisted Development Onboarding
 
-This guide helps developers adopt the **multi-perspective spec-driven, test-driven, docs-first AI-assisted** workflow used in this project.
+A two-week path for a team adopting the framework: **multi-perspective spec-driven, test-driven,
+docs-first development, with AI agents working under the same rules as people.** Week 1 takes one
+feature from triage to a draft pull request in a practice repository; week 2 covers the situations
+that make up most real work.
 
-## The methodology
+The exercises build the fictional feature from the [worked examples](examples/README.md) — a
+newsletter signup form on a Next.js + Contentful + Vercel marketing site, submitting to Mailchimp —
+in Claude Code. Tests mock both services, so nobody needs an account. With another tool, follow each
+skill's `SKILL.md` by hand. Paths are the ones in your project; links go to the originals in
+[`skeleton/`](../skeleton/).
 
-We use four reinforcing practices:
+## The workflow on one page
 
-1. **Multi-perspective spec-driven development (SDD)** — write the spec across all relevant role perspectives (business, functional, security, accessibility, privacy, design, performance, testing, documentation, deployment) before code, with required sections enforced by the AI before approval
-2. **Test-driven development (TDD)** — write tests from spec acceptance criteria
-3. **Docs-first delivery (DDD)** — write user-facing docs (admin guides, API contracts, end-user copy) from the spec and tests, before code, to drive implementation thinking. Update docs deliberately when implementation reveals reality differs — they're living artifacts, not frozen contracts.
-4. **AI-assisted development** — specialized AI agents handle specific tasks under all three disciplines
+Each discipline prevents a different mistake: **specs written from every perspective** (business,
+security, accessibility, privacy, testing, docs…) prevent building the wrong thing; **a plan approved
+on its change surface** prevents touching the wrong files; **tests that fail first** prevent false
+confidence; **docs first** prevent shipping what nobody can use; **guardrails** keep pushing,
+publishing, and posting waiting for a person.
 
-Why all four? Each one prevents a different class of mistakes:
-- **Specs** prevent building the wrong thing (scope creep, misunderstood requirements, forgotten role perspectives)
-- **Tests** prevent breaking what already works (regressions)
-- **Docs** prevent shipping features nobody can use or operate (and force the team to articulate behavior cleanly enough that admins/integrators can act on it)
-- **AI agents** accelerate the work while maintaining the standards above
+**Every task starts with triage** (`/triage`): read the task in full, check for prior work, and state
+the deliverable (an answer or a change), the kind, the **lane**, and whether an environment is needed.
+Most waste happens in the first minutes — an environment built or a spec written for a task that
+wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
+([decision 0004](decisions/0004-triage-before-setup.md))
 
-## The three workflows
+**The lane follows risk and uncertainty, not size** ([decision 0011](decisions/0011-lanes-ceremony-follows-risk.md)):
 
-### Workflow 1: Project Setup (one-time)
+- **Fast** — a precise request (or a bug with a clear cause), a few files, no risk trigger: restate it
+  with "done when…", edit, prove it with a test, `/commit`. On delivered work, a light `CR N` entry.
+- **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
+  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist and
+  your yes on the risky part.
+- **Full** — something to decide, a new feature, cross-layer work: the flow below.
 
-Run `/init-project` when starting a new project. This configures AI tools and creates technical documentation that serves as persistent context for AI agents:
+What finds defects — a test that proves the change, the hooks, CI, review, your QC on the preview —
+runs in every lane. **Your intuition sets the lane too:** "full lane on this" or "be careful here" is
+always honored; "just a quick fix" never silently drops a risk area's checklist. Other ways to ask for
+more effort — questions first, `/evaluate`, a higher effort level or model, `/deep-review` — and what
+each costs are in the skeleton's `docs/COST-MODEL.md` § Effort.
 
-1. Customize `CLAUDE.md` with project identity, stack, and critical rules
-2. Customize `.claude/rules/` (files with `<!-- CUSTOMIZE -->` markers)
-3. Write initial technical docs (architecture, security, infrastructure, glossary)
-4. Commit all configuration and documentation
+The full lane flows:
 
-**Why documentation matters:** AI agents read `docs/ARCHITECTURE.md` before every design review, `docs/security/SECURITY.md` before every security audit, and `docs/GLOSSARY.md` when writing specs and user-facing text. Good initial docs = better AI output on every task.
+| Step | Skill | Output | Commit |
+|---|---|---|---|
+| Specify | `/write-spec` | `spec.md` — WHAT and WHY from every role; required sections enforced | — |
+| Plan | `/write-plan` | `plan.md` (**change surface**, test strategy, docs plan, assumptions) and `tasks.md` (one task per commit, each naming its test); `@spec-analyzer` checks non-trivial work | — |
+| **Approval gate** | `/write-plan` | You approve scope, change surface, and assumptions → `status: approved` | `spec:` |
+| Docs first | `/write-docs` | Pre-implementable docs; skips cleanly when there are none | `docs:` |
+| Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
+| Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
+| Deliver, when asked | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified | — |
+| Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
 
-### Workflow 2: Feature Development (new features, modifications, bug fixes)
+It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
+`specs/_templates/`; the slug joins folder, branch (`<type>/<slug>`), and pull request.
+([`specs/README.md`](../skeleton/specs/README.md), [decision 0001](decisions/0001-spec-folders-as-record-of-intent.md))
 
-This is the workflow for any planned change. New features and modifications to existing features follow the same process.
+Why it's shaped this way:
 
-```
-Phase 1: Spec        Phase 2: Test       Phase 3: Docs        Phase 4: Implement     Phase 5: Ship
-─────────────        ────────────        ─────────────        ──────────────────     ─────────────
-1. Check specs        6. Plan tests       11. Plan docs        16. Plan impl.         21. Commit code
-2. Write/update       7. Approve plan         (skip if none)   17. Approve plan       22. Verify
-3. Architecture (o)   8. Write tests      12. Approve plan     18. Implement          23. Backfill
-4. Get approval       9. Run (all fail)   13. Write docs       19. Tests pass             post-impl docs
-5. Commit spec       10. Commit tests     14. Validate vs      20. Verify vs docs     24. Deploy
-                                              spec + tests         + Review
-                                          15. Commit docs
-       ↑                  ↑                       ↑                    ↑
-  Spec = intent      Test = verification    Docs = user-facing    Code = execution
-  Plan: what          Plan: how to verify   contract              Plan: how to build
-                                            Plan: what users see
-```
+- **One gate, after the plan.** Approving a spec alone checks the wrong thing: convincing analyses are
+  most often wrong about *which files and layers a change touches*, and that is only known once the
+  plan exists. Before the first commit a wrong change surface is a sentence to fix; after it, a
+  rewrite. ([0002](decisions/0002-one-approval-gate-on-the-change-surface.md))
+- **A test fails before its code exists** — for the right reason: the missing behavior, not an import
+  error. A test that never failed proves nothing; it may test what already exists, or nothing at all.
+  ([0003](decisions/0003-tdd-at-task-granularity.md))
+- **One task, one commit** — every step reviewable, revertible, and backed by a test that once failed.
+- **Docs first** — describing use before code forces agreement on behavior while it's cheap to
+  change, and docs left for "later" get skipped. They're reconciled when the build shows reality differs.
+- **Drafts only.** "Ready" means a person exercised the change — opened the preview, clicked through.
+  An agent can't claim that, so it opens drafts, reports what it verified and what it couldn't, and
+  never marks them ready on its own — you do, or you ask it to after your QC.
+  ([0005](decisions/0005-outward-actions-and-draft-prs.md))
 
-**Three key patterns:**
+Optional: contract-first acceptance tests — end-to-end tests encoding the criteria, committed red
+(`test:`) before the task loop.
 
-**1. Commit specs, tests, AND docs before implementing.** This creates four clean layers:
-- The **spec commit** captures **intent** (what we decided to build, across all role perspectives)
-- The **test commit** captures the **verification contract** (how we'll know it works — tests fail because no code exists yet)
-- The **docs commit** captures the **initial design intent for usage** (admins, API consumers, integrators see the agreed behavior before code starts; docs evolve as implementation surfaces new reality)
-- The **implementation commit** captures **execution** (code that makes the tests pass; doc revisions surfaced during implementation either land in a preceding `docs:` commit or are folded in and called out in the `feat:` commit body)
-- The `git diff` of each commit tells the AI agent the **exact scope** — especially valuable for modifications where only some requirements changed
+## Which workflow applies
 
-**2. Docs-first is conditional.** The docs phase only fires when the spec lists pre-implementable docs (admin guides, API contracts, end-user copy defaults, SDK READMEs). For features with only post-implementable docs (JSDoc, runbooks needing real data) or no user-facing docs, `/write-docs` skips cleanly with a note and the workflow proceeds to `/implement`.
+| The task is… | Lane | Do this | Spec folder |
+|---|---|---|---|
+| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` when it changes recorded behavior |
+| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + your yes | None — or a light `CR N` |
+| A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
+| A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
+| A bug whose fix changes documented behavior | By the change | A change request — light or full | Amend |
+| A hotfix — production is broken now | Careful, without delay | `/debug` → fix + regression test → ship via the hotfix path in `CONTRIBUTING.md` | Backfill |
+| A refactor | Fast, or full for a structure others follow | `/refactor`, green after every step → `refactor:` | None |
+| An investigation, impact analysis, or estimate | — | Deliver the answer where the task asks | None |
+| A change to how the team works | — | `/record-decision` (a PDR) | None |
+| A spike or throwaway code | — | No workflow; promoted code gets a lane | — |
 
-**3. Plan then execute.** Before writing tests, docs, or code, the AI presents a plan for your approval:
-- **Test plan**: maps each AC and testable requirement to specific tests
-- **Doc plan**: maps each pre-implementable doc entry to a file + audience
-- **Implementation plan**: outlines which files change, what each change does, which tests + docs it addresses
-- This is compatible with plan-then-execute workflows in tools like Cursor and Antigravity
+The test is **"is there anything to decide, and how risky is the area?"** — not "is it big?".
+Ceremony on a typo teaches people to skip the process; a one-line change to an authorization check
+still gets the careful lane; a one-line change with a real decision in it still gets a spec. An
+answer that recommends a change gets a lane once someone approves the change.
 
-### Workflow 3: Hotfix (production-breaking bugs only)
+## What's enforced, and what's a convention
 
-For critical production issues that need immediate resolution:
+Instructions are context: an agent usually follows them. The rules too costly to leave to "usually"
+are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md)):
 
-1. Fix the issue — use `/debug` for root cause analysis
-2. Write a regression test
-3. Commit and deploy
-4. Backfill the spec AND any user-facing docs afterward if the fix changes behavior
+| Rule | Enforced by |
+|---|---|
+| Claude Code loads `AGENTS.md` — it reads only `CLAUDE.md` when both exist | `@AGENTS.md` on the first line of `CLAUDE.md` |
+| No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
+| No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
+| Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
+| An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
+| The triage comes before the first file change, in text you can read — a session's first edit with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
+| A person confirms pushes, pull request and issue writes, releases, GitHub API writes | `permissions.ask` |
+| `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
+| `/open-pr` starts only when a person types it; `/stakeholder-update` also starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |
+| No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
+| Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
+| Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
 
-Hotfixes skip the spec-first and docs-first process because speed matters. Always backfill afterward — undocumented behavior changes erode trust in the spec and docs.
+Everything above the module rows is Claude Code configuration; Cursor, Copilot, and other tools get
+none of it. Hooks match the command text an agent writes, so they stop mistakes, not attackers.
+
+**Conventions** — written in `AGENTS.md`, checked by reviewers, but nothing stops a skip: triage first;
+choosing the lane (outside the sensitive areas, `/review` checks it after the fact);
+**the approval gate** (`/implement` refuses without `status: approved`, so reviewers check the
+`approvals:` line); red before green; one task per commit; docs first; never marking a pull request
+ready; confirming tracker writes (mechanical only while the tracker's write tools stay off
+`permissions.allow`); human review before merge, unless the host requires it. Write your project's
+honest version in `CONTRIBUTING.md` § What's enforced.
+
+## Before week 1: adopt the framework
+
+One person, once:
+
+1. Adopt the framework in your project — `/adopt` from the installer plugin, or [SETUP.md](SETUP.md)
+   by hand. The result is a draft pull request: `AGENTS.md` and the constitution filled in, the hook
+   configuration, the branching model and status words in `CONTRIBUTING.md`, the tracker integration,
+   the modules you chose, and a first PDR recording why. (On an older version: [UPGRADING.md](UPGRADING.md).)
+2. Run `/context-audit` on the result. It reports stale commands, wrong paths, and contradictions
+   between files before they mislead anyone.
+3. Create a **practice repository** for the exercises — a fresh Next.js app (any web stack works),
+   adopted the same way, with an `.env.example`.
 
 ## Week 1: Fundamentals
 
-### Day 1: Setup and orientation (1 hour)
+### Day 1: Orientation and guardrails (2 hours)
 
-1. Install your AI coding tool (Claude Code, Cursor, Antigravity, VS Code + Copilot, etc.)
-2. Read `AGENTS.md` — understand the project, stack, workflows, and critical rules (10 min)
-3. **Read `docs/SPEC-MODEL.md`** — understand the multi-perspective spec model. This is the most important concept in this workflow; every feature spec uses it. (10 min)
-4. **Read `docs/COST-MODEL.md`** — model tiering and prompt-cache discipline. Most teams overspend by 3-5× by defaulting everything to the most capable model and editing CLAUDE.md continuously. 5 min here saves real money. (5 min)
-5. **Read `docs/MEMORY-STRATEGY.md`** — where a given fact belongs (AGENTS.md vs rules vs memory vs spec vs ADR). Skipping this means recurring gotchas get re-derived every session, AGENTS.md bloats with feature-specific noise, and the prompt cache stays cold. (5 min)
-6. Read the tool-specific config for your tool (see table below) (5 min)
-7. Browse `.claude/agents/` — read 2-3 agent definitions to understand their roles (10 min)
-8. Browse `.claude/skills/` — read 2-3 skill definitions to understand the workflow playbooks (10 min)
-9. Browse `.claude/rules/` — read 2-3 rules to understand the engineering standards (10 min)
-10. Read the development workflows above (10 min)
-11. Optional — `docs/MCP-INTEGRATION.md` if your project will run an MCP server for cross-tool spec queries (skip otherwise; not a hard dependency)
+Read, in your project:
 
-> **Why the spec model matters before everything else.** Specs in this project aren't just "what the business wants" — they capture input from every relevant role (security, accessibility, testing, deployment, etc.) in one document. The AI enforces required sections before a spec can be approved. If you skim the rest but skip `SPEC-MODEL.md`, you'll write specs that get rejected by the `/write-spec` skill. 10 minutes here saves an hour of confusion later.
+1. `AGENTS.md` — the contract every AI tool reads: ground rules, how work flows, delivery rules,
+   boundaries. ([original](../skeleton/AGENTS.md); 10 min)
+2. `docs/CONSTITUTION.md` — the non-negotiables. It overrides `AGENTS.md`, so a stale line there does
+   the most damage. (5 min)
+3. `specs/README.md` and `docs/SPEC-MODEL.md` — when a spec folder is needed, the flow, change
+   requests; a spec's required, conditional, and optional sections. The most important concept here.
+   ([original](../skeleton/docs/SPEC-MODEL.md); 20 min)
+4. `CONTRIBUTING.md` and your tool's layer — `CLAUDE.md`, `GEMINI.md`, or `.cursor/rules/`. (10 min)
+5. The [`triage`](../skeleton/.claude/skills/triage/SKILL.md),
+   [`write-plan`](../skeleton/.claude/skills/write-plan/SKILL.md), and
+   [`implement`](../skeleton/.claude/skills/implement/SKILL.md) skills — above all their
+   *Rationalizations* tables, the excuses agents (and people) make for skipping a step. (20 min)
+6. `docs/COST-MODEL.md` and `docs/MEMORY-STRATEGY.md` — when to escalate a model, where a fact
+   belongs. `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
+7. The worked example: [examples/newsletter-signup/](examples/newsletter-signup/). (20 min)
 
-**Tool-specific configuration:**
-
-| Tool | Config read | Agents | Skills | Rules |
+| Tool | Reads | Skills and agents | Rules | Hooks, permissions |
 |---|---|---|---|---|
-| **Claude Code** | `AGENTS.md` + `CLAUDE.md` | `.claude/agents/` (`@name`) | `.claude/skills/` (`/name`) | `.claude/rules/` (auto-loaded by path) |
-| **Cursor** | `AGENTS.md` | Not supported natively — read agent files manually | Not supported natively — read skill files manually | `.cursor/rules/` (auto-loaded by glob) |
-| **Antigravity** | `AGENTS.md` + `GEMINI.md` | `.agents/` directory | `.agents/skills/` (symlink to `.claude/skills/`) | Reference `.claude/rules/` in prompts |
-| **VS Code + Copilot** | `AGENTS.md` | Not supported natively | Not supported natively | Not supported natively |
+| Claude Code | `CLAUDE.md`, which imports `AGENTS.md` | `/skill`, `@agent`, `/deep-…` workflows | `.claude/rules/`, by path | Yes |
+| Cursor | `AGENTS.md` | Read the step's `SKILL.md` | `.cursor/rules/` | No |
+| Antigravity / Gemini | `GEMINI.md`, which imports `AGENTS.md` | `.agents/skills/` (links to `.claude/skills/`) | Point it at `.claude/rules/` | No |
+| Copilot, Codex, others | `AGENTS.md` | Read the step's `SKILL.md` | — | No |
 
-All tools read `AGENTS.md` automatically. The project's workflows, conventions, and critical rules are defined there — so every team member gets consistent AI behavior regardless of their tool choice.
+**Exercise — watch the guardrails fire**, in a Claude Code session in the practice repository:
 
-### Day 2-3: First spec (2-3 hours)
+1. Read the session-context lines at the top (checkout, branch, spec folder). Run `/memory`:
+   `CLAUDE.md` is listed, and `AGENTS.md` comes in through the import.
+2. On `main`, ask the agent to commit something — the git guard blocks it. Ask it to edit the
+   lockfile by hand — blocked too.
+3. On a work branch, ask for a server file that reads `process.env.MAILCHIMP_API_KEY`. The env hook
+   reports it; the agent adds the name, without a value, to `.env.example`.
+4. Ask it to push. Claude Code asks you first — decline.
+5. Discuss which of these a teammate on Cursor would get.
 
-1. Pick a small feature or improvement
-2. Run: `/write-spec [describe your feature]`
-3. Review the output — does it capture the business requirement clearly?
-4. Iterate until the spec has clear acceptance criteria
-5. Get the spec approved by a teammate
-6. **Commit the spec**: `git add specs/your-spec.md && git commit -m "spec: add [feature] spec"`
+### Day 2: Triage (1 hour)
 
-> **Read a worked example first.** Before doing your own, walk through [docs/examples/newsletter-signup/](../docs/examples/newsletter-signup/) — a complete cycle (spec → tests → docs → implement → review → commit) on a Next.js + Contentful + Vercel feature. ~15 minutes; saves hours of trial and error.
+Triage is a judgment stated openly so it's cheap to correct — not an approval. Write your own triage
+for each task, then run `/triage` (add "triage only, then stop") and compare:
 
-### Day 4-5: First tests, docs, and implementation (3-4 hours)
+1. "We need a newsletter signup form on every article page. Copy editable in Contentful; submissions
+   go to Mailchimp."
+2. "How much work would it be to let readers choose newsletter topics?"
+3. "The signup success message says 'subscibing'."
+4. "Signups return a 500 on preview deployments."
+5. "Readers should be able to pick topics when they sign up." (The signup shipped last month.)
+6. "From now on, every pull request needs two approvals."
 
-1. With your committed spec, run: `/write-tests [spec name]`
-2. The agent presents a **test plan** (AC → test mapping, plus testable requirements from Security/A11y/Perf) — review it and approve
-3. After approval, the agent writes the tests
-4. Run the tests — they should all fail (this is correct, no code exists yet)
-5. Commit the tests: `git add e2e/ && git commit -m "test: add [feature] tests (red — pending implementation)"`
-6. Run: `/write-docs [spec name]`
-7. **If the spec has pre-implementable docs**: the agent presents a **doc plan** (which doc files, audience, length). Review and approve. The agent writes the docs. Commit: `git commit -m "docs: add [feature] docs"`
-8. **If the spec has no pre-implementable docs**: the agent skips cleanly with a note. Proceed.
-9. Now run: `/implement [spec name]`
-10. The agent presents an **implementation plan** (files to change, what each change does, which tests + docs claims each addresses) — review and approve
-11. After approval, the agent writes code until all tests pass; if the chosen approach diverged from doc claims, the agent flags doc updates and you decide whether to commit them separately as `docs:` or fold into the `feat:` commit
-12. Run: `/review`
-13. Address any findings, then run: `/commit`
+<details>
+<summary>What triage should conclude</summary>
+
+1. Change · new feature · environment later, for the tests · new spec folder · open questions: the
+   success metric, what counts as a valid email, what visitors see when Mailchimp is down…
+2. **Answer** — an estimate · no environment · no spec folder.
+3. Change · **fast lane** — a one-line triage, edit, check, `/commit`.
+4. Bug, cause unclear → `/debug`, then the lane the fix needs. A spec is touched only if the fix
+   changes documented behavior.
+5. **Change request** with something to decide (which topics? how chosen?) — the **full lane**:
+   amend the signup's spec folder as `CR N`. Had marketing sent a precise list of topics and where
+   they go, the fast or careful lane with a light `CR N` entry would do.
+6. Process change → a PDR. The branch rules on the Git host are an admin's job.
+
+</details>
+
+### Days 3–4: First spec folder, up to the gate (3 hours)
+
+One person drives; another plays marketing, the requester.
+
+1. `/triage` task 1, then `/write-spec`. The requester answers the clarifying questions — the agent
+   asks rather than guessing, because requirements come from people. Notice which sections became
+   required: a form is UI (Accessibility); an email address is personal data (Privacy).
+2. Before `/write-plan`, list the files and layers *you* expect to change. Compare your list with the
+   plan's change surface and with what `@spec-analyzer` found when the skill ran it.
+3. **The gate.** The approver — the developer, or whoever your team names (a good first PDR) —
+   approves only when:
+   - every acceptance criterion is numbered and testable, and *Out of scope* names what won't be
+     built (double opt-in, say);
+   - the change surface came from the code — shared code lists its other consumers, and what's *not*
+     touched is stated;
+   - every assumption is written down — an unstated assumption is how an invented requirement gets in;
+   - every criterion maps to a named test, every task names its test, and no question is open.
+4. On approval the agent sets `status: approved`, adds the `approvals:` line, and commits
+   `spec: approve newsletter-signup scope and plan`. Nothing is pushed.
+5. Compare with the example's [spec.md](examples/newsletter-signup/spec.md),
+   [plan.md](examples/newsletter-signup/plan.md), and [tasks.md](examples/newsletter-signup/tasks.md).
+
+### Day 5: Docs first, then the task loop (4 hours)
+
+1. `/write-docs` — the admin guide to editing the form's copy in Contentful, committed (`docs:`)
+   before any code.
+2. `/implement`. Pair on the first two tasks: see each test fail before its code, and check *why* —
+   an assertion about the missing behavior is red; module-not-found is broken scaffolding. After each
+   commit, `git show --stat` lists the test, the code, and the tick in `tasks.md` — nothing else.
+3. Mid-way, the requester asks for the form on the home page too. The agent should stop: new scope and
+   a bigger change surface need your re-confirmation.
+4. Read the *Gate results* in `tasks.md`: red then green per task, commands and counts, what couldn't
+   run and why. A claim without evidence doesn't count.
+5. Run `/review` and fix what it finds.
+6. With a remote, type `/open-pr`. Claude Code asks before the push; the pull request opens as a
+   draft. QC it yourself — the preview, if you have one — then mark it ready.
 
 ## Week 2: The full workflow in practice
 
-### Feature development cycle
+### Change requests — amend, don't re-specify
 
-```
- 1. REQUIREMENT
-    You or a stakeholder describes what's needed
+Re-reading a task from scratch is how delivered scope gets silently dropped or redone. Trackers rarely
+keep a description's history, so the spec folder is the record of what was built.
 
- 2. SPEC (/write-spec)
-    AI drafts the spec. You review and approve.
-    Key: spec has testable acceptance criteria.
+**Exercise:** with the signup delivered, take task 5 from Day 2 — topics managed in Contentful,
+forwarded to Mailchimp interest groups.
 
- 3. ARCHITECTURE REVIEW (@architect)
-    For non-trivial features, get a design review.
-    Key: data flow, component boundaries, API design.
+1. `/triage` finds the folder; `/write-spec` appends `CR 1` to `spec.md`: who asked, the intent, and a
+   *Delivered → Change* table. New criteria get new numbers tagged `(CR 1)`; retired ones are struck
+   through, never deleted.
+2. `/write-plan` adds the change request's plan and tasks: same gate, a `CR 1` line in `approvals:`.
+3. New branch, new pull request, same folder. Tests for unchanged criteria pass untouched.
+4. Variation: a change request on a feature delivered before you adopted the framework. With no spec
+   folder, the agent should say the delta can't be recovered and ask — never rebuild it from the code.
 
- 4. COMMIT THE SPEC (/commit)
-    Commit the approved spec with a spec: prefix.
-    This is the handoff between design and testing.
+See [scenarios/change-request.md](scenarios/change-request.md) and
+[examples/newsletter-topics/](examples/newsletter-topics/).
 
- 5. PLAN TESTS (/write-tests)
-    AI maps each AC to tests and presents the test plan.
-    You review and approve before any tests are written.
+### Answers, bugs, hotfixes, refactors
 
- 6. WRITE TESTS — TDD red phase
-    AI writes tests following the approved plan.
-    Run them — they should ALL FAIL (no code exists yet).
+- **Answer** — run task 2 for real: an estimate where the task asks, no spec, no environment.
+  ([scenario](scenarios/answer-only-task.md))
+- **Bug** — "the success message no longer appears" restores documented behavior: regression test,
+  watch it fail, fix, `fix:`. "Lowercase addresses before they reach Mailchimp" is new behavior: a
+  change request. ([scenario](scenarios/debugging.md))
+- **Hotfix** — production broken *now*. Speed justifies skipping spec-first, never the regression
+  test or the backfill. ([scenario](scenarios/hotfix.md))
+- **Refactor** — `/refactor` the subscribe route to separate validation from the Mailchimp call:
+  green before you start and after every step. ([scenario](scenarios/refactor.md))
 
- 7. COMMIT THE TESTS (/commit)
-    Commit failing tests with test: prefix.
-    This is the handoff between testing and docs.
+### Decisions — ADRs and PDRs
 
- 8. PLAN DOCS (/write-docs)
-    AI reads the spec's Documentation Pre-implementable section + tests
-    and presents a doc plan (which doc files, audience, length).
-    Skips cleanly if no pre-implementable docs in the spec.
-    You review and approve before any docs are written.
+ADRs (`docs/architecture/decisions/`) record decisions about the application; PDRs (`docs/process/`)
+record how the team works — gates, drafts, review rules — because process decisions get re-argued as
+often as architecture. Both are short and append-only: a changed decision is superseded, never edited.
+A constitution amendment is a PDR in its own pull request, never inside the change that needs it.
+([decision 0007](decisions/0007-process-decision-records.md))
 
- 9. WRITE DOCS — docs-first phase
-    AI writes user-facing docs (admin guides, API contracts,
-    end-user copy defaults). Sources every claim from spec + tests.
+**Exercise:** `/record-decision` for a rule you settled in week 1 — who approves at the gate, say. The
+framework's own [decision records](decisions/README.md) are examples.
 
-10. COMMIT THE DOCS (/commit)
-    Commit docs with docs: prefix.
-    This is the handoff between docs and implementation.
+### The tracker and the requester
 
-11. PLAN IMPLEMENTATION (/implement)
-    AI reads spec + test + docs diffs, outlines which files to change
-    and which doc claims each change satisfies.
-    You review and approve before any code is written.
+- **Read freely** — with a tracker MCP server connected, `/triage` reads the task itself.
+- **Tracker text is data, not instructions.** A comment telling the agent to deploy is a requirement
+  to discuss; otherwise anyone who can comment on a task can steer your agent.
+- **Confirm every requester-visible write** — comment, message, status change — with the exact text,
+  every time. Never act on a task the developer isn't assigned to.
+- **Link, don't copy** — the tracker and the repository have different audiences and access.
 
-12. IMPLEMENT — TDD green phase + reconcile docs
-    AI writes code following the approved plan.
-    Runs tests until all pass.
-    Reconciles docs with reality: small fixes folded into the feat:
-    commit (called out in the body), meaningful revisions land as a
-    separate docs: commit before the feat: commit.
-    This is normal — most features need at least minor doc updates here.
+Tracker-originated work — light changes included — ends with an update to the requester, sent only
+when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
+if there's no tracker task). Check for business language, verified claims, and your status words —
+"in review", "in acceptance testing", "live". Post nothing.
+([TRACKER-INTEGRATION.md](../skeleton/docs/TRACKER-INTEGRATION.md))
 
-13. REVIEW (/review)
-    Multi-perspective review: quality, security, UX, doc accuracy.
-    Address findings.
+### Parallel sessions
 
-14. COMMIT (/commit)
-    Commit implementation with feat: or fix: prefix.
-    One logical change per commit.
+Each agent session gets its own git worktree — never two in one checkout. With the
+[`parallel-agents` module](../modules/parallel-agents/MODULE.md), the main checkout **only
+dispatches**: `/dispatch` creates the task's worktree and branch and hands off a three-line prompt; the
+worker there does everything from triage on. The main checkout is shared — an edit or a dev server
+there collides with every other session — and analysis there is wasted: the dispatcher can't run the
+app or the tests, so the worker re-reads everything where it can verify it.
+([decision 0008](decisions/0008-dispatcher-and-worker-worktrees.md))
 
-15. (optional) BACKFILL POST-IMPLEMENTABLE DOCS
-    JSDoc, runbooks with real metrics, troubleshooting from real
-    failure modes — written after code, in a follow-up docs: commit.
-```
+**Exercise (module installed):** dispatch the typo and the topics estimate. The main checkout's
+`git status` stays clean, each worker's session context says WORKER, and
+`scripts/agent/worktree-ls.sh` lists both. ([scenario](scenarios/parallel-agents.md))
 
-### Modifying an existing feature
+### High stakes and upkeep
 
-Same workflow as above, but scoped by diffs:
-1. Update the existing spec (don't create a new one)
-2. Commit the spec update — the diff shows exactly what changed
-3. Write/update tests for the new or changed requirements only. Run them — new tests fail, existing tests still pass.
-4. Commit the tests
-5. Run `/write-docs` — the agent updates user-facing docs (admin guides, etc.) for the changed behavior. Skips cleanly if the spec update didn't touch the Documentation section.
-6. Commit the docs (if any were written)
-7. Run `/implement` — the agent reads all three diffs (spec, tests, docs) and only modifies code for changed requirements
-8. Existing behavior (unchanged ACs, passing tests, untouched docs) is preserved automatically
+- **High-stakes changes** — auth, payments, personal data, migrations, many layers.
+  `/deep-spec-analysis` before the gate and `/deep-review` before delivery fan out to many agents and
+  verify their serious findings, at several times the cost. **Exercise:** the signup collects email
+  addresses — compare what `/review` and `/deep-review` find, and what each costs.
+- **Context drift** — instructions go stale the moment a change lands without them, and agents follow
+  them literally. Run `/context-audit` monthly, after upgrades, and before onboarding someone;
+  `/spec-drift` per area monthly and `/deep-drift-sweep` quarterly. All are read-only. Keep
+  `AGENTS.md` and `CLAUDE.md` short and stable: every edit busts the prompt cache.
+- **Evals** — your project needs them only for custom skills, rules, or hooks you write
+  ([`evals/README.md`](../skeleton/evals/README.md)); the framework tests its own.
 
-See [docs/scenarios/modifying-existing-feature.md](../docs/scenarios/modifying-existing-feature.md) for the full playbook with a concrete example.
-
-### When something breaks
-
-```
-1. Don't guess. Run: /debug [paste the error]
-2. Read the diagnosis — root cause, not symptoms
-3. Write a test that reproduces the bug
-4. Fix the root cause
-5. Verify the test passes
-6. If the fix changes documented behavior, backfill the spec and any
-   affected user-facing docs (admin guides, API contracts, copy defaults).
-```
-
-### When refactoring
-
-```
-1. Verify tests exist for the code you'll change
-2. Run: /refactor [file or area]
-3. Tests must pass after every change
-4. Run: /review before committing
-```
-
-## How the framework verifies itself
-
-The AI-Assisted Development Framework that produced this project skeleton has its own eval suite — structural checks of every skill, agent, rule, and the spec template, plus dynamic AI-invocation fixtures. It currently passes 48/48 static checks and is run in the framework's CI on every change. **This is why you can trust that `/write-spec` still enforces required sections, `/write-tests` still reads from all spec sections, and `/implement` still refuses to run without committed docs** — the framework eats its own dogfood.
-
-What this means for your project:
-
-- Your project does NOT have the framework's eval suite copied in. Adopting projects don't inherit fixtures (see `evals/README.md` in your project root for why).
-- Your project's `.claude/` rules, skills, and agents are guaranteed to behave per the framework's contract because the framework itself is eval-tested.
-- If your team adds custom skills, custom rules, or project-specific spec patterns and wants automated checks against them, you can adopt the eval pattern. The framework's `evals/STRATEGY.md` documents how — start with static structural checks (bash + grep), add dynamic fixtures only when real regressions surface.
-
-## Situational playbooks
-
-Not every change is a brand-new feature. The patterns differ for these common situations — each has a one-page playbook:
-
-- **[Modifying an existing feature](../docs/scenarios/modifying-existing-feature.md)** — update the spec, let the diff scope the work
-- **[Hotfix](../docs/scenarios/hotfix.md)** — fast path for production-breaking bugs, with the spec backfilled afterward
-- **[Refactor](../docs/scenarios/refactor.md)** — restructure without changing behavior, tests stay green throughout
-- **[Debugging](../docs/scenarios/debugging.md)** — diagnose root cause before patching the symptom
+**You're ready for real work when** the team has triaged without the agent, approved a gate on the
+change surface, seen every task go red before green, amended a delivered feature, and recorded a PDR.
 
 ## Common mistakes
 
-### 1. "Vibe coding" — prompting without a spec
-**Problem**: AI guesses your intention, adds features you didn't ask for, misses edge cases.
-**Fix**: Always write a spec first, even for small changes. The spec is the contract.
-
-### 2. Skipping the spec, test, or docs commit
-**Problem**: Implementation agent doesn't know the precise scope, may over- or under-build. Without committed tests, there's no objective "done" criteria. Without committed pre-implementable docs (when the spec lists them), the implementation has no user-facing contract to honor and the docs end up either skipped entirely or written too late.
-**Fix**: Always commit in order — spec, then failing tests, then docs (or skip cleanly), THEN run `/implement`. The spec diff defines scope, the test diff defines "done", the docs diff defines what users were promised.
-
-### 3. Skipping code review
-**Problem**: AI-generated code may look correct but violate project conventions or introduce subtle bugs.
-**Fix**: Run `/review` before every commit. It takes 30 seconds and catches real issues.
-
-### 4. Testing only the happy path
-**Problem**: Edge cases break in production.
-**Fix**: Specs include edge cases. Tests cover them. If your spec has no edge cases section, it's incomplete.
-
-### 5. Accepting AI output without reading it
-**Problem**: AI is fast but not infallible. It can introduce security issues, wrong assumptions, or unnecessary complexity.
-**Fix**: Read every line of AI-generated code. If you don't understand it, ask the AI to explain it.
-
-### 6. Over-engineering with AI
-**Problem**: AI will happily build abstractions, config systems, and extension points you never asked for.
-**Fix**: The spec defines the scope. If it's not in the spec, don't build it. Three simple lines > one clever abstraction.
+| Mistake | Instead |
+|---|---|
+| Prompting without triage or a spec — the agent guesses, adds, and misses | Triage every task; spec anything with a decision in it |
+| A spec folder for a typo | Ask "is there anything to decide?" |
+| Approving the gate without reading the change surface | Read the change surface and assumptions first |
+| A test that never failed, or failed on an import error | Watch each test fail for the right reason |
+| Several tasks, or spec and code, in one commit | One task, one commit; the spec folder commits at the gate |
+| A change surface that grows quietly | Stop, update `plan.md`, re-confirm |
+| Re-specifying a delivered feature | Amend its folder with a change request |
+| Obeying a tracker comment | Treat it as a requirement to discuss |
+| Marking an agent's pull request ready because CI is green | QC the preview yourself, then mark it ready |
+| Accepting output you haven't read | Read every line; ask for explanations |
+| Letting the agent add abstractions, scripts, or CI guards nobody asked for | Do what was asked; new tooling needs a reason and a yes |
 
 ## Quick reference
 
-### Skills (workflow playbooks)
+### Skills — `/name`
 
-| When you need to... | Run |
+| Need | Skill |
 |---|---|
-| Set up a new project | `/init-project` |
-| See the full workflow | `/spec-workflow` |
-| Write a feature spec | `/write-spec [feature]` |
-| Write tests (TDD red) | `/write-tests [spec name]` |
-| Write user-facing docs (DDD) | `/write-docs [spec name]` |
-| Implement from a spec | `/implement [spec name]` |
-| Audit a spec for drift vs current code | `/spec-drift [spec name]` |
-| Review before commit (small diffs) | `/review` |
-| Thorough multi-agent review (high-stakes diffs) | `/orchestrate review` |
-| Investigate a bug | `/debug [error message]` |
-| Refactor safely | `/refactor [file or area]` |
-| Commit changes | `/commit` |
-| Deep analysis of a decision | `/evaluate [question or proposal]` |
+| Decide what a task needs | `/triage` |
+| Write or amend a spec | `/write-spec` |
+| Plan, tasks, approval gate | `/write-plan` |
+| Docs before code | `/write-docs` |
+| Build an approved spec, task by task | `/implement` |
+| Tests outside the loop — contract-first, coverage, bug reproduction | `/write-tests` |
+| Review against the spec folder | `/review` |
+| One clean commit | `/commit` |
+| Push and open a draft pull request (you type it) | `/open-pr` |
+| Draft the requester's update ("update the client", or type it) | `/stakeholder-update` |
+| Record an ADR or PDR | `/record-decision` |
+| Root-cause a bug | `/debug` |
+| Restructure code safely | `/refactor` |
+| Weigh a decision | `/evaluate` |
+| Run specialist agents in parallel | `/orchestrate` |
+| Audit a spec, or the instruction files | `/spec-drift`, `/context-audit` |
+| See every workflow | `/spec-workflow` |
+| Set up a project | `/init-project` (or the plugin's `/adopt`) |
+| Hand a task to a worktree (`parallel-agents` module) | `/dispatch` |
 
-### Agents (specialized roles)
+Full catalog: [SKILLS-REFERENCE.md](SKILLS-REFERENCE.md).
 
-| When you need to... | Use |
-|---|---|
-| Draft a spec collaboratively | `@spec-writer` |
-| Deep code quality analysis | `@code-reviewer` |
-| Security audit | `@security-reviewer` |
-| Write or fix tests | `@test-runner` |
-| Architecture review | `@architect` |
-| Root cause analysis | `@debugger` |
-| UI/UX validation | `@ux-reviewer` |
+### Agents — `@name`
 
-### Skills vs agents
-
-- **Skills** (`/name`) are step-by-step workflows. They guide AI through a process. Use them for standard tasks.
-- **Agents** (`@name`) are specialized personas with restricted tools. They bring deep expertise. Use them when you need focused analysis or when a skill references them.
-- **Default to skills** for sequential work (implement, test, review, commit). Use agents for parallel execution or independent second opinions.
-
-### Commit message prefixes
-
-| Prefix | When to use |
-|---|---|
-| `spec:` | Spec changes — committed before tests, docs, and implementation |
-| `test:` | Tests from spec ACs — committed before docs and implementation (should fail until code exists) |
-| `docs:` | Pre-implementable user-facing docs — committed before implementation (admin guides, API contracts, end-user copy). Also used for post-implementable backfill (JSDoc, runbooks) and standalone doc updates (architecture, security, ADRs) |
-| `feat:` | New feature implementation (makes the tests pass; small doc fixes can fold in, called out in the message; meaningful doc revisions land in a separate `docs:` commit before the `feat:`) |
-| `fix:` | Bug fix implementation |
-| `refactor:` | Code restructuring without behavior change |
-
-## How to interact with AI effectively
-
-### Match your prompt to the task
-
-| Situation | What to say | Why |
+| Agent | For | Access |
 |---|---|---|
-| Simple fix | "Fix the typo in line 42 of users.ts" | No analysis needed, just execute |
-| Clear implementation | "/implement user-login spec" | Spec defines the work, AI follows it |
-| Design decision | "/evaluate should we use Redis or in-memory caching?" | Need options, trade-offs, and recommendation |
-| Uncertainty | "I'm not sure how to approach this, what do you think?" | Let AI propose approaches for you to choose from |
-| Deep research | "Deeply research how teams handle auth in Next.js" | Thorough investigation before deciding |
+| `@spec-writer` | Drafting or amending `spec.md` | Writes files |
+| `@spec-analyzer` | An adversarial check of a spec folder before the gate | Read-only |
+| `@architect` | A plan's design, boundaries, and data flow | Read-only |
+| `@code-reviewer` | Quality, conventions, scope, evidence | Read-only |
+| `@security-reviewer` | Injection, secrets, authorization, data handling | Read-only |
+| `@ux-reviewer` | UI against the spec and UX standards | Read-only |
+| `@test-runner` | Writing and running the tests that tasks name | Edits, runs commands |
+| `@debugger` | Root-cause analysis | Runs commands, no edits |
 
-### Prompting principles
+Full catalog: [AGENTS-REFERENCE.md](AGENTS-REFERENCE.md).
 
-**Be specific, not vague:**
-- Good: `@security-reviewer review app/api/users/route.ts for injection vulnerabilities`
-- Bad: "check my code"
+### Workflows — `/deep-…` (Claude Code)
 
-**Give context, not assumptions:**
-- Good: "this endpoint handles user registration, validates email format, and creates a DB record"
-- Bad: "review this endpoint"
+`/deep-review` (high-stakes diffs, before delivery) · `/deep-spec-analysis` (risky spec folders,
+before the gate) · `/deep-context-audit` (every instruction file) · `/deep-drift-sweep` (every spec).
 
-**State what you want, not just the topic:**
-- Good: "list findings with severity levels and suggested fixes"
-- Bad: "tell me if it's ok"
+**Skill, agent, or workflow?** A skill for sequential work in your conversation (the cheapest); an
+agent for an independent opinion, restricted tools, or parallel work; a workflow for a broad, verified
+fan-out.
 
-**Reference the spec when applicable:**
-- Good: "verify this matches spec AC #3: user sees error when email is empty"
-- Bad: "does this look right?"
+### Commit prefixes, in order
 
-**Challenge AI, don't just accept:**
-- Good: "you recommended Option A, but what about [concern]? does that change your recommendation?"
-- Bad: accepting the first answer without questioning
+| Prefix | For |
+|---|---|
+| `spec:` | The approved spec folder; amendments — a change request, a plan correction, the PR link |
+| `docs:` | Docs first; later reconciliation, gate results, backfill, ADRs and PDRs |
+| `test:` | Contract-first acceptance tests committed red, or a test-only task |
+| `feat:` / `fix:` / `refactor:` | One task — its test and its code together |
+| `chore:` / `style:` | Tooling, dependencies, CI, formatting |
 
-**Ask AI to challenge you:**
-- Good: "I'm planning to do X — what am I missing? what could go wrong?"
-- Bad: "implement X" (without inviting critique)
+Branches are `<type>/<slug>`, after the spec folder's slug: `feat/newsletter-signup`.
 
-### The collaboration mindset
+## Working with AI effectively
 
-AI is a capable colleague, not an oracle and not a typist:
-
-- **Don't blindly accept** — read every line of AI output. If you don't understand it, ask for an explanation.
-- **Don't blindly reject** — if AI flags a concern, consider it seriously even if it seems inconvenient.
-- **Push back** — if AI's recommendation doesn't feel right, say why. The conversation often leads to a better answer than either of you had alone.
-- **Provide feedback** — if AI does something well, say so. If it does something poorly, explain what you wanted instead. This improves future interactions.
-- **Stay in control** — AI proposes, you decide. Never let AI make irreversible decisions without your explicit approval.
+- **Match the prompt to the task.** Nothing to decide: just say it ("fix the typo in the success
+  message"). An approved spec: `/implement specs/007-newsletter-signup`. A design choice: `/evaluate`
+  ("shared store or in-memory counters for the rate limiter?"). Unsure: ask for options. A big
+  question: ask it to research before answering.
+- **Be specific about the target and the output** —
+  `@security-reviewer review app/api/newsletter/route.ts for rate-limit bypass, findings by severity`,
+  not "check my code"; "does this satisfy AC3?", not "does this look right?".
+- **Challenge it, and ask to be challenged** — "you recommended A; what about B?", "I'm planning X;
+  what am I missing?".
+- **Stay in control.** Read every line and push back when something feels wrong. It proposes; you
+  decide — and anything irreversible or outward needs your explicit yes.

@@ -1,35 +1,36 @@
 ---
-description: "Code review guidelines — activate when reviewing code for quality, conventions, and spec compliance"
+description: "Code review — activate when reviewing a change for spec compliance, scope, conventions, evidence, and doc accuracy"
 globs: ""
 alwaysApply: false
 ---
 
 # Code Review
 
-When reviewing code, check:
+Review against the spec folder (`spec.md`, `plan.md`, `tasks.md`) and `docs/CONSTITUTION.md` — not preference. In the fast and careful lanes there is no plan: review against the request, the files the triage stated, and the lane (`specs/README.md` § Lanes) — a diff that outgrew its lane is a critical finding.
+
+## Scope and evidence
+- Is every changed file inside `plan.md`'s change surface (or is the extension recorded and re-confirmed)?
+- Does each commit correspond to one task, with its test?
+- Does `tasks.md` § Gate results show red-then-green evidence, and say what wasn't run?
+- Does any change violate a constitution principle (authorization loosened, existing migration edited, types silenced, unjustified dependency)?
 
 ## Correctness
-- Does the code match the spec? Check each acceptance criterion AND requirements from every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment).
-- Are edge cases from the spec handled?
-- Are external data sources validated? (null checks, type guards at system boundaries)
-- Is error handling present? (API endpoints catch errors, frontend handles fetch failures)
+- Each acceptance criterion AND each requirement from every filled section (Security, Accessibility, Privacy, Performance, Observability, Deployment) is implemented
+- Edge cases from the spec are handled; external data is validated at boundaries; errors are handled
 
 ## Doc accuracy
-- Do committed pre-implementable docs (admin guides, API contracts, end-user copy) still match the implementation? If the implementation diverged, were docs updated in a `docs:` commit OR called out in the `feat:` commit body?
-- No silent drift between docs and code.
+- Committed pre-implementable docs still match the implementation; divergences were reconciled in a `docs:` commit or called out in a task commit's body
 
-## Framework conventions
-- Does the code follow patterns established in `AGENTS.md` and the project?
-- Are there SSR/hydration safety issues? (browser-only APIs in render path)
+## Conventions and quality
+- Follows `AGENTS.md`, nested `AGENTS.md`, and existing patterns; no parallel way of doing something that already has a house pattern
+- No silenced types; no premature abstraction; no speculative features; no commented-out code
+- **Comments: almost none.** Flag comments that restate the code, repeat signatures, narrate steps, label sections, or record history; keep only one- or two-line notes of an invisible *why*
 
-## Code quality
-- No `any` types (TypeScript) — use `unknown` + type guards for external data
-- No premature abstraction — three similar lines beat a wrapper used once
-- No speculative features beyond the spec
-- No commented-out code — git preserves history
-- Comments explain *why*, never *what*
+## Pull request
+- The description matches the diff — no phantom changes, no omissions, honest "not verified" items
 
 ## Report format
-- **[critical]** `file:line` — must fix before commit
-- **[warning]** `file:line` — should fix, potential issue
-- **[nit]** `file:line` — minor suggestion
+- **[critical]** `file:line` — must fix before delivery
+- **[warning]** `file:line` — should fix
+- **[nit]** `file:line` — minor
+End with approve / approve with nits / request changes, and what you did not review.

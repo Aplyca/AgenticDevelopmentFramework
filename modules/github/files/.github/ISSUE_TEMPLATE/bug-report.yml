@@ -1,0 +1,83 @@
+name: Bug report
+description: Something in the application behaves incorrectly.
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For defects in the application. If the requester reported it through the tracker, link the
+        task — not every bug starts there.
+
+        **Do not paste secrets, tokens, or real personal data.** Redact them.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is wrong, in one or two sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: Expected vs actual
+      value: |
+        **Expected:**
+
+        **Actual:**
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where was this observed? # CUSTOMIZE: your environments
+      options:
+        - Local
+        - Preview
+        - Staging
+        - Production
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Blocker — no workaround, work is stopped
+        - High — core flow broken, a workaround exists
+        - Medium — degraded but usable
+        - Low — cosmetic or edge case
+    validations:
+      required: true
+
+  - type: input
+    id: tracker-task
+    attributes:
+      label: Tracker task
+      description: If the requester reported this, link the task.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, error-tracking links, user role, browser. Redact personal data first.
+    validations:
+      required: false

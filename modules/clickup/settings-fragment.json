@@ -1,0 +1,12 @@
+{
+  "enabledMcpjsonServers": ["clickup"],
+  "permissions": {
+    "allow": [
+      "mcp__clickup__clickup_get_*",
+      "mcp__clickup__clickup_search*",
+      "mcp__clickup__clickup_list_*",
+      "mcp__clickup__clickup_find_*",
+      "mcp__clickup__clickup_filter_tasks"
+    ]
+  }
+}

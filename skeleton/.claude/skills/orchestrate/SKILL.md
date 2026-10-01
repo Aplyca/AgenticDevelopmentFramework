@@ -1,7 +1,6 @@
 ---
 name: orchestrate
 description: Dispatch multiple specialized agents in parallel for review or investigation tasks. Faster and more thorough than running them sequentially in the main context. Use for thorough pre-merge reviews, multi-perspective investigations, or any analytical task where independent agents add value.
-user_invocable: true
 argument-hint: "[review | investigate | pre-commit | custom <description>]"
 ---
 
@@ -19,13 +18,14 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 ## When NOT to use
 
 - **Trivial changes** — running 3 agents on a 1-line fix is waste (token cost > benefit). Use `/review` (single-context) for small diffs.
-- **Phase progression** — this skill does NOT auto-run `/write-tests` → `/write-docs` → `/implement`. The plan-then-execute discipline at each phase is intentional. Use the explicit skills for those.
+- **Phase progression** — this skill does NOT auto-run `/write-plan` → `/write-docs` → `/implement`. The approval gate and the per-task loop are deliberate human checkpoints. Use the explicit skills for those.
 - **When you need a quick answer** — orchestration trades latency for thoroughness. Sequential is faster for simple tasks.
 
 ## What this is NOT
 
 - **Not a "build the whole feature" command.** Each workflow phase has its own gate for a reason. Orchestration is for analytical/review work, not auto-progression.
 - **Not a replacement for `/review`.** `/review` is a single-context multi-perspective review (lighter, faster). `/orchestrate review` dispatches separate agents (heavier, more thorough). Pick based on diff size and stakes.
+- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows in `.claude/workflows/` are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/deep-review` (diff review), `/deep-spec-analysis` (pre-gate spec folder analysis), `/deep-context-audit`, `/deep-drift-sweep`.
 
 ## Built-in task types
 
@@ -33,7 +33,8 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 |---|---|---|---|
 | `review` | `@code-reviewer`, `@security-reviewer`, `@ux-reviewer` (if UI changes) | All in parallel | Pre-merge review of meaningful diffs (>50 lines or critical paths) |
 | `investigate` | `@debugger`, `@architect`, `@security-reviewer` (if security-relevant) | All in parallel | Multi-angle exploration of an issue or area |
-| `pre-commit` | `@code-reviewer`, `@security-reviewer`, plus invoke `/spec-drift` for affected specs | Parallel | High-stakes commits (auth, payments, customer data) |
+| `pre-commit` | `@code-reviewer`, `@security-reviewer`, plus a scope check of the diff against the spec folder's approved change surface | Parallel | High-stakes commits (auth, payments, customer data) |
+| `pre-gate` | `@spec-analyzer`, `@architect`, `@security-reviewer` (if security-relevant) on a spec folder | All in parallel | Before the approval gate on non-trivial or risky specs |
 | `custom <description>` | User describes intent; skill picks agents | Determined by plan | Anything else |
 
 ## Steps
@@ -42,15 +43,15 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
 1. **Identify scope** — what's being reviewed/investigated? Get the diff (`git diff`), the affected files, and any spec context.
 
-2. **Pick agents** — based on the task type or user description. For `custom`, choose from the available specialized agents (`@code-reviewer`, `@security-reviewer`, `@ux-reviewer`, `@architect`, `@debugger`, `@test-runner`, `@spec-writer`).
+2. **Pick agents** — based on the task type or user description. For `custom`, choose from the available specialized agents (`@code-reviewer`, `@security-reviewer`, `@ux-reviewer`, `@architect`, `@debugger`, `@test-runner`, `@spec-writer`, `@spec-analyzer`).
 
 3. **Determine parallelism** — which agents can run independently (parallel) vs. which need each other's output (sequential)?
 
    Rule of thumb: review agents (code, security, UX) examining the SAME diff are independent → parallel. An agent whose input is another agent's output is dependent → sequential. Most review work is parallel.
 
-4. **Determine model tiering** — each agent has a default model in its `agent.md` frontmatter. Don't override unless you have a specific reason. The defaults already tier sensibly:
-   - `@code-reviewer`, `@security-reviewer`, `@ux-reviewer`, `@architect` → Haiku (well-bounded review)
-   - `@spec-writer`, `@test-runner`, `@debugger` → Sonnet (reasoning-heavy)
+4. **Determine model tiering** — each agent has a default model alias in its `agent.md` frontmatter. Don't override unless you have a specific reason. The defaults already tier sensibly:
+   - `@code-reviewer`, `@security-reviewer`, `@ux-reviewer`, `@architect` → `haiku` (well-bounded review)
+   - `@spec-writer`, `@test-runner`, `@debugger`, `@spec-analyzer` → `sonnet` (reasoning-heavy)
    See `docs/COST-MODEL.md` for the full per-agent recommendations and trade-offs.
 
 5. **Present the orchestration plan**:
@@ -130,4 +131,4 @@ Roughly 2-3× the cost. Worth it for high-stakes diffs; overkill for trivial one
 - **Synthesize, don't filter.** Combine all findings; surface disagreements; let the user judge.
 - **Stop at the report.** This skill ends with findings. Action goes through the normal workflow.
 - **Trust the agent defaults.** Each agent's `model:` is set deliberately — don't override casually.
-- **No auto-progression.** Plan-then-execute applies at each workflow phase; orchestration is analytical, not progressive.
+- **No auto-progression.** The approval gate and the per-task loop are human checkpoints; orchestration is analytical, not progressive.

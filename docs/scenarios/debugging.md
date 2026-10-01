@@ -2,240 +2,134 @@
 
 ## When to use this
 
-Something is broken or behaves unexpectedly, and you need to understand **why** before deciding what to do about it. Examples:
-- A test passes locally but fails in CI.
-- The article page renders the right data on first visit but stale data on a refresh.
-- Newsletter submissions succeed in dev but return 500 on Vercel.
-- A user reports something that "shouldn't be possible" given the code.
+Something is broken or behaves unexpectedly, and nobody knows why yet:
+
+- Newsletter signups return 500 on preview deployments but work locally.
+- A test passes locally and fails in CI.
+- A reader reports something the code "can't do".
 
 **Not this scenario:**
-- You already know the cause and just need to fix it → just fix it. Debugging is for the unknown.
-- It's actively breaking production → use [Hotfix](hotfix.md) (which has a `/debug` step inside it).
-- The bug is "the feature doesn't do what I want" — that's a spec mismatch, not a bug → use [Modifying an existing feature](modifying-existing-feature.md).
 
-## The core principle
+- Production is broken now → [Hotfix](hotfix.md), which has a diagnosis step inside.
+- You already know the cause → write the regression test and fix it ([After the diagnosis](#after-the-diagnosis)).
+- The task asks only *why* — no change requested → [Answer-only task](answer-only-task.md): the diagnosis is the deliverable.
 
-**Don't guess. Diagnose.** It's tempting (especially with AI) to type "fix this" and accept the first plausible patch. That works ~30% of the time and creates the "fixed it but it came back" pattern that erodes trust in the code.
+## Diagnose, then decide
 
-The `/debug` skill enforces a discipline: gather evidence, form a hypothesis, test it, then act. It's slower for the trivial cases. It's massively faster for the ones where the obvious cause is wrong.
+Typing "fix this" and accepting the first plausible patch works some of the time and produces the
+"fixed it, it came back" pattern the rest of the time. `/debug` enforces the order: evidence,
+hypotheses, the root cause that explains every symptom — and only then a decision about what to do.
+That decision matters as much as the diagnosis: the same symptom can end as a one-commit fix, a
+change request, or a hotfix.
 
 ## Steps
 
-### 1. Gather evidence before opening AI
+1. **Triage** (`/triage`): kind bug, cause unknown; environment only if reproducing needs something
+   running; spec folder decided after the diagnosis, not before.
 
-Before invoking `/debug`, collect:
+2. **Gather evidence** before asking for a diagnosis: the exact error and stack trace, pasted, not
+   paraphrased; steps to reproduce; expected versus actual; when it started (which deploy, which
+   content edit); where (local, CI, preview, production); how reliably.
 
-- The **exact error message and stack trace** (copy/paste, don't paraphrase).
-- **What you did to trigger it** — the URL, the input, the click sequence.
-- **What you expected vs what happened.**
-- **When it started** — was it always broken? Started after a specific deploy? After a Contentful edit?
-- **Where it happens** — local? CI? preview deploy? production? all?
-- **Reproduction reliability** — every time, sometimes, once?
+3. **Diagnose** — `/debug` in this conversation, or the [`@debugger`](../../skeleton/.claude/agents/debugger/agent.md)
+   agent for an isolated, read-only investigation (it can't edit, so it can't "just fix it"). When
+   several layers are suspects, `/orchestrate investigate` runs different perspectives in parallel.
 
-5 minutes here saves 30 minutes of back-and-forth later.
+4. **Confirm the hypothesis** before acting on it. It must explain every symptom, and something must
+   be able to prove it wrong — a command, a log line, a setting. If the evidence rules it out, go back
+   with the new evidence instead of trying the next guess.
 
-### 2. Run /debug with the evidence
+5. **Decide what happens next** — the table below — and say which row you're in.
 
-```
-/debug
+## After the diagnosis
 
-Newsletter submission returns 500 on Vercel preview deploys but works locally.
+| The diagnosis says | Next | Spec folder | Commits |
+|---|---|---|---|
+| A defect: the fix restores documented behavior (a spec criterion, a committed doc) or changes nothing documented | Fast lane (careful in a risk area): regression test → watch it fail → fix the root cause → green | None — the regression test is the record | One `fix:`, test and fix together |
+| The code does what the spec says; someone wants different behavior | [Change request](change-request.md) | A light `CR N` when the requester decided the new behavior; a full one when there's something to decide | Light: one commit with the change. Full: `spec:` first, then the CR's tasks |
+| Nothing documents what should happen | It's a decision: ask, then record the answer as a `CR N` on the feature's folder | Amend | `spec:` first |
+| Production is broken now | [Hotfix](hotfix.md) — the careful lane, without delay | Backfilled afterwards | `fix:` |
+| The cause is outside the repository — configuration, a platform setting, a third party | Report it; the fix is a human action. Change code only where it made the failure worse | None | `fix:` only if code changed |
+| The task asked only why | Deliver the diagnosis as the answer — [Answer-only task](answer-only-task.md) | None | None |
 
-Error from Vercel logs:
-  TypeError: Cannot read properties of undefined (reading 'subscribe')
-  at POST (app/api/newsletter/route.ts:18)
-
-Steps to reproduce:
-  1. Go to <preview URL>/articles/example-article
-  2. Submit any email
-  3. 500 returned, error above in logs
-
-Started: today's deploy (commit abc123). Local dev (`pnpm dev`) works fine.
-Reproduces 100% on preview, 0% locally.
-```
-
-### 3. Let the skill diagnose, not patch
-
-`/debug` walks through:
-
-1. **Reproduce** — confirms it can replicate the failure (or asks how to).
-2. **Read the code** at the failure point.
-3. **Form hypotheses** — usually 2-3 plausible causes.
-4. **Discriminate** — what evidence would confirm or rule out each one?
-5. **Test the leading hypothesis** — by reading more code, running a probe, or asking you to.
-6. **Identify the root cause** — not the symptom.
-7. **Propose a fix** — but does NOT apply it until you ask.
-
-Sample interaction continuing the example above:
-
-> **AI:** Three hypotheses for "works locally, fails on Vercel preview":
->
-> 1. **Env var missing on preview.** `MAILCHIMP_API_KEY` may be set for production but not for preview deploys in Vercel project settings. Local has it via `.env.local`.
-> 2. **Build-time vs runtime resolution.** If `mailchimp.ts` reads `process.env.MAILCHIMP_API_KEY` at module load, it's captured at build time. Preview build may have run with a different env scope.
-> 3. **Bundling difference.** The Mailchimp client may be tree-shaken differently in production builds than in dev.
->
-> Reading `lib/newsletter/mailchimp.ts`...
->
-> ```ts
-> const client = MailchimpFactory(process.env.MAILCHIMP_API_KEY!);
-> export const subscribe = client.subscribe;
-> ```
->
-> The `!` non-null assertion silently passes `undefined` if the env var isn't set, which then makes `client` an empty object — `client.subscribe` is undefined.
->
-> **Most likely root cause:** hypothesis 1. `MAILCHIMP_API_KEY` is set in Vercel only for the Production environment, not Preview.
->
-> **To confirm**, can you check Vercel project settings → Environment Variables → see if `MAILCHIMP_API_KEY` is enabled for "Preview"? Or run `vercel env ls`.
-
-### 4. Confirm the hypothesis before fixing
-
-Don't accept the diagnosis on faith — test it.
-
-```bash
-$ vercel env ls
-# Output shows MAILCHIMP_API_KEY is set for Production only, not Preview. Confirmed.
-```
-
-If the test rules out the hypothesis, go back to the AI with the new evidence — don't just try the next guess.
-
-### 5. Write a regression test
-
-The fix isn't done until there's a test that would have caught the bug.
-
-For this example, two layers of test help:
-
-```ts
-// Unit: the wrapper should fail loudly when the API key is missing
-test('throws on missing MAILCHIMP_API_KEY', () => {
-  delete process.env.MAILCHIMP_API_KEY;
-  expect(() => createMailchimpClient()).toThrow(/MAILCHIMP_API_KEY required/);
-});
-```
-
-```ts
-// E2E: smoke test that runs against the preview deploy
-test('newsletter signup returns 200 on preview deploy', async ({ page }) => {
-  // configured to point at the preview URL during PR check
-  ...
-});
-```
-
-Run them. They should fail against the current code.
-
-### 6. Fix the root cause, not the symptom
-
-Two layers of fix here:
-
-**Symptom fix (immediate):** add `MAILCHIMP_API_KEY` to Preview env vars in Vercel.
-
-**Root cause fix (the *real* fix):** the wrapper silently swallowed the missing key with `!`. That's the underlying bug — the symptom (this 500) is just one of many symptoms it could produce. Replace the assertion with an explicit check that fails loudly:
-
-```diff
-- const client = MailchimpFactory(process.env.MAILCHIMP_API_KEY!);
-- export const subscribe = client.subscribe;
-+ export function createMailchimpClient() {
-+   const apiKey = process.env.MAILCHIMP_API_KEY;
-+   if (!apiKey) throw new Error('MAILCHIMP_API_KEY required');
-+   return MailchimpFactory(apiKey);
-+ }
-+ export const subscribe = (email: string) => createMailchimpClient().subscribe(email);
-```
-
-Now if the env var goes missing again on any environment, the failure mode is "loud error at first use" rather than "mysterious 500 on `client.subscribe`".
-
-### 7. Verify and commit
-
-```bash
-$ pnpm test
-  ✓ ... all pass
-
-git commit -m "fix: fail loudly when MAILCHIMP_API_KEY is missing
-
-Root cause of preview-deploy 500s: the env var was set for production
-only, and our wrapper used a non-null assertion that silently produced
-an empty client object. Now throws explicitly so misconfiguration is
-caught at the first request, with a clear message."
-```
-
-## Common mistakes
-
-| Mistake | What happens | Fix |
-|---|---|---|
-| Asking AI to "fix" without diagnosing | First plausible-looking patch lands; bug returns or moves elsewhere | Use `/debug` and let it diagnose. Only fix once the root cause is confirmed. |
-| Treating the symptom, not the cause | Bug "comes back" in a different form weeks later | Always ask: "what's the underlying mechanism that produced this symptom?" Fix that. |
-| Fixing without a regression test | Same bug reappears in 3 months when nobody remembers | A diagnosed bug always gets a test. Always. |
-| Accepting the first hypothesis | If the hypothesis is wrong, the fix makes things worse | Demand evidence. "How would we know if this hypothesis is wrong?" |
-| Vague evidence to AI | AI guesses; you waste time on irrelevant patches | Spend 5 minutes gathering evidence before opening AI. Stack traces, repro steps, environment. |
-| Continuing to debug for hours instead of asking for help | Tunnel vision; obvious things missed | If you've been on it for an hour with no progress, pull in a teammate. Fresh eyes catch what tunnel vision misses. |
-
-## Heuristics for spotting a "you're symptom-fixing" moment
-
-- The fix is "add a check for `undefined`" without understanding *why* it's undefined.
-- The fix is "add a try/catch and log it" without knowing what error to expect.
-- The fix is "increase the timeout" without measuring why it was timing out.
-- The fix is "add a retry" without identifying the failure mode.
-- The fix is "swap the order of these two lines" and you don't know why that helps.
-
-When you spot one of these, go back to step 2 and re-diagnose. The fix may be unavoidable in the short term — but you should also understand the underlying cause and know whether you've actually addressed it or just moved the symptom.
+A fix without a spec folder still goes through the TDD loop: the test reproduces the bug and fails
+for the right reason before the fix exists. With no `tasks.md`, the red-then-green evidence goes in
+the commit body and in the pull request's "verified / not verified".
 
 ## Example
 
-**The symptom:** test `e2e/newsletter-signup.spec.ts > shows success message after valid submission` fails in CI but passes locally. Started 3 days ago.
-
-**Initial reaction:** "flaky test, retry it." Ran 5 times. Failed 3 of 5 in CI. Passed 5 of 5 locally. Not just flake.
-
-**`/debug` session findings:**
-
-> Hypotheses:
-> 1. Race condition between fetch and assertion that local CPU is fast enough to mask
-> 2. CI runner has different timezone affecting a date-formatting code path
-> 3. Test pollution from a previous test
->
-> Reading the test order:
->
-> ```ts
-> test.describe('Newsletter signup', () => {
->   test('shows form ...', async () => { ... });
->   test('shows success message ...', async () => {
->     // this test mutates the rate-limit store via real submission
->   });
->   test('shows already-subscribed message ...', async () => {
->     // also submits, hits rate limit if previous test ran first
->   });
-> });
-> ```
->
-> Hypothesis 3 is the leading candidate: tests share state through the rate-limit store. Locally tests run fast enough that... actually no, that doesn't explain local pass / CI fail.
->
-> Looking deeper: CI runs tests with `--workers=4`, locally defaults to 1. Parallel workers share the same in-memory rate-limit mock if it's a module-level singleton.
->
-> Reading `lib/newsletter/__mocks__/rate-limit.ts`:
->
-> ```ts
-> let counter = 0;        // ← module-level, shared across workers in CI
-> export const rateLimit = (ip: string) => { counter++; return { ok: counter < 10 }; };
-> ```
->
-> **Root cause:** the mock uses module-level state. With parallel workers, all four workers' submissions accumulate, and the suite hits the 10-request limit partway through.
-
-**Why local missed it:** workers=1 means each test gets a fresh module load between files (Vitest behavior), so the counter resets. CI with workers=4 shares the counter across all four workers' test files.
-
-**Symptom fix:** lower workers to 1 in CI (slow, doesn't address the bug).
-
-**Root cause fix:** make the mock per-test by resetting in `beforeEach`, OR replace the singleton with an injectable instance. The latter is better because it also surfaces the same bug if it exists in real code.
-
-**Regression test:** add a test that asserts the mock state is fresh between tests (would fail under the old singleton).
-
-**Commit:**
+**Symptom.** Signups return 500 on preview deployments; locally they work. It started with today's
+first preview build.
 
 ```
-fix(test): reset rate-limit mock between tests
-
-CI parallelism (workers=4) was sharing the in-memory rate-limit counter
-across worker processes, causing the 4th test in the file to hit the
-limit and fail nondeterministically. Local runs with workers=1 hid the
-bug. Mock now resets in beforeEach; added a sentinel test that fails
-if the reset is removed.
+/debug Newsletter signup returns 500 on preview deployments, works locally.
+Log: TypeError: Cannot read properties of undefined (reading 'split')
+     at mailchimpHost (lib/newsletter/mailchimp.ts:9)
+     at POST (app/api/newsletter/route.ts:18)
+Repro: any article on the preview URL, submit any email. 100% on preview, 0% locally.
+Started: today's first preview build.
 ```
 
-Total time: 45 minutes. Without `/debug`-style discipline, the team would have likely landed "rerun on failure" or "lower workers in CI" and called it done — until the same bug reappeared in production code two months later.
+**Diagnosis.** Three hypotheses: the provider key is missing on preview; the key is read at build
+time rather than at runtime; a bundling difference. Reading the provider wrapper settles it: it
+picks Mailchimp's host from the data-center suffix of `MAILCHIMP_API_KEY`, read with a non-null
+assertion, so a missing key surfaces as a `TypeError` on `undefined` instead of a configuration
+error. The hosting platform's settings confirm it: the key is set for Production only. The spec's Deployment section already says every environment
+needs it.
+
+**Decision — two causes, two rows of the table:**
+
+- **Outside the repository.** The developer enables the key for preview deployments in the hosting
+  platform. The `check-env-declared` hook checks that every variable the code reads is *declared*
+  in `.env.example`; it can't know whether each deploy target has a *value* — that's what the spec's
+  Deployment section is for.
+- **A defect.** The non-null assertion turned a configuration mistake into an opaque crash far from
+  its cause. Failing with a clear configuration error changes nothing documented — readers still see
+  the retry-able error — so: no spec change, a regression test, a fix.
+
+```
+✘ throws MailchimpUnavailableError naming MAILCHIMP_API_KEY when the key is missing
+    expected error matching /MAILCHIMP_API_KEY/, got "Cannot read properties of undefined (reading 'split')"
+```
+
+The wrapper now checks the key first and throws `MailchimpUnavailableError` with a message naming
+the variable; the route already maps that error to the 502 the form answers with its error message
+(AC6). Green, and the route's existing tests stay green.
+
+**Same feature, a different row.** Readers at a university report the form's error message on their
+first try. `/debug` finds the whole campus behind one network address — and the route allows 10
+signups per IP per minute, exactly what the spec's Security section says, answered with the error
+message, as its Clarifications decided. Nothing is broken, so nothing gets
+"fixed": raising the limit or keying on something other than the address is a security decision. It
+becomes a [change request](change-request.md) on `specs/007-newsletter-signup/`.
+
+## Commits it produces
+
+```
+$ git log --oneline main..fix/newsletter-provider-key
+8d3a1f7 fix: fail clearly when the email provider key is missing
+```
+
+The university case produces no fix commit. Its first commit is the change request's
+`spec: approve newsletter-signup CR N`, after the gate.
+
+## Common mistakes
+
+| Mistake | What happens | Instead |
+|---|---|---|
+| "Fix this" without a diagnosis | A plausible patch lands; the bug moves elsewhere | `/debug`; fix only a confirmed root cause |
+| Treating the symptom | A `try/catch` and a log line, a bigger timeout, a retry — the cause stays | Ask what mechanism produced the symptom, and fix that |
+| No regression test | The bug is back in three months | Every diagnosed bug gets a test that failed first |
+| Fixing working-as-specified behavior | A requirement changes in a `fix:` commit nobody approved | Check the spec first; behavior changes are change requests |
+| Accepting the first hypothesis | A wrong fix on top of the original bug | Name what would prove it wrong, then check |
+| Vague evidence | The agent guesses | Exact errors, reproduction steps, environment |
+| Hours of tunnel vision | Obvious things get missed | After an hour without narrowing it down, step back or pull in a teammate |
+
+Signs you're fixing a symptom: the fix adds an `undefined` check without knowing why the value is
+undefined; catches an error without knowing which one to expect; raises a timeout without measuring
+why it times out; adds a retry without naming the failure; or reorders two lines and you can't say why
+that helps.
+
+**Reference:** [`/debug`](../../skeleton/.claude/skills/debug/SKILL.md) ·
+[testing rules — red, then green](../../skeleton/.claude/rules/testing.md) ·
+[`specs/README.md` § Lanes](../../skeleton/specs/README.md#lanes--how-much-process-a-change-gets)

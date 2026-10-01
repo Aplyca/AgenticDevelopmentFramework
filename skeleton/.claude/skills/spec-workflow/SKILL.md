@@ -1,107 +1,122 @@
 ---
 name: spec-workflow
-description: Spec-driven development workflow — check, write, approve, implement, test, verify
-user_invocable: true
+description: Reference for how work flows in this project — the fast, careful, and full lanes, project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests, answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
 ---
 
 # Development Workflows
 
-This project follows three workflows depending on the situation.
+Every task starts with **triage** (`/triage`): read it in full, then decide the deliverable (an
+answer or a change), the **lane** for a change, and whether an environment is needed. The lane
+follows risk and uncertainty, not size (`specs/README.md` § Lanes):
 
-## Workflow 1: Project Setup (one-time)
+| Lane | When | Workflow |
+|---|---|---|
+| **Fast** | A precise request (or a bug with a clear cause), about 3 files or fewer, no escalation trigger | Workflow 2a |
+| **Careful** | The same, touching a risk area or a sensitive area | Workflow 2a plus the area's checklist |
+| **Full** | Something to decide, a new feature, or work across layers | Workflow 2 |
 
-Use `/init-project` for first-time setup. The key output is technical documentation that serves as persistent context for AI agents throughout the project:
+The developer can raise the lane at any time; lowering it never silently drops a risk checklist.
 
-1. Customize `CLAUDE.md` with project identity, stack, and critical rules
-2. Customize `.claude/rules/` (files with `<!-- CUSTOMIZE -->` markers)
-3. Write initial technical docs:
-   - `docs/ARCHITECTURE.md` — system context, components, data flow, tech stack rationale
-   - `docs/security/SECURITY.md` — auth scheme, data classification, threat model
-   - `docs/infrastructure/OVERVIEW.md` — platform, environments, CI/CD
-   - `docs/GLOSSARY.md` — domain terminology for consistent language
-4. Commit all configuration and documentation
+## Workflow 1: Project setup (once)
 
-These docs are not just for humans — AI agents read them before every design review, security audit, and implementation task. Invest in them early.
+`/init-project` (or the framework's `/adopt`): fill `AGENTS.md`, the constitution, the customizable
+rules, the hook configuration, and the initial docs — `docs/ARCHITECTURE.md`,
+`docs/security/SECURITY.md`, `docs/infrastructure/OVERVIEW.md`, `docs/GLOSSARY.md`, and reference
+pages for the most complex subsystems. Agents read these before every design review and
+implementation; invest in them early.
 
-## Workflow 2: Feature Development (new features, modifications, bug fixes)
+## Workflow 2a: Fast and careful lanes
 
-Use this for any planned change — new features, modifications to existing features, or non-urgent bug fixes.
+1. **Triage in one line** — the request in your words, "done when…", and the files you expect to
+   touch. Ask now only what blocks you, in one message.
+2. **Search every use** of what you change — shared code and other callers are a trigger.
+3. **Edit and prove it** — a targeted test asserts the new behavior; for a bug, the regression test
+   fails first. Quiet output; the full gate once, before delivery.
+4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
+   code, contract, infrastructure), run `@security-reviewer` for authorization, data, or payments,
+   and get the developer's yes on the risky part.
+5. **Commit** (`/commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded
+   behavior (a fix that restores documented behavior needs none).
+6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
+   fails, or no test can prove the change.
+7. **Deliver when asked** — a draft pull request stating the lane (`/open-pr`); the human review and
+   QC are the gate.
 
-### Phase 1: Spec
+## Workflow 2: Feature or behavior change (full lane)
 
-1. **Check existing specs** — Read `specs/` before starting. If a spec exists for the area you're touching, update it rather than creating a new one.
-2. **Write or update the spec** — Use `/write-spec`. Include acceptance criteria, edge cases, and out-of-scope boundaries. For modifications, clearly state what changes and what stays the same.
-3. **Architecture review** — For non-trivial changes, use `@architect` to validate the approach. Skip for small changes or bug fixes.
-4. **Get user approval** — Present the spec for review. Iterate until approved. Set status to `approved`.
-5. **Commit the spec** — Commit the approved spec (and any updated docs) BEFORE starting implementation:
-   ```
-   spec: add user registration spec
-   spec: update payment flow — add retry logic
-   ```
+| # | Phase | Skill | Artifact | Commit |
+|---|---|---|---|---|
+| 1 | Triage | `/triage` | First message | — |
+| 2 | Specify + clarify | `/write-spec` | `specs/NNN-<slug>/spec.md` | — |
+| 3 | Plan + tasks + analyze | `/write-plan` (`@spec-analyzer`) | `plan.md`, `tasks.md` | — |
+| 4 | **Approval gate** | `/write-plan` | `status: approved` + `approvals:` line | `spec:` |
+| 5 | Docs first | `/write-docs` | Pre-implementable docs | `docs:` |
+| 6 | Implement, per task | `/implement` (`/write-tests` inside) | Test + code per task | `feat:` / `fix:` per task |
+| 7 | Reconcile + verify | `/implement`, `/review` | Docs updated; `tasks.md` § Gate results | `docs:` |
+| 8 | Deliver (when asked) | `/open-pr` | Draft pull request | — |
+| 9 | Close the loop (when asked) | `/stakeholder-update` | Requester-facing message | — |
 
-### Phase 2: Test (TDD — plan, then write tests)
+**Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
+thing: an agent's convincing analysis is most often wrong about *which files and layers the change
+touches*, and that is only known once the plan exists. The gate shows the scope, the change surface,
+and every assumption together — before the first commit, when correcting them is a sentence.
 
-6. **Plan the tests** — Use `/write-tests`. The agent reads the spec and its diff, maps each AC and edge case to a test, and presents the **test plan** (AC → test mapping) for your approval. No tests are written yet.
-7. **Approve the test plan** — Review the mapping. Are all ACs covered? Are edge cases included? Iterate until satisfied.
-8. **Write the tests** — After approval, the agent writes the tests following the plan.
-9. **Run tests — they should all fail** — This confirms the tests are meaningful. A test that passes before implementation is either testing the wrong thing or testing something that already exists.
-10. **Commit the tests** — Use `/commit` with the `test:` prefix:
-    ```
-    test: add registration flow tests (red — pending implementation)
-    test: add retry logic tests for payment flow (red — pending implementation)
-    ```
+**Why commit the spec folder, then docs, then one commit per task.**
+- The `spec:` commit records intent *and* the approved change surface; later diffs are reviewed
+  against it.
+- The `docs:` commit captures how the feature will be used before code constrains the conversation.
+- One commit per task, each made after its test went red then green, gives a history where every
+  step is reviewable, revertible, and backed by a test that once failed.
+- If implementation goes wrong, the spec and docs commits survive and the work restarts cleanly.
 
-### Phase 3: Docs (docs-first — plan, then write user-facing docs)
+**Contract-first acceptance tests (optional).** When the team wants the verification contract up
+front, the plan lists end-to-end tests that encode the ACs; they're written and committed red
+(`test:`) right after the docs, and the task loop turns them green.
 
-11. **Plan the docs** — Use `/write-docs`. The agent reads the spec's Documentation Pre-implementable section, the committed tests, and existing docs, then presents a **doc plan** (which doc files, audience, length) for your approval.
-12. **Skip condition** — If the spec lists no pre-implementable docs (admin guides, API contracts, end-user copy defaults, SDK READMEs), the agent skips cleanly with a note. Proceed to Phase 4.
-13. **Approve the doc plan** — Review. Iterate until satisfied.
-14. **Write the docs** — After approval, the agent writes the docs following the plan, sourcing claims from the spec ACs and tests.
-15. **Commit the docs** — Use `/commit` with the `docs:` prefix:
-    ```
-    docs: add admin guide and end-user defaults for newsletter signup
-    ```
+## Workflow 3: Change request on delivered work
 
-### Phase 4: Implement (plan, then make the tests pass; reconcile docs with reality)
+A precise adjustment the requester already decided takes Workflow 2a with a **light** `CR N` entry
+committed with the change. When the request leaves something to decide, it's a **full** change
+request:
 
-16. **Plan the implementation** — Use `/implement`. The agent reads the spec diff, test diff, committed docs, and existing code, then presents an **implementation plan** for your approval. No code is written yet.
-17. **Approve the implementation plan** — Review the plan. Does it address all failing tests? Does it match what the docs describe? Iterate until satisfied.
-18. **Implement** — After approval, the agent writes code following the plan until all tests pass.
-19. **Run tests — they should all pass** — If any test fails, fix the implementation (not the test, unless the test has a bug).
-20. **Reconcile docs with reality** — Re-check the committed docs against what was actually built. **Most features need at least minor doc updates here** — a renamed field, an additional edge case discovered, a UX tweak. Update deliberately:
-    - **Small adjustments** (a sentence, a field name): update inline, fold into the `feat:` commit, call out in the message.
-    - **Meaningful revisions** (whole new section, behavior change): commit separately as `docs:` before the `feat:` commit. For substantial revisions, re-invoke `/write-docs` in update mode for a planning pass.
-    - This is normal, not exceptional. Never ship code that contradicts committed docs without updating the docs.
-21. **Review** — Use `/review`. Address findings.
+1. `/triage` identifies the existing spec folder and the delivered work.
+2. `/write-spec` in amend mode: delta = the request now vs what the spec records as delivered (plus
+   comments since its last change); append `CR N`; new ACs tagged `(CR N)`.
+3. `/write-plan` adds the CR's plan and tasks; same gate; `approvals:` gets a `CR N` line.
+4. Then the rest of Workflow 2: docs first when documented behavior changes, the per-task loop, gate
+   results, review, a draft pull request when asked — on a fresh branch (`<type>/<slug>-<change>`),
+   with a new pull request, in the **same folder**. If the delta can't be recovered — ask.
 
-### Phase 5: Ship
+## Workflow 4: Answer-only task (investigation, impact analysis, estimate)
 
-22. **Commit implementation** — Use `/commit`. Reference the spec in the commit message:
-    ```
-    feat: implement user registration
-    fix: add retry logic to payment flow
-    ```
-23. **Verify** — For UI changes, run the app and confirm the result matches the spec.
-24. **Backfill post-implementable docs** — JSDoc, runbooks, troubleshooting guides that need real running code. Either part of the implementation commit (small additions) or a follow-up `docs:` commit.
-25. **Deploy** — Follow the project's deployment process.
+No spec folder, no environment unless a step must run something. Read the code, docs, and history;
+deliver the answer where the task asks for it. A recommended change gets its spec once someone
+approves the change.
 
-### Why commit specs, tests, AND docs before implementing?
+## Workflow 5: Bugs and hotfixes
 
-- **Spec commit** captures **intent** — the implementation agent reads its `git diff` to know the exact scope
-- **Test commit** captures the **verification contract** — failing tests define exactly what "done" means
-- **Docs commit** captures the **initial design intent for usage** — admins, API consumers, integrators see the agreed behavior before code starts. Docs drive implementation thinking and evolve when reality moves.
-- **Implementation commit** captures **execution** — code that makes the tests pass; any doc revisions discovered during implementation are reconciled here (or in a preceding `docs:` commit when meaningful).
-- For modifications, the diffs show precisely which ACs, tests, and docs were added or changed — the agent doesn't re-implement, re-test, or re-document what's unchanged
-- Each commit type is separate in history — easy to review intent, verification contract, design-for-usage, and execution independently
-- If implementation goes wrong, the spec, test, and doc commits are preserved and you can retry cleanly
+- **Bug with a clear root cause, restoring documented behavior:** the fast lane (careful in a risk
+  area) — `/debug` → regression test (watch it fail) → fix → `/commit`. No spec folder.
+- **Bug that changes documented behavior:** a change request on the feature's spec folder — light or
+  full, by whether there's something to decide.
+- **Hotfix (production is broken now):** the careful lane — `/debug` → fix + regression test → ship through the
+  project's hotfix path (`CONTRIBUTING.md`). Backfill the spec and user-facing docs afterwards if
+  behavior changed. Speed justifies skipping spec-first; it never justifies skipping the backfill.
 
-## Workflow 3: Hotfix (production-breaking bugs only)
+## Workflow 6: A change to how we work
 
-Use this ONLY for critical production issues that need immediate resolution.
+Record it as a PDR in `docs/process/` (`/record-decision`) and update every instruction file that
+describes the old way in the same pull request. Constitution amendments get their own pull request.
 
-1. **Fix the issue** — Use `/debug` to find the root cause, then fix it directly
-2. **Write a regression test** — Ensure the bug can't recur
-3. **Commit and deploy** — Use `/commit` with the `fix:` prefix
-4. **Backfill the spec AND docs** — After the fix is deployed, update or create a spec if the fix changes behavior, and update any user-facing docs the fix affects (admin guides, API contracts). Commit each separately.
+## Parallel work
 
-Hotfixes skip the spec-first and docs-first process because speed matters. But always backfill — undocumented behavior changes create confusion later.
+When several agent sessions run at once, each works in its own git worktree on its own branch —
+never two sessions in one checkout. With the parallel-agents module installed, the main checkout is a
+**dispatcher** only (`/dispatch`): it names the task, creates the worktree, and hands off; the
+**worker** in the worktree does everything from triage onward.
+
+## Effort beyond the lane
+
+The developer can ask for more care without changing the lane — questions before any code,
+`/evaluate` to compare designs, a higher effort level or `/model opus`, extra tests,
+`@security-reviewer`, `/deep-review`. Each costs differently (`docs/COST-MODEL.md` § Effort).
