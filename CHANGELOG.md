@@ -11,6 +11,58 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Field-practices reconciliation (`aplyca-framework` 0.2.0)
+
+Practices proven in client projects — some built on this framework, some grown alongside it — reconciled into the skeleton, generalized for any stack, and tested. The rationale for each decision is in [`docs/decisions/`](docs/decisions/README.md).
+
+#### Fixed — affects every adopting repository
+- **Claude Code never loaded `AGENTS.md`.** When a repository has both files, Claude Code reads `CLAUDE.md` *instead of* `AGENTS.md`; the skeleton's `CLAUDE.md` didn't import it, so the workflow, critical rules, and conventions were invisible to Claude Code. `CLAUDE.md` now starts with `@AGENTS.md` (and `GEMINI.md` does the same).
+- **Hooks never ran.** `.claude/settings.json` declared hooks as flat `{"matcher", "command"}` entries reading `$CLAUDE_FILE_PATH`; Claude Code requires a nested `hooks` array and passes tool input as JSON on stdin. Replaced with a valid schema and tested scripts.
+- **Skill frontmatter `user_invocable` was ignored** (the key is `user-invocable`; unknown keys are silently dropped). Removed; outward-facing skills use `disable-model-invocation: true`.
+- **Stray test text** committed into `specs/_template.md` (commit `719f27b`) is gone with the new templates.
+- **Links that break in adopting repos** — the skeleton pointed at framework-only docs (`docs/ONBOARDING.md`, `docs/scenarios/`, `evals/STRATEGY.md`) and at example files that don't exist. Fixed, and a static check now fails on any such link.
+- `permissions.allow` contained `Bash(git branch:*)`, which also auto-approved `git branch -D`. Removed.
+- The skeleton's `CONTRIBUTING.md` sent contributors to `CLAUDE.md` for project rules (now `AGENTS.md`); `/init-project` had duplicate step numbers.
+- The reference MCP server in `docs/MCP-INTEGRATION.md` misread its own URIs (`specs` parses as the URL host, so every path segment was off by one) and cut sections with `\Z`, which JavaScript treats as a literal `Z`. Rewritten for spec folders and legacy specs, and the helpers were tested.
+
+#### Added
+- **Spec folders** — `specs/README.md` (the process: when a spec is needed, flow, granularity, status, change requests) and `specs/_templates/{spec,plan,tasks}.md`, replacing `specs/_template.md`. A change request appends a `CR N` part to each file, its tasks numbered from `T<N>00` ([0001](docs/decisions/0001-spec-folders-as-record-of-intent.md)).
+- **Skills:** `/triage` ([0004](docs/decisions/0004-triage-before-setup.md)), `/write-plan` with the approval gate ([0002](docs/decisions/0002-one-approval-gate-on-the-change-surface.md)), `/open-pr` and `/stakeholder-update` ([0005](docs/decisions/0005-outward-actions-and-draft-prs.md)), `/record-decision` ([0007](docs/decisions/0007-process-decision-records.md)), `/context-audit`.
+- **Agent:** `@spec-analyzer` — adversarial, read-only analysis of a spec folder before the gate.
+- **Dynamic workflows** (`.claude/workflows/`): `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` — fan-out with independent verification of every finding.
+- **Guardrail hooks** (`.claude/hooks/`): `session-context.sh` (branch, worktree role, and the spec folder the branch belongs to — change-request branches included), `guard-git.sh`, `protect-paths.sh`, `check-env-declared.sh`, with project values in `config.sh` ([0006](docs/decisions/0006-guardrails-as-configuration.md)). `permissions.ask` on pushes and pull-request actions; `permissions.deny` on reading `.env` files.
+- **Docs:** `docs/process/` (PDR index and template; records are named `NNNN-<slug>.md`, like ADRs), `docs/reference/` (on-demand, code-level subsystem pages), `docs/TRACKER-INTEGRATION.md` (requirements pipeline, rules for agents, MCP setup with a read-only allowlist).
+- **Optional modules** (`modules/`, [0009](docs/decisions/0009-optional-modules.md)): `github` (PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy, `.gitleaks.toml`), `git-hooks` (tool-agnostic `pre-push`), `parallel-agents` (worktree scripts — idempotent create, env seeded from the main checkout, ports reserved under a lock, `--no-start` / `--setup-only` / `--refresh-env` / `--from <tag>`, a warning when reusing a stale branch — plus `/dispatch` and `docs/PARALLEL-AGENTS.md`; [0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md)).
+- **Framework decision records** — `docs/decisions/0001`–`0010`.
+- **Evals:** `evals/static/test-hooks.sh` and `test-modules.sh` (functional tests in throwaway repositories); `check-skills.sh` now also checks agents, workflows, the settings and hook schema, the `@AGENTS.md` import, the spec templates, links, and modules.
+
+#### Changed
+- **The feature workflow:** triage → spec → plan and tasks → **one approval gate on scope, change surface, and assumptions** → `spec:` commit → docs first → **one red → green cycle and one commit per task** → gate results recorded in `tasks.md` → review → **draft** pull request only when asked ([0002](docs/decisions/0002-one-approval-gate-on-the-change-surface.md), [0003](docs/decisions/0003-tdd-at-task-granularity.md), [0005](docs/decisions/0005-outward-actions-and-draft-prs.md)). Change requests amend the same spec folder (`CR N`) on a fresh branch named after the feature and the change (`feat/newsletter-signup-topics`); hotfixes that changed behavior are backfilled the same way.
+- **`AGENTS.md`** restructured: ground rules (constitution precedence, never invent requirements, nothing outward unasked), how work flows, requirements & traceability, delivery rules, boundaries & antipatterns, the comments rule. **`CLAUDE.md`** rewritten around the import, skills/agents/workflows, and the table of enforced guardrails.
+- **Skills updated:** `write-spec` (folders, change-request mode; approval moved to the gate), `write-tests` (task, acceptance, and standalone modes), `write-docs` (driven by the plan's documentation plan), `implement` (per-task loop, change-surface discipline, gate results, then `status: implemented`), `review` (change surface, constitution, evidence, comments rule, PR vs diff), `refactor` (characterization tests proven able to fail, a step plan with its file list, one `refactor:` commit per green step, an ADR for lasting structural decisions), `commit`, `spec-workflow`, `spec-drift`, `orchestrate`, `init-project`, `debug`.
+- **Agents updated** for spec folders; `security-reviewer` checks authorization loosening; `test-runner` requires red for the right reason and reports evidence.
+- **Rules:** `code-quality` gains "Comments — write almost none" and "types are load-bearing"; `git-workflow` covers per-task commits (the docs-first tasks share one; test-only tasks are proven able to fail), where the pull-request link and gate results are committed, `<type>/<slug>` branches, outward actions, drafts, "CI is a signal; review is the gate"; `testing` covers red-then-green per task and evidence.
+- **Templates:** `CONSTITUTION.md` (field-proven example principles, precedence, amendment via PDR and never in the PR that benefits), `CONTRIBUTING.md` (two branching models, draft PRs, status vocabulary, what's enforced), `SPEC-MODEL.md` (folders; the Technical section moves to `plan.md`), `COST-MODEL.md` (aliases, current models and prices, workflow cost), `MEMORY-STRATEGY.md` (new layers), `DEV-SETUP.md` (one command surface), `.claudeignore` (`.claude/worktrees/`), Cursor rules, `GEMINI.md`.
+- **Default model** is the alias `"sonnet"` ([0010](docs/decisions/0010-model-aliases.md)).
+- **Plugin 0.2.0:** `/adopt` offers modules, discovers the branching model and tracker, configures the hooks, records PDR-0001, and verifies hooks and the import; it can add modules to an adopted repo. `/upgrade` handles modules, the new buckets, and changelog migration steps.
+- **Framework docs:** README, SETUP, UPGRADING, ONBOARDING, SKILLS-REFERENCE, AGENTS-REFERENCE, worked examples (now a spec folder and a change request), and scenarios (new: change request, answer-only task, parallel agents).
+
+#### Removed
+- `skeleton/specs/_template.md` (replaced by `specs/_templates/`).
+- `docs/scenarios/modifying-existing-feature.md` (replaced by `change-request.md`); the examples' separate test, doc, and implementation plans (folded into `plan.md` and `tasks.md`).
+
+#### Upgrade impact
+- **Migration — do these even if you skip everything else:**
+  1. Add `@AGENTS.md` as the first instruction of `CLAUDE.md` (below the `Skeleton source` comment). Start a new session and confirm with `/memory` that both files load.
+  2. Replace any flat hook entry in `.claude/settings.json` with the nested `{"matcher": …, "hooks": [{"type": "command", "command": …}]}` form. Copy `.claude/hooks/`, set `config.sh`, and port custom hooks to read the event from stdin (`tool_input.file_path`, `tool_input.command`) and exit 2 to block or report.
+  3. Remove `user_invocable:` from custom skills (use `user-invocable` / `disable-model-invocation`).
+- **Overwrite:** all skills (six new), all agents (`spec-analyzer` new), `.claude/workflows/` (new), hook scripts (new), `.claude/rules/{code-quality,git-workflow,testing}.md`, `.cursor/rules/*`, `docs/SPEC-MODEL.md`, `docs/COST-MODEL.md`, `docs/MEMORY-STRATEGY.md`, `docs/process/0000-pdr-template.md`, `specs/_templates/` (new).
+- **Merge:** `AGENTS.md` (restructured — move your critical rules into Ground rules, add Boundaries & antipatterns, keep identity, conventions, structure, commands), `CLAUDE.md` (rewritten — keep your project name and stamp, add the import), `GEMINI.md`, `CONTRIBUTING.md` (keep the branching model you use; add the status vocabulary), `.claude/settings.json` (alias model, `ask`/`deny`, hooks), `.claude/hooks/config.sh` (new — set protected branches, append-only and generated paths), `docs/CONSTITUTION.md` (keep your principles; adopt the precedence and amendment wording), `.claudeignore`, `docs/getting-started/DEV-SETUP.md`, `README.md`.
+- **Additive:** `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`.
+- **Specs:** existing single-file specs are untouched; new work uses folders; move a legacy spec into a folder the next time it changes. Delete `specs/_template.md` if you never customized it.
+- **Modules:** optional — install with `/adopt` (module mode) or `cp -R modules/<name>/files/.`, and list them in the stamp.
+- **Framework-internal:** `docs/decisions/`, `evals/`, the plugin, examples, scenarios, onboarding.
+
 ### Changed
 - **Repo renamed: `aplyca/ai-dev-starter-kit` → `aplyca/AgenticDevelopmentFramework`** (`aplyca-framework` 0.1.3, framework-internal). GitHub redirects the old URLs (web, clone, push), so existing checkouts, marketplace installs, and adopted repos keep working — but update remotes and re-add the marketplace under the new slug at the next opportunity: `claude plugin marketplace add aplyca/AgenticDevelopmentFramework`. All live references in README, docs, and the plugin (homepage, clone fallbacks, baseline stamp) now use the new slug; historical changelog entries are left as written. Nothing lands in adopted repos — already-stamped `Skeleton source:` lines referencing the old name stay valid.
 - **`/adopt` refinements from the first pilot adoption** (`aplyca-framework` 0.1.2, framework-internal): `evals/` is now opt-in — the skill asks whether the team writes custom skills/rules/spec patterns needing automated checks and deletes the scaffold otherwise (the pilot's review dropped it as unused); the skill also prunes `.claudeignore` entries that can't apply to the target stack.

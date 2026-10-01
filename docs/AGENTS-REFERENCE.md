@@ -1,18 +1,19 @@
 # Agents reference
 
-The AI-Assisted Development Framework ships seven specialized agents in `skeleton/.claude/agents/`. Adopting projects copy them verbatim and invoke them with `@agent-name` in Claude Code. All agents are generic — they learn project specifics from the project's `AGENTS.md`, `CLAUDE.md`, and `.claude/rules/` at runtime.
+The AI-Assisted Development Framework ships eight specialized agents in `skeleton/.claude/agents/`. Adopting projects copy them verbatim and invoke them with `@agent-name` in Claude Code. All agents are generic — they learn project specifics from the project's `AGENTS.md`, `CLAUDE.md`, and `.claude/rules/` at runtime.
 
-For the routing decision (skill vs agent), see the **When to use skills vs agents** section in `skeleton/CLAUDE.md`. For model-tier rationale, see `skeleton/docs/COST-MODEL.md`.
+For the routing decision (skill vs agent vs workflow), see **Skills, agents, and workflows** in `skeleton/CLAUDE.md`. For model-tier rationale, see `skeleton/docs/COST-MODEL.md`.
 
 ## Catalog
 
 | Agent | Purpose | Tool access | Model tier |
 |---|---|---|---|
-| `@spec-writer` | Drafts and updates feature specifications from business requirements using the multi-perspective spec model | Read + Write `specs/` | Sonnet |
-| `@code-reviewer` | Reviews code for quality, conventions, and best practices against the project's standards | Read-only | Haiku |
-| `@security-reviewer` | Audits for injection, credential exposure, unsafe data handling, and OWASP-style issues | Read-only | Haiku |
-| `@test-runner` | Writes tests from a committed spec (TDD red phase — ACs, edge cases, testable requirements from Security/Accessibility/Performance/Privacy/Analytics/Localization sections), then runs them after implementation (green phase) | Full edit + Bash | Sonnet |
-| `@architect` | Reviews architecture decisions, data flow, component boundaries, and system design | Read-only | Haiku |
+| `@spec-writer` | Drafts or amends a spec folder's `spec.md` from business requirements using the multi-perspective spec model, including change-request (`CR N`) amendments | Read + Write | Sonnet |
+| `@spec-analyzer` | Adversarial pre-gate analysis of a spec folder: ACs without tasks or tests, change-surface gaps found in the code, constitution conflicts, contradictions, unstated assumptions, invented requirements. Returns a readiness verdict | Read-only | Sonnet |
+| `@code-reviewer` | Reviews code for quality, conventions (including the comments rule), change-surface compliance, and test evidence against the spec folder | Read-only | Haiku |
+| `@security-reviewer` | Audits for injection, credential exposure, loosened authorization, unsafe data handling, and OWASP-style issues | Read-only | Haiku |
+| `@test-runner` | Writes the tests a spec folder's tasks name, runs them red for the right reason before the code exists and green after, and reports the evidence for the gate results | Full edit + Bash | Sonnet |
+| `@architect` | Reviews a plan's architecture, change surface, data flow, component boundaries, and system design | Read-only | Haiku |
 | `@debugger` | Root cause analysis for errors, failures, and unexpected behavior | Read + Bash (no edit) | Sonnet |
 | `@ux-reviewer` | Reviews UI against specs and UX standards — layout, flow, consistency, accessibility basics, user-facing text | Read-only | Haiku |
 
@@ -28,7 +29,11 @@ Skills are step-by-step playbooks that run in the main conversation. Use them fo
 
 ## Customizing model tiers
 
-Each agent's `model:` frontmatter is set per `skeleton/docs/COST-MODEL.md`. To change a tier in your project, edit the agent's `agent.md` directly — the framework doesn't enforce model choice across upgrades, so your override survives.
+Each agent's `model:` frontmatter uses a version-less alias (`haiku`, `sonnet`, `opus`) set per `skeleton/docs/COST-MODEL.md`, so it follows new model releases without changes. To change a tier in your project, edit the agent's `agent.md` — but agents are in the **overwrite** bucket on upgrade, so record the override and its reason in your `CLAUDE.md` and re-apply it after each upgrade.
+
+## Agents inside workflows
+
+The `/deep-*` workflows (`skeleton/.claude/workflows/`) don't call these agents directly — their reviewers need to run read-only `git` commands, which the read-only agents can't. Instead each workflow agent is pointed at the matching checklist (for example `.claude/agents/security-reviewer/agent.md`), so the standards stay in one place.
 
 ## Adding custom agents
 
