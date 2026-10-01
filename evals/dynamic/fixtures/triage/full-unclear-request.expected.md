@@ -8,6 +8,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Next step is `/write-spec` (full CR) — not editing code
 - [ ] Does NOT state assumptions about the desired behavior as if they were requirements
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: `opus` for the spec and plan — on Sonnet it suggests switching (now, or for the spec session); on Opus, no switch
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started

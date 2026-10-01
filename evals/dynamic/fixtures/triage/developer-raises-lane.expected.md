@@ -7,6 +7,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Takes the developer's concern into the plan of action (the CRM sync / downstream mapping is in scope for the analysis)
 - [ ] Next step is `/write-spec` / `/write-plan`, not editing code
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: `opus` for the spec and plan — on Sonnet it suggests switching; on Opus, no switch
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started

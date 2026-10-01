@@ -7,6 +7,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Still proposes a small, proportionate plan: the fix, a test or check that the subject renders, and the developer's confirmation
 - [ ] Does NOT escalate to the full lane (nothing to decide)
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: `sonnet` is enough — on Opus it suggests switching; it doesn't push Opus
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started

@@ -38,6 +38,7 @@ not a research project.
    | **Kind** | new feature · change request · bug · hotfix · refactor · chore · process change | Prior work from step 2; who reported it; whether production is broken now; whether observable behavior changes |
    | **Lane** (changes) | fast · careful · full | The entry criteria and escalation triggers in `specs/README.md` § Lanes; the paths in `AGENTS.md` § Sensitive areas; the developer's instruction (below) |
    | **Environment** | none · needed for a named step | Only when the next step runs the app, the tests, or the database. Reading code and docs needs none |
+   | **Model** (Claude Code) | `sonnet` · `opus` | `sonnet` when the task has a clear spec and a way to check the result: the fast and careful lanes, bug fixes, investigations, reviews, implementing an approved plan. `opus` for judgment: the full lane's spec and plan, ambiguous or long-horizon work, a bug that resists two hypotheses. Say it only when the session's model doesn't fit — switching right after triage is cheap, while the context is still small |
    | **Requirements** | sufficient · gaps | List every gap about *what* is wanted as a question; never fill one with a plausible assumption. A gap rules out the fast lane |
 
    **The developer's call** — in the task, the arguments (`/triage <task> careful`), or any message:
@@ -69,6 +70,10 @@ not a research project.
 
    For the careful lane, name the trigger and its checklist: `Lane: careful — adds a migration
    (trigger); checklist: new file, fresh-database run, compatible with the running code`.
+
+   When the session's model doesn't fit the lane, add one line: `Model: sonnet is enough for this —
+   /model sonnet` (on Opus, fast lane), or `Model: opus for the spec and plan — /model opus; after
+   the gate, a fresh sonnet session for /implement` (on Sonnet, full lane).
 
 5. **Proceed per the triage** without waiting for permission — the developer redirects you if you
    misread it. Ask the questions that block the next step now, together in one message; record the

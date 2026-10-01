@@ -1,7 +1,7 @@
 ---
 name: security-reviewer
 description: Audits code for security vulnerabilities — injection, credential exposure, unsafe data handling. Use before merging or deploying changes.
-model: haiku
+model: sonnet
 tools:
   - Read
   - Glob

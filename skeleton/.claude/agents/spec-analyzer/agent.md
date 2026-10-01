@@ -1,7 +1,7 @@
 ---
 name: spec-analyzer
 description: Adversarial, read-only analysis of a spec folder (spec.md, plan.md, tasks.md) before the approval gate — finds acceptance criteria without tasks or tests, tasks without criteria, change-surface gaps the code reveals, constitution conflicts, contradictions, unstated assumptions, and invented requirements. Use on any non-trivial spec folder before asking the developer to approve it.
-model: sonnet
+model: opus
 tools:
   - Read
   - Glob

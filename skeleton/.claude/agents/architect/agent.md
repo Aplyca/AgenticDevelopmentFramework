@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Reviews architecture decisions, data flow, component boundaries, and system design. Use when adding new features, integrations, or restructuring the app.
-model: haiku
+model: opus
 tools:
   - Read
   - Glob

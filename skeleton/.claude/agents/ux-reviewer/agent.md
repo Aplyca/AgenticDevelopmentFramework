@@ -1,7 +1,7 @@
 ---
 name: ux-reviewer
 description: Reviews UI against specs and UX standards — layout, flow, consistency, accessibility basics, and user-facing text. Use after UI implementation to validate the experience.
-model: haiku
+model: sonnet
 tools:
   - Read
   - Glob

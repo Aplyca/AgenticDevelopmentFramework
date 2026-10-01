@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code for quality, conventions, and best practices. Use after implementation to catch issues before commit.
-model: haiku
+model: sonnet
 tools:
   - Read
   - Glob

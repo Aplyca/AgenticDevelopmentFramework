@@ -37,15 +37,15 @@ Project-specific values (protected branches, append-only paths, the env template
 
 ## Lanes — match ceremony to risk
 
-| Change | Lane | Workflow |
-|---|---|---|
-| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → edit → targeted test → `/commit`; on delivered work, a light `CR N` in the same commit |
-| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part |
-| New feature, unclear requirement, a design choice, cross-layer work, a change request with something to decide | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` |
-| Bug, cause unknown | — | `/debug`, then the lane the fix needs |
-| Refactor with no behavior change | Fast, or full when it sets a structure others must follow | `/refactor` → tests still green → `/commit` |
-| Investigation, impact analysis, estimate | — | `/triage` → deliver the answer. No spec, no environment unless needed |
-| Spike or throwaway code | — | No workflow. If promoted, it gets a lane |
+| Change | Lane | Workflow | Model |
+|---|---|---|---|
+| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → edit → targeted test → `/commit`; on delivered work, a light `CR N` in the same commit | `sonnet` |
+| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part | `sonnet`, high effort |
+| New feature, unclear requirement, a design choice, cross-layer work, a change request with something to decide | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus` up to the gate; a fresh `sonnet` session from `/write-docs` on |
+| Bug, cause unknown | — | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
+| Refactor with no behavior change | Fast, or full when it sets a structure others must follow | `/refactor` → tests still green → `/commit` | `sonnet` |
+| Investigation, impact analysis, estimate | — | `/triage` → deliver the answer. No spec, no environment unless needed | `sonnet`; `opus` for architecture-level questions |
+| Spike or throwaway code | — | No workflow. If promoted, it gets a lane | — |
 
 **Heuristic:** if there's nothing to decide, there's no spec folder. If a teammate could merge the diff without reading new docs, there's nothing for `/write-docs`.
 
@@ -53,7 +53,11 @@ Project-specific values (protected branches, append-only paths, the env template
 
 ## Cost model
 
-Every call re-reads the conversation, so a session's cost is roughly *calls × context*: keep sessions to one task (`/clear` between tasks) and output short (`AGENTS.md` § Working economically). The default model is the version-less alias `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates (keep Claude Code current with `claude update`). The desktop app's model picker and `/model` take precedence over it, and a 1M-context model lets sessions grow far past what a task needs. Agents use the `haiku` / `sonnet` / `opus` aliases the same way — don't override them casually; pin a full model ID only when the team needs a fixed version. Escalate to Opus for genuinely hard reasoning; workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Lanes, effort, and per-skill tiers: `docs/COST-MODEL.md`.
+Every call re-reads the conversation, so a session's cost is roughly *calls × context*: keep sessions to one task (`/clear` between tasks) and output short (`AGENTS.md` § Working economically).
+
+**Choose the model by the work, with the version-less aliases.** `sonnet` when the task has a clear spec and a way to check the result — the fast and careful lanes, bug fixes, investigations, reviews, implementing an approved plan. `opus` for judgment — the full lane's spec and plan, ambiguous or long-horizon work, a bug that resists diagnosis. Effort: the default (medium) for well-specified work, `high` (`/effort high`) for harder or longer work; `xhigh` and `max` make Sonnet think longer and cost more. Each model has its own prompt cache, so switch where it's cheap: when the session starts, right after triage (the context is still small), or in a fresh session after the approval gate. `/triage` says when the session's model doesn't fit the lane. `opusplan` (Opus in plan mode, Sonnet otherwise) suits developers who plan in plan mode.
+
+The project default is `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates (keep Claude Code current with `claude update`). For a session, the desktop app's model picker and `/model` decide — and Claude Code's own `default` is Opus, so pick Sonnet for quick work. A 1M-context model lets sessions grow far past what a task needs. Agents carry their own alias and run in their own context, so their model costs no cache switch: reviews on `sonnet`, `@spec-analyzer` and `@architect` on `opus`. Don't override them casually; pin a full model ID only when the team needs a fixed version. Workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Lanes, effort, and per-skill tiers: `docs/COST-MODEL.md`.
 
 ## Memory
 

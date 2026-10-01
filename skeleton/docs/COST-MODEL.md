@@ -76,6 +76,38 @@ raise effort. The dials are independent, so raise the one the intuition points a
 | **Thinking** | The desktop app's effort selector or `effortLevel` in settings; `/model opus` | More reasoning per step | More output tokens per call; Opus doubles output and uncached input |
 | **Verification** | "add edge-case tests", "`@security-reviewer` on this", "`/deep-review` before the PR" | Independent checks | A subagent starts from a fresh ~50–60k-token context; `/deep-review` runs 6–15 of them |
 
+## Choosing between Sonnet and Opus
+
+Pick the model by the kind of work, with the version-less aliases (`sonnet`, `opus`) — never a pinned
+version. The test, from Anthropic's guidance for these models: **does the task have a clear spec and
+a way to check the result?**
+
+| Work | Model | Effort |
+|---|---|---|
+| Fast lane — a precise change proved by a test | `sonnet` | Default (medium) |
+| Careful lane — the same in a risk area | `sonnet` | `high` |
+| Bug fix, cause clear or found quickly | `sonnet` | Default; `high` for a stubborn one |
+| Bug that resists two hypotheses; concurrency, caching, distributed state | `opus` | `high` |
+| Investigation, impact analysis, estimate; reviews; drafting docs | `sonnet` | Default |
+| Full lane: spec, plan, and the approval gate — ambiguity and judgment | `opus` | `high` |
+| Full lane after the gate: `/write-docs`, `/implement` — an approved plan with named tests | `sonnet` | Default; `high` for a hard task |
+| Architecture-level questions, long-horizon work across many files | `opus` | `high` |
+
+- **Switch where the cache is cold or small.** Each model has its own prompt cache: after a switch,
+  the next call re-reads the whole conversation uncached. Switch when the session starts, right
+  after triage (the context is still small — `/triage` says when the model doesn't fit), or in a
+  fresh session after the approval gate: the spec folder is the handoff, and the wait at the gate has
+  usually let the cache expire anyway. Don't switch for a single step.
+- **Effort before model.** Within Sonnet, `/effort high` for harder or longer work is often enough.
+  `xhigh` and `max` make Sonnet think longer and cost more — at that point Opus is usually the
+  better trade.
+- **Claude Code's own `default` is Opus.** The project setting (`"model": "sonnet"`) covers new
+  sessions, but the desktop app's picker and `/model` decide for a session — pick Sonnet for quick
+  work. `opusplan` (Opus in plan mode, Sonnet otherwise) suits developers who plan in plan mode.
+- **Subagents carry their own model** in frontmatter and run in their own context, so their choice
+  costs no cache switch — reviews on `sonnet`, adversarial analysis and architecture on `opus` (see
+  Per-agent recommendations).
+
 ## Keeping sessions cheap
 
 - **One task per session; `/clear` before the next.** A fresh session starts at ~60k tokens; a long
@@ -107,9 +139,9 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 | Tier | Model alias (current model, September 2026) | Use when... | Approximate relative cost (vs Haiku) |
 |---|---|---|---|
-| **Capable** | `haiku` (Haiku 4.5) | Routing, triage, well-bounded checks, drafting commit messages, simple lookups, deterministic-ish work | 1× (cheapest) |
-| **Balanced** | `sonnet` (Sonnet 5.5) | Most engineering work — spec writing, test planning, implementation, code review, debugging, refactoring | 2× Haiku input and output |
-| **Frontier** | `opus` (Opus 5.5) | Hard reasoning — complex architecture decisions, multi-step debugging, novel design problems, evaluating tradeoffs across many constraints | 4× Haiku input and output |
+| **Capable** | `haiku` (Haiku 4.5) | Narrow, well-bounded subagent work in a small context: classification, simple lookups, deterministic-ish checks | 1× (cheapest) |
+| **Balanced** | `sonnet` (Sonnet 5.5) | Work with a clear spec and a way to check the result — fast and careful lanes, bug fixes, implementing an approved plan, investigation, review, drafting | 2× Haiku input and output |
+| **Frontier** | `opus` (Opus 5.5) | Judgment — the full lane's spec and plan, ambiguous or long-horizon work, architecture decisions, bugs that resist diagnosis | 4× Haiku input and output |
 
 Configure models with these aliases everywhere Claude Code takes one: `.claude/settings.json` (`"model": "sonnet"`), agent frontmatter (`model: haiku`), and `/model`. They're version-less — each resolves to the current model of its tier and moves forward as Claude Code updates, so keep Claude Code current with `claude update` (Sonnet 5.5 needs v2.1.284+, Opus 5.5 v2.1.280+). On Amazon Bedrock, Google Cloud, and Microsoft Foundry an alias can resolve to an older model (e.g. `sonnet` → Sonnet 4.5); pin the provider's model ID there with `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Pin a full model ID (e.g. `claude-sonnet-5-5`) only when your team needs a fixed version.
 
@@ -117,9 +149,9 @@ Configure models with these aliases everywhere Claude Code takes one: `.claude/s
 
 ### Decision rules
 
-- **Default to Sonnet** for any new skill or agent unless you have a specific reason to escalate or de-escalate.
+- **Default to Sonnet** for work with a clear spec and a way to check the result — most work, once the lanes route it.
 - **Use Haiku** for well-defined, bounded work that runs in its own small context: subagents for convention checks and most reviews, classification, routing, simple lookups. Inside a long main conversation, switching to Haiku for one step costs more than it saves — the cache is per model.
-- **Escalate to Opus** when: (a) the task involves >5 interacting constraints to satisfy simultaneously, (b) the cost of a wrong decision is significantly higher than the cost difference, or (c) you've tried Sonnet and it consistently produces inadequate output. Most teams escalate <10% of work to Opus.
+- **Use Opus** where judgment is the work: the full lane up to the gate, ambiguous requirements, long-horizon changes, architecture, a bug that resists two hypotheses — and when Sonnet at `high` effort keeps producing inadequate output.
 - **Don't escalate "just in case"** — Opus on tasks Sonnet handles well is pure waste. The framework's anti-rationalization tables, plan-then-execute gates, and verification checklists do most of the quality work that escalation would otherwise paper over.
 
 ### Switching tiers in Claude Code
@@ -137,13 +169,13 @@ Skills run in your conversation, on its model. A skill could name its own model,
 |---|---|---|
 | `/init-project` | Sonnet | Multi-perspective setup decisions; one-time so cost is small |
 | `/triage` | Sonnet | Reading a task in full and deciding what it needs; cheap, and it prevents the most expensive mistakes |
-| `/write-spec` | Sonnet | Multi-section reasoning + mandatory enforcement + clarification interrogation. Escalate to Opus only for genuinely complex/novel features. |
-| `/write-plan` | Sonnet (Opus for cross-cutting changes) | The change surface and test strategy decide everything downstream; escalate when the change spans many layers or shared code |
+| `/write-spec` | Opus | Full lane: ambiguity, clarification, and the decisions the spec records — judgment work |
+| `/write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then hand off to a fresh Sonnet session |
 | `/write-tests` | Sonnet | AC → test mapping is moderate complexity |
 | `/write-docs` | Sonnet | Synthesis from spec + tests; matters for tone and accuracy |
-| `/implement` | Sonnet | Multi-file changes with multiple constraints. Escalate to Opus for >5 file changes or non-trivial architectural decisions. |
+| `/implement` | Sonnet | An approved plan with named tests is a clear spec with a way to check the result; Opus for a task that turns out genuinely hard |
 | `/review` | Sonnet | Multi-perspective review of diffs |
-| `/debug` | Sonnet | Root cause analysis. Escalate to Opus for tricky bugs (race conditions, distributed-system issues, anything you've tried to fix twice) |
+| `/debug` | Sonnet → Opus | Sonnet for most diagnoses; Opus after two disproven hypotheses, or for concurrency, caching, and distributed state |
 | `/refactor` | Sonnet | Pattern extraction + maintaining test parity |
 | `/commit` | Session model | A few short calls; switching to Haiku for them would re-read the whole context uncached |
 | `/open-pr`, `/stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
@@ -160,13 +192,13 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 | Agent | Current frontmatter | Why |
 |---|---|---|
 | `@spec-writer` | `model: sonnet` | Same reasoning as `/write-spec` skill |
-| `@code-reviewer` | `model: haiku` | Code review against established conventions is well-bounded; Haiku handles it efficiently |
-| `@security-reviewer` | `model: haiku` | Pattern-matching against OWASP-style checks; Haiku handles it. Escalate manually for novel attack surfaces. |
+| `@code-reviewer` | `model: sonnet` | Review is well-defined, repeatable work — where Anthropic's guidance places Sonnet; it costs about twice Haiku per token, a few cents per review |
+| `@security-reviewer` | `model: sonnet` | Security review in the careful lane needs real reasoning about data flow; escalate to Opus for novel attack surfaces |
 | `@test-runner` | `model: sonnet` | Test writing requires understanding the spec and matching patterns |
-| `@architect` | `model: haiku` | **Trade-off** — Haiku is fast and cheap, but architecture review involves cross-cutting reasoning. Consider escalating to Sonnet if your team finds the agent missing important concerns. The framework defaults to Haiku because most architecture review is convention-checking; complex architecture decisions should use `/evaluate` instead. |
+| `@architect` | `model: opus` | Architecture review weighs trade-offs across the system — judgment work; it runs rarely |
 | `@debugger` | `model: sonnet` | Root cause analysis benefits from stronger reasoning |
-| `@ux-reviewer` | `model: haiku` | Pattern-matching UI against spec ACs; Haiku handles it |
-| `@spec-analyzer` | `model: sonnet` | Adversarial coverage and change-surface analysis needs real reasoning; it runs once per spec folder, before the gate |
+| `@ux-reviewer` | `model: sonnet` | Review against the spec's stories, states, and accessibility — well-defined review work |
+| `@spec-analyzer` | `model: opus` | Adversarial analysis of a plan is judgment work, and it runs once per full-lane folder, before the gate — where a missed problem is most expensive |
 
 **To override** for a specific project, edit the agent's `agent.md` frontmatter. Document your override and why.
 

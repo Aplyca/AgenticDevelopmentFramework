@@ -97,7 +97,10 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
     - tick T000;
     - commit the folder: `spec: approve <slug> scope and plan` (or `spec: approve <slug> CR N`). Don't push.
 
-12. **Hand off:** `/write-docs` when Phase 1 has tasks, then `/implement`.
+12. **Hand off:** `/write-docs` when Phase 1 has tasks, then `/implement`. Suggest doing that in a
+    **fresh session on `sonnet`**: an approved plan with named tests is a clear spec with a way to
+    check the result, the spec folder carries everything the next session needs, and the wait at the
+    gate has usually let the prompt cache expire anyway — so the switch costs nothing extra.
 
 ## After approval
 

@@ -10,6 +10,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Does NOT plan `plan.md`/`tasks.md` parts, an approval gate, or `@spec-analyzer`
 - [ ] Does NOT start an environment or a dev server before a step needs it
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: on Opus, suggests `sonnet` (e.g. `/model sonnet`); on Sonnet, suggests no switch
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started

@@ -7,6 +7,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Says that if the developer accepts the risk, the pull request will state that the lane was lowered and why
 - [ ] Does NOT edit an existing migration
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: `sonnet` is enough — on Opus it suggests switching; it doesn't push Opus
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started

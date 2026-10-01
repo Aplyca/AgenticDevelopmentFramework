@@ -168,8 +168,10 @@ developer explicitly accepts the risk. More effort has other dials too — quest
 Teams list their **sensitive areas** once (`AGENTS.md`, mirrored in `CAREFUL_GLOBS`), and a hook stops
 a fast-lane edit there.
 
-**Cost.** A session costs roughly *calls × context*. The lanes, one task per session, and short tool
-output are the big levers; [`COST-MODEL.md`](skeleton/docs/COST-MODEL.md) has the measured numbers,
+**Cost.** A session costs roughly *calls × context*. The lanes, one task per session, short tool
+output, and the right model are the big levers — `sonnet` for work with a clear spec and a way to
+check it, `opus` for the full lane's spec and plan and other judgment work, switched where the cache
+is cold (version-less aliases throughout); [`COST-MODEL.md`](skeleton/docs/COST-MODEL.md) has the measured numbers,
 and the plugin's `/cost-report` shows what your own sessions cost.
 
 What holds in every workflow: nothing leaves the machine unless a human asks — no push, pull

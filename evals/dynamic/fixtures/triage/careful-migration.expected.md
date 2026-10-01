@@ -8,6 +8,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Says the developer confirms the risky part before the commit
 - [ ] Does NOT create a spec folder, plan, or approval gate (nothing to decide)
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: `sonnet` (with high effort) is enough — on Opus it suggests switching; it doesn't push Opus
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started

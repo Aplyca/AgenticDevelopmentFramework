@@ -26,30 +26,33 @@ plan is the contract for **where** code goes (the change surface); the tests are
 1. **Read the folder:** `spec.md` (every filled section, not only Functional), `plan.md` (change
    surface, test strategy, risks, assumptions), `tasks.md`, and the committed docs — they describe
    how the feature will be used and should drive your thinking.
-2. **Run the existing suite** to know the baseline. Pre-existing failures are recorded in the gate
+2. **Mind the model.** Implementing an approved plan is well-specified work — `sonnet` handles it.
+   If this session is on Opus and still carries the whole planning conversation, suggest a fresh
+   Sonnet session (the spec folder is the handoff); keep Opus for a task that turns out genuinely hard.
+3. **Run the existing suite** to know the baseline. Pre-existing failures are recorded in the gate
    results and reported — not silently fixed, and not mistaken for yours.
 
 ## Phase 2: The loop — for each task, in order
 
-3. **Take the next unticked task.** Respect dependencies; `[P]` tasks can go in any order.
-4. **Write the test the task names**, following `.claude/rules/testing.md` and the patterns of
+4. **Take the next unticked task.** Respect dependencies; `[P]` tasks can go in any order.
+5. **Write the test the task names**, following `.claude/rules/testing.md` and the patterns of
    neighboring tests.
-5. **Run it and watch it fail — for the right reason:** an assertion about the missing behavior,
+6. **Run it and watch it fail — for the right reason:** an assertion about the missing behavior,
    not a syntax error, import error, or broken fixture. Keep the failure line for the gate results.
    If it **passes** before you've written any code, stop: the behavior already exists or the test is
    wrong. Find out which and tell the developer. The exception is a **test-only task** — acceptance
    tests written after the stories, or a test that pins behavior the change must not break. It is
    expected to pass: break the behavior it covers on purpose, watch it fail, restore it, and record
    that in the gate results.
-6. **Write the smallest code that makes it pass**, inside the plan's change surface, matching the
+7. **Write the smallest code that makes it pass**, inside the plan's change surface, matching the
    existing patterns. Handle the edge cases the spec lists; validate at system boundaries.
-7. **Run it to green**, plus the neighboring tests, to catch regressions early — targeted runs with
+8. **Run it to green**, plus the neighboring tests, to catch regressions early — targeted runs with
    quiet output, not the whole suite each time (`.claude/rules/testing.md` § Verification budget).
    Tidy the code while everything stays green.
-8. **Tick the task and commit** test, code, and the tick together — one commit:
+9. **Tick the task and commit** test, code, and the tick together — one commit:
    `feat: <what the task delivers>` (or `fix:`, `refactor:`; `test:` for a test-only task). Stage
    files by name. Hooks run; never `--no-verify`.
-9. **Next task.**
+10. **Next task.**
 
 ## When reality departs from the plan
 
@@ -76,15 +79,15 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 
 ## Phase 3: Finish
 
-10. **Reconcile and backfill** — the Phase 5 tasks: committed docs checked claim by claim against
+11. **Reconcile and backfill** — the Phase 5 tasks: committed docs checked claim by claim against
     what was built; post-implementable docs (runbooks, troubleshooting) written or listed for later.
-11. **Run the full gate** — the verification checklist in `tasks.md`: lint, typecheck, every test
+12. **Run the full gate** — the verification checklist in `tasks.md`: lint, typecheck, every test
     layer this environment can run.
-12. **Record the gate results** in `tasks.md`: the red-then-green evidence per task, commands and
+13. **Record the gate results** in `tasks.md`: the red-then-green evidence per task, commands and
     counts, what you could **not** run and why, pre-existing failures. With every task ticked, set
     `status: implemented` in `spec.md` — it merges with the pull request, so the folder reads as built.
     Commit (`docs: record <slug> gate results`).
-13. **Self-review**, then `/review`. Don't push. Offer `/open-pr` when the developer wants to deliver.
+14. **Self-review**, then `/review`. Don't push. Offer `/open-pr` when the developer wants to deliver.
 
 ## Rationalizations (do not accept these)
 

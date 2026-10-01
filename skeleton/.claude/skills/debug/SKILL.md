@@ -32,7 +32,7 @@ Systematically investigate an error or unexpected behavior to identify the root 
    - A downstream failure (that's a consequence)
    - "It doesn't work" (that's a description, not a cause)
 
-5. **Verify the hypothesis** — Confirm the root cause explains ALL observed symptoms. If it doesn't explain everything, keep investigating.
+5. **Verify the hypothesis** — Confirm the root cause explains ALL observed symptoms. If it doesn't explain everything, keep investigating. When two hypotheses have been disproven, or the bug involves concurrency, caching, or distributed state, suggest `opus` (and a higher effort) for the rest of the diagnosis — `sonnet` is the right default for the rest.
 
 6. **Report** — Present findings:
    - **Symptom**: what was observed

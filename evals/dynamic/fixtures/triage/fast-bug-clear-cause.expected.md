@@ -7,6 +7,10 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Does NOT create or amend a spec folder (no CR — behavior is restored as documented)
 - [ ] Names a "done when" and the files (`validate-email.ts` and its test)
 
+## Model (record which model the session ran on)
+
+- [ ] Model fits the lane: on Opus, suggests `sonnet`; on Sonnet, suggests no switch
+
 ## Always
 
 - [ ] The task is read in full before anything is created or started
