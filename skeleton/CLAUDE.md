@@ -31,26 +31,29 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |
 | Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
 | Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
+| The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
 
-Project-specific values (protected branches, append-only paths, the env template) live in `.claude/hooks/config.sh`. `/open-pr` runs only when you invoke it. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
+Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` runs only when you invoke it. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
 
-## Lightweight mode — match ceremony to the change
+## Lanes — match ceremony to risk
 
-| Change | Workflow |
-|---|---|
-| New feature, behavior change, anything user-facing | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` |
-| Change request on delivered work | `/triage` → `/write-spec` (amend the folder) → `/write-plan` → approval → `/write-docs` (if documented behavior changes) → `/implement` → `/review` |
-| Investigation, impact analysis, estimate | `/triage` → deliver the answer. No spec, no environment unless needed |
-| Bug with a clear root cause, behavior restored as documented | `/debug` → regression test → fix → `/commit` |
-| Refactor with no behavior change | `/refactor` → tests still green → `/commit` |
-| Typo, copy tweak, version bump, formatting, dev-only tooling | Edit → `/commit` |
-| Spike or throwaway code | No workflow. If promoted, it gets a spec |
+| Change | Lane | Workflow |
+|---|---|---|
+| Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → edit → targeted test → `/commit`; on delivered work, a light `CR N` in the same commit |
+| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part |
+| New feature, unclear requirement, a design choice, cross-layer work, a change request with something to decide | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` |
+| Bug, cause unknown | — | `/debug`, then the lane the fix needs |
+| Refactor with no behavior change | Fast, or full when it sets a structure others must follow | `/refactor` → tests still green → `/commit` |
+| Investigation, impact analysis, estimate | — | `/triage` → deliver the answer. No spec, no environment unless needed |
+| Spike or throwaway code | — | No workflow. If promoted, it gets a lane |
 
-**Heuristic:** if there's nothing to decide, there's nothing to spec. If a teammate could merge the diff without reading new docs, there's nothing for `/write-docs`.
+**Heuristic:** if there's nothing to decide, there's no spec folder. If a teammate could merge the diff without reading new docs, there's nothing for `/write-docs`.
+
+**Your intuition sets the lane too.** Say "full lane on this", "be careful here", or "just a quick fix" — raising is always honored; lowering keeps a risk area's checklist unless you accept the risk. Effort has other dials — questions first, `/evaluate` before choosing a design, a higher effort level or `/model opus`, `/deep-review` — each with a different cost (`docs/COST-MODEL.md` § Effort).
 
 ## Cost model
 
-The default model is the version-less alias `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates (keep Claude Code current with `claude update`). Agents use the `haiku` / `sonnet` / `opus` aliases the same way — don't override them casually; pin a full model ID only when the team needs a fixed version. Escalate to Opus for genuinely hard reasoning; workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Decision rules and per-skill tiers: `docs/COST-MODEL.md`.
+Every call re-reads the conversation, so a session's cost is roughly *calls × context*: keep sessions to one task (`/clear` between tasks) and output short (`AGENTS.md` § Working economically). The default model is the version-less alias `"model": "sonnet"` in `.claude/settings.json`; it follows the latest Sonnet as Claude Code updates (keep Claude Code current with `claude update`). The desktop app's model picker and `/model` take precedence over it, and a 1M-context model lets sessions grow far past what a task needs. Agents use the `haiku` / `sonnet` / `opus` aliases the same way — don't override them casually; pin a full model ID only when the team needs a fixed version. Escalate to Opus for genuinely hard reasoning; workflows multiply cost by the number of agents they run. Keep `AGENTS.md`, this file, and the rules stable: every edit busts the prompt cache for the requests that follow. Lanes, effort, and per-skill tiers: `docs/COST-MODEL.md`.
 
 ## Memory
 

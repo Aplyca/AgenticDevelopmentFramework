@@ -36,7 +36,8 @@ honest TODO beats a plausible invention.
    each `paths:` frontmatter to the real structure. Delete rules that can't apply (no UI → no
    `ui-ux.md`).
 
-6. **Configure the hooks** — `.claude/hooks/config.sh`: protected branches, append-only paths
+6. **Configure the hooks** — `.claude/hooks/config.sh`: protected branches, sensitive areas
+   (`CAREFUL_GLOBS`, matching `AGENTS.md` § Sensitive areas — ask the team), append-only paths
    (migrations), generated files, the env template. Extend `permissions` in `.claude/settings.json`
    with this repository's routine read-only commands.
 
@@ -107,7 +108,7 @@ Fill each doc's `owner · last_updated · scope` header. Context without an owne
 - [ ] Every command in Quick reference was found in the manifests (and run where possible)
 - [ ] `docs/CONSTITUTION.md` has real principles and agrees with `AGENTS.md`
 - [ ] `CLAUDE.md` imports `AGENTS.md`, and a new session shows both loaded
-- [ ] `.claude/hooks/config.sh` names the real protected branches and append-only paths
+- [ ] `.claude/hooks/config.sh` names the real protected branches, sensitive areas, and append-only paths
 - [ ] Customizable rules updated or deleted; `paths:` frontmatter matches the real structure
 - [ ] `docs/ARCHITECTURE.md` and `docs/GLOSSARY.md` have real content and metadata headers
 - [ ] Committed on a work branch, not the default branch

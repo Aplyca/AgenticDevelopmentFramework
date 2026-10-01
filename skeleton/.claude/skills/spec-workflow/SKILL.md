@@ -1,13 +1,21 @@
 ---
 name: spec-workflow
-description: Reference for how work flows in this project — project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests, answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
+description: Reference for how work flows in this project — the fast, careful, and full lanes, project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests, answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
 ---
 
 # Development Workflows
 
 Every task starts with **triage** (`/triage`): read it in full, then decide the deliverable (an
-answer or a change), whether an environment is needed, and whether a spec folder is created,
-amended, or skipped. The triage picks one of the workflows below.
+answer or a change), the **lane** for a change, and whether an environment is needed. The lane
+follows risk and uncertainty, not size (`specs/README.md` § Lanes):
+
+| Lane | When | Workflow |
+|---|---|---|
+| **Fast** | A precise request (or a bug with a clear cause), about 3 files or fewer, no escalation trigger | Workflow 2a |
+| **Careful** | The same, touching a risk area or a sensitive area | Workflow 2a plus the area's checklist |
+| **Full** | Something to decide, a new feature, or work across layers | Workflow 2 |
+
+The developer can raise the lane at any time; lowering it never silently drops a risk checklist.
 
 ## Workflow 1: Project setup (once)
 
@@ -17,7 +25,23 @@ rules, the hook configuration, and the initial docs — `docs/ARCHITECTURE.md`,
 pages for the most complex subsystems. Agents read these before every design review and
 implementation; invest in them early.
 
-## Workflow 2: Feature or behavior change
+## Workflow 2a: Fast and careful lanes
+
+1. **Triage in one line** — the request in your words, "done when…", and the files you expect to
+   touch. Ask now only what blocks you, in one message.
+2. **Search every use** of what you change — shared code and other callers are a trigger.
+3. **Edit and prove it** — a targeted test asserts the new behavior; for a bug, the regression test
+   fails first. Quiet output; the full gate once, before delivery.
+4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
+   code, contract, infrastructure), run `@security-reviewer` for authorization, data, or payments,
+   and get the developer's yes on the risky part.
+5. **Commit** (`/commit`) — on delivered work, with a light `CR N` entry in `spec.md`.
+6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
+   fails, or no test can prove the change.
+7. **Deliver when asked** — a draft pull request stating the lane (`/open-pr`); the human review and
+   QC are the gate.
+
+## Workflow 2: Feature or behavior change (full lane)
 
 | # | Phase | Skill | Artifact | Commit |
 |---|---|---|---|---|
@@ -50,6 +74,10 @@ front, the plan lists end-to-end tests that encode the ACs; they're written and 
 
 ## Workflow 3: Change request on delivered work
 
+A precise adjustment the requester already decided takes Workflow 2a with a **light** `CR N` entry
+committed with the change. When the request leaves something to decide, it's a **full** change
+request:
+
 1. `/triage` identifies the existing spec folder and the delivered work.
 2. `/write-spec` in amend mode: delta = the request now vs what the spec records as delivered (plus
    comments since its last change); append `CR N`; new ACs tagged `(CR N)`.
@@ -66,10 +94,11 @@ approves the change.
 
 ## Workflow 5: Bugs and hotfixes
 
-- **Bug with a clear root cause, restoring documented behavior:** `/debug` → regression test (watch it
-  fail) → fix → `/commit`. No spec.
-- **Bug that changes documented behavior:** treat as a change request on the feature's spec folder.
-- **Hotfix (production is broken now):** `/debug` → fix + regression test → ship through the
+- **Bug with a clear root cause, restoring documented behavior:** the fast lane (careful in a risk
+  area) — `/debug` → regression test (watch it fail) → fix → `/commit`. No spec folder.
+- **Bug that changes documented behavior:** a change request on the feature's spec folder — light or
+  full, by whether there's something to decide.
+- **Hotfix (production is broken now):** the careful lane — `/debug` → fix + regression test → ship through the
   project's hotfix path (`CONTRIBUTING.md`). Backfill the spec and user-facing docs afterwards if
   behavior changed. Speed justifies skipping spec-first; it never justifies skipping the backfill.
 
@@ -85,7 +114,8 @@ never two sessions in one checkout. With the parallel-agents module installed, t
 **dispatcher** only (`/dispatch`): it names the task, creates the worktree, and hands off; the
 **worker** in the worktree does everything from triage onward.
 
-## Lightweight changes
+## Effort beyond the lane
 
-Nothing to decide — typo, copy edit, version bump, formatting, dev-only tooling: edit → verify →
-`/commit`. The test is "is there anything to decide?", not "is it big?".
+The developer can ask for more care without changing the lane — questions before any code,
+`/evaluate` to compare designs, a higher effort level or `/model opus`, extra tests,
+`@security-reviewer`, `/deep-review`. Each costs differently (`docs/COST-MODEL.md` § Effort).

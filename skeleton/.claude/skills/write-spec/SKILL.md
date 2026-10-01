@@ -65,7 +65,14 @@ comes next, in `plan.md`, from `/write-plan` — which also holds the approval g
    text into the spec; the tracker and the repository have different audiences and access),
    `owners:` per filled section, `references:`. `status: draft`.
 
-8. **Change-request mode** — amending a delivered feature:
+8. **Change-request mode** — amending a delivered feature. Two weights (`specs/README.md` §
+   Change requests):
+   - **Light** — a precise adjustment the requester already decided, in the fast or careful lane:
+     append `# CR N — <title> (YYYY-MM-DD) · light` with the request's link, the Delivered → Change
+     row, and any acceptance criterion it adds or changes, tagged `(CR N)`. No plan or tasks part,
+     no gate, status stays `implemented`; the entry is committed **with the change it records**. If
+     the adjustment turns out to need a decision, it becomes a full change request.
+   - **Full** — the request leaves something to decide. The rest of this step:
    - **Find the delta.** Compare the request now against what the spec records as delivered, plus
      the tracker comments since the spec last changed (`git log -1 --format=%cs -- specs/NNN-<slug>/`).
      Trackers rarely keep a description's revision history; the spec is the snapshot of what was built.

@@ -260,4 +260,17 @@ Or: `> Not applicable: [reason]`
   New or changed acceptance criteria go into Functional with new numbers, tagged `(CR N)`;
   a criterion the request retires is struck through, not deleted. Record the gate sign-off
   in `approvals:` and the PR in `pull-requests:`.
+
+  A light change request — a precise adjustment the requester already decided, made in the
+  fast or careful lane — is shorter, has no gate, and is committed with the change itself:
+
+  # CR N — [short title] (YYYY-MM-DD) · light
+
+  - **Requested:** [link] · by [who]
+
+  | Aspect | Delivered (PR …) | Change |
+  | --- | --- | --- |
+  | [behavior] | [what shipped] | [what changes] |
+
+  Plus any acceptance criterion it adds or changes, tagged `(CR N)`, in Functional.
 -->

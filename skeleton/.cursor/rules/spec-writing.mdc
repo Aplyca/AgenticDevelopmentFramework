@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Spec Writing (spec folders + multi-perspective spec model)
 
-Every change with something to decide gets a **spec folder**: `specs/NNN-<slug>/` with `spec.md`
+Every change with something to decide — the full lane — gets a **spec folder** (precise changes take the fast or careful lane, `specs/README.md` § Lanes): `specs/NNN-<slug>/` with `spec.md`
 (WHAT and WHY), `plan.md` (HOW), and `tasks.md` (commit-sized tasks). Templates in
 `specs/_templates/`; the process in `specs/README.md`; the spec model in `docs/SPEC-MODEL.md`.
 

@@ -40,8 +40,11 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
    ```markdown
    ## Traceability
-   **Spec:** `specs/NNN-<slug>/` (CR N, when amending)
+   **Spec:** `specs/NNN-<slug>/` (CR N, when amending — "light" for a fast- or careful-lane
+   adjustment) — or "none: fast lane" for work with nothing to record
    **Tracker task:** <link>  ·  `Closes #N` only for an engineering issue this resolves
+   **Lane:** fast | careful | full — <reason>; set by <the triggers | a sensitive area | the developer>
+   <careful: the checklist applied · lowered by the developer: <their reason>>
 
    ## What changed and why
    <the change and its reasoning — a reviewer should not have to reconstruct intent from the diff>
@@ -68,7 +71,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    ```
    (`glab mr create --draft --target-branch <base> …` on GitLab.)
 
-6. **Record the link.** Add the pull request URL to `pull-requests:` in `spec.md` and commit it
+6. **Record the link** when there's a spec folder — full lane or a light change request. Add the
+   pull request URL to `pull-requests:` in `spec.md` (`· CR N` for a change request) and commit it
    (`spec: link <slug> pull request`); it goes up with the next push the developer asks for.
 
 7. **Offer — don't do — the tracker link-back.** Adding the pull request link to the tracker task is

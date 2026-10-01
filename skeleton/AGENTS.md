@@ -31,12 +31,22 @@ Read the task in full — description, comments, attachments — before creating
 
 - **Deliverable** — an *answer* (investigation, impact analysis, estimate) or a *change* to the repository.
 - **Kind** — new feature, change request on delivered work, bug or hotfix, refactor, chore, or a change to how we work.
+- **Lane** — for a change: fast, careful, or full, with the reason and where it came from: the triggers, the sensitive areas, or the developer.
 - **Environment** — needed only when the next step runs the app, the tests, or the database. Reading code and docs needs none.
-- **Spec folder** — needed only for a change with something to decide (`specs/README.md`).
 
-Then do what the triage calls for without waiting for permission; the developer can redirect you. `/triage` walks through it.
+A small task gets a one-line triage: `Fast lane — <the request in your words>; done when <check>; files: <list>.` Then do what the triage calls for without waiting for permission; the developer can redirect you. `/triage` walks through it.
 
-### 2. Feature or behavior change — spec-driven, test-driven, docs-first
+### 2. Pick the lane — ceremony follows risk, not size
+
+Tests, the hooks, CI, review, and the human QC run in every lane. Definitions, triggers, and checklists: `specs/README.md` § Lanes.
+
+- **Fast** — the requester already decided what they want (or a bug with a clear cause restores intended behavior), about 3 files or fewer, no escalation trigger. Search every use of what you change, edit, prove it with a targeted test (a bug's regression test fails first), `/commit`.
+- **Careful** — the same, touching a risk area: a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area below. Add that area's checklist, and get the developer's yes on the risky part before committing.
+- **Full** — something to decide, a new feature, or work across layers: the spec-driven flow in § 3.
+
+**Move up a lane** when the diff grows past the files you stated, a test outside the area fails, or no test can prove the change — stop and tell the developer. **The developer can set the lane** at any time: raising it is always honored; lowering it is honored for size, but a risk trigger keeps its checklist unless they explicitly accept the risk (say so in the pull request). The constitution and the hooks hold in every lane.
+
+### 3. Full lane — spec-driven, test-driven, docs-first
 
 1. **Spec** — `specs/NNN-<slug>/spec.md` from `specs/_templates/`: the multi-perspective spec (`docs/SPEC-MODEL.md`). Required sections are enforced.
 2. **Plan and tasks** — `plan.md` (constitution check, architecture, **change surface**, test strategy, documentation plan, assumptions) and `tasks.md` (one task per commit, each naming its test).
@@ -46,16 +56,22 @@ Then do what the triage calls for without waiting for permission; the developer 
 6. **Reconcile and verify** — bring committed docs in line with what was built, run the full gate, and record the evidence (red-then-green, counts, anything you could not run) under *Gate results* in `tasks.md`. Review before delivering (`/review`).
 7. **Deliver only when asked** — push and open a **draft** pull request (see Delivery rules).
 
-### 3. Change request on delivered work
+### 4. Change request on delivered work
 
-Not a new feature. Find the existing `specs/NNN-<slug>/`, compare the request now against what the spec records as delivered (plus the comments since its last update), and amend the same folder with a `CR N` section. A fresh branch (`<type>/<slug>-<change>`), a new pull request, the same folder, the same gate. If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
+Not a new feature. Find the existing `specs/NNN-<slug>/` and compare the request now against what the spec records as delivered (plus the comments since its last update). A precise adjustment takes the fast or careful lane and adds a **light** `CR N` entry to `spec.md` in the same commit; one with something to decide is a **full** `CR N` with plan, tasks, and the gate. Either way: a fresh branch (`<type>/<slug>-<change>`) and a new pull request. If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
 
-### 4. When no spec is needed
+### 5. No lane
 
-- **Answers** — deliver the analysis where the task asks for it. A change it recommends gets a spec once someone approves that change.
-- **Nothing to decide** — typo, copy edit, version bump, formatting, dev-only tooling: edit, verify, commit.
-- **Hotfix** (production is broken) — find the root cause, fix it, add a regression test, ship; backfill the spec and docs if behavior changed.
+- **Answers** — deliver the analysis where the task asks for it. A change it recommends gets a lane once someone approves that change.
+- **Hotfix** (production is broken) — the careful lane, without delay: find the root cause, fix it, add a regression test, ship; backfill the spec if behavior changed.
 - **A change to how we work** — record it as a PDR in `docs/process/` (`/record-decision`).
+
+## Sensitive areas
+
+<!-- CUSTOMIZE: the parts of this codebase where any change takes at least the careful lane, whatever its size — code the team knows is fragile, regulated, or expensive to get wrong. Mirror the paths in CAREFUL_GLOBS (.claude/hooks/config.sh) so a hook stops a fast-lane edit there. Delete the section if there are none. -->
+
+- [e.g. `src/billing/` — invoices and payment state]
+- [e.g. row-level security policies in `db/migrations/`]
 
 ## Requirements & traceability
 
@@ -73,7 +89,7 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 
 - **Branches:** `<type>/<slug>` from [`main`] — `<type>` is the commit type, `<slug>` matches the spec folder. Never commit directly to [`main`]. <!-- CUSTOMIZE: integration and release branches — CONTRIBUTING.md holds the full model -->
 - **Commits:** one per green task; prefixes and phase order in `.claude/rules/git-workflow.md`. Don't amend or rewrite pushed history unless asked.
-- **Pull requests:** open as **drafts**; name the spec folder and link the tracker task; state what you verified and what you could not. Never mark a pull request ready on your own — a human QCs it (preview, manual check) and promotes it, or asks you to once they have. Ready means "a person has exercised this".
+- **Pull requests:** open as **drafts**; name the spec folder (or the light `CR N`) and link the tracker task; state the lane and why, what you verified, and what you could not. Never mark a pull request ready on your own — a human QCs it (preview, manual check) and promotes it, or asks you to once they have. Ready means "a person has exercised this".
 - **Parallel sessions:** when several agent sessions work at once, each gets its own git worktree; never edit in a checkout another session is using. <!-- CUSTOMIZE: with the parallel-agents module installed, replace with: "In the main checkout you dispatch; you never work — see docs/PARALLEL-AGENTS.md." -->
 
 ## Boundaries & antipatterns
@@ -85,6 +101,16 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 - **Don't silence the type system or the linters** to clear an error — fix the cause.
 - **Don't weaken a test to make it pass** — fix the implementation, unless the test itself is wrong (and say so).
 <!-- CUSTOMIZE: frozen or legacy directories, deliberate deviations from common patterns ("we don't use X here because…"), anything agents must never touch. -->
+
+## Working economically
+
+Every call re-reads the whole conversation, so cost and time grow with how long a session runs and how much it has printed.
+
+- **One task per session** — `/clear` before the next one.
+- **Keep output small** — quiet test reporters, `| tail -n 40`, read the lines you need; whatever a command prints stays in context.
+- **Targeted tests while iterating; the full gate once**, before delivery.
+- **Browser checks only when asked or for a visual change** — the human QC on the preview is the real check.
+- **Ask blocking questions together, in one message.** Ask about *what* is wanted; state minor implementation choices as assumptions in the pull request instead of waiting.
 
 ## AI interaction rules
 

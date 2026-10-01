@@ -43,11 +43,15 @@ Systematically investigate an error or unexpected behavior to identify the root 
 
 ## After the diagnosis
 
-- **Behavior restored as documented** — write a regression test that reproduces the bug and watch it
-  fail, then fix the root cause and watch it pass; commit both together (`fix:`). No spec needed.
-- **The fix changes documented behavior** — it's a change request: amend the feature's spec folder
-  (`/write-spec`) before fixing.
-- **Production is broken now** — hotfix path in `CONTRIBUTING.md`; backfill the spec and docs after.
+- **Behavior restored as documented** — the fast lane, or careful when the fix touches a risk area
+  (a migration, authorization, personal data, shared code — `specs/README.md` § Lanes): write a
+  regression test that reproduces the bug and watch it fail, then fix the root cause and watch it
+  pass; commit both together (`fix:`). No spec folder.
+- **The fix changes documented behavior** — it's a change request: light when the requester has
+  decided the new behavior, full (`/write-spec`, `/write-plan`, the gate) when there's something to
+  decide.
+- **Production is broken now** — the careful lane, without delay: the hotfix path in
+  `CONTRIBUTING.md`; backfill the spec and docs after.
 
 ## Rationalizations (do not accept these)
 

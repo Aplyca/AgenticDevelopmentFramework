@@ -43,8 +43,9 @@ plan is the contract for **where** code goes (the change surface); the tests are
    that in the gate results.
 6. **Write the smallest code that makes it pass**, inside the plan's change surface, matching the
    existing patterns. Handle the edge cases the spec lists; validate at system boundaries.
-7. **Run it to green**, plus the neighboring tests, to catch regressions early. Tidy the code while
-   everything stays green.
+7. **Run it to green**, plus the neighboring tests, to catch regressions early — targeted runs with
+   quiet output, not the whole suite each time (`.claude/rules/testing.md` § Verification budget).
+   Tidy the code while everything stays green.
 8. **Tick the task and commit** test, code, and the tick together — one commit:
    `feat: <what the task delivers>` (or `fix:`, `refactor:`; `test:` for a test-only task). Stage
    files by name. Hooks run; never `--no-verify`.

@@ -15,6 +15,8 @@ The base branch, integration branches, and release process are project-specific:
 - **One task = one commit.** In spec-driven work each task in `tasks.md` lands as one commit, made
   once its test passes; tick the task in the same commit. The docs-first tasks are the exception:
   they land together in one `docs:` commit, reviewed as one description of how the feature is used.
+  In the fast and careful lanes there is no `tasks.md`: one change and the test that proves it make
+  one commit, and a light change request's `CR N` entry goes in that same commit.
 - Stage files by name — never `git add .` or `git add -A`.
 - Never bypass hooks (`--no-verify`, `git commit -n`); fix what the hook reports.
 - Don't amend or rewrite commits that have been pushed unless the developer asks.

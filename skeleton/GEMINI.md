@@ -7,7 +7,9 @@
 ## How work flows here
 
 `AGENTS.md` is the operating contract. In short, every task starts with **triage** (deliverable,
-environment, spec folder), and feature work follows:
+kind, lane, environment). The lane follows risk, not size: **fast** (a precise request, a few files,
+no risk area — edit, prove it with a test, commit), **careful** (the same in a risk area, plus its
+checklist and the developer's yes), or **full** — the spec-driven flow:
 
 1. **Spec folder** — `specs/NNN-<slug>/spec.md` from `specs/_templates/`: the multi-perspective spec (`docs/SPEC-MODEL.md`).
 2. **Plan and tasks** — `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions) and `tasks.md` (one task per commit, each naming its test).
@@ -17,8 +19,8 @@ environment, spec folder), and feature work follows:
 6. **Reconcile docs, run the full gate, record the gate results** in `tasks.md`.
 7. **Deliver only when asked** — push and open a **draft** pull request; a human QCs it and marks it ready.
 
-Change requests amend the existing spec folder (`CR N`); answers, typos, and version bumps need no
-spec; changes to how the team works become PDRs in `docs/process/`. The skills in
+Change requests amend the existing spec folder (a light `CR N` for a precise adjustment, a full one
+when there's something to decide); answers need no lane; changes to how the team works become PDRs in `docs/process/`. The skills in
 `.claude/skills/` (shared through `.agents/skills`) are the step-by-step playbooks — read the one
 for the step you're on.
 

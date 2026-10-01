@@ -24,6 +24,7 @@ approved spec folder, a docs-first doc, or one task from `tasks.md` (its test an
    | Contract-first acceptance tests, or characterization tests | `test:` | Acceptance tests fail for the right reason (red — pending implementation); characterization tests pass and were each seen failing once against a deliberately broken copy |
    | Doc reconciliation, backfill, ADR/PDR, gate results | `docs:` | Claims match what was built |
    | Tooling, dependencies, CI | `chore:` | Nothing to decide, no behavior change |
+   | A fast- or careful-lane change | `feat:` / `fix:` / `chore:` | A test proves it (a bug's regression test failed first); the diff stays within the files stated at triage — or the lane moved up; on delivered work, the light `CR N` entry is in this commit; careful lane: the area's checklist is done and the developer confirmed the risky part |
 
    ```
    spec: approve newsletter-signup scope and plan
@@ -41,6 +42,8 @@ approved spec folder, a docs-first doc, or one task from `tasks.md` (its test an
    - **Task commits:** the test and the code for exactly one task; the test failed before the code
      and passes now; the task is ticked; committed docs still true (or the doc fix is in this commit,
      called out in the body).
+   - **Fast- and careful-lane commits:** the triage's "done when" holds; the files match the ones it
+     stated; the lane and any assumption go in the body when they aren't obvious.
 
 4. **Stage files by name** — never `git add .` or `git add -A`.
 

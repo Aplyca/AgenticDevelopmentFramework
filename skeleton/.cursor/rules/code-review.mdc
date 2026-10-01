@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Code Review
 
-Review against the spec folder (`spec.md`, `plan.md`, `tasks.md`) and `docs/CONSTITUTION.md` — not preference.
+Review against the spec folder (`spec.md`, `plan.md`, `tasks.md`) and `docs/CONSTITUTION.md` — not preference. In the fast and careful lanes there is no plan: review against the request, the files the triage stated, and the lane (`specs/README.md` § Lanes) — a diff that outgrew its lane is a critical finding.
 
 ## Scope and evidence
 - Is every changed file inside `plan.md`'s change surface (or is the extension recorded and re-confirmed)?

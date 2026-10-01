@@ -13,48 +13,63 @@ instead: separate reviewers per dimension, each finding independently verified.
 
 ## Steps
 
-1. **Read the context:** the spec folder (`spec.md` every filled section, `plan.md` change surface and
-   test strategy, `tasks.md` and its gate results), `docs/CONSTITUTION.md`, and — when the change
-   touches them — `docs/ARCHITECTURE.md` and `docs/security/SECURITY.md`.
+1. **Read the context, in proportion to the lane.** Full lane: the spec folder (`spec.md` every
+   filled section, `plan.md` change surface and test strategy, `tasks.md` and its gate results),
+   `docs/CONSTITUTION.md`, and — when the change touches them — `docs/ARCHITECTURE.md` and
+   `docs/security/SECURITY.md`. Fast and careful lanes: the request, the triage's "done when" and
+   file list, the light `CR N` entry on delivered work, and the docs for any risk area touched.
 
 2. **See what changed:** `git diff <base>...HEAD` and `git log --oneline <base>..HEAD`.
 
-3. **Scope and traceability:**
+3. **Check the lane** (from the triage or the pull request body) against the diff:
+   - **Fast** — the diff stays within the files stated, touches no escalation trigger or sensitive
+     area (`specs/README.md` § Lanes, `AGENTS.md` § Sensitive areas), a test proves the change, and
+     delivered work has its light `CR N` entry.
+   - **Careful** — the area's checklist shows in the diff and the tests, and the developer confirmed
+     the risky part. A lane lowered by the developer is stated in the pull request.
+   - **Full** — a spec folder with an `approvals:` line covering this scope.
+
+   A diff that doesn't fit its lane is a **Critical** finding: name the trigger and the lane it needs.
+
+4. **Scope and traceability:**
    - Every changed file is inside the approved change surface — or the extension is recorded in
-     `plan.md` with a re-confirmation in `approvals:`.
+     `plan.md` with a re-confirmation in `approvals:`. Fast and careful lanes: inside the files the
+     triage stated.
    - Commits map to tasks (one task, one commit); nothing unrelated is bundled in.
    - The spec folder and tracker task are linked; for a change request, the `CR N` section exists.
 
-4. **Spec compliance:** each AC — and each requirement from every filled section (Security,
+5. **Spec compliance:** each AC — and each requirement from every filled section (Security,
    Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment) — is
-   implemented. Nothing beyond the spec was built.
+   implemented. Nothing beyond the spec was built. Fast and careful lanes: the request's "done when"
+   holds, and nothing beyond the request was built.
 
-5. **Constitution gates:** walk every principle in `docs/CONSTITUTION.md` against the diff — e.g.
+6. **Constitution gates:** walk every principle in `docs/CONSTITUTION.md` against the diff — e.g.
    authorization never loosened without justification, no edits to existing migrations, no silenced
    types or disabled linters, no unjustified dependency.
 
-6. **Code quality** (per `.claude/rules/`): types, naming, error handling, existing patterns, no
+7. **Code quality** (per `.claude/rules/`): types, naming, error handling, existing patterns, no
    premature abstraction or speculative code — and **the comments rule**: flag comments that restate
    the code, repeat signatures, narrate steps, label sections, or record history; keep only the ones
    that state an invisible *why*.
 
-7. **Security:** user input reaching HTML, SQL, shell, headers, or paths; secrets in code or client
+8. **Security:** user input reaching HTML, SQL, shell, headers, or paths; secrets in code or client
    bundles; validation at boundaries; error details hidden from clients.
 
-8. **UX** (UI changes): matches the spec's stories, design, and committed docs; loading, empty, and
+9. **UX** (UI changes): matches the spec's stories, design, and committed docs; loading, empty, and
    error states; consistent language; accessible interaction (semantic HTML, keyboard, labels).
 
-9. **Test evidence:** every AC and testable requirement has a test; `tasks.md` § Gate results shows
-   red-then-green per task, the commands that ran, and what didn't run and why. Claims without
+10. **Test evidence:** every AC and testable requirement has a test; `tasks.md` § Gate results shows
+   red-then-green per task, the commands that ran, and what didn't run and why — in the fast and
+   careful lanes, the commit body or the pull request's "Verified / not verified". Claims without
    evidence are findings.
 
-10. **Doc accuracy:** committed docs match what was built; divergences were reconciled in `docs:`
+11. **Doc accuracy:** committed docs match what was built; divergences were reconciled in `docs:`
     commits or called out in a task commit's body.
 
-11. **Pull request description** (if one exists): it matches the diff — no phantom changes, no
+12. **Pull request description** (if one exists): it matches the diff — no phantom changes, no
     omissions, "not verified" items stated honestly.
 
-12. **Report** findings by severity, each with `file:line` and a suggested fix:
+13. **Report** findings by severity, each with `file:line` and a suggested fix:
     - **Critical** — must fix before delivery (security, spec violation, constitution breach, crash)
     - **Warning** — should fix (likely bug, convention violation, missing evidence)
     - **Nit** — minor (style, naming)
@@ -82,11 +97,12 @@ instead: separate reviewers per dimension, each finding independently verified.
 ## Verification
 
 - [ ] Every finding has `file:line`, severity, and a suggested fix
+- [ ] The lane was checked against the diff — a diff that outgrew its lane is a Critical finding
 - [ ] Change-surface compliance stated explicitly
 - [ ] Each AC and each filled-section requirement checked against the code
 - [ ] Constitution principles walked against the diff
 - [ ] Security reviewed for every file that handles data or external input
-- [ ] Test evidence checked in `tasks.md` § Gate results
+- [ ] Test evidence checked (`tasks.md` § Gate results, or the commit and pull request in the fast and careful lanes)
 - [ ] Doc accuracy confirmed, and the pull request description compared with the diff (if one exists)
 
 ## Principles

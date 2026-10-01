@@ -45,12 +45,22 @@ paths:
 - New feature: every acceptance criterion and testable requirement gets a test, mapped in the spec folder's `plan.md` and named on its task in `tasks.md`.
 - Bug fix: write a test that reproduces the bug first, then fix it.
 - Behavior change: update affected tests to match the amended spec.
+- Fast or careful lane: add or update the test that asserts the new behavior. A copy-only change
+  needs no new test that merely restates the text — run the existing ones.
 
 ## Red, then green — per task
 - **Write the test, run it, and watch it fail** before writing the code that satisfies it. A test that never failed proves nothing: it may be testing something that already exists, or nothing at all.
 - **Make it pass with the smallest change**, run it to green, then commit the test and the code together as that task's commit.
 - If a new test passes before any code exists, stop: either the behavior already exists (say so) or the test is wrong.
 - Never weaken an assertion to get to green. Fix the implementation — or, if the test itself is wrong, say why in the commit body.
+
+## Verification budget
+- **While iterating, run the targeted tests** — the test you're writing and its neighbors — not the
+  whole suite on every step. **Run the full gate once**, before delivery.
+- **Keep output short:** a quiet or dot reporter, failures only, `| tail -n 40`. Everything a command
+  prints stays in the conversation and is paid for on every later call.
+- **End-to-end and browser checks** run when the change touches that flow or the developer asks; the
+  human QC on the preview remains the real check of how it looks and feels.
 
 ## Evidence, not claims
 - Green tests are necessary, not sufficient — verify the behavior, not just the pass.

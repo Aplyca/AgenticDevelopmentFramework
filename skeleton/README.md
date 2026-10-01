@@ -50,12 +50,14 @@ The app will be available at `http://localhost:[port]`.
 This project uses **multi-perspective spec-driven, test-driven, docs-first development**, with AI
 agents working under the same rules as people:
 
-1. **Triage** — read the task in full; decide what it needs before setting anything up.
-2. **Spec folder** — `specs/NNN-<slug>/`: requirements from every role (`spec.md`), the plan and its
-   change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
+1. **Triage** — read the task in full; decide what it needs before setting anything up, including
+   its **lane**: fast (a precise change — edit, prove it with a test, commit), careful (the same in a
+   risk area, plus its checklist and a confirmation), or full (something to decide — the steps below).
+2. **Spec folder** (full lane) — `specs/NNN-<slug>/`: requirements from every role (`spec.md`), the
+   plan and its change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
 3. **Approval gate** — scope, change surface, and assumptions are signed off before implementation.
 4. **Docs first, then one task at a time** — each task's test fails first, then passes; one commit per task.
-5. **Review and a draft pull request** — QC'd by a person, then marked ready.
+5. **Review and a draft pull request** (every lane) — QC'd by a person, then marked ready.
 
 How it works in detail: [AGENTS.md](AGENTS.md), [specs/README.md](specs/README.md),
 [docs/SPEC-MODEL.md](docs/SPEC-MODEL.md), and [CONTRIBUTING.md](CONTRIBUTING.md).

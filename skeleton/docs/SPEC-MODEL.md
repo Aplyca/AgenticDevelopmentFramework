@@ -199,16 +199,17 @@ references:
 
 ## When the model gets in the way
 
-1. **Ceremony on changes with nothing to decide.** A typo, a version bump, or a one-line copy edit
-   needs no spec folder at all (`specs/README.md` § When a change needs a spec folder). The test is
-   "is there anything to decide?", not "is it big?".
+1. **Ceremony on changes with nothing to decide.** A typo, a version bump, or a precise adjustment
+   the requester already decided needs no spec folder — it takes the fast or careful lane
+   (`specs/README.md` § Lanes), with a light `CR N` entry on delivered work. The test is "is there
+   anything to decide, and how risky is the area?", not "is it big?".
 2. **Speculative filling.** Writing Performance and Deployment "just in case" is worse than leaving
    them out. An absent optional section says "this didn't apply"; a guessed one says "we didn't
    really think about it" while looking like we did.
 
 ## Related
 
-- `specs/README.md` — the process: when a folder is needed, the flow, the approval gate, change requests
+- `specs/README.md` — the process: the lanes, the flow, the approval gate, change requests
 - `specs/_templates/` — the files to copy (`spec.md`, `plan.md`, `tasks.md`)
 - `docs/CONSTITUTION.md` — the gate every spec and plan is checked against
 - `.claude/skills/write-spec/`, `write-plan/`, `implement/` — the playbooks
