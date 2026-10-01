@@ -33,7 +33,11 @@ add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it:
 
 ```json
 {
-  "extraKnownMarketplaces": [{ "source": "github", "org": "aplyca", "repo": "AgenticDevelopmentFramework" }],
+  "extraKnownMarketplaces": {
+    "aplyca": {
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework" }
+    }
+  },
   "enabledPlugins": { "aplyca-framework@aplyca": true }
 }
 ```
@@ -42,5 +46,7 @@ add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it:
 
 ```bash
 claude plugin marketplace update aplyca
-claude plugin update aplyca-framework
+claude plugin update aplyca-framework@aplyca
 ```
+
+Restart Claude Code, then run `/upgrade` in each adopted repository.

@@ -119,8 +119,9 @@ Present the table before going further. Wrong facts here poison every file downs
   deciders are. Add it to the index in `docs/process/README.md`.
 - *(Optional, ask)* Register the framework marketplace for the team in `.claude/settings.json`, so
   teammates get `/upgrade`:
-  `"extraKnownMarketplaces": [{"source": "github", "org": "aplyca", "repo": "AgenticDevelopmentFramework"}]`
-  and `"enabledPlugins": {"aplyca-framework@aplyca": true}`.
+  `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
+  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` — the marketplace key must be `aplyca`,
+  the name `enabledPlugins` refers to.
 
 ## Step 6 — Verify
 

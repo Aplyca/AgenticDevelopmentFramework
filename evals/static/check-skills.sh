@@ -509,6 +509,19 @@ check_modules() {
     done
 }
 
+check_marketplace_snippets() {
+    # extraKnownMarketplaces is an object keyed by marketplace name; an array is silently ignored,
+    # so a team registration copied from the docs would never offer the plugin.
+    local hits
+    hits=$(grep -rnE '"extraKnownMarketplaces"[[:space:]]*:[[:space:]]*\[' "$REPO_ROOT/plugins" "$REPO_ROOT/docs" \
+        "$SKELETON" "$MODULES_DIR" "$REPO_ROOT/README.md" 2>/dev/null)
+    if [ -z "$hits" ]; then
+        pass "extraKnownMarketplaces snippets use the object form"
+    else
+        fail "extraKnownMarketplaces must be an object keyed by marketplace name: $hits"
+    fi
+}
+
 # ─── Main ──────────────────────────────────────────────────────────────────
 
 echo ""
@@ -551,6 +564,7 @@ check_spec_templates
 echo ""
 check_links
 check_modules
+check_marketplace_snippets
 
 echo ""
 echo "==========================================="
