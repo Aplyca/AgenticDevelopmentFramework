@@ -120,8 +120,32 @@ a way to check the result?**
   budget).
 - **Browser checks by the agent only when asked or for a visual change.** In one measured bug fix,
   210 browser calls cost more than the rest of the session; the human QC on the preview is the check.
-- **Ask together, then wait once.** Batch blocking questions into one message; state minor
-  implementation choices as assumptions in the pull request.
+- **Ask together, then wait once.** Batch blocking questions into one round, each with a recommended
+  answer; state minor implementation choices as assumptions in the pull request.
+
+## Between phases — continue, clear, hand off, or compact
+
+A task has phases: triage, spec and plan, implementation, review. Decide what happens to the
+conversation at the boundary between two of them, never in the middle of one — compacting mid-phase
+loses the thread. Ask in order; the first yes wins.
+
+1. **Does the next phase need this conversation as it happened?** Continue. Triage → a fast-lane
+   edit, or clarifying a spec → writing it: the reasoning is the input, and any summary of it loses
+   something.
+2. **Is everything here disposable?** `/clear` — a finished task, an unrelated next one. It's the
+   cheapest move, and the old session stays resumable.
+3. **Does the work travel** — to a teammate, another worktree, another tool? Write a short handoff:
+   what was decided, what's next, and pointers to the spec folder, branch, and pull request rather
+   than copies of them. In the full lane after the approval gate, the spec folder already is the
+   handoff: start a fresh session from it.
+4. **Can the next step run unattended?** Give it to an agent (`@code-reviewer`, `/deep-review`): it
+   works in its own context and returns a report, and this session stays as it is.
+5. **Otherwise, `/compact`** — with an instruction about what the next phase needs
+   (`/compact keep the open questions and the change surface`).
+
+Switching the model follows the same logic: `/model opus` in place re-reads the conversation once,
+uncached, but keeps all of it; a fresh session is cheaper only when files carry what the next phase
+needs.
 
 ## Measuring
 

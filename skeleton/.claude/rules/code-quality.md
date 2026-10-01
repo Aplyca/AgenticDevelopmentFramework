@@ -28,6 +28,9 @@ paths:
 
 Adapt to your language's idioms (e.g., snake_case for Python, PascalCase for Go exports).
 
+Name domain concepts with the terms in `docs/GLOSSARY.md`, never with a word it lists under
+*Avoid*. A name that disagrees with the glossary makes code and specs talk about different things.
+
 ## File organization
 
 1. Imports / dependencies

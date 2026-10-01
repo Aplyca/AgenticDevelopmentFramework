@@ -1,17 +1,27 @@
 # Glossary
 
-<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: domain and technical terminology -->
+<!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: the project's domain language -->
 
-Domain-specific and technical terms used in this project. Keep this updated as the team encounters new terms or defines new concepts.
+The project's own words: one term per concept, used the same way in conversations, specs, code,
+tests, and docs. A shared vocabulary keeps names consistent across the codebase and makes requests,
+specs, and agent output shorter and less ambiguous.
 
 ---
 
 ## How to use this glossary
 
-- Terms are listed alphabetically
-- Each term includes: definition, aliases (if any), category, and an example
-- If you encounter an unfamiliar term in code or documentation, check here first
-- If a term is missing, add it
+- **One term per concept.** When several words exist for the same thing, pick the best one and list
+  the others under *Avoid*.
+- **Use the terms exactly** — in specs, code identifiers, test names, docs, and user-facing text.
+- **Define what it is, in one or two sentences.** No implementation details — table names, file
+  paths, and how it's built belong in `docs/reference/`.
+- **Only this project's concepts.** General programming terms (timeout, cache, retry) don't belong,
+  however often the code uses them.
+- **Challenge mismatches.** When a request uses an *Avoid* word, or one word for two concepts, say
+  which term is meant before writing anything down.
+- **Add a term the moment it's settled** — in the same change as the spec or code that introduces it.
+- Group related terms under a heading once natural clusters appear; otherwise keep the list
+  alphabetical.
 
 ---
 
@@ -20,37 +30,22 @@ Copy this block for each new term:
 
 ## [Term]
 
-**Definition:** [1-3 sentence explanation]
+[What it is, in one or two sentences.]
+**Avoid:** [other words people use for it, and why each is wrong here]
+**Example:** [the term in a sentence from this project]
 
-**Aliases:** [Other names for this concept, if any]
-
-**Category:** [Domain / Technical / Infrastructure / Business]
-
-**Example:** [Concrete example of how this term is used in the project]
-
----
 -->
 
-## [Example Term: API Route]
+## [Example term: Subscriber]
 
-**Definition:** A server-side HTTP endpoint that handles requests from the frontend. In this project, API routes proxy requests to external services and contain business logic.
+A reader whose email address is on the newsletter list.
+**Avoid:** *member* (members have paid accounts), *contact*, *user* (a user has a login; a
+subscriber needn't)
+**Example:** "A reader becomes a subscriber when their signup is accepted."
 
-**Aliases:** Endpoint, Handler
+## [Example term: Signup]
 
-**Category:** Technical
-
-**Example:** `/api/users` is an API route that returns the list of registered users.
-
----
-
-## [Example Term: Process Instance]
-
-**Definition:** A single execution of a business workflow. Each process instance tracks its own state, variables, and progress through the workflow stages.
-
-**Aliases:** Workflow instance, Case
-
-**Category:** Domain
-
-**Example:** When a user submits an application, a new process instance is created to track the approval workflow.
-
----
+One submission of the newsletter form — whether or not it creates a subscriber.
+**Avoid:** *registration* (that creates an account), *subscription* (the ongoing state, not the
+event)
+**Example:** "Ten signups per minute from one network address are allowed."
