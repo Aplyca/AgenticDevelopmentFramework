@@ -32,7 +32,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
 | Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
-| The triage — the lane and why — comes before the first file change, in reply text you can read: the first edit of a session with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
+| The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 
 Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` runs only when you invoke it. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
 

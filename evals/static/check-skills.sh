@@ -577,7 +577,12 @@ check_lanes() {
     file_contains "$HOOKS_DIR/config.sh" '^CAREFUL_GLOBS=' || missing+=("config.sh: CAREFUL_GLOBS")
     grep -q 'careful-paths.sh' "$SETTINGS" || missing+=("settings.json: careful-paths hook")
     file_contains "$HOOKS_DIR/config.sh" '^TRIAGE_FIRST=' || missing+=("config.sh: TRIAGE_FIRST")
-    grep -q 'triage-first.sh' "$SETTINGS" || missing+=("settings.json: triage-first hook")
+    python3 - "$SETTINGS" <<'PY' || missing+=("settings.json: triage-first hook on Edit|Write|MultiEdit and Bash")
+import json, sys
+pre = json.load(open(sys.argv[1]))["hooks"]["PreToolUse"]
+wired = {e["matcher"] for e in pre for h in e["hooks"] if h["command"].endswith("triage-first.sh")}
+sys.exit(0 if {"Bash", "Edit|Write|MultiEdit"} <= wired else 1)
+PY
     file_contains "$TEMPLATES/spec.md" '· light' || missing+=("spec template: light change request")
     if [ ${#missing[@]} -eq 0 ]; then
         pass "lanes: defined in specs/README.md, decided by /triage, checked by /review, enforced for sensitive paths"

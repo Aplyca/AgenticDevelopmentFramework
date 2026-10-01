@@ -47,6 +47,13 @@ skills, rules, and docs we already have rather than installed beside them
   - copies of what the repository already shows;
   - material only some tasks need, in an always-loaded file;
   - a "don't" with no statement of what to do instead.
+- **The `triage-first` hook also catches a new branch.** It runs on Bash as well, and stops a
+  session's first `git switch -c`, `git checkout -b`, `git branch <name>`, or `git worktree add` once
+  when no lane is stated yet — the session evals showed models branching before triage, which the
+  edit-only hook let through. Still one reminder per session; other Bash commands are never stopped.
+  The reminder now says what it saw (no reply text yet, or no reply naming a lane), after models
+  answered it with "the triage is stated above". In headless reruns it fired at the branch every
+  time but didn't make the model write the triage — it stays a nudge, not a lock.
 
 #### Added — framework-internal
 - Evals:
@@ -63,7 +70,12 @@ skills, rules, and docs we already have rather than installed beside them
   - Agent: `.claude/agents/debugger/agent.md`.
   - Rules: `.claude/rules/{testing,code-quality}.md` and `.cursor/rules/testing.mdc`.
   - `.claude/workflows/deep-context-audit.js` and `docs/COST-MODEL.md`.
+  - `.claude/hooks/triage-first.sh` and `.claude/hooks/README.md`.
 - **Merge:**
+  - `.claude/settings.json` — add `triage-first.sh` to the PreToolUse `Bash` matcher, after
+    `guard-git.sh`.
+  - `CLAUDE.md` — the `triage-first` row of the guardrails table; `.claude/hooks/config.sh` — the
+    comment above `TRIAGE_FIRST`.
   - `AGENTS.md` — § Working economically gains the question-round and between-phases bullets; the
     glossary row in § Project documentation changes.
   - `GEMINI.md` — the glossary row.

@@ -2,7 +2,8 @@
 
 The new `debug` suite and three triage cases, run against real headless Claude Code sessions on
 `sonnet` (Sonnet 5.5) and `opus` (Opus 5.5) with `run-session-evals.sh`. There were 10 sessions,
-about $3.20 API-equivalent in total, with edits allowed in each throwaway copy. Each transcript was
+about $3.20 API-equivalent, with edits allowed in each throwaway copy, and 8 more to test fix B,
+about $2.80. Each transcript was
 graded by reading it against its `.expected.md`.
 
 | Run | Cases | Sessions | Cost |
@@ -45,13 +46,27 @@ graded by reading it against its `.expected.md`.
   both models branched and edited before writing the triage. After the `triage-first` reminder, Opus
   replied "the triage is stated above" — it wasn't. This is finding D of the
   [routing report](2026-10-01-triage-routing.md), unchanged by this work: `/triage` step 4 wasn't
-  touched. The hook gates edits, not `git switch -c`, so a branch can still come first.
+  touched. The hook gated edits, not `git switch -c`, so a branch could come first — see fix B.
 
 ## Fixes made from these runs
 
 - **A — The glossary example contradicted the example spec.** The template's *Subscriber* was
   "someone who has confirmed", but the example spec is single opt-in, and a session cited the
   glossary as evidence for double opt-in. The example no longer mentions confirmation.
+- **B — `triage-first` now catches a new branch.** The hook also runs on Bash and stops a session's
+  first `git switch -c`, `git checkout -b`, `git branch <name>`, or `git worktree add` once when no
+  lane is stated. Two reruns of `fast-bug-clear-cause` and `fast-copy-change` on both models
+  (8 sessions, about $2.80) tested it:
+
+  | Rerun | Reminder | Stopped at the branch | Wrote the triage after the reminder |
+  |---|---|---|---|
+  | 1 | "write the triage … nothing above states one" | 4 of 4 | 0 of 4 — "the triage is stated above", then a retry |
+  | 2 | says what it saw: "you haven't written any reply text yet" or "none of your replies names a lane" | 3 of 3 (Sonnet stated the triage first on its own in the fourth) | 0 of 3 |
+
+  The hook now fires at the right moment, and its message is accurate. It still doesn't change what
+  a headless model does next, which agrees with findings D and E of the routing report. It stays a
+  one-time nudge, which the developer sees in an interactive session. Routing was right in all 8
+  sessions, including the light `CR` for the copy change.
 
 ## Caveats
 
