@@ -32,12 +32,15 @@ change request, or a hotfix.
    content edit); where (local, CI, preview, production); how reliably.
 
 3. **Diagnose** — `/debug` in this conversation, or the [`@debugger`](../../skeleton/.claude/agents/debugger/agent.md)
-   agent for an isolated, read-only investigation (it can't edit, so it can't "just fix it"). When
-   several layers are suspects, `/orchestrate investigate` runs different perspectives in parallel.
+   agent for an isolated, read-only investigation (it can't edit, so it can't "just fix it"). Either
+   way it starts with a **signal** — one command that fails on this bug, every time, in seconds —
+   then ranks three to five hypotheses, shows them to you, and tests them one at a time. You often
+   know which one to rule out: say so. When several layers are suspects, `/orchestrate investigate`
+   runs different perspectives in parallel.
 
 4. **Confirm the hypothesis** before acting on it. It must explain every symptom, and something must
-   be able to prove it wrong — a command, a log line, a setting. If the evidence rules it out, go back
-   with the new evidence instead of trying the next guess.
+   be able to prove it wrong — the signal passing once the cause is removed, a log line, a setting.
+   If the evidence rules it out, go back with the new evidence instead of trying the next guess.
 
 5. **Decide what happens next** — the table below — and say which row you're in.
 
@@ -70,8 +73,18 @@ Repro: any article on the preview URL, submit any email. 100% on preview, 0% loc
 Started: today's first preview build.
 ```
 
-**Diagnosis.** Three hypotheses: the provider key is missing on preview; the key is read at build
-time rather than at runtime; a bundling difference. Reading the provider wrapper settles it: it
+**Signal.** A request against the preview deployment, which prints `500` on every run (and `200`
+against `localhost:3000`):
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST "$PREVIEW_URL/api/newsletter" \
+  -H 'content-type: application/json' -d '{"email":"reader@example.com"}'
+```
+
+**Diagnosis.** Three hypotheses, ranked and shown to the developer before testing: the provider key
+is missing on preview (then setting it makes the signal pass); the key is read at build time rather
+than at runtime (then a rebuild changes the result); a bundling difference (then a local production
+build fails too). Reading the provider wrapper settles it: it
 picks Mailchimp's host from the data-center suffix of `MAILCHIMP_API_KEY`, read with a non-null
 assertion, so a missing key surfaces as a `TypeError` on `undefined` instead of a configuration
 error. The hosting platform's settings confirm it: the key is set for Production only. The spec's Deployment section already says every environment
@@ -121,7 +134,8 @@ The university case produces no fix commit. Its first commit is the change reque
 | Treating the symptom | A `try/catch` and a log line, a bigger timeout, a retry — the cause stays | Ask what mechanism produced the symptom, and fix that |
 | No regression test | The bug is back in three months | Every diagnosed bug gets a test that failed first |
 | Fixing working-as-specified behavior | A requirement changes in a `fix:` commit nobody approved | Check the spec first; behavior changes are change requests |
-| Accepting the first hypothesis | A wrong fix on top of the original bug | Name what would prove it wrong, then check |
+| Theorizing before reproducing | Code reading builds a theory nothing can confirm; a coincidental fix looks like a real one | A command that fails on the bug first; when the cause is plain, the regression test is that command |
+| Accepting the first hypothesis | A wrong fix on top of the original bug | Rank three to five, name what would prove each wrong, then check |
 | Vague evidence | The agent guesses | Exact errors, reproduction steps, environment |
 | Hours of tunnel vision | Obvious things get missed | After an hour without narrowing it down, step back or pull in a teammate |
 
