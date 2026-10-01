@@ -1,6 +1,6 @@
 # Cost model and model tiering
 
-How to manage AI development costs in a project that uses this framework. Covers the three model tiers, per-skill / per-agent recommendations, prompt-caching strategy, cost attribution patterns, and tool integrations.
+How to manage AI development costs — tokens and time — in a project that uses this framework. Covers what a session actually costs, the lanes and the effort dials, the three model tiers, per-skill / per-agent recommendations, prompt caching, measuring, cost attribution, and tool integrations.
 
 The framework is opinionated about WHEN to use which model and HOW to structure context for cache efficiency. Teams that follow these recommendations spend noticeably less than teams that default everything to Opus: at current list prices Sonnet costs about half as much per token and Haiku about a quarter, and a stable, cache-friendly context cuts input costs further. The overall saving depends on your mix of work — measure it rather than assuming a multiple.
 
@@ -9,6 +9,97 @@ The framework is opinionated about WHEN to use which model and HOW to structure 
 By 2026, AI engineering workflows are the #1 line item in many teams' LLM token spend. The difference between "default to Opus for everything" and "default to Sonnet, escalate to Opus only when needed, route triage through Haiku, cache aggressively" shows up directly in the monthly bill — roughly 2× per token from the Sonnet-vs-Opus choice alone, with prompt caching (cache reads bill at a tenth of the base input price or less) often mattering as much as the model choice.
 
 For consultancies billing AI-assisted work to clients, cost attribution per feature/per project is also a billing requirement, not just an internal concern.
+
+## What a session costs
+
+Every call to the model re-reads the whole conversation — instructions, every message, every tool
+output so far — mostly from the prompt cache. So a session costs roughly **number of calls × context
+size**, plus the tokens the model writes. Measured on 48 sessions in two production projects
+(September 2026, Opus 5 and 5.5):
+
+| Measure | Value |
+|---|---|
+| Median cost per call | about $0.06 |
+| Context at the first call | 46–66k tokens — Claude Code and its tools, the instruction files, memory. This framework's always-loaded instructions are about 5–7k of that |
+| Where the money goes | about 47% re-reading cached context, 27% writing the cache, 17% output |
+| Sessions under 30 calls | median about $1 and 10 minutes of activity |
+| 30–100 calls | median about $4 and 35 minutes |
+| Over 100 calls | median about $20 and 2+ hours |
+
+What drives the bill, in order:
+
+1. **The number of calls.** Every step — a file read, a test run, a question, a spec section — is a
+   call. Ceremony that isn't needed adds calls; so do verification loops (re-running a whole suite,
+   browser checks).
+2. **The context size.** Long sessions and verbose output make every later call more expensive: in
+   sessions over ~90 calls the average call carried 145–190k tokens, against ~60k at the start.
+3. **Pauses longer than the cache lifetime.** The prompt cache expires about 5 minutes after its last
+   use (Claude Code uses a longer-lived cache for some requests). After a longer wait — an
+   unanswered question, a gate, a meeting — the next call writes the whole context again: about
+   $0.75–1.20 for 150k tokens on Opus 5.5.
+4. **The model** — Opus costs twice Sonnet for output and uncached input; cache reads cost the same
+   (see the tiers below).
+
+The framework's fixed overhead is small by comparison: the always-loaded instructions add a fraction
+of a cent per call once cached, and the guardrail hooks take 60–140 ms per tool call against 5–10
+seconds of model time.
+
+## Lanes and what they cost
+
+The lane (`specs/README.md` § Lanes) is the biggest lever a team controls. Typical ranges on Opus 5.5
+at the measured $0.06–0.09 per call; Sonnet runs about 25–35% less:
+
+| Work | Lane | Calls | Agent time | Cost |
+|---|---|---|---|---|
+| Typo, copy, a precise adjustment | Fast | 8–20 | 2–10 min | $0.5–1.5 |
+| Bug with a clear cause | Fast | 15–30 | 5–15 min, plus test runtime | $1–2 |
+| Either, in a risk area | Careful | fast + 5–15 for the checklist and confirmation | +5–10 min | $1.5–3 |
+| Bug, cause unknown | `/debug`, then a lane | 30–60 | 15–40 min | $2–5 |
+| Change request with something to decide | Full | 60–120 | 30–90 min, plus the wait at the gate | $5–12 |
+| New feature | Full | 150–400 | hours | $10–40 |
+| A `/deep-*` workflow run | Opt-in | 6–15 agents, each starting from a fresh context | — | $2–8 |
+
+A precise adjustment pushed through the full lane costs 5–10× the fast lane, and the extra steps
+record decisions nobody had to make: the tests, the review, and the human QC — the steps that find
+defects — run in every lane.
+
+## Effort — what to raise, and what it costs
+
+A developer's intuition that a task needs more care is a valid input — triage honors any request to
+raise effort. The dials are independent, so raise the one the intuition points at:
+
+| Dial | How to ask | What it adds | Cost |
+|---|---|---|---|
+| **Lane** | "full lane on this", "be careful here" | Careful: the area's checklist and a confirmation. Full: spec, plan, gate | Careful: roughly +20–50%. Full: roughly 5–10× the fast lane |
+| **Understanding** | "question my request first" | Clarifying questions before any code | One exchange — though a wait past the cache lifetime re-writes the context |
+| **Design** | "compare approaches first" (`/evaluate`) | Options with trade-offs and a recommendation | One analysis pass, typically 10–30 calls |
+| **Thinking** | The desktop app's effort selector or `effortLevel` in settings; `/model opus` | More reasoning per step | More output tokens per call; Opus doubles output and uncached input |
+| **Verification** | "add edge-case tests", "`@security-reviewer` on this", "`/deep-review` before the PR" | Independent checks | A subagent starts from a fresh ~50–60k-token context; `/deep-review` runs 6–15 of them |
+
+## Keeping sessions cheap
+
+- **One task per session; `/clear` before the next.** A fresh session starts at ~60k tokens; a long
+  one can carry 200k+ on every call.
+- **A 1M-context model is for work that needs it.** With a 1M window (e.g. `opus[1m]`) compaction
+  happens late, so routine sessions grow far past what the task needs — and every call pays for it.
+- **Keep output short.** Quiet test reporters, `| tail -n 40`, reading the lines you need. A log
+  printed once is paid for on every later call.
+- **Targeted tests while iterating, the full gate once** (`.claude/rules/testing.md` § Verification
+  budget).
+- **Browser checks by the agent only when asked or for a visual change.** In one measured bug fix,
+  210 browser calls cost more than the rest of the session; the human QC on the preview is the check.
+- **Ask together, then wait once.** Batch blocking questions into one message; state minor
+  implementation choices as assumptions in the pull request.
+
+## Measuring
+
+- **`/cost`** in Claude Code shows the current session.
+- **The framework plugin's `/cost-report`** reads Claude Code's local transcripts for a project and
+  reports each session's calls, active time, tokens, and estimated cost, with the patterns above
+  flagged (long context, many waits, browser loops). Run it after a few weeks on a new lane setup
+  to see what changed.
+- **Track rework next to cost.** Reopened tasks, follow-up fixes, and review rejections per lane tell
+  you whether the triggers are tight enough; adjust them with a PDR (`docs/process/`).
 
 ## The three tiers
 
@@ -27,19 +118,20 @@ Configure models with these aliases everywhere Claude Code takes one: `.claude/s
 ### Decision rules
 
 - **Default to Sonnet** for any new skill or agent unless you have a specific reason to escalate or de-escalate.
-- **Use Haiku** when the task is well-defined and bounded: classification, routing, formatting, drafting commit messages from a diff, simple lookups, structural verification (most reviews).
+- **Use Haiku** for well-defined, bounded work that runs in its own small context: subagents for convention checks and most reviews, classification, routing, simple lookups. Inside a long main conversation, switching to Haiku for one step costs more than it saves — the cache is per model.
 - **Escalate to Opus** when: (a) the task involves >5 interacting constraints to satisfy simultaneously, (b) the cost of a wrong decision is significantly higher than the cost difference, or (c) you've tried Sonnet and it consistently produces inadequate output. Most teams escalate <10% of work to Opus.
 - **Don't escalate "just in case"** — Opus on tasks Sonnet handles well is pure waste. The framework's anti-rationalization tables, plan-then-execute gates, and verification checklists do most of the quality work that escalation would otherwise paper over.
 
 ### Switching tiers in Claude Code
 
-- `/model` — built-in command to switch the session's model (e.g. `/model opus` before a hard reasoning task, then `/model sonnet` after).
+- `/model` — built-in command to switch the session's model (e.g. `/model opus` before a hard reasoning task, then `/model sonnet` after). Switching mid-session means the new model reads the whole context uncached once — switch at the start of a task, not for a single step.
+- Precedence — the desktop app's model picker and `/model` override the project's `.claude/settings.json`, which overrides user settings. A user-level `"model": "opus[1m]"` is a costly default for routine work.
 - Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default (aliases here too). Use it for work that should always run on a given tier, e.g. `@code-reviewer` / `@security-reviewer` on `haiku`.
 - `/fast` — built-in Claude Code toggle (research preview) that runs Opus in a faster-output configuration. It is the same model — it does NOT downgrade to a smaller one — with up to ~2.5× faster output at premium pricing ($8 / $40 per MTok on Opus 5.5, vs $4 / $20 standard). Supported on Opus 5.5, Opus 5, and Opus 4.8, and only through the Anthropic API or subscription plans' usage credits (not Bedrock, Google Cloud, or Foundry). Turn it on at the start of a session: enabling it mid-conversation bills the whole existing context at the fast-mode uncached input rate. Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference (`fastMode` in user settings), not a project-level setting.
 
 ## Per-skill recommendations
 
-Skills run in your main AI conversation, so they use whatever model your AI tool is set to. The framework can't enforce per-skill model choice — but it can recommend.
+Skills run in your conversation, on its model. A skill could name its own model, but a switch mid-session re-reads the whole context uncached on the new model — so for skills the lever is the **session's** model: Sonnet for fast- and careful-lane sessions, Opus when a session is planning or debugging something hard.
 
 | Skill | Recommended tier | Why |
 |---|---|---|
@@ -53,13 +145,13 @@ Skills run in your main AI conversation, so they use whatever model your AI tool
 | `/review` | Sonnet | Multi-perspective review of diffs |
 | `/debug` | Sonnet | Root cause analysis. Escalate to Opus for tricky bugs (race conditions, distributed-system issues, anything you've tried to fix twice) |
 | `/refactor` | Sonnet | Pattern extraction + maintaining test parity |
-| `/commit` | **Haiku** | Drafting a commit message from a diff is well-bounded — Haiku handles it fine |
+| `/commit` | Session model | A few short calls; switching to Haiku for them would re-read the whole context uncached |
 | `/open-pr`, `/stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
 | `/record-decision`, `/context-audit`, `/spec-drift` | Sonnet | Reading and comparing many files; precision matters more than depth |
 | `/evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
 | `/spec-workflow` | n/a | Reference doc, no AI invocation |
 
-**Practical guidance:** set your default to Sonnet. Switch to Haiku for `/commit` (or just leave it on Sonnet — the cost is negligible). Manually escalate to Opus only when you hit the explicit triggers above.
+**Practical guidance:** set your default to Sonnet and pick the model per session, by the work it will do. Escalate to Opus only when you hit the explicit triggers above.
 
 ## Per-agent recommendations
 
@@ -157,11 +249,11 @@ Don't enforce per-feature ceilings by default — most features don't need them,
 
 The framework's structural choices already help cost. To get the most savings:
 
-1. **Use plan-then-execute as designed.** Approving a plan before code is written prevents the AI from going down expensive wrong paths. Every wasted exploration costs tokens.
+1. **Match the lane to the risk.** The full lane's plan-then-execute prevents expensive wrong paths where there's something to decide; for precise requests, the fast lane gets the same proof for a fraction of the calls.
 2. **Use subagents for context-heavy work.** When you need to load a lot of one-off context (e.g., reading 20 files to answer one question), invoke a subagent with the right tools — it returns a summary, the parent's context stays clean, and your cache prefix stays stable.
-3. **Compact long conversations.** Most AI tools (Claude Code, Cursor) auto-compact when the context window fills. Don't fight it.
+3. **Keep sessions short.** One task per session, `/clear` between tasks, short tool output. Auto-compaction helps when a window fills, but a session that never grows that large is cheaper on every call.
 4. **Use memory for repeated context.** Per-project gotchas, terminology, recurring patterns — these belong in memory (where they're loaded just-in-time) not in CLAUDE.md (where they bloat every request).
-5. **Use the smallest model that works for the job.** Default to Sonnet, not Opus. Use Haiku for well-bounded tasks like commit drafting.
+5. **Use the smallest model that works for the job.** Default to Sonnet, not Opus — chosen per session. Haiku belongs to subagents with small contexts.
 6. **Run static evals in CI, not dynamic evals.** Static checks cost nothing. Dynamic evals cost real tokens — run them nightly or pre-release, not on every PR (see `evals/README.md`, if this project keeps evals).
 7. **Cache aggressively.** Keep AGENTS.md / CLAUDE.md / rules stable. Batch edits. Don't put per-feature content in shared files.
 
@@ -172,7 +264,9 @@ If your monthly bill jumps unexpectedly:
 1. Check Anthropic Console for the timeline of the spike. Which day? Which API key?
 2. Look at your gateway dashboard (if you have one) for the requests in that window — what tasks were being run? What models?
 3. Common causes:
-   - Someone defaulted their tool to Opus
+   - Someone defaulted their tool to Opus, or to a 1M-context model
+   - Long sessions: many tasks in one conversation, or verbose logs and browser loops filling the context
+   - Small changes routed through the full lane
    - A skill was modified and the cache prefix got reordered (cache hit rate drops, every request becomes cache miss)
    - Long-running agentic loops with no termination condition
    - Manual experimentation in the AI tool that was forgotten
