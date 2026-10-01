@@ -28,6 +28,24 @@ Each fixture has two files:
 
 ## Running
 
+### The triage routing evals — automated
+
+`run-triage-evals.sh` runs every fixture in `fixtures/triage/` against real Claude Code sessions:
+it builds a fictional project in a temp directory (the skeleton, the delivered newsletter-signup spec
+folder from `docs/examples/`, stub source files matching the fixtures), runs each prompt headless
+with `claude -p` on each model, and writes one transcript per run to grade against the fixture's
+`.expected.md`. Each run edits only its own throwaway copy — so the project's hooks take part — and
+is turn- and budget-capped; `--read-only` denies edits instead.
+
+```bash
+./run-triage-evals.sh                                   # every case, sonnet and opus
+./run-triage-evals.sh --models sonnet --cases "fast-copy-change careful-migration"
+```
+
+It needs a signed-in Claude Code CLI (`claude auth login`); a full run is 16 sessions, about $5
+API-equivalent. Graded reports of past runs: [`reports/`](reports/).
+
+
 ### Manual (zero setup)
 
 1. Open the fixture's `input.md`.

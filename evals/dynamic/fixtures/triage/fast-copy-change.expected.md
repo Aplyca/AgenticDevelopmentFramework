@@ -17,4 +17,5 @@ The AI's triage and next step should satisfy ALL of these invariants.
 ## Always
 
 - [ ] The task is read in full before anything is created or started
+- [ ] The triage is stated before any branch or file is created
 - [ ] No outward action (push, pull request, tracker comment) is taken or proposed without an ask

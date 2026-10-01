@@ -17,8 +17,8 @@ state); `CAREFUL_GLOBS="src/billing/*"`.
 ## Prompt to give the AI
 
 ```
-/triage Make the "Company" field optional on the signup form.
-Developer: full lane on this — that form feeds our CRM sync and I don't trust the downstream mapping.
+/triage Change the subscribe button's pending text from "Subscribing…" to "One moment…".
+Developer: full lane on this — the form's wording was agreed with legal, and I want any change on record.
 ```
 
 ## What to do with this fixture
