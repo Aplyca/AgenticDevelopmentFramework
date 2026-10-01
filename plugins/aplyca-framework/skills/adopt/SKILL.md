@@ -1,120 +1,144 @@
 ---
 name: adopt
-description: Bootstrap a repository for AI-agentic development with the Aplyca framework — copy the skeleton, derive project facts by inspection, fill placeholders with verified facts only, stamp the baseline SHA, and prepare an adoption PR. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
+description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Also adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
 ---
 
 # Adopt the AI-Assisted Development Framework
 
 Bring a repository to "Context & Harness" maturity: committed, multi-tool AI configuration
-(`AGENTS.md`, tool layers, rules, specs scaffold) derived from **verified facts about this
-specific repo** — never from guesses.
+(`AGENTS.md`, tool layers, rules, hooks, spec-folder scaffold) derived from **verified facts about
+this specific repo** — never from guesses.
 
-This skill automates `docs/SETUP.md` from the framework repo. When in doubt about a step's
-intent, read the source doc (locations in step 1).
+This skill automates `docs/SETUP.md` from the framework repo. When in doubt about a step's intent,
+read the source doc (locations in step 1).
 
 ## Ground rules
 
-- **Never commit to the default branch.** All work happens on a feature branch
-  (suggest `feat/agentic-adoption`); the deliverable is a reviewable PR.
-- **Docs and config only.** Adoption must add no dependencies, no runtime code, and no
-  build changes. If a step seems to require one, stop and ask.
-- **Facts need evidence.** Every placeholder you fill must trace to a file you read
-  (manifest, lockfile, CI config, code). Anything you cannot evidence becomes a
-  `<!-- TODO(team): ... -->` marker with a concrete question — an honest TODO beats a
-  plausible invention.
-- **Client repos:** confirm with the user before pushing anything to a remote. If
-  committing AI config to the repo is inappropriate for the client, offer the local-only
-  fallback (`.git/info/exclude` + user-level config) instead.
+- **Never commit to the default branch.** Work on a feature branch (suggest `docs/agentic-adoption`);
+  the deliverable is a reviewable draft PR.
+- **Docs and config only.** Adoption adds no dependencies, no runtime code, and no build changes. The
+  hook and worktree scripts are dev tooling; if anything seems to need more, stop and ask.
+- **Facts need evidence.** Every placeholder you fill traces to a file you read (manifest, lockfile,
+  CI config, code, git history). Anything you can't evidence becomes a
+  `<!-- TODO(team): <concrete question> -->` — an honest TODO beats a plausible invention.
+- **Client repositories:** confirm before pushing anything. If committing AI config isn't
+  appropriate for the client, offer the local-only fallback (`.git/info/exclude` + user-level config).
 
 ## Step 1 — Locate the framework source
 
-Resolve the skeleton, in order:
+Resolve the framework root, in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/../../skeleton` — present only when the plugin runs from a
-   checkout of the framework repo (development / skills-dir installs).
-2. The marketplace checkout: `~/.claude/plugins/marketplaces/<marketplace-name>/skeleton`
-   (the marketplace this plugin was installed from — usually `aplyca`). **This is the
-   normal case on installed machines**: installed plugins run from a version cache, so
-   `${CLAUDE_PLUGIN_ROOT}` does not sit inside the repo. Run
-   `claude plugin marketplace update <marketplace-name>` first so the checkout is current.
-3. Otherwise clone fresh: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`
-   into a temporary directory.
+1. `${CLAUDE_PLUGIN_ROOT}/../..` — only when the plugin runs from a checkout of the framework repo.
+2. The marketplace checkout: `~/.claude/plugins/marketplaces/<marketplace-name>/` (usually `aplyca`).
+   **The normal case on installed machines** — installed plugins run from a version cache, so
+   `${CLAUDE_PLUGIN_ROOT}` isn't inside the repo. Run `claude plugin marketplace update <name>` first.
+3. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
 
-The framework docs sit next to the skeleton at `<framework-root>/docs/`.
-
+You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
 Record the source SHA and date: `git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
-You will stamp this into the target's `CLAUDE.md` in step 5.
+
+**Already adopted?** If the target's `CLAUDE.md` has a `Skeleton source:` line, don't re-adopt: offer
+to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
+stamp) or point to `/upgrade`.
 
 ## Step 2 — Discover the repo (read-only, before copying anything)
 
-Build a facts table (`fact → evidence file:line`) covering:
+Build a facts table (`fact → evidence file:line`):
 
-- **Stack & versions** — package manifests, lockfiles, framework configs, `.nvmrc` / `.tool-versions`
-- **Commands** — dev server(s) with ports, build, test, lint, format; for monorepos, per-app commands
-- **Environment** — declared env samples vs. variables the code actually reads (grep for
-  `process.env`, `os.environ`, etc.); note undeclared ones — they are onboarding landmines
-- **Structure** — monorepo layout, module boundaries, shared libraries
-- **Conventions** — commit-message style and merge strategy from `git log`, existing lint/format configs
-- **Boundaries & antipatterns** — frozen/legacy dirs, generated code, things agents must not touch
-  (ask the user; this rarely has file evidence)
-- **CI & deployment** — pipelines if present; if absent, record that as a fact worth stating
+- **Stack & versions** — manifests, lockfiles, framework configs, version files
+- **Commands** — install, dev server(s) and ports, build, test layers, lint, typecheck; per-app in a monorepo
+- **Environment** — the env template's name, declared variables vs the variables the code actually
+  reads (grep `process.env`, `os.environ`, `getenv`…) — undeclared ones are onboarding landmines
+- **Structure** — monorepo layout, module boundaries, shared libraries, generated code
+- **Branching & release** — permanent branches (`git branch -r`), merge style (`git log --merges`,
+  squash patterns), tags, deploy triggers in CI. Match it to **Model A** (feature branches into
+  `main`, optional never-merged integration branch) or **Model B** (integration branch, release
+  merge, tag ships) from the skeleton's `CONTRIBUTING.md` — or note a third shape
+- **History that must stay append-only** — migrations directories; **generated files** — lockfiles, generated types
+- **Requirements source** — ask: which tracker (ClickUp, Jira, Linear, GitHub Issues, none)? Its MCP endpoint, if any
+- **Git host** — GitHub, GitLab, other (from `git remote -v`)
+- **Ways of working** — ask: several agent sessions in parallel, each needing a running app? A requester who gets status updates?
+- **Boundaries & antipatterns** — frozen or legacy directories, deliberate deviations (ask; rarely has file evidence)
+- **CI & enforcement** — what pipelines exist, what branch protection is known; if none, record that as a fact
 
-Present the table to the user before proceeding. Wrong facts here poison every file downstream.
+Present the table before going further. Wrong facts here poison every file downstream.
 
-## Step 3 — Copy the skeleton
+## Step 3 — Copy the skeleton and the chosen modules
 
-- Copy `skeleton/` contents into the repo root **without overwriting existing files**.
-  For collisions (`README.md`, `CONTRIBUTING.md`, `.claude/settings.json` are common),
-  merge: keep the project's content, add the skeleton's missing sections.
-- Ask which AI tools the team uses, then delete unused layers per `docs/SETUP.md`:
-  `CLAUDE.md` + `.claude/` (Claude Code), `GEMINI.md` + `.agents/` (Antigravity/Gemini),
-  `.cursor/` (Cursor). `AGENTS.md` always stays.
-- Ask whether the team writes custom skills, rules, or spec patterns that need
-  automated checks. If not — the common case — delete `evals/`: it is scaffold for
-  testing team-authored framework artifacts, not the project itself, and can be
-  re-adopted later from the framework repo when the need appears.
+- Copy `skeleton/` into the repo **without overwriting existing files**. For collisions (`README.md`,
+  `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
+  skeleton's missing sections.
+- Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `CLAUDE.md` +
+  `.claude/` (Claude Code), `GEMINI.md` + `.agents/` (Antigravity/Gemini), `.cursor/` (Cursor).
+  `AGENTS.md` always stays.
+- Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
+  common case — delete `evals/`.
+- **Offer the modules** (`modules/README.md`), recommending from the facts:
+  - `github` — when the repo is on GitHub
+  - `git-hooks` — when the team wants local gates for every git client
+  - `parallel-agents` — when several agent sessions work at once and each needs a running app
+  Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule).
+- Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
+  `.claude/worktrees/`.
 
 ## Step 4 — Fill placeholders from the facts table
 
-- `AGENTS.md` — identity, stack, critical rules, conventions, structure, quick reference.
-  Specific beats exhaustive: link to deeper docs rather than inlining them.
-- `.claude/rules/*` — update `<!-- CUSTOMIZE -->` sections and `paths:` frontmatter to the
-  real structure; delete rules that cannot apply (e.g. `ui-ux.md` in a backend service).
-- `.claude/settings.json` — extend the permission allowlist with this repo's routine
-  read-only commands; adapt or remove the example hook.
-- Large monorepo? Add nested `AGENTS.md` files in modules where local context differs
-  from the root (per-app conventions, per-lib boundaries). Nearest file wins.
-- Prune `.claudeignore` entries that cannot apply to this stack (keep its explanatory
-  header) and add project-specific generated/secret paths.
-- Every unknown: `<!-- TODO(team): <question> -->`.
+- **`AGENTS.md`** — identity, stack, ground rules, delivery rules (base branch, protected branches),
+  boundaries & antipatterns, conventions, structure, quick reference (commands exactly as typed).
+  Under ~200 lines; link instead of inlining. Monorepo: nested `AGENTS.md` per module whose rules
+  differ (template in `/init-project`).
+- **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
+  the two must agree.
+- **`CLAUDE.md`** — keep `@AGENTS.md` as its first instruction (Claude Code reads `CLAUDE.md` instead
+  of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5.
+- **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
+  (migrations), `GENERATED_GLOBS` (add generated types/clients), `ENV_TEMPLATE` if not auto-detected.
+- **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
+  keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
+- **`.claude/rules/*`** — `<!-- CUSTOMIZE -->` sections and `paths:` frontmatter to the real
+  structure; delete rules that can't apply.
+- **`CONTRIBUTING.md`** — keep the branching model that matches (A or B), the status vocabulary,
+  and an honest "what's enforced" section.
+- **`docs/TRACKER-INTEGRATION.md`** — the tracker, `.mcp.json` (if it has an MCP server), and a
+  read-only `mcp__<server>__…` allowlist from the server's real tool names. Delete the page if there
+  is no tracker.
+- **Modules** — `scripts/agent/worktree.conf`; the PR template's quality and constitution checklists;
+  `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
+  `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`.
+- **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
+- Every unknown: `<!-- TODO(team): <question> -->`. Fill each doc's `owner · last_updated · scope`.
 
-## Step 5 — Stamp the baseline
+## Step 5 — Stamp the baseline and record the decision
 
-Top of the target's `CLAUDE.md`:
-`<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
-Without this line, future `/upgrade` runs have no baseline to diff against.
+- Top of `CLAUDE.md`:
+  `<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
+  Without it, `/upgrade` has no baseline to diff against.
+- Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
+  team is adopting, what it adds (files, gates, modules), the costs (docs to keep fresh, more tokens
+  for phased work, the approval gate on the critical path), alternatives considered. Ask who the
+  deciders are. Add it to the index in `docs/process/README.md`.
+- *(Optional, ask)* Register the framework marketplace for the team in `.claude/settings.json`, so
+  teammates get `/upgrade`:
+  `"extraKnownMarketplaces": [{"source": "github", "org": "aplyca", "repo": "AgenticDevelopmentFramework"}]`
+  and `"enabledPlugins": {"aplyca-framework@aplyca": true}`.
 
-## Step 6 — Verify: agentic-readiness checklist
+## Step 6 — Verify
 
-From the Agentic Development Guide (§9). Report each as PASS / GAP with one line of evidence:
+Run these checks and report each as PASS / GAP with one line of evidence:
 
-- [ ] `README.md` current for humans; `AGENTS.md` current for agents
-- [ ] Non-negotiable principles recorded (constitution / critical rules)
-- [ ] `specs/` scaffold with template and acceptance-criteria model
-- [ ] `docs/` with architecture + ADR scaffold
-- [ ] Build/test/lint commands documented AND runnable by an agent (actually run them)
-- [ ] Relevant skills / MCP servers configured and versioned
-- [ ] Nested `AGENTS.md` in complex modules (or explicitly not needed)
-- [ ] Explicit boundaries / antipatterns section
-- [ ] CI gates before merge (report as GAP if repo has no CI — do not invent one)
-- [ ] Written policy: no merge without human review
+- [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
+- [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
+- [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
+- [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
+- [ ] Skill frontmatter uses hyphenated keys only (no `user_invocable` and the like)
+- [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones)
+- [ ] Readiness checklist (Agentic Development Guide §9): `README.md` + `AGENTS.md` current; constitution; `specs/` scaffold; `docs/` with architecture and ADRs; skills/MCP versioned; nested `AGENTS.md` where needed (or explicitly not needed); boundaries section; CI gates before merge (GAP if none — don't invent one); written "no merge without human review"
 
-GAPs are findings for the PR description, not failures to hide.
+GAPs go in the PR description; they're findings, not failures to hide.
 
 ## Step 7 — Deliver
 
-1. Commit on the feature branch, `docs:` prefix, e.g.
-   `docs: adopt AI-assisted development framework (skeleton <SHA>)`.
-2. Draft the PR body: facts table summary, tool layers kept/removed, open TODOs as a
-   checklist, readiness checklist results.
-3. Push and open the PR **only after the user approves**.
+1. Commit on the feature branch: `docs: adopt AI-assisted development framework (skeleton <SHA>)`.
+2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, open TODOs as
+   a checklist, verification results.
+3. Push and open the PR **as a draft, only after the user approves**.

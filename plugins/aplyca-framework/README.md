@@ -20,11 +20,23 @@ claude plugin install aplyca-framework@aplyca
 
 | Skill | Purpose |
 |---|---|
-| `/adopt` | Bootstrap a repo: inspect it, copy the skeleton, fill placeholders from verified repo facts, stamp the baseline SHA, prepare an adoption PR. Automates [docs/SETUP.md](../../docs/SETUP.md). |
-| `/upgrade` | Sync an adopted repo to a newer skeleton version via the three-bucket taxonomy and OLD_SHA → NEW_SHA discipline. Automates [docs/UPGRADING.md](../../docs/UPGRADING.md). |
+| `/adopt` | Bootstrap a repo: inspect it (stack, commands, branching model, tracker, Git host), copy the skeleton and the [optional modules](../../modules/README.md) you choose, fill placeholders from verified repo facts, configure the guardrail hooks, record the adoption as PDR-0001, stamp the baseline SHA and modules, verify (settings schema, hook smoke tests, the `@AGENTS.md` import), and prepare a draft adoption PR. On an already-adopted repo it adds modules. Automates [docs/SETUP.md](../../docs/SETUP.md). |
+| `/upgrade` | Sync an adopted repo — skeleton and installed modules — to a newer version via the three-bucket taxonomy, OLD_SHA → NEW_SHA discipline, and the changelog's migration steps. Automates [docs/UPGRADING.md](../../docs/UPGRADING.md). |
 
 Both skills work branch-and-PR only — they never commit to a default branch, and never
 push without explicit approval.
+
+## For teams
+
+To have every teammate offered the plugin when they trust the repository (and so get `/upgrade`),
+add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it:
+
+```json
+{
+  "extraKnownMarketplaces": [{ "source": "github", "org": "aplyca", "repo": "AgenticDevelopmentFramework" }],
+  "enabledPlugins": { "aplyca-framework@aplyca": true }
+}
+```
 
 ## Updating the plugin
 
