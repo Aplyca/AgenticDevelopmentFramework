@@ -7,7 +7,7 @@ This fixture verifies that `/write-spec` correctly:
 
 ## Setup
 
-Assume the project's `specs/` directory exists with the multi-perspective `_template.md` from the framework.
+Assume the project's `specs/` directory exists with `README.md` and the `_templates/` (`spec.md`, `plan.md`, `tasks.md`) from the framework.
 
 ## Prompt to give the AI
 

@@ -1,56 +1,63 @@
 # Static eval checklist (manual / AI-readable)
 
-Same checks as `check-skills.sh`, expressed as a checklist for cases where you can't run the bash script (e.g., reviewing the framework state in conversation, or having an AI agent verify it).
+The same checks as `check-skills.sh`, expressed as a checklist for when you can't run the scripts —
+reviewing the framework in conversation, or having an AI agent verify it without shell access. The
+behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no checklist substitute.
 
-Use this when:
-- You're reviewing a PR and want a quick sanity check
-- An AI agent needs to verify framework state without shell access
-- You want to understand what the bash script enforces, expressed in prose
+## Per skill (every `skeleton/.claude/skills/*` and module skill)
 
-## Per-skill checks (run for every skill in `.claude/skills/`)
+- [ ] YAML frontmatter with `name:` equal to the directory name and a meaningful `description:`
+- [ ] Frontmatter keys are hyphenated — no `user_invocable`, `disable_model_invocation`, `allowed_tools`, `argument_hint`
+- [ ] Has `## Steps`, `## Phase …`, or `## Workflow …` sections
+- [ ] Discipline skills have `## Rationalizations (do not accept these)` with ≥4 rows and `## Verification` with ≥4 checkboxes
 
-- [ ] **Has YAML frontmatter** — first line is `---`, contains `name:` and `description:`
-- [ ] **Has `## Steps` or `## Phase` section** — explicit workflow, not vague guidance
-- [ ] **(For TDD-discipline skills only)** Has `## Rationalizations (do not accept these)` table with at least 4 rows of content
-- [ ] **(For TDD-discipline skills only)** Has `## Verification` checklist with at least 4 items
+Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-docs`, `implement`,
+`review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
+`record-decision`, `context-audit`, `dispatch`.
 
-TDD-discipline skills: `write-spec`, `write-tests`, `write-docs`, `implement`, `review`, `commit`, `refactor`, `debug`.
+- [ ] `/open-pr` and `/stakeholder-update` set `disable-model-invocation: true`
 
-## Workflow integrity checks
+## Agents and workflows
 
-- [ ] **`/write-spec` references mandatory section enforcement** — refuses to mark approved if required sections are empty
-- [ ] **`/implement` reads committed docs as design context** — the docs-first phase has downstream effect
-- [ ] **`/implement` includes a doc-reconciliation step** — docs evolve with implementation
-- [ ] **`/write-docs` documents the skip-clean condition** — when no pre-impl docs exist, skip cleanly
+- [ ] Each agent's `name:` matches its directory; `model:` is `haiku`, `sonnet`, `opus`, `fable`, `inherit`, or a full ID
+- [ ] Each workflow starts with a pure-literal `export const meta = {…}` whose `name` matches the file and that has a `description`; phase titles in `meta` match the `phase` names used; no `Date.now()`, `Math.random()`, or argless `new Date()`
 
-## Spec template checks
+## Settings, hooks, instruction files
 
-- [ ] **Frontmatter has required fields**: `feature-type`, `personal-data`, `owners`, `references`
-- [ ] **All always-required sections present**: Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications (each marked `[REQUIRED]`)
-- [ ] **Documentation section has both subsections**: Pre-implementable docs + Post-implementable docs
+- [ ] `settings.json` is valid JSON; `model` is an alias; every hook entry nests `{"type": "command", "command": …}` inside a `hooks` array; no `$CLAUDE_FILE_PATH`; every referenced `.claude/hooks/*.sh` exists and is executable
+- [ ] `permissions.ask` covers `git push`, `gh pr create`, `gh pr ready`, `gh pr merge`
+- [ ] `CLAUDE.md` has a line that is exactly `@AGENTS.md`, and the `Skeleton source:` stamp
+- [ ] `AGENTS.md` covers triage, the approval gate, the change surface, docs first, "watch it fail", change requests, "don't invent requirements", and a Boundaries section — in ≤200 lines
+- [ ] `git-workflow.md` lists `spec:`, `test:`, `docs:`, `feat:`, `fix:`, `refactor:`, `chore:`, plus the draft and "only when asked" rules
 
-## Top-level integration checks
+## Workflow integrity
 
-- [ ] **`AGENTS.md` feature workflow includes the docs phase** — references `/write-docs` or `docs-first` or "Plan docs"
-- [ ] **`git-workflow` rule lists all four pre-impl commit prefixes**: `` `spec:` ``, `` `test:` ``, `` `docs:` ``, `` `feat:` ``
-- [ ] **`test-runner` agent description does NOT say "use after implementation"** — that's wrong for TDD; tests come BEFORE implementation
+- [ ] `/write-spec` enforces mandatory sections and has a change-request (`CR N`) mode
+- [ ] `/write-plan` holds the approval gate on the change surface
+- [ ] `/implement` requires `status: approved`, watches each test fail, reconciles docs, records gate results
+- [ ] `/write-docs` documents the skip-cleanly condition
+- [ ] `/open-pr` opens drafts and never marks them ready
 
-## Reporting failures
+## Spec scaffold
 
-If running this manually (not via `check-skills.sh`), report results in the format:
+- [ ] `specs/README.md` and `specs/_templates/{spec,plan,tasks}.md` exist; `specs/_template.md` does not
+- [ ] `spec.md` frontmatter has `status`, `feature-type`, `personal-data`, `tracker`, `approvals`, `owners`, `references`
+- [ ] `spec.md` has Business, Functional, Out of scope, Security, Testing, Documentation `[REQUIRED]` and Clarifications `[REQUIRED…`; Documentation has Pre- and Post-implementable subsections
+- [ ] `plan.md` has Constitution check, Change surface, Test strategy, Documentation plan, Assumptions
+- [ ] `tasks.md` describes the red-then-green loop ("watch it fail") and has a Gate results section
+
+## Links and modules
+
+- [ ] Every relative link in `skeleton/` and `modules/*/files/` resolves inside an adopting repo (nothing points at `docs/ONBOARDING.md`, `docs/scenarios/`, `evals/`, or other framework-only paths)
+- [ ] Every module has `MODULE.md` and `files/`, and no `files/README.md`
+
+## Reporting
 
 ```
 ✓ <description>
 ✘ <description>: <reason>
 ```
 
-A failed check is a regression and should block merge until either the skill/agent/template is fixed OR the eval is updated with explicit reasoning ("we removed the rationalization table from /refactor because the discipline doesn't apply when there's no behavior change").
-
-## When checks are wrong
-
-If you find yourself wanting to delete a check because it's "annoying", first ask:
-1. Is the underlying behavior still required by the framework?
-2. If yes, fix the failing file, not the check.
-3. If no (the framework genuinely changed), update the check AND document the reasoning in the commit message.
-
-Eval suites that drift to match buggy code are worse than no evals.
+A failed check is a regression and blocks merge until the file is fixed — or the check is updated with
+explicit reasoning in the commit message because the framework genuinely changed. Eval suites that
+drift to match buggy files are worse than none.

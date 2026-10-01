@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #
-# Top-level eval runner. Runs static evals and (optionally) prints next-steps for dynamic evals.
+# Top-level eval runner. Runs every static suite (zero token cost) and, with --all, lists the
+# dynamic fixtures to run manually.
 #
 # Usage:
-#   ./run-evals.sh              # static only
-#   ./run-evals.sh --all        # static + list dynamic fixtures to run manually
+#   ./run-evals.sh              # static suites
+#   ./run-evals.sh --all        # static suites + list dynamic fixtures to run manually
 #
 
 set -uo pipefail
@@ -15,11 +16,11 @@ echo ""
 echo "========================================"
 echo "Framework evals"
 echo "========================================"
-echo ""
 
-# Static evals — always run
-"$SCRIPT_DIR/static/check-skills.sh"
-STATIC_EXIT=$?
+STATUS=0
+for suite in check-skills.sh test-hooks.sh test-modules.sh; do
+    "$SCRIPT_DIR/static/$suite" || STATUS=1
+done
 
 if [ "${1:-}" = "--all" ]; then
     echo ""
@@ -40,4 +41,9 @@ if [ "${1:-}" = "--all" ]; then
     echo ""
 fi
 
-exit $STATIC_EXIT
+if [ "$STATUS" -eq 0 ]; then
+    echo "All static suites passed."
+else
+    echo "One or more static suites failed."
+fi
+exit $STATUS
