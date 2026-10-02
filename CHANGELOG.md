@@ -11,6 +11,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### `/cost-report` shows what Opus sessions would have cost on Sonnet
+
+A pilot's report showed every session on Opus, though the project's `"model"` setting said `sonnet`:
+the desktop app's model picker sets each session's model. The report now prices each Opus or Fable
+session's tokens at Sonnet's prices too — an `on sonnet` column and a model line with the total and
+the difference — and the skill ties it to the cost model's rule: Sonnet for work with a clear spec
+and a way to check it. Cache reads cost the same on both, so the difference is in output and cache
+writes; the report says so. `--json` adds `cost_on_sonnet` (`aplyca-framework` 0.2.6).
+**Upgrade impact:** framework-internal; update the plugin.
+
 ### Claude Code's own worktrees are workers too (parallel-agents)
 
 ([0015](docs/decisions/0015-tool-worktrees-are-workers.md), amending

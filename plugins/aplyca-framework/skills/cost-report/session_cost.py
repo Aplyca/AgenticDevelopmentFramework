@@ -2,8 +2,9 @@
 """Summarize what Claude Code sessions on a project cost, from Claude Code's local transcripts.
 
 Reads ~/.claude/projects/<project>/*.jsonl (nothing leaves the machine) and reports, per session:
-API calls, active time, context size, tokens, an estimated cost at list prices, and flags for the
-patterns that make sessions expensive. Python 3 standard library only.
+API calls, active time, context size, tokens, an estimated cost at list prices — and, for sessions
+on Opus or Fable, what the same tokens cost on Sonnet — and flags for the patterns that make sessions
+expensive. Python 3 standard library only.
 
 Usage: session_cost.py [project-path] [--days 30] [--top 15] [--siblings] [--json]
                        [--projects-dir ~/.claude/projects]
@@ -97,9 +98,11 @@ def analyze(path):
 
     totals = collections.Counter()
     contexts, models = [], collections.Counter()
-    cost = 0.0
+    cost = on_sonnet = 0.0
     for model, usage in calls.values():
         price = PRICES[tier(model)]
+        # The same tokens at Sonnet's prices — for calls above Sonnet only; cheaper calls keep theirs.
+        sonnet = PRICES["sonnet"] if tier(model) in ("opus", "fable") else price
         fresh = usage.get("input_tokens", 0)
         read = usage.get("cache_read_input_tokens", 0)
         write = usage.get("cache_creation_input_tokens", 0)
@@ -108,6 +111,7 @@ def analyze(path):
         contexts.append(fresh + read + write)
         models[tier(model)] += 1
         cost += (fresh * price[0] + out * price[1] + read * price[2] + write * price[3]) / 1e6
+        on_sonnet += (fresh * sonnet[0] + out * sonnet[1] + read * sonnet[2] + write * sonnet[3]) / 1e6
 
     times.sort()
     active = sum(min((b - a).total_seconds(), IDLE_CAP) for a, b in zip(times, times[1:]))
@@ -138,6 +142,7 @@ def analyze(path):
         "cache_read_m": round(totals["read"] / 1e6, 2),
         "cache_write_k": round(totals["write"] / 1000, 1),
         "cost": round(cost, 2),
+        "cost_on_sonnet": round(on_sonnet, 2),
         "share": {
             "cache_read": totals["read"], "cache_write": totals["write"],
             "output": totals["output"], "input": totals["input"],
@@ -199,10 +204,11 @@ def main():
     print(f"{len(sessions)} sessions · {calls} calls · ≈ ${total:.2f} at list prices "
           f"(median ${statistics.median(s['cost'] / s['calls'] for s in sessions):.3f} per call)")
     print(f"Folders: {', '.join(os.path.basename(d) for d in dirs)}\n")
-    print(f"{'date':<11}{'calls':>6}{'active':>8}{'ctx avg':>9}{'cost':>9}  {'model':<12}{'flags':<28}title")
+    print(f"{'date':<11}{'calls':>6}{'active':>8}{'ctx avg':>9}{'cost':>9}{'on sonnet':>11}  {'model':<12}{'flags':<28}title")
     for s in sessions[: args.top]:
+        sonnet = f"≈{s['cost_on_sonnet']:.2f}" if s["cost_on_sonnet"] < s["cost"] else "-"
         print(f"{s['date']:<11}{s['calls']:>6}{s['active_min']:>7.0f}m{s['context_mean_k']:>8.0f}k"
-              f"{s['cost']:>9.2f}  {s['model']:<12}{' '.join(s['flags']):<28}{s['title']}")
+              f"{s['cost']:>9.2f}{sonnet:>11}  {s['model']:<12}{' '.join(s['flags']):<28}{s['title']}")
     if len(sessions) > args.top:
         print(f"… {len(sessions) - args.top} cheaper sessions not listed (--top)")
     print()
@@ -212,6 +218,15 @@ def main():
             label = f"{low}+" if high == 10**9 else f"{low}–{high - 1}"
             print(f"{label:>7} calls: {len(band):>3} sessions, median ${statistics.median(s['cost'] for s in band):.2f}, "
                   f"median {statistics.median(s['active_min'] for s in band):.0f} min active")
+    above = [s for s in sessions if s["cost_on_sonnet"] < s["cost"]]
+    if above:
+        spent = sum(s["cost"] for s in above)
+        saved = spent - sum(s["cost_on_sonnet"] for s in above)
+        print(f"\nModel: {len(above)} session{'s' * (len(above) != 1)} ran above Sonnet (≈ ${spent:.2f}); the same tokens on "
+              f"Sonnet ≈ ${spent - saved:.2f}, {saved / spent:.0%} less.")
+        print("  Sonnet suits work with a clear spec and a way to check it — the fast and careful lanes, bug")
+        print("  fixes, reviews, an approved plan; Opus, the full lane's spec and plan (docs/COST-MODEL.md).")
+        print("  Cache reads cost the same on both: in long sessions, context size matters as much as the model.")
     flagged = collections.Counter(f.split(":")[0] for s in sessions for f in s["flags"])
     if flagged:
         print("\nFlags: " + ", ".join(f"{name} ×{n}" for name, n in flagged.most_common()))
