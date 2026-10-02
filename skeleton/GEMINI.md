@@ -8,7 +8,7 @@
 
 `AGENTS.md` is the operating contract. In short, every task starts with **triage** (deliverable,
 kind, lane, environment). The lane follows risk, not size: **fast** (a precise request, a few files,
-no risk area — edit, prove it with a test, commit), **careful** (the same in a risk area, plus its
+no risk area — the test first, seen failing, then the edit, commit), **careful** (the same in a risk area, plus its
 checklist and the developer's yes), or **full** — the spec-driven flow:
 
 1. **Spec folder** — `specs/NNN-<slug>/spec.md` from `specs/_templates/`: the multi-perspective spec (`docs/SPEC-MODEL.md`).

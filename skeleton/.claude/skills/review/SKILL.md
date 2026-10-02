@@ -60,7 +60,8 @@ instead: separate reviewers per dimension, each finding independently verified.
 
 10. **Test evidence:** every AC and testable requirement has a test; `tasks.md` § Gate results shows
    red-then-green per task, the commands that ran, and what didn't run and why — in the fast and
-   careful lanes, the commit body or the pull request's "Verified / not verified". Claims without
+   careful lanes, the commit body or the pull request's "Verified / not verified", which shows the
+   test failing before the change and passing after it. Claims without
    evidence are findings.
 
 11. **Doc accuracy:** committed docs match what was built; divergences were reconciled in `docs:`
