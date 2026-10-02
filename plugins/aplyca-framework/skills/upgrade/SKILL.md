@@ -1,6 +1,6 @@
 ---
 name: upgrade
-description: Upgrade a repository that already adopted the Aplyca framework skeleton (and any optional modules) to a newer version, using the three-bucket file taxonomy (overwrite / merge / project-owned), OLD_SHA → NEW_SHA diff discipline, and the changelog's migration steps. Use when asked to upgrade, sync, or update the agentic framework or skeleton in a repo.
+description: Upgrade a repository that already adopted the Aplyca framework skeleton (and any optional modules) to a newer version, using the three-bucket file taxonomy (overwrite / merge / project-owned), OLD_SHA → NEW_SHA diff discipline, and the changelog's migration steps — and offer the optional modules the project doesn't have yet. Use when asked to upgrade, sync, or update the agentic framework or skeleton in a repo.
 ---
 
 # Upgrade an adopted repository to a newer skeleton version
@@ -19,6 +19,7 @@ blind sync.
   (`scripts/agent/worktree-new.sh chore/skeleton-upgrade-<NEW_SHA> --no-start`) — and if you were
   started in the main checkout, say so and stop.
 - **Plan before touching.** No file is modified until the user approves the per-file plan.
+- **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest
   cherry-picking the one or two changes they actually want.
 
@@ -47,6 +48,26 @@ Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA. Each entry's **Upgrade 
 changes into the buckets below, and some entries carry **Migration** steps that must happen even for
 files the project customized. Summarize for the user what the upgrade brings before doing anything.
 
+**Offer the modules the project doesn't have.** List the modules at NEW_SHA (`modules/README.md`)
+that aren't installed — a project adopted before modules existed has none — and recommend from the
+repository's facts, by the same rules as `/adopt` Step 3:
+
+- `github` — the repository is on GitHub
+- `git-hooks` — the team wants local gates that every git client runs
+- `clickup` — requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests, commits,
+  or the README; a `clickup` server in `.mcp.json`)
+- `parallel-agents` — several agent sessions may work on the repository at once: each task gets its
+  own worktree, branch, pull request, and session, and the main checkout only dispatches
+
+Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade.
+
+**If the developer chooses `parallel-agents`,** do the whole upgrade in a worktree of its own, created
+with plain git since the module's script isn't there yet:
+`git worktree add -b chore/skeleton-upgrade-<NEW_SHA> ../chore-skeleton-upgrade-<NEW_SHA> <base>`.
+Edit files under that path and run git with `-C <that path>`. Once the module is installed, the
+protect-hub hook stops edits in the main checkout, so the main checkout stays a clean hub from the
+first commit.
+
 ## Step 3 — Classify every changed file
 
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
@@ -59,6 +80,12 @@ per the taxonomy in `docs/UPGRADING.md`:
 | **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
+**Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
+(merge a collision such as an existing PR template), except `clickup`, which installs with
+`modules/clickup/install.sh <repo>`. Each module's `MODULE.md` § Customize steps join the plan's
+checklist — for `parallel-agents`, `worktree.conf` (only `BASE_BRANCH` and `SETUP_CMD` unless worktrees
+run a server) and the dispatcher line in `AGENTS.md` § Delivery rules.
+
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Files that moved (e.g. `specs/_template.md` → `specs/_templates/`)
 follow the changelog's migration notes.
@@ -66,7 +93,7 @@ follow the changelog's migration notes.
 ## Step 4 — Present the plan
 
 One table: `file → bucket → action → risk note`, plus the changelog's migration steps as their own
-checklist. For merge-required files, show which customizations were detected (diff of the target file
+checklist, and the newly chosen modules with their customize steps. For merge-required files, show which customizations were detected (diff of the target file
 vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 ## Step 5 — Execute
@@ -75,14 +102,18 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 - Bucket 2: apply the new template, then reapply each detected customization; where the new template
   restructured a section, place the customization where it now belongs and flag it in the PR body.
 - Migration steps from the changelog, in order.
-- Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>`.
+- Newly chosen modules: copy or install them, then their customize steps.
+- Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>` — the list includes the new ones.
 
 ## Step 6 — Verify and deliver
 
 1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
    smoke tests (sample events piped to each script); `@AGENTS.md` import present; skill frontmatter
-   uses hyphenated keys only. Re-run the target's lint and tests if config files changed.
+   uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
+   installed module, its own check: `scripts/agent/worktree-ls.sh` lists the worktrees
+   (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
+   exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`).
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
-   reapplied, anything needing human judgment.
+   reapplied, the modules added and why, anything needing human judgment.
 4. Push and open the PR **as a draft, only after the user approves**.

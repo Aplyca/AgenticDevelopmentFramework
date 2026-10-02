@@ -612,8 +612,9 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
+    file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules"
     else
         fail "practices: missing" "${missing[*]}"
     fi

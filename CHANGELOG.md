@@ -11,6 +11,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### `/upgrade` offers the modules a project doesn't have
+
+`/upgrade` updated only the modules a project already had and never offered the others, so a project
+adopted before modules existed would never be offered the dispatcher hub (`parallel-agents`), the
+ClickUp integration, or the GitHub harness. It now lists the missing modules, recommends the ones
+the repository's facts support (the same rules as `/adopt`), and installs the chosen ones in the same
+upgrade pull request with their customize steps. Choosing `parallel-agents` moves the upgrade into a
+worktree of its own, so the main checkout starts as a clean hub (`aplyca-framework` 0.2.4).
+**Upgrade impact:** framework-internal; update the plugin.
+
 ### Test first in every lane; the hub enforced
 
 ([0014](docs/decisions/0014-test-first-in-every-lane.md); [0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md), addendum)

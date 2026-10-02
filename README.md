@@ -91,8 +91,10 @@ the order to upgrade in from an older baseline; if your settings pin a model ID,
 2. **Run `/upgrade`** in the adopted project. It reads the baseline stamp
    (`<!-- Skeleton source: <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    version to the latest. It sorts every changed file into overwrite, merge, or additive, applies the
-   CHANGELOG migration steps, and shows you the plan before changing anything. Then it updates the
-   files — your project-specific content stays — re-stamps, and prepares a draft pull request.
+   CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
+   dispatcher hub (`parallel-agents`) among them. It shows you the plan before changing anything.
+   Then it updates the files — your project-specific content stays — installs the modules you chose,
+   re-stamps, and prepares a draft pull request.
 3. **Review the pull request** and run the verification in [docs/UPGRADING.md](docs/UPGRADING.md):
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
 
