@@ -35,7 +35,7 @@ to use the framework like a package. A team that works in Claude Code only can n
   - `docs/SETUP.md` § Packaged install covers the steps, and `docs/UPGRADING.md` covers upgrades.
 - **`/adopt` asks committed or packaged.** `/upgrade` moves a packaged project from release to
   release by bumping the pin, skips the paths the plugin carries, and offers to switch between the
-  two installs.
+  two installs. (`aplyca-framework` 0.2.7)
 - **Release tags:** each release is tagged `release-<SHA>` (`CONTRIBUTING.md`). The first one comes
   with the next release.
 
