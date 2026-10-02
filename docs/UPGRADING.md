@@ -9,7 +9,7 @@ The framework ships as a copy-in skeleton, not a runtime dependency. There is no
 Upgrade when there is a concrete benefit you can name:
 
 - A new skill, agent, or workflow you want (e.g., `/triage`, `/write-plan`, `/deep-review`)
-- A fix you need (e.g., the `@AGENTS.md` import and the hook schema in the field-practices release)
+- A fix you need (e.g., the `@AGENTS.md` import and the hook schema in the `3eb7777` release)
 - A rule update you want enforced across the team
 - A spec-template change that improves clarity (e.g., the Mermaid diagrams section)
 - A docs improvement your team would reference (e.g., `MEMORY-STRATEGY.md`, `COST-MODEL.md`)
@@ -215,7 +215,7 @@ For ambiguous merge decisions (e.g., "the framework removed a rule we relied on"
 
 ## Common upgrade scenarios
 
-### "We adopted before the field-practices release (plugin 0.2.0)"
+### "We adopted before the `3eb7777` release (2026-10-01, plugin 0.2.x)"
 
 That release fixes three defects that affect every adopting repository — do these first, even if you
 upgrade nothing else (details in [`CHANGELOG.md`](../CHANGELOG.md)):

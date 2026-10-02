@@ -11,6 +11,27 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+_Nothing yet._
+
+## 3eb7777 — 2026-10-01 — Lanes, model choice, and a sharper process (`aplyca-framework` 0.2.1)
+
+Everything since `ed3d1a1`: the field-practices reconciliation ([#9](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/9)), the rename to the
+Agentic Development Framework ([#10](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/10)), practices adapted from a public skills collection
+([#11](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/11)), and the plugin and model-alias changes before them.
+
+**Upgrading a repository whose baseline is older than this release.** `/upgrade` does this for you.
+By hand, in this order:
+
+1. **The three fixes first**, even if you upgrade nothing else. They affect every adopted
+   repository: the `@AGENTS.md` import, the hook schema, and `user_invocable`. The steps are in
+   *Field-practices reconciliation → Upgrade impact*, below.
+2. **Then each part's Upgrade impact, newest first:** Sharper process, Field-practices
+   reconciliation, Renamed and READMEs, then the earlier changes. Where two parts touch the same
+   file, copy the newest version once and apply the older parts' migration notes only.
+3. **Update the plugin to 0.2.1** (`claude plugin marketplace update aplyca && claude plugin update
+   aplyca-framework@aplyca`), then restart Claude Code.
+4. **Re-stamp the baseline** at the top of `CLAUDE.md` with the framework commit you upgraded to.
+
 ### Sharper process — practices adapted from a public skills collection
 
 Practices from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT), rewritten into the
@@ -141,18 +162,23 @@ Practices proven in client projects — some built on this framework, some grown
 - **Modules:** optional — install with `/adopt` (module mode) or `cp -R modules/<name>/files/.` (`clickup`: `modules/clickup/install.sh <repo>`), and list them in the stamp.
 - **Framework-internal:** `docs/decisions/`, `evals/`, the plugin, examples, scenarios, onboarding.
 
-### Changed
+### Renamed to the Agentic Development Framework; READMEs
+
 - **Renamed to the Agentic Development Framework** (formerly the AI-Assisted Development Framework), matching the repository: the READMEs, `CLAUDE.md`, `CONTRIBUTING.md`, the catalogs, the evals READMEs, the marketplace and plugin descriptions, and `/adopt` — including the commit message it suggests (`aplyca-framework` 0.2.1). Past changelog entries keep the name they were written with. **Upgrade impact:** Overwrite for `evals/README.md`, if your repository kept the evals scaffold — one sentence names the framework; nothing else lands in adopted repositories.
 - **READMEs catch up with the field-practices release.** The framework README now shows each workflow as a Mermaid diagram (triage, the fast and careful lanes, the full lane, delivery, change requests, bugs and hotfixes) and covers choosing the model (a Model column in the workflow table, a "Model and cost" section, and the fresh Sonnet session after the gate), the `triage-first` and `careful-paths` hooks, agents' model tiers, the `clickup` module's sign-in, `/cost-report`, and the triage routing evals, and fixes the skill count (19, plus `/dispatch` from a module). `skeleton/README.md`: triage also names the model. **Upgrade impact:** Merge for `README.md`, and optional — the project README is yours; add the line if your README describes the workflow.
+
+### Earlier changes since `ed3d1a1`
+
+#### Changed
 - **Version-less model aliases instead of pinned model IDs.** `skeleton/.claude/settings.json` now sets `"model": "sonnet"` (was `claude-sonnet-5`), and `skeleton/CLAUDE.md` explains that the alias follows the latest Sonnet as Claude Code updates. Pinned IDs went stale with every model release, and every adopting project inherited the outdated pin. Agent frontmatter already used `haiku` / `sonnet` and needed no change. `skeleton/docs/COST-MODEL.md`: the tier table lists aliases with their current models (Haiku 4.5, Sonnet 5.5, Opus 5.5); relative costs refreshed to current list prices (1× / 2× / 4× Haiku — previously ~3-5× / ~15×), with notes on the newer tokenizer, cache-read pricing, and `fable` above the tiers; savings claims softened to match the narrower Sonnet-vs-Opus gap; `/model` examples use aliases; `/fast` rewritten (Opus 5.5 / 5 / 4.8, premium pricing, Anthropic API or usage credits only). Framework-internal: `evals/dynamic/run-dynamic.md` keeps a full model ID (the Messages API doesn't accept Claude Code aliases), updated to `claude-sonnet-5-5`, and now reads the first text block since Sonnet 5.5 thinks by default. **Upgrade impact:** Merge for `.claude/settings.json` and `CLAUDE.md` — if your settings pin a model (e.g. `claude-sonnet-5`), switch it to the alias during this upgrade unless your team deliberately pins a version; Overwrite for `docs/COST-MODEL.md`.
 - **Repo renamed: `aplyca/ai-dev-starter-kit` → `aplyca/AgenticDevelopmentFramework`** (`aplyca-framework` 0.1.3, framework-internal). GitHub redirects the old URLs (web, clone, push), so existing checkouts, marketplace installs, and adopted repos keep working — but update remotes and re-add the marketplace under the new slug at the next opportunity: `claude plugin marketplace add aplyca/AgenticDevelopmentFramework`. All live references in README, docs, and the plugin (homepage, clone fallbacks, baseline stamp) now use the new slug; historical changelog entries are left as written. Nothing lands in adopted repos — already-stamped `Skeleton source:` lines referencing the old name stay valid.
 - **`/adopt` refinements from the first pilot adoption** (`aplyca-framework` 0.1.2, framework-internal): `evals/` is now opt-in — the skill asks whether the team writes custom skills/rules/spec patterns needing automated checks and deletes the scaffold otherwise (the pilot's review dropped it as unused); the skill also prunes `.claudeignore` entries that can't apply to the target stack.
 - **`skeleton/.claudeignore` is now self-documenting** — explanatory header covering why the file exists (context quality, secret defense-in-depth, token cost), how it's enforced (advisory patterns; Claude Code's hard read-protection lives in `.claude/settings.json` permissions), and a CUSTOMIZE note to tailor entries per stack. Also added `.claudeignore` to UPGRADING.md's merge-required bucket — teams tailor its entries.
 
-### Fixed
+#### Fixed
 - **Plugin skills' skeleton resolution on installed machines** (`aplyca-framework` 0.1.1) — installed plugins run from a version cache (`~/.claude/plugins/cache/…`), so `${CLAUDE_PLUGIN_ROOT}/../../skeleton` never resolves there (found during the first live `/upgrade` run). Both skills now resolve in order: repo checkout (dev installs) → marketplace checkout (`~/.claude/plugins/marketplaces/<name>/`, the normal installed case, after a `marketplace update`) → fresh clone. `/upgrade`'s clone fallback is now explicitly a full clone — the OLD_SHA → NEW_SHA diff needs history. Framework-internal; nothing lands in adopted repos.
 
-### Added
+#### Added
 - **Open-source release readiness** — `LICENSE` (MIT; the README already declared it but no license file existed, so GitHub couldn't detect it), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, a Contributing section in `README.md`, and `.github/workflows/evals.yml` so the static evals actually run on every pull request as the README already claimed. Also removed the last organization-specific wording from the skeleton: `skeleton/docs/COST-MODEL.md` and `skeleton/docs/MEMORY-STRATEGY.md` no longer say "Aplyca-style consultancy". **Upgrade impact:** Overwrite for `docs/COST-MODEL.md` and `docs/MEMORY-STRATEGY.md` (wording only, safe to skip); the root community files are framework-internal and don't land in adopted repos.
 - **`skeleton/docs/CONSTITUTION.md`** — non-negotiable principles template (Agentic Development Guide alignment). Short principles list + amendment process; `/write-spec` now gate-checks specs against it before approval (new step in mandatory-section enforcement + verification checklist). Referenced from `AGENTS.md` Critical rules.
 - **Context metadata headers** — `<!-- owner · last_updated · scope -->` on every customizable doc template (ARCHITECTURE, GLOSSARY, SECURITY, OVERVIEW, DEV-SETUP, CONSTITUTION), with guidance in SETUP.md: context without an owner rots silently.
@@ -166,7 +192,7 @@ Practices proven in client projects — some built on this framework, some grown
 - `skeleton/docs/COST-MODEL.md` — new "Switching tiers in Claude Code" subsection documenting `/model`, agent `model:` frontmatter, and the `/fast` Opus-4.6-only output-speed toggle.
 - `docs/AGENTS-REFERENCE.md` and `docs/SKILLS-REFERENCE.md` (in the framework repo, NOT in `skeleton/docs/`) — full catalogs of the seven shipped agents and thirteen shipped skills. These document framework-defined deliverables, so they live in the framework repo as the single source of truth — adopting projects don't get a local copy. Skills are grouped (workflow phase / reference + setup / quality + analysis); agents include tool access and model tier.
 
-### Changed
+#### Changed
 - **Model defaults updated to the Claude 5 family** — `skeleton/.claude/settings.json` and `skeleton/CLAUDE.md` now default to `claude-sonnet-5`; `docs/COST-MODEL.md` tier table updated (`claude-sonnet-5`, `claude-opus-5`; Haiku unchanged), `/model` examples updated, `/fast` description corrected (available on Opus 5 and 4.8). Agent frontmatter uses tier aliases (`haiku`/`sonnet`) and needed no change.
 - `README.md` — added pointer to `docs/UPGRADING.md` in the Get started section.
 - `docs/SETUP.md` — replaced the brief "Updating" paragraph with a pointer to the full upgrading guide.
@@ -182,7 +208,7 @@ Practices proven in client projects — some built on this framework, some grown
   - `skeleton/CLAUDE.md` perf tip corrected — earlier version claimed Claude Code auto-loads `.claude/rules/`, which is false (rule bodies load on demand; only Cursor auto-loads `.cursor/rules/*.mdc` by glob). Replaced with accurate guidance that points to the highest-leverage trim targets.
   - Total per-turn skeleton-side prefill reduction: ~38 lines (~17%). No skill/agent descriptions were trimmed (preserves routing quality). The 15-step workflow in `AGENTS.md` was preserved verbatim — explicit choice to favor procedural visibility over marginal cost savings, since the workflow IS the framework's flagship.
 
-### Upgrade impact
+#### Upgrade impact
 - **Merge**: `.claudeignore` — reapply your pruned/extended entries under the new header (newly classified as merge-required).
 - **Additive**: `skeleton/docs/CONSTITUTION.md` — drop in and customize.
 - **Merge**: `skeleton/AGENTS.md` (constitution pointer + nesting guidance), `skeleton/.claude/settings.json` (model id), `skeleton/CLAUDE.md` (model id), customizable docs (metadata headers).
