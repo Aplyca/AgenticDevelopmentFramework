@@ -42,23 +42,21 @@ by hand, they collided.
   prompt — one manual step. Shared services (one local database for all worktrees) are a hazard for
   schema work; isolating them costs memory per worktree.
 
-- **Found later (2026-10-01), from the project this module came from** — three gaps, closed without
+- **Found later (2026-10-01), from the project this module came from** — three findings, met without
   changing the decision:
-  - *Shared services blocked ordinary work.* With one sibling worktree active, a migration refused to
-    apply (the shared history held the sibling's version), and the reset that verifies a migration
-    couldn't run without destroying the sibling's data. `worktree-new.sh --isolated` now gives one
-    worktree its own services: their ports come from the block each worktree already owns, they are
-    started and stopped by project commands, and they are removed with the worktree. Shared stays the
-    default, because an isolated stack costs about 1 GB per worktree. The project designed and
-    implemented this but hadn't merged it; the module ships the general pattern, not that project's
-    stack.
-  - *Environments were found by hand.* Ports, URLs, and sign-in accounts were read from each env file
-    and the database every time. `worktree-ls.sh` now shows own or shared services, and `--info` runs
-    a project command for endpoints and accounts — derived on each run, because a committed table goes
-    stale.
+  - *The module assumed a web app.* Ports were on by default and the overrides named a container
+    project, so a project that runs no server inherited settings it had to switch off. The defaults now
+    assume nothing; ports, overrides, and readiness checks are configured only by projects whose
+    worktrees run a server.
+  - *Shared services blocked ordinary work.* With one sibling worktree active, a change to a shared
+    local service had to be coordinated by hand, and the project's per-worktree copy stayed on an
+    unmerged branch. The framework doesn't ship a mechanism for this: a project that needs a copy per
+    worktree starts it in `START_CMD` and removes it in `STOP_CMD`, which the scripts already run.
+    `docs/PARALLEL-AGENTS.md` § Shared services says so.
   - *Task work ended up in the tools' own worktrees anyway.* Four were parked in the project, one on a
-    task branch with no env file or port. The session-context hook now gives a session there no role,
-    and `worktree-ls.sh` flags task branches in them.
+    task branch the scripts never set up. The session-context hook now gives a session there no role,
+    and `worktree-ls.sh` flags task branches in them; `--info` prints each environment's details,
+    derived on each run.
 
   The handoff principle — point at the record, never restate it — now also covers work handed on
   mid-task, through the core `/handoff` skill.

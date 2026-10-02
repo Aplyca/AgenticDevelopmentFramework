@@ -607,9 +607,9 @@ check_practices() {
     file_contains "$SKELETON/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
     file_contains "$HOOKS_DIR/session-context.sh" 'Role: NONE' || missing+=("session-context.sh: no role in Claude Code's own worktrees")
-    file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree-new.sh" 'isolated\) ISOLATED=1' || missing+=("worktree-new.sh: --isolated")
+    file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles and isolation"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults"
     else
         fail "practices: missing" "${missing[*]}"
     fi
