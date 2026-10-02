@@ -6,7 +6,7 @@ This repository ships prompts, rules, hooks, permission settings, and templates 
 
 - A skill, agent, or rule that leads an AI agent to expose secrets, weaken authentication, or skip a security review.
 - A hook in `skeleton/.claude/settings.json` that executes unsafe commands, or a permission allowlist broader than its stated intent.
-- Behavior in the `aplyca-framework` plugin (`/adopt`, `/upgrade`) that writes, pushes, or discloses data without the user's approval.
+- Behavior in the `aplyca-adf` plugin (`/aplyca-adf:adopt`, `/aplyca-adf:upgrade`, or the hooks it carries) that writes, pushes, or discloses data without the user's approval.
 - Guidance in `skeleton/docs/security/` or `skeleton/.claude/rules/security.md` that is incorrect in a way that introduces vulnerabilities.
 
 Vulnerabilities in the AI tools themselves (Claude Code, Cursor, Copilot, and so on) should be reported to their vendors.

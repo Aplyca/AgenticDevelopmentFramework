@@ -1,6 +1,6 @@
 # 0009: Host- and team-specific harness ships as optional modules
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0016](0016-packaged-install.md) (a packaged install for Claude Code-only teams)
 - **Date:** 2026-10-01
 
 ## Context

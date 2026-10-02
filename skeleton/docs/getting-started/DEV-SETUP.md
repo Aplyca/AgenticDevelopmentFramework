@@ -102,6 +102,13 @@ This project is set up for AI coding agents: `AGENTS.md` is the shared instructi
 claude  # Start Claude Code in the project directory
 ```
 
+**Claude Code needs no install step.** Open a session in the project — in the terminal, the desktop
+app, or an IDE — and accept the prompt to trust the folder. The committed `.claude/settings.json`
+then turns on the hooks, the permissions, and the framework's plugin, `aplyca-adf`, at the release
+the project pins; Claude Code downloads the plugin, and `/plugin` lists it. Don't install it yourself,
+and never at user scope, which turns it on in every project on your machine. Cloud sessions don't
+load it.
+
 Key commands:
 - `/triage [task link]` — read a task in full and decide what it needs, before setting anything up
 - `/write-spec [feature]` → `/write-plan [spec folder]` — spec, plan, and the approval gate

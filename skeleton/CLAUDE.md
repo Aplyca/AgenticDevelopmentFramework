@@ -1,4 +1,4 @@
-<!-- Skeleton source: [SHA] ([YYYY-MM-DD]) · modules: [none] — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->
+<!-- Skeleton source: [vX.Y.Z] · [SHA] ([YYYY-MM-DD]) · modules: [none] — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->
 @AGENTS.md
 
 # [PROJECT NAME] — Claude Code

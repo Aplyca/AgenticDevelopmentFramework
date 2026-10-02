@@ -26,7 +26,8 @@ blind sync.
 ## Step 1 — Establish OLD_SHA and the installed modules
 
 Read the baseline from the top of the target's `CLAUDE.md`:
-`<!-- Skeleton source: <SHA> (<date>) · modules: <list> -->` (older stamps have no `modules:` part —
+`<!-- Skeleton source: <vX.Y.Z> · <SHA> (<date>) · modules: <list> -->`. OLD_SHA is the commit; stamps
+from before v1.0.0 have no version (and older ones no `modules:` part —
 treat it as `none`, and check for module files on disk: `.github/pull_request_template.md`,
 `.githooks/pre-push`, `scripts/agent/`, a `clickup` server in `.mcp.json`).
 
@@ -36,13 +37,22 @@ it merges new read-only patterns into `.claude/settings.json` and keeps everythi
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.
 
+**The install** (decision 0016): `· install: packaged` in the stamp, or `aplyca-adf@aplyca` in
+`enabledPlugins`, means the skills, agents, workflows, and hook scripts come from the pinned
+`aplyca-adf` plugin. Otherwise the install is committed.
+
 ## Step 2 — Locate the framework source and NEW_SHA
 
 Same resolution order as `/adopt` Step 1: repo checkout via `${CLAUDE_PLUGIN_ROOT}/../..`
-(development installs), else the marketplace checkout — its `installLocation` in
-`claude plugin marketplace list --json`, by default `~/.claude/plugins/marketplaces/<name>/` (normal case — run `claude plugin marketplace update <name>` first), else a **full** clone of
-`https://github.com/aplyca/AgenticDevelopmentFramework` (not shallow — the diff needs history).
-NEW_SHA is its current HEAD.
+(development installs), else a **full** clone of `https://github.com/aplyca/AgenticDevelopmentFramework`
+(not shallow — the diff needs history). The marketplace checkout (`installLocation` in
+`claude plugin marketplace list --json`) sits at the release the project pins, so it can't show what's
+newer.
+
+A project moves **from release to release** (decision 0017): NEW_SHA is the commit of the newest
+release tag (`git -C <framework-root> tag --list 'v*' --sort=-v:refname | head -1`), unless the
+developer asks for the unreleased head. Say whether the jump crosses a major version — those carry
+steps the team has to take.
 
 Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA. Each entry's **Upgrade impact** pre-classifies
 changes into the buckets below, and some entries carry **Migration** steps that must happen even for
@@ -75,8 +85,30 @@ make the same change in the worktree, then restore the main checkout's copy
 doesn't stop on it. List both moves in the plan. Anything else uncommitted there is the developer's:
 ask, and never discard it.
 
+**Offer the other install, when it fits** (decision 0016; `docs/SETUP.md` § Packaged install):
+
+- **Committed → packaged**, for a team that works in Claude Code only: remove the skills, agents,
+  workflows, and hook scripts the plugin carries — only those unchanged since OLD_SHA; one the team
+  edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add the pinned
+  marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in `DEV-SETUP.md`'s key
+  commands, and `install: packaged` in the stamp.
+- **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
+  copy the machinery and the `hooks` block back, and remove `install: packaged`, the names note, and
+  the `aplyca-adf:` prefix in `DEV-SETUP.md`.
+  Keep `aplyca-adf` turned on and pinned, for `/aplyca-adf:upgrade`.
+- **Record the switch** — it changes how the team works — as a process decision in the same pull
+  request: the next `docs/process/NNNN-<slug>.md` from `docs/process/0000-pdr-template.md`, with its
+  row in `docs/process/README.md`. Say why the team switches, what changes for them (the names they
+  type, Claude Code only, no cloud sessions — or the reverse), and how to switch back; ask who the
+  deciders are. It amends the install chosen at adoption, so mark PDR-0001's status as amended by it.
+
+**The plugin's old name.** Until v1.0.0 the plugin was `aplyca-framework`. If the settings enable
+`aplyca-framework@aplyca`, replace it with `aplyca-adf@aplyca` in this upgrade, and give the developer
+the commands that remove the old one (the plugin's README § Install); until the change merges,
+teammates still on the old name have no `/upgrade`.
+
 **Check where the plugin is turned on.** The upgrade's pull request must leave
-`"enabledPlugins": {"aplyca-framework@aplyca": true}`, with its `aplyca` entry in
+`"enabledPlugins": {"aplyca-adf@aplyca": true}`, with its `aplyca` entry in
 `extraKnownMarketplaces`, committed in `.claude/settings.json`:
 
 - **Already committed:** nothing to do.
@@ -89,13 +121,15 @@ ask, and never discard it.
 ## Step 3 — Classify every changed file
 
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
-gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). Classify
-per the taxonomy in `docs/UPGRADING.md`:
+gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). In a
+packaged project, leave out what the plugin carries — `.claude/skills/` (module skills stay),
+`.claude/agents/`, `.claude/workflows/`, and `.claude/hooks/` except `config.sh` — and never add a
+`hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
 | Bucket | Typical contents | Action |
 |---|---|---|
 | **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts (`.claude/hooks/*.sh`), universal rules, framework reference docs, `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
@@ -111,8 +145,8 @@ follow the changelog's migration notes.
 ## Step 4 — Present the plan
 
 One table: `file → bucket → action → risk note`, plus the changelog's migration steps as their own
-checklist, the newly chosen modules with their customize steps, and the plugin setting when it's
-being added. For merge-required files, show which customizations were detected (diff of the target file
+checklist, the newly chosen modules with their customize steps, the plugin setting when it's
+being added, and an install switch with its PDR. For merge-required files, show which customizations were detected (diff of the target file
 vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 ## Step 5 — Execute
@@ -122,13 +156,21 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   restructured a section, place the customization where it now belongs and flag it in the PR body.
 - Migration steps from the changelog, in order.
 - Newly chosen modules: copy or install them, then their customize steps.
+- An install switch, when the developer accepted it: the removals or copies, the settings, the
+  `CLAUDE.md` note and stamp, and its PDR.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
-- Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>` — the list includes the new ones.
+- Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
+  if the project has none). In a packaged project that one line upgrades the plugin's skills, agents,
+  workflows, and hooks; in a committed one it keeps the plugin's copies at the same release as the
+  committed files.
+- Restamp: `Skeleton source:` → `<new version> · NEW_SHA (<date>) · modules: <list>` — the list includes
+  the new ones; a packaged project keeps `· install: packaged`.
 
 ## Step 6 — Verify and deliver
 
 1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
-   smoke tests (sample events piped to each script); `@AGENTS.md` import present; skill frontmatter
+   smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
+   `CLAUDE_PROJECT_DIR` set); `@AGENTS.md` import present; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `scripts/agent/worktree-ls.sh` lists the worktrees
    (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
@@ -136,5 +178,5 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
-   user-scope copy), anything needing human judgment.
+   user-scope copy), an install switch and its PDR, anything needing human judgment.
 4. Push and open the PR **as a draft, only after the user approves**.

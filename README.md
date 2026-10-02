@@ -30,11 +30,15 @@ Most of what's here was proven in real client projects first — some built on t
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
 - **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches). ([Modules](modules/README.md))
-- **Installer plugin** — `/adopt` and `/upgrade` for Claude Code, plus `/cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/aplyca-framework/README.md))
+- **The `aplyca-adf` plugin** — `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` for Claude Code, plus `/aplyca-adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/aplyca-adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release.
 - **Evals** — structural checks plus functional tests of the hooks, module scripts, and plugin, run in CI on every pull request at zero token cost; routing evals that run `/triage` in real Claude Code sessions on Sonnet and Opus, with graded reports. ([Evals](evals/README.md) · [latest report](evals/dynamic/reports/2026-10-01-triage-routing.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
 ## Install in a project
+
+**Joining a project that already uses it?** There's nothing to install. Open the project in Claude
+Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns the
+plugin on, at the release the project pins.
 
 ### With Claude Code — the installer plugin (recommended)
 
@@ -54,23 +58,24 @@ any code exists. Step by step:
 
    <!-- install-prompt: keep identical in README.md and the plugin's README -->
    ```text
-   Install the aplyca-framework plugin (Agentic Development Framework) for this project only — never
+   Install the aplyca-adf plugin (Agentic Development Framework) for this project only — never
    at user scope.
 
    1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
-      aplyca-framework@aplyca, say so and skip to step 6.
+      aplyca-adf@aplyca, there is nothing to install: tell me to start a new session here and accept
+      the prompt to trust the folder, which turns the plugin on, and stop.
    2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
       equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
       worktree.
    3. From this folder, run:
       claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-      claude plugin install aplyca-framework@aplyca --scope project
+      claude plugin install aplyca-adf@aplyca --scope project
    4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
       plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
    5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
       that copy. Don't run them.
-   6. Tell me to start a new session here, then run /upgrade if CLAUDE.md has a "Skeleton source:"
-      line, otherwise /adopt.
+   6. Tell me to start a new session here, then run /aplyca-adf:upgrade if CLAUDE.md has a
+      "Skeleton source:" line, otherwise /aplyca-adf:adopt.
    ```
 
    Or run the two commands yourself, from the project's folder:
@@ -78,7 +83,7 @@ any code exists. Step by step:
    ```bash
    cd your-project
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-   claude plugin install aplyca-framework@aplyca --scope project
+   claude plugin install aplyca-adf@aplyca --scope project
    ```
 
    Both commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
@@ -87,9 +92,9 @@ any code exists. Step by step:
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
    In the desktop app's Code tab, add the marketplace the same way, then install from
    **+ → Plugins → Add plugin** with the scope set to this project
-   ([details](plugins/aplyca-framework/README.md#in-the-desktop-app)).
+   ([details](plugins/aplyca-adf/README.md#in-the-desktop-app)).
 
-2. **Run `/adopt`** in the project. It inspects the repository (stack, commands, branching model,
+2. **Run `/aplyca-adf:adopt`** in the project. It inspects the repository (stack, commands, branching model,
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
    skeleton, fills the placeholders from verified repository facts only, and configures the guardrail
    hooks (`.claude/hooks/config.sh`). It records the adoption as a process decision (PDR-0001), stamps
@@ -107,8 +112,11 @@ any code exists. Step by step:
 5. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
    `/adopt` again in the adopted repository.
 
-The plugin contains **no framework content** — adopted repositories get plain committed files that
-every AI tool can read, with or without the plugin.
+By default, adopted repositories get plain **committed** files that every AI tool can read, with or
+without the plugin; there, the plugin only installs and maintains them. A team that works in Claude
+Code only can choose the **packaged** install instead: the skills, agents, workflows, and hook scripts
+come from the `aplyca-adf` plugin, pinned to a release, and the repository commits only its own
+layer — about 40 fewer files. `/aplyca-adf:adopt` asks which one. ([Packaged install](docs/SETUP.md#packaged-install-claude-code-only) · [why](docs/decisions/0016-packaged-install.md))
 
 ### By hand
 
@@ -135,11 +143,11 @@ settings pin a model ID, switch it to the `sonnet` alias.
 
    ```bash
    claude plugin marketplace update aplyca
-   claude plugin update aplyca-framework@aplyca
+   claude plugin update aplyca-adf@aplyca
    ```
 
-2. **Run `/upgrade`** in the adopted project. It reads the baseline stamp
-   (`<!-- Skeleton source: <SHA> (<date>) · modules: … -->`) and diffs the framework from that
+2. **Run `/aplyca-adf:upgrade`** in the adopted project. It reads the baseline stamp
+   (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    version to the latest. It sorts every changed file into overwrite, merge, or additive, applies the
    CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
    dispatcher hub (`parallel-agents`) among them. It shows you the plan before changing anything.
@@ -149,7 +157,7 @@ settings pin a model ID, switch it to the `sonnet` alias.
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
 
 Installed the plugin at user scope earlier? `/upgrade` adds the project setting in its pull request;
-then remove the user-scope copy ([how](plugins/aplyca-framework/README.md#install)).
+then remove the user-scope copy ([how](plugins/aplyca-adf/README.md#install)).
 
 By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.md).
 
@@ -382,7 +390,8 @@ skeleton/                 Portable project skeleton — what an adopting reposit
                           getting-started/
 
 modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/
-plugins/aplyca-framework/ Claude Code installer plugin (/adopt, /upgrade, /cost-report)
+plugins/aplyca-adf/       The Claude Code plugin: /aplyca-adf:adopt, :upgrade, :cost-report — and, for
+                          packaged projects, the skills, agents, workflows, and hooks (generated)
 docs/                     Framework docs: SETUP, UPGRADING, ONBOARDING, references, examples,
                           scenarios, decisions
 evals/                    Static checks; hook, module, and plugin tests; triage routing evals and

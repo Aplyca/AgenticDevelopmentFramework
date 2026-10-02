@@ -37,7 +37,9 @@ Resolve the framework root, in order:
 3. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
 
 You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
-Record the source SHA and date: `git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
+Record the source release, SHA, and date: `git -C <framework-root> describe --tags --abbrev=0 --match 'v*'`
+(the newest release at or before the source; none before v1.0.0) and
+`git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
 
 **Already adopted?** If the target's `CLAUDE.md` has a `Skeleton source:` line, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
@@ -100,6 +102,18 @@ Present the table before going further. Wrong facts here poison every file downs
 
 ## Step 3 — Copy the skeleton and the chosen modules
 
+- **Ask how to install** (decision 0016), with your recommendation:
+  - **Committed** — the default. Everything below is copied into the repository: every AI tool reads
+    it, and nothing depends on a plugin.
+  - **Packaged** — for a team that works in Claude Code only. The skills, agents, workflows, and hook
+    scripts come from the `aplyca-adf` plugin, pinned to a release tag, and the repository commits
+    only its own layer and its modules: about 40 fewer files. People type `/aplyca-adf:triage`.
+    Claude Code's cloud sessions don't load it, and CI installs it first. It pins a release tag,
+    v1.0.0 or later (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`);
+    with none yet, say so and install committed.
+
+  For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
+  out, the settings, the names in `CLAUDE.md` and `DEV-SETUP.md`, the stamp, and the checks.
 - Copy `skeleton/` into the repo **without overwriting existing files**. For collisions (`README.md`,
   `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
   skeleton's missing sections.
@@ -130,12 +144,16 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
   the two must agree.
 - **`CLAUDE.md`** — keep `@AGENTS.md` as its first instruction (Claude Code reads `CLAUDE.md` instead
-  of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5.
+  of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5. Packaged: add the names
+  note from `docs/SETUP.md` § Packaged install.
+- **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
+  development by their full names (`/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`).
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
+  Packaged: no `hooks` block, since the plugin wires them.
 - **`.claude/rules/*`** — `<!-- CUSTOMIZE -->` sections and `paths:` frontmatter to the real
   structure; delete rules that can't apply.
 - **`CONTRIBUTING.md`** — keep the branching model that matches (A or B), the status vocabulary,
@@ -154,19 +172,25 @@ Present the table before going further. Wrong facts here poison every file downs
 ## Step 5 — Stamp the baseline and record the decision
 
 - Top of `CLAUDE.md`:
-  `<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
-  Without it, `/upgrade` has no baseline to diff against.
+  `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
+  Without it, `/upgrade` has no baseline to diff against. Packaged: the release is the pinned tag and
+  the SHA its commit, and `· install: packaged` follows the modules — it's what turns the plugin's
+  skills, agents, and hooks on in this project.
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
-  team is adopting, what it adds (files, gates, modules), the costs (docs to keep fresh, more tokens
+  team is adopting, what it adds (files, gates, modules, and the install — committed or packaged, and
+  why), the costs (docs to keep fresh, more tokens
   for phased work, the approval gate on the critical path), alternatives considered. Ask who the
   deciders are. Add it to the index in `docs/process/README.md`.
 - **The plugin setting.** The documented install (`--scope project`) already wrote
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
-  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` into `.claude/settings.json`: keep both when
+  and `"enabledPlugins": {"aplyca-adf@aplyca": true}` into `.claude/settings.json`: keep both when
   merging the skeleton's settings, so they're committed with the adoption and teammates get the
   plugin and `/upgrade`. If they're missing — a user- or local-scope install — offer to add them
   (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
-  install, give the commands that remove it (the plugin's README § Install).
+  install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
+  skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
+  project then gets the plugin's copies at the same release as its own files, and a packaged one gets
+  its machinery from that release. With no release yet, leave the entry unpinned.
 
 ## Step 6 — Verify
 
@@ -174,6 +198,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
+- [ ] Packaged: in a new session, `/aplyca-adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question

@@ -18,7 +18,7 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
   - `skeleton/specs/` — `README.md` (the process) and `_templates/{spec,plan,tasks}.md`
   - `skeleton/docs/` — constitution, spec model, process (PDRs), reference, tracker integration, and documentation templates
 - `modules/` — optional additions (`github/`, `git-hooks/`, `clickup/`, `parallel-agents/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo
-- `plugins/aplyca-framework/` — the Claude Code installer plugin (`/adopt`, `/upgrade`); contains no framework content
+- `plugins/aplyca-adf/` — the Claude Code plugin: the installer (`/aplyca-adf:adopt`, `:upgrade`, `:cost-report`, written by hand) and, for the packaged install (decisions 0016, 0017), the skeleton's skills, agents, workflows, and hook scripts — **generated** by `scripts/build-aplyca-adf.sh` into the paths its `.generated` file lists; never edit those by hand
 - `ADOPT.md` — the adoption procedure for AI agents, which the top of `README.md` points to; keep it in step with `/adopt`
 - `docs/` — framework guides (setup, upgrading, onboarding, catalogs, examples, scenarios) and `docs/decisions/` (why the framework works the way it does)
 - `evals/` — static checks, hook and module functional tests, dynamic fixtures
@@ -32,5 +32,6 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 - Skill and agent frontmatter use only documented keys, hyphenated (`argument-hint`, `disable-model-invocation`, `user-invocable`) — unknown keys are silently ignored. Hooks use the nested `hooks` array and read the event from stdin
 - Relative links inside `skeleton/` must resolve inside an adopting repo — never link to framework-only docs from the skeleton
 - Every change to `skeleton/` or `modules/` carries a `CHANGELOG.md` entry with its **Upgrade impact** (overwrite / merge / additive, plus migration steps when needed); significant design changes get a record in `docs/decisions/`
+- After any change under `skeleton/.claude/`, run `scripts/build-aplyca-adf.sh` and commit `plugins/aplyca-adf/` with it — the static checks fail on drift. The plugin's `"version"` changes only in a release (decision 0017)
 - Run `./evals/run-evals.sh` before committing — structural checks plus functional tests of the hooks and module scripts; CI runs the same on every pull request
 - The repo is public — never include client, customer, or internal project names anywhere (files, examples, commit messages, PR descriptions); use the fictional newsletter feature from `docs/examples/` instead
