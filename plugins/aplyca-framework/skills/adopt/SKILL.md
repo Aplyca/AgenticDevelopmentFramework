@@ -1,6 +1,6 @@
 ---
 name: adopt
-description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Also adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
+description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Works in a new project before any code exists, and adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
 ---
 
 # Adopt the Agentic Development Framework
@@ -15,7 +15,8 @@ read the source doc (locations in step 1).
 ## Ground rules
 
 - **Never commit to the default branch.** Work on a feature branch (suggest `docs/agentic-adoption`);
-  the deliverable is a reviewable draft PR.
+  the deliverable is a reviewable draft PR. The one exception is a new repository's first commit
+  (§ A new project).
 - **Docs and config only.** Adoption adds no dependencies, no runtime code, and no build changes. The
   hook and worktree scripts are dev tooling; if anything seems to need more, stop and ask.
 - **Facts need evidence.** Every placeholder you fill traces to a file you read (manifest, lockfile,
@@ -29,7 +30,8 @@ read the source doc (locations in step 1).
 Resolve the framework root, in order:
 
 1. `${CLAUDE_PLUGIN_ROOT}/../..` — only when the plugin runs from a checkout of the framework repo.
-2. The marketplace checkout: `~/.claude/plugins/marketplaces/<marketplace-name>/` (usually `aplyca`).
+2. The marketplace checkout: the `installLocation` of the marketplace (usually `aplyca`) in
+   `claude plugin marketplace list --json` — by default `~/.claude/plugins/marketplaces/aplyca/`.
    **The normal case on installed machines** — installed plugins run from a version cache, so
    `${CLAUDE_PLUGIN_ROOT}` isn't inside the repo. Run `claude plugin marketplace update <name>` first.
 3. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
@@ -42,6 +44,34 @@ to install modules (steps 3–4 for the chosen modules only, then update the `mo
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
 checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
 (`scripts/agent/worktree-new.sh chore/add-modules --no-start`).
+
+### A new project
+
+No git repository, no commits, or nothing to inspect yet (no manifest, no source code): adopting
+before the first line of code puts the process and the guardrails in place first. Every other step
+applies, with these changes:
+
+- **No repository:** offer `git init -b <default branch>` — ask for the name; suggest `main`.
+- **No commits:** there is no default branch to branch from. With the developer's yes, make one first
+  commit on it with what's already there (`git commit --allow-empty -m "chore: initial commit"` when
+  there's nothing), then branch as usual.
+- **Step 2 asks instead of reads.** There are no facts to evidence yet. Ask for the planned ones in one
+  round, with your recommendations: language and framework, package manager, test runner, hosting,
+  branching model (Model A is the usual start), tracker, ways of working, sensitive areas. Mark each
+  answer in `AGENTS.md` as planned — `<!-- planned: not in the repository yet -->` — so no one mistakes
+  it for a verified fact. A command nobody has run yet stays a `TODO(team)`.
+- **The stack is a decision.** Record it as ADR-0001 in `docs/architecture/decisions/` from the
+  template, status `proposed`, with the alternatives the developer considered; the adoption's review
+  accepts it.
+- **Globs point at planned paths or stay empty** — `CAREFUL_GLOBS`, `APPEND_ONLY_GLOBS`,
+  `GENERATED_GLOBS`, the rules' `paths:` — and no nested `AGENTS.md` yet.
+- **Step 6:** commands that can't run yet are a GAP — "no code yet" — not a failure.
+- **Step 7 without a remote:** commit on the adoption branch, show the PR body, and tell the developer
+  to add the remote, push, and open the draft pull request from it.
+- **After the adoption,** the scaffold — the framework's init, the first test — is the first task
+  through the lanes; usually full, since it sets the structure others follow. Once that code lands,
+  run `/init-project` to replace the planned entries with verified facts, and `/context-audit` to find
+  what's stale.
 
 ## Step 2 — Discover the repo (read-only, before copying anything)
 
@@ -146,7 +176,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
 - [ ] Skill frontmatter uses hyphenated keys only (no `user_invocable` and the like)
-- [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones)
+- [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones) — in a new project, a GAP until the first code lands
 - [ ] Readiness checklist (Agentic Development Guide §9): `README.md` + `AGENTS.md` current; constitution; `specs/` scaffold; `docs/` with architecture and ADRs; skills/MCP versioned; nested `AGENTS.md` where needed (or explicitly not needed); boundaries section; CI gates before merge (GAP if none — don't invent one); written "no merge without human review"
 
 GAPs go in the PR description; they're findings, not failures to hide.

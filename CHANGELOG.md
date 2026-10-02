@@ -30,13 +30,31 @@ the team is offered it and every worktree of a hub gets it — or `--scope local
 Both READMEs open with an install prompt to paste into any Claude Code session — terminal, desktop
 app, or IDE: it runs the two commands, skips a plugin the project already declares, stops in a hub's
 main checkout, and reports a leftover user-scope copy. The plugin README adds the steps for the
-desktop app's Code tab (**+ → Plugins → Add plugin**, scope "this project"). `/adopt` commits that setting with the adoption and checks it; `/upgrade` offers to
-add it when the project doesn't have it. `docs/MCP-INTEGRATION.md` pointed MCP servers at `.claude/mcp.json` or a
-global file; it now uses the project's `.mcp.json`.
+desktop app's Code tab (**+ → Plugins → Add plugin**, scope "this project"). `/adopt` commits
+that setting with the adoption and checks it; `/upgrade` offers to add it when the project doesn't
+have it. `docs/MCP-INTEGRATION.md` pointed MCP servers at `.claude/mcp.json` or a global file; it now
+uses the project's `.mcp.json`.
 **Upgrade impact:** merge `docs/MCP-INTEGRATION.md` (one line, § Wiring it into AI tools).
 **Migration:** if you installed the plugin at user scope, let `/upgrade` add the project setting; once
 every project you use it in has it, run `claude plugin uninstall aplyca-framework@aplyca --scope user`
 and `claude plugin marketplace remove aplyca --scope user`.
+
+### Adopt in one prompt — and in a new project
+
+A Claude Code session told "Adopt the Agentic Development Framework in this project: <repository URL>"
+had nothing to follow, so it could copy the skeleton by hand and skip the fact-checking, the version
+stamp, and the pull request. A new `ADOPT.md` at the repository root, pointed to from the top of the
+README, is the procedure for agents: confirm with the developer, check the project (new, already
+adopted, or a hub's main checkout), install the plugin with `--scope project`, then run `/adopt` — in
+a new session, or in the same one by following the skill's file from the marketplace folder.
+`/adopt` gains a mode for a new project with no code yet: it offers `git init` and the first commit,
+asks for the planned stack instead of reading it, marks those entries
+`<!-- planned: not in the repository yet -->`, records the stack as ADR-0001 (`proposed`), and
+delivers without a remote. `/init-project` is the step that replaces the planned entries once the
+first code lands. `/adopt` and `/upgrade` find the marketplace folder through
+`claude plugin marketplace list --json` instead of assuming its path.
+**Upgrade impact:** overwrite `.claude/skills/init-project/SKILL.md`; the rest is framework-internal —
+update the plugin.
 
 ### Test first in every lane; the hub enforced
 

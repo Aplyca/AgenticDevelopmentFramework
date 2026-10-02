@@ -19,6 +19,7 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
   - `skeleton/docs/` — constitution, spec model, process (PDRs), reference, tracker integration, and documentation templates
 - `modules/` — optional additions (`github/`, `git-hooks/`, `clickup/`, `parallel-agents/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo
 - `plugins/aplyca-framework/` — the Claude Code installer plugin (`/adopt`, `/upgrade`); contains no framework content
+- `ADOPT.md` — the adoption procedure for AI agents, which the top of `README.md` points to; keep it in step with `/adopt`
 - `docs/` — framework guides (setup, upgrading, onboarding, catalogs, examples, scenarios) and `docs/decisions/` (why the framework works the way it does)
 - `evals/` — static checks, hook and module functional tests, dynamic fixtures
 - `.claude/` — configuration for working on **this framework repo** (not for target projects)

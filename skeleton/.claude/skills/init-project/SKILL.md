@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: First-time setup of this project's AI-assisted development configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts about the repository, and add nested AGENTS.md files where modules differ. Use once, after the skeleton has been copied in (the framework's /adopt does this end to end).
+description: First-time setup of this project's AI-assisted development configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts about the repository, and add nested AGENTS.md files where modules differ. Use once, after the skeleton has been copied in (the framework's /adopt does this end to end) — and again in a project adopted before its code existed, once the first code lands.
 argument-hint: "[project name]"
 ---
 
@@ -11,6 +11,12 @@ context every agent reads before every design review, security audit, and implem
 in it now. **Facts need evidence:** fill each placeholder from a file you read (manifest, lockfile,
 CI config, code). What you can't evidence becomes `<!-- TODO(team): <concrete question> -->` — an
 honest TODO beats a plausible invention.
+
+**A project adopted before its code existed** has planned entries in `AGENTS.md`, marked
+`<!-- planned: not in the repository yet -->`, and a stack ADR. Once the first code lands, run this
+again: replace each planned entry with the verified fact (or a `TODO(team)` where the plan changed),
+fill the commands from the real manifests, and point the globs and the rules' `paths:` at the real
+structure.
 
 ## Steps
 

@@ -613,8 +613,11 @@ check_practices() {
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
     file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
+    file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
+    file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
+    file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project"
     else
         fail "practices: missing" "${missing[*]}"
     fi
@@ -654,7 +657,7 @@ check_install_scope() {
     # scope, which turns the plugin on in every project on the machine. Installs are per project.
     local hits
     hits=$(grep -rnE 'claude plugin (marketplace add|install) ' "$REPO_ROOT/plugins" "$REPO_ROOT/docs" \
-        "$SKELETON" "$MODULES_DIR" "$REPO_ROOT/README.md" 2>/dev/null | grep -vE -- '--scope (project|local)')
+        "$SKELETON" "$MODULES_DIR" "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" 2>/dev/null | grep -vE -- '--scope (project|local)')
     if [ -z "$hits" ]; then
         pass "install commands pass --scope project or local"
     else

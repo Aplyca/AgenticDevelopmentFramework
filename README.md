@@ -1,5 +1,9 @@
 # Agentic Development Framework
 
+> **AI agents:** asked to adopt, use, or install this framework in a project? Follow
+> [ADOPT.md](ADOPT.md) (raw: `https://raw.githubusercontent.com/aplyca/AgenticDevelopmentFramework/main/ADOPT.md`)
+> — don't copy files from this repository by hand.
+
 A production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development.** It ships as a portable project skeleton you drop into any codebase, optional modules for your Git host and ways of working, and an installer plugin for Claude Code. It includes an enforced multi-perspective spec model, specialized agents, workflow skills, multi-agent workflows, and guardrail hooks. Engineering standards and a team onboarding path are part of it too.
 
 The framework is built on three reinforcing disciplines:
@@ -33,6 +37,17 @@ Most of what's here was proven in real client projects first — some built on t
 ## Install in a project
 
 ### With Claude Code — the installer plugin (recommended)
+
+**In one prompt.** Open a Claude Code session on the project — in the terminal, the desktop app, or an
+IDE — and say:
+
+```text
+Adopt the Agentic Development Framework in this project: https://github.com/aplyca/AgenticDevelopmentFramework
+```
+
+This README points the session to [ADOPT.md](ADOPT.md), the procedure for agents: check the project,
+install the plugin for this project only, and run the adoption below — in a new project too, before
+any code exists. Step by step:
 
 1. **Install the plugin in the project.** Paste this prompt into a Claude Code session opened on the
    project — in the terminal, the desktop app, or an IDE:
@@ -86,7 +101,10 @@ Most of what's here was proven in real client projects first — some built on t
    stakeholder-update settings in `docs/TRACKER-INTEGRATION.md`
    (live site, previews, CMS entry links, task statuses). With the `clickup` module, each developer
    signs in once through `/mcp`. Then review and merge the pull request like any change.
-4. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
+4. **A new project with no code yet?** `/adopt` asks for the planned stack instead of reading it,
+   records it as the first architecture decision, and marks those entries as planned. Run
+   `/init-project` once the first code lands, to replace them with verified facts.
+5. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
    `/adopt` again in the adopted repository.
 
 The plugin contains **no framework content** — adopted repositories get plain committed files that
