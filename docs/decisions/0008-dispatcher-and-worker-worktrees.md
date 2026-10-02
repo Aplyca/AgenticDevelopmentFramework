@@ -61,6 +61,13 @@ by hand, they collided.
   The handoff principle — point at the record, never restate it — now also covers work handed on
   mid-task, through the core `/handoff` skill.
 
+- **Enforced, still opt-in (2026-10-01).** The dispatcher rule was instruction only, here and in the
+  project it came from; commits in the hub were blocked only because it sits on a protected branch.
+  With the module installed, the core `protect-hub.sh` hook now stops every file edit in the main
+  checkout, and `/upgrade` and `/adopt` run from a worktree of their own there. The model stays
+  opt-in — a team that works one task at a time pays a second session and a worktree per task for
+  nothing — and `/adopt` recommends it to any team whose agents may work in parallel.
+
 ## Alternatives considered
 
 - **Keep working in the same session after creating the worktree.** A `cd` doesn't move the session's

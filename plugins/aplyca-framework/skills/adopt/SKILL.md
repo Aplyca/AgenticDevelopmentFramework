@@ -39,7 +39,9 @@ Record the source SHA and date: `git -C <framework-root> log -1 --format='%h (%a
 
 **Already adopted?** If the target's `CLAUDE.md` has a `Skeleton source:` line, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
-stamp) or point to `/upgrade`.
+stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
+checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
+(`scripts/agent/worktree-new.sh chore/add-modules --no-start`).
 
 ## Step 2 — Discover the repo (read-only, before copying anything)
 
@@ -79,7 +81,7 @@ Present the table before going further. Wrong facts here poison every file downs
   - `git-hooks` — when the team wants local gates for every git client
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
-  - `parallel-agents` — when several agent sessions work on the repository at once (ports and start commands only if each worktree runs a server)
+  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches (ports and start commands only if each worktree runs a server)
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
   `modules/clickup/install.sh <repo>`.

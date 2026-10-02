@@ -178,6 +178,20 @@ else
 fi
 git -C "$T" worktree remove --force "$WORK/feat-role-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/eager-lamport"
 
+# protect-hub — with the module, the main checkout is the hub and edits nothing
+git -C "$T" worktree add -q -b feat/hub-check "$WORK/feat-hub-check"
+git -C "$T" worktree add -q -b claude/calm-hopper "$T/.claude/worktrees/calm-hopper"
+mkdir -p "$WORK/no-module" && git -C "$WORK/no-module" init -q
+edit_event() { printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s"}}' "$T" "$1"; }
+run protect-hub.sh 2 "$(edit_event "$T/src/app.ts")" "stops an edit in the main checkout"
+run protect-hub.sh 2 "$(edit_event "$T/src/new/file.ts")" "stops a new file in the main checkout"
+run protect-hub.sh 0 "$(edit_event "$WORK/feat-hub-check/src/app.ts")" "lets edits in a task worktree through"
+run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")" "leaves Claude Code's own worktrees to the session role"
+run protect-hub.sh 0 "$(edit_event "$WORK/no-module/src/app.ts")" "does nothing in a repository without the module"
+echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
+run protect-hub.sh 0 "$(edit_event "$T/src/app.ts")" "does nothing when HUB_READONLY is empty"
+git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
+
 echo "==================================="
 echo "Results: $PASS passed, $FAIL failed"
 echo ""

@@ -12,6 +12,7 @@ ENV_IGNORE=""
 ENV_CHECK_EXCLUDE=""
 CAREFUL_GLOBS=""
 TRIAGE_FIRST=""
+HUB_READONLY=""
 SPECS_DIR="specs"
 # shellcheck source=config.sh
 [ -f "$HOOKS_DIR/config.sh" ] && . "$HOOKS_DIR/config.sh"
