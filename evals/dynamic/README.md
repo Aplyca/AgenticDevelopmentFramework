@@ -17,6 +17,10 @@ dynamic/
     debug/
       setup.sh                     - makes the fixture project runnable (Node's test runner) and plants the bugs
       ...                          - a failing signal first; effort matched to the bug
+    adopt/
+      project.sh                   - builds a new project (no commits, nothing built) in place of the newsletter one
+      inspect.sh                   - records each run's end state: commits, stamp, planned entries, decision records
+      ...                          - adopting from one line with the framework's address; /adopt in a new project
     write-tests/
       ...
     write-docs/
@@ -31,7 +35,7 @@ Each fixture has two files:
 
 ## Running
 
-### Session evals — automated (triage, debug)
+### Session evals — automated (triage, debug, adopt)
 
 `run-session-evals.sh` runs every fixture in one suite — `fixtures/triage/` by default, or
 `--suite debug` — against real Claude Code sessions: it builds a fictional project in a temp
@@ -47,7 +51,17 @@ signal without installing anything.
 ./run-session-evals.sh                                   # every triage case, sonnet and opus
 ./run-session-evals.sh --models sonnet --cases "fast-copy-change careful-migration"
 ./run-session-evals.sh --suite debug                     # the /debug cases
+./run-session-evals.sh --suite adopt --source "$PWD/../.."   # adoption, against this checkout
 ```
+
+The **adopt** suite builds its own project (`fixtures/adopt/project.sh`: a new repository with no
+commits) and appends each run's end state (`inspect.sh`) to the transcript. `{{FRAMEWORK}}` in a
+prompt becomes `--source`: the GitHub address by default, which tests what's published on `main`, or
+a checkout's path, which tests a branch before it merges. A fixture marked `<!-- run: plugin-dir -->`
+loads the installer plugin from this checkout for that session only, so nothing is installed on the
+machine; no session may run `claude plugin` commands. A fixture with a `## Follow-up` section gets a
+second turn in the same session — `new-project` answers `/adopt`'s questions there and adopts, which
+is a long session (budget $8 per turn by default; run it on one model).
 
 It needs a signed-in Claude Code CLI (`claude auth login`); a full triage run is 16 sessions, about
 $5 API-equivalent. Graded reports of past runs: [`reports/`](reports/) (the first one ran the

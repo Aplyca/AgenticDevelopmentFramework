@@ -21,8 +21,9 @@ claude plugin install aplyca-framework@aplyca --scope project
 
 The manual path below is the same procedure, step by step.
 
-**A new project with no code yet:** create the repository and a first commit (`git init -b main`,
-then `git commit --allow-empty -m "chore: initial commit"`), and adopt on a branch as below. Where a
+**A new project with no code yet:** create the repository and one first commit holding what's there
+(`git init -b main`, then `git add -A && git commit -m "chore: initial commit"`, with `--allow-empty`
+for an empty folder), and adopt on a branch as below. Where a
 step asks for facts, write the planned ones and mark each `<!-- planned: not in the repository yet -->`;
 record the stack as ADR-0001 (`docs/architecture/decisions/`, status `proposed`). Once the first code
 lands, run `/init-project` to replace the planned entries with verified facts.
