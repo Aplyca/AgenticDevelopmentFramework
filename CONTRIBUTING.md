@@ -36,6 +36,13 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 it to `## <SHA> — <date> — <title>` with the SHA of the last commit it covers. Open it with the
 order to upgrade in when it spans several parts, and add an empty `Unreleased` above it. Adopting
 repositories stamp the commit they upgraded to, so the heading's SHA tells them which entries apply.
+Once the release merges, tag that commit `release-<SHA>` and push the tag: packaged projects pin it
+([decision 0016](docs/decisions/0016-packaged-install.md)), and without it they can't take the
+release.
+
+**`plugins/aplyca-adf/` is generated** from `skeleton/.claude/` by `scripts/build-aplyca-adf.sh`.
+Never edit it; after any change under `skeleton/.claude/`, run the script and commit its output with
+the change. The static checks fail when the two drift apart.
 
 ## Checks
 

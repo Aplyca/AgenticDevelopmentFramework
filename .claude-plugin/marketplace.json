@@ -16,6 +16,16 @@
       },
       "category": "productivity",
       "source": "./plugins/aplyca-framework"
+    },
+    {
+      "name": "aplyca-adf",
+      "description": "The Agentic Development Framework's skills, agents, workflows, and guardrail hooks as one plugin, for a packaged install: a Claude Code project pins a release tag instead of committing these files. /adopt sets it up. Generated from the framework's skeleton.",
+      "author": {
+        "name": "Aplyca",
+        "email": "dev@aplyca.com"
+      },
+      "category": "productivity",
+      "source": "./plugins/aplyca-adf"
     }
   ]
 }

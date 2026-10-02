@@ -240,6 +240,23 @@ does it and reports a user-scope copy to remove), then run `/upgrade` in a new s
 the release's parts newest first and offers the modules you don't have. If the project uses the
 dispatcher hub, run it from a worktree: from this release on, the hub's main checkout takes no edits.
 
+### "We use the packaged install" — or want to
+
+A packaged project ([decision 0016](decisions/0016-packaged-install.md)) doesn't commit the skills,
+agents, workflows, or hook scripts: they come from the `aplyca-adf` plugin, pinned to a release tag
+in `.claude/settings.json`. Upgrading it means two things:
+
+- **Bump the pin:** the marketplace's `"ref"` moves to the new `release-<SHA>`. That one line upgrades
+  every skill, agent, workflow, and hook. Packaged projects move from release to release, because the
+  plugin they pin exists only at release tags.
+- **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
+  (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
+  path the plugin carries.
+
+`/upgrade` does both, and offers to switch a committed project to packaged (or back). Switching removes
+only the machinery files unchanged since your baseline. A skill or hook your team edited stays
+committed, under a name of its own, or goes upstream as a change to the framework.
+
 ### "We adopted before the modules existed"
 
 Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade` lists the modules

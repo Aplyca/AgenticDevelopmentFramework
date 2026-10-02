@@ -223,6 +223,24 @@ echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
 run protect-hub.sh 0 "$(edit_event "$T/src/app.ts")" "does nothing when HUB_READONLY is empty"
 git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
 
+# Packaged install (decision 0016): the scripts come from a plugin with no config.sh of their own,
+# and read the project's .claude/hooks/config.sh through CLAUDE_PROJECT_DIR.
+PKG="$WORK/plugin-hooks"; mkdir -p "$PKG" && cp "$HOOKS_SRC"/*.sh "$PKG/" && rm -f "$PKG/config.sh"
+PROJ="$WORK/packaged"; mkdir -p "$PROJ/.claude/hooks" && git -C "$PROJ" init -q -b main
+echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
+pkg_push() { printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin %s"}}' "$PROJ" "$1" | CLAUDE_PROJECT_DIR="$PROJ" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?; }
+if [ "$(pkg_push release-x)" = 2 ] && [ "$(pkg_push main)" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: packaged hooks read the project's config.sh (release-x protected, main not)"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: packaged hooks didn't read the project's config.sh"
+fi
+code=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin release-x"}}' "$T" | CLAUDE_PROJECT_DIR="$PROJ" "$H/guard-git.sh" >/dev/null 2>&1; echo $?)
+if [ "$code" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: a committed install keeps the config next to its scripts"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: a committed install read another project's config"
+fi
+
 echo "==================================="
 echo "Results: $PASS passed, $FAIL failed"
 echo ""

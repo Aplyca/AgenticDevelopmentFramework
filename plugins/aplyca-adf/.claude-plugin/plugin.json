@@ -1,0 +1,9 @@
+{
+  "name": "aplyca-adf",
+  "description": "The Agentic Development Framework's skills, agents, workflows, and guardrail hooks, for a packaged install: a project pins a release tag instead of committing these files. Generated from the framework's skeleton.",
+  "author": {
+    "name": "Aplyca",
+    "email": "dev@aplyca.com"
+  },
+  "homepage": "https://github.com/aplyca/AgenticDevelopmentFramework"
+}

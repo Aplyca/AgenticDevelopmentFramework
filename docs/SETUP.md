@@ -19,7 +19,10 @@ claude plugin install aplyca-framework@aplyca --scope project
 `--scope local`. From the desktop app's Code tab:
 [the plugin's README § In the desktop app](../plugins/aplyca-framework/README.md#in-the-desktop-app).
 
-The manual path below is the same procedure, step by step.
+The manual path below is the same procedure, step by step. It describes the **committed** install,
+the default. For a team that works in Claude Code only there's also a **packaged** install, where the
+skills, agents, workflows, and hook scripts come from a pinned plugin instead:
+[§ Packaged install](#packaged-install-claude-code-only).
 
 **A new project with no code yet:** create the repository and one first commit holding what's there
 (`git init -b main`, then `git add -A && git commit -m "chore: initial commit"`, with `--allow-empty`
@@ -148,6 +151,62 @@ git commit -m "docs: adopt the Agentic Development Framework (skeleton <SHA>)"
 ```
 
 Open the pull request as a draft; merge after review like any other change.
+
+## Packaged install (Claude Code only)
+
+[Decision 0016](decisions/0016-packaged-install.md). The framework's machinery doesn't enter the
+repository: 20 skills, 8 agents, 4 workflows, and the hook scripts come from the `aplyca-adf` plugin,
+pinned to a release tag. The repository commits its own layer as above, and every module's files.
+Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
+`AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.
+
+It needs a release tag that carries the plugin:
+`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'release-*'`. Pick the
+newest; its SHA is the release heading in [`CHANGELOG.md`](../CHANGELOG.md).
+
+**What changes from the steps above:**
+
+1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
+   scripts in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`, `.agents/`,
+   and `.cursor/`. Modules copy as usual: `/dispatch` is the one skill a packaged repository commits.
+2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
+   since the plugin wires the same hooks, and add the pinned marketplace and both plugins:
+
+   ```json
+   {
+     "extraKnownMarketplaces": {
+       "aplyca": {
+         "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "release-<SHA>" }
+       }
+     },
+     "enabledPlugins": { "aplyca-framework@aplyca": true, "aplyca-adf@aplyca": true }
+   }
+   ```
+
+   The hooks read `.claude/hooks/config.sh` from the project, so step 5's settings apply unchanged.
+3. **Tell people the names** (step 3). Everything a plugin carries goes by the plugin's name. Add this
+   to the start of `CLAUDE.md` § Skills, agents, and workflows:
+
+   > **This project uses the packaged install.** Skills, agents, and workflows come from the
+   > `aplyca-adf` plugin, pinned in `.claude/settings.json`. Where these files name a skill or
+   > workflow — `/triage`, `/deep-review` — type `/aplyca-adf:triage`, `/aplyca-adf:deep-review`.
+   > Where they name an agent — `@code-reviewer` — its name is `aplyca-adf:code-reviewer`.
+
+4. **Stamp the install** (step 8): `<!-- Skeleton source: <SHA> (<date>) · modules: <list> · install: packaged — … -->`,
+   with the same SHA as the tag.
+
+**Verify** as below, with two differences. Pipe the hook samples to the plugin's scripts, with the
+project named: `CLAUDE_PROJECT_DIR="$PWD" <marketplace folder>/plugins/aplyca-adf/hooks/guard-git.sh`,
+where the marketplace folder is the `installLocation` of `aplyca` in
+`claude plugin marketplace list --json`. And in a new session, `/aplyca-adf:triage` is offered.
+
+Each teammate gets the plugin once they trust the folder. A machine nobody opens a session on — CI —
+installs it first, from the repository's folder:
+
+```bash
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#release-<SHA> --scope project
+claude plugin install aplyca-adf@aplyca --scope project
+```
 
 ## Verify
 

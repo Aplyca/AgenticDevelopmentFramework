@@ -11,6 +11,44 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### A packaged install: the machinery as a pinned plugin, `aplyca-adf`
+
+([0016](docs/decisions/0016-packaged-install.md), amending [0009](docs/decisions/0009-optional-modules.md))
+
+A pilot's upgrade touched 82 files, mostly generic machinery that no project edits, and its team asked
+to use the framework like a package. A team that works in Claude Code only can now choose a
+**packaged** install. The committed install stays the default.
+
+#### Added
+- **`aplyca-adf`**, a second plugin in the marketplace: the 20 core skills, the 8 agents, the 4
+  workflows, and the hook scripts, wired through its own `hooks.json`.
+  - Everything is named under the plugin, and the copies refer to each other that way:
+    `/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`.
+  - It's generated from `skeleton/.claude/` by `scripts/build-aplyca-adf.sh`, and a static check
+    fails when the two drift apart.
+  - It has no pinned version, so each release tag loads as its own version.
+- **The packaged install:**
+  - A project pins a release tag in its `.claude/settings.json`: `"ref": "release-<SHA>"` on the
+    `aplyca` marketplace, with `aplyca-adf@aplyca` turned on.
+  - It commits only its own layer and its modules, about 40 fewer files.
+  - `CLAUDE.md` gets a note mapping the short names the docs use to the plugin's.
+  - `docs/SETUP.md` § Packaged install covers the steps, and `docs/UPGRADING.md` covers upgrades.
+- **`/adopt` asks committed or packaged.** `/upgrade` moves a packaged project from release to
+  release by bumping the pin, skips the paths the plugin carries, and offers to switch between the
+  two installs.
+- **Release tags:** each release is tagged `release-<SHA>` (`CONTRIBUTING.md`). The first one comes
+  with the next release.
+
+#### Changed
+- **`.claude/hooks/_lib.sh`** reads `config.sh` from next to the scripts, as before, or else from the
+  project's `.claude/hooks/config.sh` (`CLAUDE_PROJECT_DIR`). That's how the plugin's hooks read the
+  project's settings. A committed install behaves the same.
+
+#### Upgrade impact
+- **Overwrite:** `.claude/hooks/_lib.sh`.
+- **To switch to packaged:** `/upgrade` offers it once a release tag exists (`docs/UPGRADING.md`,
+  "We use the packaged install — or want to").
+
 ### `/cost-report` shows what Opus sessions would have cost on Sonnet
 
 A pilot's report showed every session on Opus, though the project's `"model"` setting said `sonnet`:

@@ -107,8 +107,11 @@ any code exists. Step by step:
 5. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
    `/adopt` again in the adopted repository.
 
-The plugin contains **no framework content** — adopted repositories get plain committed files that
-every AI tool can read, with or without the plugin.
+The installer contains **no framework content** — by default, adopted repositories get plain
+committed files that every AI tool can read, with or without the plugin. A team that works in Claude
+Code only can choose the **packaged** install instead: the skills, agents, workflows, and hook scripts
+come from the `aplyca-adf` plugin, pinned to a release tag, and the repository commits only its own
+layer — about 40 fewer files. `/adopt` asks which one. ([Packaged install](docs/SETUP.md#packaged-install-claude-code-only) · [why](docs/decisions/0016-packaged-install.md))
 
 ### By hand
 

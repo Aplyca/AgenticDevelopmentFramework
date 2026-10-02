@@ -36,13 +36,19 @@ it merges new read-only patterns into `.claude/settings.json` and keeps everythi
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.
 
+**The install** (decision 0016): `· install: packaged` in the stamp, or `aplyca-adf@aplyca` in
+`enabledPlugins`, means the skills, agents, workflows, and hook scripts come from the pinned
+`aplyca-adf` plugin. Otherwise the install is committed.
+
 ## Step 2 — Locate the framework source and NEW_SHA
 
 Same resolution order as `/adopt` Step 1: repo checkout via `${CLAUDE_PLUGIN_ROOT}/../..`
 (development installs), else the marketplace checkout — its `installLocation` in
 `claude plugin marketplace list --json`, by default `~/.claude/plugins/marketplaces/<name>/` (normal case — run `claude plugin marketplace update <name>` first), else a **full** clone of
 `https://github.com/aplyca/AgenticDevelopmentFramework` (not shallow — the diff needs history).
-NEW_SHA is its current HEAD.
+NEW_SHA is its current HEAD — for a **packaged** project, the newest release tag instead
+(`git -C <framework-root> tag --list 'release-*' --sort=-creatordate | head -1`): the plugin it pins
+exists only at releases.
 
 Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA. Each entry's **Upgrade impact** pre-classifies
 changes into the buckets below, and some entries carry **Migration** steps that must happen even for
@@ -75,6 +81,15 @@ make the same change in the worktree, then restore the main checkout's copy
 doesn't stop on it. List both moves in the plan. Anything else uncommitted there is the developer's:
 ask, and never discard it.
 
+**Offer the other install, when it fits** (decision 0016; `docs/SETUP.md` § Packaged install):
+
+- **Committed → packaged**, for a team that works in Claude Code only: remove the skills, agents,
+  workflows, and hook scripts the plugin carries — only those unchanged since OLD_SHA; one the team
+  edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add the pinned
+  marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, and `install: packaged` in the stamp.
+- **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
+  copy the machinery and the `hooks` block back, and remove `aplyca-adf` and the names note.
+
 **Check where the plugin is turned on.** The upgrade's pull request must leave
 `"enabledPlugins": {"aplyca-framework@aplyca": true}`, with its `aplyca` entry in
 `extraKnownMarketplaces`, committed in `.claude/settings.json`:
@@ -89,8 +104,10 @@ ask, and never discard it.
 ## Step 3 — Classify every changed file
 
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
-gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). Classify
-per the taxonomy in `docs/UPGRADING.md`:
+gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). In a
+packaged project, leave out what the plugin carries — `.claude/skills/` (module skills stay),
+`.claude/agents/`, `.claude/workflows/`, and `.claude/hooks/` except `config.sh` — and never add a
+`hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
 | Bucket | Typical contents | Action |
 |---|---|---|
@@ -123,12 +140,16 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 - Migration steps from the changelog, in order.
 - Newly chosen modules: copy or install them, then their customize steps.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
-- Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>` — the list includes the new ones.
+- Packaged: set the marketplace's `"ref"` in `.claude/settings.json` to `release-<NEW_SHA>` — the one
+  line that upgrades the plugin's skills, agents, workflows, and hooks.
+- Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>` — the list includes the new ones;
+  a packaged project keeps `· install: packaged`.
 
 ## Step 6 — Verify and deliver
 
 1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
-   smoke tests (sample events piped to each script); `@AGENTS.md` import present; skill frontmatter
+   smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
+   `CLAUDE_PROJECT_DIR` set); `@AGENTS.md` import present; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `scripts/agent/worktree-ls.sh` lists the worktrees
    (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template

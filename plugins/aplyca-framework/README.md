@@ -2,10 +2,12 @@
 
 Installer and upgrader for the [Agentic Development Framework](../../README.md).
 
-The framework itself ships as **committed files in each adopting repo** (the
+By default, the framework ships as **committed files in each adopting repo** (the
 [AGENTS.md](https://agents.md) standard plus tool-specific layers) so that every AI tool —
 Claude Code, Cursor, Copilot, Antigravity, Windsurf, Aider — reads the same source of
-truth. This plugin deliberately contains **no framework content**: it is the tooling that
+truth. A team that works in Claude Code only can instead take its skills, agents, workflows, and
+hooks from the [`aplyca-adf`](../aplyca-adf/README.md) plugin in this marketplace, pinned to a
+release tag ([packaged install](../../docs/SETUP.md#packaged-install-claude-code-only)). This plugin deliberately contains **no framework content**: it is the tooling that
 installs and maintains those files, and measures what the agent work costs. That keeps adopted repos fully portable, with zero
 runtime dependency on this plugin.
 

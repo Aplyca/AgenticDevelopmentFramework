@@ -617,6 +617,9 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
+    file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/adopt/SKILL.md" 'Ask how to install' || missing+=("/adopt: committed or packaged (0016)")
+    file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/upgrade/SKILL.md" 'release-<NEW_SHA>' || missing+=("/upgrade: bumps a packaged project's pin")
+    file_contains "$REPO_ROOT/docs/SETUP.md" '## Packaged install' || missing+=("SETUP.md: the packaged install")
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
     file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     if [ ${#missing[@]} -eq 0 ]; then
@@ -640,6 +643,41 @@ check_plugin() {
             fail "plugin script '$(basename "$script")': does not compile"
         fi
     done
+}
+
+check_packaged_plugin() {
+    # plugins/aplyca-adf is generated from skeleton/.claude (decision 0016). A skeleton change that
+    # wasn't rebuilt would ship the old machinery to every packaged project.
+    local tmp report
+    tmp="$(mktemp -d)"
+    if ! "$REPO_ROOT/scripts/build-aplyca-adf.sh" "$tmp/aplyca-adf" >/dev/null 2>&1; then
+        fail "plugins/aplyca-adf: scripts/build-aplyca-adf.sh failed"
+    elif diff -r "$tmp/aplyca-adf" "$REPO_ROOT/plugins/aplyca-adf" >/dev/null 2>&1; then
+        pass "plugins/aplyca-adf matches skeleton/.claude"
+    else
+        fail "plugins/aplyca-adf is out of date with skeleton/.claude — run scripts/build-aplyca-adf.sh"
+    fi
+    rm -rf "$tmp"
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import json, os, sys
+root = sys.argv[1]
+market = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
+entries = {p["name"]: p for p in market["plugins"]}
+for name in ("aplyca-framework", "aplyca-adf"):
+    if name not in entries:
+        print(f"marketplace.json doesn't list {name}")
+    elif not os.path.isdir(os.path.join(root, entries[name]["source"])):
+        print(f"{name}'s source folder is missing")
+manifest = json.load(open(os.path.join(root, "plugins", "aplyca-adf", ".claude-plugin", "plugin.json")))
+if "version" in manifest:
+    print("aplyca-adf pins a version, so every release tag would load as the same one")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "marketplace lists both plugins; aplyca-adf is versioned by its commit"
+    else
+        fail "marketplace: $report"
+    fi
 }
 
 check_marketplace_snippets() {
@@ -748,6 +786,7 @@ echo ""
 check_links
 check_modules
 check_marketplace_snippets
+check_packaged_plugin
 check_install_scope
 check_install_prompt
 check_lanes
