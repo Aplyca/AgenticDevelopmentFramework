@@ -1,6 +1,6 @@
 # Skills and workflows reference
 
-The Agentic Development Framework ships **nineteen skills** in `skeleton/.claude/skills/`, one
+The Agentic Development Framework ships **twenty skills** in `skeleton/.claude/skills/`, one
 more in the `parallel-agents` module, and **four dynamic workflows** in `skeleton/.claude/workflows/`.
 Adopting projects copy them verbatim. In Claude Code, invoke a skill with `/skill-name`; other tools
 read the `SKILL.md` and follow it. Skills run in the main conversation; workflows fan out to many
@@ -26,6 +26,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/commit` | One clean commit: the spec folder, a doc, one task (test and code together), or a fast- or careful-lane change with its test (and its light `CR N` entry on delivered work). Stages by name, never bypasses hooks, never pushes. |
 | `/open-pr` | **User-invoked only.** Push and open a **draft** pull request naming the spec folder and tracker task, with what was and wasn't verified and its merge danger (does a revert undo it, what it affects if wrong). Never marks it ready. |
 | `/stakeholder-update` | **Starts from a plain request** ("update the client", "reply on the task") or by name. Draft the client-facing update for a tracker task (why, what, status in the project's words, verified findings, direct questions), show it, and post it on the pull request for the team to relay; the tracker only when the developer asks. Project settings — links, CMS entries, task statuses — live in `docs/TRACKER-INTEGRATION.md`. |
+| `/handoff` | Hand work in progress to someone who wasn't here — a teammate, another machine, a fresh session — as a short message of pointers: task, branch and commit, spec folder, pull request, what's done, what's next, open questions. Puts the state in the record first; never copies the spec or the process; shown to the developer, posted nowhere unasked. |
 
 ## Reference and setup skills
 

@@ -42,6 +42,25 @@ by hand, they collided.
   prompt — one manual step. Shared services (one local database for all worktrees) are a hazard for
   schema work; isolating them costs memory per worktree.
 
+- **Found later (2026-10-01), from the project this module came from** — three findings, met without
+  changing the decision:
+  - *The module assumed a web app.* Ports were on by default and the overrides named a container
+    project, so a project that runs no server inherited settings it had to switch off. The defaults now
+    assume nothing; ports, overrides, and readiness checks are configured only by projects whose
+    worktrees run a server.
+  - *Shared services blocked ordinary work.* With one sibling worktree active, a change to a shared
+    local service had to be coordinated by hand, and the project's per-worktree copy stayed on an
+    unmerged branch. The framework doesn't ship a mechanism for this: a project that needs a copy per
+    worktree starts it in `START_CMD` and removes it in `STOP_CMD`, which the scripts already run.
+    `docs/PARALLEL-AGENTS.md` § Shared services says so.
+  - *Task work ended up in the tools' own worktrees anyway.* Four were parked in the project, one on a
+    task branch the scripts never set up. The session-context hook now gives a session there no role,
+    and `worktree-ls.sh` flags task branches in them; `--info` prints each environment's details,
+    derived on each run.
+
+  The handoff principle — point at the record, never restate it — now also covers work handed on
+  mid-task, through the core `/handoff` skill.
+
 ## Alternatives considered
 
 - **Keep working in the same session after creating the worktree.** A `cd` doesn't move the session's

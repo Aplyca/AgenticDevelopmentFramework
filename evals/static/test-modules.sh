@@ -77,8 +77,11 @@ replace "$CONF" 'REQUIRED_ENV=""' 'REQUIRED_ENV="SECRET"'
 replace "$CONF" 'SETUP_CMD=""' 'SETUP_CMD="echo setup-${SLUG} > setup.txt"'
 replace "$CONF" 'START_CMD=""' 'START_CMD="echo started-${APP_PORT} > started.txt"'
 replace "$CONF" 'STOP_CMD=""' 'STOP_CMD="echo stopped > ../stopped-${SLUG}.txt"'
-replace "$CONF" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}'" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}
+replace "$CONF" "ENV_OVERRIDES=''" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}
 SITE_URL=http://localhost:\${APP_PORT}'"
+replace "$CONF" 'PORT_SLOTS=0' 'PORT_SLOTS=180'
+replace "$CONF" 'ENV_INFO_CMD=""' 'ENV_INFO_CMD="echo info-${SLUG}-${APP_PORT}"'
+
 git -C "$M" add -A && git -C "$M" commit -qm init && git -C "$M" push -q -u origin main 2>/dev/null
 printf 'SECRET=abc\nAPP_PORT=1\nCOMPOSE_PROJECT_NAME=stale\n' > "$M/.env"
 port_of() { sed -n 's/^APP_PORT=//p' "$1/.env"; }
@@ -138,6 +141,12 @@ check "worktree-new: warns when reusing a local branch that is behind the base" 
 
 out=$(scripts/agent/worktree-ls.sh 2>&1)
 check "worktree-ls: lists every worktree and marks the main checkout" "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
+out=$(scripts/agent/worktree-ls.sh --info 2>&1)
+check "worktree-ls --info: runs ENV_INFO_CMD in each worktree, with its placeholders" "echo \"\$out\" | grep -q 'info-feat-newsletter-signup-$P1'"
+git -C "$M" worktree add -q -b fix/in-builtin "$M/.claude/worktrees/eager-lamport" main 2>/dev/null
+out=$(scripts/agent/worktree-ls.sh 2>&1)
+check "worktree-ls: flags task work in Claude Code's own worktrees" "echo \"\$out\" | grep -q 'fix/in-builtin is task work'"
+git -C "$M" worktree remove --force "$M/.claude/worktrees/eager-lamport"
 
 echo work > "$W2/work.txt" && git -C "$W2" add work.txt && git -C "$W2" commit -qm work
 echo dirty > "$W2/dirty.txt"
@@ -155,7 +164,7 @@ mkdir -p "$X" && new_repo "$X/repo"
 XR="$X/repo"
 cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/scripts/agent/*.sh
 printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
-replace "$XR/scripts/agent/worktree.conf" 'PORT_SLOTS=180' 'PORT_SLOTS=2'
+replace "$XR/scripts/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
 git -C "$XR" add -A && git -C "$XR" commit -qm init
 cd "$XR" || exit 1
 scripts/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
@@ -165,6 +174,18 @@ q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+
+# The defaults assume nothing: no env file, no ports, no commands
+N="$WORK/plain"
+mkdir -p "$N" && new_repo "$N/repo"
+NR="$N/repo"
+cp -R "$MODULES/parallel-agents/files/." "$NR/" && chmod +x "$NR"/scripts/agent/*.sh
+git -C "$NR" add -A && git -C "$NR" commit -qm init
+cd "$NR" || exit 1
+o5=$(scripts/agent/worktree-new.sh feat/cli-flag 2>&1); c5=$?
+check "worktree-new, defaults: a worktree with no env file, port, or commands when the project has none" "[ $c5 -eq 0 ] && [ -f '$N/feat-cli-flag/.git' ] && [ ! -e '$N/feat-cli-flag/.env' ] && ! echo \"\$o5\" | grep -qE 'Port:|Project:|--setup-only'"
+o6=$(scripts/agent/worktree-ls.sh 2>&1)
+check "worktree-ls, defaults: no port columns when no worktree has a port" "echo \"\$o6\" | grep -q feat/cli-flag && ! echo \"\$o6\" | grep -q PORT"
 
 # ─── clickup: install.sh merges, never overwrites ──────────────────────────
 CU="$WORK/clickup-fresh"; mkdir -p "$CU"

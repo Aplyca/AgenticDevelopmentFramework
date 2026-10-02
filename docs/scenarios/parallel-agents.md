@@ -6,9 +6,9 @@ More than one agent session works on the same repository at the same time — a 
 one, a hotfix in another, an impact analysis in a third.
 
 **The rule, with or without tooling: one task per worktree, and never two sessions in one
-checkout.** A checkout's working tree, branch, uncommitted changes, and running dev server are
-shared state: a second session there edits under the first one's feet, switches its branch, or takes
-its port.
+checkout.** A checkout's working tree, branch, and uncommitted changes — and any running server —
+are shared state: a second session there edits under the first one's feet, switches its branch, or,
+when the app runs locally, takes its port.
 
 Most of this page is about the [parallel-agents module](../../modules/parallel-agents/MODULE.md),
 which makes that rule cheap to follow. Without it, see [the last section](#without-the-module).
@@ -43,8 +43,9 @@ again anyway, where it can check it. The dispatcher's context stays cheap: a bra
    whether it really is a change request is the worker's triage to decide.
 2. **Creates the worktree** — `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
    directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
-   branch, an env file seeded from the main checkout's, a reserved port. `--no-start` because whether
-   the task needs a running app is the worker's call.
+   branch, the env file seeded from the main checkout's — and, on this site, which runs a server per
+   worktree, a reserved port. `--no-start` because whether the task needs anything running is the
+   worker's call.
 3. **Starts the worker session** in the worktree — `cd <worktree> && claude` — or, where the tool
    can't start a session in a folder you choose, gives you the prompt to paste into a new session
    opened on the worktree.
@@ -65,8 +66,8 @@ The worker follows whichever scenario its triage picks. What's specific to workt
 - **The environment on demand.** When a step needs the app or the tests, run
   `scripts/agent/worktree-new.sh <branch>` from the worktree: for an existing worktree it leaves the
   branch alone and runs `SETUP_CMD` and `START_CMD` from `scripts/agent/worktree.conf`, then waits
-  for the app. Installing the module includes making the app read its port (and Compose its project
-  name) from the env file, so it comes up on the worktree's port.
+  for the app. On the newsletter site the app reads its port (and Compose its project name) from the
+  env file, so it comes up on the worktree's port; a project that runs nothing locally sets neither.
 - **Host dependencies before the first commit**, even with no environment —
   `scripts/agent/worktree-new.sh <branch> --setup-only`: git hooks run on the host, and an agent
   never bypasses a failing hook.
@@ -74,18 +75,17 @@ The worker follows whichever scenario its triage picks. What's specific to workt
   every new worktree inherits them, and `--refresh-env` brings an existing worktree up to date. Don't
   hand-edit `APP_PORT` or the project name: they sit in a block the script generates at the end of
   the env file, and the scripts read the ports there to know which ones are taken.
-- **Ports are per worktree**, derived from the branch name and reserved under a lock, so two
-  dispatches at once can't take the same one. `worktree-ls.sh` lists every worktree's branch, port,
-  whether it's up, and uncommitted changes — and warns when two claim one port.
+- **When worktrees run a server, ports are per worktree**, derived from the branch name and reserved
+  under a lock, so two dispatches at once can't take the same one. `worktree-ls.sh` lists every
+  worktree's branch and uncommitted changes — with its port and whether it's up, when there are
+  ports — and warns when two claim one port.
 
-### Shared or isolated services
+### Shared services
 
-Worktrees share whatever their env files point at — often one local database. That's fine for UI
-work and wrong for schema work: a migration one worker applies is visible to every other worker, and
-a reset wipes their data. For schema work, give that worktree its own database — an isolated stack,
-or a per-worktree database name generated through `ENV_OVERRIDES` in `worktree.conf`
-(`DB_NAME=app_${SLUG}`) — and budget the memory it costs. Record the team's default in
-`docs/PARALLEL-AGENTS.md`.
+Worktrees share whatever their env files point at. That's fine until a task would change the shared
+thing for everyone; then that worktree gets its own copy — started in `START_CMD` under its own name,
+removed in `STOP_CMD`, pointed at through `ENV_OVERRIDES` — at the memory and startup time each copy
+costs. Record what the team shares and what a task may copy in `docs/PARALLEL-AGENTS.md`.
 
 On the newsletter site the shared service that matters is the Contentful environment: a worker
 running a content-model migration against the shared development environment changes the model under
@@ -96,8 +96,10 @@ worktree's env file.
 
 Claude Code can create worktrees itself — `claude --worktree`, subagents with `isolation: worktree`,
 and some desktop flows such as suggested-task chips — under `.claude/worktrees/`, on branches it
-names. They're fine for read-only exploration and isolated subagent work. They don't get the
-project's env file, port, or branch convention, so **don't use them for task work**: dispatch instead.
+names. They're fine for read-only exploration and isolated subagent work. The project's scripts never
+set them up — no copy of its env file, no branch convention — so **don't use them for task work**:
+dispatch instead. A session that starts in one is told it has no role, and `worktree-ls.sh` flags
+task branches found in them.
 `.claude/worktrees/` stays in `.gitignore` and `.claudeignore`.
 
 ### Cleanup
@@ -178,7 +180,7 @@ The rule still holds — one worktree per session — and you do by hand what th
 
 ```
 git worktree add --no-track -b feat/newsletter-signup ../feat-newsletter-signup origin/main
-cp .env ../feat-newsletter-signup/.env      # then give this copy its own port
+cp .env ../feat-newsletter-signup/.env      # this site runs a server: give the copy its own port
 cd ../feat-newsletter-signup && claude
 ```
 
@@ -186,7 +188,7 @@ cd ../feat-newsletter-signup && claude
 - Branches are `<type>/<slug>` as usual; each worktree has its own.
 - The `session-context` hook still tells each session whether it's in the main checkout or a linked
   worktree.
-- The shared-services hazard is the same: schema work gets its own database.
+- The shared-services hazard is the same: a task that would change a shared service gets its own copy.
 - Afterwards: `git worktree remove ../feat-newsletter-signup`, and delete the branch once it's merged.
 
 ## Common mistakes
@@ -198,7 +200,7 @@ cd ../feat-newsletter-signup && claude
 | Dispatching without `--no-start` out of habit | An environment built for a task that may not need one | The worker starts it after triage |
 | Built-in worktree tools for task work | No env file, port, or branch convention; ports collide | `/dispatch` and `worktree-new.sh` |
 | Raw `git worktree add` with the module installed | Ports and env files drift from what the scripts track | The scripts |
-| A schema migration on a shared database | Every other worker's data changes under them | An isolated database for schema work |
+| Changing a service every worktree shares | Every other worker's environment changes under them | That worktree gets its own copy (§ Shared services) |
 | Keeping a squash-merged branch | The next change request on that feature starts from stale code | Delete it after merge |
 | Restating the workflow in the handoff | The copy drifts from `AGENTS.md` | Three lines, pointers only |
 

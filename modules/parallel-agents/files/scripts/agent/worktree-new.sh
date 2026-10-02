@@ -175,11 +175,9 @@ fi
 # drifting further with every hop. The main checkout is the one canonical source.
 if [ -n "$WRITE_ENV" ]; then
   source_file="$MAIN_CHECKOUT/$ENV_FILE"
-  if [ -f "$source_file" ]; then
-    echo "==> Writing $ENV_FILE from the main checkout's"
-  else
-    source_file="$WORKTREE_DIR/$ENV_TEMPLATE"
-    echo "==> No $ENV_FILE in the main checkout — seeding from $ENV_TEMPLATE"
+  if [ ! -f "$source_file" ]; then
+    source_file=""
+    [ -z "$ENV_TEMPLATE" ] || [ ! -f "$WORKTREE_DIR/$ENV_TEMPLATE" ] || source_file="$WORKTREE_DIR/$ENV_TEMPLATE"
   fi
 
   overrides=""
@@ -193,9 +191,21 @@ if [ -n "$WRITE_ENV" ]; then
     fi
   done <<<"$ENV_OVERRIDES"
 
+  if [ -z "$source_file" ] && [ -z "$overrides" ]; then
+    WRITE_ENV=""
+    echo "==> No $ENV_FILE to write — the main checkout has none, and no template or overrides apply"
+  elif [ "$source_file" = "$MAIN_CHECKOUT/$ENV_FILE" ]; then
+    echo "==> Writing $ENV_FILE from the main checkout's"
+  elif [ -n "$source_file" ]; then
+    echo "==> No $ENV_FILE in the main checkout — seeding from $ENV_TEMPLATE"
+  else
+    echo "==> Writing $ENV_FILE with the worktree's overrides only"
+  fi
+fi
+if [ -n "$WRITE_ENV" ]; then
   keys="$(printf '%s\n' "$overrides" | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' | paste -sd'|' -)"
   {
-    if [ -f "$source_file" ]; then
+    if [ -n "$source_file" ]; then
       grep -vE "^(${keys:-__none__})=|^### worktree overrides" "$source_file" || true
     fi
     if [ -n "$overrides" ]; then
@@ -214,7 +224,9 @@ trap - EXIT
 echo
 echo "==> Worktree ready: $WORKTREE_DIR"
 echo "    Branch:  $BRANCH"
-echo "    Project: $PROJECT"
+case "$ENV_OVERRIDES$SETUP_CMD$START_CMD$READY_URL$STOP_CMD$ENV_INFO_CMD" in
+  *'${PROJECT}'*) echo "    Project: $PROJECT" ;;
+esac
 [ -z "$APP_PORT" ] || echo "    Port:    $APP_PORT"
 
 missing=""
@@ -228,10 +240,12 @@ if [ -n "$missing" ]; then
 fi
 
 if [ "$MODE" = "none" ]; then
-  echo
-  echo "--no-start: the environment is left down. When a step needs it, run from the worktree:"
-  echo "  scripts/agent/worktree-new.sh $BRANCH                # set up and start"
-  echo "  scripts/agent/worktree-new.sh $BRANCH --setup-only   # only what the git hooks need"
+  if [ -n "$SETUP_CMD$START_CMD" ]; then
+    echo
+    echo "--no-start: the environment is left down. When a step needs it, run from the worktree:"
+    [ -z "$START_CMD" ] || echo "  scripts/agent/worktree-new.sh $BRANCH                # set up and start"
+    [ -z "$SETUP_CMD" ] || echo "  scripts/agent/worktree-new.sh $BRANCH --setup-only   # only what the git hooks need"
+  fi
   exit 0
 fi
 

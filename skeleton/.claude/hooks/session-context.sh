@@ -53,10 +53,18 @@ if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
 fi
 
 if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
+  main="$(cd "$common_dir/.." && pwd -P)"
   if [ "$checkout" = "main checkout" ]; then
     echo "- Role: DISPATCHER. This is the shared main checkout — hand each task to its own worktree (/dispatch); never edit code here."
   else
-    echo "- Role: WORKER. This worktree is yours for one task — start with triage (/triage)."
+    case "$(cd "$root" && pwd -P)" in
+      "$main"/.claude/worktrees/*)
+        echo "- Role: NONE. This is one of Claude Code's own worktrees, which this project's scripts never set up (a generated branch, none of the project's env). Fine for reading and exploring; for task work, ask the developer to dispatch the task from the main checkout (/dispatch) and open a session in the worktree it creates."
+        ;;
+      *)
+        echo "- Role: WORKER. This worktree is yours for one task — start with triage (/triage)."
+        ;;
+    esac
   fi
 fi
 

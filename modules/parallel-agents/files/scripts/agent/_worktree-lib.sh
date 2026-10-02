@@ -8,15 +8,16 @@ PROJECT_PREFIX=""
 ENV_FILE=".env"
 ENV_TEMPLATE=".env.example"
 PORT_RANGE_START=41000
-PORT_SLOTS=180
+PORT_SLOTS=0
 PORT_STEP=100
 PORT_OFFSET=80
-ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'
+ENV_OVERRIDES=''
 REQUIRED_ENV=""
 SETUP_CMD=""
 START_CMD=""
 READY_URL=""
 STOP_CMD=""
+ENV_INFO_CMD=""
 # Settings may use ${APP_PORT}, ${SLUG}, and ${PROJECT} in single or double quotes: keep them
 # literal while sourcing; expand() fills them in once the values are known.
 # shellcheck disable=SC2016
@@ -63,6 +64,13 @@ repo_name() {
 project_name() {
   local prefix="${PROJECT_PREFIX:-$(repo_name "$1")}"
   to_slug "$prefix-$2"
+}
+
+# builtin_worktree <path> <main checkout> — one of Claude Code's own worktrees (.claude/worktrees/),
+# which get no env file, no port, and a generated branch name.
+builtin_worktree() {
+  case "$1" in "$2"/.claude/worktrees/*) return 0 ;; esac
+  return 1
 }
 
 # The path where a branch is checked out, if any.

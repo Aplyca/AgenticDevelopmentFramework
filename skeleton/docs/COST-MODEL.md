@@ -134,10 +134,10 @@ loses the thread. Ask in order; the first yes wins.
    something.
 2. **Is everything here disposable?** `/clear` — a finished task, an unrelated next one. It's the
    cheapest move, and the old session stays resumable.
-3. **Does the work travel** — to a teammate, another worktree, another tool? Write a short handoff:
-   what was decided, what's next, and pointers to the spec folder, branch, and pull request rather
-   than copies of them. In the full lane after the approval gate, the spec folder already is the
-   handoff: start a fresh session from it.
+3. **Does the work travel** — to a teammate, another worktree, another tool? Write a short handoff
+   (`/handoff`): what was decided, what's next, and pointers to the spec folder, branch, and pull
+   request rather than copies of them. In the full lane after the approval gate, the spec folder
+   already is the handoff: start a fresh session from it.
 4. **Can the next step run unattended?** Give it to an agent (`@code-reviewer`, `/deep-review`): it
    works in its own context and returns a report, and this session stays as it is.
 5. **Otherwise, `/compact`** — with an instruction about what the next phase needs
@@ -202,6 +202,7 @@ Skills run in your conversation, on its model. A skill could name its own model,
 | `/debug` | Sonnet → Opus | Sonnet for most diagnoses; Opus after two disproven hypotheses, or for concurrency, caching, and distributed state |
 | `/refactor` | Sonnet | Pattern extraction + maintaining test parity |
 | `/commit` | Session model | A few short calls; switching to Haiku for them would re-read the whole context uncached |
+| `/handoff` | Session model | A short message of pointers, written where the context already is |
 | `/open-pr`, `/stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
 | `/record-decision`, `/context-audit`, `/spec-drift` | Sonnet | Reading and comparing many files; precision matters more than depth |
 | `/evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
