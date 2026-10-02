@@ -67,10 +67,11 @@ the skill they extend; use them where coverage and confidence are worth it.
 
 ## Plugin skills
 
-The `aplyca-framework` plugin adds installer and measurement skills on the machine, not in the
-repository: `/adopt`, `/upgrade`, and `/cost-report` — what agent sessions on a project cost, from
-Claude Code's local transcripts, with the expensive patterns flagged. See the
-[plugin README](../plugins/aplyca-framework/README.md).
+The `aplyca-adf` plugin adds installer and measurement skills on the machine, not in the
+repository: `/aplyca-adf:adopt`, `/aplyca-adf:upgrade`, and `/aplyca-adf:cost-report` — what agent
+sessions on a project cost, from Claude Code's local transcripts, with the expensive patterns
+flagged. In a packaged project, every skill above also comes from the plugin, typed
+`/aplyca-adf:<name>`. See the [plugin README](../plugins/aplyca-adf/README.md).
 
 ## Adding custom skills
 

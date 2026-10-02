@@ -4,6 +4,8 @@ description: Write tests from a spec folder's acceptance criteria and testable r
 argument-hint: "[spec folder and task ID, 'acceptance' for contract-first, or an area to cover]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/write-tests/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Write Tests (TDD — red before green)
 
 Tests are written from the spec, before the code that satisfies them, and they must fail first. A

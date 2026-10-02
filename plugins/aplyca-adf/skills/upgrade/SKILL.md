@@ -26,7 +26,8 @@ blind sync.
 ## Step 1 — Establish OLD_SHA and the installed modules
 
 Read the baseline from the top of the target's `CLAUDE.md`:
-`<!-- Skeleton source: <SHA> (<date>) · modules: <list> -->` (older stamps have no `modules:` part —
+`<!-- Skeleton source: <vX.Y.Z> · <SHA> (<date>) · modules: <list> -->`. OLD_SHA is the commit; stamps
+from before v1.0.0 have no version (and older ones no `modules:` part —
 treat it as `none`, and check for module files on disk: `.github/pull_request_template.md`,
 `.githooks/pre-push`, `scripts/agent/`, a `clickup` server in `.mcp.json`).
 
@@ -43,12 +44,15 @@ agents) and confirm the inferred SHA with the user before proceeding.
 ## Step 2 — Locate the framework source and NEW_SHA
 
 Same resolution order as `/adopt` Step 1: repo checkout via `${CLAUDE_PLUGIN_ROOT}/../..`
-(development installs), else the marketplace checkout — its `installLocation` in
-`claude plugin marketplace list --json`, by default `~/.claude/plugins/marketplaces/<name>/` (normal case — run `claude plugin marketplace update <name>` first), else a **full** clone of
-`https://github.com/aplyca/AgenticDevelopmentFramework` (not shallow — the diff needs history).
-NEW_SHA is its current HEAD — for a **packaged** project, the newest release tag instead
-(`git -C <framework-root> tag --list 'release-*' --sort=-creatordate | head -1`): the plugin it pins
-exists only at releases.
+(development installs), else a **full** clone of `https://github.com/aplyca/AgenticDevelopmentFramework`
+(not shallow — the diff needs history). The marketplace checkout (`installLocation` in
+`claude plugin marketplace list --json`) sits at the release the project pins, so it can't show what's
+newer.
+
+A project moves **from release to release** (decision 0017): NEW_SHA is the commit of the newest
+release tag (`git -C <framework-root> tag --list 'v*' --sort=-v:refname | head -1`), unless the
+developer asks for the unreleased head. Say whether the jump crosses a major version — those carry
+steps the team has to take.
 
 Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA. Each entry's **Upgrade impact** pre-classifies
 changes into the buckets below, and some entries carry **Migration** steps that must happen even for
@@ -90,8 +94,13 @@ ask, and never discard it.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
   copy the machinery and the `hooks` block back, and remove `aplyca-adf` and the names note.
 
+**The plugin's old name.** Until v1.0.0 the plugin was `aplyca-framework`. If the settings enable
+`aplyca-framework@aplyca`, replace it with `aplyca-adf@aplyca` in this upgrade, and give the developer
+the commands that remove the old one (the plugin's README § Install); until the change merges,
+teammates still on the old name have no `/upgrade`.
+
 **Check where the plugin is turned on.** The upgrade's pull request must leave
-`"enabledPlugins": {"aplyca-framework@aplyca": true}`, with its `aplyca` entry in
+`"enabledPlugins": {"aplyca-adf@aplyca": true}`, with its `aplyca` entry in
 `extraKnownMarketplaces`, committed in `.claude/settings.json`:
 
 - **Already committed:** nothing to do.
@@ -140,10 +149,12 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 - Migration steps from the changelog, in order.
 - Newly chosen modules: copy or install them, then their customize steps.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
-- Packaged: set the marketplace's `"ref"` in `.claude/settings.json` to `release-<NEW_SHA>` — the one
-  line that upgrades the plugin's skills, agents, workflows, and hooks.
-- Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>` — the list includes the new ones;
-  a packaged project keeps `· install: packaged`.
+- Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
+  if the project has none). In a packaged project that one line upgrades the plugin's skills, agents,
+  workflows, and hooks; in a committed one it keeps the plugin's copies at the same release as the
+  committed files.
+- Restamp: `Skeleton source:` → `<new version> · NEW_SHA (<date>) · modules: <list>` — the list includes
+  the new ones; a packaged project keeps `· install: packaged`.
 
 ## Step 6 — Verify and deliver
 

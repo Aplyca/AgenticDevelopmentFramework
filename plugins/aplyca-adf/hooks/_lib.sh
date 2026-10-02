@@ -4,6 +4,15 @@
 
 HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# The plugin's copy of a hook (aplyca-adf, decision 0016) acts only in a packaged project — the stamp
+# on CLAUDE.md's first line says `install: packaged`. A committed project runs its own copies from its
+# settings, and a project that hasn't adopted the framework runs none.
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] &&
+  [ "$(cd "$HOOKS_DIR" && pwd -P)" != "$(cd "$CLAUDE_PROJECT_DIR/.claude/hooks" 2>/dev/null && pwd -P)" ] &&
+  ! head -n 1 "$CLAUDE_PROJECT_DIR/CLAUDE.md" 2>/dev/null | grep -q 'install: packaged'; then
+  exit 0
+fi
+
 PROTECTED_BRANCHES="main master"
 APPEND_ONLY_GLOBS=""
 GENERATED_GLOBS=""

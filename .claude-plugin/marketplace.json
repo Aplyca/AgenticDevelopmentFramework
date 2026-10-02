@@ -1,25 +1,15 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "aplyca",
-  "description": "Aplyca's AI-agentic development tooling — installer and upgrader for the Agentic Development Framework skeleton",
+  "description": "Aplyca's agentic development tooling — the Agentic Development Framework's plugin, aplyca-adf",
   "owner": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
   },
   "plugins": [
     {
-      "name": "aplyca-framework",
-      "description": "Adopt and upgrade the Aplyca Agentic Development Framework in any repository. /adopt bootstraps a repo (copies the skeleton and chosen modules, fills placeholders from verified repo facts, configures guardrail hooks, stamps the baseline SHA); /upgrade syncs an adopted repo to a newer skeleton version using the three-bucket taxonomy; /cost-report measures what agent sessions cost.",
-      "author": {
-        "name": "Aplyca",
-        "email": "dev@aplyca.com"
-      },
-      "category": "productivity",
-      "source": "./plugins/aplyca-framework"
-    },
-    {
       "name": "aplyca-adf",
-      "description": "The Agentic Development Framework's skills, agents, workflows, and guardrail hooks as one plugin, for a packaged install: a Claude Code project pins a release tag instead of committing these files. /adopt sets it up. Generated from the framework's skeleton.",
+      "description": "The Agentic Development Framework for Claude Code: /adopt and /upgrade install and maintain it in a repository, committed or packaged; /cost-report measures what agent sessions cost. A packaged project also takes the framework's skills, agents, workflows, and guardrail hooks from this plugin, pinned to a release.",
       "author": {
         "name": "Aplyca",
         "email": "dev@aplyca.com"

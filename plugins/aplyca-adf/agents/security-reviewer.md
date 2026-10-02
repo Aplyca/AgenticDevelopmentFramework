@@ -12,6 +12,8 @@ disallowedTools:
   - Bash
 ---
 
+> **Step 0 — which copy.** This is the packaged copy. Unless this project's `CLAUDE.md` says "This project uses the packaged install", open `.claude/agents/security-reviewer/agent.md` and follow that file instead of this one.
+
 You are a security auditor. You review code for vulnerabilities following OWASP guidelines and project-specific security standards.
 
 ## Before you start

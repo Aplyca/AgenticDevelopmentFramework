@@ -9,7 +9,7 @@ Code session, or with these commands:
 ```bash
 cd your-project
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin install aplyca-framework@aplyca --scope project
+claude plugin install aplyca-adf@aplyca --scope project
 # then, in the repository:  /adopt
 ```
 
@@ -17,7 +17,7 @@ claude plugin install aplyca-framework@aplyca --scope project
 `.claude/settings.json` — the team is offered it, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
 `--scope local`. From the desktop app's Code tab:
-[the plugin's README § In the desktop app](../plugins/aplyca-framework/README.md#in-the-desktop-app).
+[the plugin's README § In the desktop app](../plugins/aplyca-adf/README.md#in-the-desktop-app).
 
 The manual path below is the same procedure, step by step. It describes the **committed** install,
 the default. For a team that works in Claude Code only there's also a **packaged** install, where the
@@ -140,10 +140,13 @@ enforcement step in `.claude/skills/write-spec/SKILL.md` together.
 Fill the first line of `CLAUDE.md`:
 
 ```markdown
-<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) · modules: <list or none> — … -->
+<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <list or none> — … -->
 ```
 
-`<SHA>` is the framework commit you copied from. `/upgrade` diffs against it later.
+`<vX.Y.Z>` is the release you copied from, and `<SHA>` its commit: `/aplyca-adf:upgrade` diffs against it
+later ([decision 0017](decisions/0017-semantic-versioning.md)). With the plugin, pin the same release
+in `.claude/settings.json` — `"ref": "v<X.Y.Z>"` on the `aplyca` marketplace — so the plugin's copies of
+the skills match your committed ones.
 
 ```bash
 git add AGENTS.md CLAUDE.md .claude/ specs/ docs/ CONTRIBUTING.md README.md .claudeignore  # plus tool layers and modules you kept
@@ -160,9 +163,9 @@ pinned to a release tag. The repository commits its own layer as above, and ever
 Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
 `AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.
 
-It needs a release tag that carries the plugin:
-`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'release-*'`. Pick the
-newest; its SHA is the release heading in [`CHANGELOG.md`](../CHANGELOG.md).
+It pins a release tag ([decision 0017](decisions/0017-semantic-versioning.md)):
+`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`. Pick the newest,
+v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it brings.
 
 **What changes from the steps above:**
 
@@ -170,16 +173,16 @@ newest; its SHA is the release heading in [`CHANGELOG.md`](../CHANGELOG.md).
    scripts in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`, `.agents/`,
    and `.cursor/`. Modules copy as usual: `/dispatch` is the one skill a packaged repository commits.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
-   since the plugin wires the same hooks, and add the pinned marketplace and both plugins:
+   since the plugin wires the same hooks, and pin the marketplace to the release:
 
    ```json
    {
      "extraKnownMarketplaces": {
        "aplyca": {
-         "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "release-<SHA>" }
+         "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>" }
        }
      },
-     "enabledPlugins": { "aplyca-framework@aplyca": true, "aplyca-adf@aplyca": true }
+     "enabledPlugins": { "aplyca-adf@aplyca": true }
    }
    ```
 
@@ -192,8 +195,8 @@ newest; its SHA is the release heading in [`CHANGELOG.md`](../CHANGELOG.md).
    > workflow — `/triage`, `/deep-review` — type `/aplyca-adf:triage`, `/aplyca-adf:deep-review`.
    > Where they name an agent — `@code-reviewer` — its name is `aplyca-adf:code-reviewer`.
 
-4. **Stamp the install** (step 8): `<!-- Skeleton source: <SHA> (<date>) · modules: <list> · install: packaged — … -->`,
-   with the same SHA as the tag.
+4. **Stamp the install** (step 8): `<!-- Skeleton source: v<X.Y.Z> · <SHA> (<date>) · modules: <list> · install: packaged — … -->`,
+   with the pinned release and its commit. `install: packaged` is what turns the plugin's copies on.
 
 **Verify** as below, with two differences. Pipe the hook samples to the plugin's scripts, with the
 project named: `CLAUDE_PROJECT_DIR="$PWD" <marketplace folder>/plugins/aplyca-adf/hooks/guard-git.sh`,
@@ -204,7 +207,7 @@ Each teammate gets the plugin once they trust the folder. A machine nobody opens
 installs it first, from the repository's folder:
 
 ```bash
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework#release-<SHA> --scope project
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
 claude plugin install aplyca-adf@aplyca --scope project
 ```
 
@@ -228,7 +231,7 @@ request:
 
 ```bash
 claude plugin marketplace update aplyca
-claude plugin update aplyca-framework@aplyca
+claude plugin update aplyca-adf@aplyca
 ```
 
 By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's

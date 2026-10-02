@@ -4,6 +4,8 @@ description: Write the pre-implementable user-facing docs an approved spec folde
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup — or 'update' for update mode]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/write-docs/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Write Docs (Docs-First)
 
 Write the user-facing documentation the plan calls for **before** the code exists. Writing docs first

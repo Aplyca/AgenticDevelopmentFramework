@@ -8,7 +8,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${REPO_ROOT:-$( cd "$SCRIPT_DIR/../.." && pwd )}"
-REPORT="$REPO_ROOT/plugins/aplyca-framework/skills/cost-report/session_cost.py"
+REPORT="$REPO_ROOT/plugins/aplyca-adf/skills/cost-report/session_cost.py"
 
 PASS=0
 FAIL=0
@@ -63,7 +63,7 @@ PY
 run() { python3 "$REPORT" "$PROJECT" --projects-dir "$WORK/projects" --days 0 "$@" 2>&1; }
 
 echo ""
-echo "Plugin tests — plugins/aplyca-framework"
+echo "Plugin tests — plugins/aplyca-adf"
 echo "======================================="
 
 out=$(run)

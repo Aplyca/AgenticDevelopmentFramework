@@ -37,7 +37,9 @@ Resolve the framework root, in order:
 3. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
 
 You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
-Record the source SHA and date: `git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
+Record the source release, SHA, and date: `git -C <framework-root> describe --tags --abbrev=0 --match 'v*'`
+(the newest release at or before the source; none before v1.0.0) and
+`git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
 
 **Already adopted?** If the target's `CLAUDE.md` has a `Skeleton source:` line, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
@@ -106,8 +108,8 @@ Present the table before going further. Wrong facts here poison every file downs
   - **Packaged** — for a team that works in Claude Code only. The skills, agents, workflows, and hook
     scripts come from the `aplyca-adf` plugin, pinned to a release tag, and the repository commits
     only its own layer and its modules: about 40 fewer files. People type `/aplyca-adf:triage`.
-    Claude Code's cloud sessions don't load it, and CI installs it first. It needs a release tag that
-    carries the plugin (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'release-*'`);
+    Claude Code's cloud sessions don't load it, and CI installs it first. It pins a release tag,
+    v1.0.0 or later (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`);
     with none yet, say so and install committed.
 
   For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
@@ -168,9 +170,10 @@ Present the table before going further. Wrong facts here poison every file downs
 ## Step 5 — Stamp the baseline and record the decision
 
 - Top of `CLAUDE.md`:
-  `<!-- Skeleton source: <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
-  Without it, `/upgrade` has no baseline to diff against. Packaged: the SHA is the pinned release's,
-  and `· install: packaged` follows the modules.
+  `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
+  Without it, `/upgrade` has no baseline to diff against. Packaged: the release is the pinned tag and
+  the SHA its commit, and `· install: packaged` follows the modules — it's what turns the plugin's
+  skills, agents, and hooks on in this project.
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
   team is adopting, what it adds (files, gates, modules, and the install — committed or packaged, and
   why), the costs (docs to keep fresh, more tokens
@@ -178,13 +181,14 @@ Present the table before going further. Wrong facts here poison every file downs
   deciders are. Add it to the index in `docs/process/README.md`.
 - **The plugin setting.** The documented install (`--scope project`) already wrote
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
-  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` into `.claude/settings.json`: keep both when
+  and `"enabledPlugins": {"aplyca-adf@aplyca": true}` into `.claude/settings.json`: keep both when
   merging the skeleton's settings, so they're committed with the adoption and teammates get the
   plugin and `/upgrade`. If they're missing — a user- or local-scope install — offer to add them
   (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
-  install, give the commands that remove it (the plugin's README § Install). Packaged: the
-  marketplace entry also pins `"ref": "release-<SHA>"`, and `enabledPlugins` adds
-  `"aplyca-adf@aplyca": true`.
+  install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
+  skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
+  project then gets the plugin's copies at the same release as its own files, and a packaged one gets
+  its machinery from that release. With no release yet, leave the entry unpinned.
 
 ## Step 6 — Verify
 

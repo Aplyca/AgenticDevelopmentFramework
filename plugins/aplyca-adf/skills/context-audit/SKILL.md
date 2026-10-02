@@ -4,6 +4,8 @@ description: Read-only audit of the agent-instruction and process files (AGENTS.
 argument-hint: "[file or directory to limit the audit to — default: everything]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/context-audit/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Context Audit (read-only)
 
 Agent instructions drift the moment a pull request changes the repository without changing them.

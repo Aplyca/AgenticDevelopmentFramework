@@ -3,6 +3,8 @@ name: commit
 description: Review the working tree and create one clean, well-prefixed commit — an approved spec folder, a docs-first doc, one TDD task (its test and code together), or a standalone change — staging files by name and never bypassing hooks. Commits locally only; pushing is a separate, explicitly requested action. Use when work is ready to commit.
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/commit/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Commit
 
 Create one commit that captures one logical step. In spec-driven work that step is one of: the

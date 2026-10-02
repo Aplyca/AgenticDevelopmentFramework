@@ -1,6 +1,7 @@
 {
   "name": "aplyca-adf",
-  "description": "The Agentic Development Framework's skills, agents, workflows, and guardrail hooks, for a packaged install: a project pins a release tag instead of committing these files. Generated from the framework's skeleton.",
+  "description": "The Agentic Development Framework for Claude Code. /adopt bootstraps a repository — skeleton, optional modules, guardrail hooks, verified facts — committed or packaged; /upgrade moves an adopted repository to a newer release; /cost-report shows what agent sessions cost, from local transcripts. In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release; in a committed project those step aside for the committed copies.",
+  "version": "1.0.0",
   "author": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"

@@ -4,6 +4,8 @@ description: Turn a spec into plan.md (constitution check, architecture, change 
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/write-plan/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Write Plan — and stop at the approval gate
 
 Produce the HOW for an approved-for-planning spec: `plan.md` and `tasks.md` in the same spec

@@ -230,7 +230,7 @@ PY
     flags+=(--permission-mode bypassPermissions --disallowedTools "Bash(claude:*)" "Bash(git push:*)" "Edit(~/**)" "Write(~/**)")
   else flags+=(--permission-mode acceptEdits); fi
   if grep -q '<!-- run: plugin-dir -->' "$input"; then
-    flags+=(--plugin-dir "$FWC/plugins/aplyca-framework"); dirs+=("$FWC")
+    flags+=(--plugin-dir "$FWC/plugins/aplyca-adf"); dirs+=("$FWC")
   fi
   [ -d "$SOURCE" ] && [ "$SOURCE" != "$FWC" -o ${#dirs[@]} -eq 0 ] && dirs+=("$SOURCE")
   [ ${#dirs[@]} -gt 0 ] && flags+=(--add-dir "${dirs[@]}")

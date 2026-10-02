@@ -1,4 +1,4 @@
-# 0016: A packaged install — the framework's machinery as a pinned plugin, `aplyca-adf` (opt-in, Claude Code only)
+# 0016: A packaged install — the framework's machinery from its pinned plugin, `aplyca-adf` (opt-in, Claude Code only)
 
 - **Status:** accepted
 - **Date:** 2026-10-02
@@ -52,16 +52,26 @@ loaded it into a project that had only the committed layer:
 Offer a second install mode, **packaged**, alongside the committed install, which stays the default.
 Packaged is for teams that work in Claude Code only.
 
-- **The plugin `aplyca-adf`** carries the core skills, the agents (as flat files), the workflows, and
-  the hook scripts, wired through its own `hooks/hooks.json`. Its hooks read the project's
-  `.claude/hooks/config.sh`. Skills are typed `/aplyca-adf:<name>`: `/aplyca-adf:triage`,
-  `/aplyca-adf:write-spec`.
-- **It's generated from `skeleton/`** by a script in this repository and published in the same
-  marketplace as `aplyca-framework`, the installer. A static check fails when the generated plugin
-  and the skeleton drift apart, so the skeleton stays the single source.
-- **Every release gets a tag** named after its changelog heading (`release-<SHA>`). A project pins
-  that tag: `"ref": "release-<SHA>"` in its `.claude/settings.json`. The stamp in `CLAUDE.md` names
-  the same release.
+- **One plugin, `aplyca-adf`.** The installer (`aplyca-framework` until now) is renamed and takes in
+  the machinery: the core skills, the agents (as flat files), the workflows, and the hook scripts,
+  wired through its own `hooks/hooks.json`. Its hooks read the project's `.claude/hooks/config.sh`.
+  Everything is typed under the plugin's name: `/aplyca-adf:adopt`, `/aplyca-adf:triage`.
+- **Its copies act only in a packaged project**, one whose stamp on `CLAUDE.md`'s first line says
+  `install: packaged`. A committed project also turns the plugin on, for `/aplyca-adf:upgrade` and
+  `/aplyca-adf:cost-report`. There, the plugin's hooks stand down: a check in code, so nothing runs
+  twice. Its skills and agents open with a step that hands over to the committed files. That step is
+  an instruction, and in tests the agent skipped it when the two copies matched. So the guarantee
+  comes from the pin instead.
+- **Every project pins its release**, committed ones included: `"ref": "vX.Y.Z"` on the marketplace,
+  equal to the release in the stamp. A committed project's plugin copies then come from the same
+  release as its committed files, so a skill listed twice never runs a different version. The cost is
+  the duplicate entries in each session's skill list, about 2,600 tokens. Workflows can't hand over,
+  because their scripts can't read files, but they are pinned the same way.
+- **The machinery is generated from `skeleton/`** by a script in this repository. A static check
+  fails when it and the skeleton drift apart, so the skeleton stays the single source.
+- **Every release gets a version tag** ([0017](0017-semantic-versioning.md)): `v1.0.0`, `v1.1.0`. A
+  project pins that tag — `"ref": "v1.0.0"` in its `.claude/settings.json` — and its stamp names the
+  same release. An upgrade moves the pin and the committed files together, from release to release.
 - **The project still commits** `AGENTS.md` and `CLAUDE.md` (with the prefixed skill names), the
   settings (permissions, model, the plugin and its pinned marketplace), `config.sh`, the rules,
   `specs/`, the docs, and every module's files. Modules stay committed: their files are scripts,
@@ -88,8 +98,11 @@ Packaged is for teams that work in Claude Code only.
     installed version until someone updates it. Teams on one release don't notice.
   - **Process changes arrive as a tag bump**, so reviewers read that release's changelog entry
     instead of a diff in their own repository. The upgrade pull request links it.
-  - **Two shapes to maintain.** The generated plugin and its drift check are new framework code, and
-    every skeleton change ships in both modes.
+  - **Two shapes to maintain.** The generated machinery and its drift check are new framework code,
+    and every skeleton change ships in both modes.
+  - **The rename is a breaking change.** Adopted projects turn on `aplyca-framework@aplyca`; until
+    each switches to `aplyca-adf@aplyca`, its teammates lose `/upgrade`. `/aplyca-adf:upgrade` makes
+    the switch, and v1.0.0 is a major release.
   - **A runtime dependency** on GitHub and this repository's tags.
 
 ## Alternatives considered
@@ -105,3 +118,7 @@ Packaged is for teams that work in Claude Code only.
   version, and each developer installs it by hand.
 - **A user-scope plugin.** It would turn the framework on in every project on a machine. Installs are
   per project.
+- **Two plugins — the installer for every project, the machinery for packaged ones.** It's the
+  cleanest split: no duplicate listings, no handover notes, no rename. But it puts two plugins in
+  front of every team to explain and install, which is the friction the packaged install exists to
+  remove.

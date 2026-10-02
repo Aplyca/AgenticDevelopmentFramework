@@ -227,12 +227,27 @@ git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree
 # and read the project's .claude/hooks/config.sh through CLAUDE_PROJECT_DIR.
 PKG="$WORK/plugin-hooks"; mkdir -p "$PKG" && cp "$HOOKS_SRC"/*.sh "$PKG/" && rm -f "$PKG/config.sh"
 PROJ="$WORK/packaged"; mkdir -p "$PROJ/.claude/hooks" && git -C "$PROJ" init -q -b main
+echo '<!-- Skeleton source: v1.0.0 · abc1234 (2026-10-02) · modules: none · install: packaged -->' > "$PROJ/CLAUDE.md"
 echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 pkg_push() { printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin %s"}}' "$PROJ" "$1" | CLAUDE_PROJECT_DIR="$PROJ" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?; }
 if [ "$(pkg_push release-x)" = 2 ] && [ "$(pkg_push main)" = 0 ]; then
     PASS=$((PASS+1)); echo "✓ _lib.sh: packaged hooks read the project's config.sh (release-x protected, main not)"
 else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: packaged hooks didn't read the project's config.sh"
+fi
+stand_down=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin main"}}' "$T" | CLAUDE_PROJECT_DIR="$T" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?)
+own=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin main"}}' "$T" | CLAUDE_PROJECT_DIR="$T" "$H/guard-git.sh" >/dev/null 2>&1; echo $?)
+if [ "$stand_down" = 0 ] && [ "$own" = 2 ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: the plugin's copy stands down in a committed project, whose own hook blocks"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: plugin copy exit $stand_down (want 0), the project's own $own (want 2)"
+fi
+NONE="$WORK/not-adopted"; mkdir -p "$NONE" && git -C "$NONE" init -q -b main
+untouched=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin main"}}' "$NONE" | CLAUDE_PROJECT_DIR="$NONE" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?)
+if [ "$untouched" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: the plugin's copy does nothing in a project that hasn't adopted the framework"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: the plugin's copy acted in a project without the framework"
 fi
 code=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin release-x"}}' "$T" | CLAUDE_PROJECT_DIR="$PROJ" "$H/guard-git.sh" >/dev/null 2>&1; echo $?)
 if [ "$code" = 0 ]; then

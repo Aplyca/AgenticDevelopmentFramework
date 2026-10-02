@@ -3,7 +3,7 @@
 You were asked to adopt, use, install, or set up the Agentic Development Framework in a project. This
 page is the procedure. Don't copy files from this repository by hand: the adoption fills the skeleton
 from verified facts about the project, stamps the version it came from, and lands as a draft pull
-request — the installer plugin's `/adopt` does all of that.
+request — the `aplyca-adf` plugin's `/aplyca-adf:adopt` does all of that.
 
 The project is the one the developer named, usually your session's folder. Before step 1, tell the
 developer what you'll do — install the plugin for this project only, then adopt the framework on a
@@ -21,18 +21,18 @@ branch, delivered as a draft pull request — and wait for their go-ahead.
 
 ## 2. Install the plugin for this project only
 
-Skip this step when `.claude/settings.json` already enables `aplyca-framework@aplyca`. Otherwise run,
+Skip this step when `.claude/settings.json` already enables `aplyca-adf@aplyca`. Otherwise run,
 from the project's root:
 
 ```bash
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin install aplyca-framework@aplyca --scope project
+claude plugin install aplyca-adf@aplyca --scope project
 ```
 
 Always with `--scope project`: without it, Claude Code installs at user scope, which turns the plugin
 on in every project on the machine. If `claude plugin list` also shows the plugin at user scope, tell
 the developer, with the commands that remove that copy (the plugin's
-[README § Install](plugins/aplyca-framework/README.md#install)); don't run them.
+[README § Install](plugins/aplyca-adf/README.md#install)); don't run them.
 
 The install changes `.claude/settings.json`. Show the developer the diff and leave it uncommitted: the
 adoption's pull request carries it.
@@ -41,11 +41,11 @@ adoption's pull request carries it.
 
 The plugin's skills load when a session starts, so this session doesn't have `/adopt` yet. Either:
 
-- **Hand over:** tell the developer to start a new session in the project and run `/adopt`
-  (`/upgrade` for an adopted project).
+- **Hand over:** tell the developer to start a new session in the project and run
+  `/aplyca-adf:adopt` (`/aplyca-adf:upgrade` for an adopted project).
 - **Continue here:** find the marketplace's folder — the `installLocation` of `aplyca` in
   `claude plugin marketplace list --json` — then read
-  `plugins/aplyca-framework/skills/adopt/SKILL.md` (or `upgrade/SKILL.md`) inside it and follow it step
+  `plugins/aplyca-adf/skills/adopt/SKILL.md` (or `upgrade/SKILL.md`) inside it and follow it step
   by step. It is the same procedure `/adopt` runs.
 
 Its ground rules hold either way: every filled placeholder traces to a file you read, nothing is

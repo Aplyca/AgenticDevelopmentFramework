@@ -5,6 +5,8 @@ argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
 disable-model-invocation: true
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/open-pr/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Open a Draft Pull Request
 
 Pushing and opening a pull request leave this machine, so this skill runs only when the developer

@@ -4,6 +4,8 @@ description: Write the spec.md of a spec folder with the multi-perspective spec 
 argument-hint: "[feature description, tracker link, or spec folder to amend]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/write-spec/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Write Spec
 
 Write `specs/NNN-<slug>/spec.md` using the multi-perspective spec model (`docs/SPEC-MODEL.md`): the

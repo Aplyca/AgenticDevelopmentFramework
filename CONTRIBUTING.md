@@ -1,6 +1,6 @@
 # Contributing to the Agentic Development Framework
 
-Thanks for helping improve the framework. This repository is not an application — it is a portable skeleton, optional modules, documentation, and the `aplyca-framework` Claude Code plugin. Its "code" is mostly prompts, rules, and templates that end up inside other teams' repositories, so a one-line change here changes how many AI agents behave. The guidelines below exist to keep those changes safe to adopt.
+Thanks for helping improve the framework. This repository is not an application — it is a portable skeleton, optional modules, documentation, and the `aplyca-adf` Claude Code plugin. Its "code" is mostly prompts, rules, and templates that end up inside other teams' repositories, so a one-line change here changes how many AI agents behave. The guidelines below exist to keep those changes safe to adopt.
 
 ## Ways to contribute
 
@@ -8,7 +8,7 @@ Thanks for helping improve the framework. This repository is not an application 
 - **Improve the skeleton** — clearer rules, better skill instructions, missing spec sections, hooks, tool-compatibility fixes.
 - **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host or a way of working.
 - **Add worked material** — new playbooks in `docs/scenarios/` or end-to-end examples in `docs/examples/`.
-- **Fix the plugin** — the `/adopt` and `/upgrade` skills in `plugins/aplyca-framework/`.
+- **Fix the plugin** — the `/adopt` and `/upgrade` skills in `plugins/aplyca-adf/`.
 
 For anything larger than a focused fix, open an issue first so we can agree on the direction before you invest the time.
 
@@ -28,20 +28,21 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 1. Fork the repository and create a branch from `main` (`feat/…`, `fix/…`, `docs/…`, `chore/…`).
 2. Make one logical change per pull request.
 3. **Add a `CHANGELOG.md` entry** under `Unreleased`. Adopting teams upgrade by reading it, so classify every skeleton file you touched against the three-bucket taxonomy in [`docs/UPGRADING.md`](docs/UPGRADING.md): *Overwrite*, *Merge*, or *Additive*. Mark changes that don't land in adopted repos as framework-internal.
-4. **Bump the plugin version** in `plugins/aplyca-framework/.claude-plugin/plugin.json` if you changed anything under `plugins/`.
+4. **Bump the plugin version** in `plugins/aplyca-adf/.claude-plugin/plugin.json` if you changed anything under `plugins/`.
 5. Run the checks below.
 6. Open a pull request that explains what changed and *why*, and lists the checks you ran.
 
-**Cutting a release** (maintainers): when `Unreleased` holds changes adopting teams should take, rename
-it to `## <SHA> — <date> — <title>` with the SHA of the last commit it covers. Open it with the
-order to upgrade in when it spans several parts, and add an empty `Unreleased` above it. Adopting
-repositories stamp the commit they upgraded to, so the heading's SHA tells them which entries apply.
-Once the release merges, tag that commit `release-<SHA>` and push the tag: packaged projects pin it
-([decision 0016](docs/decisions/0016-packaged-install.md)), and without it they can't take the
-release.
+**Cutting a release** (maintainers): when `Unreleased` holds changes adopting teams should take, pick
+the version by [decision 0017](docs/decisions/0017-semantic-versioning.md): MAJOR when a team has to
+act, MINOR for additive or opt-in capabilities, PATCH for fixes. In one pull request, rename
+`Unreleased` to `## vX.Y.Z — <date> — <title>`, open it with the order to upgrade in when it spans
+several parts, add an empty `Unreleased` above it, and set `"version"` in
+`plugins/aplyca-adf/.claude-plugin/plugin.json` to `X.Y.Z` (a static check holds the two equal). Once
+it merges, tag the merge commit `vX.Y.Z` and push the tag: packaged projects pin it, and without it
+they can't take the release.
 
-**`plugins/aplyca-adf/` is generated** from `skeleton/.claude/` by `scripts/build-aplyca-adf.sh`.
-Never edit it; after any change under `skeleton/.claude/`, run the script and commit its output with
+**The machinery in `plugins/aplyca-adf/` is generated** from `skeleton/.claude/` by
+`scripts/build-aplyca-adf.sh` — every path its `.generated` file lists. Never edit those; after any change under `skeleton/.claude/`, run the script and commit its output with
 the change. The static checks fail when the two drift apart.
 
 ## Checks
@@ -61,7 +62,7 @@ claude plugin validate .
 ```
 
 ```bash
-claude plugin validate plugins/aplyca-framework
+claude plugin validate plugins/aplyca-adf
 ```
 
 If you changed how a skill behaves (not just its structure), consider running the relevant dynamic fixture in [`evals/dynamic/`](evals/dynamic/README.md) and noting the result in your PR. Add a new eval only when a real regression surfaces — see [`evals/STRATEGY.md`](evals/STRATEGY.md).

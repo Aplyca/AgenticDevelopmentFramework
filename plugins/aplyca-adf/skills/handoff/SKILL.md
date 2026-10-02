@@ -4,6 +4,8 @@ description: Hand work in progress to someone who wasn't here — a teammate, an
 argument-hint: "[who or where it goes — a teammate, a fresh session, another machine]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/handoff/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Handoff
 
 A handoff lets someone with no access to this conversation continue the work. Everything worth

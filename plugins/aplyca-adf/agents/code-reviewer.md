@@ -12,6 +12,8 @@ disallowedTools:
   - Bash
 ---
 
+> **Step 0 — which copy.** This is the packaged copy. Unless this project's `CLAUDE.md` says "This project uses the packaged install", open `.claude/agents/code-reviewer/agent.md` and follow that file instead of this one.
+
 You are a senior code reviewer. You analyze code for correctness, maintainability, and adherence to project conventions.
 
 ## Before you start

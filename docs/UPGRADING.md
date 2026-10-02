@@ -22,13 +22,20 @@ Skip the upgrade when:
 
 ## Versioning convention
 
-The framework does not use semver. Versions are referenced by **commit SHA + date** of the source repo (`AgenticDevelopmentFramework`).
+From v1.0.0, releases follow **semantic versioning** ([decision 0017](decisions/0017-semantic-versioning.md)):
+**MAJOR** when an adopting team has to act (migration steps, a changed workflow rule, a renamed or
+removed skill, setting, or plugin), **MINOR** for additive or opt-in capabilities, **PATCH** for fixes
+that change no workflow. Each release is tagged `vX.Y.Z`. Releases before v1.0.0 are referenced by
+**commit SHA + date**.
 
 To make future upgrades tractable, record the skeleton baseline — and the optional modules you installed — in the first line of your project's `CLAUDE.md`:
 
 ```markdown
-<!-- Skeleton source: ed3d1a1 (2026-04-29) · modules: github, parallel-agents -->
+<!-- Skeleton source: v1.0.0 · 1a2b3c4 (2026-10-02) · modules: github, parallel-agents -->
 ```
+
+The commit is what an upgrade diffs from, so the stamp keeps it next to the version. Stamps from
+before v1.0.0 carry only the SHA (`Skeleton source: ed3d1a1 (2026-04-29)`) and still work.
 
 This gives every future upgrade a known baseline to diff against. Update it after each successful upgrade. Older stamps without `modules:` mean none were installed.
 
@@ -246,9 +253,9 @@ A packaged project ([decision 0016](decisions/0016-packaged-install.md)) doesn't
 agents, workflows, or hook scripts: they come from the `aplyca-adf` plugin, pinned to a release tag
 in `.claude/settings.json`. Upgrading it means two things:
 
-- **Bump the pin:** the marketplace's `"ref"` moves to the new `release-<SHA>`. That one line upgrades
-  every skill, agent, workflow, and hook. Packaged projects move from release to release, because the
-  plugin they pin exists only at release tags.
+- **Bump the pin:** the marketplace's `"ref"` moves to the new release tag, `vX.Y.Z`. That one line upgrades
+  every skill, agent, workflow, and hook. Every project moves from release to release, committed ones
+  too: their pin keeps the plugin's copies at the same release as their committed files.
 - **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
@@ -314,7 +321,7 @@ Treat as a deliberate framework decision. Read the commit message. If a skill wa
 ## What this guide doesn't cover
 
 - **Automated upgrade tooling** — out of scope. Manual or AI-assisted is the current bar. If the framework adopts a release CLI someday, this guide will be replaced.
-- **Semantic versioning** — the framework doesn't use semver yet. SHAs are the version.
+- **Releases before v1.0.0** — they have no tags; their SHAs are the version.
 - **Breaking-change detection** — read [`CHANGELOG.md`](../CHANGELOG.md) for per-entry upgrade impact, then commit messages between OLD_SHA and NEW_SHA for anything not yet captured there.
 - **Forking the framework** — if your team has diverged so far that upgrading is no longer cost-effective, you've effectively forked. Document the divergence and stop tracking upstream.
 

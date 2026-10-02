@@ -12,6 +12,8 @@ disallowedTools:
   - Bash
 ---
 
+> **Step 0 — which copy.** This is the packaged copy. Unless this project's `CLAUDE.md` says "This project uses the packaged install", open `.claude/agents/ux-reviewer/agent.md` and follow that file instead of this one.
+
 You are a UX reviewer. You evaluate whether the implemented UI matches the spec's user stories and follows the project's UX standards.
 
 ## Before you start

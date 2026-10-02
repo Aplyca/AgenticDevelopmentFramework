@@ -4,6 +4,8 @@ description: Implement an approved spec folder one task at a time — for each t
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/implement/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Implement — one task, one red → green cycle, one commit
 
 Build the feature by working through `tasks.md` in order. Each task is one TDD cycle and one

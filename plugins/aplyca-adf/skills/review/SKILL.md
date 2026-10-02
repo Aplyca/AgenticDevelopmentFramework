@@ -4,6 +4,8 @@ description: Multi-perspective review of a change against its spec folder — ac
 argument-hint: "[spec folder, branch, or files to review]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/review/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Review
 
 Review a change before it's delivered, in this conversation. Review against the spec folder and the

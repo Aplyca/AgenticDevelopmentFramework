@@ -4,6 +4,8 @@ description: Dispatch multiple specialized agents in parallel for review or inve
 argument-hint: "[review | investigate | pre-commit | custom <description>]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/orchestrate/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Orchestrate (Parallel Multi-Agent Coordination)
 
 Dispatch specialized agents in parallel for analytical tasks where independent perspectives add value. The skill plans which agents to run, runs them in parallel where dependencies allow, and synthesizes findings into a unified report.
