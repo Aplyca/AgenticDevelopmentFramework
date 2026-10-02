@@ -9,12 +9,13 @@ Code session, or with these commands:
 ```bash
 cd your-project
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin marketplace update aplyca
 claude plugin install aplyca-adf@aplyca --scope project
-# then, in the repository:  /adopt
+# then, in the repository:  /aplyca-adf:adopt
 ```
 
 `--scope project` turns the plugin on in this project only, through its committed
-`.claude/settings.json` — the team is offered it, and every worktree of a hub project gets it. Without
+`.claude/settings.json` — teammates get it once they trust the folder, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
 `--scope local`. From the desktop app's Code tab:
 [the plugin's README § In the desktop app](../plugins/aplyca-adf/README.md#in-the-desktop-app).

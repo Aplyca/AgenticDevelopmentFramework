@@ -11,6 +11,43 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.0 — 2026-10-02 — One plugin, a packaged install, and semantic versioning
+
+Everything since `7383422`: `/upgrade` carries the plugin setting into the hub's worktree
+([#17](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/17)), Claude Code's own worktrees
+are workers ([#18](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/18)), `/cost-report`'s
+Sonnet estimate ([#19](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/19)), and one
+plugin with a packaged install, joining a project with no install, and semantic versioning
+([#20](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/20)). It's the first numbered
+release, and a major one: the installer plugin is renamed `aplyca-adf`.
+
+**Upgrading a repository whose baseline is `7383422`.** In this order:
+
+1. **Install `aplyca-adf` in the project.** Paste the install prompt from the
+   [README](README.md#with-claude-code--the-installer-plugin-recommended) into a session on the
+   project — from a worktree if the project uses the dispatcher hub. It refreshes the marketplace,
+   installs with `--scope project`, and reports a user-scope copy to remove. Then start a new
+   session.
+2. **Run `/aplyca-adf:upgrade`.** It replaces `aplyca-framework@aplyca` in the committed settings,
+   pins the marketplace to `v1.0.0`, applies each part's Upgrade impact below, restamps `CLAUDE.md`
+   (`Skeleton source: v1.0.0 · <SHA> …`), and offers the packaged install. Stay committed unless the
+   team works in Claude Code only. By hand: each part's Upgrade impact, newest first.
+3. **Remove the old plugin** once the pull request merges, on each machine that installed it:
+   `claude plugin uninstall aplyca-framework@aplyca --scope project`. Teammates need nothing else:
+   their next session loads `aplyca-adf` at the pinned release.
+
+A baseline older than `7383422` takes that release's order first, then this one.
+
+### The install refreshes a marketplace added before
+
+A machine that added the `aplyca` marketplace before the rename keeps its copy of it, which lists only
+`aplyca-framework`. Running `claude plugin marketplace add` again leaves that copy alone, so the
+install prompt failed with `Plugin "aplyca-adf" not found` in every project adopted before it. The
+prompt, `ADOPT.md`, and the documented commands now run `claude plugin marketplace update aplyca`
+between adding the marketplace and installing the plugin. Tested on a copy of the marketplace from
+`7383422`.
+**Upgrade impact:** framework-internal.
+
 ### One plugin, `aplyca-adf`, and semantic versioning — breaking
 
 ([0016](docs/decisions/0016-packaged-install.md), [0017](docs/decisions/0017-semantic-versioning.md))

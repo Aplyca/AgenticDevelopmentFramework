@@ -29,10 +29,12 @@ from the project's root:
 
 ```bash
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin marketplace update aplyca
 claude plugin install aplyca-adf@aplyca --scope project
 ```
 
-Always with `--scope project`: without it, Claude Code installs at user scope, which turns the plugin
+The update refreshes a copy of the marketplace this machine added before; without it, the install
+can't find `aplyca-adf`. Always with `--scope project`: without it, Claude Code installs at user scope, which turns the plugin
 on in every project on the machine. If `claude plugin list` also shows the plugin at user scope, tell
 the developer, with the commands that remove that copy (the plugin's
 [README § Install](plugins/aplyca-adf/README.md#install)); don't run them.

@@ -39,7 +39,10 @@ at user scope.
    worktree.
 3. From this folder, run:
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin marketplace update aplyca
    claude plugin install aplyca-adf@aplyca --scope project
+   The update refreshes a copy of the marketplace added before; without it the install can't
+   find aplyca-adf.
 4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
    plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
 5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
@@ -48,11 +51,13 @@ at user scope.
    "Skeleton source:" line, otherwise /aplyca-adf:adopt.
 ```
 
-Or run the two commands yourself, from the project's folder:
+Or run the commands yourself, from the project's folder. The update refreshes a copy of the
+marketplace added before, which doesn't list `aplyca-adf` yet:
 
 ```bash
 cd your-project
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin marketplace update aplyca
 claude plugin install aplyca-adf@aplyca --scope project
 ```
 
@@ -82,6 +87,7 @@ made with the commands above works there too. To install from the app instead:
 
    ```bash
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin marketplace update aplyca
    ```
 
 2. In a local or SSH session on the project, click **+** next to the prompt box, then **Plugins** →
@@ -151,11 +157,6 @@ files, so a skill listed twice never runs a different version.
 
 Every project pins a release, so updating the plugin changes nothing until the pin moves.
 `/aplyca-adf:upgrade` moves it to the newest release and brings the committed files along, in one pull
-request; restart Claude Code after it merges. A project that isn't pinned yet — adopted before
-v1.0.0 — takes the newest release from the project's folder, then runs `/aplyca-adf:upgrade`, which
-pins it:
-
-```bash
-claude plugin marketplace update aplyca
-claude plugin update aplyca-adf@aplyca --scope project
-```
+request; restart Claude Code after it merges. A project adopted before v1.0.0 isn't pinned and turns
+on `aplyca-framework`: install `aplyca-adf` with the [install prompt](#install), then run
+`/aplyca-adf:upgrade`, which renames the setting and pins the release.
