@@ -164,6 +164,20 @@ else
     FAIL=$((FAIL+1)); echo "✘ session-context.sh: protected-branch warning missing"; echo "    $out"
 fi
 
+# With the parallel-agents module, each session learns its role from where it runs.
+mkdir -p "$T/scripts/agent" && printf '#!/bin/sh\n' > "$T/scripts/agent/worktree-new.sh" && chmod +x "$T/scripts/agent/worktree-new.sh"
+git -C "$T" add scripts/agent/worktree-new.sh && git -C "$T" commit -qm "add the worktree script"
+git -C "$T" worktree add -q -b feat/role-check "$WORK/feat-role-check"
+git -C "$T" worktree add -q -b claude/eager-lamport "$T/.claude/worktrees/eager-lamport"
+role() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$1" | "$H/session-context.sh" | grep 'Role:'; }
+r_main="$(role "$T")"; r_worker="$(role "$WORK/feat-role-check")"; r_builtin="$(role "$T/.claude/worktrees/eager-lamport")"
+if echo "$r_main" | grep -q DISPATCHER && echo "$r_worker" | grep -q WORKER && echo "$r_builtin" | grep -q 'Role: NONE'; then
+    PASS=$((PASS+1)); echo "✓ session-context.sh: dispatcher in the main checkout, worker in a worktree, none in Claude Code's own worktree"
+else
+    FAIL=$((FAIL+1)); echo "✘ session-context.sh: roles wrong"; echo "    main: $r_main"; echo "    worker: $r_worker"; echo "    built-in: $r_builtin"
+fi
+git -C "$T" worktree remove --force "$WORK/feat-role-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/eager-lamport"
+
 echo "==================================="
 echo "Results: $PASS passed, $FAIL failed"
 echo ""
