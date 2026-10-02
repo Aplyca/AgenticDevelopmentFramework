@@ -68,7 +68,7 @@ to use the framework like a package. A team that works in Claude Code only can n
   - `docs/SETUP.md` § Packaged install covers the steps, and `docs/UPGRADING.md` covers upgrades.
 - **`/aplyca-adf:adopt` asks committed or packaged.** `/aplyca-adf:upgrade` moves a packaged project
   from release to release by bumping the pin, skips the paths the plugin carries, and offers to switch
-  between the two installs.
+  between the two installs. The switch is recorded as a PDR in the project, amending PDR-0001.
 
 #### Changed
 - **`.claude/hooks/_lib.sh`** reads `config.sh` from next to the scripts, as before, or else from the

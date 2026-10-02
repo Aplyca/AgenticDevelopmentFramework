@@ -260,9 +260,10 @@ in `.claude/settings.json`. Upgrading it means two things:
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
 
-`/upgrade` does both, and offers to switch a committed project to packaged (or back). Switching removes
-only the machinery files unchanged since your baseline. A skill or hook your team edited stays
-committed, under a name of its own, or goes upstream as a change to the framework.
+`/aplyca-adf:upgrade` does both, and offers to switch a committed project to packaged (or back). The
+switch is recorded as a process decision (PDR) in the same pull request, and it removes only the
+machinery files unchanged since your baseline. A skill or hook your team edited stays committed,
+under a name of its own, or goes upstream as a change to the framework.
 
 ### "We adopted before the modules existed"
 

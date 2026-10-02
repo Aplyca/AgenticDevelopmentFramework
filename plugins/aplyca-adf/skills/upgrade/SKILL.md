@@ -92,7 +92,13 @@ ask, and never discard it.
   edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add the pinned
   marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, and `install: packaged` in the stamp.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
-  copy the machinery and the `hooks` block back, and remove `aplyca-adf` and the names note.
+  copy the machinery and the `hooks` block back, and remove `install: packaged` and the names note.
+  Keep `aplyca-adf` turned on and pinned, for `/aplyca-adf:upgrade`.
+- **Record the switch** — it changes how the team works — as a process decision in the same pull
+  request: the next `docs/process/NNNN-<slug>.md` from `docs/process/0000-pdr-template.md`, with its
+  row in `docs/process/README.md`. Say why the team switches, what changes for them (the names they
+  type, Claude Code only, no cloud sessions — or the reverse), and how to switch back; ask who the
+  deciders are. It amends the install chosen at adoption, so mark PDR-0001's status as amended by it.
 
 **The plugin's old name.** Until v1.0.0 the plugin was `aplyca-framework`. If the settings enable
 `aplyca-framework@aplyca`, replace it with `aplyca-adf@aplyca` in this upgrade, and give the developer
@@ -137,8 +143,8 @@ follow the changelog's migration notes.
 ## Step 4 — Present the plan
 
 One table: `file → bucket → action → risk note`, plus the changelog's migration steps as their own
-checklist, the newly chosen modules with their customize steps, and the plugin setting when it's
-being added. For merge-required files, show which customizations were detected (diff of the target file
+checklist, the newly chosen modules with their customize steps, the plugin setting when it's
+being added, and an install switch with its PDR. For merge-required files, show which customizations were detected (diff of the target file
 vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 ## Step 5 — Execute
@@ -148,6 +154,8 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   restructured a section, place the customization where it now belongs and flag it in the PR body.
 - Migration steps from the changelog, in order.
 - Newly chosen modules: copy or install them, then their customize steps.
+- An install switch, when the developer accepted it: the removals or copies, the settings, the
+  `CLAUDE.md` note and stamp, and its PDR.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
 - Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
   if the project has none). In a packaged project that one line upgrades the plugin's skills, agents,
@@ -168,5 +176,5 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
-   user-scope copy), anything needing human judgment.
+   user-scope copy), an install switch and its PDR, anything needing human judgment.
 4. Push and open the PR **as a draft, only after the user approves**.
