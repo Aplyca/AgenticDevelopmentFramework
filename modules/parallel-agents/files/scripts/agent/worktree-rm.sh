@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Tear down a worktree created by worktree-new.sh: stop its environment (STOP_CMD), remove the
-# worktree, and delete its branch only if git sees it as merged.
+# Tear down a worktree created by worktree-new.sh: stop its environment (STOP_CMD) and, when it ran
+# its own services (--isolated), stop them and drop their data (ISOLATED_STOP_CMD); remove the
+# worktree; and delete its branch only if git sees it as merged.
 #
 # Usage: scripts/agent/worktree-rm.sh <type>/<slug | slug> [--force]
 #   --force   remove even with uncommitted changes (they are lost)
@@ -30,10 +31,17 @@ BRANCH="$(git -C "$WORKTREE_DIR" branch --show-current)"
 SLUG="$(basename "$WORKTREE_DIR")"
 PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
 APP_PORT="$(env_value "$WORKTREE_DIR/$ENV_FILE" APP_PORT || true)"
+PORT_BASE="$(env_value "$WORKTREE_DIR/$ENV_FILE" WORKTREE_PORT_BASE || true)"
+ISOLATED="$(env_value "$WORKTREE_DIR/$ENV_FILE" WORKTREE_ISOLATED || true)"
 
 if [ -n "$STOP_CMD" ]; then
   echo "==> Stop: $(expand "$STOP_CMD")"
   (cd "$WORKTREE_DIR" && sh -c "$(expand "$STOP_CMD")") || echo "Warning: the stop command failed or nothing was running." >&2
+fi
+# Without this, an isolated worktree's services and their data outlive it.
+if [ "$ISOLATED" = 1 ] && [ -n "$ISOLATED_STOP_CMD" ]; then
+  echo "==> Stop its own services: $(expand "$ISOLATED_STOP_CMD")"
+  (cd "$WORKTREE_DIR" && sh -c "$(expand "$ISOLATED_STOP_CMD")") || echo "Warning: stopping its own services failed — check for leftover containers or data." >&2
 fi
 
 echo "==> Removing worktree $WORKTREE_DIR"

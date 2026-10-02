@@ -71,7 +71,7 @@ git -C "$M" config user.name test
 git -C "$M" symbolic-ref HEAD refs/heads/main   # the clone is empty; don't depend on init.defaultBranch
 cp -R "$MODULES/parallel-agents/files/." "$M/" && chmod +x "$M"/scripts/agent/*.sh
 printf 'SECRET=\nAPP_PORT=\n' > "$M/.env.example"
-printf '.env\nsetup.txt\nstarted.txt\n' > "$M/.gitignore"
+printf '.env\nsetup.txt\nstarted.txt\nprepared.txt\nown.txt\n' > "$M/.gitignore"
 CONF="$M/scripts/agent/worktree.conf"
 replace "$CONF" 'REQUIRED_ENV=""' 'REQUIRED_ENV="SECRET"'
 replace "$CONF" 'SETUP_CMD=""' 'SETUP_CMD="echo setup-${SLUG} > setup.txt"'
@@ -79,6 +79,13 @@ replace "$CONF" 'START_CMD=""' 'START_CMD="echo started-${APP_PORT} > started.tx
 replace "$CONF" 'STOP_CMD=""' 'STOP_CMD="echo stopped > ../stopped-${SLUG}.txt"'
 replace "$CONF" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}'" "ENV_OVERRIDES='COMPOSE_PROJECT_NAME=\${PROJECT}
 SITE_URL=http://localhost:\${APP_PORT}'"
+replace "$CONF" 'ISOLATED_PORTS=0' 'ISOLATED_PORTS=3'
+replace "$CONF" "ISOLATED_ENV_OVERRIDES=''" "ISOLATED_ENV_OVERRIDES='DB_URL=postgres://localhost:\${PORT_2}/app'"
+replace "$CONF" 'ISOLATED_SETUP_CMD=""' 'ISOLATED_SETUP_CMD="echo prepared-${SLUG} > prepared.txt"'
+replace "$CONF" 'ISOLATED_START_CMD=""' 'ISOLATED_START_CMD="echo own-${PORT_1} > own.txt"'
+replace "$CONF" 'ISOLATED_STOP_CMD=""' 'ISOLATED_STOP_CMD="echo own-stopped > ../own-stopped-${SLUG}.txt"'
+replace "$CONF" 'ENV_INFO_CMD=""' 'ENV_INFO_CMD="echo db-at-${PORT_2}"'
+
 git -C "$M" add -A && git -C "$M" commit -qm init && git -C "$M" push -q -u origin main 2>/dev/null
 printf 'SECRET=abc\nAPP_PORT=1\nCOMPOSE_PROJECT_NAME=stale\n' > "$M/.env"
 port_of() { sed -n 's/^APP_PORT=//p' "$1/.env"; }
@@ -136,8 +143,34 @@ git -C "$M" branch -q feat/old-delivery v1.0.0
 out=$(scripts/agent/worktree-new.sh feat/old-delivery --no-start 2>&1); code=$?
 check "worktree-new: warns when reusing a local branch that is behind the base" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'behind origin/main'"
 
+# isolated services — a worktree's own copy of what siblings share
+out=$(scripts/agent/worktree-new.sh feat/schema-change --isolated --no-start 2>&1); code=$?
+W3="$P/feat-schema-change"; P3="$(port_of "$W3")"; B3=$((P3 - 80))
+check "worktree-new --isolated: records it with the port base and the services' overrides" "[ $code -eq 0 ] && grep -q '^WORKTREE_ISOLATED=1$' '$W3/.env' && grep -q '^WORKTREE_PORT_BASE=$B3$' '$W3/.env' && grep -q '^DB_URL=postgres://localhost:$((B3 + 2))/app$' '$W3/.env'"
+check "worktree-new --isolated: prepares the services even with --no-start, and starts nothing" "grep -q prepared-feat-schema-change '$W3/prepared.txt' && [ ! -f '$W3/own.txt' ] && [ ! -f '$W3/started.txt' ]"
+out=$(scripts/agent/worktree-new.sh feat/schema-change 2>&1); code=$?
+check "worktree-new: an isolated worktree starts its own services, before the app, on later runs too" "[ $code -eq 0 ] && grep -q 'own-$((B3 + 1))' '$W3/own.txt' && [ -f '$W3/started.txt' ] && echo \"\$out\" | grep '==> Start' | head -1 | grep -q 'its own'"
+out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --isolated --no-start 2>&1); code=$?
+check "worktree-new --isolated: an existing shared worktree becomes isolated and keeps its port" "[ $code -eq 0 ] && grep -q '^WORKTREE_ISOLATED=1$' '$W1/.env' && [ \"\$(port_of '$W1')\" = '$P1' ]"
+taken_slug=feat-block-taken
+slot=$(( $(printf '%s' "$taken_slug" | cksum | awk '{print $1}') % 180 ))
+taken_base=$((41000 + slot * 100))
+python3 -c 'import socket,sys,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(("127.0.0.1", int(sys.argv[1]))); s.listen(); time.sleep(20)' $((taken_base + 1)) &
+listener=$!
+for _ in 1 2 3 4 5 6 7 8 9 10; do (exec 3<>"/dev/tcp/127.0.0.1/$((taken_base + 1))") 2>/dev/null && break; sleep 0.2; done
+out=$(scripts/agent/worktree-new.sh feat/block-taken --isolated --no-start 2>&1); code=$?
+kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null
+check "worktree-new --isolated: skips a slot whose service ports are taken" "[ $code -eq 0 ] && [ \"\$(port_of '$P/feat-block-taken')\" != '$((taken_base + 80))' ]"
+
 out=$(scripts/agent/worktree-ls.sh 2>&1)
 check "worktree-ls: lists every worktree and marks the main checkout" "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
+check "worktree-ls: says whether a worktree's services are its own or shared" "echo \"\$out\" | grep 'feat/schema-change' | grep -q ' own ' && echo \"\$out\" | grep 'fix/other-thing' | grep -q ' shared '"
+out=$(scripts/agent/worktree-ls.sh --info 2>&1)
+check "worktree-ls --info: runs ENV_INFO_CMD in each environment" "echo \"\$out\" | grep -q 'db-at-$((B3 + 2))'"
+git -C "$M" worktree add -q -b fix/in-builtin "$M/.claude/worktrees/eager-lamport" main 2>/dev/null
+out=$(scripts/agent/worktree-ls.sh 2>&1)
+check "worktree-ls: flags task work in Claude Code's own worktrees" "echo \"\$out\" | grep -q 'fix/in-builtin is task work'"
+git -C "$M" worktree remove --force "$M/.claude/worktrees/eager-lamport"
 
 echo work > "$W2/work.txt" && git -C "$W2" add work.txt && git -C "$W2" commit -qm work
 echo dirty > "$W2/dirty.txt"
@@ -149,6 +182,8 @@ out=$(scripts/agent/worktree-rm.sh chore-stale-lock 2>&1); code=$?
 check "worktree-rm: by slug, deletes a merged branch" "[ $code -eq 0 ] && ! git -C '$M' show-ref --verify --quiet refs/heads/chore/stale-lock"
 out=$(scripts/agent/worktree-rm.sh main 2>&1); code=$?
 check "worktree-rm: refuses the main checkout" "[ $code -ne 0 ] && [ -d '$M' ]"
+out=$(scripts/agent/worktree-rm.sh feat/schema-change 2>&1); code=$?
+check "worktree-rm: stops an isolated worktree's own services" "[ $code -eq 0 ] && [ ! -d '$W3' ] && [ -f '$P/own-stopped-feat-schema-change.txt' ]"
 
 X="$WORK/slots"
 mkdir -p "$X" && new_repo "$X/repo"
@@ -165,6 +200,8 @@ q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+o4=$(scripts/agent/worktree-new.sh feat/four --isolated --no-start 2>&1); c4=$?
+check "worktree-new --isolated: refuses when the ISOLATED_* settings are empty" "[ $c4 -ne 0 ] && echo \"\$o4\" | grep -q 'ISOLATED_'"
 
 # ─── clickup: install.sh merges, never overwrites ──────────────────────────
 CU="$WORK/clickup-fresh"; mkdir -p "$CU"
