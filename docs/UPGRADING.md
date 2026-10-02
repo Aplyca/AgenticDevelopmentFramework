@@ -233,6 +233,13 @@ Then decide how far to go: the spec-folder workflow (new skills, templates, `spe
 main benefit. Existing single-file specs stay as they are; new work uses folders, and a legacy spec
 moves into a folder the next time it changes.
 
+### "We adopted before the `7383422` release (2026-10-01, plugin 0.2.4)"
+
+Start with the plugin: install it in the project with `--scope project` (the README's install prompt
+does it and reports a user-scope copy to remove), then run `/upgrade` in a new session. It applies
+the release's parts newest first and offers the modules you don't have. If the project uses the
+dispatcher hub, run it from a worktree: from this release on, the hub's main checkout takes no edits.
+
 ### "We adopted before the modules existed"
 
 Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade` lists the modules

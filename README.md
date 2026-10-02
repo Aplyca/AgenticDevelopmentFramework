@@ -126,9 +126,10 @@ hooks, stamp the baseline, and verify.
 
 The framework is copied in, not installed as a dependency, so updates are deliberate and keep your
 customizations. Read the **Upgrade impact** of each release in [CHANGELOG.md](CHANGELOG.md) first.
-The `3eb7777` release (2026-10-01) fixes defects that affect every adopted repository and opens with
-the order to upgrade in from an older baseline; if your settings pin a model ID, switch it to the
-`sonnet` alias.
+The latest release, `7383422` (2026-10-01), opens with the order to upgrade in; `/upgrade` now
+offers the modules you don't have, and the plugin installs per project. A baseline older than
+`3eb7777` takes that release's three fixes first — they affect every adopted repository — and if your
+settings pin a model ID, switch it to the `sonnet` alias.
 
 1. **Update the plugin** from the project's folder — then restart Claude Code:
 

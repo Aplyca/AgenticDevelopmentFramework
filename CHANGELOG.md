@@ -11,6 +11,30 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## 7383422 — 2026-10-01 — Parallel agents, test first in every lane, and adoption per project (`aplyca-framework` 0.2.4)
+
+Everything since `3eb7777`: portable parallel agents and `/handoff`
+([#13](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/13)), test first in every lane and
+the hub enforced ([#14](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/14)), and
+adoption and upgrades — the modules offered, the plugin per project, one-prompt and new-project
+adoption ([#15](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/15)).
+
+**Upgrading a repository whose baseline is `3eb7777`.** `/upgrade` does this for you, and now offers
+the modules you don't have. In this order:
+
+1. **Get the plugin into the project, at 0.2.4.** Paste the install prompt from the
+   [README](README.md#with-claude-code--the-installer-plugin-recommended) into a session on the
+   project: it installs with `--scope project` and reports a user-scope copy to remove. Already
+   installed per project? Update from the project's folder (`claude plugin marketplace update aplyca`,
+   then `claude plugin update aplyca-framework@aplyca`). Then start a new session.
+2. **Run `/upgrade`** — from a worktree if the project uses the dispatcher hub. By hand: each part's
+   Upgrade impact below, newest first. Where two parts touch the same file, copy the newest version
+   once and apply the older parts' migration notes only.
+3. **Re-stamp the baseline** at the top of `CLAUDE.md` with `7383422` and the modules you have.
+
+A baseline older than `3eb7777` takes that release's order first — its three fixes affect every
+adopted repository — then this one.
+
 ### `/upgrade` offers the modules a project doesn't have
 
 `/upgrade` updated only the modules a project already had and never offered the others, so a project
