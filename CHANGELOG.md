@@ -19,6 +19,9 @@ ClickUp integration, or the GitHub harness. It now lists the missing modules, re
 the repository's facts support (the same rules as `/adopt`), and installs the chosen ones in the same
 upgrade pull request with their customize steps. Choosing `parallel-agents` moves the upgrade into a
 worktree of its own, so the main checkout starts as a clean hub (`aplyca-framework` 0.2.4).
+The install docs (README, plugin README, `docs/SETUP.md`) now show installing the plugin for one
+project only (`--scope project`, committed for the team, or `--scope local`), and why a hub project
+should use `project`; `/adopt` keeps those settings when it merges `.claude/settings.json`.
 **Upgrade impact:** framework-internal; update the plugin.
 
 ### Test first in every lane; the hub enforced

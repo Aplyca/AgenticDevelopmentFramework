@@ -132,7 +132,8 @@ Present the table before going further. Wrong facts here poison every file downs
   teammates get `/upgrade`:
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
   and `"enabledPlugins": {"aplyca-framework@aplyca": true}` — the marketplace key must be `aplyca`,
-  the name `enabledPlugins` refers to.
+  the name `enabledPlugins` refers to. If the plugin was installed with `--scope project`, both
+  entries are already in `.claude/settings.json`: keep them when merging the skeleton's settings.
 
 ## Step 6 — Verify
 

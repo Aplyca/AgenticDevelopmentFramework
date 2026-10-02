@@ -16,6 +16,20 @@ claude plugin marketplace add aplyca/AgenticDevelopmentFramework
 claude plugin install aplyca-framework@aplyca
 ```
 
+That installs it for every project on your machine (`user` scope). To install it for one project
+only, run both commands from that project's folder with a scope:
+
+| Scope | Recorded in | Who gets the plugin |
+|---|---|---|
+| `user` (default) | Your own settings | You, in every project |
+| `--scope project` | The project's committed `.claude/settings.json` | Everyone on the project — teammates are offered it when they trust the folder |
+| `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this project only |
+
+In a project that uses the dispatcher hub (the parallel-agents module), choose `project`: the
+committed settings reach every task's worktree, while a local install exists only in the checkout
+where you ran it. Either way the plugin's files are downloaded once per machine; the scope decides
+where it's turned on.
+
 ## Skills
 
 | Skill | Purpose |
@@ -30,7 +44,8 @@ never push without explicit approval. `/cost-report` only reads.
 ## For teams
 
 To have every teammate offered the plugin when they trust the repository (and so get `/upgrade`),
-add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it:
+add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it, and installing with
+`--scope project` writes the same entries:
 
 ```json
 {

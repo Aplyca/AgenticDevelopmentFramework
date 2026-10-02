@@ -34,12 +34,18 @@ Most of what's here was proven in real client projects first — some built on t
 
 ### With Claude Code — the installer plugin (recommended)
 
-1. **Install the plugin** — once per machine:
+1. **Install the plugin** — for every project on your machine:
 
    ```bash
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework
    claude plugin install aplyca-framework@aplyca
    ```
+
+   Or only for this project: run both commands from the project's folder with `--scope project`
+   (recorded in its committed `.claude/settings.json`, so teammates are offered the plugin too) or
+   `--scope local` (only you, recorded in the git-ignored `.claude/settings.local.json`). In a
+   project that uses the dispatcher hub, choose `project`: committed settings reach every task's
+   worktree, while a local install exists only in the checkout where you ran it.
 
 2. **Run `/adopt`** in the project. It inspects the repository (stack, commands, branching model,
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
@@ -54,9 +60,10 @@ Most of what's here was proven in real client projects first — some built on t
    signs in once through `/mcp`. Then review and merge the pull request like any change.
 4. **Optional — the whole team:** let `/adopt` register the marketplace in the project's
    `.claude/settings.json`, so every teammate is offered the plugin (and `/upgrade`) when they trust
-   the folder.
-5. **Add a module later:** run `/adopt` again in the adopted repository. It detects the adoption and
-   offers the modules you don't have yet.
+   the folder. It's the same setting `--scope project` writes; if you installed that way, it's
+   already there.
+5. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
+   `/adopt` again in the adopted repository.
 
 The plugin contains **no framework content** — adopted repositories get plain committed files that
 every AI tool can read, with or without the plugin.

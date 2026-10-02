@@ -10,6 +10,11 @@ claude plugin install aplyca-framework@aplyca
 # then, in the repository:  /adopt
 ```
 
+That installs the plugin for every project on your machine. For this project only, run both
+commands from its folder with `--scope project` (committed, so the team is offered it — the right
+choice when the project uses the dispatcher hub, since every worktree gets the setting) or
+`--scope local` (only you).
+
 The manual path below is the same procedure, step by step.
 
 ## 1. Copy the skeleton (on a branch)
