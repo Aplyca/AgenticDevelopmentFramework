@@ -13,6 +13,11 @@ blind sync.
 
 - **Never commit to the default branch.** Work on a feature branch (suggest
   `chore/skeleton-upgrade-<NEW_SHA>`); deliver a reviewable draft PR.
+- **In a hub repository, work in a worktree.** When the parallel-agents module is installed
+  (`scripts/agent/worktree-new.sh` exists), the main checkout is the hub and the protect-hub hook
+  stops edits there. Run this from a session in a worktree of its own — dispatch it like any task
+  (`scripts/agent/worktree-new.sh chore/skeleton-upgrade-<NEW_SHA> --no-start`) — and if you were
+  started in the main checkout, say so and stop.
 - **Plan before touching.** No file is modified until the user approves the per-file plan.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest
   cherry-picking the one or two changes they actually want.

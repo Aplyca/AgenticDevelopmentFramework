@@ -97,7 +97,7 @@ not a research project.
 
 | Triage | Next |
 |---|---|
-| Change · fast lane | Search every use of what you change → edit → targeted test (a bug's regression test fails first) → `/commit`. When it changes what a spec records as delivered: a light `CR N` entry in the same commit (`/write-spec`, light mode); a fix that restores documented behavior needs none |
+| Change · fast lane | Search every use of what you change → the test for the new behavior, written or updated and watched failing (for a bug, the regression test) → edit until it passes → `/commit`. When it changes what a spec records as delivered: a light `CR N` entry in the same commit (`/write-spec`, light mode); a fix that restores documented behavior needs none |
 | Change · careful lane | As fast, plus the area's checklist and `@security-reviewer` for authorization, personal data, or payments; the developer confirms the risky part before the commit |
 | Change · full lane, new feature | `/write-spec` → `/write-plan` → approval gate |
 | Change · full lane, change request | `/write-spec` in amend mode (full `CR N`) → `/write-plan` → approval gate |

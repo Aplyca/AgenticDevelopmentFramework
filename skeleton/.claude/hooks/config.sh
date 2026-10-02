@@ -25,6 +25,11 @@ CAREFUL_GLOBS=""
 # edit or new branch once, as a reminder, when its reply text states no lane yet. Empty disables.
 TRIAGE_FIRST="1"
 
+# With the parallel-agents module installed, the main checkout is the hub: the dispatcher edits
+# nothing there. "1" stops every file edit in the main checkout (worktrees are unaffected). Without the
+# module it has no effect. Empty disables.
+HUB_READONLY="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""

@@ -64,7 +64,8 @@ network calls are reads: the task in step 1, and the `git fetch` inside the work
 ## Red flags (stop and reassess)
 
 - You've opened source files, specs, or tests in the main checkout.
-- `git status` in the main checkout shows changes you made.
+- `git status` in the main checkout shows changes you made — or the protect-hub hook stopped an edit:
+  you were about to work in the hub.
 - The handoff prompt contains analysis, a plan, or a list of files to change.
 
 ## Verification

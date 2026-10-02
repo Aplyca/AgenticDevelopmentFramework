@@ -4,12 +4,13 @@ globs: "**/*.test.*,**/*.spec.*,**/e2e/**,**/tests/**,**/__tests__/**"
 alwaysApply: false
 ---
 
-# Testing (TDD — red before green, per task)
+# Testing (TDD — red before green, in every lane)
 
 Tests are written from the spec folder before the code that satisfies them. `plan.md` § Test
 strategy maps every requirement to a test; each task in `tasks.md` names the test that proves it.
-In the fast and careful lanes, the test that asserts the new behavior (a bug's regression test,
-failing first) proves the change. Run targeted tests while iterating and the full gate once.
+In the fast and careful lanes too, the test that asserts the new behavior (for a bug, the regression
+test) is written or updated first and seen failing; then the change makes it pass. Run targeted
+tests while iterating and the full gate once.
 
 ## Test scope comes from every filled spec section
 - **Functional** — every AC and edge case (always)

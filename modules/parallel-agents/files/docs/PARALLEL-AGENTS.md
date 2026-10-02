@@ -15,7 +15,10 @@ the project needs them, its own copy of the env file and a port of its own.
 | Never | Reads code, analyzes, edits, starts anything | Goes back to the hub to work |
 | Network | Reads only (the task, `git fetch`) | Whatever the workflow allows — outward actions only when asked |
 
-The session-context hook tells each session which role it has when it starts.
+The session-context hook tells each session which role it has when it starts, and the protect-hub
+hook holds the dispatcher to it: a file edit in the main checkout is stopped (`HUB_READONLY` in
+`.claude/hooks/config.sh`). The same goes for maintenance such as a framework upgrade — dispatch it
+to a worktree of its own like any other task.
 
 **Why split them.** The main checkout is shared: an edit, a running process, or a half-finished
 change there gets in the way of everyone who starts next. And analysis done in the hub is thrown

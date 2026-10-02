@@ -40,7 +40,7 @@ A small task gets a one-line triage: `Fast lane — <the request in your words>;
 
 Tests, the hooks, CI, review, and the human QC run in every lane. Definitions, triggers, and checklists: `specs/README.md` § Lanes.
 
-- **Fast** — the requester already decided what they want (or a bug with a clear cause restores intended behavior), about 3 files or fewer, no escalation trigger. Search every use of what you change, edit, prove it with a targeted test (a bug's regression test fails first), `/commit`.
+- **Fast** — the requester already decided what they want (or a bug with a clear cause restores intended behavior), about 3 files or fewer, no escalation trigger. Search every use of what you change; write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test); edit until it passes; `/commit`.
 - **Careful** — the same, touching a risk area: a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area below. Add that area's checklist, and get the developer's yes on the risky part before committing.
 - **Full** — something to decide, a new feature, or work across layers: the spec-driven flow in § 3.
 

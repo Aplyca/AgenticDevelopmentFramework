@@ -22,7 +22,7 @@ How work gets from your machine to production — for people and AI agents alike
 6. **Review**, then a **draft** pull request; QC it in its preview; mark it ready.
 
 That is the **full lane**, for work with something to decide. A precise request with no risk
-trigger takes the **fast lane** — edit, prove it with a test, commit — and one in a risk area takes
+trigger takes the **fast lane** — the test first, seen failing, then the edit, commit — and one in a risk area takes
 the **careful lane**, adding that area's checklist and a confirmation (`specs/README.md` § Lanes).
 Change requests on delivered work amend the existing folder: a light `CR N` entry for a precise
 adjustment, a full one when there's something to decide.

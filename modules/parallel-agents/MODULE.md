@@ -19,7 +19,8 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 
 With the module installed, the core skeleton's session-context hook announces each session's role:
 dispatcher in the main checkout, worker in a worktree, and none in one of Claude Code's own worktrees
-(never set up by these scripts — fine for reading, not for task work). The core `/handoff` skill covers passing
+(never set up by these scripts — fine for reading, not for task work). The core `protect-hub.sh`
+hook stops file edits in the main checkout once the module is there. The core `/handoff` skill covers passing
 work in progress on; `/dispatch` is the first handoff of every task.
 
 ## Install

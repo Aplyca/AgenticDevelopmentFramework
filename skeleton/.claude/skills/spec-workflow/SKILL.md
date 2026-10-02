@@ -30,8 +30,8 @@ implementation; invest in them early.
 1. **Triage in one line** — the request in your words, "done when…", and the files you expect to
    touch. Ask now only what blocks you, as one round with your recommended answers.
 2. **Search every use** of what you change — shared code and other callers are a trigger.
-3. **Edit and prove it** — a targeted test asserts the new behavior; for a bug, the regression test
-   fails first. Quiet output; the full gate once, before delivery.
+3. **Test first, then edit** — write or update the test that asserts the new behavior and watch it
+   fail (for a bug, the regression test); then edit until it passes. Quiet output; the full gate once, before delivery.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
    code, contract, infrastructure), run `@security-reviewer` for authorization, data, or payments,
    and get the developer's yes on the risky part.

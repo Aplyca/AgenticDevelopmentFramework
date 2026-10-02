@@ -11,6 +11,44 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Test first in every lane; the hub enforced
+
+([0014](docs/decisions/0014-test-first-in-every-lane.md); [0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md), addendum)
+
+#### Changed
+- **The fast and careful lanes are test-first.** Write or update the test that asserts the new
+  behavior and watch it fail — for a bug, the regression test — then make the change until it passes.
+  Before, red-first was required only for bugs, so a precise change could be tested after the fact.
+  A copy-only change updates an existing assertion first rather than adding a test that restates
+  the text, and a change that amends a spec updates the affected tests first. `/review` checks the
+  red-then-green evidence in every lane.
+- **`/adopt` recommends the parallel-agents module** to any team whose agents may work in parallel:
+  each task gets its own worktree, branch, pull request, and session. It stays opt-in
+  (`aplyca-framework` 0.2.3).
+
+#### Added
+- **`protect-hub.sh`** (core hook, PreToolUse on file edits). With the parallel-agents module
+  installed, it stops every file edit in the main checkout — the hub, where the dispatcher edits
+  nothing — and lets edits in worktrees through. Without the module it does nothing, and an empty
+  `HUB_READONLY` in `config.sh` turns it off. File writes made through Bash aren't seen.
+- **`/upgrade` and `/adopt` (adding modules) run from a worktree of their own** in a hub repository,
+  and stop if started in the main checkout.
+
+#### Upgrade impact
+- **Overwrite:**
+  - `.claude/hooks/protect-hub.sh` (new) and `.claude/hooks/README.md`.
+  - `.claude/rules/testing.md`, `.cursor/rules/testing.mdc`.
+  - `.claude/skills/{triage,spec-workflow,review}/SKILL.md`.
+  - With the module: `.claude/skills/dispatch/SKILL.md`.
+- **Merge:**
+  - `.claude/settings.json` — add `protect-hub.sh` to the PreToolUse `Edit|Write|MultiEdit` hooks,
+    after `protect-paths.sh`.
+  - `.claude/hooks/config.sh` — add `HUB_READONLY="1"` with its comment.
+  - `AGENTS.md` — the fast lane's steps (§ 2); `CLAUDE.md` — the fast lane's row and the
+    `protect-hub` guardrail row; `GEMINI.md`, `CONTRIBUTING.md`, `README.md`, `specs/README.md` —
+    the fast lane's wording.
+  - With the module: `docs/PARALLEL-AGENTS.md` — the enforcement note under § Two roles.
+
 ### Parallel agents — portable defaults, environment info, and `/handoff`
 
 Field findings from the project the `parallel-agents` module came from, generalized
