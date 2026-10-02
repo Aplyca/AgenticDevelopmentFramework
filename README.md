@@ -136,32 +136,33 @@ hooks, stamp the baseline, and verify.
 
 ## Update a project
 
-The framework is copied in, not installed as a dependency, so updates are deliberate and keep your
-customizations. Read the **Upgrade impact** of each release in [CHANGELOG.md](CHANGELOG.md) first.
-The latest release, `7383422` (2026-10-01), opens with the order to upgrade in; `/upgrade` now
-offers the modules you don't have, and the plugin installs per project. A baseline older than
-`3eb7777` takes that release's three fixes first — they affect every adopted repository — and if your
-settings pin a model ID, switch it to the `sonnet` alias.
+Updates are deliberate: `/aplyca-adf:upgrade` moves a project from one release to the next in a draft
+pull request and keeps its customizations. Read the **Upgrade impact** of each release in
+[CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning
+([decision 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of
+your team. The latest, **v1.0.0** (2026-10-02), renames the plugin `aplyca-adf` and opens with the
+order to upgrade in. A baseline older than `7383422` takes that release's order first, and one older
+than `3eb7777` takes its three fixes before that — they affect every adopted repository.
 
-1. **Update the plugin** from the project's folder — then restart Claude Code:
-
-   ```bash
-   claude plugin marketplace update aplyca
-   claude plugin update aplyca-adf@aplyca
-   ```
-
+1. **Get the plugin into the project.** Adopted before v1.0.0 — a stamp with no `v` version? Paste
+   the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
+   project; it installs `aplyca-adf`. Then start a new session. A project already pinned to a release
+   needs nothing here: the pinned plugin runs the upgrade.
 2. **Run `/aplyca-adf:upgrade`** in the adopted project. It reads the baseline stamp
    (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
-   version to the latest. It sorts every changed file into overwrite, merge, or additive, applies the
+   release to the newest. It sorts every changed file into overwrite, merge, or additive, applies the
    CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
-   dispatcher hub (`parallel-agents`) among them. It shows you the plan before changing anything.
-   Then it updates the files — your project-specific content stays — installs the modules you chose,
-   re-stamps, and prepares a draft pull request.
+   dispatcher hub (`parallel-agents`) among them — and the other install, committed or packaged. It
+   shows you the plan before changing anything. Then it updates the files — your project-specific
+   content stays — installs the modules you chose, moves the release pin, re-stamps, and prepares a
+   draft pull request.
 3. **Review the pull request** and run the verification in [docs/UPGRADING.md](docs/UPGRADING.md):
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
+   Once it merges, everyone's next session loads the new release.
 
-Installed the plugin at user scope earlier? `/upgrade` adds the project setting in its pull request;
-then remove the user-scope copy ([how](plugins/aplyca-adf/README.md#install)).
+Installed the plugin at user scope, or under its old name `aplyca-framework`? `/aplyca-adf:upgrade`
+fixes the project setting in its pull request; then remove the old copy
+([how](plugins/aplyca-adf/README.md#install)).
 
 By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.md).
 

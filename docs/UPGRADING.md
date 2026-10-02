@@ -2,7 +2,7 @@
 
 How to pull newer framework changes into a target project that adopted an earlier version of the skeleton — without losing your team's customizations.
 
-The framework ships as a copy-in skeleton, not a runtime dependency. There is no `npm update` equivalent. Upgrades are deliberate, file-by-file, and informed by the three-bucket taxonomy below.
+By default the framework is committed into the project, not a runtime dependency; in the packaged install, the skills, agents, workflows, and hook scripts come from the pinned plugin instead. Either way, a project moves from one release to the next on purpose: the committed files file by file, informed by the three-bucket taxonomy below, and the plugin by moving its pin.
 
 ## When to upgrade
 
@@ -113,7 +113,7 @@ Concrete steps. Do this on a branch in the target project.
 
 Read the skeleton-source line at the top of your project's `CLAUDE.md`. If absent, infer it: read the framework's `git log --oneline` and pick the latest SHA whose features you can identify in your project. Record this as `OLD_SHA`.
 
-The new target is the framework's current `main` SHA — call it `NEW_SHA`.
+The target is the newest release, `vX.Y.Z` (`git -C /path/to/AgenticDevelopmentFramework tag --list 'v*' --sort=-v:refname | head -1`). The commit its tag points to is `NEW_SHA`.
 
 ### 2. Read the changelog
 
@@ -175,13 +175,13 @@ Resolve conflicts manually. The principle: keep your customizations (project ide
 Edit the top of `CLAUDE.md`:
 
 ```markdown
-<!-- Skeleton source: <NEW_SHA> (<today's date>) · modules: <list or none> -->
+<!-- Skeleton source: <vX.Y.Z> · <NEW_SHA> (<today's date>) · modules: <list or none> -->
 ```
 
 Commit with a clear message:
 
 ```
-chore: upgrade skeleton to <NEW_SHA>
+chore: upgrade skeleton to <vX.Y.Z>
 
 What changed:
 - Added /spec-drift skill
@@ -247,6 +247,15 @@ Start with the plugin: install it in the project with `--scope project` (the REA
 does it and reports a user-scope copy to remove), then run `/upgrade` in a new session. It applies
 the release's parts newest first and offers the modules you don't have. If the project uses the
 dispatcher hub, run it from a worktree: from this release on, the hub's main checkout takes no edits.
+
+### "We adopted before v1.0.0 (2026-10-02)"
+
+The installer plugin is now `aplyca-adf`; the project's settings still turn on `aplyca-framework`.
+Install `aplyca-adf` with the README's install prompt, which refreshes the marketplace first, then run
+`/aplyca-adf:upgrade` in a new session. It replaces the old name in the committed settings, pins the
+marketplace to the release, and restamps with the version. Once its pull request merges, remove the
+old plugin from each machine that installed it:
+`claude plugin uninstall aplyca-framework@aplyca --scope project`.
 
 ### "We use the packaged install" — or want to
 
