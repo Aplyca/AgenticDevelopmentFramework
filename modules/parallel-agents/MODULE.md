@@ -10,18 +10,22 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 | File | Purpose |
 |---|---|
 | `scripts/agent/worktree-new.sh` | A worktree per task: branch `<type>/<slug>`, the env file seeded from the main checkout (when the project has one), optional setup and start commands, and — for projects that run a server — a port reserved under a lock. Idempotent; `--no-start`, `--setup-only`, `--refresh-env`, `--from <ref>` |
-| `scripts/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags task work in Claude Code's own worktrees. `--info` adds what `ENV_INFO_CMD` prints for each |
+| `scripts/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
 | `scripts/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
 | `scripts/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
 | `scripts/agent/_worktree-lib.sh` | Shared helpers |
-| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: the four-step handoff from the main checkout |
+| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: which route a task takes, and the four-step handoff through the scripts |
+| `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
 | `docs/PARALLEL-AGENTS.md` | The dispatcher/worker process, the scripts, shared vs isolated services |
 
-With the module installed, the core skeleton's session-context hook announces each session's role:
-dispatcher in the main checkout, worker in a worktree, and none in one of Claude Code's own worktrees
-(never set up by these scripts — fine for reading, not for task work). The core `protect-hub.sh`
-hook stops file edits in the main checkout once the module is there. The core `/handoff` skill covers passing
-work in progress on; `/dispatch` is the first handoff of every task.
+A task gets its worktree one of two ways (decision 0015): **Claude Code's worktree** — a new session
+with the desktop app's worktree option, or `claude --worktree` — by default, or **the scripts**
+(`/dispatch`) when the worktree needs a port, setup or start commands, or a base branch other than
+the default. With the module installed, the core session-context hook announces each session's role
+— dispatcher in the main checkout, worker in any worktree — and, in a worktree the scripts didn't set
+up, what it lacks: a task branch name, the env file, or the scripts' setup. The core `protect-hub.sh`
+hook stops file edits in the main checkout once the module is there. The core `/handoff` skill
+covers passing work in progress on.
 
 ## Install
 
@@ -29,6 +33,8 @@ work in progress on; `/dispatch` is the first handoff of every task.
 cp -R modules/parallel-agents/files/. /path/to/your-repo/
 chmod +x scripts/agent/*.sh
 ```
+
+A repository that already has a `.worktreeinclude` keeps it: add the env file's line to it.
 
 ## Customize
 
@@ -43,7 +49,10 @@ chmod +x scripts/agent/*.sh
    services); optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
    use each environment.
 4. **`.gitignore`** — the env file, and `.claude/worktrees/`.
+5. **`.worktreeinclude`** — the same env file as `ENV_FILE`, plus any other gitignored file a worktree
+   needs (gitignore syntax). Claude Code copies only files that are gitignored.
 
 ## Requirements
 
-`bash`, `git` 2.31+; `curl` only for `READY_URL`. macOS and Linux.
+`bash`, `git` 2.31+; `curl` only for `READY_URL`. macOS and Linux. `.worktreeinclude` needs a Claude Code
+version that supports it.

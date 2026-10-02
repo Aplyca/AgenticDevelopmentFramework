@@ -114,6 +114,11 @@ else
   fi
 fi
 
+# Marks the worktree as set up here, in its own git directory (nothing git status shows), so the
+# session-context hook and worktree-ls.sh can tell it from Claude Code's own worktrees.
+marker="$(git -C "$WORKTREE_DIR" rev-parse --absolute-git-dir)/agent-worktree"
+[ -f "$marker" ] || echo "Set up by scripts/agent/worktree-new.sh — read by session-context.sh and worktree-ls.sh." >"$marker"
+
 # --- Port, under a lock ------------------------------------------------------------------------
 # "Taken" means listening now OR reserved in a sibling worktree's env file whose environment isn't
 # up yet. Checking only the first is a race: two agents starting together both see a free port.

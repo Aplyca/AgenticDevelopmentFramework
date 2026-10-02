@@ -1,7 +1,7 @@
 # 0015: Worktrees that Claude Code creates are workers too (parallel-agents module)
 
-- **Status:** proposed
-- **Date:** 2026-10-01
+- **Status:** accepted
+- **Date:** 2026-10-02
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — how a task gets its worktree
 
 ## Context
@@ -59,20 +59,24 @@ created it. A task gets its worktree by one of two routes:
   only they provide: a port, `ENV_OVERRIDES`, `SETUP_CMD` or `START_CMD`, or a `BASE_BRANCH` other than
   the default branch.
 
-What changes, if accepted:
+What changes:
 
 - **`session-context.sh`** (core) gives a session in any linked worktree the WORKER role. In a
   worktree the scripts didn't create, it adds one line for each thing that worktree lacks:
   - a generated branch name: rename it after triage;
+  - no env file: `.worktreeinclude` should list it;
   - a project whose worktrees need a port or start command: dispatch through the scripts for task
     work that runs the app;
   - a `BASE_BRANCH` other than the default branch: this worktree started from the wrong base.
+- **`worktree-new.sh`** marks the worktrees it sets up, with a file in the worktree's own git
+  directory, so the hook and `worktree-ls.sh` can tell them apart wherever they sit. Worktrees from
+  before the marker are recognized by their folder, which is named after the branch.
 - **The module** ships a `.worktreeinclude` listing `ENV_FILE`, so Claude Code's worktrees get the
   env file. Its `MODULE.md` adds a customize step to keep the two in step.
 - **`worktree-ls.sh`** lists Claude Code's worktrees as workers. It flags the ones on a generated
   branch or a detached HEAD, which are candidates to archive in the app.
 - **`docs/PARALLEL-AGENTS.md` and `/dispatch`** describe the two routes and when each fits.
-- **`protect-hub.sh` doesn't change:** the main checkout still takes no edits.
+- **`protect-hub.sh`** still stops every edit in the main checkout; its message names both routes.
 
 ## Consequences
 

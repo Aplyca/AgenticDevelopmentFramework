@@ -164,19 +164,50 @@ else
     FAIL=$((FAIL+1)); echo "✘ session-context.sh: protected-branch warning missing"; echo "    $out"
 fi
 
-# With the parallel-agents module, each session learns its role from where it runs.
+# With the parallel-agents module, each session learns its role from where it runs: dispatcher in
+# the main checkout, worker in any linked worktree (decision 0015). In a worktree the scripts didn't
+# set up, it also learns what that worktree lacks.
 mkdir -p "$T/scripts/agent" && printf '#!/bin/sh\n' > "$T/scripts/agent/worktree-new.sh" && chmod +x "$T/scripts/agent/worktree-new.sh"
-git -C "$T" add scripts/agent/worktree-new.sh && git -C "$T" commit -qm "add the worktree script"
+cp "$REPO_ROOT/modules/parallel-agents/files/scripts/agent/_worktree-lib.sh" "$T/scripts/agent/"
+printf 'BASE_BRANCH="main"\nENV_FILE=".env"\n' > "$T/scripts/agent/worktree.conf"
+git -C "$T" add scripts/agent && git -C "$T" commit -qm "add the worktree scripts"
+git -C "$T" update-ref refs/remotes/origin/main HEAD && git -C "$T" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+echo 'SECRET=1' > "$T/.env"
 git -C "$T" worktree add -q -b feat/role-check "$WORK/feat-role-check"
 git -C "$T" worktree add -q -b claude/eager-lamport "$T/.claude/worktrees/eager-lamport"
-role() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$1" | "$H/session-context.sh" | grep 'Role:'; }
-r_main="$(role "$T")"; r_worker="$(role "$WORK/feat-role-check")"; r_builtin="$(role "$T/.claude/worktrees/eager-lamport")"
-if echo "$r_main" | grep -q DISPATCHER && echo "$r_worker" | grep -q WORKER && echo "$r_builtin" | grep -q 'Role: NONE'; then
-    PASS=$((PASS+1)); echo "✓ session-context.sh: dispatcher in the main checkout, worker in a worktree, none in Claude Code's own worktree"
-else
-    FAIL=$((FAIL+1)); echo "✘ session-context.sh: roles wrong"; echo "    main: $r_main"; echo "    worker: $r_worker"; echo "    built-in: $r_builtin"
-fi
-git -C "$T" worktree remove --force "$WORK/feat-role-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/eager-lamport"
+git -C "$T" worktree add -q --detach "$T/.claude/worktrees/calm-turing"
+git -C "$T" worktree add -q -b feat/marked "$WORK/somewhere-else"
+echo marker > "$(git -C "$WORK/somewhere-else" rev-parse --absolute-git-dir)/agent-worktree"
+ctx() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$1" | "$H/session-context.sh"; }
+check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
+    local out; out="$(ctx "$2")"
+    if echo "$out" | grep -q -- "$3" && { [ -z "${4:-}" ] || ! echo "$out" | grep -q -- "$4"; }; then
+        PASS=$((PASS+1)); echo "✓ session-context.sh: $1"
+    else
+        FAIL=$((FAIL+1)); echo "✘ session-context.sh: $1"; echo "$out" | sed 's/^/    /'
+    fi
+}
+check_ctx "dispatcher in the main checkout, offering Claude Code's worktree option" "$T" "Start each task in a new session with Claude Code's worktree option"
+check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
+check_ctx "worker in Claude Code's worktree, told to rename its generated branch" "$T/.claude/worktrees/eager-lamport" "branch name is generated (claude/eager-lamport)"
+check_ctx "worker in Claude Code's worktree, told the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here"
+check_ctx "worker on a detached HEAD, told to create the task's branch" "$T/.claude/worktrees/calm-turing" "Detached HEAD"
+check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somewhere-else" "Role: WORKER" "generated\|No .env\|Not set up"
+git -C "$T/.claude/worktrees/eager-lamport" branch -q -m feat/renamed
+cp "$T/.env" "$T/.claude/worktrees/eager-lamport/.env"
+check_ctx "a renamed branch with its env file needs nothing more" "$T/.claude/worktrees/eager-lamport" "Role: WORKER" "generated\|No .env\|Not set up"
+printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf"
+cp "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf" "$T/scripts/agent/worktree.conf"
+check_ctx "a project whose worktrees run a server: dispatch for app work" "$T" "A task that runs the app starts with /dispatch"
+check_ctx "Claude Code's worktree there lacks the port and start command" "$T/.claude/worktrees/eager-lamport" "lacks a port and setup or start commands"
+printf 'BASE_BRANCH="staging"\nENV_FILE=".env"\n' > "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf"
+cp "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf" "$T/scripts/agent/worktree.conf"
+check_ctx "tasks that start from another branch always dispatch" "$T" "Start each task with /dispatch: tasks here start from staging"
+check_ctx "Claude Code's worktree there started from the wrong base" "$T/.claude/worktrees/eager-lamport" "started this worktree from main, but tasks here start from staging"
+git -C "$T" checkout -q -- scripts/agent/worktree.conf && rm -f "$T/.env"
+for w in "$WORK/feat-role-check" "$T/.claude/worktrees/eager-lamport" "$T/.claude/worktrees/calm-turing" "$WORK/somewhere-else"; do
+    git -C "$T" worktree remove --force "$w"
+done
 
 # protect-hub — with the module, the main checkout is the hub and edits nothing
 git -C "$T" worktree add -q -b feat/hub-check "$WORK/feat-hub-check"
@@ -186,7 +217,7 @@ edit_event() { printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":
 run protect-hub.sh 2 "$(edit_event "$T/src/app.ts")" "stops an edit in the main checkout"
 run protect-hub.sh 2 "$(edit_event "$T/src/new/file.ts")" "stops a new file in the main checkout"
 run protect-hub.sh 0 "$(edit_event "$WORK/feat-hub-check/src/app.ts")" "lets edits in a task worktree through"
-run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")" "leaves Claude Code's own worktrees to the session role"
+run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")" "lets edits in Claude Code's own worktrees through"
 run protect-hub.sh 0 "$(edit_event "$WORK/no-module/src/app.ts")" "does nothing in a repository without the module"
 echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
 run protect-hub.sh 0 "$(edit_event "$T/src/app.ts")" "does nothing when HUB_READONLY is empty"

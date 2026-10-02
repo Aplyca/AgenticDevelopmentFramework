@@ -53,18 +53,58 @@ if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
 fi
 
 if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
+  # What this project's worktrees need beyond what Claude Code gives its own — a port, setup or start
+  # commands, a base branch other than the default — read from scripts/agent/worktree.conf.
+  needs="" base_branch="" env_file=".env"
+  if [ -f "$root/scripts/agent/_worktree-lib.sh" ]; then
+    IFS='|' read -r needs base_branch env_file < <(bash -c '. "$1" >/dev/null 2>&1 || exit 0
+      n=""; [ "${PORT_SLOTS:-0}" -gt 0 ] 2>/dev/null && n="a port"
+      [ -z "$SETUP_CMD$START_CMD" ] || n="${n:+$n and }setup or start commands"
+      printf "%s|%s|%s\n" "$n" "$BASE_BRANCH" "$ENV_FILE"' _ "$root/scripts/agent/_worktree-lib.sh")
+  fi
+  default_branch="$(git -C "$root" symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null)"
+  default_branch="${default_branch#origin/}"
+  other_base=""
+  if [ -n "$base_branch" ] && [ -n "$default_branch" ] && [ "$base_branch" != "$default_branch" ]; then
+    other_base=1
+  fi
   main="$(cd "$common_dir/.." && pwd -P)"
+
   if [ "$checkout" = "main checkout" ]; then
-    echo "- Role: DISPATCHER. This is the shared main checkout — hand each task to its own worktree (/dispatch); never edit code here."
+    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Each task gets its own worktree, branch, and session."
+    if [ -n "$other_base" ]; then
+      echo "- Start each task with /dispatch: tasks here start from $base_branch, and Claude Code's own worktrees start from $default_branch."
+    elif [ -n "$needs" ]; then
+      echo "- A task that runs the app starts with /dispatch (its worktree needs $needs). Any other task can start in a new session with Claude Code's worktree option — the desktop app's worktree toggle, or claude --worktree."
+    else
+      echo "- Start each task in a new session with Claude Code's worktree option — the desktop app's worktree toggle, or claude --worktree — or with /dispatch."
+    fi
   else
-    case "$(cd "$root" && pwd -P)" in
-      "$main"/.claude/worktrees/*)
-        echo "- Role: NONE. This is one of Claude Code's own worktrees, which this project's scripts never set up (a generated branch, none of the project's env). Fine for reading and exploring; for task work, ask the developer to dispatch the task from the main checkout (/dispatch) and open a session in the worktree it creates."
-        ;;
-      *)
-        echo "- Role: WORKER. This worktree is yours for one task — start with triage (/triage)."
-        ;;
-    esac
+    echo "- Role: WORKER. This worktree is yours for one task — start with triage (/triage)."
+    # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.
+    folder="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_-' '-' | sed -E 's/^-+//; s/-+$//')"
+    if [ ! -f "$git_dir/agent-worktree" ] && [ "$(basename "$root")" != "$folder" ]; then
+      generated=""
+      case "$branch" in
+        "detached HEAD") ;;
+        worktree-* | claude/*) generated=1 ;; # Claude Code's own names
+        */*) ;;                               # already <type>/<slug>
+        *) generated=1 ;;
+      esac
+      if [ "$branch" = "detached HEAD" ]; then
+        echo "- Detached HEAD: after triage, create the task's branch — git switch -c <type>/<slug>."
+      elif [ -n "$generated" ]; then
+        echo "- The branch name is generated ($branch): after triage, rename it — git branch -m <type>/<slug> — so it joins its spec folder and /open-pr takes it."
+      fi
+      if [ -n "$env_file" ] && [ -f "$main/$env_file" ] && [ ! -e "$root/$env_file" ]; then
+        echo "- No $env_file here. Claude Code copies it into the worktrees it creates when .worktreeinclude lists it."
+      fi
+      if [ -n "$other_base" ]; then
+        echo "- Claude Code started this worktree from $default_branch, but tasks here start from $base_branch: ask the developer to /dispatch the task before the first commit."
+      elif [ -n "$needs" ]; then
+        echo "- Not set up by scripts/agent/worktree-new.sh, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /dispatch the task."
+      fi
+    fi
   fi
 fi
 

@@ -143,10 +143,13 @@ out=$(scripts/agent/worktree-ls.sh 2>&1)
 check "worktree-ls: lists every worktree and marks the main checkout" "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
 out=$(scripts/agent/worktree-ls.sh --info 2>&1)
 check "worktree-ls --info: runs ENV_INFO_CMD in each worktree, with its placeholders" "echo \"\$out\" | grep -q 'info-feat-newsletter-signup-$P1'"
-git -C "$M" worktree add -q -b fix/in-builtin "$M/.claude/worktrees/eager-lamport" main 2>/dev/null
+check "worktree-new: marks the worktrees it sets up, in their own git directory" "[ -f \"\$(git -C '$W1' rev-parse --absolute-git-dir)/agent-worktree\" ] && [ -z \"\$(git -C '$W1' status --porcelain)\" ]"
+git -C "$M" worktree add -q -b claude/eager-lamport "$M/.claude/worktrees/eager-lamport" main 2>/dev/null
+git -C "$M" worktree add -q -b fix/in-app "$M/.claude/worktrees/calm-hopper" main 2>/dev/null
 out=$(scripts/agent/worktree-ls.sh 2>&1)
-check "worktree-ls: flags task work in Claude Code's own worktrees" "echo \"\$out\" | grep -q 'fix/in-builtin is task work'"
-git -C "$M" worktree remove --force "$M/.claude/worktrees/eager-lamport"
+check "worktree-ls: lists Claude Code's worktrees, and flags one on a generated branch" "echo \"\$out\" | grep -q 'eager-lamport is on a generated branch (claude/eager-lamport)' && echo \"\$out\" | grep -q 'fix/in-app'"
+check "worktree-ls: no flag for a renamed branch, and the scripts' worktrees count as theirs" "! echo \"\$out\" | grep -q 'calm-hopper is on' && ! echo \"\$out\" | grep 'feat-newsletter-signup' | grep -q 'not from the scripts'"
+git -C "$M" worktree remove --force "$M/.claude/worktrees/eager-lamport"; git -C "$M" worktree remove --force "$M/.claude/worktrees/calm-hopper"
 
 echo work > "$W2/work.txt" && git -C "$W2" add work.txt && git -C "$W2" commit -qm work
 echo dirty > "$W2/dirty.txt"
