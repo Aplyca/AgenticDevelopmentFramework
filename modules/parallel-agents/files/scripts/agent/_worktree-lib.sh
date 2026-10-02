@@ -66,11 +66,24 @@ project_name() {
   to_slug "$prefix-$2"
 }
 
-# builtin_worktree <path> <main checkout> — one of Claude Code's own worktrees (.claude/worktrees/),
-# which get no env file, no port, and a generated branch name.
-builtin_worktree() {
-  case "$1" in "$2"/.claude/worktrees/*) return 0 ;; esac
-  return 1
+# scripts_worktree <path> <branch> — a worktree worktree-new.sh set up. It leaves a marker in the
+# worktree's own git directory; worktrees from before the marker are named after their branch.
+# Any other linked worktree — Claude Code's own, from the desktop app or `claude --worktree` — is a
+# worker too, without the scripts' env overrides, port, or setup (decision 0015).
+scripts_worktree() {
+  local git_dir
+  git_dir="$(git -C "$1" rev-parse --absolute-git-dir 2>/dev/null)" || return 1
+  [ -f "$git_dir/agent-worktree" ] || [ "$(basename "$1")" = "$(to_slug "$2")" ]
+}
+
+# generated_branch <branch> — a name nobody chose for the task: Claude Code's (worktree-<name>,
+# claude/<name>), any name without a <type>/ prefix, or a detached HEAD.
+generated_branch() {
+  case "$1" in
+    "(detached)" | worktree-* | claude/*) return 0 ;;
+    */*) return 1 ;;
+  esac
+  return 0
 }
 
 # The path where a branch is checked out, if any.

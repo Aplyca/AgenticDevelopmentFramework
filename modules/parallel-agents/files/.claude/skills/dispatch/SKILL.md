@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: From the main checkout, hand a task to its own worktree — name the task, create the worktree and branch with scripts/agent/worktree-new.sh --no-start, and start (or hand the developer) a worker session there with a short prompt that points at the process. Does no analysis and edits nothing. Use when a task arrives in the main checkout.
+description: From the main checkout, hand a task to its own worktree — name the task, create the worktree and branch with scripts/agent/worktree-new.sh --no-start, and start (or hand the developer) a worker session there with a short prompt that points at the process. Does no analysis and edits nothing. Use when a task arrives in the main checkout and needs the scripts' worktree (a port, setup or start commands, a base branch other than the default) — or when the developer asks for it.
 argument-hint: "[tracker link or task description]"
 ---
 
@@ -14,6 +14,21 @@ dispatcher's context stays cheap: a branch name, not a plan.
 
 A dispatcher **writes nothing outside this machine** and takes no outward-facing action. Its only
 network calls are reads: the task in step 1, and the `git fetch` inside the worktree script.
+
+## Which route
+
+A task gets its worktree one of two ways (decision 0015):
+
+- **Claude Code's worktree** — a new session with the worktree option: the desktop app's worktree
+  toggle, or `claude --worktree <slug>`. No dispatcher needed: the worker renames the branch to
+  `<type>/<slug>` after triage, and `.worktreeinclude` copies the env file. The default when the
+  project's worktrees run no server and tasks start from the default branch.
+- **The scripts — this skill** — when the worktree needs what only they set up: a port, setup or
+  start commands, or a base branch other than the default branch (`scripts/agent/worktree.conf`).
+  The session-context hook says which applies when this session starts.
+
+When a task arrives here and Claude Code's worktree fits, say so and stop: the developer starts a new
+session with the worktree option and gives it the task. Otherwise, follow the steps.
 
 ## Steps
 
@@ -36,10 +51,9 @@ network calls are reads: the task in step 1, and the `git fetch` inside the work
 
 3. **Start the worker session in the worktree.**
    - Terminal: `cd <worktree path> && claude`, then paste the prompt from step 4.
-   - Where the tooling can't root a session in a folder you choose — for example, an app whose
-     suggested-task chips always create their own worktree elsewhere, without this worktree's env
-     file and port — **don't use those chips for task work.** Give the developer the prompt from
-     step 4 and ask them to open a new session with the worktree as its folder.
+   - Desktop app: a new session with the worktree as its folder — not the worktree option, which
+     would create a second worktree without this one's port and setup. Give the developer the prompt
+     from step 4.
 
 4. **Write the worker's prompt** — pointers, not instructions:
    ```
@@ -71,6 +85,7 @@ network calls are reads: the task in step 1, and the `git fetch` inside the work
 ## Verification
 
 - [ ] Only the task's title and type were read
+- [ ] The route fits: the scripts only when the task needs their setup, or the developer asked for them
 - [ ] The worktree was created (or reported) by `worktree-new.sh --no-start` — never by raw `git worktree add`
 - [ ] Nothing was edited, committed, or posted from the main checkout
 - [ ] The worker prompt has the task link, worktree path, branch, and "follow AGENTS.md, starting with triage" — nothing else

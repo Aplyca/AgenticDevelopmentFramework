@@ -310,11 +310,14 @@ if there's no tracker task). Check for business language, verified claims, and y
 
 Each agent session gets its own git worktree — never two in one checkout. With the
 [`parallel-agents` module](../modules/parallel-agents/MODULE.md), the main checkout **only
-dispatches**: `/dispatch` creates the task's worktree and branch and hands off a three-line prompt; the
-worker there does everything from triage on. The main checkout is shared — an edit or a dev server
+dispatches**. A task starts in a new session with Claude Code's worktree option (the desktop app's
+worktree toggle, or `claude --worktree`), or — when its worktree needs the project's setup, such as a
+port — `/dispatch` creates the worktree and branch and hands off a three-line prompt. The worker there
+does everything from triage on. The main checkout is shared — an edit or a dev server
 there collides with every other session — and analysis there is wasted: the dispatcher can't run the
 app or the tests, so the worker re-reads everything where it can verify it.
-([decision 0008](decisions/0008-dispatcher-and-worker-worktrees.md))
+([decisions 0008](decisions/0008-dispatcher-and-worker-worktrees.md) and
+[0015](decisions/0015-tool-worktrees-are-workers.md))
 
 **Exercise (module installed):** dispatch the typo and the topics estimate. The main checkout's
 `git status` stays clean, each worker's session context says WORKER, and

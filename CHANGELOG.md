@@ -11,6 +11,49 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Claude Code's own worktrees are workers too (parallel-agents)
+
+([0015](docs/decisions/0015-tool-worktrees-are-workers.md), amending
+[0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md))
+
+Teams that work in the desktop app start tasks in a new session with its worktree option. Two
+projects with the module had such worktrees in use while the framework treated them as foreign.
+
+#### Changed
+- **Every linked worktree is a worker.** A task gets its worktree one of two ways:
+  - **Claude Code's worktree, by default:** a new session with the desktop app's worktree option,
+    or `claude --worktree`.
+  - **The scripts (`/dispatch`):** when the worktree needs a port, setup or start commands, or a
+    base branch other than the default.
+- **The session-context hook names the route and the gaps.** In the main checkout, it says which
+  route this project's tasks take. In a worktree the scripts didn't set up, it says what that
+  worktree lacks: a generated branch name to rename after triage, the env file, the scripts' setup,
+  or the right base branch. The role no longer depends on where the worktree sits.
+- **`worktree-new.sh` marks the worktrees it sets up,** with a file in the worktree's own git
+  directory. Worktrees from before the marker are recognized by their folder name.
+- **`worktree-ls.sh` lists Claude Code's worktrees as workers.** It flags the ones on a generated
+  branch or a detached HEAD, instead of asking to move task work out of them.
+- **`/dispatch`** opens with which route a task takes. `protect-hub.sh`'s message names both routes.
+
+#### Added
+- **`.worktreeinclude`** (with the module): the env file Claude Code copies from the main checkout
+  into each worktree it creates.
+
+#### Upgrade impact
+- **Overwrite:**
+  - Core: `.claude/hooks/session-context.sh`, `.claude/hooks/protect-hub.sh`,
+    `.claude/hooks/README.md`.
+  - With the module: `scripts/agent/{_worktree-lib,worktree-new,worktree-ls}.sh` and
+    `.claude/skills/dispatch/SKILL.md`.
+- **Merge** (with the module): `docs/PARALLEL-AGENTS.md`. Take the new § Two routes, the worker row,
+  and § Claude Code's worktrees, which replaces § Claude Code's built-in worktrees. Keep your
+  § Shared services.
+- **Additive** (with the module): `.worktreeinclude`. List the same file as `ENV_FILE` in
+  `scripts/agent/worktree.conf`; if the project already has a `.worktreeinclude`, add that line to
+  it.
+- **No migration:** existing script worktrees are recognized by their folder name, and rerunning
+  `worktree-new.sh` on one adds the marker.
+
 ### `/upgrade` keeps the hub clean when it installs the dispatcher hub
 
 Choosing `parallel-agents` moves the upgrade into a worktree created from the last commit, so the

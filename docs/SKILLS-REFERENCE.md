@@ -51,7 +51,7 @@ In order, for a change with something to decide. Commits: `spec:` â†’ `docs:` â†
 
 | Skill | Module | Purpose |
 |---|---|---|
-| `/dispatch` | `parallel-agents` | In the main checkout: name the task, create its worktree (`worktree-new.sh --no-start`), and hand off to a worker session with a three-line prompt. Reads only; no analysis, no edits. |
+| `/dispatch` | `parallel-agents` | In the main checkout, for a task whose worktree needs the project's setup (a port, setup or start commands, a non-default base branch): name the task, create its worktree (`worktree-new.sh --no-start`), and hand off to a worker session with a three-line prompt. Other tasks start in Claude Code's own worktree. Reads only; no analysis, no edits. |
 
 ## Dynamic workflows
 

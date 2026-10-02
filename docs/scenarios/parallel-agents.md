@@ -20,7 +20,7 @@ a second session starts, it gets its own worktree.
 
 | | Main checkout — **dispatcher** | A worktree — **worker** |
 |---|---|---|
-| Does | Names the task, creates the worktree, hands off (`/dispatch`) | Everything from triage on: spec folder, gate, TDD, commits |
+| Does | Routes each task to its worktree — Claude Code's own, or the scripts' through `/dispatch` | Everything from triage on: spec folder, gate, TDD, commits |
 | Never | Reads code, analyzes, edits, starts environments | Goes back to the main checkout to work |
 
 The `session-context` hook tells each session its role when it starts.
@@ -35,7 +35,9 @@ again anyway, where it can check it. The dispatcher's context stays cheap: a bra
 
 ### In the main checkout — dispatch
 
-`/dispatch <tracker link>` does four things and nothing else:
+A task whose worktree needs the project's setup — here, anything that runs the app — goes through
+the scripts. (Other tasks can start in Claude Code's own worktree: see below.) `/dispatch <tracker
+link>` does four things and nothing else:
 
 1. **Names the task** — its title and type only; no code reading, no requirements analysis. A short
    kebab-case slug. A task that names a delivered feature starts its slug with that feature's
@@ -92,15 +94,16 @@ running a content-model migration against the shared development environment cha
 every other worker's app. Content-model work gets its own Contentful environment, set in that
 worktree's env file.
 
-### Tools that create their own worktrees
+### Claude Code's own worktrees
 
-Claude Code can create worktrees itself — `claude --worktree`, subagents with `isolation: worktree`,
-and some desktop flows such as suggested-task chips — under `.claude/worktrees/`, on branches it
-names. They're fine for read-only exploration and isolated subagent work. The project's scripts never
-set them up — no copy of its env file, no branch convention — so **don't use them for task work**:
-dispatch instead. A session that starts in one is told it has no role, and `worktree-ls.sh` flags
-task branches found in them.
-`.claude/worktrees/` stays in `.gitignore` and `.claudeignore`.
+A task can also start in a new session with Claude Code's worktree option — the desktop app's
+worktree toggle, or `claude --worktree` ([0015](../decisions/0015-tool-worktrees-are-workers.md)).
+It's a worker like any other: `.worktreeinclude` copies the env file, and the session renames its
+generated branch to `<type>/<slug>` after triage. On the newsletter site that's how copy changes and
+investigations start. Tasks that run the app go through `/dispatch`, because their worktree needs a
+port and the dev server's start command. The session-context hook names what a worktree is missing
+when it starts, and `worktree-ls.sh` flags the ones left on a generated branch. Claude Code's
+worktrees live under `.claude/worktrees/`, which stays in `.gitignore` and `.claudeignore`.
 
 ### Cleanup
 

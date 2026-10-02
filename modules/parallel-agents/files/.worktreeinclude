@@ -1,0 +1,5 @@
+# Gitignored files Claude Code copies from the main checkout into each worktree it creates — a new
+# desktop session with the worktree option, or claude --worktree (gitignore syntax). Keep it in step
+# with ENV_FILE in scripts/agent/worktree.conf; worktrees from scripts/agent/worktree-new.sh get
+# their env file from the script instead.
+.env

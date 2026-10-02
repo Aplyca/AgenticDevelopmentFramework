@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # List every worktree of this repository: branch, uncommitted changes, and — when worktrees run a
 # server — its port and whether something is listening on it. With --info, also what ENV_INFO_CMD
-# prints for each one (its URLs, the accounts to sign in with). Everything is derived on each run:
-# environments come and go, so a written-down copy would be wrong by the time anyone read it.
+# prints for each one (its URLs, the accounts to sign in with). Worktrees the scripts didn't set up —
+# Claude Code's own, from the desktop app or `claude --worktree` — are listed as workers too, and
+# flagged while they sit on a generated branch or a detached HEAD. Everything is derived on each
+# run: environments come and go, so a written-down copy would be wrong by the time anyone read it.
 #
 # Usage: scripts/agent/worktree-ls.sh [--info]
 set -uo pipefail
@@ -21,7 +23,7 @@ rows=()
 ports=""
 seen=" "
 duplicates=""
-builtin_tasks=""
+unnamed=""
 details=""
 while IFS= read -r path; do
   branch="$(git -C "$path" branch --show-current 2>/dev/null)"
@@ -35,17 +37,18 @@ while IFS= read -r path; do
   fi
   changes="$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
   label="$path"
-  builtin=""
+  outside=""
   if [ "$path" = "$MAIN_CHECKOUT" ]; then
     label="$path (main checkout)"
-  elif builtin_worktree "$path" "$MAIN_CHECKOUT"; then
-    builtin=1
-    label="$path (Claude Code's own worktree)"
-    case "$branch" in claude/* | "(detached)") ;; */*) builtin_tasks="$builtin_tasks $branch" ;; esac
+  elif ! scripts_worktree "$path" "$branch"; then
+    outside=1
+    label="$path (not from the scripts)"
+    if generated_branch "$branch"; then unnamed="$unnamed
+$branch|$path"; fi
   fi
   rows+=("$branch|${port:--}|$state|$changes|$label")
 
-  if [ -n "$INFO" ] && [ -n "$ENV_INFO_CMD" ] && [ "$path" != "$MAIN_CHECKOUT" ] && [ -z "$builtin" ]; then
+  if [ -n "$INFO" ] && [ -n "$ENV_INFO_CMD" ] && [ "$path" != "$MAIN_CHECKOUT" ] && [ -z "$outside" ]; then
     APP_PORT="$port"
     SLUG="$(basename "$path")"
     PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
@@ -73,9 +76,10 @@ done
 for port in $duplicates; do
   printf '\n  !! Two worktrees claim port %s — one of them is talking to the other'"'"'s app.\n     Fix one with: scripts/agent/worktree-new.sh <its branch> --refresh-env\n' "$port"
 done
-for branch in $builtin_tasks; do
-  printf '\n  !! %s is task work in one of Claude Code'"'"'s own worktrees, which this project'"'"'s scripts\n     never set up. Move it: commit there, git worktree remove <that path>, then\n     scripts/agent/worktree-new.sh %s\n' "$branch" "$branch"
-done
+while IFS='|' read -r branch path; do
+  [ -n "$path" ] || continue
+  printf '\n  !! %s is on %s. Give the task its branch after triage\n     (git branch -m <type>/<slug>, or git switch -c from a detached HEAD); if its work is done, archive\n     the session in the desktop app or git worktree remove it.\n' "$path" "$( [ "$branch" = "(detached)" ] && echo "a detached HEAD" || echo "a generated branch ($branch)")"
+done <<<"$unnamed"
 
 if [ -n "$INFO" ]; then
   if [ -z "$ENV_INFO_CMD" ]; then

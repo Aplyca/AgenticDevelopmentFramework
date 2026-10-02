@@ -10,8 +10,8 @@ the project needs them, its own copy of the env file and a port of its own.
 
 | | Main checkout — **dispatcher** | A worktree — **worker** |
 |---|---|---|
-| Where | The clone itself | A sibling of the main checkout, named after the branch: `../feat-newsletter-signup` |
-| Does | Names the task, creates the worktree, hands off (`/dispatch`) | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
+| Where | The clone itself | Any linked worktree: Claude Code's own, or a sibling the scripts create (`../feat-newsletter-signup`) |
+| Does | Routes the task to its worktree (§ Two routes); creates it with `/dispatch` when the scripts are needed | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
 | Never | Reads code, analyzes, edits, starts anything | Goes back to the hub to work |
 | Network | Reads only (the task, `git fetch`) | Whatever the workflow allows — outward actions only when asked |
 
@@ -19,6 +19,22 @@ The session-context hook tells each session which role it has when it starts, an
 hook holds the dispatcher to it: a file edit in the main checkout is stopped (`HUB_READONLY` in
 `.claude/hooks/config.sh`). The same goes for maintenance such as a framework upgrade — dispatch it
 to a worktree of its own like any other task.
+
+## Two routes to a worktree
+
+| | Claude Code's worktree | The scripts (`/dispatch`) |
+|---|---|---|
+| How | A new session with the worktree option — the desktop app's worktree toggle, or `claude --worktree <slug>` | `/dispatch` in the main checkout runs `scripts/agent/worktree-new.sh <type>/<slug> --no-start` |
+| Branch | A generated name — the worker renames it after triage: `git branch -m <type>/<slug>` | `<type>/<slug>` from the start |
+| Env file | Copied from the main checkout by `.worktreeinclude` | Seeded from the main checkout by the script |
+| Port, setup, start commands | None | What `worktree.conf` sets |
+| Starts from | The default branch | `BASE_BRANCH`, or `--from <ref>` |
+| Use it when | The default: the worktree runs no server and tasks start from the default branch | The worktree needs a port or setup or start commands, the base branch isn't the default, or the developer asks |
+
+Both are workers, and the session-context hook names what a worktree lacks when it starts: a
+generated branch, the env file, or the scripts' setup. Keep `.worktreeinclude` in step with
+`ENV_FILE`. The desktop app removes its worktrees when a session is archived — or once the pull
+request merges, with auto-archive on; `worktree-rm.sh` removes the scripts'.
 
 **Why split them.** The main checkout is shared: an edit, a running process, or a half-finished
 change there gets in the way of everyone who starts next. And analysis done in the hub is thrown
@@ -31,12 +47,12 @@ a task can be picked up by an agent on any machine. Passing work on later in a t
 | Command | Does |
 |---|---|
 | `scripts/agent/worktree-new.sh <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
-| `scripts/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, or when task work sits in one of Claude Code's own worktrees. `--info` adds what `ENV_INFO_CMD` prints for each |
+| `scripts/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
 | `scripts/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, deletes the branch only if git sees it as merged |
 
 Settings live in `scripts/agent/worktree.conf`, and the defaults assume nothing: no ports, no
-containers, no commands. Never create or remove task worktrees with raw `git worktree add` — the
-scripts keep branches, env files, and ports consistent.
+containers, no commands. Never create or remove the scripts' worktrees with raw `git worktree add` —
+the scripts keep branches, env files, and ports consistent.
 
 **Match the environment to the lane.** Most tasks need only what the git hooks and the tests use
 (`--setup-only`); start anything heavier when a test or check actually needs it. Everything a
@@ -88,16 +104,11 @@ one — the place for whatever someone needs to use that environment: its URLs, 
 in with. Derive these every time: environments come and go, so a table committed to the repository
 would be wrong by the time anyone read it.
 
-## Claude Code's built-in worktrees
+## Claude Code's worktrees
 
-Claude Code can create worktrees itself (`claude --worktree <name>`, subagents with
-`isolation: worktree`, and some desktop flows), under `.claude/worktrees/` on branches it names.
-Those are fine for read-only exploration or isolated subagent work, but this project's scripts never
-set them up — so task work goes through `worktree-new.sh`, and `.claude/worktrees/` stays in
-`.gitignore` and `.claudeignore`.
-
-Task work still ends up in them: a session started from a suggested task, or a developer reusing a
-parked one. So a session that starts in one is told it has **no role** — read and explore, but ask
-for a dispatch before working (the session-context hook) — and `worktree-ls.sh` flags any
-`<type>/<slug>` branch living in one, with how to move it. The app may park these worktrees rather
-than delete them; remove the ones you don't need with `git worktree remove`.
+Claude Code also creates worktrees for subagents with `isolation: worktree` and for background
+sessions, under `.claude/worktrees/`. Those are its own, short-lived ones; `.claude/worktrees/` stays
+in `.gitignore` and `.claudeignore`. A task worktree from the desktop app or `claude --worktree`
+lands there too, unless the app's **Worktree location** setting moves it: wherever it is, it's a
+worker (§ Two routes). Archive sessions you're done with, so their worktrees don't pile up —
+`worktree-ls.sh` flags the ones left on a generated branch or a detached HEAD.
