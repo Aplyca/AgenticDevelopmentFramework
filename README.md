@@ -69,7 +69,10 @@ any code exists. Step by step:
       worktree.
    3. From this folder, run:
       claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+      claude plugin marketplace update aplyca
       claude plugin install aplyca-adf@aplyca --scope project
+      The update refreshes a copy of the marketplace added before; without it the install can't
+      find aplyca-adf.
    4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
       plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
    5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
@@ -78,15 +81,16 @@ any code exists. Step by step:
       "Skeleton source:" line, otherwise /aplyca-adf:adopt.
    ```
 
-   Or run the two commands yourself, from the project's folder:
+   Or run the commands yourself, from the project's folder:
 
    ```bash
    cd your-project
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin marketplace update aplyca
    claude plugin install aplyca-adf@aplyca --scope project
    ```
 
-   Both commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
+   They write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
    this project only, and teammates get it once they trust the folder. Without `--scope`,
    Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).

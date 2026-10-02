@@ -11,6 +11,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The install refreshes a marketplace added before
+
+A machine that added the `aplyca` marketplace before the rename keeps its copy of it, which lists only
+`aplyca-framework`. Running `claude plugin marketplace add` again leaves that copy alone, so the
+install prompt failed with `Plugin "aplyca-adf" not found` in every project adopted before it. The
+prompt, `ADOPT.md`, and the documented commands now run `claude plugin marketplace update aplyca`
+between adding the marketplace and installing the plugin. Tested on a copy of the marketplace from
+`7383422`.
+**Upgrade impact:** framework-internal.
+
 ### One plugin, `aplyca-adf`, and semantic versioning — breaking
 
 ([0016](docs/decisions/0016-packaged-install.md), [0017](docs/decisions/0017-semantic-versioning.md))
