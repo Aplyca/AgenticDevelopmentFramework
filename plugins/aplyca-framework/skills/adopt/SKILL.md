@@ -79,7 +79,7 @@ Present the table before going further. Wrong facts here poison every file downs
   - `git-hooks` — when the team wants local gates for every git client
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
-  - `parallel-agents` — when several agent sessions work at once and each needs a running app
+  - `parallel-agents` — when several agent sessions work on the repository at once (ports and start commands only if each worktree runs a server)
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
   `modules/clickup/install.sh <repo>`.

@@ -8,14 +8,11 @@
 # from that name, so they're stable across runs, and are reserved under a lock so two agents
 # starting at once can't claim the same one.
 #
-# Usage: scripts/agent/worktree-new.sh <type>/<slug> [--no-start | --setup-only] [--refresh-env] [--isolated] [--from <ref>]
+# Usage: scripts/agent/worktree-new.sh <type>/<slug> [--no-start | --setup-only] [--refresh-env] [--from <ref>]
 #   (default)      create the worktree if needed, run SETUP_CMD and START_CMD, wait for READY_URL
 #   --no-start     create the worktree and its env file only — what /dispatch uses
 #   --setup-only   create if needed and run SETUP_CMD (e.g. host dependencies the git hooks need)
 #   --refresh-env  rewrite an existing worktree's env file from the main checkout and re-claim its port
-#   --isolated     give this worktree its own services (the ISOLATED_* settings) instead of the shared
-#                  ones — for migrations, resets, or test data no sibling may see. Remembered in its
-#                  env file, so later runs start them too; worktree-rm.sh stops them and drops their data
 #   --from <ref>   start a NEW branch from <ref> instead of BASE_BRANCH (e.g. a release tag for a hotfix)
 # Rerunning for an existing worktree never touches its branch; without --no-start it sets the
 # environment up and starts it. Settings: scripts/agent/worktree.conf
@@ -23,21 +20,19 @@ set -euo pipefail
 . "$(dirname "$0")/_worktree-lib.sh"
 
 usage() {
-  echo "Usage: $0 <type>/<slug> [--no-start | --setup-only] [--refresh-env] [--isolated] [--from <ref>]" >&2
+  echo "Usage: $0 <type>/<slug> [--no-start | --setup-only] [--refresh-env] [--from <ref>]" >&2
   exit 1
 }
 
 BRANCH=""
 MODE="start"
 REFRESH_ENV=""
-ISOLATED=""
 FROM_REF=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --no-start) [ "$MODE" = "start" ] || die "--no-start and --setup-only exclude each other."; MODE="none" ;;
     --setup-only) [ "$MODE" = "start" ] || die "--no-start and --setup-only exclude each other."; MODE="setup" ;;
     --refresh-env) REFRESH_ENV=1 ;;
-    --isolated) ISOLATED=1 ;;
     --from)
       [ $# -ge 2 ] || die "--from needs a ref."
       FROM_REF="$2"
@@ -63,12 +58,6 @@ PARENT="$(worktree_parent "$MAIN_CHECKOUT")"
 WORKTREE_DIR="$PARENT/$SLUG"
 PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
 APP_PORT=""
-PORT_BASE=""
-if [ -n "$ISOLATED" ]; then
-  [ -n "$ISOLATED_START_CMD$ISOLATED_SETUP_CMD$ISOLATED_ENV_OVERRIDES" ] ||
-    die "--isolated needs the ISOLATED_* settings in scripts/agent/worktree.conf."
-  [ "${ISOLATED_PORTS:-0}" -le "$PORT_OFFSET" ] || die "ISOLATED_PORTS ($ISOLATED_PORTS) must not exceed PORT_OFFSET ($PORT_OFFSET)."
-fi
 
 # --- Branch and worktree ---------------------------------------------------------------------
 existing="$(worktree_of_branch "$MAIN_CHECKOUT" "$BRANCH")"
@@ -78,12 +67,6 @@ if [ "$existing" = "$WORKTREE_DIR" ] && [ -f "$WORKTREE_DIR/.git" ]; then
   EXISTING=1
   [ -z "$FROM_REF" ] || echo "Note: '$BRANCH' already has a worktree — --from is ignored." >&2
   echo "==> Worktree exists: $WORKTREE_DIR (branch left as it is)"
-  if [ "$(env_value "$WORKTREE_DIR/$ENV_FILE" WORKTREE_ISOLATED || true)" = 1 ]; then
-    ISOLATED=1
-  elif [ -n "$ISOLATED" ]; then
-    echo "==> Giving it its own services: rewriting its $ENV_FILE"
-    REFRESH_ENV=1
-  fi
 else
   [ -z "$existing" ] || die "'$BRANCH' is already checked out at $existing."
   [ ! -e "$WORKTREE_DIR" ] || die "$WORKTREE_DIR already exists."
@@ -138,19 +121,6 @@ fi
 LOCK_DIR="$PARENT/.$(repo_name "$MAIN_CHECKOUT")-worktree-ports.lock"
 release_lock() { rm -rf "$LOCK_DIR" 2>/dev/null || true; }
 
-# An isolated worktree's services bind the first ISOLATED_PORTS ports of its slot's block; the app
-# binds PORT_OFFSET into it. Both are claimed together, so a slot isn't handed out on the app port
-# alone and lost to something already listening on a service port.
-block_free() {
-  [ -n "$ISOLATED" ] && [ "${ISOLATED_PORTS:-0}" -gt 0 ] || return 0
-  local i=0
-  while [ "$i" -lt "$ISOLATED_PORTS" ]; do
-    port_in_use $(($1 + i)) && return 1
-    i=$((i + 1))
-  done
-  return 0
-}
-
 WRITE_ENV=""
 if [ -n "$ENV_FILE" ] && { [ -z "$EXISTING" ] || [ -n "$REFRESH_ENV" ]; }; then
   WRITE_ENV=1
@@ -190,10 +160,7 @@ if [ -n "$WRITE_ENV" ] && [ "${PORT_SLOTS:-0}" -gt 0 ]; then
     attempts=0
     while [ "$attempts" -lt "$PORT_SLOTS" ]; do
       candidate=$((PORT_RANGE_START + slot * PORT_STEP + PORT_OFFSET))
-      case "$reserved" in
-        *" $candidate "*) ;;
-        *) if ! port_in_use "$candidate" && block_free $((candidate - PORT_OFFSET)); then APP_PORT=$candidate; break; fi ;;
-      esac
+      case "$reserved" in *" $candidate "*) ;; *) port_in_use "$candidate" || { APP_PORT=$candidate; break; } ;; esac
       slot=$(((slot + 1) % PORT_SLOTS))
       attempts=$((attempts + 1))
     done
@@ -202,18 +169,15 @@ if [ -n "$WRITE_ENV" ] && [ "${PORT_SLOTS:-0}" -gt 0 ]; then
 elif [ "${PORT_SLOTS:-0}" -gt 0 ]; then
   APP_PORT="$(env_value "$WORKTREE_DIR/$ENV_FILE" APP_PORT || true)"
 fi
-[ -z "$APP_PORT" ] || PORT_BASE=$((APP_PORT - PORT_OFFSET))
 
 # --- Env file: secrets from the MAIN checkout, identity from this worktree ---------------------
 # Seeding from whichever worktree ran the script would copy its port and its local experiments,
 # drifting further with every hop. The main checkout is the one canonical source.
 if [ -n "$WRITE_ENV" ]; then
   source_file="$MAIN_CHECKOUT/$ENV_FILE"
-  if [ -f "$source_file" ]; then
-    echo "==> Writing $ENV_FILE from the main checkout's"
-  else
-    source_file="$WORKTREE_DIR/$ENV_TEMPLATE"
-    echo "==> No $ENV_FILE in the main checkout — seeding from $ENV_TEMPLATE"
+  if [ ! -f "$source_file" ]; then
+    source_file=""
+    [ -z "$ENV_TEMPLATE" ] || [ ! -f "$WORKTREE_DIR/$ENV_TEMPLATE" ] || source_file="$WORKTREE_DIR/$ENV_TEMPLATE"
   fi
 
   overrides=""
@@ -226,19 +190,22 @@ if [ -n "$WRITE_ENV" ]; then
 }$(expand "$line")"
     fi
   done <<<"$ENV_OVERRIDES"
-  if [ -n "$ISOLATED" ]; then
-    overrides="${overrides:+$overrides
-}WORKTREE_ISOLATED=1${PORT_BASE:+
-WORKTREE_PORT_BASE=$PORT_BASE}"
-    while IFS= read -r line; do
-      [ -z "$line" ] || overrides="$overrides
-$(expand "$line")"
-    done <<<"$ISOLATED_ENV_OVERRIDES"
-  fi
 
+  if [ -z "$source_file" ] && [ -z "$overrides" ]; then
+    WRITE_ENV=""
+    echo "==> No $ENV_FILE to write — the main checkout has none, and no template or overrides apply"
+  elif [ "$source_file" = "$MAIN_CHECKOUT/$ENV_FILE" ]; then
+    echo "==> Writing $ENV_FILE from the main checkout's"
+  elif [ -n "$source_file" ]; then
+    echo "==> No $ENV_FILE in the main checkout — seeding from $ENV_TEMPLATE"
+  else
+    echo "==> Writing $ENV_FILE with the worktree's overrides only"
+  fi
+fi
+if [ -n "$WRITE_ENV" ]; then
   keys="$(printf '%s\n' "$overrides" | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' | paste -sd'|' -)"
   {
-    if [ -f "$source_file" ]; then
+    if [ -n "$source_file" ]; then
       grep -vE "^(${keys:-__none__})=|^### worktree overrides" "$source_file" || true
     fi
     if [ -n "$overrides" ]; then
@@ -257,16 +224,10 @@ trap - EXIT
 echo
 echo "==> Worktree ready: $WORKTREE_DIR"
 echo "    Branch:  $BRANCH"
-echo "    Project: $PROJECT"
+case "$ENV_OVERRIDES$SETUP_CMD$START_CMD$READY_URL$STOP_CMD$ENV_INFO_CMD" in
+  *'${PROJECT}'*) echo "    Project: $PROJECT" ;;
+esac
 [ -z "$APP_PORT" ] || echo "    Port:    $APP_PORT"
-[ -z "$ISOLATED" ] || echo "    Services: its own (--isolated)${PORT_BASE:+ — ports from $PORT_BASE}"
-
-# Preparing isolated services is filesystem-only (e.g. a generated config outside the repository),
-# so it runs even with --no-start: the worker can start them later without rerunning setup.
-if [ -n "$ISOLATED" ] && [ -n "$WRITE_ENV" ] && [ -n "$ISOLATED_SETUP_CMD" ]; then
-  echo "==> Preparing its own services: $(expand "$ISOLATED_SETUP_CMD")"
-  (cd "$WORKTREE_DIR" && sh -c "$(expand "$ISOLATED_SETUP_CMD")")
-fi
 
 missing=""
 for variable in $REQUIRED_ENV; do
@@ -279,11 +240,12 @@ if [ -n "$missing" ]; then
 fi
 
 if [ "$MODE" = "none" ]; then
-  echo
-  echo "--no-start: the environment is left down. When a step needs it, run from the worktree:"
-  echo "  scripts/agent/worktree-new.sh $BRANCH                # set up and start"
-  echo "  scripts/agent/worktree-new.sh $BRANCH --setup-only   # only what the git hooks need"
-  [ -n "$ISOLATED" ] || echo "  scripts/agent/worktree-new.sh $BRANCH --isolated     # with its own services (schema work, resets)"
+  if [ -n "$SETUP_CMD$START_CMD" ]; then
+    echo
+    echo "--no-start: the environment is left down. When a step needs it, run from the worktree:"
+    [ -z "$START_CMD" ] || echo "  scripts/agent/worktree-new.sh $BRANCH                # set up and start"
+    [ -z "$SETUP_CMD" ] || echo "  scripts/agent/worktree-new.sh $BRANCH --setup-only   # only what the git hooks need"
+  fi
   exit 0
 fi
 
@@ -294,10 +256,6 @@ fi
 [ "$MODE" = "setup" ] && exit 0
 
 [ -z "$missing" ] || die "not starting — required variables are empty."
-if [ -n "$ISOLATED" ] && [ -n "$ISOLATED_START_CMD" ]; then
-  echo "==> Start its own services: $(expand "$ISOLATED_START_CMD")"
-  (cd "$WORKTREE_DIR" && sh -c "$(expand "$ISOLATED_START_CMD")")
-fi
 if [ -n "$START_CMD" ]; then
   echo "==> Start: $(expand "$START_CMD")"
   (cd "$WORKTREE_DIR" && sh -c "$(expand "$START_CMD")")

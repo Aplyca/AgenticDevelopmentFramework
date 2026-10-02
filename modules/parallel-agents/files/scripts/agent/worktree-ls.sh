@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# List every worktree of this repository: branch, port, whether something is listening on it, whether
-# its services are its own (--isolated) or shared, and uncommitted changes. With --info, also each
-# environment's app URL and what ENV_INFO_CMD prints for it — service endpoints, the accounts to sign
-# in with. Everything is derived on each run: ports, environments, and seeded accounts change, so a
-# written-down copy would be wrong by the time anyone read it.
+# List every worktree of this repository: branch, uncommitted changes, and — when worktrees run a
+# server — its port and whether something is listening on it. With --info, also what ENV_INFO_CMD
+# prints for each one (its URLs, the accounts to sign in with). Everything is derived on each run:
+# environments come and go, so a written-down copy would be wrong by the time anyone read it.
 #
 # Usage: scripts/agent/worktree-ls.sh [--info]
 set -uo pipefail
@@ -18,7 +17,8 @@ esac
 
 MAIN_CHECKOUT="$(main_checkout)" || die "not inside a git repository."
 
-printf '\n  %-36s %-7s %-6s %-9s %-8s %s\n' 'BRANCH' 'PORT' 'STATE' 'SERVICES' 'CHANGES' 'PATH'
+rows=()
+ports=""
 seen=" "
 duplicates=""
 builtin_tasks=""
@@ -26,58 +26,64 @@ details=""
 while IFS= read -r path; do
   branch="$(git -C "$path" branch --show-current 2>/dev/null)"
   [ -n "$branch" ] || branch="(detached)"
-  port="$(env_value "$path/$ENV_FILE" APP_PORT || true)"
+  port="$( [ -z "$ENV_FILE" ] || env_value "$path/$ENV_FILE" APP_PORT || true)"
   state="-"
-  services="-"
   if [ -n "$port" ]; then
+    ports=1
     if port_in_use "$port"; then state="up"; else state="down"; fi
     case "$seen" in *" $port "*) duplicates="$duplicates $port" ;; *) seen="$seen$port " ;; esac
-    services="shared"
   fi
-  [ "$(env_value "$path/$ENV_FILE" WORKTREE_ISOLATED || true)" = 1 ] && services="own"
   changes="$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
   label="$path"
+  builtin=""
   if [ "$path" = "$MAIN_CHECKOUT" ]; then
     label="$path (main checkout)"
   elif builtin_worktree "$path" "$MAIN_CHECKOUT"; then
-    label="$path (Claude Code's own — no env file or port)"
+    builtin=1
+    label="$path (Claude Code's own worktree)"
     case "$branch" in claude/* | "(detached)") ;; */*) builtin_tasks="$builtin_tasks $branch" ;; esac
   fi
-  printf '  %-36s %-7s %-6s %-9s %-8s %s\n' "$branch" "${port:--}" "$state" "$services" "$changes" "$label"
+  rows+=("$branch|${port:--}|$state|$changes|$label")
 
-  if [ -n "$INFO" ] && [ -n "$port" ] && [ "$path" != "$MAIN_CHECKOUT" ]; then
+  if [ -n "$INFO" ] && [ -n "$ENV_INFO_CMD" ] && [ "$path" != "$MAIN_CHECKOUT" ] && [ -z "$builtin" ]; then
     APP_PORT="$port"
-    PORT_BASE="$(env_value "$path/$ENV_FILE" WORKTREE_PORT_BASE || true)"
-    [ -n "$PORT_BASE" ] || PORT_BASE=$((port - PORT_OFFSET))
     SLUG="$(basename "$path")"
     PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
     details="$details
-  $branch"
-    [ -z "$READY_URL" ] || details="$details
-    App: $(expand "$READY_URL")"
-    if [ -n "$ENV_INFO_CMD" ]; then
-      details="$details
+  $branch
 $( (cd "$path" && sh -c "$(expand "$ENV_INFO_CMD")") 2>&1 | sed 's/^/    /')"
-    fi
   fi
 done < <(all_worktrees "$MAIN_CHECKOUT")
+
+echo
+if [ -n "$ports" ]; then
+  printf '  %-36s %-7s %-6s %-8s %s\n' 'BRANCH' 'PORT' 'STATE' 'CHANGES' 'PATH'
+else
+  printf '  %-36s %-8s %s\n' 'BRANCH' 'CHANGES' 'PATH'
+fi
+for row in "${rows[@]}"; do
+  IFS='|' read -r branch port state changes label <<<"$row"
+  if [ -n "$ports" ]; then
+    printf '  %-36s %-7s %-6s %-8s %s\n' "$branch" "$port" "$state" "$changes" "$label"
+  else
+    printf '  %-36s %-8s %s\n' "$branch" "$changes" "$label"
+  fi
+done
 
 for port in $duplicates; do
   printf '\n  !! Two worktrees claim port %s — one of them is talking to the other'"'"'s app.\n     Fix one with: scripts/agent/worktree-new.sh <its branch> --refresh-env\n' "$port"
 done
 for branch in $builtin_tasks; do
-  printf '\n  !! %s is task work in one of Claude Code'"'"'s own worktrees, which has no env file or port.\n     Move it: commit there, git worktree remove <that path>, then scripts/agent/worktree-new.sh %s\n' "$branch" "$branch"
+  printf '\n  !! %s is task work in one of Claude Code'"'"'s own worktrees, which this project'"'"'s scripts\n     never set up. Move it: commit there, git worktree remove <that path>, then\n     scripts/agent/worktree-new.sh %s\n' "$branch" "$branch"
 done
 
 if [ -n "$INFO" ]; then
-  if [ -n "$details" ]; then
-    printf '%s\n' "$details"
-  else
+  if [ -z "$ENV_INFO_CMD" ]; then
     echo
-    echo "  No worktree has an environment yet."
+    echo "  Set ENV_INFO_CMD in scripts/agent/worktree.conf to print what someone needs to use each"
+    echo "  environment (its URLs, the accounts to sign in with)."
+  elif [ -n "$details" ]; then
+    printf '%s\n' "$details"
   fi
-  [ -n "$ENV_INFO_CMD" ] || echo "
-  Set ENV_INFO_CMD in scripts/agent/worktree.conf to print each environment's service endpoints and
-  the accounts to sign in with."
 fi
 echo

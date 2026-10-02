@@ -31,9 +31,8 @@ network calls are reads: the task in step 1, and the `git fetch` inside the work
    It creates a sibling worktree named after the branch (`../feat-newsletter-signup-topics`) on a
    new branch from the base branch — or reports the existing worktree unchanged. `--no-start` is
    deliberate: the environment belongs to the worker, which starts it only if its triage says a step
-   needs it (`scripts/agent/worktree-new.sh <branch>` from the worktree) — and gives it its own
-   services (`--isolated`) when the task touches the schema. A hotfix from a release tag adds
-   `--from <tag>`.
+   needs it (`scripts/agent/worktree-new.sh <branch>` from the worktree). A hotfix from a release
+   tag adds `--from <tag>`.
 
 3. **Start the worker session in the worktree.**
    - Terminal: `cd <worktree path> && claude`, then paste the prompt from step 4.

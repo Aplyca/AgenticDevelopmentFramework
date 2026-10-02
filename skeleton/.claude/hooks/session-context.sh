@@ -59,7 +59,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   else
     case "$(cd "$root" && pwd -P)" in
       "$main"/.claude/worktrees/*)
-        echo "- Role: NONE. This is one of Claude Code's own worktrees: no env file, no port, a generated branch. Fine for reading and exploring; for task work, ask the developer to dispatch the task from the main checkout (/dispatch) and open a session in the worktree it creates."
+        echo "- Role: NONE. This is one of Claude Code's own worktrees, which this project's scripts never set up (a generated branch, none of the project's env). Fine for reading and exploring; for task work, ask the developer to dispatch the task from the main checkout (/dispatch) and open a session in the worktree it creates."
         ;;
       *)
         echo "- Role: WORKER. This worktree is yours for one task — start with triage (/triage)."

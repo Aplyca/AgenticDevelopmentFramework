@@ -8,39 +8,25 @@ PROJECT_PREFIX=""
 ENV_FILE=".env"
 ENV_TEMPLATE=".env.example"
 PORT_RANGE_START=41000
-PORT_SLOTS=180
+PORT_SLOTS=0
 PORT_STEP=100
 PORT_OFFSET=80
-ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'
+ENV_OVERRIDES=''
 REQUIRED_ENV=""
 SETUP_CMD=""
 START_CMD=""
 READY_URL=""
 STOP_CMD=""
-ISOLATED_PORTS=0
-ISOLATED_ENV_OVERRIDES=""
-ISOLATED_SETUP_CMD=""
-ISOLATED_START_CMD=""
-ISOLATED_STOP_CMD=""
 ENV_INFO_CMD=""
-# Settings may use ${APP_PORT}, ${PORT_BASE}, ${PORT_0}…${PORT_99}, ${SLUG}, and ${PROJECT} in single
-# or double quotes: keep them literal while sourcing; expand() fills them in once the values are known.
+# Settings may use ${APP_PORT}, ${SLUG}, and ${PROJECT} in single or double quotes: keep them
+# literal while sourcing; expand() fills them in once the values are known.
 # shellcheck disable=SC2016
-APP_PORT='${APP_PORT}' PORT_BASE='${PORT_BASE}' SLUG='${SLUG}' PROJECT='${PROJECT}'
-_n=0
-while [ "$_n" -lt 100 ]; do
-  printf -v "PORT_$_n" '${PORT_%s}' "$_n"
-  _n=$((_n + 1))
-done
+APP_PORT='${APP_PORT}' SLUG='${SLUG}' PROJECT='${PROJECT}'
 # shellcheck source=worktree.conf
 if [ -f "$AGENT_SCRIPTS_DIR/worktree.conf" ]; then
   . "$AGENT_SCRIPTS_DIR/worktree.conf"
 fi
-unset APP_PORT PORT_BASE SLUG PROJECT
-while [ "$_n" -gt 0 ]; do
-  _n=$((_n - 1))
-  unset "PORT_$_n"
-done
+unset APP_PORT SLUG PROJECT
 
 to_slug() {
   printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_-' '-' | sed -E 's/^-+//; s/-+$//'
@@ -106,15 +92,10 @@ env_value() {
   [ -f "$1" ] && sed -n "s/^$2=//p" "$1" | tail -1 | tr -d '[:space:]'
 }
 
-# expand <text> — substitute ${APP_PORT}, ${PORT_BASE}, ${PORT_N}, ${SLUG}, ${PROJECT} without eval.
-# ${PORT_N} is the worktree's Nth port: its block starts at PORT_BASE (APP_PORT - PORT_OFFSET).
+# expand <text> — substitute ${APP_PORT}, ${SLUG}, ${PROJECT} without eval.
 expand() {
-  local text="$1" pattern='\$\{PORT_([0-9]+)\}'
-  while [[ $text =~ $pattern ]]; do
-    text="${text//"${BASH_REMATCH[0]}"/$((${PORT_BASE:-0} + 10#${BASH_REMATCH[1]}))}"
-  done
+  local text="$1"
   text="${text//\$\{APP_PORT\}/${APP_PORT:-}}"
-  text="${text//\$\{PORT_BASE\}/${PORT_BASE:-}}"
   text="${text//\$\{SLUG\}/${SLUG:-}}"
   text="${text//\$\{PROJECT\}/${PROJECT:-}}"
   printf '%s' "$text"
