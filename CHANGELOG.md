@@ -11,6 +11,17 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### `/upgrade` keeps the hub clean when it installs the dispatcher hub
+
+Choosing `parallel-agents` moves the upgrade into a worktree created from the last commit, so the
+plugin setting the install prompt left uncommitted in the main checkout stayed behind: the pull
+request added it again, and the main checkout's copy stopped the first pull after the merge. `/upgrade`
+now checks `git status` before creating the worktree, carries the setting into it, and restores the
+main checkout's copy, listing both in the plan; anything else uncommitted is the developer's to
+decide. The plugin-setting check now tells committed, uncommitted, and missing apart
+(`aplyca-framework` 0.2.5).
+**Upgrade impact:** framework-internal; update the plugin.
+
 ## 7383422 — 2026-10-01 — Parallel agents, test first in every lane, and adoption per project (`aplyca-framework` 0.2.4)
 
 Everything since `3eb7777`: portable parallel agents and `/handoff`

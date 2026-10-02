@@ -68,12 +68,23 @@ Edit files under that path and run git with `-C <that path>`. Once the module is
 protect-hub hook stops edits in the main checkout, so the main checkout stays a clean hub from the
 first commit.
 
-**Check where the plugin is turned on.** If `.claude/settings.json` has no
-`"enabledPlugins": {"aplyca-framework@aplyca": true}` with its `aplyca` entry in
-`extraKnownMarketplaces`, this session got the plugin from a user- or local-scope install. Offer to
-add both entries in this upgrade (the snippet in the plugin's README § For teams), so the plugin is on
-for this project and its team only — and in every worktree of a hub. After the merge, the developer
-removes a user-scope copy with the commands in that README's § Install.
+Uncommitted changes in the main checkout don't follow into the worktree. Check `git status` there
+before creating it. The usual one is the plugin setting the install left in `.claude/settings.json`:
+make the same change in the worktree, then restore the main checkout's copy
+(`git restore .claude/settings.json`), so the hub starts clean and the first pull after the merge
+doesn't stop on it. List both moves in the plan. Anything else uncommitted there is the developer's:
+ask, and never discard it.
+
+**Check where the plugin is turned on.** The upgrade's pull request must leave
+`"enabledPlugins": {"aplyca-framework@aplyca": true}`, with its `aplyca` entry in
+`extraKnownMarketplaces`, committed in `.claude/settings.json`:
+
+- **Already committed:** nothing to do.
+- **Uncommitted, left by the install:** commit it with this upgrade — in the worktree, for a hub.
+- **Missing:** this session got the plugin from a user- or local-scope install. Offer to add both
+  entries in this upgrade (the snippet in the plugin's README § For teams), so the plugin is on for
+  this project and its team only — and in every worktree of a hub. After the merge, the developer
+  removes a user-scope copy with the commands in that README's § Install.
 
 ## Step 3 — Classify every changed file
 
