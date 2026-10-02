@@ -23,8 +23,8 @@ edit it here.
 
 ## Install
 
-Install it in each project that uses the framework. Paste this prompt into a Claude Code session
-opened on the project — in the terminal, the desktop app, or an IDE:
+Install it once per project, when the project adopts the framework. Paste this prompt into a Claude
+Code session opened on the project — in the terminal, the desktop app, or an IDE:
 
 <!-- install-prompt: keep identical in README.md and the plugin's README -->
 ```text
@@ -32,7 +32,8 @@ Install the aplyca-adf plugin (Agentic Development Framework) for this project o
 at user scope.
 
 1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
-   aplyca-adf@aplyca, say so and skip to step 6.
+   aplyca-adf@aplyca, there is nothing to install: tell me to start a new session here and accept
+   the prompt to trust the folder, which turns the plugin on, and stop.
 2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
    equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
    worktree.
@@ -122,25 +123,29 @@ workflows, and the hooks, which read the project's `.claude/hooks/config.sh`. Th
 
 ## For teams
 
-These are the entries `--scope project` writes to `.claude/settings.json`, and what `/aplyca-adf:adopt`
-and `/aplyca-adf:upgrade` keep (or add, when the plugin was installed another way) so every teammate
-is offered the plugin — and `/aplyca-adf:upgrade` — when they trust the repository:
+These are the entries `--scope project` writes to `.claude/settings.json`, with the release pin that
+`/aplyca-adf:adopt` and `/aplyca-adf:upgrade` add (they add the rest too, when the plugin was
+installed another way). They work like a package manifest: a teammate who opens the project and
+accepts the prompt to trust the folder gets the plugin with no install command. Claude Code fetches
+the marketplace at the pinned release and loads the plugin from it, because the marketplace lists
+the plugin by a relative path. A machine where nobody trusts the folder — CI — installs it first
+([SETUP.md](../../docs/SETUP.md)).
 
 ```json
 {
   "extraKnownMarketplaces": {
     "aplyca": {
-      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework" }
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v1.0.0" }
     }
   },
   "enabledPlugins": { "aplyca-adf@aplyca": true }
 }
 ```
 
-Every project pins its release in the same entry — `"ref": "v1.0.0"` next to `"repo"` — and
-`/aplyca-adf:adopt` and `/aplyca-adf:upgrade` keep it equal to the release in the `CLAUDE.md` stamp. In a
-packaged project the pin chooses the machinery; in a committed one it keeps the plugin's copies at
-the same release as the committed files, so a skill listed twice never runs a different version.
+Every project pins its release with `"ref"`, and `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` keep
+it equal to the release in the `CLAUDE.md` stamp. In a packaged project the pin chooses the
+machinery; in a committed one it keeps the plugin's copies at the same release as the committed
+files, so a skill listed twice never runs a different version.
 
 ## Updating the plugin
 

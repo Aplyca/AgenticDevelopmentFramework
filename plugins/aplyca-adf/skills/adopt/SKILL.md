@@ -113,7 +113,7 @@ Present the table before going further. Wrong facts here poison every file downs
     with none yet, say so and install committed.
 
   For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
-  out, the settings, the names note for `CLAUDE.md`, the stamp, and the checks.
+  out, the settings, the names in `CLAUDE.md` and `DEV-SETUP.md`, the stamp, and the checks.
 - Copy `skeleton/` into the repo **without overwriting existing files**. For collisions (`README.md`,
   `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
   skeleton's missing sections.
@@ -146,6 +146,8 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`CLAUDE.md`** — keep `@AGENTS.md` as its first instruction (Claude Code reads `CLAUDE.md` instead
   of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5. Packaged: add the names
   note from `docs/SETUP.md` § Packaged install.
+- **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
+  development by their full names (`/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`).
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected.

@@ -36,6 +36,10 @@ Most of what's here was proven in real client projects first — some built on t
 
 ## Install in a project
 
+**Joining a project that already uses it?** There's nothing to install. Open the project in Claude
+Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns the
+plugin on, at the release the project pins.
+
 ### With Claude Code — the installer plugin (recommended)
 
 **In one prompt.** Open a Claude Code session on the project — in the terminal, the desktop app, or an
@@ -58,7 +62,8 @@ any code exists. Step by step:
    at user scope.
 
    1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
-      aplyca-adf@aplyca, say so and skip to step 6.
+      aplyca-adf@aplyca, there is nothing to install: tell me to start a new session here and accept
+      the prompt to trust the folder, which turns the plugin on, and stop.
    2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
       equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
       worktree.

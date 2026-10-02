@@ -13,8 +13,11 @@ branch, delivered as a draft pull request — and wait for their go-ahead.
 
 - **Not a git repository?** Offer `git init -b <default branch>` (ask for the name; suggest `main`).
   A new project with no code yet is fine: `/adopt` has a mode for it.
-- **Already adopted?** If `CLAUDE.md` has a `Skeleton source:` line, the task is an upgrade: follow
-  steps 2 and 3 with `/upgrade` in place of `/adopt`.
+- **Already adopted?** If `CLAUDE.md` has a `Skeleton source:` line, the framework is already here.
+  When `.claude/settings.json` enables `aplyca-adf@aplyca`, a developer joining the project has
+  nothing to install: they start a new session and accept the prompt to trust the folder. Ask
+  whether they want an upgrade instead; if so, follow steps 2 and 3 with `/upgrade` in place of
+  `/adopt`.
 - **The main checkout of a hub?** If `scripts/agent/worktree-new.sh` exists and
   `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, stop: the hub takes no edits. Ask
   the developer to start a session in a worktree and run this there.

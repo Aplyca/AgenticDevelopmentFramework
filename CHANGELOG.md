@@ -64,7 +64,8 @@ to use the framework like a package. A team that works in Claude Code only can n
   plugin's copies at the same release as the committed files.
 - **The packaged install:**
   - It commits only its own layer and its modules, about 40 fewer files.
-  - `CLAUDE.md` gets a note mapping the short names the docs use to the plugin's.
+  - `CLAUDE.md` gets a note mapping the short names the docs use to the plugin's, and
+    `docs/getting-started/DEV-SETUP.md` lists the key commands by their full names.
   - `docs/SETUP.md` § Packaged install covers the steps, and `docs/UPGRADING.md` covers upgrades.
 - **`/aplyca-adf:adopt` asks committed or packaged.** `/aplyca-adf:upgrade` moves a packaged project
   from release to release by bumping the pin, skips the paths the plugin carries, and offers to switch
@@ -79,6 +80,26 @@ to use the framework like a package. A team that works in Claude Code only can n
 - **Overwrite:** `.claude/hooks/_lib.sh`.
 - **To switch to packaged:** `/aplyca-adf:upgrade` offers it from v1.0.0 (`docs/UPGRADING.md`, "We use
   the packaged install — or want to").
+
+### Joining an adopted project: open it and trust the folder
+
+A developer joining a project that uses the framework has nothing to install. The project's committed
+`.claude/settings.json` works like a package manifest: in the first session after they trust the
+folder, Claude Code fetches the marketplace at the pinned release and loads `aplyca-adf`. That was
+tested on a machine that had never installed the plugin. The project's own docs didn't say so.
+
+#### Changed
+- **`docs/getting-started/DEV-SETUP.md`**, the project's setup guide, says it: open a session, trust
+  the folder, and `/plugin` lists the plugin. Never install it at user scope.
+- **The install prompt** stops when the project already turns the plugin on, instead of sending a
+  joining developer to `/aplyca-adf:upgrade`. `ADOPT.md` asks before it treats "use the framework" in
+  an adopted project as an upgrade.
+- **`DEV-SETUP.md` is merge-required** in the upgrade taxonomy. It was unlisted, so upgrades left it
+  alone.
+
+#### Upgrade impact
+- **Merge:** `docs/getting-started/DEV-SETUP.md` — add the paragraph to § AI-assisted development;
+  `/aplyca-adf:upgrade` does it.
 
 ### `/cost-report` shows what Opus sessions would have cost on Sonnet
 

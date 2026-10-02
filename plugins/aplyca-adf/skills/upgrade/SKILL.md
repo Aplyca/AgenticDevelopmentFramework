@@ -90,9 +90,11 @@ ask, and never discard it.
 - **Committed → packaged**, for a team that works in Claude Code only: remove the skills, agents,
   workflows, and hook scripts the plugin carries — only those unchanged since OLD_SHA; one the team
   edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add the pinned
-  marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, and `install: packaged` in the stamp.
+  marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in `DEV-SETUP.md`'s key
+  commands, and `install: packaged` in the stamp.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
-  copy the machinery and the `hooks` block back, and remove `install: packaged` and the names note.
+  copy the machinery and the `hooks` block back, and remove `install: packaged`, the names note, and
+  the `aplyca-adf:` prefix in `DEV-SETUP.md`.
   Keep `aplyca-adf` turned on and pinned, for `/aplyca-adf:upgrade`.
 - **Record the switch** — it changes how the team works — as a process decision in the same pull
   request: the next `docs/process/NNNN-<slug>.md` from `docs/process/0000-pdr-template.md`, with its
@@ -127,7 +129,7 @@ packaged project, leave out what the plugin carries — `.claude/skills/` (modul
 | Bucket | Typical contents | Action |
 |---|---|---|
 | **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts (`.claude/hooks/*.sh`), universal rules, framework reference docs, `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting

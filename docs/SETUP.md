@@ -195,6 +195,9 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    > workflow — `/triage`, `/deep-review` — type `/aplyca-adf:triage`, `/aplyca-adf:deep-review`.
    > Where they name an agent — `@code-reviewer` — its name is `aplyca-adf:code-reviewer`.
 
+   People read the key commands in `docs/getting-started/DEV-SETUP.md` § AI-assisted development,
+   so write them there by their full names: `/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`.
+
 4. **Stamp the install** (step 8): `<!-- Skeleton source: v<X.Y.Z> · <SHA> (<date>) · modules: <list> · install: packaged — … -->`,
    with the pinned release and its commit. `install: packaged` is what turns the plugin's copies on.
 
