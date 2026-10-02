@@ -2,15 +2,31 @@
 
 How to adopt the framework in a repository by hand. With Claude Code, the installer plugin does all of
 this for you — `/adopt` inspects the repository, copies the skeleton and the modules you choose, fills
-the placeholders from verified facts, configures the hooks, and opens a draft pull request:
+the placeholders from verified facts, configures the hooks, and opens a draft pull request. Install it
+with [the install prompt](../README.md#with-claude-code--the-installer-plugin-recommended) in any Claude
+Code session, or with these commands:
 
 ```bash
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework
-claude plugin install aplyca-framework@aplyca
+cd your-project
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin install aplyca-framework@aplyca --scope project
 # then, in the repository:  /adopt
 ```
 
+`--scope project` turns the plugin on in this project only, through its committed
+`.claude/settings.json` — the team is offered it, and every worktree of a hub project gets it. Without
+`--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
+`--scope local`. From the desktop app's Code tab:
+[the plugin's README § In the desktop app](../plugins/aplyca-framework/README.md#in-the-desktop-app).
+
 The manual path below is the same procedure, step by step.
+
+**A new project with no code yet:** create the repository and one first commit holding what's there
+(`git init -b main`, then `git add -A && git commit -m "chore: initial commit"`, with `--allow-empty`
+for an empty folder), and adopt on a branch as below. Where a
+step asks for facts, write the planned ones and mark each `<!-- planned: not in the repository yet -->`;
+record the stack as ADR-0001 (`docs/architecture/decisions/`, status `proposed`). Once the first code
+lands, run `/init-project` to replace the planned entries with verified facts.
 
 ## 1. Copy the skeleton (on a branch)
 
@@ -147,8 +163,9 @@ Open the pull request as a draft; merge after review like any other change.
 
 ## Updating
 
-Update the plugin, restart Claude Code, then run `/upgrade` in the adopted repository — it plans the
-update from the baseline stamp, keeps your customizations, and prepares a draft pull request:
+Update the plugin from the adopted repository's folder, restart Claude Code, then run `/upgrade` there —
+it plans the update from the baseline stamp, keeps your customizations, and prepares a draft pull
+request:
 
 ```bash
 claude plugin marketplace update aplyca

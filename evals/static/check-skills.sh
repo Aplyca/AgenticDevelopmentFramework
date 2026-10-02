@@ -612,8 +612,12 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
+    file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
+    file_contains "$REPO_ROOT/plugins/aplyca-framework/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
+    file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
+    file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project"
     else
         fail "practices: missing" "${missing[*]}"
     fi
@@ -645,6 +649,45 @@ check_marketplace_snippets() {
         pass "extraKnownMarketplaces snippets use the object form"
     else
         fail "extraKnownMarketplaces must be an object keyed by marketplace name: $hits"
+    fi
+}
+
+check_install_scope() {
+    # Without --scope, `claude plugin marketplace add` and `claude plugin install` default to user
+    # scope, which turns the plugin on in every project on the machine. Installs are per project.
+    local hits
+    hits=$(grep -rnE 'claude plugin (marketplace add|install) ' "$REPO_ROOT/plugins" "$REPO_ROOT/docs" \
+        "$SKELETON" "$MODULES_DIR" "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" 2>/dev/null | grep -vE -- '--scope (project|local)')
+    if [ -z "$hits" ]; then
+        pass "install commands pass --scope project or local"
+    else
+        fail "install commands without --scope project/local install for every project: $hits"
+    fi
+}
+
+check_install_prompt() {
+    # The install prompt is printed in two READMEs; a fix made in one must reach the other.
+    local report
+    report=$(python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/plugins/aplyca-framework/README.md" <<'PY'
+import sys, textwrap
+blocks = []
+for path in sys.argv[1:]:
+    lines = open(path, encoding="utf-8").read().split("\n")
+    try:
+        start = next(i for i, l in enumerate(lines) if "<!-- install-prompt:" in l) + 2
+        end = next(i for i in range(start, len(lines)) if lines[i].strip() == chr(96) * 3)  # the closing fence
+    except StopIteration:
+        print(f"{path}: no install prompt")
+        continue
+    blocks.append(textwrap.dedent("\n".join(lines[start:end])))
+if len(blocks) == 2 and blocks[0] != blocks[1]:
+    print("the copies in README.md and the plugin's README differ")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "install prompt: identical in README.md and the plugin's README"
+    else
+        fail "install prompt: $report"
     fi
 }
 
@@ -702,6 +745,8 @@ echo ""
 check_links
 check_modules
 check_marketplace_snippets
+check_install_scope
+check_install_prompt
 check_lanes
 check_practices
 check_plugin

@@ -151,7 +151,8 @@ This is ~90 lines and supports listing spec folders (and legacy single-file spec
 
 ### Claude Code
 
-Add to `.claude/mcp.json` (or your global `~/.claude/mcp.json`):
+Add to `.mcp.json` at the repository root — project scope, so the team shares it and it's on in this
+project only:
 
 ```json
 {

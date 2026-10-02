@@ -1,18 +1,28 @@
 #!/usr/bin/env bash
 #
-# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, or debug) against real
-# Claude Code sessions.
+# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, or adopt) against
+# real Claude Code sessions.
 #
 # Builds a fictional project in a temp directory — the skeleton, the delivered newsletter-signup
 # spec folder from docs/examples/, and a few stub source files matching the fixtures' context, plus
-# whatever the suite's setup.sh adds — then runs each fixture's prompt headless with `claude -p` on
-# each model. Each run works in its own
+# whatever the suite's setup.sh adds; a suite with its own project.sh builds its project instead —
+# then runs each fixture's prompt headless with `claude -p` on each model. Each run works in its own
 # throwaway copy, may edit it (so the project's hooks — triage-first, careful-paths — take part), and
 # is turn- and budget-capped; `--read-only` denies edits instead, so a run stops at its first edit.
-# Transcripts land in the output directory for grading against each fixture's .expected.md.
+# A fixture with a "## Follow-up" section gets a second turn in the same session. A suite's
+# inspect.sh records each run's end state. Transcripts land in the output directory for grading
+# against each fixture's .expected.md.
 #
-# Usage: ./run-session-evals.sh [--suite triage|debug] [--models "sonnet opus"] [--cases "a b ..."]
-#                               [--out DIR] [--budget 1.50] [--parallel 4] [--read-only]
+# The adopt suite: {{FRAMEWORK}} in a prompt becomes --source (the framework's GitHub address by
+# default — what's published on main; pass this checkout's path to test a branch), and a fixture
+# marked <!-- run: plugin-dir --> loads the installer plugin for that session only, so nothing is
+# installed on the machine. An adoption copies files in bulk, which headless permission checks
+# refuse, so adopt sessions run in bypassPermissions mode on throwaway copies — of the project and of
+# this checkout — with deny rules, which hold in every mode, for `claude` commands, `git push`, and
+# file-tool edits under your home folder.
+#
+# Usage: ./run-session-evals.sh [--suite triage|debug|adopt] [--models "sonnet opus"] [--cases "a b ..."]
+#                               [--out DIR] [--budget USD] [--parallel 4] [--read-only] [--source URL|PATH]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
 set -uo pipefail
@@ -22,7 +32,8 @@ FW="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SUITE="triage"
 MODELS="sonnet opus"
 CASES=""
-BUDGET="1.50"
+BUDGET=""
+SOURCE="https://github.com/aplyca/AgenticDevelopmentFramework"
 PARALLEL=4
 OUT=""
 READ_ONLY=""
@@ -35,6 +46,7 @@ while [ $# -gt 0 ]; do
     --budget) BUDGET="$2"; shift 2 ;;
     --parallel) PARALLEL="$2"; shift 2 ;;
     --read-only) READ_ONLY=1; shift ;;
+    --source) SOURCE="$2"; shift 2 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -42,8 +54,12 @@ FIXTURES="$SCRIPT_DIR/fixtures/$SUITE"
 [ -d "$FIXTURES" ] || { echo "no such suite: $SUITE" >&2; exit 2; }
 case "$SUITE" in
   debug) MAX_TURNS=30; EXTRA_TOOLS="Bash(node:*)|Bash(pnpm test:*)|Bash(npm test:*)" ;;
+  adopt) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
+    EXTRA_TOOLS="WebFetch|Bash(git:*)|Bash(cp:*)|Bash(mkdir:*)|Bash(mv:*)|Bash(rm:*)|Bash(chmod:*)|Bash(python3:*)|Bash(printf:*)|Bash(echo:*)|Bash(test:*)|Bash(sed:*)|Bash(touch:*)|Bash(diff:*)" ;;
   *) MAX_TURNS=14; EXTRA_TOOLS="" ;;
 esac
+BUDGET="${BUDGET:-1.50}"
+BYPASS="${BYPASS:-}"
 [ -n "$CASES" ] || CASES="$(ls "$FIXTURES" | sed -n 's/\.input\.md$//p' | tr '\n' ' ')"
 claude auth status 2>/dev/null | grep -q '"loggedIn": true' || { echo "Sign in first: claude auth login" >&2; exit 1; }
 
@@ -51,11 +67,19 @@ WORK="$(cd "$(mktemp -d)" && pwd -P)"
 OUT="${OUT:-$WORK/out}"
 mkdir -p "$OUT"
 REPO="$WORK/repo"
+FWC="$FW"
+if [ -n "$BYPASS" ]; then # sessions get a copy of this checkout, never the checkout itself
+  FWC="$WORK/framework" && mkdir -p "$FWC" && cp -R "$FW/." "$FWC/"
+  [ "$SOURCE" = "$FW" ] && SOURCE="$FWC"
+fi
 
 # ─── The fictional project ──────────────────────────────────────────────────
 mkdir -p "$REPO"
-cp -R "$FW/skeleton/." "$REPO/"
 cd "$REPO" || exit 1
+if [ -f "$FIXTURES/project.sh" ]; then
+bash "$FIXTURES/project.sh" "$REPO" || exit 1
+else
+cp -R "$FW/skeleton/." "$REPO/"
 git init -q -b main && git config user.email dev@example.com && git config user.name dev
 mkdir -p specs/007-newsletter-signup components/__tests__ lib/newsletter/__tests__ app/api/newsletter db/migrations src/billing/emails
 cp "$FW"/docs/examples/newsletter-signup/{spec,plan,tasks}.md specs/007-newsletter-signup/
@@ -180,33 +204,57 @@ fill("CLAUDE.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — C
 PY
 [ -f "$FIXTURES/setup.sh" ] && bash "$FIXTURES/setup.sh" "$REPO"
 git add -A && git commit -qm "chore: adopt the Agentic Development Framework"
+fi
 
 # ─── Runs ───────────────────────────────────────────────────────────────────
 run_case() { # run_case <case> <model>
-  local case_name=$1 model=$2 work prompt
+  local case_name=$1 model=$2 work input
   work="$WORK/runs/$case_name.$model"
+  input="$FIXTURES/$case_name.input.md"
   mkdir -p "$WORK/runs" && cp -R "$REPO" "$work"
-  prompt="$(python3 - "$FIXTURES/$case_name.input.md" <<'PY'
+  python3 - "$input" "$SOURCE" "$work" <<'PY'
 import re, sys
-section = open(sys.argv[1]).read().split("## Prompt to give the AI", 1)[1]
-print(re.search(r"```\n(.*?)\n```", section, re.S).group(1))
+text = open(sys.argv[1]).read()
+def block(heading):
+    if heading not in text:
+        return ""
+    return re.search(r"```\n(.*?)\n```", text.split(heading, 1)[1], re.S).group(1).replace("{{FRAMEWORK}}", sys.argv[2])
+open(sys.argv[3] + ".prompt", "w").write(block("## Prompt to give the AI"))
+open(sys.argv[3] + ".follow-up", "w").write(block("## Follow-up"))
 PY
-)"
-  local extra=()
+  local extra=() dirs=()
   [ -n "$EXTRA_TOOLS" ] && IFS='|' read -r -a extra <<< "$EXTRA_TOOLS"
-  local edits=(--permission-mode acceptEdits)
-  [ -n "$READ_ONLY" ] && edits=(--disallowedTools Edit Write MultiEdit NotebookEdit)
-  (cd "$work" && claude -p "$prompt" --model "$model" --output-format stream-json --verbose --max-turns "$MAX_TURNS" \
-    "${edits[@]}" \
-    --allowedTools Read Grep Glob Skill "Bash(git log:*)" "Bash(git status)" "Bash(git show:*)" "Bash(git diff:*)" \
+  local flags=(--model "$model" --output-format stream-json --verbose --max-turns "$MAX_TURNS")
+  if [ -n "$READ_ONLY" ]; then flags+=(--disallowedTools Edit Write MultiEdit NotebookEdit)
+  elif [ -n "$BYPASS" ]; then
+    flags+=(--permission-mode bypassPermissions --disallowedTools "Bash(claude:*)" "Bash(git push:*)" "Edit(~/**)" "Write(~/**)")
+  else flags+=(--permission-mode acceptEdits); fi
+  if grep -q '<!-- run: plugin-dir -->' "$input"; then
+    flags+=(--plugin-dir "$FWC/plugins/aplyca-framework"); dirs+=("$FWC")
+  fi
+  [ -d "$SOURCE" ] && [ "$SOURCE" != "$FWC" -o ${#dirs[@]} -eq 0 ] && dirs+=("$SOURCE")
+  [ ${#dirs[@]} -gt 0 ] && flags+=(--add-dir "${dirs[@]}")
+  flags+=(--allowedTools Read Grep Glob Skill "Bash(git log:*)" "Bash(git status)" "Bash(git show:*)" "Bash(git diff:*)" \
       "Bash(git switch:*)" "Bash(git checkout:*)" "Bash(git branch:*)" "Bash(ls:*)" "Bash(grep:*)" "Bash(find:*)" \
       "Bash(cat:*)" "Bash(head:*)" "Bash(wc:*)" ${extra[@]+"${extra[@]}"} \
-    --setting-sources project,local --strict-mcp-config --max-budget-usd "$BUDGET" \
+    --setting-sources project,local --strict-mcp-config --max-budget-usd "$BUDGET")
+  (cd "$work" && claude -p "$(cat "$work.prompt")" "${flags[@]}" \
     < /dev/null > "$OUT/$case_name.$model.jsonl" 2> "$OUT/$case_name.$model.err")
+  if [ -s "$work.follow-up" ]; then
+    local sid
+    sid="$(python3 -c 'import json, sys
+for raw in open(sys.argv[1]):
+    try: d = json.loads(raw)
+    except ValueError: continue
+    if d.get("session_id"): print(d["session_id"]); break' "$OUT/$case_name.$model.jsonl")"
+    (cd "$work" && claude -p "$(cat "$work.follow-up")" --resume "$sid" "${flags[@]}" \
+      < /dev/null > "$OUT/$case_name.$model.2.jsonl" 2>> "$OUT/$case_name.$model.err")
+  fi
+  [ -f "$FIXTURES/inspect.sh" ] && bash "$FIXTURES/inspect.sh" "$work" > "$OUT/$case_name.$model.state.md" 2>&1
   echo "  $case_name · $model done"
 }
 export -f run_case
-export WORK REPO OUT FIXTURES BUDGET READ_ONLY MAX_TURNS EXTRA_TOOLS
+export FW FWC WORK REPO OUT FIXTURES BUDGET READ_ONLY MAX_TURNS EXTRA_TOOLS SOURCE BYPASS
 echo "Fixture project: $REPO"
 echo "Running: $CASES on $MODELS ($PARALLEL at a time, \$$BUDGET cap each)"
 for c in $CASES; do for m in $MODELS; do echo "$c $m"; done; done | xargs -P "$PARALLEL" -n 2 bash -c 'run_case "$0" "$1"'
@@ -216,9 +264,7 @@ python3 - "$OUT" "$SUITE" <<'PY'
 import json, sys, glob, os, re
 out = sys.argv[1]
 rows = []
-for path in sorted(glob.glob(os.path.join(out, "*.jsonl"))):
-    name = os.path.basename(path)[:-6]
-    parts, meta = [], {}
+def read(path, parts, meta):
     for raw in open(path):
         try: d = json.loads(raw)
         except ValueError: continue
@@ -230,10 +276,24 @@ for path in sorted(glob.glob(os.path.join(out, "*.jsonl"))):
                     parts.append("**Assistant:**\n\n" + b["text"].strip())
                 elif b.get("type") == "tool_use":
                     i = b.get("input", {})
-                    brief = i.get("command") or i.get("file_path") or i.get("pattern") or json.dumps(i)[:150]
+                    brief = i.get("command") or i.get("file_path") or i.get("url") or i.get("pattern") or json.dumps(i)[:150]
                     parts.append(f"`tool: {b['name']} — {re.sub(r'/[^ ]*/runs/[^/ ]*/', '', str(brief))[:160]}`")
         elif d.get("type") == "result":
-            meta.update(cost=d.get("total_cost_usd") or 0, turns=d.get("num_turns"), seconds=round((d.get("duration_ms") or 0) / 1000), error=d.get("is_error"))
+            meta["cost"] = meta.get("cost", 0) + (d.get("total_cost_usd") or 0)
+            meta["turns"] = meta.get("turns", 0) + (d.get("num_turns") or 0)
+            meta["seconds"] = meta.get("seconds", 0) + round((d.get("duration_ms") or 0) / 1000)
+            meta["error"] = meta.get("error") or d.get("is_error")
+for path in sorted(p for p in glob.glob(os.path.join(out, "*.jsonl")) if not p.endswith(".2.jsonl")):
+    name = os.path.basename(path)[:-6]
+    parts, meta = [], {}
+    read(path, parts, meta)
+    second = os.path.join(out, name + ".2.jsonl")
+    if os.path.exists(second):
+        parts.append("---\n\n**Follow-up turn** (the fixture's ## Follow-up)")
+        read(second, parts, meta)
+    state = os.path.join(out, name + ".state.md")
+    if os.path.exists(state):
+        parts.append("---\n\n## End state\n\n" + open(state).read())
     with open(os.path.join(out, name + ".md"), "w") as f:
         f.write(f"# {name}\n\nmodel {meta.get('model')} · turns {meta.get('turns')} · ${meta.get('cost', 0):.3f} · {meta.get('seconds')}s{' · ERROR' if meta.get('error') else ''}\n\n" + "\n\n".join(parts) + "\n")
     rows.append((name, meta))

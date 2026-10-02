@@ -1,6 +1,6 @@
 ---
 name: adopt
-description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Also adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
+description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Works in a new project before any code exists, and adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
 ---
 
 # Adopt the Agentic Development Framework
@@ -15,21 +15,23 @@ read the source doc (locations in step 1).
 ## Ground rules
 
 - **Never commit to the default branch.** Work on a feature branch (suggest `docs/agentic-adoption`);
-  the deliverable is a reviewable draft PR.
+  the deliverable is a reviewable draft PR. The one exception is a new repository's first commit
+  (§ A new project).
 - **Docs and config only.** Adoption adds no dependencies, no runtime code, and no build changes. The
   hook and worktree scripts are dev tooling; if anything seems to need more, stop and ask.
 - **Facts need evidence.** Every placeholder you fill traces to a file you read (manifest, lockfile,
   CI config, code, git history). Anything you can't evidence becomes a
   `<!-- TODO(team): <concrete question> -->` — an honest TODO beats a plausible invention.
 - **Client repositories:** confirm before pushing anything. If committing AI config isn't
-  appropriate for the client, offer the local-only fallback (`.git/info/exclude` + user-level config).
+  appropriate for the client, offer the local-only fallback (`.git/info/exclude`, and the plugin at `--scope local`).
 
 ## Step 1 — Locate the framework source
 
 Resolve the framework root, in order:
 
 1. `${CLAUDE_PLUGIN_ROOT}/../..` — only when the plugin runs from a checkout of the framework repo.
-2. The marketplace checkout: `~/.claude/plugins/marketplaces/<marketplace-name>/` (usually `aplyca`).
+2. The marketplace checkout: the `installLocation` of the marketplace (usually `aplyca`) in
+   `claude plugin marketplace list --json` — by default `~/.claude/plugins/marketplaces/aplyca/`.
    **The normal case on installed machines** — installed plugins run from a version cache, so
    `${CLAUDE_PLUGIN_ROOT}` isn't inside the repo. Run `claude plugin marketplace update <name>` first.
 3. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
@@ -42,6 +44,36 @@ to install modules (steps 3–4 for the chosen modules only, then update the `mo
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
 checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
 (`scripts/agent/worktree-new.sh chore/add-modules --no-start`).
+
+### A new project
+
+No git repository, no commits, or nothing to inspect yet (no manifest, no source code): adopting
+before the first line of code puts the process and the guardrails in place first. Every other step
+applies, with these changes:
+
+- **No repository:** offer `git init -b <default branch>` — ask for the name; suggest `main`.
+- **No commits:** there is no default branch to branch from. With the developer's yes, make exactly
+  one commit on it, holding everything already there — check `git status` first, so no secret goes
+  in — with `git add -A && git commit -m "chore: initial commit"` (add `--allow-empty` when the folder
+  is empty). Then branch as usual; nothing else lands on the default branch.
+- **Step 2 asks instead of reads.** There are no facts to evidence yet. Ask for the planned ones in one
+  round, with your recommendations: language and framework, package manager, test runner, hosting,
+  branching model (Model A is the usual start), tracker, ways of working, sensitive areas. Mark each
+  answer in `AGENTS.md` as planned — `<!-- planned: not in the repository yet -->` — so no one mistakes
+  it for a verified fact. A command nobody has run yet stays a `TODO(team)`.
+- **The stack is a decision.** Record it as ADR-0001 in `docs/architecture/decisions/` from the
+  template, status `proposed`, with the alternatives the developer considered; the adoption's review
+  accepts it.
+- **Globs point at planned paths or stay empty** — `CAREFUL_GLOBS`, `APPEND_ONLY_GLOBS`,
+  `GENERATED_GLOBS`, the rules' `paths:` — and no nested `AGENTS.md` yet.
+- **Step 6:** commands that can't run yet are a GAP — "no code yet" — not a failure.
+- **Step 7 without a remote:** commit on the adoption branch, then put the full PR body in your reply —
+  not an offer to draft it — with the steps that follow: add the remote, push the branch, and open
+  the draft pull request with that body.
+- **After the adoption,** the scaffold — the framework's init, the first test — is the first task
+  through the lanes; usually full, since it sets the structure others follow. Once that code lands,
+  run `/init-project` to replace the planned entries with verified facts, and `/context-audit` to find
+  what's stale.
 
 ## Step 2 — Discover the repo (read-only, before copying anything)
 
@@ -128,22 +160,25 @@ Present the table before going further. Wrong facts here poison every file downs
   team is adopting, what it adds (files, gates, modules), the costs (docs to keep fresh, more tokens
   for phased work, the approval gate on the critical path), alternatives considered. Ask who the
   deciders are. Add it to the index in `docs/process/README.md`.
-- *(Optional, ask)* Register the framework marketplace for the team in `.claude/settings.json`, so
-  teammates get `/upgrade`:
+- **The plugin setting.** The documented install (`--scope project`) already wrote
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
-  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` — the marketplace key must be `aplyca`,
-  the name `enabledPlugins` refers to.
+  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` into `.claude/settings.json`: keep both when
+  merging the skeleton's settings, so they're committed with the adoption and teammates get the
+  plugin and `/upgrade`. If they're missing — a user- or local-scope install — offer to add them
+  (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
+  install, give the commands that remove it (the plugin's README § Install).
 
 ## Step 6 — Verify
 
 Run these checks and report each as PASS / GAP with one line of evidence:
 
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
+- [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
 - [ ] Skill frontmatter uses hyphenated keys only (no `user_invocable` and the like)
-- [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones)
+- [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones) — in a new project, a GAP until the first code lands
 - [ ] Readiness checklist (Agentic Development Guide §9): `README.md` + `AGENTS.md` current; constitution; `specs/` scaffold; `docs/` with architecture and ADRs; skills/MCP versioned; nested `AGENTS.md` where needed (or explicitly not needed); boundaries section; CI gates before merge (GAP if none — don't invent one); written "no merge without human review"
 
 GAPs go in the PR description; they're findings, not failures to hide.

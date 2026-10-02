@@ -1,5 +1,9 @@
 # Agentic Development Framework
 
+> **AI agents:** asked to adopt, use, or install this framework in a project? Follow
+> [ADOPT.md](ADOPT.md) (raw: `https://raw.githubusercontent.com/aplyca/AgenticDevelopmentFramework/main/ADOPT.md`)
+> — don't copy files from this repository by hand.
+
 A production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development.** It ships as a portable project skeleton you drop into any codebase, optional modules for your Git host and ways of working, and an installer plugin for Claude Code. It includes an enforced multi-perspective spec model, specialized agents, workflow skills, multi-agent workflows, and guardrail hooks. Engineering standards and a team onboarding path are part of it too.
 
 The framework is built on three reinforcing disciplines:
@@ -34,29 +38,74 @@ Most of what's here was proven in real client projects first — some built on t
 
 ### With Claude Code — the installer plugin (recommended)
 
-1. **Install the plugin** — once per machine:
+**In one prompt.** Open a Claude Code session on the project — in the terminal, the desktop app, or an
+IDE — and say:
+
+```text
+Adopt the Agentic Development Framework in this project: https://github.com/aplyca/AgenticDevelopmentFramework
+```
+
+This README points the session to [ADOPT.md](ADOPT.md), the procedure for agents: check the project,
+install the plugin for this project only, and run the adoption below — in a new project too, before
+any code exists. Step by step:
+
+1. **Install the plugin in the project.** Paste this prompt into a Claude Code session opened on the
+   project — in the terminal, the desktop app, or an IDE:
+
+   <!-- install-prompt: keep identical in README.md and the plugin's README -->
+   ```text
+   Install the aplyca-framework plugin (Agentic Development Framework) for this project only — never
+   at user scope.
+
+   1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
+      aplyca-framework@aplyca, say so and skip to step 6.
+   2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
+      equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
+      worktree.
+   3. From this folder, run:
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+      claude plugin install aplyca-framework@aplyca --scope project
+   4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
+      plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+   5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
+      that copy. Don't run them.
+   6. Tell me to start a new session here, then run /upgrade if CLAUDE.md has a "Skeleton source:"
+      line, otherwise /adopt.
+   ```
+
+   Or run the two commands yourself, from the project's folder:
 
    ```bash
-   claude plugin marketplace add aplyca/AgenticDevelopmentFramework
-   claude plugin install aplyca-framework@aplyca
+   cd your-project
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin install aplyca-framework@aplyca --scope project
    ```
+
+   Both commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
+   this project only, and teammates get it once they trust the folder. Without `--scope`,
+   Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
+   try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
+   In the desktop app's Code tab, add the marketplace the same way, then install from
+   **+ → Plugins → Add plugin** with the scope set to this project
+   ([details](plugins/aplyca-framework/README.md#in-the-desktop-app)).
 
 2. **Run `/adopt`** in the project. It inspects the repository (stack, commands, branching model,
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
    skeleton, fills the placeholders from verified repository facts only, and configures the guardrail
    hooks (`.claude/hooks/config.sh`). It records the adoption as a process decision (PDR-0001), stamps
    the baseline version at the top of `CLAUDE.md`, verifies the hooks and the `@AGENTS.md` import, and
-   prepares a **draft pull request** on its own branch. It never commits to your default branch.
+   prepares a **draft pull request** on its own branch — the plugin setting the install wrote goes
+   in with it. It never commits to your default branch.
 3. **Finish what only the team knows** in that pull request: the remaining `[PLACEHOLDER]`s, the
    constitution's principles, the sensitive areas (`AGENTS.md` and `CAREFUL_GLOBS`), and the
    stakeholder-update settings in `docs/TRACKER-INTEGRATION.md`
    (live site, previews, CMS entry links, task statuses). With the `clickup` module, each developer
    signs in once through `/mcp`. Then review and merge the pull request like any change.
-4. **Optional — the whole team:** let `/adopt` register the marketplace in the project's
-   `.claude/settings.json`, so every teammate is offered the plugin (and `/upgrade`) when they trust
-   the folder.
-5. **Add a module later:** run `/adopt` again in the adopted repository. It detects the adoption and
-   offers the modules you don't have yet.
+4. **A new project with no code yet?** `/adopt` asks for the planned stack instead of reading it,
+   records it as the first architecture decision, and marks those entries as planned. Run
+   `/init-project` once the first code lands, to replace them with verified facts.
+5. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
+   `/adopt` again in the adopted repository.
 
 The plugin contains **no framework content** — adopted repositories get plain committed files that
 every AI tool can read, with or without the plugin.
@@ -81,7 +130,7 @@ The `3eb7777` release (2026-10-01) fixes defects that affect every adopted repos
 the order to upgrade in from an older baseline; if your settings pin a model ID, switch it to the
 `sonnet` alias.
 
-1. **Update the plugin** — then restart Claude Code:
+1. **Update the plugin** from the project's folder — then restart Claude Code:
 
    ```bash
    claude plugin marketplace update aplyca
@@ -91,10 +140,15 @@ the order to upgrade in from an older baseline; if your settings pin a model ID,
 2. **Run `/upgrade`** in the adopted project. It reads the baseline stamp
    (`<!-- Skeleton source: <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    version to the latest. It sorts every changed file into overwrite, merge, or additive, applies the
-   CHANGELOG migration steps, and shows you the plan before changing anything. Then it updates the
-   files — your project-specific content stays — re-stamps, and prepares a draft pull request.
+   CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
+   dispatcher hub (`parallel-agents`) among them. It shows you the plan before changing anything.
+   Then it updates the files — your project-specific content stays — installs the modules you chose,
+   re-stamps, and prepares a draft pull request.
 3. **Review the pull request** and run the verification in [docs/UPGRADING.md](docs/UPGRADING.md):
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
+
+Installed the plugin at user scope earlier? `/upgrade` adds the project setting in its pull request;
+then remove the user-scope copy ([how](plugins/aplyca-framework/README.md#install)).
 
 By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.md).
 
