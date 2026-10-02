@@ -11,7 +11,48 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-_Nothing yet._
+### Parallel agents — own services on request, environment info, and `/handoff`
+
+Field findings from the project the `parallel-agents` module came from, generalized
+([0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md), addendum).
+
+#### Added
+- **`worktree-new.sh --isolated`** gives one worktree its own copy of the services siblings share —
+  usually the database — so a migration, a reset, or test data can't reach another worktree:
+  - its services take ports from the block the worktree already owns (`${PORT_0}`, `${PORT_1}`, …),
+    checked free in the same locked step that claims the app's port;
+  - project commands prepare (files only, even with `--no-start`), start, and stop them;
+  - the choice is remembered in the env file, and `worktree-rm.sh` stops the services and drops their
+    data.
+
+  Shared stays the default. `docs/PARALLEL-AGENTS.md` covers when to isolate, what a stack costs,
+  and how to keep a tracked service config untouched.
+- **`worktree-ls.sh`** shows whether each worktree's services are its own or shared, and flags task
+  work sitting in one of Claude Code's own worktrees. `--info` adds each environment's app URL and
+  runs `ENV_INFO_CMD` for its endpoints and sign-in accounts, derived on each run.
+- **The session-context hook gives a session no role in Claude Code's own worktrees**
+  (`.claude/worktrees/`), which have no env file or port. That's fine for reading; for task work it
+  asks for a dispatch. Before, such a session was told it was a worker.
+- **`/handoff`** (core skill): hand work in progress to a teammate, another machine, or a fresh
+  session as a short message of pointers — task, branch and commit, spec folder, pull request, done,
+  next, open questions. It puts the state in the record first, never copies the spec or the process,
+  and shows the message to the developer rather than posting it.
+
+#### Fixed — framework-internal
+- `CLAUDE.md` gave the framework's former name as its current one, a slip of the rename in
+  [#10](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/10).
+
+#### Upgrade impact
+- **Overwrite:**
+  - With the module: `scripts/agent/{_worktree-lib,worktree-new,worktree-ls,worktree-rm}.sh`,
+    `.claude/skills/dispatch/SKILL.md`.
+  - Core: `.claude/hooks/session-context.sh`, `.claude/skills/spec-workflow/SKILL.md`,
+    `docs/COST-MODEL.md`.
+- **Merge:**
+  - `scripts/agent/worktree.conf` — append the new `ISOLATED_*` and `ENV_INFO_CMD` settings (all off
+    by default) and the placeholder note; keep your values.
+  - `docs/PARALLEL-AGENTS.md` — keep your recorded shared-vs-isolated decision; take the new sections.
+- **Additive:** `.claude/skills/handoff/SKILL.md`.
 
 ## 3eb7777 — 2026-10-01 — Lanes, model choice, and a sharper process (`aplyca-framework` 0.2.1)
 
