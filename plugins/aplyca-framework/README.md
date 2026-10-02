@@ -25,13 +25,35 @@ framework.
 
 | Scope | Recorded in | Who gets the plugin |
 |---|---|---|
-| `--scope project` (use this) | The project's committed `.claude/settings.json` | Everyone on the project — teammates are offered it when they trust the folder |
-| `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this checkout only — to try it before the team sees it |
+| `--scope project` (use this) | The project's committed `.claude/settings.json` | Everyone on the project — teammates get it once they trust the folder |
+| `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this repository only — to try it before the team sees it |
 
-In a project that uses the dispatcher hub (the parallel-agents module), only `project` works: the
-committed setting reaches every task's worktree, while a local install exists only in the checkout
-where you ran it. Claude Code keeps the downloaded plugin files in its own cache under your home
-folder; the scope decides where the plugin is turned on.
+In a project that uses the dispatcher hub (the parallel-agents module), use `project`: the committed
+setting reaches every task's worktree on every platform, and every teammate. A local install reaches
+the worktrees only on macOS and Linux with Claude Code 2.1.211 or later, which keeps
+`.claude/settings.local.json` at the main checkout; on Windows it stays in the checkout where you ran
+it. Claude Code keeps the downloaded plugin files in its own cache under your home folder; the scope
+decides where the plugin is turned on.
+
+### In the desktop app
+
+The Code tab of the Claude desktop app reads the same settings files as the terminal, so an install
+made with the commands above works there too. To install from the app instead:
+
+1. Add the marketplace from a terminal in the project's folder — the app's plugin browser lists the
+   plugins of marketplaces already added:
+
+   ```bash
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   ```
+
+2. In a local or SSH session on the project, click **+** next to the prompt box, then **Plugins** →
+   **Add plugin**. Select `aplyca-framework` and choose **this project** as the scope.
+
+**+ → Plugins → Manage plugins** enables, disables, or uninstalls it later. Worktree sessions the app
+creates load a project-scope plugin (Claude Code 2.1.200 or later). Plugins don't load in WSL
+sessions, and cloud sessions don't install the plugins a repository's settings declare — run `/adopt`
+and `/upgrade` in a local session.
 
 **Installed at user scope before?** `/upgrade` offers to add the project setting in its pull request.
 Once every project you use the plugin in has it, remove the user-scope copy:

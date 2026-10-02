@@ -46,6 +46,9 @@ Most of what's here was proven in real client projects first — some built on t
    this project only, and teammates are offered it when they trust the folder. Without `--scope`,
    Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
+   In the desktop app's Code tab, add the marketplace the same way, then install from
+   **+ → Plugins → Add plugin** with the scope set to this project
+   ([details](plugins/aplyca-framework/README.md#in-the-desktop-app)).
 
 2. **Run `/adopt`** in the project. It inspects the repository (stack, commands, branching model,
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the

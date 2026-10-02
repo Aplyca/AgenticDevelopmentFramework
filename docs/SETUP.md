@@ -14,7 +14,8 @@ claude plugin install aplyca-framework@aplyca --scope project
 `--scope project` turns the plugin on in this project only, through its committed
 `.claude/settings.json` — the team is offered it, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
-`--scope local`.
+`--scope local`. From the desktop app's Code tab:
+[the plugin's README § In the desktop app](../plugins/aplyca-framework/README.md#in-the-desktop-app).
 
 The manual path below is the same procedure, step by step.
 
