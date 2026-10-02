@@ -2,7 +2,9 @@
 
 How to adopt the framework in a repository by hand. With Claude Code, the installer plugin does all of
 this for you — `/adopt` inspects the repository, copies the skeleton and the modules you choose, fills
-the placeholders from verified facts, configures the hooks, and opens a draft pull request:
+the placeholders from verified facts, configures the hooks, and opens a draft pull request. Install it
+with [the install prompt](../README.md#with-claude-code--the-installer-plugin-recommended) in any Claude
+Code session, or with these commands:
 
 ```bash
 cd your-project

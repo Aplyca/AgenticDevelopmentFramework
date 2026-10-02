@@ -11,7 +11,31 @@ runtime dependency on this plugin.
 
 ## Install
 
-Install it in each project that uses the framework, from the project's folder:
+Install it in each project that uses the framework. Paste this prompt into a Claude Code session
+opened on the project — in the terminal, the desktop app, or an IDE:
+
+<!-- install-prompt: keep identical in README.md and the plugin's README -->
+```text
+Install the aplyca-framework plugin (Agentic Development Framework) for this project only — never
+at user scope.
+
+1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
+   aplyca-framework@aplyca, say so and skip to step 6.
+2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
+   equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
+   worktree.
+3. From this folder, run:
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin install aplyca-framework@aplyca --scope project
+4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
+   plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
+   that copy. Don't run them.
+6. Tell me to start a new session here, then run /upgrade if CLAUDE.md has a "Skeleton source:"
+   line, otherwise /adopt.
+```
+
+Or run the two commands yourself, from the project's folder:
 
 ```bash
 cd your-project

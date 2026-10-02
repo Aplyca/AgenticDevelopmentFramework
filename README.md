@@ -34,7 +34,31 @@ Most of what's here was proven in real client projects first — some built on t
 
 ### With Claude Code — the installer plugin (recommended)
 
-1. **Install the plugin in the project** — from its folder, with `--scope project`:
+1. **Install the plugin in the project.** Paste this prompt into a Claude Code session opened on the
+   project — in the terminal, the desktop app, or an IDE:
+
+   <!-- install-prompt: keep identical in README.md and the plugin's README -->
+   ```text
+   Install the aplyca-framework plugin (Agentic Development Framework) for this project only — never
+   at user scope.
+
+   1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
+      aplyca-framework@aplyca, say so and skip to step 6.
+   2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
+      equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
+      worktree.
+   3. From this folder, run:
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+      claude plugin install aplyca-framework@aplyca --scope project
+   4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
+      plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+   5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
+      that copy. Don't run them.
+   6. Tell me to start a new session here, then run /upgrade if CLAUDE.md has a "Skeleton source:"
+      line, otherwise /adopt.
+   ```
+
+   Or run the two commands yourself, from the project's folder:
 
    ```bash
    cd your-project
@@ -43,7 +67,7 @@ Most of what's here was proven in real client projects first — some built on t
    ```
 
    Both commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
-   this project only, and teammates are offered it when they trust the folder. Without `--scope`,
+   this project only, and teammates get it once they trust the folder. Without `--scope`,
    Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
    In the desktop app's Code tab, add the marketplace the same way, then install from

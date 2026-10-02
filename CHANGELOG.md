@@ -27,8 +27,10 @@ The install docs (README, plugin README, `docs/SETUP.md`) installed the plugin a
 `user` scope, which turns it on in every project on the machine. They now install it with
 `--scope project` from the project's folder — recorded in the committed `.claude/settings.json`, so
 the team is offered it and every worktree of a hub gets it — or `--scope local` to try it alone.
-The plugin README adds the steps for the desktop app's Code tab (**+ → Plugins → Add plugin**, scope
-"this project"). `/adopt` commits that setting with the adoption and checks it; `/upgrade` offers to
+Both READMEs open with an install prompt to paste into any Claude Code session — terminal, desktop
+app, or IDE: it runs the two commands, skips a plugin the project already declares, stops in a hub's
+main checkout, and reports a leftover user-scope copy. The plugin README adds the steps for the
+desktop app's Code tab (**+ → Plugins → Add plugin**, scope "this project"). `/adopt` commits that setting with the adoption and checks it; `/upgrade` offers to
 add it when the project doesn't have it. `docs/MCP-INTEGRATION.md` pointed MCP servers at `.claude/mcp.json` or a
 global file; it now uses the project's `.mcp.json`.
 **Upgrade impact:** merge `docs/MCP-INTEGRATION.md` (one line, § Wiring it into AI tools).

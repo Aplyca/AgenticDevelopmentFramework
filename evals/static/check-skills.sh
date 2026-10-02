@@ -662,6 +662,32 @@ check_install_scope() {
     fi
 }
 
+check_install_prompt() {
+    # The install prompt is printed in two READMEs; a fix made in one must reach the other.
+    local report
+    report=$(python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/plugins/aplyca-framework/README.md" <<'PY'
+import sys, textwrap
+blocks = []
+for path in sys.argv[1:]:
+    lines = open(path, encoding="utf-8").read().split("\n")
+    try:
+        start = next(i for i, l in enumerate(lines) if "<!-- install-prompt:" in l) + 2
+        end = next(i for i in range(start, len(lines)) if lines[i].strip() == chr(96) * 3)  # the closing fence
+    except StopIteration:
+        print(f"{path}: no install prompt")
+        continue
+    blocks.append(textwrap.dedent("\n".join(lines[start:end])))
+if len(blocks) == 2 and blocks[0] != blocks[1]:
+    print("the copies in README.md and the plugin's README differ")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "install prompt: identical in README.md and the plugin's README"
+    else
+        fail "install prompt: $report"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -717,6 +743,7 @@ check_links
 check_modules
 check_marketplace_snippets
 check_install_scope
+check_install_prompt
 check_lanes
 check_practices
 check_plugin
