@@ -5,15 +5,16 @@ this for you — `/adopt` inspects the repository, copies the skeleton and the m
 the placeholders from verified facts, configures the hooks, and opens a draft pull request:
 
 ```bash
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework
-claude plugin install aplyca-framework@aplyca
+cd your-project
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin install aplyca-framework@aplyca --scope project
 # then, in the repository:  /adopt
 ```
 
-That installs the plugin for every project on your machine. For this project only, run both
-commands from its folder with `--scope project` (committed, so the team is offered it — the right
-choice when the project uses the dispatcher hub, since every worktree gets the setting) or
-`--scope local` (only you).
+`--scope project` turns the plugin on in this project only, through its committed
+`.claude/settings.json` — the team is offered it, and every worktree of a hub project gets it. Without
+`--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
+`--scope local`.
 
 The manual path below is the same procedure, step by step.
 
@@ -152,8 +153,9 @@ Open the pull request as a draft; merge after review like any other change.
 
 ## Updating
 
-Update the plugin, restart Claude Code, then run `/upgrade` in the adopted repository — it plans the
-update from the baseline stamp, keeps your customizations, and prepares a draft pull request:
+Update the plugin from the adopted repository's folder, restart Claude Code, then run `/upgrade` there —
+it plans the update from the baseline stamp, keeps your customizations, and prepares a draft pull
+request:
 
 ```bash
 claude plugin marketplace update aplyca

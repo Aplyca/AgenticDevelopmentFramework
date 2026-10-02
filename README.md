@@ -34,35 +34,32 @@ Most of what's here was proven in real client projects first — some built on t
 
 ### With Claude Code — the installer plugin (recommended)
 
-1. **Install the plugin** — for every project on your machine:
+1. **Install the plugin in the project** — from its folder, with `--scope project`:
 
    ```bash
-   claude plugin marketplace add aplyca/AgenticDevelopmentFramework
-   claude plugin install aplyca-framework@aplyca
+   cd your-project
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin install aplyca-framework@aplyca --scope project
    ```
 
-   Or only for this project: run both commands from the project's folder with `--scope project`
-   (recorded in its committed `.claude/settings.json`, so teammates are offered the plugin too) or
-   `--scope local` (only you, recorded in the git-ignored `.claude/settings.local.json`). In a
-   project that uses the dispatcher hub, choose `project`: committed settings reach every task's
-   worktree, while a local install exists only in the checkout where you ran it.
+   Both commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
+   this project only, and teammates are offered it when they trust the folder. Without `--scope`,
+   Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
+   try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
 
 2. **Run `/adopt`** in the project. It inspects the repository (stack, commands, branching model,
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
    skeleton, fills the placeholders from verified repository facts only, and configures the guardrail
    hooks (`.claude/hooks/config.sh`). It records the adoption as a process decision (PDR-0001), stamps
    the baseline version at the top of `CLAUDE.md`, verifies the hooks and the `@AGENTS.md` import, and
-   prepares a **draft pull request** on its own branch. It never commits to your default branch.
+   prepares a **draft pull request** on its own branch — the plugin setting the install wrote goes
+   in with it. It never commits to your default branch.
 3. **Finish what only the team knows** in that pull request: the remaining `[PLACEHOLDER]`s, the
    constitution's principles, the sensitive areas (`AGENTS.md` and `CAREFUL_GLOBS`), and the
    stakeholder-update settings in `docs/TRACKER-INTEGRATION.md`
    (live site, previews, CMS entry links, task statuses). With the `clickup` module, each developer
    signs in once through `/mcp`. Then review and merge the pull request like any change.
-4. **Optional — the whole team:** let `/adopt` register the marketplace in the project's
-   `.claude/settings.json`, so every teammate is offered the plugin (and `/upgrade`) when they trust
-   the folder. It's the same setting `--scope project` writes; if you installed that way, it's
-   already there.
-5. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
+4. **Add a module later:** `/upgrade` offers the modules you don't have yet, and so does running
    `/adopt` again in the adopted repository.
 
 The plugin contains **no framework content** — adopted repositories get plain committed files that
@@ -88,7 +85,7 @@ The `3eb7777` release (2026-10-01) fixes defects that affect every adopted repos
 the order to upgrade in from an older baseline; if your settings pin a model ID, switch it to the
 `sonnet` alias.
 
-1. **Update the plugin** — then restart Claude Code:
+1. **Update the plugin** from the project's folder — then restart Claude Code:
 
    ```bash
    claude plugin marketplace update aplyca
@@ -104,6 +101,9 @@ the order to upgrade in from an older baseline; if your settings pin a model ID,
    re-stamps, and prepares a draft pull request.
 3. **Review the pull request** and run the verification in [docs/UPGRADING.md](docs/UPGRADING.md):
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
+
+Installed the plugin at user scope earlier? `/upgrade` adds the project setting in its pull request;
+then remove the user-scope copy ([how](plugins/aplyca-framework/README.md#install)).
 
 By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.md).
 

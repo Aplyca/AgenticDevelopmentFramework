@@ -68,6 +68,13 @@ Edit files under that path and run git with `-C <that path>`. Once the module is
 protect-hub hook stops edits in the main checkout, so the main checkout stays a clean hub from the
 first commit.
 
+**Check where the plugin is turned on.** If `.claude/settings.json` has no
+`"enabledPlugins": {"aplyca-framework@aplyca": true}` with its `aplyca` entry in
+`extraKnownMarketplaces`, this session got the plugin from a user- or local-scope install. Offer to
+add both entries in this upgrade (the snippet in the plugin's README § For teams), so the plugin is on
+for this project and its team only — and in every worktree of a hub. After the merge, the developer
+removes a user-scope copy with the commands in that README's § Install.
+
 ## Step 3 — Classify every changed file
 
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
@@ -93,7 +100,8 @@ follow the changelog's migration notes.
 ## Step 4 — Present the plan
 
 One table: `file → bucket → action → risk note`, plus the changelog's migration steps as their own
-checklist, and the newly chosen modules with their customize steps. For merge-required files, show which customizations were detected (diff of the target file
+checklist, the newly chosen modules with their customize steps, and the plugin setting when it's
+being added. For merge-required files, show which customizations were detected (diff of the target file
 vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 ## Step 5 — Execute
@@ -103,6 +111,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   restructured a section, place the customization where it now belongs and flag it in the PR body.
 - Migration steps from the changelog, in order.
 - Newly chosen modules: copy or install them, then their customize steps.
+- The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
 - Restamp: `Skeleton source:` → `NEW_SHA (<date>) · modules: <list>` — the list includes the new ones.
 
 ## Step 6 — Verify and deliver
@@ -115,5 +124,6 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`).
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
-   reapplied, the modules added and why, anything needing human judgment.
+   reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
+   user-scope copy), anything needing human judgment.
 4. Push and open the PR **as a draft, only after the user approves**.

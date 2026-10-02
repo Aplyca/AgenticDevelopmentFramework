@@ -22,7 +22,7 @@ read the source doc (locations in step 1).
   CI config, code, git history). Anything you can't evidence becomes a
   `<!-- TODO(team): <concrete question> -->` — an honest TODO beats a plausible invention.
 - **Client repositories:** confirm before pushing anything. If committing AI config isn't
-  appropriate for the client, offer the local-only fallback (`.git/info/exclude` + user-level config).
+  appropriate for the client, offer the local-only fallback (`.git/info/exclude`, and the plugin at `--scope local`).
 
 ## Step 1 — Locate the framework source
 
@@ -128,18 +128,20 @@ Present the table before going further. Wrong facts here poison every file downs
   team is adopting, what it adds (files, gates, modules), the costs (docs to keep fresh, more tokens
   for phased work, the approval gate on the critical path), alternatives considered. Ask who the
   deciders are. Add it to the index in `docs/process/README.md`.
-- *(Optional, ask)* Register the framework marketplace for the team in `.claude/settings.json`, so
-  teammates get `/upgrade`:
+- **The plugin setting.** The documented install (`--scope project`) already wrote
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
-  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` — the marketplace key must be `aplyca`,
-  the name `enabledPlugins` refers to. If the plugin was installed with `--scope project`, both
-  entries are already in `.claude/settings.json`: keep them when merging the skeleton's settings.
+  and `"enabledPlugins": {"aplyca-framework@aplyca": true}` into `.claude/settings.json`: keep both when
+  merging the skeleton's settings, so they're committed with the adoption and teammates get the
+  plugin and `/upgrade`. If they're missing — a user- or local-scope install — offer to add them
+  (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
+  install, give the commands that remove it (the plugin's README § Install).
 
 ## Step 6 — Verify
 
 Run these checks and report each as PASS / GAP with one line of evidence:
 
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
+- [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question

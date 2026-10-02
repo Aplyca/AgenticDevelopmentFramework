@@ -11,24 +11,35 @@ runtime dependency on this plugin.
 
 ## Install
 
+Install it in each project that uses the framework, from the project's folder:
+
 ```bash
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework
-claude plugin install aplyca-framework@aplyca
+cd your-project
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin install aplyca-framework@aplyca --scope project
 ```
 
-That installs it for every project on your machine (`user` scope). To install it for one project
-only, run both commands from that project's folder with a scope:
+Always pass `--scope`: without it, Claude Code installs at `user` scope, which turns the plugin on in
+every project on your machine and offers `/adopt` in sessions that have nothing to do with the
+framework.
 
 | Scope | Recorded in | Who gets the plugin |
 |---|---|---|
-| `user` (default) | Your own settings | You, in every project |
-| `--scope project` | The project's committed `.claude/settings.json` | Everyone on the project — teammates are offered it when they trust the folder |
-| `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this project only |
+| `--scope project` (use this) | The project's committed `.claude/settings.json` | Everyone on the project — teammates are offered it when they trust the folder |
+| `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this checkout only — to try it before the team sees it |
 
-In a project that uses the dispatcher hub (the parallel-agents module), choose `project`: the
-committed settings reach every task's worktree, while a local install exists only in the checkout
-where you ran it. Either way the plugin's files are downloaded once per machine; the scope decides
-where it's turned on.
+In a project that uses the dispatcher hub (the parallel-agents module), only `project` works: the
+committed setting reaches every task's worktree, while a local install exists only in the checkout
+where you ran it. Claude Code keeps the downloaded plugin files in its own cache under your home
+folder; the scope decides where the plugin is turned on.
+
+**Installed at user scope before?** `/upgrade` offers to add the project setting in its pull request.
+Once every project you use the plugin in has it, remove the user-scope copy:
+
+```bash
+claude plugin uninstall aplyca-framework@aplyca --scope user
+claude plugin marketplace remove aplyca --scope user
+```
 
 ## Skills
 
@@ -43,9 +54,9 @@ never push without explicit approval. `/cost-report` only reads.
 
 ## For teams
 
-To have every teammate offered the plugin when they trust the repository (and so get `/upgrade`),
-add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it, and installing with
-`--scope project` writes the same entries:
+These are the entries `--scope project` writes to `.claude/settings.json`, and what `/adopt` and
+`/upgrade` keep (or add, when the plugin was installed another way) so every teammate is offered the
+plugin — and `/upgrade` — when they trust the repository:
 
 ```json
 {
@@ -60,9 +71,11 @@ add to the adopted repo's `.claude/settings.json` — `/adopt` offers to do it, 
 
 ## Updating the plugin
 
+From the project's folder:
+
 ```bash
 claude plugin marketplace update aplyca
 claude plugin update aplyca-framework@aplyca
 ```
 
-Restart Claude Code, then run `/upgrade` in each adopted repository.
+Restart Claude Code and run `/upgrade` there; repeat in each adopted repository.

@@ -649,6 +649,19 @@ check_marketplace_snippets() {
     fi
 }
 
+check_install_scope() {
+    # Without --scope, `claude plugin marketplace add` and `claude plugin install` default to user
+    # scope, which turns the plugin on in every project on the machine. Installs are per project.
+    local hits
+    hits=$(grep -rnE 'claude plugin (marketplace add|install) ' "$REPO_ROOT/plugins" "$REPO_ROOT/docs" \
+        "$SKELETON" "$MODULES_DIR" "$REPO_ROOT/README.md" 2>/dev/null | grep -vE -- '--scope (project|local)')
+    if [ -z "$hits" ]; then
+        pass "install commands pass --scope project or local"
+    else
+        fail "install commands without --scope project/local install for every project: $hits"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -703,6 +716,7 @@ echo ""
 check_links
 check_modules
 check_marketplace_snippets
+check_install_scope
 check_lanes
 check_practices
 check_plugin

@@ -19,10 +19,21 @@ ClickUp integration, or the GitHub harness. It now lists the missing modules, re
 the repository's facts support (the same rules as `/adopt`), and installs the chosen ones in the same
 upgrade pull request with their customize steps. Choosing `parallel-agents` moves the upgrade into a
 worktree of its own, so the main checkout starts as a clean hub (`aplyca-framework` 0.2.4).
-The install docs (README, plugin README, `docs/SETUP.md`) now show installing the plugin for one
-project only (`--scope project`, committed for the team, or `--scope local`), and why a hub project
-should use `project`; `/adopt` keeps those settings when it merges `.claude/settings.json`.
 **Upgrade impact:** framework-internal; update the plugin.
+
+### The plugin installs per project, never for the whole machine
+
+The install docs (README, plugin README, `docs/SETUP.md`) installed the plugin at Claude Code's default
+`user` scope, which turns it on in every project on the machine. They now install it with
+`--scope project` from the project's folder — recorded in the committed `.claude/settings.json`, so
+the team is offered it and every worktree of a hub gets it — or `--scope local` to try it alone.
+`/adopt` commits that setting with the adoption and checks it; `/upgrade` offers to add it when the
+project doesn't have it. `docs/MCP-INTEGRATION.md` pointed MCP servers at `.claude/mcp.json` or a
+global file; it now uses the project's `.mcp.json`.
+**Upgrade impact:** merge `docs/MCP-INTEGRATION.md` (one line, § Wiring it into AI tools).
+**Migration:** if you installed the plugin at user scope, let `/upgrade` add the project setting; once
+every project you use it in has it, run `claude plugin uninstall aplyca-framework@aplyca --scope user`
+and `claude plugin marketplace remove aplyca --scope user`.
 
 ### Test first in every lane; the hub enforced
 
