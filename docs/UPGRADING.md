@@ -58,7 +58,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `.claude/skills/*` | All skill SKILL.md files. Skills are framework playbooks; rewrite by replacement. |
 | `.claude/agents/*` | All agent definitions. The `model:` field in frontmatter is a framework decision — don't override casually (see `docs/COST-MODEL.md`). |
 | `.claude/workflows/*` | Dynamic workflow scripts |
-| `.claude/hooks/*.sh` | Hook scripts — project values live in `config.sh` (merge bucket), so the scripts stay replaceable. Keep their executable bit |
+| `.claude/hooks/*` except `config.sh` | Hook scripts and their helpers (`_lib.sh`, `json-get.*`, `transcript-text.*`) — project values live in `config.sh` (merge bucket), so the scripts stay replaceable. Keep the scripts' executable bit |
 | `.claude/rules/code-quality.md` | Universal — language-agnostic engineering standards |
 | `.claude/rules/testing.md` | Universal — testing discipline |
 | `.claude/rules/security.md` | Universal — OWASP-style baseline |
@@ -143,7 +143,7 @@ FW=/path/to/AgenticDevelopmentFramework/skeleton
 cp -R $FW/.claude/skills/* .claude/skills/
 cp -R $FW/.claude/agents/* .claude/agents/
 mkdir -p .claude/workflows && cp $FW/.claude/workflows/*.js .claude/workflows/
-cp $FW/.claude/hooks/*.sh $FW/.claude/hooks/README.md .claude/hooks/   # not config.sh — that one merges
+cp $FW/.claude/hooks/*.sh $FW/.claude/hooks/*.jq $FW/.claude/hooks/*.py $FW/.claude/hooks/README.md .claude/hooks/   # not config.sh — that one merges
 cp $FW/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
 cp $FW/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION}.md docs/
 ```

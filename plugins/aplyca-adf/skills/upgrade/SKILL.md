@@ -128,7 +128,7 @@ packaged project, leave out what the plugin carries — `.claude/skills/` (modul
 
 | Bucket | Typical contents | Action |
 |---|---|---|
-| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts (`.claude/hooks/*.sh`), universal rules, framework reference docs, `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
+| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, framework reference docs, `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
 | **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 

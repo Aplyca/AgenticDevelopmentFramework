@@ -11,11 +11,12 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-## v1.0.3 — 2026-10-04 — `config.sh` is read as data
+## v1.0.3 — 2026-10-04 — The hooks run no project code and no inline programs
 
-A patch release. With `_lib.sh` named literally, the Claude Directory's validator read it and refused
-the line that ran the project's `config.sh`: the plugin executed a file from outside its own folder.
-From v1.0.0, `/aplyca-adf:upgrade` moves the pin to `v1.0.3` and overwrites `_lib.sh`.
+A patch release. Each fix for the Claude Directory let its validator read one file further, and each
+time it refused a new line under the same rule: a file the hooks load or run by a path the shell
+computes, or an inline program. This release removes every such line from the plugin's hooks at once,
+and a static check holds them out. From v1.0.0, `/aplyca-adf:upgrade` moves the pin to `v1.0.3`.
 
 ### The hooks read `config.sh` as data and never run it
 
@@ -26,12 +27,30 @@ From v1.0.0, `/aplyca-adf:upgrade` moves the pin to `v1.0.3` and overwrites `_li
   the plugin. A hook test pins it: a `$(…)` in `config.sh` never runs.
 - **`config.sh`'s header** says so.
 
+### No inline programs, and no other project code
+
+#### Changed
+- **`session-context.sh`** read the parallel-agents module's settings by running the project's
+  `scripts/agent/_worktree-lib.sh` (`bash -c`). It now reads `worktree.conf` as data, the same way.
+- **The JSON readers are files:** `json-get.jq` and `json-get.py` for the event, `transcript-text.jq`
+  and `transcript-text.py` for the transcript (`triage-first.sh`), in place of an inline `jq`
+  program, `python3 -c`, and a Python heredoc. A hook test holds the two versions to the same answers.
+- **`guard-git.sh`, `session-context.sh`, and `check-env-declared.sh`** do in plain bash what `sed`
+  and `awk` programs did; `session-context.sh` lists the spec folders with `find`, not a wildcard.
+- **The plugin's copies name their folder literally:** `HOOKS_DIR="${CLAUDE_PLUGIN_ROOT}/hooks"` and
+  every helper under it, written by the generator. The skeleton's copies find their folder as before.
+
+#### Added
+- **`.claude/hooks/json-get.jq`, `json-get.py`, `transcript-text.jq`, `transcript-text.py`.**
+
 #### Upgrade impact
-- **Overwrite:** `.claude/hooks/_lib.sh`.
+- **Overwrite:** every hook script and `_lib.sh`.
+- **Additive:** the four helpers above, next to the scripts.
 - **Merge:** `.claude/hooks/config.sh` — the header comment only; your values stay.
 - **Migration**, only if your `config.sh` computes a value — `$(…)`, `$OTHER_SETTING`, or a value
   over several lines: write the value out on one line. The skeleton's file and the projects we know
-  of don't.
+  of don't. The same goes for the five values `session-context.sh` reads from the parallel-agents
+  module's `worktree.conf`; the module's own scripts still run that file.
 
 ## v1.0.2 — 2026-10-04 — The plugin's hooks pass the Claude Directory's checks
 
