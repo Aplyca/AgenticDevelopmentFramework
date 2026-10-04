@@ -11,6 +11,12 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.2 — 2026-10-04 — The plugin's hooks pass the Claude Directory's checks
+
+A patch release: the Directory's validator refused v1.0.1's hooks for loading `_lib.sh` from a
+computed path. No workflow changes. From v1.0.0 or v1.0.1, `/aplyca-adf:upgrade` moves the pin to
+`v1.0.2`; nothing in the project changes beyond v1.0.1's parts.
+
 ### The plugin's hooks load `_lib.sh` by a literal path
 
 The Claude Directory's validator, now that it follows the plugin's hooks, refused them: each loaded
