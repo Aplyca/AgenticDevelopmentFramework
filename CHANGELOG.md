@@ -11,6 +11,36 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.4 — 2026-10-04 — The hooks run no project code and no inline programs
+
+A patch release. Each fix for the Claude Directory let its validator read one file further, and each
+time it refused a new line under the same rule: a file the hooks load or run by a path the shell
+computes, or an inline program. v1.0.3 stopped the hooks running `config.sh`; this release removes
+every remaining such line from the plugin's hooks at once, and a static check holds them out. From
+v1.0.0, `/aplyca-adf:upgrade` moves the pin to `v1.0.4`.
+
+#### Changed
+- **`session-context.sh`** read the parallel-agents module's settings by running the project's
+  `scripts/agent/_worktree-lib.sh` (`bash -c`). It now reads `worktree.conf` as data, with the same
+  reader as `config.sh` (`read_settings` in `_lib.sh`).
+- **The JSON readers are files:** `json-get.jq` and `json-get.py` for the event, `transcript-text.jq`
+  and `transcript-text.py` for the transcript (`triage-first.sh`), in place of an inline `jq`
+  program, `python3 -c`, and a Python heredoc. A hook test holds the two versions to the same answers.
+- **`guard-git.sh`, `session-context.sh`, and `check-env-declared.sh`** do in plain bash what `sed`
+  and `awk` programs did; `session-context.sh` lists the spec folders with `find`, not a wildcard.
+- **The plugin's copies name their folder literally:** `HOOKS_DIR="${CLAUDE_PLUGIN_ROOT}/hooks"` and
+  every helper under it, written by the generator. The skeleton's copies find their folder as before.
+
+#### Added
+- **`.claude/hooks/json-get.jq`, `json-get.py`, `transcript-text.jq`, `transcript-text.py`.**
+
+#### Upgrade impact
+- **Overwrite:** every hook script and `_lib.sh`.
+- **Additive:** the four helpers above, next to the scripts.
+- **Migration**, only if the parallel-agents module's `worktree.conf` computes one of the five values
+  `session-context.sh` reads (`BASE_BRANCH`, `ENV_FILE`, `PORT_SLOTS`, `SETUP_CMD`, `START_CMD`):
+  write it out. The module's own scripts still run that file.
+
 ## v1.0.3 — 2026-10-04 — `config.sh` is read as data
 
 A patch release. With `_lib.sh` named literally, the Claude Directory's validator read it and refused

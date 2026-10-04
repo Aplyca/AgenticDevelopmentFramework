@@ -92,18 +92,26 @@ for name in agents:
 for name in workflows:
     copy(os.path.join(src, "workflows", name + ".js"), os.path.join(out, "workflows", name + ".js"))
 LIB_SOURCE = '. "$(dirname "$0")/_lib.sh"'
+HOOKS_DIR_LINE = 'HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
 for file in sorted(os.listdir(os.path.join(src, "hooks"))):
     if file == "config.sh":
         continue  # the project's settings stay in the project
     target = os.path.join(out, "hooks", file)
     copy(os.path.join(src, "hooks", file), target, executable=file.endswith(".sh"))
-    if file.endswith(".sh") and file != "_lib.sh":
-        # The Claude Directory refuses a sourced path the shell computes; the plugin's copies name it literally.
+    if file.endswith(".sh"):
+        # The Claude Directory refuses a path the shell computes for a file a hook loads or runs: the
+        # plugin's copies name _lib.sh, the hooks folder, and the helpers in it literally.
         with open(target, encoding="utf-8") as f:
             text = f.read()
-        assert text.count(LIB_SOURCE) == 1, f"{file} doesn't load _lib.sh the skeleton's way"
+        if file == "_lib.sh":
+            assert text.count(HOOKS_DIR_LINE) == 1, "_lib.sh doesn't find its folder the skeleton's way"
+            text = text.replace(HOOKS_DIR_LINE, 'HOOKS_DIR="${CLAUDE_PLUGIN_ROOT}/hooks"')
+        else:
+            assert text.count(LIB_SOURCE) == 1, f"{file} doesn't load _lib.sh the skeleton's way"
+            text = text.replace(LIB_SOURCE, 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"')
+        text = text.replace('"$HOOKS_DIR/', '"${CLAUDE_PLUGIN_ROOT}/hooks/').replace('"$HOOKS_DIR"', '"${CLAUDE_PLUGIN_ROOT}/hooks"')
         with open(target, "w", encoding="utf-8") as f:
-            f.write(text.replace(LIB_SOURCE, 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"'))
+            f.write(text)
 generated += ["agents", "workflows", "hooks"]
 
 with open(os.path.join(src, "settings.json"), encoding="utf-8") as f:

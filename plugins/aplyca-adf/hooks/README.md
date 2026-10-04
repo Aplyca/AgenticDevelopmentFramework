@@ -20,8 +20,10 @@ aren't blocked here — `permissions.ask` in `../settings.json` makes a human co
 ## Configure
 
 Edit **`config.sh`** — protected branches, append-only and generated paths, sensitive paths, the
-env template, ignored variables. The scripts read it on every run; you don't edit the scripts (they are
-framework-owned and replaced on upgrade).
+env template, ignored variables. The scripts read it on every run, as data: one `KEY="value"` line per
+setting, and nothing in it runs. You don't edit the scripts (they are framework-owned and replaced on
+upgrade), nor their helpers: `_lib.sh`, and `json-get` and `transcript-text`, which read the event and
+the session transcript with `jq` (`.jq`) or, without it, `python3` (`.py`).
 
 ## Requirements and behavior
 

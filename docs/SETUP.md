@@ -178,7 +178,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 **What changes from the steps above:**
 
 1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
-   scripts in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`, `.agents/`,
+   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`, `.agents/`,
    and `.cursor/`. Modules copy as usual: `/dispatch` is the one skill a packaged repository commits.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
    since the plugin wires the same hooks, and pin the marketplace to the release:

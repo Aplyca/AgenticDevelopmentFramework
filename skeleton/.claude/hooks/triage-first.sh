@@ -26,22 +26,9 @@ state="${TMPDIR:-/tmp}/claude-triage-first-${session}"
 
 lane='(fast|careful|full)[^a-z]{0,3}lane|lane[^a-z]{0,8}(fast|careful|full)'
 if command -v jq >/dev/null 2>&1; then
-  assistant_text() { jq -r 'select(.type == "assistant") | .message.content[]? | select(.type == "text") | .text' "$transcript" 2>/dev/null; }
+  assistant_text() { jq -r -f "$HOOKS_DIR/transcript-text.jq" "$transcript" 2>/dev/null; }
 else
-  assistant_text() {
-    python3 - "$transcript" <<'PY' 2>/dev/null
-import json, sys
-for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
-    try:
-        event = json.loads(line)
-    except ValueError:
-        continue
-    if event.get("type") == "assistant":
-        for block in event.get("message", {}).get("content") or []:
-            if isinstance(block, dict) and block.get("type") == "text":
-                print(block.get("text", ""))
-PY
-  }
+  assistant_text() { python3 "$HOOKS_DIR/transcript-text.py" "$transcript" 2>/dev/null; }
 fi
 
 replies="$(assistant_text)"

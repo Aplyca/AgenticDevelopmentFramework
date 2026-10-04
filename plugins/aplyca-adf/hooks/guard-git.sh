@@ -128,10 +128,16 @@ analyze_segment() {
 
 # Quoted text (commit messages, heredoc bodies, echo arguments) is data, not flags or refspecs:
 # blank it out across line breaks before splitting the command into simple commands.
-unquoted="$(printf '%s' "$command_text" | tr '\n' '\036' | sed -E "s/\"[^\"]*\"/ Q /g; s/'[^']*'/ Q /g" | tr '\036' '\n')"
+unquoted="$command_text"
+double_quoted='"[^"]*"' single_quoted="'[^']*'" newline=$'\n'
+while [[ $unquoted =~ $double_quoted ]]; do unquoted="${unquoted/"${BASH_REMATCH[0]}"/ Q }"; done
+while [[ $unquoted =~ $single_quoted ]]; do unquoted="${unquoted/"${BASH_REMATCH[0]}"/ Q }"; done
+for separator in '&&' '||' ';' '|' '&' '(' ')' '`'; do
+  unquoted="${unquoted//"$separator"/$newline}"
+done
 
 while IFS= read -r segment; do
   analyze_segment "$segment"
-done < <(printf '%s\n' "$unquoted" | awk '{ gsub(/&&|\|\||;|\||&|\(|\)|`/, "\n"); print }')
+done <<<"$unquoted"
 
 exit 0
