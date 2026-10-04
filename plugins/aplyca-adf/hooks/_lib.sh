@@ -87,7 +87,7 @@ matches_any() {
   return 1
 }
 
-# physical_path <path> — the path with symlinks resolved (e.g. /tmp → /private/tmp on macOS), even
+# physical_path <path> — the path with symlinks resolved, such as macOS's temporary folder, even
 # when the file or its parent directories don't exist yet. Git reports physical paths, so paths must
 # be compared in the same form.
 physical_path() {

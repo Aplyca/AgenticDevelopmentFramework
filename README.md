@@ -177,7 +177,7 @@ GEMINI.md          → Imports AGENTS.md, then adds Antigravity / Gemini notes
 .claude/agents/    → Specialized agents (generic — they learn your project from AGENTS.md)
 .claude/workflows/ → Dynamic multi-agent workflows (/deep-review, …)
 .claude/hooks/     → Guardrails as code, configured in config.sh
-.agents/skills     → Symlink to .claude/skills (Antigravity)
+.agents/skills     → Link to .claude/skills, created at adoption (Antigravity)
 .cursor/rules/     → Cursor rules (.mdc)
 specs/             → Spec folders — the record of intent
 docs/              → Constitution, architecture, ADRs, PDRs, reference pages, security, infrastructure
@@ -386,7 +386,6 @@ skeleton/                 Portable project skeleton — what an adopting reposit
 │   ├── hooks/            6 guardrail hooks + config.sh (protected branches, sensitive areas, …)
 │   ├── rules/            9 engineering standards
 │   └── settings.json     model alias, permissions (allow / ask / deny), hook wiring
-├── .agents/skills        → .claude/skills
 ├── .cursor/rules/        Cursor rules
 ├── specs/                README.md (the process) + _templates/ (spec, plan, tasks)
 └── docs/                 CONSTITUTION, SPEC-MODEL, ARCHITECTURE, TRACKER-INTEGRATION, COST-MODEL,

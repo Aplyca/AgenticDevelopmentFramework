@@ -750,6 +750,27 @@ check_no_tracked_junk() {
     fi
 }
 
+check_no_symlinks() {
+    git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    local links bad
+    links=$(git -C "$REPO_ROOT" ls-files -s | awk '$1 == "120000" { print $4 }' | tr '\n' ' ')
+    bad=$(python3 - "$REPO_ROOT/plugins/aplyca-adf/hooks/hooks.json" <<'PY'
+import json, re, sys
+hooks = json.load(open(sys.argv[1]))["hooks"]
+for groups in hooks.values():
+    for group in groups:
+        for hook in group["hooks"]:
+            if not re.fullmatch(r'"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/[a-z-]+\.sh"', hook["command"]):
+                print(hook["command"])
+PY
+)
+    if [ -z "$links" ] && [ -z "$bad" ]; then
+        pass "no symlinks in the repository, and the plugin's hooks name their scripts by a literal path (the Claude Directory's checks)"
+    else
+        fail "the Claude Directory's checks: symlinks [$links] hook commands [$bad]"
+    fi
+}
+
 # ─── Main ──────────────────────────────────────────────────────────────────
 
 echo ""
@@ -800,6 +821,7 @@ check_lanes
 check_practices
 check_plugin
 check_no_tracked_junk
+check_no_symlinks
 
 echo ""
 echo "==========================================="

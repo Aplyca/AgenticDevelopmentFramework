@@ -13,7 +13,6 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
   - `skeleton/CLAUDE.md` — Claude Code layer (skills, agents, workflows, enforced guardrails)
   - `skeleton/GEMINI.md` — Antigravity / Gemini layer
   - `skeleton/.claude/` — agents, skills, workflows (`*.js`), hooks (+ `config.sh`), rules, `settings.json`
-  - `skeleton/.agents/` — Antigravity compatibility (symlink to `.claude/skills`)
   - `skeleton/.cursor/rules/` — Cursor rule files (`.mdc`)
   - `skeleton/specs/` — `README.md` (the process) and `_templates/{spec,plan,tasks}.md`
   - `skeleton/docs/` — constitution, spec model, process (PDRs), reference, tracker integration, and documentation templates
@@ -30,6 +29,7 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 - Agent definitions learn project context from `AGENTS.md`, `CLAUDE.md`, and rules at runtime; skills reference them — never hardcode specifics
 - Universal rules (code-quality, testing, security, git-workflow) apply to any language/framework; customizable rules (architecture, ui-ux, deployment, performance, observability) have `<!-- CUSTOMIZE -->` markers
 - Skill and agent frontmatter use only documented keys, hyphenated (`argument-hint`, `disable-model-invocation`, `user-invocable`) — unknown keys are silently ignored. Hooks use the nested `hooks` array and read the event from stdin
+- No symlinks anywhere in the repository — the Claude Directory's checks reject them. A link a project needs (Antigravity's `.agents/skills`) is created by `/adopt`
 - Relative links inside `skeleton/` must resolve inside an adopting repo — never link to framework-only docs from the skeleton
 - Every change to `skeleton/` or `modules/` carries a `CHANGELOG.md` entry with its **Upgrade impact** (overwrite / merge / additive, plus migration steps when needed); significant design changes get a record in `docs/decisions/`
 - After any change under `skeleton/.claude/`, run `scripts/build-aplyca-adf.sh` and commit `plugins/aplyca-adf/` with it — the static checks fail on drift. The plugin's `"version"` changes only in a release (decision 0017)

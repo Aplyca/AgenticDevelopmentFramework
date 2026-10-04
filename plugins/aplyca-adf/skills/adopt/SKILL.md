@@ -118,8 +118,9 @@ Present the table before going further. Wrong facts here poison every file downs
   `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
   skeleton's missing sections.
 - Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `CLAUDE.md` +
-  `.claude/` (Claude Code), `GEMINI.md` + `.agents/` (Antigravity/Gemini), `.cursor/` (Cursor).
-  `AGENTS.md` always stays.
+  `.claude/` (Claude Code), `GEMINI.md` (Antigravity/Gemini), `.cursor/` (Cursor).
+  `AGENTS.md` always stays. For Antigravity, link its skills folder to Claude Code's — the framework
+  ships no symlinks: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills`.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
   common case — delete `evals/`.
 - **Offer the modules** (`modules/README.md`), recommending from the facts:
