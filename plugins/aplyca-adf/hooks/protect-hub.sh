@@ -5,7 +5,7 @@
 # worktrees pass. Without the module — no scripts/agent/worktree-new.sh — it does nothing. Empty
 # HUB_READONLY turns it off. File writes made through Bash aren't seen by this hook.
 set -uo pipefail
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 [ -n "$HUB_READONLY" ] || exit 0
 

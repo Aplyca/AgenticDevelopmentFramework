@@ -229,7 +229,7 @@ claude plugin install aplyca-adf@aplyca --scope project
 - **The hooks fire:** on `main`, ask the agent to `git commit --allow-empty -m test` — the git guard
   blocks it. Or test directly:
   ```bash
-  printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh; echo "exit $?"   # expect 2
+  printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh; echo "exit $?"   # expect 2
   ```
 - **Agents know the project:** `@code-reviewer review <a file>` cites your conventions.
 - **No drift on day one:** run `/context-audit` once the files are filled in.

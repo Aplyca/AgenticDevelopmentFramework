@@ -6,7 +6,7 @@
 # The edit has already happened; exit 2 hands the message to Claude so it declares the variable.
 set -uo pipefail
 export LC_ALL=C
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 file_path="$(json_get '.tool_input.file_path')"
 [ -n "$file_path" ] && [ -f "$file_path" ] || exit 0

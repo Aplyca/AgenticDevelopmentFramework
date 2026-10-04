@@ -6,7 +6,7 @@
 #     history has already run somewhere; add a new file instead.
 # Globs come from GENERATED_GLOBS and APPEND_ONLY_GLOBS in config.sh.
 set -uo pipefail
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 file_path="$(json_get '.tool_input.file_path')"
 [ -n "$file_path" ] || exit 0

@@ -165,7 +165,7 @@ Resolve conflicts manually. The principle: keep your customizations (project ide
 ### 5. Verify
 
 - **Configuration is valid:** `python3 -m json.tool .claude/settings.json`, and every hook entry nests its command in a `hooks` array.
-- **Hooks fire:** pipe a sample event into each — e.g. `printf '{"cwd":"%s","tool_input":{"command":"git push origin main"}}' "$PWD" | .claude/hooks/guard-git.sh; echo $?` prints `2`.
+- **Hooks fire:** pipe a sample event into each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh; echo $?` prints `2`.
 - **Both instruction files load:** start a new Claude Code session and check `/memory` — `CLAUDE.md`, with `AGENTS.md` through the import.
 - **Your own evals,** if the project keeps any (`evals/`).
 - **A smoke test** of a skill that changed — invoke it and confirm it references the right project paths.

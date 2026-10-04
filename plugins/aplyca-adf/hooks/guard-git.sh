@@ -7,7 +7,7 @@
 # an outward action: permissions.ask in .claude/settings.json makes a human confirm it.
 # Matching works on the command text an agent writes, so it is a guardrail, not a sandbox.
 set -uo pipefail
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 command_text="$(json_get '.tool_input.command')"
 [ -n "$command_text" ] || exit 0

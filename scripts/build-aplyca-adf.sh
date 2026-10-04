@@ -91,10 +91,19 @@ for name in agents:
     copy(os.path.join(src, "agents", name, "agent.md"), os.path.join(out, "agents", name + ".md"), kind="agent", name=name)
 for name in workflows:
     copy(os.path.join(src, "workflows", name + ".js"), os.path.join(out, "workflows", name + ".js"))
+LIB_SOURCE = '. "$(dirname "$0")/_lib.sh"'
 for file in sorted(os.listdir(os.path.join(src, "hooks"))):
     if file == "config.sh":
         continue  # the project's settings stay in the project
-    copy(os.path.join(src, "hooks", file), os.path.join(out, "hooks", file), executable=file.endswith(".sh"))
+    target = os.path.join(out, "hooks", file)
+    copy(os.path.join(src, "hooks", file), target, executable=file.endswith(".sh"))
+    if file.endswith(".sh") and file != "_lib.sh":
+        # The Claude Directory refuses a sourced path the shell computes; the plugin's copies name it literally.
+        with open(target, encoding="utf-8") as f:
+            text = f.read()
+        assert text.count(LIB_SOURCE) == 1, f"{file} doesn't load _lib.sh the skeleton's way"
+        with open(target, "w", encoding="utf-8") as f:
+            f.write(text.replace(LIB_SOURCE, 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"'))
 generated += ["agents", "workflows", "hooks"]
 
 with open(os.path.join(src, "settings.json"), encoding="utf-8") as f:
