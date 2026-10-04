@@ -3,7 +3,7 @@
 # context: which checkout this is, the branch, and the spec folder that branch belongs to — the
 # facts an agent needs for its first step (triage) and that it would otherwise guess or re-derive.
 set -uo pipefail
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="${CLAUDE_PROJECT_DIR:-$PWD}"

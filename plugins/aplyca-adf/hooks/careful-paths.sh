@@ -4,7 +4,7 @@
 # is stopped once per session so the agent confirms the lane before going on; later edits in that
 # area pass. Empty CAREFUL_GLOBS turns the hook off.
 set -uo pipefail
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 [ -n "$CAREFUL_GLOBS" ] || exit 0
 file_path="$(json_get '.tool_input.file_path')"

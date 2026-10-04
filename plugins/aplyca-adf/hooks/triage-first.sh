@@ -5,7 +5,7 @@
 # edit or new branch is stopped once with a reminder; after that, everything passes. Other Bash
 # commands are never stopped. Empty TRIAGE_FIRST turns the hook off.
 set -uo pipefail
-. "$(dirname "$0")/_lib.sh"
+source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 [ -n "$TRIAGE_FIRST" ] || exit 0
 [ -z "$(json_get '.agent_id')" ] || exit 0
