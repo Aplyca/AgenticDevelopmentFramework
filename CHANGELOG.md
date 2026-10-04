@@ -11,6 +11,28 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.3 — 2026-10-04 — `config.sh` is read as data
+
+A patch release. With `_lib.sh` named literally, the Claude Directory's validator read it and refused
+the line that ran the project's `config.sh`: the plugin executed a file from outside its own folder.
+From v1.0.0, `/aplyca-adf:upgrade` moves the pin to `v1.0.3` and overwrites `_lib.sh`.
+
+### The hooks read `config.sh` as data and never run it
+
+#### Changed
+- **`.claude/hooks/_lib.sh`** reads the ten known settings from `config.sh` line by line: double-
+  or single-quoted or bare values, indentation and trailing comments allowed, anything else ignored.
+  Before, it sourced the file, so any code in it ran with every hook — in the packaged install, from
+  the plugin. A hook test pins it: a `$(…)` in `config.sh` never runs.
+- **`config.sh`'s header** says so.
+
+#### Upgrade impact
+- **Overwrite:** `.claude/hooks/_lib.sh`.
+- **Merge:** `.claude/hooks/config.sh` — the header comment only; your values stay.
+- **Migration**, only if your `config.sh` computes a value — `$(…)`, `$OTHER_SETTING`, or a value
+  over several lines: write the value out on one line. The skeleton's file and the projects we know
+  of don't.
+
 ## v1.0.2 — 2026-10-04 — The plugin's hooks pass the Claude Directory's checks
 
 A patch release: the Directory's validator refused v1.0.1's hooks for loading `_lib.sh` from a

@@ -1,6 +1,7 @@
 # Project settings for the Claude Code hooks in this directory.
-# The hook scripts source this file. Edit the values here — the scripts themselves are
-# framework-owned and get replaced on upgrade; this file is yours.
+# The hook scripts read this file as data and never run it: one KEY="value" line per setting, with
+# no $-expansions. Edit the values here — the scripts themselves are framework-owned and get replaced
+# on upgrade; this file is yours.
 # Patterns are shell globs. A pattern without "/" matches a file name at any depth;
 # a pattern with "/" matches the path relative to the repository root.
 

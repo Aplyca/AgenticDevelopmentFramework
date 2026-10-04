@@ -250,6 +250,18 @@ if [ "$untouched" = 0 ]; then
 else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: the plugin's copy acted in a project without the framework"
 fi
+# config.sh is data: quoting styles, indentation, and trailing comments parse, and nothing in it runs.
+cat > "$PROJ/.claude/hooks/config.sh" <<CONF
+  PROTECTED_BRANCHES='release-q' # the release branch
+TRIAGE_FIRST=1
+CAREFUL_GLOBS="\$(touch "$WORK/config-ran")"
+CONF
+if [ "$(pkg_push release-q)" = 2 ] && [ "$(pkg_push main)" = 0 ] && [ ! -e "$WORK/config-ran" ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: config.sh is read as data — single quotes and comments parse, a \$(…) never runs"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: config.sh misread, or a command in it ran"
+fi
+echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 code=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin release-x"}}' "$T" | CLAUDE_PROJECT_DIR="$PROJ" "$H/guard-git.sh" >/dev/null 2>&1; echo $?)
 if [ "$code" = 0 ]; then
     PASS=$((PASS+1)); echo "✓ _lib.sh: a committed install keeps the config next to its scripts"

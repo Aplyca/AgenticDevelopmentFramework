@@ -766,10 +766,11 @@ PY
 )
     local computed
     computed=$(grep -L 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"' "$REPO_ROOT"/plugins/aplyca-adf/hooks/*.sh | grep -v '/_lib\.sh$' | tr '\n' ' ')
+    computed+=$(grep -n -E '^[[:space:]]*(\.|source)[[:space:]]' "$REPO_ROOT"/plugins/aplyca-adf/hooks/*.sh | grep -v -F 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"' | tr '\n' ' ')
     if [ -z "$links" ] && [ -z "$bad" ] && [ -z "$computed" ]; then
-        pass "no symlinks in the repository; the plugin's hooks and the _lib.sh they load are named by literal paths (the Claude Directory's checks)"
+        pass "no symlinks in the repository; the plugin's hooks and the _lib.sh they load are named by literal paths, and nothing else is sourced (the Claude Directory's checks)"
     else
-        fail "the Claude Directory's checks: symlinks [$links] hook commands [$bad] hooks loading _lib.sh by a computed path [$computed]"
+        fail "the Claude Directory's checks: symlinks [$links] hook commands [$bad] a computed path sourced [$computed]"
     fi
 }
 
