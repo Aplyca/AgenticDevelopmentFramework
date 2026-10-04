@@ -11,6 +11,13 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.1 — 2026-10-04 — Ready for the Claude Directory
+
+A patch release ([#22](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/22)): the
+repository and the plugin pass the Claude Directory's checks, and the plugin has an icon. No workflow
+changes. From v1.0.0, `/aplyca-adf:upgrade` moves the pin to `v1.0.1` and overwrites `_lib.sh`. A
+project on `7383422` or older takes v1.0.0's order to upgrade in; `/aplyca-adf:upgrade` lands it here.
+
 ### The plugin passes the Claude Directory's checks
 
 The Claude Directory's validator rejected the repository and held parts of the plugin for review.
