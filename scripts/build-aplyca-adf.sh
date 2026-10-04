@@ -99,9 +99,14 @@ generated += ["agents", "workflows", "hooks"]
 
 with open(os.path.join(src, "settings.json"), encoding="utf-8") as f:
     hooks = json.load(f)["hooks"]
-wired = json.dumps({"hooks": hooks}, indent=2).replace(
-    '\\"$CLAUDE_PROJECT_DIR\\"/.claude/hooks/', '\\"${CLAUDE_PLUGIN_ROOT}\\"/hooks/')
-assert "CLAUDE_PROJECT_DIR" not in wired, "a hook command didn't follow the skeleton's path pattern"
+for groups in hooks.values():
+    for group in groups:
+        for hook in group["hooks"]:
+            command = re.fullmatch(r'"\$CLAUDE_PROJECT_DIR"/\.claude/hooks/([a-z-]+\.sh)', hook["command"])
+            assert command, f"a hook command didn't follow the skeleton's path pattern: {hook['command']}"
+            # the documented form: one quoted literal path, which the Claude Directory's checks follow
+            hook["command"] = f'"${{CLAUDE_PLUGIN_ROOT}}/hooks/{command.group(1)}"'
+wired = json.dumps({"hooks": hooks}, indent=2)
 with open(os.path.join(out, "hooks", "hooks.json"), "w", encoding="utf-8") as f:
     f.write(wired + "\n")
 

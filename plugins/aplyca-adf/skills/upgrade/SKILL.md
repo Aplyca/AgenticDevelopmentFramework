@@ -139,7 +139,8 @@ checklist — for `parallel-agents`, `worktree.conf` (only `BASE_BRANCH` and `SE
 run a server) and the dispatcher line in `AGENTS.md` § Delivery rules.
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
-otherwise flag for the user. Files that moved (e.g. `specs/_template.md` → `specs/_templates/`)
+otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the
+skeleton because the Claude Directory accepts no symlinks, and `/adopt` now creates it. Files that moved (e.g. `specs/_template.md` → `specs/_templates/`)
 follow the changelog's migration notes.
 
 ## Step 4 — Present the plan

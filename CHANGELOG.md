@@ -11,6 +11,27 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The plugin passes the Claude Directory's checks
+
+The Claude Directory's validator rejected the repository and held parts of the plugin for review.
+
+#### Changed
+- **No symlinks in the repository.** The skeleton's `.agents/skills`, a link to `.claude/skills` for
+  Antigravity, is gone. `/aplyca-adf:adopt` creates it, `docs/SETUP.md` gives the command, and
+  `/aplyca-adf:upgrade` never deletes a project's link. A static check keeps symlinks out.
+- **The plugin's hooks name their scripts by one literal path,**
+  `"${CLAUDE_PLUGIN_ROOT}/hooks/<script>.sh"`, the documented form, which the validator follows. They
+  run the same.
+- **A comment in `.claude/hooks/_lib.sh`** no longer gives a filesystem path as its example.
+
+#### Added
+- **A placeholder icon** for the plugin's listing, `.claude-plugin/icon.png`: three lanes, short to long.
+
+#### Upgrade impact
+- **Overwrite:** `.claude/hooks/_lib.sh` (a comment only).
+- **None** for `.agents/skills`: keep your link. Projects adopted from now on get it from
+  `/aplyca-adf:adopt`.
+
 ## v1.0.0 — 2026-10-02 — One plugin, a packaged install, and semantic versioning
 
 Everything since `7383422`: `/upgrade` carries the plugin setting into the hub's worktree

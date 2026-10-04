@@ -49,9 +49,16 @@ Remove the layers your team doesn't use:
 |---|---|---|
 | Every tool | `AGENTS.md` | — always keep |
 | Claude Code | `CLAUDE.md`, `.claude/` | both |
-| Antigravity / Gemini | `GEMINI.md`, `.agents/` | both |
+| Antigravity / Gemini | `GEMINI.md`, and the `.agents/skills` link below | `GEMINI.md` |
 | Cursor | `.cursor/rules/` | the directory |
 | Custom skills, rules, or hooks that need regression tests | `evals/` | the directory (the common case) |
+
+Antigravity reads skills from `.agents/skills`. The framework ships no symlinks, so link it to Claude
+Code's skills yourself:
+
+```bash
+mkdir -p .agents && ln -s ../.claude/skills .agents/skills
+```
 
 Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
 `.claude/worktrees/`.
