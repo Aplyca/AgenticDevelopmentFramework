@@ -24,6 +24,9 @@ The Claude Directory's validator rejected the repository and held parts of the p
   run the same.
 - **A comment in `.claude/hooks/_lib.sh`** no longer gives a filesystem path as its example.
 
+#### Added
+- **A placeholder icon** for the plugin's listing, `.claude-plugin/icon.png`: three lanes, short to long.
+
 #### Upgrade impact
 - **Overwrite:** `.claude/hooks/_lib.sh` (a comment only).
 - **None** for `.agents/skills`: keep your link. Projects adopted from now on get it from
