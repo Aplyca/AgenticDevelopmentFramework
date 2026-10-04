@@ -25,11 +25,30 @@ HUB_READONLY=""
 SPECS_DIR="specs"
 # The settings sit next to the scripts in a committed install. In the packaged install (the
 # aplyca-adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
-# project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR.
+# project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR. Either way the file is data, never
+# run: one KEY="value" line per known setting.
+read_config() {
+  local line key value
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    key="${line%%=*}"
+    case "$key" in
+      PROTECTED_BRANCHES | APPEND_ONLY_GLOBS | GENERATED_GLOBS | CAREFUL_GLOBS | TRIAGE_FIRST | \
+        HUB_READONLY | ENV_TEMPLATE | ENV_IGNORE | ENV_CHECK_EXCLUDE | SPECS_DIR) ;;
+      *) continue ;;
+    esac
+    value="${line#*=}"
+    case "$value" in
+      \"*) value="${value#\"}" && value="${value%%\"*}" ;;
+      \'*) value="${value#\'}" && value="${value%%\'*}" ;;
+      *) value="${value%%[[:space:]]*}" ;;
+    esac
+    printf -v "$key" '%s' "$value"
+  done <"$1"
+}
 for config in "$HOOKS_DIR/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
-  # shellcheck source=config.sh
   if [ -n "$config" ] && [ -f "$config" ]; then
-    . "$config"
+    read_config "$config"
     break
   fi
 done
