@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #
-# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, adopt, or
+# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, adopt, upgrade, or
 # plugin-hooks) against real Claude Code sessions.
 #
 # Builds a fictional project in a temp directory — the skeleton, the delivered newsletter-signup
 # spec folder from docs/examples/, and a few stub source files matching the fixtures' context, plus
-# whatever the suite's setup.sh adds; a suite with its own project.sh builds its project instead —
+# whatever the suite's setup.sh adds; a suite with its own project.sh builds its project instead,
+# given the project's path and this checkout's —
 # then runs each fixture's prompt headless with `claude -p` on each model. Each run works in its own
 # throwaway copy, may edit it (so the project's hooks — triage-first, careful-paths — take part), and
 # is turn- and budget-capped; `--read-only` denies edits instead, so a run stops at its first edit.
@@ -14,6 +15,10 @@
 # check it, marking each check ✓ or ✘; the summary counts them. A case's <case>.setup.sh adjusts its
 # copy before the session. Transcripts land in the output directory for grading against each
 # fixture's .expected.md.
+#
+# The upgrade suite: a committed adoption at v1.0.0, built from that tag, which /aplyca-adf:upgrade moves
+# to the newest release — the switch-to-packaged case switches it to the packaged install on the way. It
+# runs like the adopt suite (bypassPermissions on throwaway copies, the plugin per session).
 #
 # The plugin-hooks suite: a project on the packaged install, with the plugin loaded per session; each
 # case drives one of the plugin's hooks in a real session (Haiku by default), and inspect.sh checks
@@ -27,7 +32,7 @@
 # this checkout — with deny rules, which hold in every mode, for `claude` commands, `git push`, and
 # file-tool edits under your home folder.
 #
-# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|plugin-hooks] [--models "sonnet opus"] [--cases "a b ..."]
+# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|plugin-hooks] [--models "sonnet opus"] [--cases "a b ..."]
 #                               [--out DIR] [--budget USD] [--parallel 4] [--read-only] [--source URL|PATH]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
@@ -60,7 +65,7 @@ FIXTURES="$SCRIPT_DIR/fixtures/$SUITE"
 [ -d "$FIXTURES" ] || { echo "no such suite: $SUITE" >&2; exit 2; }
 case "$SUITE" in
   debug) MAX_TURNS=30; EXTRA_TOOLS="Bash(node:*)|Bash(pnpm test:*)|Bash(npm test:*)" ;;
-  adopt) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
+  adopt | upgrade) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
     EXTRA_TOOLS="WebFetch|Bash(git:*)|Bash(cp:*)|Bash(mkdir:*)|Bash(mv:*)|Bash(rm:*)|Bash(chmod:*)|Bash(python3:*)|Bash(printf:*)|Bash(echo:*)|Bash(test:*)|Bash(sed:*)|Bash(touch:*)|Bash(diff:*)" ;;
   plugin-hooks) MAX_TURNS=8; BUDGET="${BUDGET:-0.50}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS="Bash(git commit:*)" ;;
   *) MAX_TURNS=14; EXTRA_TOOLS="" ;;
@@ -85,7 +90,7 @@ fi
 mkdir -p "$REPO"
 cd "$REPO" || exit 1
 if [ -f "$FIXTURES/project.sh" ]; then
-bash "$FIXTURES/project.sh" "$REPO" || exit 1
+bash "$FIXTURES/project.sh" "$REPO" "$FW" || exit 1
 else
 cp -R "$FW/skeleton/." "$REPO/"
 git init -q -b main && git config user.email dev@example.com && git config user.name dev

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Prints an adopt run's end state for grading: commits per branch, what was added, the version stamp,
-# the planned entries, the decision records, and whether the settings parse. Read-only.
+# the planned entries, the decision records, and whether the settings parse; for the packaged case,
+# checks the packaged layout (../../check-packaged.sh). Read-only.
 #
 cd "$1" || exit 1
 if [ ! -f CLAUDE.md ]; then
@@ -51,3 +52,10 @@ for f in GEMINI.md .agents .cursor evals .github/pull_request_template.md .githo
   [ -e "$f" ] && echo "present: $f" || echo "absent:  $f"
 done
 echo '```'
+if [ "${3:-}" = packaged ]; then
+  echo "### Checks — the packaged install"
+  release="$(git -C "$FW" tag --list 'v*' --sort=-v:refname | head -1)"
+  bash "$(dirname "$0")/../../check-packaged.sh" . "$release" "$(git -C "$FW" rev-parse --short "$release^{commit}")"
+  if grep -q -i 'packaged' docs/process/0001-*.md 2>/dev/null; then echo "- ✓ PDR-0001 records the packaged install"
+  else echo "- ✘ PDR-0001 records the packaged install"; fi
+fi
