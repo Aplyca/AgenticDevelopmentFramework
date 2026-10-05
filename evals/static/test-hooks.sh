@@ -226,7 +226,7 @@ if command -v jq >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
     for path in .cwd .tool_input.command .tool_input.n .agent_id .missing.deeper; do
         [ "$(printf '%s' "$event" | jq -r --arg path "$path" -f "$HOOKS_SRC/json-get.jq" 2>/dev/null)" = "$(printf '%s' "$event" | python3 "$HOOKS_SRC/json-get.py" "$path")" ] || same=""
     done
-    [ "$(jq -r -f "$HOOKS_SRC/transcript-text.jq" "$WORK/transcript.jsonl" 2>/dev/null)" = "$(python3 "$HOOKS_SRC/transcript-text.py" "$WORK/transcript.jsonl")" ] || same=""
+    [ "$(jq -r -f "$HOOKS_SRC/transcript-text.jq" <"$WORK/transcript.jsonl" 2>/dev/null)" = "$(python3 "$HOOKS_SRC/transcript-text.py" <"$WORK/transcript.jsonl")" ] || same=""
     if [ -n "$same" ]; then
         PASS=$((PASS+1)); echo "✓ helpers: json-get and transcript-text give the same answers in jq and Python"
     else

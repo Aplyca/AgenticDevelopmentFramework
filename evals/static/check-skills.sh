@@ -774,6 +774,13 @@ rules = [
     (r"<<-?\s*'?[A-Z]+'?\s*$", "feeds a program a here-document"),
     (command + r'jq\b(?!.*\s-f\s)', "runs an inline jq program"),
     (r'(^|[\s(])"?\$[{A-Za-z_][^"\s]*"?/\*', "lists files with a wildcard"),
+    (r'\*/\*', "has a */* wildcard"),
+    (r"-name\s+'[^']*\*", "has a find -name wildcard"),
+    (r'\{\d*,\d*\}', "has a brace pattern"),
+    (r'(^|[^<>&0-9])(>>?|<)\s*"?\$', "redirects to or from a computed path"),
+    (r'\bcd\s+"\$\(', "changes into a computed directory"),
+    (r'\b(jq|python3?)\b[^|]*\s"\$(?!1"|\{CLAUDE_PLUGIN_ROOT\})', "hands a program interpreter a computed path"),
+    (r'\$\{TMPDIR:-/tmp\}', "builds a path from a defaulted variable"),
 ]
 for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
     for number, line in enumerate(open(path, encoding="utf-8"), 1):

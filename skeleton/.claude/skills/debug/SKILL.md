@@ -26,7 +26,7 @@ it fail, and go on to the fix.
    Run it, and show the command and its output with secrets replaced by `<REDACTED>`. Roughly in
    order of preference:
    - a failing test at the closest level that reaches the bug — unit, integration, end-to-end;
-   - a request (`curl`, a short script) against the running app;
+   - an HTTP request or a short script against the running app;
    - the CLI with a fixture input, compared with known-good output;
    - a headless browser script that asserts on the page, the console, or the network;
    - a captured request, payload, or log, replayed through the code path;
