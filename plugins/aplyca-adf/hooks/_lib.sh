@@ -23,24 +23,30 @@ CAREFUL_GLOBS=""
 TRIAGE_FIRST=""
 HUB_READONLY=""
 SPECS_DIR="specs"
+# in_words <word> <space-separated list> — exact membership.
+in_words() {
+  case " $2 " in *" $1 "*) return 0 ;; esac
+  return 1
+}
+
 # read_settings <file> <KEY>… — set each listed KEY from its KEY=value line. The file is data and
 # never runs: double- or single-quoted or bare values, indentation and trailing comments.
 read_settings() {
-  local file="$1" line key value
+  local file="$1" line setting value
   shift
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line#"${line%%[![:space:]]*}"}"
-    key="${line%%=*}"
-    [[ $key =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
-    case " $* " in *" $key "*) ;; *) continue ;; esac
+    setting="${line%%=*}"
+    [[ $setting =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
+    in_words "$setting" "$*" || continue
     value="${line#*=}"
     case "$value" in
       \"*) value="${value#\"}" && value="${value%%\"*}" ;;
       \'*) value="${value#\'}" && value="${value%%\'*}" ;;
       *) value="${value%%[[:space:]]*}" ;;
     esac
-    printf -v "$key" '%s' "$value"
-  done <"$file"
+    printf -v "$setting" '%s' "$value"
+  done < <(cat "$file")
 }
 # The settings sit next to the scripts in a committed install. In the packaged install (the
 # aplyca-adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
@@ -68,18 +74,13 @@ json_get() {
   fi
 }
 
-# in_words <word> <space-separated list> — exact membership.
-in_words() {
-  case " $2 " in *" $1 "*) return 0 ;; esac
-  return 1
-}
-
 # path_matches <path-relative-to-root> <glob> — no "/" in the glob matches the file name only.
 path_matches() {
-  case "$2" in
-    */*) [[ $1 == $2 ]] ;;
-    *) [[ ${1##*/} == $2 ]] ;;
-  esac
+  if [ "${2#*/}" != "$2" ]; then
+    [[ $1 == $2 ]]
+  else
+    [[ ${1##*/} == $2 ]]
+  fi
 }
 
 # matches_any <path-relative-to-root> <space-separated globs>

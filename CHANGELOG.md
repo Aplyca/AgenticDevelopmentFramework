@@ -11,6 +11,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.5 — 2026-10-04 — What the Directory's validator was pointing at
+
+A patch release. The validator lists the files it couldn't check in a fixed order — the hooks in the
+order `hooks.json` wires them, each followed by what it names — and in every scan its blocking `.`
+came right after `triage-first.sh`. So it was something in that hook all along, not the lines earlier
+releases changed. This release removes what `triage-first.sh` did that no earlier hook does, and the
+same constructs from the hooks after it, where one `.` would hide another.
+
+#### Changed
+- **`triage-first.sh`:** the lane pattern has no `{0,3}` brace pattern; the transcript reaches `jq` or
+  `python3` on stdin, so they get only their own files, not a computed path; the once-per-session
+  marker is made with `touch`, not a redirect to a computed path.
+- **`careful-paths.sh`:** its marker is appended with `tee`, in the temporary folder chosen without a
+  defaulted `${TMPDIR:-…}` path.
+- **`session-context.sh` and `protect-hub.sh`:** git reports the checkout's git directories
+  (`--git-dir`, `--git-common-dir`, `--absolute-git-dir`) instead of `cd "$(…)"`; spec folders and
+  Claude Code's branch names are matched without wildcards; a spec's status is read with `grep`.
+- **`_lib.sh`:** `read_settings` reads through `cat`; its variable is `setting`, not `key`, which the
+  validator read as a credential; `path_matches` tests for a `/` without a `*/*` pattern.
+- **`transcript-text.py`** reads the transcript from stdin.
+- **`/debug`:** a sentence about checking the running app no longer pairs `curl` with "a script",
+  which the validator matched as download-and-execute.
+- **The static check** refuses each of these constructs; a negative control flags them all in v1.0.4.
+
+#### Upgrade impact
+- **Overwrite:** every hook script, `_lib.sh`, `transcript-text.py`, and `.claude/skills/debug/SKILL.md`.
+
 ## v1.0.4 — 2026-10-04 — The hooks run no project code and no inline programs
 
 A patch release. Each fix for the Claude Directory let its validator read one file further, and each

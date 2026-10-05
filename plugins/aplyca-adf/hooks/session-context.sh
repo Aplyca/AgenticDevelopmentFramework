@@ -10,12 +10,13 @@ cwd="$(json_get '.cwd')"
 root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)" || exit 0
 
 branch="$(git -C "$root" symbolic-ref --short -q HEAD 2>/dev/null || echo "detached HEAD")"
-git_dir="$(cd "$root" && cd "$(git rev-parse --git-dir)" && pwd)"
-common_dir="$(cd "$root" && cd "$(git rev-parse --git-common-dir)" && pwd)"
+git_dir="$(git -C "$root" rev-parse --absolute-git-dir 2>/dev/null)"
+common_dir="$(git -C "$root" rev-parse --git-common-dir 2>/dev/null)"
 changes="$(git -C "$root" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
 
 echo "Session context (.claude/hooks/session-context.sh):"
-if [ "$git_dir" = "$common_dir" ]; then
+# Git reports the main checkout's git dir and common dir alike (.git), a linked worktree's apart.
+if [ "$(git -C "$root" rev-parse --git-dir 2>/dev/null)" = "$common_dir" ]; then
   checkout="main checkout"
 else
   checkout="linked worktree"
@@ -33,26 +34,19 @@ if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
   spec_dir=""
   best=0
   while IFS= read -r dir; do
-    [ -f "$dir/spec.md" ] || continue
     folder_slug="${dir##*/}"
+    [ "${folder_slug:0:1}" != "." ] && [ -f "$dir/spec.md" ] || continue
     [[ $folder_slug =~ ^[0-9]+-(.*)$ ]] && folder_slug="${BASH_REMATCH[1]}"
-    case "$slug" in
-      "$folder_slug" | "$folder_slug"-*)
-        if [ "${#folder_slug}" -gt "$best" ]; then
-          spec_dir="$dir"
-          best="${#folder_slug}"
-        fi
-        ;;
-    esac
-  done < <(find "$root/$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null)
+    if [ "$slug" = "$folder_slug" ] || [ "${slug#"$folder_slug"-}" != "$slug" ]; then
+      if [ "${#folder_slug}" -gt "$best" ]; then
+        spec_dir="$dir"
+        best="${#folder_slug}"
+      fi
+    fi
+  done < <(find "$root/$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
   if [ -n "$spec_dir" ]; then
     status="" status_line='^status:[[:space:]]*([a-z-]+)'
-    while IFS= read -r line; do
-      if [[ $line =~ $status_line ]]; then
-        status="${BASH_REMATCH[1]}"
-        break
-      fi
-    done <"$spec_dir/spec.md"
+    [[ "$(grep -m 1 -E "$status_line" "$spec_dir/spec.md")" =~ $status_line ]] && status="${BASH_REMATCH[1]}"
     echo "- Spec folder for this branch: ${spec_dir#"$root"/}/ (status: ${status:-unknown})"
   else
     echo "- No spec folder matches '$slug' — triage decides whether this work needs one."
@@ -79,7 +73,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   if [ -n "$base_branch" ] && [ -n "$default_branch" ] && [ "$base_branch" != "$default_branch" ]; then
     other_base=1
   fi
-  main="$(cd "$common_dir/.." && pwd -P)"
+  main="$(dirname "$common_dir")" # a linked worktree's common dir is absolute: <main checkout>/.git
 
   if [ "$checkout" = "main checkout" ]; then
     echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Each task gets its own worktree, branch, and session."
@@ -97,13 +91,10 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
     while [[ $folder == -* ]]; do folder="${folder#-}"; done
     while [[ $folder == *- ]]; do folder="${folder%-}"; done
     if [ ! -f "$git_dir/agent-worktree" ] && [ "$(basename "$root")" != "$folder" ]; then
-      generated=""
-      case "$branch" in
-        "detached HEAD") ;;
-        worktree-* | claude/*) generated=1 ;; # Claude Code's own names
-        */*) ;;                               # already <type>/<slug>
-        *) generated=1 ;;
-      esac
+      generated="" generated_name='^(worktree-|claude/)' # Claude Code's own names; <type>/<slug> isn't
+      if [ "$branch" != "detached HEAD" ]; then
+        if [[ $branch =~ $generated_name ]] || [ "${branch#*/}" = "$branch" ]; then generated=1; fi
+      fi
       if [ "$branch" = "detached HEAD" ]; then
         echo "- Detached HEAD: after triage, create the task's branch — git switch -c <type>/<slug>."
       elif [ -n "$generated" ]; then

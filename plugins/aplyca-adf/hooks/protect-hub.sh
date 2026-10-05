@@ -17,8 +17,6 @@ root="$(repo_root_for "$file")"
 [ -n "$root" ] || exit 0
 [ -x "$root/scripts/agent/worktree-new.sh" ] || exit 0
 
-git_dir="$(cd "$root" && cd "$(git rev-parse --git-dir)" && pwd -P)"
-common_dir="$(cd "$root" && cd "$(git rev-parse --git-common-dir)" && pwd -P)"
-[ "$git_dir" = "$common_dir" ] || exit 0
+[ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 
 block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task its own worktree — a new session with Claude Code's worktree option, or /dispatch when it needs the project's worktree setup — and make this change from a session there."

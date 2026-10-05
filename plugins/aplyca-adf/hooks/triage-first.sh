@@ -21,22 +21,21 @@ session="$(json_get '.session_id' | tr -cd 'A-Za-z0-9_-')"
 transcript="$(json_get '.transcript_path')"
 [ -n "$session" ] && [ -n "$transcript" ] && [ -f "$transcript" ] || exit 0
 
-state="${TMPDIR:-/tmp}/claude-triage-first-${session}"
+tmp_dir="${TMPDIR:-}"
+[ -d "$tmp_dir" ] || tmp_dir="/tmp"
+state="$tmp_dir/claude-triage-first-$session"
 [ -f "$state" ] && exit 0
 
-lane='(fast|careful|full)[^a-z]{0,3}lane|lane[^a-z]{0,8}(fast|careful|full)'
+# A lane named within a few characters of the word: "Fast lane", "lane: careful".
+lane='(fast|careful|full)[^a-z]?[^a-z]?[^a-z]?lane|lane[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?(fast|careful|full)'
 if command -v jq >/dev/null 2>&1; then
-  assistant_text() { jq -r -f "${CLAUDE_PLUGIN_ROOT}/hooks/transcript-text.jq" "$transcript" 2>/dev/null; }
+  replies="$(cat "$transcript" | jq -r -f "${CLAUDE_PLUGIN_ROOT}/hooks/transcript-text.jq" 2>/dev/null)"
 else
-  assistant_text() { python3 "${CLAUDE_PLUGIN_ROOT}/hooks/transcript-text.py" "$transcript" 2>/dev/null; }
+  replies="$(cat "$transcript" | python3 "${CLAUDE_PLUGIN_ROOT}/hooks/transcript-text.py" 2>/dev/null)"
 fi
 
-replies="$(assistant_text)"
-if printf '%s' "$replies" | grep -qiE "$lane"; then
-  echo stated > "$state"
-  exit 0
-fi
-echo reminded > "$state"
+touch "$state"
+printf '%s' "$replies" | grep -qiE "$lane" && exit 0
 if [ -z "$(printf '%s' "$replies" | tr -d '[:space:]')" ]; then
   seen="you haven't written any reply text in this session yet, so the developer has seen no triage — what you decided while thinking isn't shown to anyone"
 else

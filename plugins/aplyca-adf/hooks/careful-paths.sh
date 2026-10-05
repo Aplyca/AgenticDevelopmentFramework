@@ -28,10 +28,12 @@ set +f
 [ -n "$matched" ] || exit 0
 
 session="$(json_get '.session_id' | tr -cd 'A-Za-z0-9_-')"
-state="${TMPDIR:-/tmp}/claude-careful-paths-${session:-unknown}"
+tmp_dir="${TMPDIR:-}"
+[ -d "$tmp_dir" ] || tmp_dir="/tmp"
+state="$tmp_dir/claude-careful-paths-${session:-unknown}"
 if [ -f "$state" ] && grep -qxF -- "$matched" "$state"; then
   exit 0
 fi
-printf '%s\n' "$matched" >> "$state"
+printf '%s\n' "$matched" | tee -a "$state" >/dev/null
 
 block "$relative is in a sensitive area ($matched — CAREFUL_GLOBS in .claude/hooks/config.sh, AGENTS.md § Sensitive areas). Changes here take at least the careful lane. If this task is in the fast lane, stop: tell the developer, move to the careful lane, and apply its checklist (specs/README.md § Lanes). If it is already careful or full, make the edit again — this check runs once per area per session."
