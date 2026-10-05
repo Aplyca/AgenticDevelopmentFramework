@@ -32,7 +32,7 @@ in_words() {
 # read_settings <file> <KEY>… — set each listed KEY from its KEY=value line. The file is data and
 # never runs: double- or single-quoted or bare values, indentation and trailing comments.
 read_settings() {
-  local file="$1" line setting value quote
+  local file="$1" line setting value
   shift
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line#"${line%%[![:space:]]*}"}"
@@ -40,13 +40,11 @@ read_settings() {
     [[ $setting =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
     in_words "$setting" "$*" || continue
     value="${line#*=}"
-    quote="${value:0:1}"
-    if [ "$quote" = '"' ] || [ "$quote" = "'" ]; then
-      value="${value:1}"
-      value="${value%%"$quote"*}"
-    else
-      value="${value%%[[:space:]]*}"
-    fi
+    case "$value" in
+      \"*) value="${value#\"}" && value="${value%%\"*}" ;;
+      \'*) value="${value#\'}" && value="${value%%\'*}" ;;
+      *) value="${value%%[[:space:]]*}" ;;
+    esac
     printf -v "$setting" '%s' "$value"
   done < <(cat "$file")
 }

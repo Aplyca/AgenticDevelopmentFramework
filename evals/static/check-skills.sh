@@ -781,7 +781,6 @@ rules = [
     (r'\bcd\s+"\$\(', "changes into a computed directory"),
     (r'\b(jq|python3?)\b[^|]*\s"\$(?!1"|\{CLAUDE_PLUGIN_ROOT\})', "hands a program interpreter a computed path"),
     (r'\$\{TMPDIR:-/tmp\}', "builds a path from a defaulted variable"),
-    (r'\\["\x27]', "escapes a quote, which the parser of the validator misreads"),
     (r'>\.', "has a greater-than sign before a period, read as a redirect to the folder"),
 ]
 for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
