@@ -23,6 +23,26 @@ works in Claude Code only. The committed install stays fully supported, and the 
 `docs/SETUP.md` is the committed install.
 **Upgrade impact:** none — existing projects keep their install until they choose to switch.
 
+### `/upgrade` stamps the release's commit; the packaged smoke test names the plugin
+
+The new upgrade eval found `/aplyca-adf:upgrade` stamping `v1.0.6 · 130753a` — an annotated tag's own
+ID, from `git rev-parse v1.0.6` — instead of the release's commit, `ab56cb6`, in the stamp, the branch,
+and the commit message. `/upgrade` and `/adopt` now name `git rev-parse --short '<tag>^{commit}'`.
+The packaged smoke test in `docs/SETUP.md` sets `CLAUDE_PLUGIN_ROOT`, which the plugin's hooks need
+since v1.0.2.
+**Upgrade impact:** framework-internal; a project whose stamp names a tag's ID can correct it to the
+commit by hand — `/aplyca-adf:upgrade` diffs from either.
+
+### The packaged install's two ways in, checked in real sessions
+
+The adopt suite gains a `packaged` case — `/aplyca-adf:adopt` on a new project, choosing the packaged
+install — and a new `upgrade` suite's `switch-to-packaged` case has `/aplyca-adf:upgrade` move a
+committed adoption at v1.0.0 to the newest release and switch it to the packaged install. Both check
+the result with `evals/dynamic/check-packaged.sh`, which also checks that the stamp names the release's
+commit. The runner passes this checkout's path to a suite's `project.sh`. Report:
+`evals/dynamic/reports/2026-10-04-packaged-paths.md`.
+**Upgrade impact:** framework-internal.
+
 ### The plugin's hooks, checked in real sessions
 
 A `plugin-hooks` suite for the session evals: each of the `aplyca-adf` plugin's hooks, driven in a

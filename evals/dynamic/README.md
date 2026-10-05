@@ -7,6 +7,7 @@ Fixture-based evals that **invoke an AI with an input prompt and grade the outpu
 ```
 dynamic/
   README.md                  - this file
+  check-packaged.sh          - checks a project's packaged layout (adopt's and upgrade's inspect.sh use it)
   run-dynamic.md             - manual + automated execution patterns
   fixtures/
     write-spec/
@@ -20,7 +21,11 @@ dynamic/
     adopt/
       project.sh                   - builds a new project (no commits, nothing built) in place of the newsletter one
       inspect.sh                   - records each run's end state: commits, stamp, planned entries, decision records
-      ...                          - adopting from one line with the framework's address; /adopt in a new project
+      ...                          - adopting from one line with the framework's address; /adopt in a new project; on the packaged install
+    upgrade/
+      project.sh                   - builds a committed adoption at v1.0.0, from that tag
+      inspect.sh                   - records the end state; checks the switch to the packaged install
+      ...                          - /upgrade switching a committed project to the packaged install
     plugin-hooks/
       project.sh                   - builds a project on the packaged install, with something for each hook to stop
       inspect.sh                   - checks that the case's hook fired (or stood down): ✓ or ✘ per check
@@ -40,7 +45,7 @@ Each fixture has two files:
 
 ## Running
 
-### Session evals — automated (triage, debug, adopt, plugin-hooks)
+### Session evals — automated (triage, debug, adopt, upgrade, plugin-hooks)
 
 `run-session-evals.sh` runs every fixture in one suite — `fixtures/triage/` by default, or
 `--suite debug` — against real Claude Code sessions: it builds a fictional project in a temp
@@ -58,7 +63,16 @@ signal without installing anything.
 ./run-session-evals.sh --suite debug                     # the /debug cases
 ./run-session-evals.sh --suite adopt --source "$PWD/../.."   # adoption, against this checkout
 ./run-session-evals.sh --suite plugin-hooks              # the plugin's hooks, on Haiku
+./run-session-evals.sh --suite upgrade --models sonnet   # /upgrade, switching to the packaged install
 ```
+
+The adopt suite's **packaged** case, and the **upgrade** suite's **switch-to-packaged**, check the
+packaged install's two ways in: adopting on it, and switching a committed project to it. The upgrade
+suite builds a committed adoption at v1.0.0 from that tag (`project.sh` gets this checkout's path), and
+`/aplyca-adf:upgrade` moves it to the newest release. Both cases' `inspect.sh` run
+`check-packaged.sh`: the stamp naming the newest release and its commit, no framework machinery committed, the plugin pinned to that release and
+turned on, no `hooks` block, the stamp, and the names people type — each marked ✓ or ✘ — plus the PDR
+that records the choice. Both are long sessions; run them on one model.
 
 The **plugin-hooks** suite checks the `aplyca-adf` plugin's hooks in real sessions, which the static
 hook tests can't: that Claude Code runs them from the plugin, and that what they print reaches the

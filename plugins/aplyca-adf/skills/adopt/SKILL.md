@@ -176,7 +176,7 @@ Present the table before going further. Wrong facts here poison every file downs
 - Top of `CLAUDE.md`:
   `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
   Without it, `/upgrade` has no baseline to diff against. Packaged: the release is the pinned tag and
-  the SHA its commit, and `· install: packaged` follows the modules — it's what turns the plugin's
+  the SHA its commit (`git -C <framework-root> rev-parse --short '<tag>^{commit}'`), and `· install: packaged` follows the modules — it's what turns the plugin's
   skills, agents, and hooks on in this project.
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
   team is adopting, what it adds (files, gates, modules, and the install — committed or packaged, and

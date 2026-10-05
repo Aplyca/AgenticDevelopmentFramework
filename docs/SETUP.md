@@ -212,7 +212,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    with the pinned release and its commit. `install: packaged` is what turns the plugin's copies on.
 
 **Verify** as below, with two differences. Pipe the hook samples to the plugin's scripts, with the
-project named: `CLAUDE_PROJECT_DIR="$PWD" <marketplace folder>/plugins/aplyca-adf/hooks/guard-git.sh`,
+project and the plugin named: `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/aplyca-adf <marketplace folder>/plugins/aplyca-adf/hooks/guard-git.sh`,
 where the marketplace folder is the `installLocation` of `aplyca` in
 `claude plugin marketplace list --json`. And in a new session, `/aplyca-adf:triage` is offered.
 
