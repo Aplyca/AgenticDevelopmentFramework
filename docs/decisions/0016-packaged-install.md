@@ -1,6 +1,6 @@
 # 0016: A packaged install — the framework's machinery from its pinned plugin, `aplyca-adf` (opt-in, Claude Code only)
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0018](0018-packaged-by-default.md) (the packaged install is the default)
 - **Date:** 2026-10-02
 - **Amends:** [0009](0009-optional-modules.md) — what ships as committed files
 

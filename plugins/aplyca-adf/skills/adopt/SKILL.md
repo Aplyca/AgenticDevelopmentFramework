@@ -102,15 +102,16 @@ Present the table before going further. Wrong facts here poison every file downs
 
 ## Step 3 — Copy the skeleton and the chosen modules
 
-- **Ask how to install** (decision 0016), with your recommendation:
-  - **Committed** — the default. Everything below is copied into the repository: every AI tool reads
-    it, and nothing depends on a plugin.
-  - **Packaged** — for a team that works in Claude Code only. The skills, agents, workflows, and hook
-    scripts come from the `aplyca-adf` plugin, pinned to a release tag, and the repository commits
-    only its own layer and its modules: about 40 fewer files. People type `/aplyca-adf:triage`.
-    Claude Code's cloud sessions don't load it, and CI installs it first. It pins a release tag,
-    v1.0.0 or later (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`);
-    with none yet, say so and install committed.
+- **Ask how to install** (decisions 0016, 0018), with your recommendation:
+  - **Packaged** — the default. The skills, agents, workflows, and hook scripts come from the
+    `aplyca-adf` plugin, pinned to a release tag, and the repository commits only its own layer and
+    its modules: about 40 fewer files. People type `/aplyca-adf:triage`. Claude Code's cloud sessions
+    don't load it, and CI installs it first. It pins a release tag, v1.0.0 or later
+    (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`); with none
+    yet, say so and install committed.
+  - **Committed** — recommend it instead when the team also uses another AI tool for the framework's
+    skills (Cursor, Copilot, Gemini or Antigravity) or needs Claude Code's cloud sessions. Everything
+    below is copied into the repository: every AI tool reads it, and nothing depends on a plugin.
 
   For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
   out, the settings, the names in `CLAUDE.md` and `DEV-SETUP.md`, the stamp, and the checks.

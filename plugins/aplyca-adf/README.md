@@ -8,14 +8,16 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
   20 skills, 8 agents, 4 workflows, and the guardrail hooks, pinned to a release. Typed as
   `/aplyca-adf:triage`, `/aplyca-adf:deep-review`, and so on.
 
-By default, the framework ships as **committed files in each adopting repo** (the
-[AGENTS.md](https://agents.md) standard plus tool-specific layers), so every AI tool — Claude Code,
-Cursor, Copilot, Antigravity, Windsurf, Aider — reads the same source of truth, with no runtime
-dependency on this plugin. In such a **committed** project, the plugin's copies of the machinery step
+By default, an adopting repository uses the **packaged** install
+([decision 0018](../../docs/decisions/0018-packaged-by-default.md)): the machinery comes from this
+plugin, pinned to a release, and the repository commits only its own layer — about 40 fewer files
+([docs/SETUP.md § Packaged install](../../docs/SETUP.md#packaged-install-claude-code-only)). A team that
+also uses other AI tools — Cursor, Copilot, Antigravity, Windsurf, Aider — or Claude Code's cloud
+sessions chooses the **committed** install: the framework as files in the repository (the
+[AGENTS.md](https://agents.md) standard plus tool-specific layers), readable by every tool, with no
+runtime dependency on this plugin. In a committed project, the plugin's copies of the machinery step
 aside: its hooks stand down, and its skills and agents hand over to the committed files. They act only
-where the stamp on `CLAUDE.md`'s first line says `install: packaged`. A team that works in Claude Code
-only can choose that **packaged** install instead and commit about 40 fewer files
-([docs/SETUP.md § Packaged install](../../docs/SETUP.md#packaged-install-claude-code-only)).
+where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
 `workflows/`, and `hooks/` is generated from the skeleton by `scripts/build-aplyca-adf.sh`; never

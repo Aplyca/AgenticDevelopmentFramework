@@ -87,9 +87,10 @@ make the same change in the worktree, then restore the main checkout's copy
 doesn't stop on it. List both moves in the plan. Anything else uncommitted there is the developer's:
 ask, and never discard it.
 
-**Offer the other install, when it fits** (decision 0016; `docs/SETUP.md` § Packaged install):
+**Offer the other install, when it fits** (decisions 0016, 0018; `docs/SETUP.md` § Packaged install):
 
-- **Committed → packaged**, for a team that works in Claude Code only: remove the skills, agents,
+- **Committed → packaged** — recommend it to a team that works in Claude Code only, since packaged is
+  the default for new projects: remove the skills, agents,
   workflows, and hook scripts the plugin carries — only those unchanged since OLD_SHA; one the team
   edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add the pinned
   marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in `DEV-SETUP.md`'s key

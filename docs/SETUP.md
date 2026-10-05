@@ -20,10 +20,12 @@ claude plugin install aplyca-adf@aplyca --scope project
 `--scope local`. From the desktop app's Code tab:
 [the plugin's README § In the desktop app](../plugins/aplyca-adf/README.md#in-the-desktop-app).
 
-The manual path below is the same procedure, step by step. It describes the **committed** install,
-the default. For a team that works in Claude Code only there's also a **packaged** install, where the
-skills, agents, workflows, and hook scripts come from a pinned plugin instead:
-[§ Packaged install](#packaged-install-claude-code-only).
+`/aplyca-adf:adopt` recommends the **packaged** install by default
+([decision 0018](decisions/0018-packaged-by-default.md)): the skills, agents, workflows, and hook
+scripts come from the pinned plugin, and the repository commits only its own layer —
+[§ Packaged install](#packaged-install-claude-code-only) lists what changes. The manual path below is
+the same procedure, step by step, for the **committed** install, which a team that also uses other AI
+tools, or Claude Code's cloud sessions, chooses instead.
 
 **A new project with no code yet:** create the repository and one first commit holding what's there
 (`git init -b main`, then `git add -A && git commit -m "chore: initial commit"`, with `--allow-empty`

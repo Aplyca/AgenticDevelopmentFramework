@@ -2,7 +2,7 @@
 
 How to pull newer framework changes into a target project that adopted an earlier version of the skeleton — without losing your team's customizations.
 
-By default the framework is committed into the project, not a runtime dependency; in the packaged install, the skills, agents, workflows, and hook scripts come from the pinned plugin instead. Either way, a project moves from one release to the next on purpose: the committed files file by file, informed by the three-bucket taxonomy below, and the plugin by moving its pin.
+In the packaged install — the default for new projects ([decision 0018](decisions/0018-packaged-by-default.md)) — the skills, agents, workflows, and hook scripts come from the pinned plugin; in the committed install, everything is committed into the project, with no runtime dependency. Either way, a project moves from one release to the next on purpose: the committed files file by file, informed by the three-bucket taxonomy below, and the plugin by moving its pin.
 
 ## When to upgrade
 
