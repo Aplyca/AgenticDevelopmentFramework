@@ -139,12 +139,12 @@ hooks, stamp the baseline, and verify.
 
 Updates are deliberate: `/aplyca-adf:upgrade` moves a project from one release to the next in a draft
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
-[CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning
-([decision 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of
-your team. The latest, **v1.0.6** (2026-10-04), is a patch for the Claude Directory. **v1.0.0**
-(2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade in. A baseline older
-than `7383422` takes that release's order first, and one older than `3eb7777` takes its three fixes
-before that — they affect every adopted repository.
+[CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
+0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
+The latest, **v1.1.0** (2026-10-04), makes the packaged install the default for new projects.
+**v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade in. A
+baseline older than `7383422` takes that release's order first, and one older than `3eb7777` takes its
+three fixes before that — they affect every adopted repository.
 
 1. **Get the plugin into the project.** Adopted before v1.0.0 — a stamp with no `v` version? Paste
    the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
