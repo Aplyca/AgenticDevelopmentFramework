@@ -750,27 +750,44 @@ check_no_tracked_junk() {
     fi
 }
 
-check_no_symlinks() {
+check_directory_rules() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local links bad
     links=$(git -C "$REPO_ROOT" ls-files -s | awk '$1 == "120000" { print $4 }' | tr '\n' ' ')
-    bad=$(python3 - "$REPO_ROOT/plugins/aplyca-adf/hooks/hooks.json" <<'PY'
-import json, re, sys
-hooks = json.load(open(sys.argv[1]))["hooks"]
-for groups in hooks.values():
-    for group in groups:
-        for hook in group["hooks"]:
+    # The Claude Directory refuses a command whose file the shell computes, and inline programs: the
+    # plugin's hooks name every file they load or run literally, and keep programs in files.
+    bad=$(python3 - "$REPO_ROOT/plugins/aplyca-adf/hooks" <<'PY'
+import glob, json, os, re, sys
+hooks_dir = sys.argv[1]
+for group in json.load(open(os.path.join(hooks_dir, "hooks.json")))["hooks"].values():
+    for entry in group:
+        for hook in entry["hooks"]:
             if not re.fullmatch(r'"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/[a-z-]+\.sh"', hook["command"]):
-                print(hook["command"])
+                print(f"hooks.json: {hook['command']}")
+command = r'(?:^|[|;&({`]|\$\(|\bthen\b|\bdo\b|\belse\b)\s*'  # where a program name starts a command
+rules = [
+    (r'^\s*(\.|source)\s+(?!"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/_lib\.sh"$)', "sources a computed path"),
+    (r'\$HOOKS_DIR|dirname "\$0"|BASH_SOURCE', "computes the hooks folder"),
+    (command + r'(awk|sed|perl|ruby|node)\b', "runs an inline program"),
+    (command + r'python3?\s+(-c\b|-\s)', "runs inline Python"),
+    (command + r'(ba)?sh\s+-c\b', "runs an inline shell program"),
+    (r"<<-?\s*'?[A-Z]+'?\s*$", "feeds a program a here-document"),
+    (command + r'jq\b(?!.*\s-f\s)', "runs an inline jq program"),
+    (r'(^|[\s(])"?\$[{A-Za-z_][^"\s]*"?/\*', "lists files with a wildcard"),
+]
+for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
+    for number, line in enumerate(open(path, encoding="utf-8"), 1):
+        if line.lstrip().startswith("#"):
+            continue
+        for pattern, what in rules:
+            if re.search(pattern, line):
+                print(f"{os.path.basename(path)}:{number} {what}")
 PY
 )
-    local computed
-    computed=$(grep -L 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"' "$REPO_ROOT"/plugins/aplyca-adf/hooks/*.sh | grep -v '/_lib\.sh$' | tr '\n' ' ')
-    computed+=$(grep -n -E '^[[:space:]]*(\.|source)[[:space:]]' "$REPO_ROOT"/plugins/aplyca-adf/hooks/*.sh | grep -v -F 'source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"' | tr '\n' ' ')
-    if [ -z "$links" ] && [ -z "$bad" ] && [ -z "$computed" ]; then
-        pass "no symlinks in the repository; the plugin's hooks and the _lib.sh they load are named by literal paths, and nothing else is sourced (the Claude Directory's checks)"
+    if [ -z "$links" ] && [ -z "$bad" ]; then
+        pass "the Claude Directory's checks: no symlinks; the plugin's hooks name every file they load or run literally, with no inline programs"
     else
-        fail "the Claude Directory's checks: symlinks [$links] hook commands [$bad] a computed path sourced [$computed]"
+        fail "the Claude Directory's checks: symlinks [$links] ${bad//$'\n'/; }"
     fi
 }
 
@@ -824,7 +841,7 @@ check_lanes
 check_practices
 check_plugin
 check_no_tracked_junk
-check_no_symlinks
+check_directory_rules
 
 echo ""
 echo "==========================================="

@@ -32,20 +32,27 @@ slug="${branch#*/}"
 if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
   spec_dir=""
   best=0
-  for dir in "$root/$SPECS_DIR"/*/; do
+  while IFS= read -r dir; do
     [ -f "$dir/spec.md" ] || continue
-    folder_slug="$(basename "$dir" | sed -E 's/^[0-9]+-//')"
+    folder_slug="${dir##*/}"
+    [[ $folder_slug =~ ^[0-9]+-(.*)$ ]] && folder_slug="${BASH_REMATCH[1]}"
     case "$slug" in
       "$folder_slug" | "$folder_slug"-*)
         if [ "${#folder_slug}" -gt "$best" ]; then
-          spec_dir="${dir%/}"
+          spec_dir="$dir"
           best="${#folder_slug}"
         fi
         ;;
     esac
-  done
+  done < <(find "$root/$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null)
   if [ -n "$spec_dir" ]; then
-    status="$(sed -nE 's/^status:[[:space:]]*([a-z-]+).*/\1/p' "$spec_dir/spec.md" | head -1)"
+    status="" status_line='^status:[[:space:]]*([a-z-]+)'
+    while IFS= read -r line; do
+      if [[ $line =~ $status_line ]]; then
+        status="${BASH_REMATCH[1]}"
+        break
+      fi
+    done <"$spec_dir/spec.md"
     echo "- Spec folder for this branch: ${spec_dir#"$root"/}/ (status: ${status:-unknown})"
   else
     echo "- No spec folder matches '$slug' — triage decides whether this work needs one."
@@ -57,10 +64,14 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   # commands, a base branch other than the default — read from scripts/agent/worktree.conf.
   needs="" base_branch="" env_file=".env"
   if [ -f "$root/scripts/agent/_worktree-lib.sh" ]; then
-    IFS='|' read -r needs base_branch env_file < <(bash -c '. "$1" >/dev/null 2>&1 || exit 0
-      n=""; [ "${PORT_SLOTS:-0}" -gt 0 ] 2>/dev/null && n="a port"
-      [ -z "$SETUP_CMD$START_CMD" ] || n="${n:+$n and }setup or start commands"
-      printf "%s|%s|%s\n" "$n" "$BASE_BRANCH" "$ENV_FILE"' _ "$root/scripts/agent/_worktree-lib.sh")
+    # The scripts' defaults, then worktree.conf — read as data, never run.
+    PORT_SLOTS=0 SETUP_CMD="" START_CMD="" BASE_BRANCH="main" ENV_FILE=".env"
+    if [ -f "$root/scripts/agent/worktree.conf" ]; then
+      read_settings "$root/scripts/agent/worktree.conf" PORT_SLOTS SETUP_CMD START_CMD BASE_BRANCH ENV_FILE
+    fi
+    [ "$PORT_SLOTS" -gt 0 ] 2>/dev/null && needs="a port"
+    [ -z "$SETUP_CMD$START_CMD" ] || needs="${needs:+$needs and }setup or start commands"
+    base_branch="$BASE_BRANCH" env_file="$ENV_FILE"
   fi
   default_branch="$(git -C "$root" symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null)"
   default_branch="${default_branch#origin/}"
@@ -82,7 +93,9 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   else
     echo "- Role: WORKER. This worktree is yours for one task — start with triage (/triage)."
     # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.
-    folder="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_-' '-' | sed -E 's/^-+//; s/-+$//')"
+    folder="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_-' '-')"
+    while [[ $folder == -* ]]; do folder="${folder#-}"; done
+    while [[ $folder == *- ]]; do folder="${folder%-}"; done
     if [ ! -f "$git_dir/agent-worktree" ] && [ "$(basename "$root")" != "$folder" ]; then
       generated=""
       case "$branch" in

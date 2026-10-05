@@ -23,20 +23,16 @@ CAREFUL_GLOBS=""
 TRIAGE_FIRST=""
 HUB_READONLY=""
 SPECS_DIR="specs"
-# The settings sit next to the scripts in a committed install. In the packaged install (the
-# aplyca-adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
-# project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR. Either way the file is data, never
-# run: one KEY="value" line per known setting.
-read_config() {
-  local line key value
+# read_settings <file> <KEY>… — set each listed KEY from its KEY=value line. The file is data and
+# never runs: double- or single-quoted or bare values, indentation and trailing comments.
+read_settings() {
+  local file="$1" line key value
+  shift
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line#"${line%%[![:space:]]*}"}"
     key="${line%%=*}"
-    case "$key" in
-      PROTECTED_BRANCHES | APPEND_ONLY_GLOBS | GENERATED_GLOBS | CAREFUL_GLOBS | TRIAGE_FIRST | \
-        HUB_READONLY | ENV_TEMPLATE | ENV_IGNORE | ENV_CHECK_EXCLUDE | SPECS_DIR) ;;
-      *) continue ;;
-    esac
+    [[ $key =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
+    case " $* " in *" $key "*) ;; *) continue ;; esac
     value="${line#*=}"
     case "$value" in
       \"*) value="${value#\"}" && value="${value%%\"*}" ;;
@@ -44,11 +40,15 @@ read_config() {
       *) value="${value%%[[:space:]]*}" ;;
     esac
     printf -v "$key" '%s' "$value"
-  done <"$1"
+  done <"$file"
 }
+# The settings sit next to the scripts in a committed install. In the packaged install (the
+# aplyca-adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
+# project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR.
 for config in "$HOOKS_DIR/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
   if [ -n "$config" ] && [ -f "$config" ]; then
-    read_config "$config"
+    read_settings "$config" PROTECTED_BRANCHES APPEND_ONLY_GLOBS GENERATED_GLOBS CAREFUL_GLOBS TRIAGE_FIRST \
+      HUB_READONLY ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
     break
   fi
 done
@@ -56,22 +56,12 @@ unset config
 
 HOOK_INPUT="$(cat)"
 
-# json_get <jq-path> — print a string field of the hook input, or nothing.
+# json_get <.dotted.path> — print a string field of the hook input, or nothing.
 json_get() {
   if command -v jq >/dev/null 2>&1; then
-    printf '%s' "$HOOK_INPUT" | jq -r "$1 // empty" 2>/dev/null
+    printf '%s' "$HOOK_INPUT" | jq -r --arg path "$1" -f "$HOOKS_DIR/json-get.jq" 2>/dev/null
   elif command -v python3 >/dev/null 2>&1; then
-    printf '%s' "$HOOK_INPUT" | python3 -c '
-import json, sys
-try:
-    node = json.load(sys.stdin)
-    for key in sys.argv[1].lstrip(".").split("."):
-        node = node.get(key) if isinstance(node, dict) else None
-    if isinstance(node, str):
-        print(node)
-except ValueError:
-    pass
-' "$1"
+    printf '%s' "$HOOK_INPUT" | python3 "$HOOKS_DIR/json-get.py" "$1"
   else
     echo "$(basename "$0"): install jq or python3 to enable this hook" >&2
     exit 1

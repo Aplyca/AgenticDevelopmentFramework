@@ -57,7 +57,7 @@ patterns=(
 found=""
 for pattern in "${patterns[@]}"; do
   while IFS= read -r match; do
-    [ -n "$match" ] && found="$found $(printf '%s' "$match" | sed -E "s/^.*$pattern.*$/\\1/")"
+    [[ $match =~ $pattern ]] && found="$found ${BASH_REMATCH[1]}"
   done < <(grep -oE "$pattern" "$file_path" 2>/dev/null)
 done
 
