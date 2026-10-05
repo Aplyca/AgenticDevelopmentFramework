@@ -22,7 +22,12 @@ quote ends the string there and reads `opus>.` as a redirect to the folder `.`.
 - **`triage-first.sh`'s reminder** quotes the one-line triage with single quotes and ends it without
   a period after `>`. The text is the same.
 - **`session-context.sh`**'s detached-HEAD line no longer ends `<slug>.`
-- **The static check** refuses a `>` before a period in the plugin's hooks.
+- **`/aplyca-adf:adopt` and `/aplyca-adf:upgrade`** no longer name `${CLAUDE_PLUGIN_ROOT}/../..`, a
+  path outside the plugin — from `plugins/aplyca-adf`, the repository root, which the validator reports
+  as `.`. A development install finds the framework through the marketplace's `installLocation`,
+  which is the local checkout when the marketplace was added from one.
+- **The static check** refuses a `>` before a period in the plugin's hooks, and any path that climbs
+  out of the plugin.
 
 #### Upgrade impact
 - **Overwrite:** `session-context.sh`, `triage-first.sh`.

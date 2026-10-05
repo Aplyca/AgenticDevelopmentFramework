@@ -792,8 +792,9 @@ for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
                 print(f"{os.path.basename(path)}:{number} {what}")
 PY
 )
+    bad+=$(git -C "$REPO_ROOT" grep -n -F '${CLAUDE_PLUGIN_ROOT}/..' -- plugins/aplyca-adf | sed 's/$/ reaches outside the plugin/')
     if [ -z "$links" ] && [ -z "$bad" ]; then
-        pass "the Claude Directory's checks: no symlinks; the plugin's hooks name every file they load or run literally, with no inline programs"
+        pass "the Claude Directory's checks: no symlinks; the plugin's hooks name every file they load or run literally, with no inline programs; nothing reaches outside the plugin"
     else
         fail "the Claude Directory's checks: symlinks [$links] ${bad//$'\n'/; }"
     fi
