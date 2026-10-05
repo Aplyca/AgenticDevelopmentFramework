@@ -11,12 +11,13 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-## v1.0.6 — 2026-10-04 — No escaped quotes in the hooks
+## v1.0.6 — 2026-10-04 — Closing the Claude Directory work, for now
 
-A patch release. The Directory's blocking `.` stayed after v1.0.5, still named by `triage-first.sh`.
-Its reminder message is the one line, unchanged since v1.0.1, with both an escaped quote and a `>`
-before a period: `\"Fast lane — …; model: <sonnet|opus>.\"`. A parser that doesn't take `\"` as a
-quote ends the string there and reads `opus>.` as a redirect to the folder `.`.
+A patch release, and the last of the Directory fixes for now. Its validator still reports one blocking
+finding, `COMMAND_PATH_COMPUTED` at `.`, with no file or line. Scans of this branch showed the
+reminder change below removed the `.` the validator listed after `triage-first.sh`; the other changes
+showed no effect. The blocking finding's source, which v1.0.2 to v1.0.6 looked for, is still unknown.
+The listing is paused. Installing from GitHub, per project, is unaffected.
 
 #### Changed
 - **`triage-first.sh`'s reminder** quotes the one-line triage with single quotes and ends it without
