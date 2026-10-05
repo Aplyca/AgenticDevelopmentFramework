@@ -27,7 +27,7 @@ Yes, make the first commit. The plan: Next.js 15 with TypeScript, pnpm, Vitest f
 Playwright end to end, hosted on Vercel, Contentful as the CMS. Branching: feature branches into
 main. Requirements come as GitHub issues; no tracker server. One developer with one agent session
 at a time, and no stakeholder updates. No sensitive areas yet — the newsletter signup will store
-email addresses. Claude Code only, no custom skills. Modules: github. The decider is the tech lead.
+email addresses. Claude Code only, but use the committed install. No custom skills. Modules: github. The decider is the tech lead.
 Go ahead with the adoption; don't push.
 ```
 

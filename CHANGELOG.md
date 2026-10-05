@@ -11,6 +11,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The packaged install is the default
+
+([0018](docs/decisions/0018-packaged-by-default.md), amending [0016](docs/decisions/0016-packaged-install.md))
+
+`/aplyca-adf:adopt` recommends the packaged install by default, and the committed install when the
+team also uses another AI tool for the framework's skills or needs Claude Code's cloud sessions. It
+still asks. The packaged paths have run end to end in real sessions: the plugin's hooks, adopting on
+it, and switching to it. `/aplyca-adf:upgrade` recommends the switch to a committed project whose team
+works in Claude Code only. The committed install stays fully supported, and the manual setup in
+`docs/SETUP.md` is the committed install.
+**Upgrade impact:** none — existing projects keep their install until they choose to switch.
+
 ### The plugin's hooks, checked in real sessions
 
 A `plugin-hooks` suite for the session evals: each of the `aplyca-adf` plugin's hooks, driven in a

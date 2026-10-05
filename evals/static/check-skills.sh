@@ -618,6 +618,7 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Ask how to install' || missing+=("/adopt: committed or packaged (0016)")
+    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Packaged\*\* — the default' || missing+=("/adopt: packaged is the default (0018)")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" "sort=-v:refname" || missing+=("/upgrade: moves a packaged project to the newest release tag")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'aplyca-framework@aplyca' || missing+=("/upgrade: migrates the plugin's old name")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
