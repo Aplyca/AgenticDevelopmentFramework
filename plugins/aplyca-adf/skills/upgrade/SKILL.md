@@ -51,7 +51,9 @@ project pins, so it can't show what's newer.
 
 A project moves **from release to release** (decision 0017): NEW_SHA is the commit of the newest
 release tag (`git -C <framework-root> tag --list 'v*' --sort=-v:refname | head -1`), unless the
-developer asks for the unreleased head. Say whether the jump crosses a major version — those carry
+developer asks for the unreleased head: `git -C <framework-root> rev-parse --short '<tag>^{commit}'`.
+Not `git rev-parse <tag>`, which gives an annotated tag's own ID — never a commit, so wrong in the
+stamp and the branch name. Say whether the jump crosses a major version — those carry
 steps the team has to take.
 
 Read `CHANGELOG.md` entries between OLD_SHA and NEW_SHA. Each entry's **Upgrade impact** pre-classifies
