@@ -25,21 +25,25 @@ read the source doc (locations in step 1).
 - **Client repositories:** confirm before pushing anything. If committing AI config isn't
   appropriate for the client, offer the local-only fallback (`.git/info/exclude`, and the plugin at `--scope local`).
 
-## Step 1 — Locate the framework source
+## Step 1 — Locate the framework source, at the newest release
 
-Resolve the framework root, in order:
+Adopt from a release, never from whatever commit a checkout is at: the project pins that release
+(Step 5), and its committed files and the plugin's copies have to be the same release (decision 0016).
 
-1. The marketplace checkout: the `installLocation` of the marketplace (usually `aplyca`) in
-   `claude plugin marketplace list --json` — by default `~/.claude/plugins/marketplaces/aplyca/`, or
-   the framework repository itself when the marketplace was added from a local checkout. Installed
-   plugins run from a version cache, never from the repository. Run
-   `claude plugin marketplace update <name>` first.
-2. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
+1. **The newest release:** `git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`
+   — the highest `vX.Y.Z`, ignoring the `^{}` lines.
+2. **The framework at that tag**, as `<framework-root>`, in a scratch folder outside the target:
+   - from a local checkout of the framework repository that has the tag — the marketplace's
+     `installLocation` in `claude plugin marketplace list --json`, when the marketplace was added from
+     one: `git -C <checkout> worktree add --detach <scratch> <tag>`;
+   - otherwise: `git clone --depth 1 --branch <tag> https://github.com/aplyca/AgenticDevelopmentFramework <scratch>`.
+
+   Installed plugins run from a version cache, never from the repository.
 
 You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
-Record the source release, SHA, and date: `git -C <framework-root> describe --tags --abbrev=0 --match 'v*'`
-(the newest release at or before the source; none before v1.0.0) and
-`git -C <framework-root> log -1 --format='%h (%ad)' --date=short`.
+Record the release (the tag), its commit (`git -C <framework-root> rev-parse --short HEAD`), and the
+commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`). With no release tag yet,
+use the default branch's head and say so.
 
 **Already adopted?** If the target's `CLAUDE.md` has a `Skeleton source:` line, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
@@ -175,9 +179,9 @@ Present the table before going further. Wrong facts here poison every file downs
 
 - Top of `CLAUDE.md`:
   `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
-  Without it, `/upgrade` has no baseline to diff against. Packaged: the release is the pinned tag and
-  the SHA its commit (`git -C <framework-root> rev-parse --short '<tag>^{commit}'`), and `· install: packaged` follows the modules — it's what turns the plugin's
-  skills, agents, and hooks on in this project.
+  The release, its commit, and the date are the ones Step 1 recorded. Without the stamp, `/upgrade` has
+  no baseline to diff against. Packaged: `· install: packaged` follows the modules — it's what turns
+  the plugin's skills, agents, and hooks on in this project.
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
   team is adopting, what it adds (files, gates, modules, and the install — committed or packaged, and
   why), the costs (docs to keep fresh, more tokens

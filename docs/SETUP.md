@@ -36,6 +36,10 @@ lands, run `/init-project` to replace the planned entries with verified facts.
 
 ## 1. Copy the skeleton (on a branch)
 
+Copy from the newest release, which the project will pin: `git ls-remote --tags
+https://github.com/aplyca/AgenticDevelopmentFramework 'v*'` lists them, and
+`git clone --depth 1 --branch v<X.Y.Z> https://github.com/aplyca/AgenticDevelopmentFramework` gets one.
+
 ```bash
 cd your-project
 git switch -c docs/agentic-adoption

@@ -11,6 +11,30 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.1.0 — 2026-10-04 — The packaged install by default, checked in real sessions
+
+A minor release: a new default for new projects, and evals for the packaged install's paths. Nothing
+asks anything of an adopted team. Everything since v1.0.6: the plugin's hooks checked in real sessions
+([#29](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/29)), evals for adopting on the
+packaged install and switching to it, and the `/upgrade` stamp fix they found
+([#30](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/30)), the packaged install as the
+default ([#31](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/31), decision 0018), and
+`/adopt` taking the framework at the release it pins.
+
+**Upgrading from v1.0.x:** `/aplyca-adf:upgrade` moves the pin to `v1.1.0`; nothing else changes in
+the project. For a committed project whose team works in Claude Code only, it recommends the switch to
+the packaged install. A baseline older than v1.0.0 takes v1.0.0's order to upgrade in first.
+
+### `/adopt` takes the framework at the release it pins
+
+`/aplyca-adf:adopt` copied the skeleton from wherever the framework source was — a clone of the
+default branch, or a checkout — while pinning the plugin to the newest release tag, so a project's
+committed files could be newer than its pinned plugin. The packaged eval found it; the two were
+identical then. It now takes the framework at the newest release tag (a shallow clone of the tag, or
+a worktree of a local checkout) and stamps that tag's commit. `docs/SETUP.md`'s manual copy says the
+same.
+**Upgrade impact:** framework-internal — adoptions only.
+
 ### The packaged install is the default
 
 ([0018](docs/decisions/0018-packaged-by-default.md), amending [0016](docs/decisions/0016-packaged-install.md))

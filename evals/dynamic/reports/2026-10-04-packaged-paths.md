@@ -54,3 +54,14 @@ each end state with `check-packaged.sh`, and each transcript was read against it
   plugin. Adopting from the release tag would close it.
 - Both sessions found the framework through the runner's `--add-dir` copy of the checkout, a
   development setup. A real install finds it through the marketplace or a clone.
+
+## Run 3 — `/adopt` taking the framework at the release it pins
+
+The open finding above, fixed for v1.1.0: `/adopt` now finds the newest release tag and takes the
+framework at that tag — a shallow clone of the tag, or a worktree of a local checkout — and stamps
+that tag's commit. `packaged` again on Sonnet: **8 of 8**, $1.30. The session set the framework up at
+`v1.0.6` in a scratch worktree outside the project and stamped `ab56cb6`; with the new default, it
+recommended packaged first, and committed for teams on other AI tools or cloud sessions. Its
+`git ls-remote` ran in one command with `claude plugin marketplace list`, which the runner's deny rule
+for `claude` commands refused as a whole — an artifact of the eval — so it took the newest tag from
+the local checkout, the same release.
