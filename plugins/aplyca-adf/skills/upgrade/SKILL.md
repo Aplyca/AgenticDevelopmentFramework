@@ -43,11 +43,11 @@ agents) and confirm the inferred SHA with the user before proceeding.
 
 ## Step 2 — Locate the framework source and NEW_SHA
 
-Same resolution order as `/adopt` Step 1: repo checkout via `${CLAUDE_PLUGIN_ROOT}/../..`
-(development installs), else a **full** clone of `https://github.com/aplyca/AgenticDevelopmentFramework`
-(not shallow — the diff needs history). The marketplace checkout (`installLocation` in
-`claude plugin marketplace list --json`) sits at the release the project pins, so it can't show what's
-newer.
+A framework checkout with its full history: the marketplace's `installLocation` (in
+`claude plugin marketplace list --json`) when the marketplace was added from a local checkout of the
+framework repository, else a **full** clone of `https://github.com/aplyca/AgenticDevelopmentFramework`
+(not shallow — the diff needs history). A marketplace added from GitHub sits at the release the
+project pins, so it can't show what's newer.
 
 A project moves **from release to release** (decision 0017): NEW_SHA is the commit of the newest
 release tag (`git -C <framework-root> tag --list 'v*' --sort=-v:refname | head -1`), unless the

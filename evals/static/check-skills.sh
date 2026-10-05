@@ -781,6 +781,7 @@ rules = [
     (r'\bcd\s+"\$\(', "changes into a computed directory"),
     (r'\b(jq|python3?)\b[^|]*\s"\$(?!1"|\{CLAUDE_PLUGIN_ROOT\})', "hands a program interpreter a computed path"),
     (r'\$\{TMPDIR:-/tmp\}', "builds a path from a defaulted variable"),
+    (r'>\.', "has a greater-than sign before a period, read as a redirect to the folder"),
 ]
 for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
     for number, line in enumerate(open(path, encoding="utf-8"), 1):
@@ -791,8 +792,9 @@ for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
                 print(f"{os.path.basename(path)}:{number} {what}")
 PY
 )
+    bad+=$(git -C "$REPO_ROOT" grep -n -F '${CLAUDE_PLUGIN_ROOT}/..' -- plugins/aplyca-adf | sed 's/$/ reaches outside the plugin/')
     if [ -z "$links" ] && [ -z "$bad" ]; then
-        pass "the Claude Directory's checks: no symlinks; the plugin's hooks name every file they load or run literally, with no inline programs"
+        pass "the Claude Directory's checks: no symlinks; the plugin's hooks name every file they load or run literally, with no inline programs; nothing reaches outside the plugin"
     else
         fail "the Claude Directory's checks: symlinks [$links] ${bad//$'\n'/; }"
     fi

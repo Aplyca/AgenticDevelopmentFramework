@@ -29,12 +29,12 @@ read the source doc (locations in step 1).
 
 Resolve the framework root, in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/../..` — only when the plugin runs from a checkout of the framework repo.
-2. The marketplace checkout: the `installLocation` of the marketplace (usually `aplyca`) in
-   `claude plugin marketplace list --json` — by default `~/.claude/plugins/marketplaces/aplyca/`.
-   **The normal case on installed machines** — installed plugins run from a version cache, so
-   `${CLAUDE_PLUGIN_ROOT}` isn't inside the repo. Run `claude plugin marketplace update <name>` first.
-3. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
+1. The marketplace checkout: the `installLocation` of the marketplace (usually `aplyca`) in
+   `claude plugin marketplace list --json` — by default `~/.claude/plugins/marketplaces/aplyca/`, or
+   the framework repository itself when the marketplace was added from a local checkout. Installed
+   plugins run from a version cache, never from the repository. Run
+   `claude plugin marketplace update <name>` first.
+2. Otherwise clone: `git clone --depth 1 https://github.com/aplyca/AgenticDevelopmentFramework`.
 
 You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
 Record the source release, SHA, and date: `git -C <framework-root> describe --tags --abbrev=0 --match 'v*'`

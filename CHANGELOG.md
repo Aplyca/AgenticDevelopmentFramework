@@ -11,6 +11,28 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.6 — 2026-10-04 — Closing the Claude Directory work, for now
+
+A patch release, and the last of the Directory fixes for now. Its validator still reports one blocking
+finding, `COMMAND_PATH_COMPUTED` at `.`, with no file or line. Scans of this branch showed the
+reminder change below removed the `.` the validator listed after `triage-first.sh`; the other changes
+showed no effect. The blocking finding's source, which v1.0.2 to v1.0.6 looked for, is still unknown.
+The listing is paused. Installing from GitHub, per project, is unaffected.
+
+#### Changed
+- **`triage-first.sh`'s reminder** quotes the one-line triage with single quotes and ends it without
+  a period after `>`. The text is the same.
+- **`session-context.sh`**'s detached-HEAD line no longer ends `<slug>.`
+- **`/aplyca-adf:adopt` and `/aplyca-adf:upgrade`** no longer name `${CLAUDE_PLUGIN_ROOT}/../..`, a
+  path outside the plugin — from `plugins/aplyca-adf`, the repository root, which the validator reports
+  as `.`. A development install finds the framework through the marketplace's `installLocation`,
+  which is the local checkout when the marketplace was added from one.
+- **The static check** refuses a `>` before a period in the plugin's hooks, and any path that climbs
+  out of the plugin.
+
+#### Upgrade impact
+- **Overwrite:** `session-context.sh`, `triage-first.sh`.
+
 ## v1.0.5 — 2026-10-04 — What the Directory's validator was pointing at
 
 A patch release. The validator lists the files it couldn't check in a fixed order — the hooks in the
