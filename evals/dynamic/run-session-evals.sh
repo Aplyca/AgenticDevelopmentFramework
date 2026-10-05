@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, or adopt) against
-# real Claude Code sessions.
+# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, adopt, or
+# plugin-hooks) against real Claude Code sessions.
 #
 # Builds a fictional project in a temp directory — the skeleton, the delivered newsletter-signup
 # spec folder from docs/examples/, and a few stub source files matching the fixtures' context, plus
@@ -10,8 +10,14 @@
 # throwaway copy, may edit it (so the project's hooks — triage-first, careful-paths — take part), and
 # is turn- and budget-capped; `--read-only` denies edits instead, so a run stops at its first edit.
 # A fixture with a "## Follow-up" section gets a second turn in the same session. A suite's
-# inspect.sh records each run's end state. Transcripts land in the output directory for grading
-# against each fixture's .expected.md.
+# inspect.sh records each run's end state — given the run's copy, its output, and the case — and may
+# check it, marking each check ✓ or ✘; the summary counts them. A case's <case>.setup.sh adjusts its
+# copy before the session. Transcripts land in the output directory for grading against each
+# fixture's .expected.md.
+#
+# The plugin-hooks suite: a project on the packaged install, with the plugin loaded per session; each
+# case drives one of the plugin's hooks in a real session (Haiku by default), and inspect.sh checks
+# that it fired — or, in a committed project, that it stood down.
 #
 # The adopt suite: {{FRAMEWORK}} in a prompt becomes --source (the framework's GitHub address by
 # default — what's published on main; pass this checkout's path to test a branch), and a fixture
@@ -21,7 +27,7 @@
 # this checkout — with deny rules, which hold in every mode, for `claude` commands, `git push`, and
 # file-tool edits under your home folder.
 #
-# Usage: ./run-session-evals.sh [--suite triage|debug|adopt] [--models "sonnet opus"] [--cases "a b ..."]
+# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|plugin-hooks] [--models "sonnet opus"] [--cases "a b ..."]
 #                               [--out DIR] [--budget USD] [--parallel 4] [--read-only] [--source URL|PATH]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
@@ -30,7 +36,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FW="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SUITE="triage"
-MODELS="sonnet opus"
+MODELS=""
 CASES=""
 BUDGET=""
 SOURCE="https://github.com/aplyca/AgenticDevelopmentFramework"
@@ -56,8 +62,10 @@ case "$SUITE" in
   debug) MAX_TURNS=30; EXTRA_TOOLS="Bash(node:*)|Bash(pnpm test:*)|Bash(npm test:*)" ;;
   adopt) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
     EXTRA_TOOLS="WebFetch|Bash(git:*)|Bash(cp:*)|Bash(mkdir:*)|Bash(mv:*)|Bash(rm:*)|Bash(chmod:*)|Bash(python3:*)|Bash(printf:*)|Bash(echo:*)|Bash(test:*)|Bash(sed:*)|Bash(touch:*)|Bash(diff:*)" ;;
+  plugin-hooks) MAX_TURNS=8; BUDGET="${BUDGET:-0.50}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS="Bash(git commit:*)" ;;
   *) MAX_TURNS=14; EXTRA_TOOLS="" ;;
 esac
+MODELS="${MODELS:-sonnet opus}"
 BUDGET="${BUDGET:-1.50}"
 BYPASS="${BYPASS:-}"
 [ -n "$CASES" ] || CASES="$(ls "$FIXTURES" | sed -n 's/\.input\.md$//p' | tr '\n' ' ')"
@@ -212,6 +220,7 @@ run_case() { # run_case <case> <model>
   work="$WORK/runs/$case_name.$model"
   input="$FIXTURES/$case_name.input.md"
   mkdir -p "$WORK/runs" && cp -R "$REPO" "$work"
+  [ -f "$FIXTURES/$case_name.setup.sh" ] && bash "$FIXTURES/$case_name.setup.sh" "$work"
   python3 - "$input" "$SOURCE" "$work" <<'PY'
 import re, sys
 text = open(sys.argv[1]).read()
@@ -250,7 +259,8 @@ for raw in open(sys.argv[1]):
     (cd "$work" && claude -p "$(cat "$work.follow-up")" --resume "$sid" "${flags[@]}" \
       < /dev/null > "$OUT/$case_name.$model.2.jsonl" 2>> "$OUT/$case_name.$model.err")
   fi
-  [ -f "$FIXTURES/inspect.sh" ] && bash "$FIXTURES/inspect.sh" "$work" > "$OUT/$case_name.$model.state.md" 2>&1
+  [ -f "$FIXTURES/inspect.sh" ] && bash "$FIXTURES/inspect.sh" "$work" "$OUT/$case_name.$model.jsonl" "$case_name" \
+    > "$OUT/$case_name.$model.state.md" 2>&1
   echo "  $case_name · $model done"
 }
 export -f run_case
@@ -293,13 +303,18 @@ for path in sorted(p for p in glob.glob(os.path.join(out, "*.jsonl")) if not p.e
         read(second, parts, meta)
     state = os.path.join(out, name + ".state.md")
     if os.path.exists(state):
-        parts.append("---\n\n## End state\n\n" + open(state).read())
+        state_text = open(state).read()
+        meta["passed"], meta["failed"] = state_text.count("- ✓ "), state_text.count("- ✘ ")
+        parts.append("---\n\n## End state\n\n" + state_text)
     with open(os.path.join(out, name + ".md"), "w") as f:
         f.write(f"# {name}\n\nmodel {meta.get('model')} · turns {meta.get('turns')} · ${meta.get('cost', 0):.3f} · {meta.get('seconds')}s{' · ERROR' if meta.get('error') else ''}\n\n" + "\n\n".join(parts) + "\n")
     rows.append((name, meta))
 print()
 for name, m in rows:
-    print(f"{name:<38} {str(m.get('model')):<20} turns {str(m.get('turns')):>3}  ${m.get('cost', 0):>6.3f}  {m.get('seconds')}s{'  ERROR' if m.get('error') else ''}")
+    checks = f"  checks ✓{m['passed']} ✘{m['failed']}" if m.get("passed") or m.get("failed") else ""
+    print(f"{name:<38} {str(m.get('model')):<20} turns {str(m.get('turns')):>3}  ${m.get('cost', 0):>6.3f}  {m.get('seconds')}s{checks}{'  ERROR' if m.get('error') else ''}")
+if any(m.get("passed") or m.get("failed") for _, m in rows):
+    print(f"\nChecks: {sum(m.get('passed', 0) for _, m in rows)} passed, {sum(m.get('failed', 0) for _, m in rows)} failed")
 print(f"\nTotal ≈ ${sum(m.get('cost', 0) for _, m in rows):.2f} (API-equivalent). Transcripts: {out}/*.md — grade each against fixtures/" + sys.argv[2] + "/<case>.expected.md")
 PY
 echo "The fixture project and each run's copy (with whatever it edited) are in $WORK — delete it when done."

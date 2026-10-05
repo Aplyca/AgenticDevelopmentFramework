@@ -11,6 +11,14 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The plugin's hooks, checked in real sessions
+
+A `plugin-hooks` suite for the session evals: each of the `aplyca-adf` plugin's hooks, driven in a
+real Claude Code session on a project with the packaged install, and the plugin's stand-down on a committed
+one — seven sessions on Haiku, checked automatically. The runner gains a per-case `setup.sh`, passes
+each run's output and case to `inspect.sh`, and counts the ✓ and ✘ it marks.
+**Upgrade impact:** framework-internal.
+
 ## v1.0.6 — 2026-10-04 — Closing the Claude Directory work, for now
 
 A patch release, and the last of the Directory fixes for now. Its validator still reports one blocking

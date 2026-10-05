@@ -21,6 +21,11 @@ dynamic/
       project.sh                   - builds a new project (no commits, nothing built) in place of the newsletter one
       inspect.sh                   - records each run's end state: commits, stamp, planned entries, decision records
       ...                          - adopting from one line with the framework's address; /adopt in a new project
+    plugin-hooks/
+      project.sh                   - builds a project on the packaged install, with something for each hook to stop
+      inspect.sh                   - checks that the case's hook fired (or stood down): ✓ or ✘ per check
+      stand-down.setup.sh          - switches that case's copy to the committed install
+      ...                          - each of the aplyca-adf plugin's hooks, in a real session
     write-tests/
       ...
     write-docs/
@@ -35,7 +40,7 @@ Each fixture has two files:
 
 ## Running
 
-### Session evals — automated (triage, debug, adopt)
+### Session evals — automated (triage, debug, adopt, plugin-hooks)
 
 `run-session-evals.sh` runs every fixture in one suite — `fixtures/triage/` by default, or
 `--suite debug` — against real Claude Code sessions: it builds a fictional project in a temp
@@ -52,7 +57,18 @@ signal without installing anything.
 ./run-session-evals.sh --models sonnet --cases "fast-copy-change careful-migration"
 ./run-session-evals.sh --suite debug                     # the /debug cases
 ./run-session-evals.sh --suite adopt --source "$PWD/../.."   # adoption, against this checkout
+./run-session-evals.sh --suite plugin-hooks              # the plugin's hooks, on Haiku
 ```
+
+The **plugin-hooks** suite checks the `aplyca-adf` plugin's hooks in real sessions, which the static
+hook tests can't: that Claude Code runs them from the plugin, and that what they print reaches the
+session. Its project is on the packaged install, with the plugin loaded from this checkout per session.
+Each case drives one hook — the session context, `--no-verify`, the triage reminder, a lockfile edit,
+a sensitive area, an undeclared environment variable — and `stand-down` runs in a copy switched to
+the committed install, where the plugin's hooks must do nothing. `inspect.sh` checks each run and marks
+it ✓ or ✘; the summary counts them. A PostToolUse hook's message reaches Claude through the session
+transcript, not the output stream, so that check reads the transcript. Seven sessions on Haiku cost
+about $0.40; run it after any change to the hooks. Report: [`reports/2026-10-04-plugin-hooks.md`](reports/2026-10-04-plugin-hooks.md).
 
 The **adopt** suite builds its own project (`fixtures/adopt/project.sh`: a new repository with no
 commits) and appends each run's end state (`inspect.sh`) to the transcript. `{{FRAMEWORK}}` in a
