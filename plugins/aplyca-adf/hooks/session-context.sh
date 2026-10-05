@@ -96,7 +96,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
         if [[ $branch =~ $generated_name ]] || [ "${branch#*/}" = "$branch" ]; then generated=1; fi
       fi
       if [ "$branch" = "detached HEAD" ]; then
-        echo "- Detached HEAD: after triage, create the task's branch — git switch -c <type>/<slug>."
+        echo "- Detached HEAD: after triage, create the task's branch with git switch -c <type>/<slug>"
       elif [ -n "$generated" ]; then
         echo "- The branch name is generated ($branch): after triage, rename it — git branch -m <type>/<slug> — so it joins its spec folder and /aplyca-adf:open-pr takes it."
       fi

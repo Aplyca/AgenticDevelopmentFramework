@@ -11,6 +11,25 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.0.6 — 2026-10-04 — No escaped quotes in the hooks
+
+A patch release. The Directory's blocking `.` stayed after v1.0.5, still named by `triage-first.sh`.
+Its reminder message is the one line, unchanged since v1.0.1, with both an escaped quote and a `>`
+before a period: `\"Fast lane — …; model: <sonnet|opus>.\"`. A parser that doesn't take `\"` as a
+quote ends the string there and reads `opus>.` as a redirect to the folder `.`.
+
+#### Changed
+- **`triage-first.sh`'s reminder** quotes the one-line triage with single quotes and ends it without
+  a period after `>`. The text is the same.
+- **`check-env-declared.sh`** builds its search patterns from variables for the quote characters
+  instead of escaping them; the 15 patterns expand byte for byte as before.
+- **`_lib.sh`'s `read_settings`** unquotes values without escaped quotes.
+- **`session-context.sh`**'s detached-HEAD line no longer ends `<slug>.`
+- **The static check** refuses escaped quotes and a `>` before a period in the plugin's hooks.
+
+#### Upgrade impact
+- **Overwrite:** `_lib.sh`, `check-env-declared.sh`, `session-context.sh`, `triage-first.sh`.
+
 ## v1.0.5 — 2026-10-04 — What the Directory's validator was pointing at
 
 A patch release. The validator lists the files it couldn't check in a fixed order — the hooks in the

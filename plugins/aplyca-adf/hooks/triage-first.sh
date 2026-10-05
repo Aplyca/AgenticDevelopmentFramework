@@ -41,4 +41,4 @@ if [ -z "$(printf '%s' "$replies" | tr -d '[:space:]')" ]; then
 else
   seen="none of your replies in this session names a lane (fast, careful, or full), so the developer has seen no triage — what you decided while thinking isn't shown to anyone"
 fi
-block "$seen. Before $change, write the triage as your next message. For a small change, one line: \"Fast lane — <the request in your words>; done when <check>; files: <list>; model: <sonnet|opus>.\" Then run it again; this reminder shows once."
+block "$seen. Before $change, write the triage as your next message. For a small change, one line: 'Fast lane — <the request in your words>; done when <check>; files: <list>; model: <sonnet|opus>' — then run it again; this reminder shows once."

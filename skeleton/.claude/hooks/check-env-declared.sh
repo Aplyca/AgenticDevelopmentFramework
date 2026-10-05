@@ -35,23 +35,24 @@ if [ -z "$template" ]; then
 fi
 [ -n "$template" ] && [ -f "$root/$template" ] || exit 0
 
-name='([A-Z_][A-Z0-9_]*)'
+name='([A-Z_][A-Z0-9_]*)' dq='"' dollar='$'
+quote="['$dq]"
 patterns=(
   "process\\.env\\.$name"
-  "process\\.env\\[['\"]$name['\"]\\]"
+  "process\\.env\\[$quote$name$quote\\]"
   "import\\.meta\\.env\\.$name"
-  "os\\.environ\\[['\"]$name['\"]\\]"
-  "os\\.environ\\.get\\(['\"]$name['\"]"
-  "getenv\\(['\"]$name['\"]"
-  "ENV\\[['\"]$name['\"]\\]"
-  "ENV\\.fetch\\(['\"]$name['\"]"
-  "os\\.Getenv\\(\"$name\""
-  "os\\.LookupEnv\\(\"$name\""
-  "\\\$_ENV\\[['\"]$name['\"]\\]"
-  "env::var\\(\"$name\""
-  "System\\.getenv\\(\"$name\""
-  "Environment\\.GetEnvironmentVariable\\(\"$name\""
-  "System\\.get_env\\(\"$name\""
+  "os\\.environ\\[$quote$name$quote\\]"
+  "os\\.environ\\.get\\($quote$name$quote"
+  "getenv\\($quote$name$quote"
+  "ENV\\[$quote$name$quote\\]"
+  "ENV\\.fetch\\($quote$name$quote"
+  "os\\.Getenv\\($dq$name$dq"
+  "os\\.LookupEnv\\($dq$name$dq"
+  "\\${dollar}_ENV\\[$quote$name$quote\\]"
+  "env::var\\($dq$name$dq"
+  "System\\.getenv\\($dq$name$dq"
+  "Environment\\.GetEnvironmentVariable\\($dq$name$dq"
+  "System\\.get_env\\($dq$name$dq"
 )
 
 found=""
