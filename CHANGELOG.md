@@ -11,6 +11,71 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Every task goes through `/dispatch` in the main checkout
+
+([0020](docs/decisions/0020-every-task-through-dispatch.md), amending [0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md) and [0015](docs/decisions/0015-tool-worktrees-are-workers.md))
+
+With the `parallel-agents` module, the session in the main checkout now takes every task, not only the
+ones whose worktree needs the project's setup. It hands each task to a new session in a worktree of
+its own, and that session runs the whole process. Before, developers chose each task's route and
+started the common route's session by hand. Now the project's settings in `worktree.conf` pick the
+route:
+
+- **When the project's worktrees need nothing from the scripts,** `/dispatch` takes Claude Code's
+  worktree. In the desktop app it offers a task chip carrying the worker prompt, which the developer
+  starts with one click. In a terminal it gives a `claude --worktree <slug> "<prompt>"` command.
+- **When they need a port, setup or start commands, or tasks start from another branch,** it takes
+  the scripts' worktree, created as before with `worktree-new.sh --no-start`, and gives its path and
+  the prompt to paste into a session opened on it.
+- **Never a chip for the scripts' worktree.** A chip always creates a worktree of its own, without the
+  env file, port, or setup, even when it's given another folder. `/dispatch` and
+  `PARALLEL-AGENTS.md` now say so.
+- **The developer can pick the other route for one task,** for example `/dispatch <task> chip` for a
+  copy change in a project whose worktrees run a server. The dispatcher never picks it on its own:
+  whether a task runs the app is its triage's question.
+
+The session-context hook tells the dispatcher to give every task to `/dispatch` and names its
+project's route. `protect-hub.sh`'s message points at `/dispatch`. A session started with the worktree
+option, without `/dispatch`, is still a worker.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/skills/dispatch/SKILL.md` (module) and, in a committed project,
+  `.claude/hooks/session-context.sh`, `.claude/hooks/protect-hub.sh`, `.claude/hooks/README.md`, and
+  `.claude/skills/spec-workflow/SKILL.md`. A packaged project gets the hooks and `/spec-workflow` with
+  its next pin.
+- **Merge** `docs/PARALLEL-AGENTS.md`: its roles and routes sections changed, and your § Shared
+  services stays as it is.
+- Nothing to migrate. A project whose worktrees need the scripts now takes every task through them;
+  ask for a chip when a task won't run the app.
+
+### The plugin carries `/dispatch`
+
+([0020](docs/decisions/0020-every-task-through-dispatch.md), amending [0016](docs/decisions/0016-packaged-install.md))
+
+`/dispatch` was the one framework skill a packaged project still committed, because it ships in a
+module, and decision 0016 keeps modules committed. It's generic machinery like the 20 skills the
+plugin already carries, so the plugin now carries it too, as `/aplyca-adf:dispatch`.
+
+- **`scripts/build-aplyca-adf.sh`** copies every module's skills into the plugin. The module stays
+  their one source, so a committed install doesn't change.
+- **The skill stops in a project without the `parallel-agents` module,** so the plugin can carry it
+  for every project.
+- **`/aplyca-adf:adopt`** leaves the skill out of a packaged project. **`/aplyca-adf:upgrade`**
+  deletes a packaged project's committed copy when it's unchanged since the baseline.
+- The plugin's hooks and skills name it `/aplyca-adf:dispatch`, like every other skill they name.
+
+The module's scripts, `worktree.conf`, `.worktreeinclude`, and `PARALLEL-AGENTS.md` stay committed:
+they're the project's configuration, a doc it fills in, and scripts developers run from their own
+terminal.
+
+**Upgrade impact:**
+
+- **Packaged projects with the `parallel-agents` module:** delete `.claude/skills/dispatch/`, and type
+  `/aplyca-adf:dispatch`. `/aplyca-adf:upgrade` deletes it when it's unchanged since your baseline.
+  One your team edited stays under a name of its own, or goes upstream.
+- **Committed projects:** nothing changes.
+
 ## v1.2.1 — 2026-10-05 — Drift the prompt audit found
 
 A patch release: fixes to the framework's instruction files, with nothing new to adopt

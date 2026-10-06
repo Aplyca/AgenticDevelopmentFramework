@@ -141,10 +141,12 @@ Present the table before going further. Wrong facts here poison every file downs
   - `git-hooks` — when the team wants local gates for every git client
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
-  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches (ports and start commands only if each worktree runs a server)
+  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches, every task through `/dispatch` (ports and start commands only if each worktree runs a server)
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
-  `modules/clickup/install.sh <repo>`.
+  `modules/clickup/install.sh <repo>`. Packaged: leave out a module's `.claude/skills/` when the
+  pinned release's plugin carries it (`<framework-root>/plugins/aplyca-adf/skills/dispatch/`,
+  decision 0020).
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 

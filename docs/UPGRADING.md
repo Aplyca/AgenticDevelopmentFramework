@@ -261,7 +261,9 @@ old plugin from each machine that installed it:
 
 A packaged project ([decision 0016](decisions/0016-packaged-install.md)) doesn't commit the skills,
 agents, workflows, hook scripts, or the framework's reference docs
-([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)): they come from the `aplyca-adf`
+([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), nor the `parallel-agents`
+module's `/dispatch` once its pinned release's plugin carries it
+([decision 0020](decisions/0020-every-task-through-dispatch.md)): they come from the `aplyca-adf`
 plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means two things:
 
 - **Bump the pin:** the marketplace's `"ref"` moves to the new release tag, `vX.Y.Z`. That one line upgrades

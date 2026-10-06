@@ -90,14 +90,16 @@ ask, and never discard it.
 **Offer the other install, when it fits** (decisions 0016, 0018; `docs/SETUP.md` § Packaged install):
 
 - **Committed → packaged** — recommend it to a team that works in Claude Code only, since packaged is
-  the default for new projects: remove the skills, agents,
-  workflows, hook scripts, and reference docs the plugin carries — only those unchanged since OLD_SHA;
+  the default for new projects: remove the skills (a module's `/dispatch` included, when the plugin
+  carries it), agents, workflows, hook scripts, and reference docs the plugin carries — only those
+  unchanged since OLD_SHA;
   one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add
   the pinned marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in
   `DEV-SETUP.md`'s key commands, and `install: packaged` in the stamp, then add the plugin's read
   rule and run `link-reference-docs.py --packaged`, both in Step 5.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
-  copy the machinery, the reference docs, and the `hooks` block back, remove `install: packaged`, the
+  copy the machinery (with the installed modules' skills), the reference docs, and the `hooks` block
+  back, remove `install: packaged`, the
   names note, the plugin's read rule, and the `aplyca-adf:` prefix in `DEV-SETUP.md`, and run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --committed`.
   Keep `aplyca-adf` turned on and pinned, for `/aplyca-adf:upgrade`.
@@ -127,8 +129,9 @@ teammates still on the old name have no `/upgrade`.
 
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
 gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). In a
-packaged project, leave out what the plugin carries — `.claude/skills/` (module skills stay),
-`.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`, and, when the new
+packaged project, leave out what the plugin carries — `.claude/skills/` (a module's skill too, when
+the new release's plugin has it in `<framework-root>/plugins/aplyca-adf/skills/`, as it has
+`dispatch` from decision 0020 on), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`, and, when the new
 release carries them in `<framework-root>/plugins/aplyca-adf/docs/`, the reference docs in `docs/`
 (decision 0019) — and never add a `hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
@@ -179,6 +182,10 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   `.claude/settings.json` if it isn't there: the plugin's skills and agents read the docs from its
   folder, and Claude Code asks first without it. Add the last sentence of `docs/SETUP.md`'s names
   note to the project's, if it lacks it.
+- Packaged, with the parallel-agents module, on a release whose plugin carries `/dispatch`
+  (`<framework-root>/plugins/aplyca-adf/skills/dispatch/`): delete the committed
+  `.claude/skills/dispatch/` when it's unchanged since OLD_SHA. One the team edited is the
+  developer's call — under a name of its own, or upstream as a change to the framework.
 - Restamp: `Skeleton source:` → `<new version> · NEW_SHA (<date>) · modules: <list>` — the list includes
   the new ones; a packaged project keeps `· install: packaged`.
 

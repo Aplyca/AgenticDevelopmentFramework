@@ -5,8 +5,9 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
 - **Install and maintain the framework** in a repository: `/aplyca-adf:adopt`,
   `/aplyca-adf:upgrade`, and `/aplyca-adf:cost-report`, in every project that uses the framework.
 - **Carry the framework's machinery for a packaged install** ([decision 0016](../../docs/decisions/0016-packaged-install.md)):
-  20 skills, 8 agents, 4 workflows, the guardrail hooks, and the framework's reference docs, pinned
-  to a release. Typed as
+  20 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
+  `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md)),
+  pinned to a release. Typed as
   `/aplyca-adf:triage`, `/aplyca-adf:deep-review`, and so on.
 
 By default, an adopting repository uses the **packaged** install
@@ -21,8 +22,8 @@ aside: its hooks stand down, and its skills and agents hand over to the committe
 where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
-`workflows/`, `hooks/`, and `docs/` is generated from the skeleton by `scripts/build-aplyca-adf.sh`;
-never edit it here.
+`workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` from its
+module — by `scripts/build-aplyca-adf.sh`; never edit it here.
 
 ## Install
 

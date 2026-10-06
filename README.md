@@ -333,7 +333,7 @@ flowchart TD
 | The requester needs an update on a task | `/stakeholder-update` ("update the client") — in the client's terms, shown in chat, posted on the pull request for the team to relay; on the tracker only on your yes to the exact text | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | `sonnet` | — |
-| Several tasks at once | Each task in its own worktree (`parallel-agents` module): a new session with Claude Code's worktree option, or `/dispatch` from the main checkout when the worktree needs the project's setup | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
+| Several tasks at once | Each task in its own worktree (`parallel-agents` module): `/dispatch` in the main checkout hands every task to a new session — a one-click task chip in the desktop app, or a prompt to paste when the project's worktrees need its setup | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
 | High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | each agent its own | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 
 ### Effort, model, and cost

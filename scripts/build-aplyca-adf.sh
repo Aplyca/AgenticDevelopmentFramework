@@ -2,7 +2,8 @@
 #
 # Builds the packaged half of plugins/aplyca-adf (docs/decisions/0016-packaged-install.md) from
 # skeleton/.claude/: the core skills, the agents as flat files, the workflows, and the hook scripts
-# with their hooks.json — and, from skeleton/docs/, the framework's reference docs (decision 0019). Claude Code puts everything a plugin carries under the plugin's name, so the
+# with their hooks.json — and, from skeleton/docs/, the framework's reference docs (decision 0019),
+# and from modules/*/files/.claude/skills/, the modules' skills (decision 0020). Claude Code puts everything a plugin carries under the plugin's name, so the
 # copies name each other that way: `/triage` becomes `/aplyca-adf:triage`, `@code-reviewer` becomes
 # `@aplyca-adf:code-reviewer`. The hooks read the project's .claude/hooks/config.sh. The copies act only
 # in a packaged project: each skill and agent opens with a step that hands over to the committed copy
@@ -31,9 +32,17 @@ PLUGIN = "aplyca-adf"
 skills = sorted(os.listdir(os.path.join(src, "skills")))
 agents = sorted(os.listdir(os.path.join(src, "agents")))
 workflows = sorted(f[:-3] for f in os.listdir(os.path.join(src, "workflows")) if f.endswith(".js"))
+# A module's skills are machinery like the core's (decision 0020): the plugin carries them, and each
+# one stops in a project without its module. The module stays their one source.
+module_skills = {}
+for module in sorted(os.listdir(os.path.join(root, "modules"))):
+    folder = os.path.join(root, "modules", module, "files", ".claude", "skills")
+    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+        assert name not in skills and name not in module_skills, f"two skills are named {name}"
+        module_skills[name] = os.path.join(folder, name)
 
 # A name counts only on its own: not inside a path (skills/review/SKILL.md), a URL, or a longer name.
-command = re.compile(r"(?<![\w./@:-])/(" + "|".join(map(re.escape, skills + workflows)) + r")(?![\w-])")
+command = re.compile(r"(?<![\w./@:-])/(" + "|".join(map(re.escape, skills + list(module_skills) + workflows)) + r")(?![\w-])")
 agent = re.compile(r"(?<![\w./-])@(" + "|".join(map(re.escape, agents)) + r")(?![\w-])")
 
 
@@ -94,11 +103,13 @@ if os.path.exists(listing):
             os.remove(path)
 generated = []
 
-for name in skills:
-    for directory, _, files in os.walk(os.path.join(src, "skills", name)):
+skill_folders = {name: os.path.join(src, "skills", name) for name in skills}
+skill_folders.update(module_skills)
+for name, folder in sorted(skill_folders.items()):
+    for directory, _, files in os.walk(folder):
         for file in files:
             path = os.path.join(directory, file)
-            copy(path, os.path.join(out, "skills", os.path.relpath(path, os.path.join(src, "skills"))),
+            copy(path, os.path.join(out, "skills", name, os.path.relpath(path, folder)),
                  kind="skill" if file == "SKILL.md" else None, name=name)
     generated.append(f"skills/{name}")
 for name in agents:
@@ -159,6 +170,6 @@ with open(os.path.join(out, "hooks", "hooks.json"), "w", encoding="utf-8") as f:
 
 with open(listing, "w", encoding="utf-8") as f:
     f.write("\n".join(sorted(generated)) + "\n")
-print(f"{out}: {len(skills)} skills, {len(agents)} agents, {len(workflows)} workflows, "
+print(f"{out}: {len(skills)} skills and {len(module_skills)} from modules, {len(agents)} agents, {len(workflows)} workflows, "
       f"{len([f for f in os.listdir(os.path.join(out, 'hooks')) if f.endswith('.sh')])} hook scripts")
 PY

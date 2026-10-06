@@ -1,6 +1,6 @@
 # 0015: Worktrees that Claude Code creates are workers too (parallel-agents module)
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0020](0020-every-task-through-dispatch.md) (every task goes through `/dispatch`, and the project picks its route)
 - **Date:** 2026-10-02
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — how a task gets its worktree
 

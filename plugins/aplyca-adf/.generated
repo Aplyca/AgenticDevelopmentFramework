@@ -4,6 +4,7 @@ hooks
 skills/commit
 skills/context-audit
 skills/debug
+skills/dispatch
 skills/evaluate
 skills/handoff
 skills/implement

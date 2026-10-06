@@ -4,7 +4,8 @@
 # install), pinned to <release>: no framework machinery committed, the plugin pinned and turned on, no
 # hooks block, the stamp, and the names people type — and, on a release whose plugin carries the
 # reference docs (decision 0019), none of them in docs/, links to them at the release, and the rule that
-# lets Claude read them. Prints ✓ or ✘ per check. Read-only.
+# lets Claude read them; on one whose plugin carries /dispatch (decision 0020), no committed copy of it.
+# Prints ✓ or ✘ per check. Read-only.
 # Usage: check-packaged.sh <project> <release, e.g. v1.0.6> <the release's commit, short> [<framework checkout>]
 #
 cd "$1" || exit 1
@@ -32,5 +33,8 @@ if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/aplyca-adf/docs" 2
   check "the project's files link the reference docs at $release, none locally" \
     "grep -q 'blob/$release/skeleton/docs/SPEC-MODEL.md' AGENTS.md && ! grep -qE '(^|[^/.A-Za-z0-9_-])docs/($names)\.md' AGENTS.md CLAUDE.md CONTRIBUTING.md README.md specs/README.md specs/_templates/spec.md 2>/dev/null"
   check "the settings let Claude read the plugin's folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if \"Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
+fi
+if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/aplyca-adf/skills/dispatch/SKILL.md" 2>/dev/null; then
+  check "no committed \`/dispatch\` — the plugin carries it (decision 0020)" "[ ! -e .claude/skills/dispatch ]"
 fi
 check "everything is committed" "[ -z \"\$(git status --short)\" ]"

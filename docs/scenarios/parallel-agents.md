@@ -20,7 +20,7 @@ a second session starts, it gets its own worktree.
 
 | | Main checkout — **dispatcher** | A worktree — **worker** |
 |---|---|---|
-| Does | Routes each task to its worktree — Claude Code's own, or the scripts' through `/dispatch` | Everything from triage on: spec folder, gate, TDD, commits |
+| Does | Takes every task with `/dispatch` and hands it to a new session in its own worktree, by the project's route | Everything from triage on: spec folder, gate, TDD, commits |
 | Never | Reads code, analyzes, edits, starts environments | Goes back to the main checkout to work |
 
 The `session-context` hook tells each session its role when it starts.
@@ -35,9 +35,11 @@ again anyway, where it can check it. The dispatcher's context stays cheap: a bra
 
 ### In the main checkout — dispatch
 
-A task whose worktree needs the project's setup — here, anything that runs the app — goes through
-the scripts. (Other tasks can start in Claude Code's own worktree: see below.) `/dispatch <tracker
-link>` does four things and nothing else:
+Every task starts here, with `/dispatch <tracker link>`. The project's settings pick the route
+([0020](../decisions/0020-every-task-through-dispatch.md)): the newsletter site runs a server in each
+worktree, so its worktrees need a port and a start command, and every task goes through the scripts.
+(A project whose worktrees need nothing takes Claude Code's own worktree instead: see below.)
+`/dispatch` does four things and nothing else:
 
 1. **Names the task** — its title and type only; no code reading, no requirements analysis. A short
    kebab-case slug. A task that names a delivered feature starts its slug with that feature's
@@ -45,12 +47,12 @@ link>` does four things and nothing else:
    whether it really is a change request is the worker's triage to decide.
 2. **Creates the worktree** — `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
    directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
-   branch, the env file seeded from the main checkout's — and, on this site, which runs a server per
-   worktree, a reserved port. `--no-start` because whether the task needs anything running is the
-   worker's call.
-3. **Starts the worker session** in the worktree — `cd <worktree> && claude` — or, where the tool
-   can't start a session in a folder you choose, gives you the prompt to paste into a new session
-   opened on the worktree.
+   branch, the env file seeded from the main checkout's, and a reserved port. `--no-start` because
+   whether the task needs anything running is the worker's call.
+3. **Hands it over** — the worktree's path and the prompt, to paste into a new session opened on the
+   worktree: in the desktop app, a new session with the worktree as its folder; in a terminal,
+   `cd <worktree> && claude "<prompt>"`. Never a task chip: a chip creates a worktree of its own,
+   without this one's env file and port, even when it's given this folder.
 4. **Writes the handoff** — three lines, pointers only:
 
    ```
@@ -96,14 +98,18 @@ worktree's env file.
 
 ### Claude Code's own worktrees
 
-A task can also start in a new session with Claude Code's worktree option — the desktop app's
-worktree toggle, or `claude --worktree` ([0015](../decisions/0015-tool-worktrees-are-workers.md)).
-It's a worker like any other: `.worktreeinclude` copies the env file, and the session renames its
-generated branch to `<type>/<slug>` after triage. On the newsletter site that's how copy changes and
-investigations start. Tasks that run the app go through `/dispatch`, because their worktree needs a
-port and the dev server's start command. The session-context hook names what a worktree is missing
-when it starts, and `worktree-ls.sh` flags the ones left on a generated branch. Claude Code's
-worktrees live under `.claude/worktrees/`, which stays in `.gitignore` and `.claudeignore`.
+In a project whose worktrees need nothing from the scripts, `/dispatch` takes Claude Code's route
+instead ([0015](../decisions/0015-tool-worktrees-are-workers.md)): in the desktop app it offers the
+task as a task chip, and one click starts the worker in a worktree of its own; in a terminal it gives
+you `claude --worktree <slug> "<prompt>"`. The worker is like any other: `.worktreeinclude` copies the
+env file, and the session renames its generated branch to `<type>/<slug>` after triage.
+
+On the newsletter site, a developer can still ask for a chip for one task — `/dispatch <task> chip`
+for a copy change, which never runs the app. The session-context hook names what a worktree is
+missing when it starts — here, the port and the start command — and `worktree-ls.sh` flags the ones
+left on a generated branch. A session started with the worktree option, without `/dispatch`, is a
+worker too. Claude Code's worktrees live under `.claude/worktrees/`, which stays in `.gitignore` and
+`.claudeignore`.
 
 ### Cleanup
 
@@ -201,7 +207,9 @@ cd ../feat-newsletter-signup && claude
 | Analyzing in the main checkout "to give the worker a head start" | Unverified conclusions, a burned context, drift in the handoff | Name the task; hand off |
 | A one-line fix in the main checkout | A stray edit collides with every other session | Even one line goes to a worktree |
 | Dispatching without `--no-start` out of habit | An environment built for a task that may not need one | The worker starts it after triage |
-| Built-in worktree tools for task work | No env file, port, or branch convention; ports collide | `/dispatch` and `worktree-new.sh` |
+| Built-in worktree tools for a task that runs the app, where worktrees need the scripts | No port or start command; the app collides with another worktree's | `/dispatch`, which takes the scripts' route |
+| A task chip for the scripts' worktree | The chip creates a worktree of its own, without the env file or the port, even when given this folder | Paste the prompt into a session opened on the worktree |
+| The dispatcher picking a chip because the task "won't need the app" | A wrong guess means a second dispatch and a new session | The project's route; the developer picks the exception |
 | Raw `git worktree add` with the module installed | Ports and env files drift from what the scripts track | The scripts |
 | Changing a service every worktree shares | Every other worker's environment changes under them | That worktree gets its own copy (§ Shared services) |
 | Keeping a squash-merged branch | The next change request on that feature starts from stale code | Delete it after merge |

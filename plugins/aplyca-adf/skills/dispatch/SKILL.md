@@ -4,6 +4,8 @@ description: In the main checkout, hand every task to a new session in a worktre
 argument-hint: "[tracker link or task description] [optional: chip | scripts]"
 ---
 
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/dispatch/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
 # Dispatch
 
 The main checkout is the shared hub where every developer and agent session starts. **In the main

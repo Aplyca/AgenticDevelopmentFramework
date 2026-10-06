@@ -174,9 +174,11 @@ Open the pull request as a draft; merge after review like any other change.
 ## Packaged install (Claude Code only)
 
 [Decision 0016](decisions/0016-packaged-install.md). The framework's machinery doesn't enter the
-repository: 20 skills, 8 agents, 4 workflows, the hook scripts, and the framework's reference docs
-([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)) come from the `aplyca-adf` plugin,
-pinned to a release tag. The repository commits its own layer as above, and every module's files.
+repository: 20 skills, 8 agents, 4 workflows, the hook scripts, the framework's reference docs
+([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), and the `parallel-agents`
+module's `/dispatch` ([decision 0020](decisions/0020-every-task-through-dispatch.md)) come from the
+`aplyca-adf` plugin, pinned to a release tag. The repository commits its own layer as above, and
+every module's other files.
 Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
 `AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.
 
@@ -189,8 +191,10 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
    scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`,
    `.agents/`, `.cursor/`, and the four reference docs: `docs/COST-MODEL.md`,
-   `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as usual: `/dispatch` is the one
-   skill a packaged repository commits. Then point the files that name the reference docs at the
+   `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as
+   usual, but leave out `.claude/skills/dispatch/` when the release's plugin carries it
+   (`plugins/aplyca-adf/skills/dispatch/` in the framework copy); an older release's plugin doesn't,
+   so copy it there. Then point the files that name the reference docs at the
    release you pin, from the framework copy you took the skeleton from:
    `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
