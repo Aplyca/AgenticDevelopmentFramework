@@ -5,6 +5,8 @@ description: Reference for how work flows in this project — the fast, careful,
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/spec-workflow/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Development Workflows
 
 Every task starts with **triage** (`/aplyca-adf:triage`): read it in full, then decide the deliverable (an
@@ -122,4 +124,4 @@ teammate, another machine, or a fresh session is `/aplyca-adf:handoff`: pointers
 
 The developer can ask for more care without changing the lane — questions before any code,
 `/aplyca-adf:evaluate` to compare designs, a higher effort level or `/model opus`, extra tests,
-`@aplyca-adf:security-reviewer`, `/aplyca-adf:deep-review`. Each costs differently (`docs/COST-MODEL.md` § Effort).
+`@aplyca-adf:security-reviewer`, `/aplyca-adf:deep-review`. Each costs differently (`${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Effort).

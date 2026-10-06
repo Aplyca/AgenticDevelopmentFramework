@@ -24,6 +24,12 @@
 # case drives one of the plugin's hooks in a real session (Haiku by default), and inspect.sh checks
 # that it fired — or, in a committed project, that it stood down.
 #
+# The plugin-docs suite: the same kind of project, without the reference docs in docs/ (decision
+# 0019). Sessions run in default permission mode with no extra directory and no blanket Read, as a
+# teammate's would: the plugin's folder is readable only through the rule a packaged project commits,
+# passed here with --allowedTools for the plugin's path in this checkout. A case marked
+# <!-- run: no-read-rule --> runs without it. Agents that ask for opus run on Haiku too.
+#
 # The adopt suite: {{FRAMEWORK}} in a prompt becomes --source (the framework's GitHub address by
 # default — what's published on main; pass this checkout's path to test a branch), and a fixture
 # marked <!-- run: plugin-dir --> loads the installer plugin for that session only, so nothing is
@@ -32,7 +38,7 @@
 # this checkout — with deny rules, which hold in every mode, for `claude` commands, `git push`, and
 # file-tool edits under your home folder.
 #
-# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|plugin-hooks] [--models "sonnet opus"] [--cases "a b ..."]
+# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|plugin-hooks|plugin-docs] [--models "sonnet opus"] [--cases "a b ..."]
 #                               [--out DIR] [--budget USD] [--parallel 4] [--read-only] [--source URL|PATH]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
@@ -68,11 +74,13 @@ case "$SUITE" in
   adopt | upgrade) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
     EXTRA_TOOLS="WebFetch|Bash(git:*)|Bash(cp:*)|Bash(mkdir:*)|Bash(mv:*)|Bash(rm:*)|Bash(chmod:*)|Bash(python3:*)|Bash(printf:*)|Bash(echo:*)|Bash(test:*)|Bash(sed:*)|Bash(touch:*)|Bash(diff:*)" ;;
   plugin-hooks) MAX_TURNS=8; BUDGET="${BUDGET:-0.50}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS="Bash(git commit:*)" ;;
+  plugin-docs) MAX_TURNS=12; BUDGET="${BUDGET:-0.75}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS=""; DOCS_RULE=1 ;;
   *) MAX_TURNS=14; EXTRA_TOOLS="" ;;
 esac
 MODELS="${MODELS:-sonnet opus}"
 BUDGET="${BUDGET:-1.50}"
 BYPASS="${BYPASS:-}"
+DOCS_RULE="${DOCS_RULE:-}"
 [ -n "$CASES" ] || CASES="$(ls "$FIXTURES" | sed -n 's/\.input\.md$//p' | tr '\n' ' ')"
 claude auth status 2>/dev/null | grep -q '"loggedIn": true' || { echo "Sign in first: claude auth login" >&2; exit 1; }
 
@@ -236,23 +244,29 @@ def block(heading):
 open(sys.argv[3] + ".prompt", "w").write(block("## Prompt to give the AI"))
 open(sys.argv[3] + ".follow-up", "w").write(block("## Follow-up"))
 PY
-  local extra=() dirs=()
+  local extra=() dirs=() reads=(Read Grep Glob) run_env=()
   [ -n "$EXTRA_TOOLS" ] && IFS='|' read -r -a extra <<< "$EXTRA_TOOLS"
   local flags=(--model "$model" --output-format stream-json --verbose --max-turns "$MAX_TURNS")
   if [ -n "$READ_ONLY" ]; then flags+=(--disallowedTools Edit Write MultiEdit NotebookEdit)
   elif [ -n "$BYPASS" ]; then
     flags+=(--permission-mode bypassPermissions --disallowedTools "Bash(claude:*)" "Bash(git push:*)" "Edit(~/**)" "Write(~/**)")
+  elif [ -n "$DOCS_RULE" ]; then flags+=(--permission-mode default)
   else flags+=(--permission-mode acceptEdits); fi
   if grep -q '<!-- run: plugin-dir -->' "$input"; then
-    flags+=(--plugin-dir "$FWC/plugins/aplyca-adf"); dirs+=("$FWC")
+    flags+=(--plugin-dir "$FWC/plugins/aplyca-adf")
+    [ -n "$DOCS_RULE" ] || dirs+=("$FWC")
+  fi
+  if [ -n "$DOCS_RULE" ]; then # reads in the project need no rule; the plugin's folder, the committed one
+    reads=() run_env=(ANTHROPIC_DEFAULT_OPUS_MODEL=claude-haiku-4-5-20251001)
+    grep -q '<!-- run: no-read-rule -->' "$input" || reads=("Read(/$FWC/plugins/aplyca-adf/**)")
   fi
   [ -d "$SOURCE" ] && [ "$SOURCE" != "$FWC" -o ${#dirs[@]} -eq 0 ] && dirs+=("$SOURCE")
   [ ${#dirs[@]} -gt 0 ] && flags+=(--add-dir "${dirs[@]}")
-  flags+=(--allowedTools Read Grep Glob Skill "Bash(git log:*)" "Bash(git status)" "Bash(git show:*)" "Bash(git diff:*)" \
+  flags+=(--allowedTools ${reads[@]+"${reads[@]}"} Skill "Bash(git log:*)" "Bash(git status)" "Bash(git show:*)" "Bash(git diff:*)" \
       "Bash(git switch:*)" "Bash(git checkout:*)" "Bash(git branch:*)" "Bash(ls:*)" "Bash(grep:*)" "Bash(find:*)" \
       "Bash(cat:*)" "Bash(head:*)" "Bash(wc:*)" ${extra[@]+"${extra[@]}"} \
     --setting-sources project,local --strict-mcp-config --max-budget-usd "$BUDGET")
-  (cd "$work" && claude -p "$(cat "$work.prompt")" "${flags[@]}" \
+  (cd "$work" && env ${run_env[@]+"${run_env[@]}"} claude -p "$(cat "$work.prompt")" "${flags[@]}" \
     < /dev/null > "$OUT/$case_name.$model.jsonl" 2> "$OUT/$case_name.$model.err")
   if [ -s "$work.follow-up" ]; then
     local sid
@@ -261,7 +275,7 @@ for raw in open(sys.argv[1]):
     try: d = json.loads(raw)
     except ValueError: continue
     if d.get("session_id"): print(d["session_id"]); break' "$OUT/$case_name.$model.jsonl")"
-    (cd "$work" && claude -p "$(cat "$work.follow-up")" --resume "$sid" "${flags[@]}" \
+    (cd "$work" && env ${run_env[@]+"${run_env[@]}"} claude -p "$(cat "$work.follow-up")" --resume "$sid" "${flags[@]}" \
       < /dev/null > "$OUT/$case_name.$model.2.jsonl" 2>> "$OUT/$case_name.$model.err")
   fi
   [ -f "$FIXTURES/inspect.sh" ] && bash "$FIXTURES/inspect.sh" "$work" "$OUT/$case_name.$model.jsonl" "$case_name" \
@@ -269,7 +283,7 @@ for raw in open(sys.argv[1]):
   echo "  $case_name · $model done"
 }
 export -f run_case
-export FW FWC WORK REPO OUT FIXTURES BUDGET READ_ONLY MAX_TURNS EXTRA_TOOLS SOURCE BYPASS
+export FW FWC WORK REPO OUT FIXTURES BUDGET READ_ONLY MAX_TURNS EXTRA_TOOLS SOURCE BYPASS DOCS_RULE
 echo "Fixture project: $REPO"
 echo "Running: $CASES on $MODELS ($PARALLEL at a time, \$$BUDGET cap each)"
 for c in $CASES; do for m in $MODELS; do echo "$c $m"; done; done | xargs -P "$PARALLEL" -n 2 bash -c 'run_case "$0" "$1"'

@@ -824,7 +824,7 @@ done
 check_agent_descriptions_not_misleading
 
 echo ""
-for workflow in "$WORKFLOWS_DIR"/*.js; do
+for workflow in "$WORKFLOWS_DIR"/*.js "$REPO_ROOT"/plugins/aplyca-adf/workflows/*.js; do
     [ -f "$workflow" ] && check_workflow "$workflow"
 done
 

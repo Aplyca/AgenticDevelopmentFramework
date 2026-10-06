@@ -2,7 +2,7 @@
 
 How to pull newer framework changes into a target project that adopted an earlier version of the skeleton — without losing your team's customizations.
 
-In the packaged install — the default for new projects ([decision 0018](decisions/0018-packaged-by-default.md)) — the skills, agents, workflows, and hook scripts come from the pinned plugin; in the committed install, everything is committed into the project, with no runtime dependency. Either way, a project moves from one release to the next on purpose: the committed files file by file, informed by the three-bucket taxonomy below, and the plugin by moving its pin.
+In the packaged install — the default for new projects ([decision 0018](decisions/0018-packaged-by-default.md)) — the skills, agents, workflows, hook scripts, and the framework's reference docs come from the pinned plugin; in the committed install, everything is committed into the project, with no runtime dependency. Either way, a project moves from one release to the next on purpose: the committed files file by file, informed by the three-bucket taxonomy below, and the plugin by moving its pin.
 
 ## When to upgrade
 
@@ -63,10 +63,10 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `.claude/rules/testing.md` | Universal — testing discipline |
 | `.claude/rules/security.md` | Universal — OWASP-style baseline |
 | `.claude/rules/git-workflow.md` | Universal — commit prefixes, branch discipline |
-| `docs/SPEC-MODEL.md` | Framework reference doc |
-| `docs/COST-MODEL.md` | Framework reference doc |
-| `docs/MEMORY-STRATEGY.md` | Framework reference doc |
-| `docs/MCP-INTEGRATION.md` | Framework reference doc |
+| `docs/SPEC-MODEL.md` | Framework reference doc — a packaged project has none: the plugin carries it |
+| `docs/COST-MODEL.md` | Framework reference doc — a packaged project has none: the plugin carries it |
+| `docs/MEMORY-STRATEGY.md` | Framework reference doc — a packaged project has none: the plugin carries it |
+| `docs/MCP-INTEGRATION.md` | Framework reference doc — a packaged project has none: the plugin carries it |
 | `docs/process/0000-pdr-template.md` | The PDR template |
 | `.cursor/rules/*.mdc` | Cursor mirrors of the rules |
 | `specs/_templates/*` | The spec-folder templates (`spec.md`, `plan.md`, `tasks.md`) — merge instead if your team customized them. Your filled-in specs are project-owned |
@@ -145,7 +145,7 @@ cp -R $FW/.claude/agents/* .claude/agents/
 mkdir -p .claude/workflows && cp $FW/.claude/workflows/*.js .claude/workflows/
 cp $FW/.claude/hooks/*.sh $FW/.claude/hooks/*.jq $FW/.claude/hooks/*.py $FW/.claude/hooks/README.md .claude/hooks/   # not config.sh — that one merges
 cp $FW/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
-cp $FW/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION}.md docs/
+cp $FW/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION}.md docs/   # committed install only
 ```
 
 Inspect the diff for surprise (removed files, renamed files). Adjust if the framework has restructured anything.
@@ -260,11 +260,14 @@ old plugin from each machine that installed it:
 ### "We use the packaged install" — or want to
 
 A packaged project ([decision 0016](decisions/0016-packaged-install.md)) doesn't commit the skills,
-agents, workflows, or hook scripts: they come from the `aplyca-adf` plugin, pinned to a release tag
-in `.claude/settings.json`. Upgrading it means two things:
+agents, workflows, hook scripts, or the framework's reference docs
+([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)): they come from the `aplyca-adf`
+plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means two things:
 
 - **Bump the pin:** the marketplace's `"ref"` moves to the new release tag, `vX.Y.Z`. That one line upgrades
-  every skill, agent, workflow, and hook. Every project moves from release to release, committed ones
+  every skill, agent, workflow, hook, and reference doc. The project's links to the reference docs
+  name the release too: `python3 <framework>/scripts/link-reference-docs.py . --packaged vX.Y.Z`,
+  from the new release, moves them. Every project moves from release to release, committed ones
   too: their pin keeps the plugin's copies at the same release as their committed files.
 - **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every

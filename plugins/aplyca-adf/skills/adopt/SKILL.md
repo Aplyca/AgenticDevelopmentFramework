@@ -107,10 +107,11 @@ Present the table before going further. Wrong facts here poison every file downs
 ## Step 3 — Copy the skeleton and the chosen modules
 
 - **Ask how to install** (decisions 0016, 0018), with your recommendation:
-  - **Packaged** — the default. The skills, agents, workflows, and hook scripts come from the
-    `aplyca-adf` plugin, pinned to a release tag, and the repository commits only its own layer and
-    its modules: about 40 fewer files. People type `/aplyca-adf:triage`. Claude Code's cloud sessions
-    don't load it, and CI installs it first. It pins a release tag, v1.0.0 or later
+  - **Packaged** — the default. The skills, agents, workflows, hook scripts, and the framework's
+    reference docs come from the `aplyca-adf` plugin, pinned to a release tag, and the repository
+    commits only its own layer and its modules: about 50 fewer files. People type
+    `/aplyca-adf:triage`. Claude Code's cloud sessions don't load it, and CI installs it first. It
+    pins a release tag, v1.0.0 or later
     (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`); with none
     yet, say so and install committed.
   - **Committed** — recommend it instead when the team also uses another AI tool for the framework's
@@ -119,6 +120,13 @@ Present the table before going further. Wrong facts here poison every file downs
 
   For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
   out, the settings, the names in `CLAUDE.md` and `DEV-SETUP.md`, the stamp, and the checks.
+  **The reference docs** (decision 0019) — `COST-MODEL.md`, `MCP-INTEGRATION.md`,
+  `MEMORY-STRATEGY.md`, `SPEC-MODEL.md` — stay out of `docs/` when the release carries them in
+  `<framework-root>/plugins/aplyca-adf/docs/`; an older release has none there, so copy them as
+  usual. Once the files are in, run
+  `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged <tag>`: it points the
+  files that name a reference doc at the pinned release, and lists any other file that still names
+  one — one the team wrote follows by hand.
 - Copy `skeleton/` into the repo **without overwriting existing files**. For collisions (`README.md`,
   `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
   skeleton's missing sections.
@@ -159,7 +167,9 @@ Present the table before going further. Wrong facts here poison every file downs
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
-  Packaged: no `hooks` block, since the plugin wires them.
+  Packaged: no `hooks` block, since the plugin wires them, and
+  `Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)` in `permissions.allow`, so the plugin's skills
+  and agents open its reference docs without asking.
 - **`.claude/rules/*`** — `<!-- CUSTOMIZE -->` sections and `paths:` frontmatter to the real
   structure; delete rules that can't apply.
 - **`CONTRIBUTING.md`** — keep the branching model that matches (A or B), the status vocabulary,
@@ -205,6 +215,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] Packaged: in a new session, `/aplyca-adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
+- [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question

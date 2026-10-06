@@ -20,7 +20,7 @@ echo '```'
 if [ "${3:-}" = switch-to-packaged ]; then
   echo "### Checks — the switch to the packaged install"
   release="$(git -C "$FW" tag --list 'v*' --sort=-v:refname | head -1)"
-  bash "$(dirname "$0")/../../check-packaged.sh" . "$release" "$(git -C "$FW" rev-parse --short "$release^{commit}")"
+  bash "$(dirname "$0")/../../check-packaged.sh" . "$release" "$(git -C "$FW" rev-parse --short "$release^{commit}")" "$FW"
   check() { if eval "$2"; then echo "- ✓ $1"; else echo "- ✘ $1"; fi; }
   check "a new PDR records the switch to the packaged install" \
     "ls docs/process | grep -v -E '^(0000|0001)-|README' | grep -q . && grep -l -i 'packaged' \$(ls docs/process/*.md | grep -v -E '/(0000|0001)-|README') >/dev/null"

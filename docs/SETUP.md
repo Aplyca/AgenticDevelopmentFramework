@@ -21,8 +21,9 @@ claude plugin install aplyca-adf@aplyca --scope project
 [the plugin's README § In the desktop app](../plugins/aplyca-adf/README.md#in-the-desktop-app).
 
 `/aplyca-adf:adopt` recommends the **packaged** install by default
-([decision 0018](decisions/0018-packaged-by-default.md)): the skills, agents, workflows, and hook
-scripts come from the pinned plugin, and the repository commits only its own layer —
+([decision 0018](decisions/0018-packaged-by-default.md)): the skills, agents, workflows, hook
+scripts, and the framework's reference docs come from the pinned plugin, and the repository commits
+only its own layer —
 [§ Packaged install](#packaged-install-claude-code-only) lists what changes. The manual path below is
 the same procedure, step by step, for the **committed** install, which a team that also uses other AI
 tools, or Claude Code's cloud sessions, chooses instead.
@@ -147,7 +148,8 @@ Each customizable doc starts with `<!-- owner · last_updated · scope -->` — 
 
 `docs/SPEC-MODEL.md` and `specs/_templates/spec.md` ship with defaults for web projects. To change role
 names, mandatory sections, or conditional rules, update the template, `docs/SPEC-MODEL.md`, and the
-enforcement step in `.claude/skills/write-spec/SKILL.md` together.
+enforcement step in `.claude/skills/write-spec/SKILL.md` together. That takes the committed install:
+in a packaged project, the spec model and `/aplyca-adf:write-spec` come from the plugin.
 
 ## 8. Stamp, commit, and open a draft pull request
 
@@ -172,7 +174,8 @@ Open the pull request as a draft; merge after review like any other change.
 ## Packaged install (Claude Code only)
 
 [Decision 0016](decisions/0016-packaged-install.md). The framework's machinery doesn't enter the
-repository: 20 skills, 8 agents, 4 workflows, and the hook scripts come from the `aplyca-adf` plugin,
+repository: 20 skills, 8 agents, 4 workflows, the hook scripts, and the framework's reference docs
+([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)) come from the `aplyca-adf` plugin,
 pinned to a release tag. The repository commits its own layer as above, and every module's files.
 Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
 `AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.
@@ -184,10 +187,15 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 **What changes from the steps above:**
 
 1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
-   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`, `.agents/`,
-   and `.cursor/`. Modules copy as usual: `/dispatch` is the one skill a packaged repository commits.
+   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`,
+   `.agents/`, `.cursor/`, and the four reference docs: `docs/COST-MODEL.md`,
+   `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as usual: `/dispatch` is the one
+   skill a packaged repository commits. Then point the files that name the reference docs at the
+   release you pin, from the framework copy you took the skeleton from:
+   `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
-   since the plugin wires the same hooks, and pin the marketplace to the release:
+   since the plugin wires the same hooks, pin the marketplace to the release, and add the read rule to
+   `permissions.allow`:
 
    ```json
    {
@@ -196,18 +204,23 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
          "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>" }
        }
      },
-     "enabledPlugins": { "aplyca-adf@aplyca": true }
+     "enabledPlugins": { "aplyca-adf@aplyca": true },
+     "permissions": { "allow": ["Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)"] }
    }
    ```
 
    The hooks read `.claude/hooks/config.sh` from the project, so step 5's settings apply unchanged.
+   The read rule lets the plugin's skills and agents open its reference docs: Claude Code asks before
+   reading any file outside the project, the plugin's own folder included, unless a rule allows it.
 3. **Tell people the names** (step 3). Everything a plugin carries goes by the plugin's name. Add this
    to the start of `CLAUDE.md` § Skills, agents, and workflows:
 
    > **This project uses the packaged install.** Skills, agents, and workflows come from the
    > `aplyca-adf` plugin, pinned in `.claude/settings.json`. Where these files name a skill or
    > workflow — `/triage`, `/deep-review` — type `/aplyca-adf:triage`, `/aplyca-adf:deep-review`.
-   > Where they name an agent — `@code-reviewer` — its name is `aplyca-adf:code-reviewer`.
+   > Where they name an agent — `@code-reviewer` — its name is `aplyca-adf:code-reviewer`. The
+   > framework's reference docs — the spec model, the cost model, the memory strategy, MCP
+   > integration — come from the plugin too; these files link them at the pinned release.
 
    People read the key commands in `docs/getting-started/DEV-SETUP.md` § AI-assisted development,
    so write them there by their full names: `/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`.
@@ -220,12 +233,14 @@ project and the plugin named: `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<mar
 where the marketplace folder is the `installLocation` of `aplyca` in
 `claude plugin marketplace list --json`. And in a new session, `/aplyca-adf:triage` is offered.
 
-Each teammate gets the plugin once they trust the folder. A machine nobody opens a session on — CI —
-installs it first, from the repository's folder:
+Each teammate gets the plugin, and the read rule, once they trust the folder. A machine nobody opens a
+session on — CI — installs it first, from the repository's folder; a headless run (`claude -p`) never
+trusts the folder, so pass the read rule with `--allowedTools` if it uses the plugin's skills:
 
 ```bash
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
 claude plugin install aplyca-adf@aplyca --scope project
+claude -p "<the task>" --allowedTools "Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)"
 ```
 
 ## Verify

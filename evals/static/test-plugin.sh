@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
 # Functional tests for the plugin's scripts: /cost-report's session_cost.py against synthetic Claude
-# Code transcripts in a throwaway projects directory. No AI invocation, no network. Needs bash and
-# python3. Exit 0 on all-pass.
+# Code transcripts in a throwaway projects directory, and the reference-doc links /adopt and /upgrade
+# rewrite with scripts/link-reference-docs.py, on a copy of the skeleton. No AI invocation, no
+# network. Needs bash and python3. Exit 0 on all-pass.
 #
 set -uo pipefail
 
@@ -86,6 +87,30 @@ check "cost-report: re-prices an Opus session at Sonnet's prices (\$0.18; a Sonn
 check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals it" "echo \"\$out\" | grep 'Quick fix' | grep -q '≈0.18' && echo \"\$out\" | grep 'Spec heavy' | grep -q ' - ' && echo \"\$out\" | grep -q '^Model: 3 sessions ran above Sonnet'"
 missing=$(python3 "$REPORT" "$WORK/elsewhere" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "cost-report: a project without transcripts says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$missing\" | grep -q 'No Claude Code transcripts'"
+
+# link-reference-docs.py (decision 0019), on a copy of the skeleton: a packaged project links the
+# reference docs at the release it pins; a committed one, in its own docs/.
+LINKS="$REPO_ROOT/scripts/link-reference-docs.py"
+SITE="$WORK/linked"
+cp -R "$REPO_ROOT/skeleton" "$SITE"
+NAMES='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
+local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/" -e "/docs/[A-Z-]*\.md$"; }
+plugin_docs=$(cd "$REPO_ROOT/plugins/aplyca-adf/docs" && ls | sort | tr '\n' ' ')
+check "link-reference-docs: the plugin carries the four reference docs (got: $plugin_docs)" \
+    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md SPEC-MODEL.md ' ]"
+first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
+check "link-reference-docs: --packaged links every skeleton file at the release" \
+    "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/skeleton/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
+again=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
+check "link-reference-docs: a second run changes nothing" "echo \"\$again\" | grep -q 'in 0 file(s)'"
+python3 "$LINKS" "$SITE" --packaged v9.9.10 >/dev/null
+check "link-reference-docs: a new pin moves every link" \
+    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/skeleton/docs/COST-MODEL.md' \"\$SITE/CLAUDE.md\""
+python3 "$LINKS" "$SITE" --committed >/dev/null
+check "link-reference-docs: --committed restores the skeleton's files exactly" "diff -r \"\$REPO_ROOT/skeleton\" \"\$SITE\" >/dev/null"
+bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
+check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
+check "link-reference-docs: the files it rewrote are the skeleton's" "echo \"\$first\" | grep -q 'AGENTS.md, CLAUDE.md, CONTRIBUTING.md'"
 
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"

@@ -145,7 +145,9 @@ One person, once:
 
 ### Day 1: Orientation and guardrails (2 hours)
 
-Read, in your project:
+Read, in your project — on the packaged install, the skills and the reference docs (`SPEC-MODEL.md`,
+`COST-MODEL.md`, `MEMORY-STRATEGY.md`) come from the plugin: `AGENTS.md` links the docs at the pinned
+release, and the originals are linked below:
 
 1. `AGENTS.md` — the contract every AI tool reads: ground rules, how work flows, delivery rules,
    boundaries. ([original](../skeleton/AGENTS.md); 10 min)
@@ -160,7 +162,8 @@ Read, in your project:
    [`implement`](../skeleton/.claude/skills/implement/SKILL.md) skills — above all their
    *Rationalizations* tables, the excuses agents (and people) make for skipping a step. (20 min)
 6. `docs/COST-MODEL.md` and `docs/MEMORY-STRATEGY.md` — when to escalate a model, where a fact
-   belongs. `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
+   belongs (originals: [cost model](../skeleton/docs/COST-MODEL.md),
+   [memory strategy](../skeleton/docs/MEMORY-STRATEGY.md)). `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
 7. The worked example: [examples/newsletter-signup/](examples/newsletter-signup/). (20 min)
 
 | Tool | Reads | Skills and agents | Rules | Hooks, permissions |

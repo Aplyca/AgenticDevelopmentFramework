@@ -6,9 +6,11 @@ argument-hint: "[feature description, tracker link, or spec folder to amend]"
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/write-spec/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Write Spec
 
-Write `specs/NNN-<slug>/spec.md` using the multi-perspective spec model (`docs/SPEC-MODEL.md`): the
+Write `specs/NNN-<slug>/spec.md` using the multi-perspective spec model (`${CLAUDE_PLUGIN_ROOT}/docs/SPEC-MODEL.md`): the
 WHAT and WHY from every relevant role, in one document, with required sections enforced. The HOW
 comes next, in `plan.md`, from `/aplyca-adf:write-plan` — which also holds the approval gate.
 
