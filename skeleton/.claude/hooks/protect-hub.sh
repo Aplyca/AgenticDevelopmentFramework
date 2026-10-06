@@ -19,4 +19,4 @@ root="$(repo_root_for "$file")"
 
 [ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 
-block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task its own worktree — a new session with Claude Code's worktree option, or /dispatch when it needs the project's worktree setup — and make this change from a session there."
+block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task to /dispatch, which hands it to a new session in a worktree of its own, and make this change from that session."

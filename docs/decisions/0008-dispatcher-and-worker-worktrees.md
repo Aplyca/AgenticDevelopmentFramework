@@ -1,6 +1,6 @@
 # 0008: The main checkout dispatches; worktrees do the work (optional module)
 
-- **Status:** accepted; amended by [0015](0015-tool-worktrees-are-workers.md) (Claude Code's own worktrees are workers too)
+- **Status:** accepted; amended by [0015](0015-tool-worktrees-are-workers.md) (Claude Code's own worktrees are workers too) and [0020](0020-every-task-through-dispatch.md) (every task goes through `/dispatch`)
 - **Date:** 2026-10-01
 
 ## Context

@@ -76,13 +76,14 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   main="$(dirname "$common_dir")" # a linked worktree's common dir is absolute: <main checkout>/.git
 
   if [ "$checkout" = "main checkout" ]; then
-    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Each task gets its own worktree, branch, and session."
+    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /dispatch: it hands the task to a new session in a worktree of its own."
+    # The project's settings pick the route, not the task (decision 0020).
     if [ -n "$other_base" ]; then
-      echo "- Start each task with /dispatch: tasks here start from $base_branch, and Claude Code's own worktrees start from $default_branch."
+      echo "- Route: the scripts' worktree, with a prompt to paste — tasks here start from $base_branch, and Claude Code's own worktrees start from $default_branch."
     elif [ -n "$needs" ]; then
-      echo "- A task that runs the app starts with /dispatch (its worktree needs $needs). Any other task can start in a new session with Claude Code's worktree option — the desktop app's worktree toggle, or claude --worktree."
+      echo "- Route: the scripts' worktree, with a prompt to paste — this project's worktrees need $needs. The developer can ask for a chip for a task that won't run the app."
     else
-      echo "- Start each task in a new session with Claude Code's worktree option — the desktop app's worktree toggle, or claude --worktree — or with /dispatch."
+      echo "- Route: Claude Code's worktree — a task chip in the desktop app, or claude --worktree in a terminal."
     fi
   else
     echo "- Role: WORKER. This worktree is yours for one task — start with triage (/aplyca-adf:triage)."

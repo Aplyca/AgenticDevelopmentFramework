@@ -112,8 +112,8 @@ describes the old way in the same pull request. Constitution amendments get thei
 
 When several agent sessions run at once, each works in its own git worktree on its own branch —
 never two sessions in one checkout. With the parallel-agents module installed, the main checkout is a
-**dispatcher** only (`/dispatch`): it names the task, creates the worktree, and hands off; the
-**worker** in the worktree does everything from triage onward. Passing work in progress to a
+**dispatcher** only (`/dispatch`): it names every task and hands it to a new session in a worktree
+of its own; the **worker** there does everything from triage onward. Passing work in progress to a
 teammate, another machine, or a fresh session is `/handoff`: pointers to the record, never a copy.
 
 ## Effort beyond the lane

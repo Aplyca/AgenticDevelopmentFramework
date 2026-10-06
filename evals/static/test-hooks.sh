@@ -189,7 +189,8 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
         FAIL=$((FAIL+1)); echo "✘ session-context.sh: $1"; echo "$out" | sed 's/^/    /'
     fi
 }
-check_ctx "dispatcher in the main checkout, offering Claude Code's worktree option" "$T" "Start each task in a new session with Claude Code's worktree option"
+check_ctx "dispatcher in the main checkout, which gives every task to /dispatch" "$T" "Give every task to /dispatch"
+check_ctx "a project whose worktrees need nothing takes Claude Code's route" "$T" "Route: Claude Code's worktree — a task chip"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 check_ctx "worker in Claude Code's worktree, told to rename its generated branch" "$T/.claude/worktrees/eager-lamport" "branch name is generated (claude/eager-lamport)"
 check_ctx "worker in Claude Code's worktree, told the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here"
@@ -200,11 +201,11 @@ cp "$T/.env" "$T/.claude/worktrees/eager-lamport/.env"
 check_ctx "a renamed branch with its env file needs nothing more" "$T/.claude/worktrees/eager-lamport" "Role: WORKER" "generated\|No .env\|Not set up"
 printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf"
 cp "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf" "$T/scripts/agent/worktree.conf"
-check_ctx "a project whose worktrees run a server: dispatch for app work" "$T" "A task that runs the app starts with /dispatch"
+check_ctx "a project whose worktrees run a server takes the scripts' route for every task" "$T" "Route: the scripts' worktree, with a prompt to paste — this project's worktrees need a port"
 check_ctx "Claude Code's worktree there lacks the port and start command" "$T/.claude/worktrees/eager-lamport" "lacks a port and setup or start commands"
 printf 'BASE_BRANCH="staging"\nENV_FILE=".env"\n' > "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf"
 cp "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf" "$T/scripts/agent/worktree.conf"
-check_ctx "tasks that start from another branch always dispatch" "$T" "Start each task with /dispatch: tasks here start from staging"
+check_ctx "tasks that start from another branch always take the scripts' route" "$T" "Route: the scripts' worktree, with a prompt to paste — tasks here start from staging"
 check_ctx "Claude Code's worktree there started from the wrong base" "$T/.claude/worktrees/eager-lamport" "started this worktree from main, but tasks here start from staging"
 printf 'BASE_BRANCH="staging" # integration\nSETUP_CMD="$(touch %s/conf-ran)"\n' "$WORK" > "$T/scripts/agent/worktree.conf"
 check_ctx "worktree.conf is read as data, comments and all" "$T" "tasks here start from staging"
