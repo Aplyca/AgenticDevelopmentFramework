@@ -96,7 +96,9 @@ permission mode, no extra directory, no blanket `Read`, and only the read rule a
 commits, passed with `--allowedTools` for the plugin's path in this checkout. `agent-spec-model` has
 the spec-analyzer agent open the plugin's spec model. `session-docs` has Claude find a doc through the
 session context. The control, `without-rule`, runs without the rule, where the same read is denied.
-Agents that ask for `opus` run on Haiku (`ANTHROPIC_DEFAULT_OPUS_MODEL`).
+Agents that ask for `opus` run on Haiku (`ANTHROPIC_DEFAULT_OPUS_MODEL`). Three sessions cost about
+$0.60; run it after any change to how the plugin's skills, agents, or hooks name the reference docs.
+Report: [`reports/2026-10-05-plugin-docs.md`](reports/2026-10-05-plugin-docs.md).
 
 The **adopt** suite builds its own project (`fixtures/adopt/project.sh`: a new repository with no
 commits) and appends each run's end state (`inspect.sh`) to the transcript. `{{FRAMEWORK}}` in a
