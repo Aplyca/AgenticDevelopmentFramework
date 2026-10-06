@@ -76,7 +76,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   main="$(dirname "$common_dir")" # a linked worktree's common dir is absolute: <main checkout>/.git
 
   if [ "$checkout" = "main checkout" ]; then
-    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /dispatch: it hands the task to a new session in a worktree of its own."
+    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /aplyca-adf:dispatch: it hands the task to a new session in a worktree of its own."
     # The project's settings pick the route, not the task (decision 0020).
     if [ -n "$other_base" ]; then
       echo "- Route: the scripts' worktree, with a prompt to paste — tasks here start from $base_branch, and Claude Code's own worktrees start from $default_branch."
@@ -105,9 +105,9 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
         echo "- No $env_file here. Claude Code copies it into the worktrees it creates when .worktreeinclude lists it."
       fi
       if [ -n "$other_base" ]; then
-        echo "- Claude Code started this worktree from $default_branch, but tasks here start from $base_branch: ask the developer to /dispatch the task before the first commit."
+        echo "- Claude Code started this worktree from $default_branch, but tasks here start from $base_branch: ask the developer to /aplyca-adf:dispatch the task before the first commit."
       elif [ -n "$needs" ]; then
-        echo "- Not set up by scripts/agent/worktree-new.sh, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /dispatch the task."
+        echo "- Not set up by scripts/agent/worktree-new.sh, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /aplyca-adf:dispatch the task."
       fi
     fi
   fi

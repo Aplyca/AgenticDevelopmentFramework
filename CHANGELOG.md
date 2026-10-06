@@ -49,6 +49,33 @@ option, without `/dispatch`, is still a worker.
 - Nothing to migrate. A project whose worktrees need the scripts now takes every task through them;
   ask for a chip when a task won't run the app.
 
+### The plugin carries `/dispatch`
+
+([0020](docs/decisions/0020-every-task-through-dispatch.md), amending [0016](docs/decisions/0016-packaged-install.md))
+
+`/dispatch` was the one framework skill a packaged project still committed, because it ships in a
+module, and decision 0016 keeps modules committed. It's generic machinery like the 20 skills the
+plugin already carries, so the plugin now carries it too, as `/aplyca-adf:dispatch`.
+
+- **`scripts/build-aplyca-adf.sh`** copies every module's skills into the plugin. The module stays
+  their one source, so a committed install doesn't change.
+- **The skill stops in a project without the `parallel-agents` module,** so the plugin can carry it
+  for every project.
+- **`/aplyca-adf:adopt`** leaves the skill out of a packaged project. **`/aplyca-adf:upgrade`**
+  deletes a packaged project's committed copy when it's unchanged since the baseline.
+- The plugin's hooks and skills name it `/aplyca-adf:dispatch`, like every other skill they name.
+
+The module's scripts, `worktree.conf`, `.worktreeinclude`, and `PARALLEL-AGENTS.md` stay committed:
+they're the project's configuration, a doc it fills in, and scripts developers run from their own
+terminal.
+
+**Upgrade impact:**
+
+- **Packaged projects with the `parallel-agents` module:** delete `.claude/skills/dispatch/`, and type
+  `/aplyca-adf:dispatch`. `/aplyca-adf:upgrade` deletes it when it's unchanged since your baseline.
+  One your team edited stays under a name of its own, or goes upstream.
+- **Committed projects:** nothing changes.
+
 ## v1.2.1 — 2026-10-05 — Drift the prompt audit found
 
 A patch release: fixes to the framework's instruction files, with nothing new to adopt
