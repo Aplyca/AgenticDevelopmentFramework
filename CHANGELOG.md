@@ -11,6 +11,22 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.2.0 — 2026-10-05 — The reference docs come from the plugin
+
+A minor release. A packaged project no longer commits the framework's four reference docs: it reads
+them from the pinned plugin
+([#33](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/33), decision 0019). Nothing changes
+for a committed project but two overwritten files.
+
+**Upgrading from v1.1.x:** `/aplyca-adf:upgrade` moves the pin to `v1.2.0`. In a packaged project it
+also:
+- deletes the four docs from `docs/` where they're unchanged;
+- points their links at the release;
+- adds the plugin's read rule to the settings;
+- adds one sentence to the names note in `CLAUDE.md`.
+
+A baseline older than v1.0.0 takes v1.0.0's order to upgrade in first.
+
 ### A packaged project reads the framework's reference docs from the plugin
 
 ([0019](docs/decisions/0019-reference-docs-in-the-plugin.md), amending [0016](docs/decisions/0016-packaged-install.md))
