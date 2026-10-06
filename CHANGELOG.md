@@ -11,6 +11,19 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.2.1 — 2026-10-05 — Drift the prompt audit found
+
+A patch release: fixes to the framework's instruction files, with nothing new to adopt
+([#35](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/35)). Several files had drifted
+from later decisions: `/orchestrate` and the cost model gave the wrong model for some agents, and the
+rules disagreed with each other. Two other habits cost tokens: every agent re-read files it already
+had, and two workflows' prompts kept their agents from sharing a cache.
+
+**Upgrading from v1.2.0:** `/aplyca-adf:upgrade` moves the pin to `v1.2.1`. A packaged project gets the
+agents, `/orchestrate`, the workflows, and the cost model from it, and updates the three rule files it
+commits. A committed project also overwrites its own copies of the rest. The entry below lists each
+file.
+
 ### Drift the prompt audit found
 
 A prompt audit of the framework's instruction files found nothing written for older models: no
