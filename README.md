@@ -141,7 +141,8 @@ Updates are deliberate: `/aplyca-adf:upgrade` moves a project from one release t
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v1.1.0** (2026-10-04), makes the packaged install the default for new projects.
+The latest, **v1.2.0** (2026-10-05), moves the framework's reference docs out of packaged projects
+and into the plugin.
 **v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade in. A
 baseline older than `7383422` takes that release's order first, and one older than `3eb7777` takes its
 three fixes before that — they affect every adopted repository.
