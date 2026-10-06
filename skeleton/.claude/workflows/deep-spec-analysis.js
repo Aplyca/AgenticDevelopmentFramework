@@ -11,6 +11,10 @@ export const meta = {
 
 const READ_ONLY = 'Do not modify, create, or delete any file. Read files and run read-only commands (git log, grep) only.'
 
+// The spec model the lenses check against. The aplyca-adf plugin's copy carries the model's text here
+// instead: a packaged project keeps no copy of it in docs/ (decision 0019).
+const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'
+
 const LOCATE_SCHEMA = {
   type: 'object',
   required: ['specFolder', 'status', 'isChangeRequest', 'summary'],
@@ -66,7 +70,7 @@ if (!located || !located.specFolder) {
 }
 
 const folder = located.specFolder
-const context = `Spec folder: ${folder} (status: ${located.status}${located.isChangeRequest ? ', latest section is a change request — analyze the CR against what was delivered' : ''}). Read spec.md, plan.md and tasks.md in full, plus docs/CONSTITUTION.md, specs/README.md and docs/SPEC-MODEL.md. ${READ_ONLY}
+const context = `Spec folder: ${folder} (status: ${located.status}${located.isChangeRequest ? ', latest section is a change request — analyze the CR against what was delivered' : ''}). Read spec.md, plan.md and tasks.md in full, plus docs/CONSTITUTION.md and specs/README.md. ${SPEC_MODEL} ${READ_ONLY}
 Report only gaps you can evidence. Severity: critical = blocks approval (constitution conflict, AC with no task or test, missing layer in the change surface, invented requirement); gap = should be fixed before approval; question = only a human can answer.`
 
 const LENSES = [
@@ -74,7 +78,7 @@ const LENSES = [
   { key: 'change-surface', prompt: 'CHANGE SURFACE: search the code for the entities, routes, components, tables and functions the plan changes. Find callers, shared components, configuration, migrations, access policies and tests that plan.md does not list; list unlisted consumers of shared code; flag files named in tasks.md that are missing from the change surface table.' },
   { key: 'constitution', prompt: 'CONSTITUTION AND DECISIONS: read every principle in docs/CONSTITUTION.md and every accepted ADR (docs/architecture/decisions/) and PDR (docs/process/) the plan touches against the spec folder. Authorization changes, append-only history, dependencies, silenced types, accessibility, secrets.' },
   { key: 'consistency', prompt: 'CONSISTENCY AND ASSUMPTIONS: contradictions between spec, plan and tasks; requirements nothing backs (no tracker link, clarification, or stated requirement — plausible additions are the most dangerous); assumptions the plan relies on but does not list; open questions still open; for a change request, whether the Delivered → Change table matches what the spec records as delivered.' },
-  { key: 'perspectives', prompt: 'MULTI-PERSPECTIVE COMPLETENESS: required sections filled for this feature-type and personal-data value (docs/SPEC-MODEL.md); "Not applicable" used with a real reason; no speculative optional sections; acceptance criteria numbered and independently testable; edge cases cover empty, error and boundary states.' },
+  { key: 'perspectives', prompt: 'MULTI-PERSPECTIVE COMPLETENESS: required sections filled for this feature-type and personal-data value (the spec model); "Not applicable" used with a real reason; no speculative optional sections; acceptance criteria numbered and independently testable; edge cases cover empty, error and boundary states.' },
 ]
 
 const analyzed = await pipeline(

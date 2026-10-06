@@ -275,6 +275,19 @@ if [ "$untouched" = 0 ]; then
 else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: the plugin's copy acted in a project without the framework"
 fi
+# Decision 0019: a packaged session learns where the plugin's reference docs are — unless the project
+# still keeps its own copies.
+mkdir -p "$PKG_ROOT/docs" && cp "$REPO_ROOT/plugins/aplyca-adf/docs/"* "$PKG_ROOT/docs/"
+pkg_context() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/session-context.sh"; }
+names=$(pkg_context | grep -c -F -- "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md — are in $PKG_ROOT/docs/")
+mkdir -p "$PROJ/docs" && echo '# Spec model' > "$PROJ/docs/SPEC-MODEL.md"
+kept=$(pkg_context | grep -c "reference docs")
+rm -rf "$PROJ/docs"
+if [ "$names" = 1 ] && [ "$kept" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ session-context.sh: a packaged session is told where the plugin's reference docs are, unless the project keeps its own"
+else
+    FAIL=$((FAIL+1)); echo "✘ session-context.sh: reference-docs line printed $names time(s) (want 1), $kept with local copies (want 0)"
+fi
 # config.sh is data: quoting styles, indentation, and trailing comments parse, and nothing in it runs.
 cat > "$PROJ/.claude/hooks/config.sh" <<CONF
   PROTECTED_BRANCHES='release-q' # the release branch

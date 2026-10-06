@@ -91,13 +91,15 @@ ask, and never discard it.
 
 - **Committed → packaged** — recommend it to a team that works in Claude Code only, since packaged is
   the default for new projects: remove the skills, agents,
-  workflows, and hook scripts the plugin carries — only those unchanged since OLD_SHA; one the team
-  edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add the pinned
-  marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in `DEV-SETUP.md`'s key
-  commands, and `install: packaged` in the stamp.
+  workflows, hook scripts, and reference docs the plugin carries — only those unchanged since OLD_SHA;
+  one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add
+  the pinned marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in
+  `DEV-SETUP.md`'s key commands, and `install: packaged` in the stamp, then add the plugin's read
+  rule and run `link-reference-docs.py --packaged`, both in Step 5.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
-  copy the machinery and the `hooks` block back, and remove `install: packaged`, the names note, and
-  the `aplyca-adf:` prefix in `DEV-SETUP.md`.
+  copy the machinery, the reference docs, and the `hooks` block back, remove `install: packaged`, the
+  names note, the plugin's read rule, and the `aplyca-adf:` prefix in `DEV-SETUP.md`, and run
+  `python3 <framework-root>/scripts/link-reference-docs.py <repo> --committed`.
   Keep `aplyca-adf` turned on and pinned, for `/aplyca-adf:upgrade`.
 - **Record the switch** — it changes how the team works — as a process decision in the same pull
   request: the next `docs/process/NNNN-<slug>.md` from `docs/process/0000-pdr-template.md`, with its
@@ -126,12 +128,13 @@ teammates still on the old name have no `/upgrade`.
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
 gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). In a
 packaged project, leave out what the plugin carries — `.claude/skills/` (module skills stay),
-`.claude/agents/`, `.claude/workflows/`, and `.claude/hooks/` except `config.sh` — and never add a
-`hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
+`.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`, and, when the new
+release carries them in `<framework-root>/plugins/aplyca-adf/docs/`, the reference docs in `docs/`
+(decision 0019) — and never add a `hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
 | Bucket | Typical contents | Action |
 |---|---|---|
-| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, framework reference docs, `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
+| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
 | **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
@@ -165,8 +168,17 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
 - Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
   if the project has none). In a packaged project that one line upgrades the plugin's skills, agents,
-  workflows, and hooks; in a committed one it keeps the plugin's copies at the same release as the
-  committed files.
+  workflows, hooks, and reference docs; in a committed one it keeps the plugin's copies at the same
+  release as the committed files.
+- Packaged, on a release that carries the reference docs: run
+  `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged v<X.Y.Z>`. It points the
+  files that name a reference doc at the new release, and lists the other files that still name one
+  and the reference docs still in `docs/`. A copy unchanged since OLD_SHA goes; one the team edited
+  is the developer's call — under a name of its own, or the committed install. Add
+  `Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)` to `permissions.allow` in
+  `.claude/settings.json` if it isn't there: the plugin's skills and agents read the docs from its
+  folder, and Claude Code asks first without it. Add the last sentence of `docs/SETUP.md`'s names
+  note to the project's, if it lacks it.
 - Restamp: `Skeleton source:` → `<new version> · NEW_SHA (<date>) · modules: <list>` — the list includes
   the new ones; a packaged project keeps `· install: packaged`.
 

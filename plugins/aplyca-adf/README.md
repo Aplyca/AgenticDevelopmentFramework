@@ -5,12 +5,13 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
 - **Install and maintain the framework** in a repository: `/aplyca-adf:adopt`,
   `/aplyca-adf:upgrade`, and `/aplyca-adf:cost-report`, in every project that uses the framework.
 - **Carry the framework's machinery for a packaged install** ([decision 0016](../../docs/decisions/0016-packaged-install.md)):
-  20 skills, 8 agents, 4 workflows, and the guardrail hooks, pinned to a release. Typed as
+  20 skills, 8 agents, 4 workflows, the guardrail hooks, and the framework's reference docs, pinned
+  to a release. Typed as
   `/aplyca-adf:triage`, `/aplyca-adf:deep-review`, and so on.
 
 By default, an adopting repository uses the **packaged** install
 ([decision 0018](../../docs/decisions/0018-packaged-by-default.md)): the machinery comes from this
-plugin, pinned to a release, and the repository commits only its own layer — about 40 fewer files
+plugin, pinned to a release, and the repository commits only its own layer — about 50 fewer files
 ([docs/SETUP.md § Packaged install](../../docs/SETUP.md#packaged-install-claude-code-only)). A team that
 also uses other AI tools — Cursor, Copilot, Antigravity, Windsurf, Aider — or Claude Code's cloud
 sessions chooses the **committed** install: the framework as files in the repository (the
@@ -20,8 +21,8 @@ aside: its hooks stand down, and its skills and agents hand over to the committe
 where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
-`workflows/`, and `hooks/` is generated from the skeleton by `scripts/build-aplyca-adf.sh`; never
-edit it here.
+`workflows/`, `hooks/`, and `docs/` is generated from the skeleton by `scripts/build-aplyca-adf.sh`;
+never edit it here.
 
 ## Install
 
@@ -126,7 +127,9 @@ branch, and never push without explicit approval. `/aplyca-adf:cost-report` only
 **In a packaged project,** the rest of the framework comes from here too: the workflow skills
 (`/aplyca-adf:triage`, `/aplyca-adf:write-spec`, `/aplyca-adf:implement`, `/aplyca-adf:review`, …), the
 agents (`aplyca-adf:code-reviewer`, `aplyca-adf:spec-analyzer`, …), the `/aplyca-adf:deep-…`
-workflows, and the hooks, which read the project's `.claude/hooks/config.sh`. The catalogs:
+workflows, the hooks, which read the project's `.claude/hooks/config.sh`, and the framework's
+reference docs — the spec model, the cost model, the memory strategy, and MCP integration
+([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)). The catalogs:
 [SKILLS-REFERENCE.md](../../docs/SKILLS-REFERENCE.md) and [AGENTS-REFERENCE.md](../../docs/AGENTS-REFERENCE.md).
 
 ## For teams
@@ -149,6 +152,11 @@ the plugin by a relative path. A machine where nobody trusts the folder — CI �
   "enabledPlugins": { "aplyca-adf@aplyca": true }
 }
 ```
+
+A packaged project also lets Claude read the plugin's own folder,
+`"permissions": { "allow": ["Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)"] }`, so its skills
+and agents open the reference docs without asking
+([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)).
 
 Every project pins its release with `"ref"`, and `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` keep
 it equal to the release in the `CLAUDE.md` stamp. In a packaged project the pin chooses the

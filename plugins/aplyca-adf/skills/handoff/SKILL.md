@@ -6,6 +6,8 @@ argument-hint: "[who or where it goes — a teammate, a fresh session, another m
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/handoff/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Handoff
 
 A handoff lets someone with no access to this conversation continue the work. Everything worth
@@ -18,7 +20,7 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
 1. **Check that the work travels.** A handoff is for work that leaves this session: to a teammate,
    to another machine or tool, or to a fresh session after the approval gate (in the full lane, the
    spec folder already carries everything — point at it). Work that stays here needs no handoff:
-   continue, or `/compact` with what the next phase needs (`docs/COST-MODEL.md` § Between phases).
+   continue, or `/compact` with what the next phase needs (`${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Between phases).
    A side task found mid-work isn't a handoff either: note it for the developer — or, with the
    parallel-agents module, `/dispatch` it to its own worktree.
 

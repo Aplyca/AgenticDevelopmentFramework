@@ -25,7 +25,8 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
 2. **Present the result:** totals, the most expensive sessions, the size bands, the model line, and
    the flags.
 
-3. **Explain the drivers** with `docs/COST-MODEL.md` (in the project, or the framework's skeleton):
+3. **Explain the drivers** with the cost model — `docs/COST-MODEL.md` in a committed project, the
+   plugin's `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` in a packaged one:
    - **Calls × context** — cost grows with the number of steps and with how much each step re-reads.
    - **The model** — the `on sonnet` column re-prices an Opus or Fable session's tokens at Sonnet's
      prices. Where the session's work had a clear spec and a way to check it — the fast and careful

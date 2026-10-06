@@ -2,7 +2,7 @@
 #
 # Builds the packaged half of plugins/aplyca-adf (docs/decisions/0016-packaged-install.md) from
 # skeleton/.claude/: the core skills, the agents as flat files, the workflows, and the hook scripts
-# with their hooks.json. Claude Code puts everything a plugin carries under the plugin's name, so the
+# with their hooks.json — and, from skeleton/docs/, the framework's reference docs (decision 0019). Claude Code puts everything a plugin carries under the plugin's name, so the
 # copies name each other that way: `/triage` becomes `/aplyca-adf:triage`, `@code-reviewer` becomes
 # `@aplyca-adf:code-reviewer`. The hooks read the project's .claude/hooks/config.sh. The copies act only
 # in a packaged project: each skill and agent opens with a step that hands over to the committed copy
@@ -37,6 +37,13 @@ command = re.compile(r"(?<![\w./@:-])/(" + "|".join(map(re.escape, skills + work
 agent = re.compile(r"(?<![\w./-])@(" + "|".join(map(re.escape, agents)) + r")(?![\w-])")
 
 
+# The framework's reference docs (decision 0019): generic, never edited by a project, so a packaged
+# project reads them from the plugin. Its skills and agents name the plugin's copy; Claude Code fills in
+# ${CLAUDE_PLUGIN_ROOT} when it loads them.
+REFERENCE_DOCS = ["COST-MODEL", "MCP-INTEGRATION", "MEMORY-STRATEGY", "SPEC-MODEL"]
+reference = re.compile(r"(?<![\w/.-])docs/(" + "|".join(REFERENCE_DOCS) + r")\.md")
+
+
 def rename(text):
     text = command.sub(lambda m: f"/{PLUGIN}:{m.group(1)}", text)
     return agent.sub(lambda m: f"@{PLUGIN}:{m.group(1)}", text)
@@ -47,7 +54,8 @@ def copy(source, target, executable=False, kind=None, name=None):
     with open(source, encoding="utf-8") as f:
         text = rename(f.read())
     if kind:
-        text = hand_over(text, kind, name)
+        named = reference.sub(r"${CLAUDE_PLUGIN_ROOT}/docs/\1.md", text)
+        text = hand_over(named, kind, name, docs=named != text)
     with open(target, "w", encoding="utf-8") as f:
         f.write(text)
     os.chmod(target, 0o755 if executable else 0o644)
@@ -64,10 +72,16 @@ HANDOVER = {
 }
 
 
-def hand_over(text, kind, name):
+# A model reading a list of project paths takes one outside the project for another project path
+# unless it's told: an agent read docs/SPEC-MODEL.md in the project instead of the plugin's copy.
+DOCS_NOTE = ("> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — "
+             "outside this project, which keeps none in its own `docs/`. Read them at the full paths given.\n\n")
+
+
+def hand_over(text, kind, name, docs=False):
     # After the frontmatter, so the name and description still come first.
     head, sep, body = text.partition("\n---\n")
-    return head + sep + "\n" + HANDOVER[kind].format(name=name) + body.lstrip("\n")
+    return head + sep + "\n" + HANDOVER[kind].format(name=name) + (DOCS_NOTE if docs else "") + body.lstrip("\n")
 
 
 listing = os.path.join(out, ".generated")
@@ -89,8 +103,24 @@ for name in skills:
     generated.append(f"skills/{name}")
 for name in agents:
     copy(os.path.join(src, "agents", name, "agent.md"), os.path.join(out, "agents", name + ".md"), kind="agent", name=name)
+for name in REFERENCE_DOCS:
+    copy(os.path.join(root, "skeleton", "docs", name + ".md"), os.path.join(out, "docs", name + ".md"))
+# Claude Code doesn't fill in ${CLAUDE_PLUGIN_ROOT} in a workflow script, so a workflow that needs the
+# spec model gets its text: the skeleton's one-line constant becomes the plugin's copy of the doc.
+SPEC_MODEL_LINE = "const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'"
 for name in workflows:
-    copy(os.path.join(src, "workflows", name + ".js"), os.path.join(out, "workflows", name + ".js"))
+    target = os.path.join(out, "workflows", name + ".js")
+    copy(os.path.join(src, "workflows", name + ".js"), target)
+    with open(target, encoding="utf-8") as f:
+        text = f.read()
+    if SPEC_MODEL_LINE in text:
+        assert text.count(SPEC_MODEL_LINE) == 1, f"{name}.js names the spec model more than once"
+        with open(os.path.join(out, "docs", "SPEC-MODEL.md"), encoding="utf-8") as f:
+            model = "The spec model (SPEC-MODEL.md), which these checks follow:\n\n" + f.read()
+        text = text.replace(SPEC_MODEL_LINE, "const SPEC_MODEL = " + json.dumps(model, ensure_ascii=False))
+        with open(target, "w", encoding="utf-8") as f:
+            f.write(text)
+    assert not reference.search(text), f"{name}.js names a reference doc the plugin can't reach from a workflow"
 LIB_SOURCE = '. "$(dirname "$0")/_lib.sh"'
 HOOKS_DIR_LINE = 'HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
 for file in sorted(os.listdir(os.path.join(src, "hooks"))):
@@ -112,7 +142,7 @@ for file in sorted(os.listdir(os.path.join(src, "hooks"))):
         text = text.replace('"$HOOKS_DIR/', '"${CLAUDE_PLUGIN_ROOT}/hooks/').replace('"$HOOKS_DIR"', '"${CLAUDE_PLUGIN_ROOT}/hooks"')
         with open(target, "w", encoding="utf-8") as f:
             f.write(text)
-generated += ["agents", "workflows", "hooks"]
+generated += ["agents", "docs", "workflows", "hooks"]
 
 with open(os.path.join(src, "settings.json"), encoding="utf-8") as f:
     hooks = json.load(f)["hooks"]

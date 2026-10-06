@@ -55,7 +55,7 @@ echo '```'
 if [ "${3:-}" = packaged ]; then
   echo "### Checks — the packaged install"
   release="$(git -C "$FW" tag --list 'v*' --sort=-v:refname | head -1)"
-  bash "$(dirname "$0")/../../check-packaged.sh" . "$release" "$(git -C "$FW" rev-parse --short "$release^{commit}")"
+  bash "$(dirname "$0")/../../check-packaged.sh" . "$release" "$(git -C "$FW" rev-parse --short "$release^{commit}")" "$FW"
   if grep -q -i 'packaged' docs/process/0001-*.md 2>/dev/null; then echo "- ✓ PDR-0001 records the packaged install"
   else echo "- ✘ PDR-0001 records the packaged install"; fi
 fi

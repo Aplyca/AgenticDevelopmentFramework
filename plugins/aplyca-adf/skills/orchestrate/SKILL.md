@@ -6,6 +6,8 @@ argument-hint: "[review | investigate | pre-commit | custom <description>]"
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/orchestrate/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Orchestrate (Parallel Multi-Agent Coordination)
 
 Dispatch specialized agents in parallel for analytical tasks where independent perspectives add value. The skill plans which agents to run, runs them in parallel where dependencies allow, and synthesizes findings into a unified report.
@@ -54,7 +56,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 4. **Determine model tiering** — each agent has a default model alias in its `agent.md` frontmatter. Don't override unless you have a specific reason. The defaults already tier sensibly:
    - `@aplyca-adf:code-reviewer`, `@aplyca-adf:security-reviewer`, `@aplyca-adf:ux-reviewer`, `@aplyca-adf:architect` → `haiku` (well-bounded review)
    - `@aplyca-adf:spec-writer`, `@aplyca-adf:test-runner`, `@aplyca-adf:debugger`, `@aplyca-adf:spec-analyzer` → `sonnet` (reasoning-heavy)
-   See `docs/COST-MODEL.md` for the full per-agent recommendations and trade-offs.
+   See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the full per-agent recommendations and trade-offs.
 
 5. **Present the orchestration plan**:
    ```
@@ -114,7 +116,7 @@ Orchestration costs more than `/aplyca-adf:review` because each agent has its ow
 - `/aplyca-adf:review` (single context): ~5-10k input + ~2-5k output, mostly cached
 - `/aplyca-adf:orchestrate review` (3 parallel agents, Haiku-tier): ~15-25k input + ~5-10k output (each agent independently)
 
-Roughly 2-3× the cost. Worth it for high-stakes diffs; overkill for trivial ones. See `docs/COST-MODEL.md` for the full cost model.
+Roughly 2-3× the cost. Worth it for high-stakes diffs; overkill for trivial ones. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the full cost model.
 
 ## Verification
 

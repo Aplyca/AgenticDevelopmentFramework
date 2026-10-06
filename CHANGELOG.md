@@ -11,6 +11,47 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### A packaged project reads the framework's reference docs from the plugin
+
+([0019](docs/decisions/0019-reference-docs-in-the-plugin.md), amending [0016](docs/decisions/0016-packaged-install.md))
+
+The four reference docs (`COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`)
+are generic, never edited by a project, and already overwritten verbatim by every upgrade. The
+`aplyca-adf` plugin now carries them in `docs/`, and a packaged project commits none of them, about 950
+fewer lines.
+
+- **Skills and agents** name the plugin's copy, `${CLAUDE_PLUGIN_ROOT}/docs/<doc>.md`, and say it's
+  outside the project. Without that line, an agent on Haiku read `docs/SPEC-MODEL.md` in the project
+  instead.
+- **`deep-spec-analysis`** carries the spec model's text in its plugin copy, because Claude Code
+  doesn't fill in `${CLAUDE_PLUGIN_ROOT}` in a workflow script.
+- **The read rule.** Claude Code asks before reading any file outside the project, the plugin's own
+  folder included. So a packaged project commits
+  `Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)` in `permissions.allow`.
+- **The session context.** The plugin's SessionStart hook tells a packaged session where the docs
+  are.
+- **Links on GitHub.** The project's files link the docs at the pinned release on GitHub. The new
+  `scripts/link-reference-docs.py` rewrites the links: `/aplyca-adf:adopt` runs it, and
+  `/aplyca-adf:upgrade` runs it to move them with each pin, and back on a switch to the committed
+  install.
+
+A new session-eval suite, `plugin-docs`, checks the reads in real sessions. The committed install is
+unchanged. `TRACKER-INTEGRATION.md` and `PARALLEL-AGENTS.md` stay in the project, because they hold
+its settings.
+
+**Upgrade impact:**
+
+- **Committed projects:** overwrite `.claude/hooks/session-context.sh` and
+  `.claude/workflows/deep-spec-analysis.js`. Both behave as before in a committed project: the
+  workflow's prompts name `docs/SPEC-MODEL.md` through one constant.
+- **Packaged projects:** `/aplyca-adf:upgrade` does these steps after moving the pin.
+  1. **Delete the four docs** from `docs/` where each is unchanged since your baseline. One your team
+     edited stays under a name of its own, or the team switches to the committed install.
+  2. **Rewrite the links:**
+     `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
+  3. **Add the read rule** to `permissions.allow` in `.claude/settings.json`.
+  4. **Add the names note's last sentence** to `CLAUDE.md`, from `docs/SETUP.md` § Packaged install.
+
 ## v1.1.0 — 2026-10-04 — The packaged install by default, checked in real sessions
 
 A minor release: a new default for new projects, and evals for the packaged install's paths. Nothing

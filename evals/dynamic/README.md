@@ -31,6 +31,10 @@ dynamic/
       inspect.sh                   - checks that the case's hook fired (or stood down): ✓ or ✘ per check
       stand-down.setup.sh          - switches that case's copy to the committed install
       ...                          - each of the aplyca-adf plugin's hooks, in a real session
+    plugin-docs/
+      project.sh                   - builds a packaged project without the reference docs, linked at the release
+      inspect.sh                   - checks which reads reached the plugin's docs, asked first, or went to the web
+      ...                          - an agent and a session reading the plugin's reference docs; the control without the read rule
     write-tests/
       ...
     write-docs/
@@ -45,7 +49,7 @@ Each fixture has two files:
 
 ## Running
 
-### Session evals — automated (triage, debug, adopt, upgrade, plugin-hooks)
+### Session evals — automated (triage, debug, adopt, upgrade, plugin-hooks, plugin-docs)
 
 `run-session-evals.sh` runs every fixture in one suite — `fixtures/triage/` by default, or
 `--suite debug` — against real Claude Code sessions: it builds a fictional project in a temp
@@ -63,6 +67,7 @@ signal without installing anything.
 ./run-session-evals.sh --suite debug                     # the /debug cases
 ./run-session-evals.sh --suite adopt --source "$PWD/../.."   # adoption, against this checkout
 ./run-session-evals.sh --suite plugin-hooks              # the plugin's hooks, on Haiku
+./run-session-evals.sh --suite plugin-docs               # the plugin's reference docs, on Haiku
 ./run-session-evals.sh --suite upgrade --models sonnet   # /upgrade, switching to the packaged install
 ```
 
@@ -83,6 +88,15 @@ the committed install, where the plugin's hooks must do nothing. `inspect.sh` ch
 it ✓ or ✘; the summary counts them. A PostToolUse hook's message reaches Claude through the session
 transcript, not the output stream, so that check reads the transcript. Seven sessions on Haiku cost
 about $0.40; run it after any change to the hooks. Report: [`reports/2026-10-04-plugin-hooks.md`](reports/2026-10-04-plugin-hooks.md).
+
+The **plugin-docs** suite checks that a packaged project reads the framework's reference docs from the
+plugin ([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)). Claude Code asks
+before reading any file outside the project, so its sessions run as a teammate's would: default
+permission mode, no extra directory, no blanket `Read`, and only the read rule a packaged project
+commits, passed with `--allowedTools` for the plugin's path in this checkout. `agent-spec-model` has
+the spec-analyzer agent open the plugin's spec model. `session-docs` has Claude find a doc through the
+session context. The control, `without-rule`, runs without the rule, where the same read is denied.
+Agents that ask for `opus` run on Haiku (`ANTHROPIC_DEFAULT_OPUS_MODEL`).
 
 The **adopt** suite builds its own project (`fixtures/adopt/project.sh`: a new repository with no
 commits) and appends each run's end state (`inspect.sh`) to the transcript. `{{FRAMEWORK}}` in a
