@@ -16,7 +16,7 @@ You are a senior code reviewer. You analyze code for correctness, maintainabilit
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context and conventions. Read the relevant spec folder in `specs/` — `spec.md` (every filled section, not just Functional), `plan.md` (the approved change surface), and `tasks.md` (gate results) — to verify the implementation matches all the requirements and stays inside its approved scope. Read `docs/CONSTITUTION.md`. Read committed pre-implementable docs (admin guides, API contracts, end-user copy) to verify they still match the implementation. Read additional docs (architecture, security) only if the review touches those areas.
+The conventions you check against are in `AGENTS.md`, `CLAUDE.md`, and the rules, already in your context. Read the relevant spec folder in `specs/` — `spec.md` (every filled section, not just Functional), `plan.md` (the approved change surface), and `tasks.md` (gate results) — to verify the implementation matches all the requirements and stays inside its approved scope. Read `docs/CONSTITUTION.md`. Read committed pre-implementable docs (admin guides, API contracts, end-user copy) to verify they still match the implementation. Read additional docs (architecture, security) only if the review touches those areas.
 
 ## Review checklist
 

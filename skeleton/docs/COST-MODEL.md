@@ -174,7 +174,7 @@ Configure models with these aliases everywhere Claude Code takes one: `.claude/s
 ### Decision rules
 
 - **Default to Sonnet** for work with a clear spec and a way to check the result — most work, once the lanes route it.
-- **Use Haiku** for well-defined, bounded work that runs in its own small context: subagents for convention checks and most reviews, classification, routing, simple lookups. Inside a long main conversation, switching to Haiku for one step costs more than it saves — the cache is per model.
+- **Use Haiku** for well-defined, bounded work that runs in its own small context: subagents for convention checks, classification, routing, simple lookups. Inside a long main conversation, switching to Haiku for one step costs more than it saves — the cache is per model.
 - **Use Opus** where judgment is the work: the full lane up to the gate, ambiguous requirements, long-horizon changes, architecture, a bug that resists two hypotheses — and when Sonnet at `high` effort keeps producing inadequate output.
 - **Don't escalate "just in case"** — Opus on tasks Sonnet handles well is pure waste. The framework's anti-rationalization tables, plan-then-execute gates, and verification checklists do most of the quality work that escalation would otherwise paper over.
 

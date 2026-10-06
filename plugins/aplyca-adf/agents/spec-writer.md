@@ -23,7 +23,7 @@ This project uses the **multi-perspective spec model** (`${CLAUDE_PLUGIN_ROOT}/d
 
 ## Before you start
 
-Read `AGENTS.md`, `CLAUDE.md`, `${CLAUDE_PLUGIN_ROOT}/docs/SPEC-MODEL.md`, and `specs/README.md`. Search `specs/` for an
+Read `${CLAUDE_PLUGIN_ROOT}/docs/SPEC-MODEL.md` and `specs/README.md`. Search `specs/` for an
 existing folder covering this feature — a delivered feature is **amended** with a change request,
 never re-specified in a new folder. Read `docs/GLOSSARY.md` for terminology.
 

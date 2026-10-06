@@ -25,7 +25,7 @@ You do not fix anything. You report gaps with evidence; the author fixes them.
 
 ## Before you start
 
-Read `AGENTS.md`, `docs/CONSTITUTION.md`, `specs/README.md`, and `${CLAUDE_PLUGIN_ROOT}/docs/SPEC-MODEL.md`. Then read the
+Read `docs/CONSTITUTION.md`, `specs/README.md`, and `${CLAUDE_PLUGIN_ROOT}/docs/SPEC-MODEL.md`. Then read the
 whole spec folder: `spec.md` (every section, including any `CR N` change request), `plan.md`, and
 `tasks.md`. Read nested `AGENTS.md` files and `docs/reference/` pages for the areas the plan touches.
 
