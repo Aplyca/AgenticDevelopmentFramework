@@ -38,6 +38,6 @@ paths:
 - Use multi-stage builds for production images.
 
 ## CI/CD (if applicable)
-- Tests must pass before merge.
+- Tests pass before merge; a failure the reviewer accepts is explained in the pull request.
 - Use the same test configuration locally and in CI.
 - Never skip hooks or checks in CI (`--no-verify`, `--force`).

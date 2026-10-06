@@ -32,15 +32,21 @@ habits that cost tokens:
 - **Two rule fixes.** `code-quality.md` said a commit message explains "why, not what", against
   `git-workflow.md` and `/commit`. It now says the subject says what changed. `deployment.md`'s caps
   "NEVER" became a plain rule with its reason.
+- **Do failing tests block a merge?** `deployment.md` said "Tests must pass before merge", while
+  `git-workflow.md` called red checks "information". Both now say the same thing: tests pass before
+  merge, and a failure the reviewer accepts is explained in the pull request. The review stays the
+  gate.
 
 **Upgrade impact:**
 
 - **Overwrite** the eight agents, `.claude/skills/orchestrate/SKILL.md`,
-  `.claude/workflows/deep-spec-analysis.js` and `deep-review.js`, and `.claude/rules/code-quality.md`.
+  `.claude/workflows/deep-spec-analysis.js` and `deep-review.js`, `.claude/rules/code-quality.md`, and
+  `.claude/rules/git-workflow.md`.
   A committed project also overwrites `docs/COST-MODEL.md`.
-- **Merge** the one changed line in `.claude/rules/deployment.md`.
+- **Merge** the two changed lines in `.claude/rules/deployment.md`.
 - **A packaged project** gets the agents, the skill, the workflows, and the cost model with its next
-  pin. It merges the two rule files, which it commits.
+  pin. It overwrites `code-quality.md` and `git-workflow.md` and merges `deployment.md`, since a project
+  commits its rules either way.
 
 ## v1.2.0 — 2026-10-05 — The reference docs come from the plugin
 
