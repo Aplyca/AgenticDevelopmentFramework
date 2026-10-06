@@ -34,6 +34,10 @@ From v1.0.0, each release is `vMAJOR.MINOR.PATCH`:
 - **MINOR** — new capabilities that are additive or opt-in: a skill, a module, an install mode.
 - **PATCH** — fixes that change no workflow.
 
+*Clarified 2026-10-06:* "has to act" means something stops working until the team acts, as with the
+plugin's rename. A migration step that `/aplyca-adf:upgrade` carries out, or a changed rule in an
+opt-in module, makes a minor release: v1.2.0 and v1.3.0 shipped both that way.
+
 Where it shows:
 
 - **The changelog heading:** `## v1.0.0 — 2026-10-02 — <title>`.

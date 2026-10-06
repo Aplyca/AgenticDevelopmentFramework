@@ -11,6 +11,24 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.3.0 — 2026-10-06 — Every task goes through `/dispatch`
+
+A minor release for teams with the `parallel-agents` module
+([#37](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/37), decision 0020). The session in
+the main checkout now takes every task and hands it to a new session in a worktree of its own, by the
+route the project's `worktree.conf` gives. The plugin now carries `/dispatch`. Nothing changes for a
+project without the module.
+
+**Upgrading from v1.2.x:** `/aplyca-adf:upgrade` moves the pin to `v1.3.0`. In a project with the
+module it also:
+- overwrites `/dispatch` and merges `docs/PARALLEL-AGENTS.md`. A committed project also overwrites the
+  hooks and `/spec-workflow` it commits;
+- in a packaged project, deletes the committed `.claude/skills/dispatch/` where it's unchanged since the
+  baseline. Type `/aplyca-adf:dispatch` from then on.
+
+A project whose worktrees need a port or setup now takes every task through the scripts. Ask for a
+chip for a task that won't run the app.
+
 ### Every task goes through `/dispatch` in the main checkout
 
 ([0020](docs/decisions/0020-every-task-through-dispatch.md), amending [0008](docs/decisions/0008-dispatcher-and-worker-worktrees.md) and [0015](docs/decisions/0015-tool-worktrees-are-workers.md))
