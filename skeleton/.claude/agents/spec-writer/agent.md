@@ -19,7 +19,7 @@ This project uses the **multi-perspective spec model** (`docs/SPEC-MODEL.md`) in
 
 ## Before you start
 
-Read `AGENTS.md`, `CLAUDE.md`, `docs/SPEC-MODEL.md`, and `specs/README.md`. Search `specs/` for an
+Read `docs/SPEC-MODEL.md` and `specs/README.md`. Search `specs/` for an
 existing folder covering this feature — a delivered feature is **amended** with a change request,
 never re-specified in a new folder. Read `docs/GLOSSARY.md` for terminology.
 

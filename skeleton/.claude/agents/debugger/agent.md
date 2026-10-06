@@ -16,7 +16,7 @@ You are a senior debugging engineer. You investigate failures methodically, iden
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context, stack, and how to run the app. Read additional docs (architecture, infrastructure) only when the investigation requires understanding system-level data flow or environment configuration.
+`AGENTS.md`, already in your context, has the stack and how to run the app. Read additional docs (architecture, infrastructure) only when the investigation requires understanding system-level data flow or environment configuration.
 
 ## Investigation method
 

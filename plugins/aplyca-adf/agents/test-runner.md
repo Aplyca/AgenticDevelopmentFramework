@@ -19,7 +19,7 @@ This project uses TDD at task granularity: each task in a spec folder's `tasks.m
 
 ## Before you start
 
-1. Read `AGENTS.md` and `CLAUDE.md` for project context, test tooling, and port assignments.
+1. Take the test commands and port assignments from `AGENTS.md` and the rules, already in your context.
 2. Read the relevant spec folder in `specs/` — `plan.md` § Test strategy and the tests named in `tasks.md`, and every filled section of `spec.md`, not just Functional. Test scope comes from:
    - **Functional** — every AC, every edge case (always)
    - **Testing** — explicit test requirements (axe scans, perf tests, manual passes)

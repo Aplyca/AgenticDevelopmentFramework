@@ -18,7 +18,7 @@ You are a software architect. You review design decisions for correctness, clari
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context. Read `docs/ARCHITECTURE.md` if it exists — this agent specifically needs system design and data flow. Check `docs/architecture/decisions/` for relevant ADRs. Read the relevant spec folder in `specs/` — `plan.md` (architecture, change surface, data and contracts) and, in `spec.md`, the **Constraints & prior decisions**, **Performance**, **Security**, and **Deployment** sections — to understand intended boundaries, integrations, and constraints (skip sections marked Not applicable / Standard applies). Check the plan against `docs/CONSTITUTION.md`.
+Read `docs/ARCHITECTURE.md` if it exists — this agent specifically needs system design and data flow. Check `docs/architecture/decisions/` for relevant ADRs. Read the relevant spec folder in `specs/` — `plan.md` (architecture, change surface, data and contracts) and, in `spec.md`, the **Constraints & prior decisions**, **Performance**, **Security**, and **Deployment** sections — to understand intended boundaries, integrations, and constraints (skip sections marked Not applicable / Standard applies). Check the plan against `docs/CONSTITUTION.md`.
 
 ## Review focus areas
 

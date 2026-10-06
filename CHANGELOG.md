@@ -11,6 +11,43 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### Drift the prompt audit found
+
+A prompt audit of the framework's instruction files found nothing written for older models: no
+pressure language, thinking scaffolds, word caps, or retired model names, and every command, path,
+and section the files name resolves. It did find text that later decisions had left behind, and two
+habits that cost tokens:
+
+- **`/orchestrate` gave the wrong models.** It named Haiku for the reviewers and `@architect`, and its
+  example plan priced a review at "~3 Haiku-tier invocations". The reviewers have run on Sonnet since
+  the model-choice decision, and `@architect` and `@spec-analyzer` on Opus. The skill now states each
+  agent's real model, and takes its cost estimate from the cost model.
+- **`COST-MODEL.md`** recommended Haiku for "most reviews", against its own per-agent table.
+- **Every agent re-read files it already had.** Each one started by reading `AGENTS.md` and
+  `CLAUDE.md`, which Claude Code already loads into a subagent's context. The agents now read only
+  the docs their task needs.
+- **Two workflows reorder their prompts.** `/deep-spec-analysis` and `/deep-review` now put the
+  context all their agents share ahead of each agent's own task, so the agents of one run can reuse
+  a cached prompt prefix.
+- **Two rule fixes.** `code-quality.md` said a commit message explains "why, not what", against
+  `git-workflow.md` and `/commit`. It now says the subject says what changed. `deployment.md`'s caps
+  "NEVER" became a plain rule with its reason.
+- **Do failing tests block a merge?** `deployment.md` said "Tests must pass before merge", while
+  `git-workflow.md` called red checks "information". Both now say the same thing: tests pass before
+  merge, and a failure the reviewer accepts is explained in the pull request. The review stays the
+  gate.
+
+**Upgrade impact:**
+
+- **Overwrite** the eight agents, `.claude/skills/orchestrate/SKILL.md`,
+  `.claude/workflows/deep-spec-analysis.js` and `deep-review.js`, `.claude/rules/code-quality.md`, and
+  `.claude/rules/git-workflow.md`.
+  A committed project also overwrites `docs/COST-MODEL.md`.
+- **Merge** the two changed lines in `.claude/rules/deployment.md`.
+- **A packaged project** gets the agents, the skill, the workflows, and the cost model with its next
+  pin. It overwrites `code-quality.md` and `git-workflow.md` and merges `deployment.md`, since a project
+  commits its rules either way.
+
 ## v1.2.0 — 2026-10-05 — The reference docs come from the plugin
 
 A minor release. A packaged project no longer commits the framework's four reference docs: it reads

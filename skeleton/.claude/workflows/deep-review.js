@@ -94,7 +94,7 @@ if (scope.hasDocs) {
 const reviewed = await pipeline(
   DIMENSIONS,
   (dimension) =>
-    agent(`${dimension.prompt}\n\n${context}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA }).then(
+    agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA }).then(
       (result) => ({ dimension: dimension.key, checked: result ? result.checked : 'reviewer did not return', findings: result ? result.findings : [] }),
     ),
   (review) =>

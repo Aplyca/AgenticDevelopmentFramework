@@ -84,7 +84,7 @@ const LENSES = [
 const analyzed = await pipeline(
   LENSES,
   (lens) =>
-    agent(`${lens.prompt}\n\n${context}`, { label: `analyze:${lens.key}`, phase: 'Analyze', schema: FINDINGS_SCHEMA }).then(
+    agent(`${context}\n\n${lens.prompt}`, { label: `analyze:${lens.key}`, phase: 'Analyze', schema: FINDINGS_SCHEMA }).then(
       (result) => ({ lens: lens.key, checked: result ? result.checked : 'analyzer did not return', findings: result ? result.findings : [] }),
     ),
   (analysis) =>

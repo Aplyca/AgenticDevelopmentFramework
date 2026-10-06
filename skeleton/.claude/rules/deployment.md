@@ -24,7 +24,7 @@ paths:
 ## Port assignments
 <!-- CUSTOMIZE: List your port assignments -->
 - Development server: port XXXX
-- Test server: port YYYY (NEVER use the dev port for tests)
+- Test server: port YYYY — never the dev port, so a test run doesn't collide with the running dev server
 - Services: list each with its port
 
 ## Environment variables
@@ -38,6 +38,6 @@ paths:
 - Use multi-stage builds for production images.
 
 ## CI/CD (if applicable)
-- Tests must pass before merge.
+- Tests pass before merge; a failure the reviewer accepts is explained in the pull request.
 - Use the same test configuration locally and in CI.
 - Never skip hooks or checks in CI (`--no-verify`, `--force`).

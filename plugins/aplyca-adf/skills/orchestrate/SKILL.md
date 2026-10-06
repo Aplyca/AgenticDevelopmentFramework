@@ -53,22 +53,19 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
    Rule of thumb: review agents (code, security, UX) examining the SAME diff are independent → parallel. An agent whose input is another agent's output is dependent → sequential. Most review work is parallel.
 
-4. **Determine model tiering** — each agent has a default model alias in its `agent.md` frontmatter. Don't override unless you have a specific reason. The defaults already tier sensibly:
-   - `@aplyca-adf:code-reviewer`, `@aplyca-adf:security-reviewer`, `@aplyca-adf:ux-reviewer`, `@aplyca-adf:architect` → `haiku` (well-bounded review)
-   - `@aplyca-adf:spec-writer`, `@aplyca-adf:test-runner`, `@aplyca-adf:debugger`, `@aplyca-adf:spec-analyzer` → `sonnet` (reasoning-heavy)
-   See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the full per-agent recommendations and trade-offs.
+4. **Determine model tiering** — each agent's `agent.md` frontmatter sets its model alias; don't override it without a specific reason. The reviewers, `@aplyca-adf:spec-writer`, `@aplyca-adf:test-runner`, and `@aplyca-adf:debugger` run on `sonnet`; `@aplyca-adf:spec-analyzer` and `@aplyca-adf:architect` on `opus`. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the per-agent reasons and trade-offs.
 
 5. **Present the orchestration plan**:
    ```
    Orchestration plan: review the diff for PR #142 (newsletter signup)
 
    Agents (parallel):
-     - @aplyca-adf:code-reviewer (haiku)    — quality, conventions, complexity
-     - @aplyca-adf:security-reviewer (haiku) — input validation, secret handling, rate-limit
-     - @aplyca-adf:ux-reviewer (haiku)       — UI changes affect the form component
+     - @aplyca-adf:code-reviewer (sonnet)     — quality, conventions, complexity
+     - @aplyca-adf:security-reviewer (sonnet) — input validation, secret handling, rate-limit
+     - @aplyca-adf:ux-reviewer (sonnet)       — UI changes affect the form component
 
-   Estimated cost: ~3 Haiku-tier invocations (~minimal)
-   Expected wall-clock: <30s (parallel)
+   Estimated cost: 3 Sonnet invocations, each starting from a fresh context
+   Expected wall-clock: about as long as the slowest agent (parallel)
 
    Synthesis: I'll combine findings, deduplicate, sort by severity,
    present a unified report.
@@ -111,12 +108,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
 ## Cost considerations
 
-Orchestration costs more than `/aplyca-adf:review` because each agent has its own context window and full system prompt overhead. For a typical PR review:
-
-- `/aplyca-adf:review` (single context): ~5-10k input + ~2-5k output, mostly cached
-- `/aplyca-adf:orchestrate review` (3 parallel agents, Haiku-tier): ~15-25k input + ~5-10k output (each agent independently)
-
-Roughly 2-3× the cost. Worth it for high-stakes diffs; overkill for trivial ones. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the full cost model.
+Orchestration costs more than `/aplyca-adf:review`, which runs in this conversation and is mostly cached: each agent starts from a fresh context of about 50–60k tokens before it reads the diff (`${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Effort), so `/aplyca-adf:orchestrate review` pays that start-up three times on Sonnet, plus each agent's own reads. Worth it for high-stakes diffs; overkill for trivial ones.
 
 ## Verification
 

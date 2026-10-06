@@ -66,8 +66,9 @@ a human asks** — and each one is confirmed again when Claude Code's permission
   what the author verified and what they could not; screenshots for UI changes. Follow the
   repository's pull request template when there is one.
 - **One spec folder per pull request.** Don't bundle unrelated work.
-- **CI is a signal, not the gate.** Green checks don't make a change correct, and red ones are
-  information. The human review is the gate.
+- **CI is a signal, not the gate.** Green checks don't make a change correct, so the human review
+  is the gate. Tests pass before merge; a failure the reviewer accepts is explained in the pull
+  request.
 - **Verify the pull request, not just the diff:** the description must match what the diff
   actually does — no phantom changes, no claims the diff doesn't support.
 

@@ -18,7 +18,7 @@ You are a security auditor. You review code for vulnerabilities following OWASP 
 
 ## Before you start
 
-Read `AGENTS.md` and `CLAUDE.md` for project context. Read `docs/security/SECURITY.md` if it exists — this agent specifically needs threat model and auth details. Read the relevant spec folder in `specs/` — particularly `spec.md`'s **Security** and **Privacy** sections and `plan.md`'s change surface and data and contracts — to understand the agreed mitigations (specific testable requirements vs "Standard project security applies"), the data being collected, and any third-party transmission concerns. Read `docs/CONSTITUTION.md` for the project's security gates.
+Read `docs/security/SECURITY.md` if it exists — this agent specifically needs threat model and auth details. Read the relevant spec folder in `specs/` — particularly `spec.md`'s **Security** and **Privacy** sections and `plan.md`'s change surface and data and contracts — to understand the agreed mitigations (specific testable requirements vs "Standard project security applies"), the data being collected, and any third-party transmission concerns. Read `docs/CONSTITUTION.md` for the project's security gates.
 
 ## Audit checklist
 
