@@ -11,6 +11,32 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v1.4.0 — 2026-10-06 — The developer approves a change locally, and that opens its draft pull request
+
+A minor release with two changes:
+
+- **Every project gets the local check**
+  ([#40](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/40), decision 0022). When a change
+  alters something a person can see or use, the developer tests it by hand on the local environment
+  and approves it. That approval opens the draft pull request: the agent pushes and runs `/open-pr`
+  without another prompt, and `guard-git.sh` refuses a pull request that isn't a draft. Marking it
+  ready, merging, and every other outward action still ask.
+- **Teams with the `parallel-agents` module** get a lighter hand-off
+  ([#39](https://github.com/Aplyca/AgenticDevelopmentFramework/pull/39), decision 0021). `/dispatch`
+  only names the task and offers a chip. The new session creates the task's worktree beside the main
+  checkout, on a new branch, and moves into it.
+
+**Upgrading from v1.3.x:** `/aplyca-adf:upgrade` moves the pin to `v1.4.0`. It:
+- overwrites the git-workflow rule. A committed project also overwrites `/open-pr`, `/implement`,
+  `/commit`, `/spec-workflow`, `guard-git.sh`, `session-context.sh`, `protect-hub.sh`, the hooks
+  README, and, with the module, `/dispatch`; a packaged project gets them with the pin;
+- merges `AGENTS.md`, `CLAUDE.md`, `specs/README.md`, and `README.md`, and, with the module,
+  `docs/PARALLEL-AGENTS.md`.
+
+Removing the four `git push` and `gh pr create` rules from `permissions.ask` in
+`.claude/settings.json` is optional. While they stay, the agent still asks before that push and that
+draft.
+
 ### `/dispatch` hands every task to a new session that creates its worktree beside the main checkout
 
 ([0021](docs/decisions/0021-sibling-worktree-and-chip.md), amending [0020](docs/decisions/0020-every-task-through-dispatch.md))
