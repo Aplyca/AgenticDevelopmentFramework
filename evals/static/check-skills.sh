@@ -74,7 +74,7 @@ frontmatter() {
 # Skills that carry the full discipline: rationalizations table + verification checklist.
 DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
-OUTWARD_SKILLS="open-pr"
+OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
 # Skills that may start from a plain request but post only after showing the draft.
 DRAFT_FIRST_SKILLS="stakeholder-update"
 
@@ -289,14 +289,16 @@ for event, entries in settings.get("hooks", {}).items():
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
 asks = " ".join(settings.get("permissions", {}).get("ask", []))
-for outward in ("git push", "gh pr create", "gh pr ready", "gh pr merge"):
+# The work branch's push and its draft pull request follow the developer's local check (decision
+# 0022); everything else that leaves the machine still asks.
+for outward in ("gh pr ready", "gh pr merge", "gh pr comment", "gh issue comment", "gh release"):
     if outward not in asks:
         problems.append(f"permissions.ask does not cover '{outward}'")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions in permissions.ask"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -606,6 +608,10 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'Declined before' || missing+=("/triage: declined-before check")
     file_contains "$SKELETON/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
+    file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
+    file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" 'branch name is generated' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")
     [ -f "$MODULES_DIR/parallel-agents/files/.worktreeinclude" ] || missing+=("parallel-agents: .worktreeinclude")
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: the worker's prompt has it create the task's worktree with the scripts (0021)")

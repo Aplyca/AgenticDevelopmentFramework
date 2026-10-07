@@ -50,7 +50,8 @@ The full lane flows:
 | Docs first | `/write-docs` | Pre-implementable docs; skips cleanly when there are none | `docs:` |
 | Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
-| Deliver, when asked | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified | — |
+| Local check | You, on the local environment | You test the change by hand and approve it | — |
+| Deliver, on your approval | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and your local check | — |
 | Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
@@ -110,9 +111,10 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
-| A person confirms pushes, pull request and issue writes, releases, GitHub API writes | `permissions.ask` |
+| A person confirms marking a pull request ready, merges, comments, issue writes, releases, GitHub API writes | `permissions.ask` |
+| Pull requests open only as drafts — the agent opens the draft itself once you approve the local check | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/open-pr` starts only when a person types it; `/stakeholder-update` also starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |
+| `/stakeholder-update` starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
 | Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
@@ -247,7 +249,9 @@ One person drives; another plays marketing, the requester.
 4. Read the *Gate results* in `tasks.md`: red then green per task, commands and counts, what couldn't
    run and why. A claim without evidence doesn't count.
 5. Run `/review` and fix what it finds.
-6. With a remote, type `/open-pr`. Claude Code asks before the push; the pull request opens as a
+6. The local check: the agent starts the change on your machine and gives you the URL and what to
+   try. Test it by hand and approve it.
+7. With a remote, your approval opens the pull request: the agent runs `/open-pr`, and it opens as a
    draft. QC it yourself — the preview, if you have one — then mark it ready.
 
 ## Week 2: The full workflow in practice
@@ -374,7 +378,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | Tests outside the loop — contract-first, coverage, bug reproduction | `/write-tests` |
 | Review against the spec folder | `/review` |
 | One clean commit | `/commit` |
-| Push and open a draft pull request (you type it) | `/open-pr` |
+| Push and open a draft pull request (on its own, after your local-check approval) | `/open-pr` |
 | Draft the requester's update ("update the client", or type it) | `/stakeholder-update` |
 | Record an ADR or PDR | `/record-decision` |
 | Root-cause a bug | `/debug` |

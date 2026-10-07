@@ -54,10 +54,16 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
 
 Pushing, opening a pull request, marking it ready, merging, tagging, releasing, and commenting
 on a pull request, issue, or tracker task all leave this machine. An agent does them **only when
-a human asks** — and each one is confirmed again when Claude Code's permissions prompt.
+a human asks** — and each one is confirmed again when Claude Code's permissions prompt. One
+exception: once the developer approves the local check (`AGENTS.md` § Delivery rules) — or, with
+nothing to run, once the full gate and `/review` pass — the agent pushes the work branch and opens
+its **draft** pull request on its own; the git guard hook refuses a pull request that isn't a draft.
 
 ## Pull requests
 
+- **Open after the local check.** When the change alters something a person can see or use, the
+  developer tests it by hand on the local environment and approves it before the pull request
+  opens (`AGENTS.md` § Delivery rules).
 - **Open as a draft.** Promote to ready only after a human has exercised the change (preview,
   manual QC). An agent never marks a pull request ready on its own initiative — it hasn't seen the
   result; it runs `gh pr ready` only when the developer, having QC'd the change, asks it to.

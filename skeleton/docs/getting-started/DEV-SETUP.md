@@ -114,7 +114,7 @@ Key commands:
 - `/write-spec [feature]` → `/write-plan [spec folder]` — spec, plan, and the approval gate
 - `/implement [spec folder]` — one task at a time: test red, code, test green, commit
 - `/review` — review a change before delivering it
-- `/open-pr` — push and open a draft pull request (only when you ask)
+- `/open-pr` — push and open a draft pull request (on its own, once you approve the local check)
 - `@code-reviewer review [file]` — an isolated, read-only review
 - `@debugger [error message]` — investigate a bug
 

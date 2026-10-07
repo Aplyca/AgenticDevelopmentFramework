@@ -39,7 +39,9 @@ implementation; invest in them early.
    behavior (a fix that restores documented behavior needs none).
 6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
    fails, or no test can prove the change.
-7. **Deliver when asked** — a draft pull request stating the lane (`/open-pr`); the human review and
+7. **Local check** — when the change alters something a person can see or use, the developer tests
+   it by hand on the local environment and approves it.
+8. **Deliver** — on the developer's approval, a draft pull request stating the lane (`/open-pr`); the human review and
    QC are the gate.
 
 ## Workflow 2: Feature or behavior change (full lane)
@@ -53,8 +55,9 @@ implementation; invest in them early.
 | 5 | Docs first | `/write-docs` | Pre-implementable docs | `docs:` |
 | 6 | Implement, per task | `/implement` (`/write-tests` inside) | Test + code per task | `feat:` / `fix:` per task |
 | 7 | Reconcile + verify | `/implement`, `/review` | Docs updated; `tasks.md` § Gate results | `docs:` |
-| 8 | Deliver (when asked) | `/open-pr` | Draft pull request | — |
-| 9 | Close the loop (when asked) | `/stakeholder-update` | Requester-facing message | — |
+| 8 | Local check | The developer, on the local environment | Their approval | — |
+| 9 | Deliver (on the developer's approval) | `/open-pr` | Draft pull request | — |
+| 10 | Close the loop (when asked) | `/stakeholder-update` | Requester-facing message | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change
@@ -84,7 +87,7 @@ request:
    comments since its last change); append `CR N`; new ACs tagged `(CR N)`.
 3. `/write-plan` adds the CR's plan and tasks; same gate; `approvals:` gets a `CR N` line.
 4. Then the rest of Workflow 2: docs first when documented behavior changes, the per-task loop, gate
-   results, review, a draft pull request when asked — on a fresh branch (`<type>/<slug>-<change>`),
+   results, review, the local check, and the draft pull request it approves — on a fresh branch (`<type>/<slug>-<change>`),
    with a new pull request, in the **same folder**. If the delta can't be recovered — ask.
 
 ## Workflow 4: Answer-only task (investigation, impact analysis, estimate)
