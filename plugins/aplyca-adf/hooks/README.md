@@ -6,7 +6,7 @@ depending on what the model decides. They are wired in `../settings.json`.
 
 | Hook | Event | What it does |
 |---|---|---|
-| `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — whether this session is a dispatcher or a worker, the route a dispatcher's tasks take, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup) |
+| `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — whether this session is a dispatcher or a worker, where a dispatcher's tasks get their worktrees, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup) |
 | `guard-git.sh` | PreToolUse · Bash | Blocks `--no-verify` (and `git commit -n`), commits on protected branches, and pushes, force-pushes, or deletes targeting protected branches |
 | `protect-paths.sh` | PreToolUse · Edit/Write | Blocks hand-edits to generated files (lockfiles, generated types) and modifications to existing files in append-only history (migrations) |
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |

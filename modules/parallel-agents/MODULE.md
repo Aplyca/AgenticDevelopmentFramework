@@ -14,18 +14,17 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 | `scripts/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
 | `scripts/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
 | `scripts/agent/_worktree-lib.sh` | Shared helpers |
-| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session in its own worktree, by the project's route |
+| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout, creates its worktree beside it with the scripts, and hands it to a new session there |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
 | `docs/PARALLEL-AGENTS.md` | The dispatcher/worker process, the scripts, shared vs isolated services |
 
-Every task goes through `/dispatch` in the main checkout (decision 0020), and the project's settings
-pick its route: **Claude Code's worktree** — a task chip in the desktop app, or `claude --worktree` —
-when the project's worktrees need nothing from the scripts, or **the scripts' worktree**, handed over
-as a prompt to paste, when they need a port, setup or start commands, or a base branch other than the
-default. The developer can pick the other route for one task. With the module installed, the core
-session-context hook announces each session's role — dispatcher in the main checkout, with its
-project's route, and worker in any worktree — and, in a worktree the scripts didn't set up, what it
-lacks: a task branch name, the env file, or the scripts' setup. The core `protect-hub.sh`
+Every task goes through `/dispatch` in the main checkout (decisions 0020, 0021). It creates the
+task's worktree beside the main checkout with `worktree-new.sh --no-start` and hands it to a new
+session there: a task chip pointed at that folder in the desktop app, a `cd <worktree> && claude`
+command in a terminal, or a prompt to paste. With the module installed, the core session-context hook
+announces each session's role — dispatcher in the main checkout, worker in any worktree — and, in a
+worktree the scripts didn't set up, what it lacks: a task branch name, the env file, or the scripts'
+setup. The core `protect-hub.sh`
 hook stops file edits in the main checkout once the module is there. The core `/handoff` skill
 covers passing work in progress on.
 

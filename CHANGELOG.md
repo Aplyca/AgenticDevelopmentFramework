@@ -11,6 +11,37 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### `/dispatch` creates every task's worktree beside the main checkout and hands it over with a chip
+
+([0021](docs/decisions/0021-sibling-worktree-and-chip.md), amending [0020](docs/decisions/0020-every-task-through-dispatch.md))
+
+v1.3.0 gave each project one of two routes. The first real dispatches showed that a task chip doesn't
+create a worktree unless the developer picks that option on the card, and that a chip opens its
+session in whatever folder it's given. A team also asked for every worktree beside the main checkout.
+So there's one route now:
+
+- **The scripts create every task's worktree.** `worktree-new.sh <type>/<slug> --no-start` makes it
+  beside the main checkout, named after the branch, with the env file and, where the project uses
+  them, a port. The branch has its `<type>/<slug>` name from the start.
+- **A chip pointed at that folder hands it over.** The developer starts it in that folder, not in a
+  new worktree. Its title carries the branch, since the app shows the title, not the folder, for such a
+  session. In a terminal it's `cd <worktree> && claude "<prompt>"`. If the new session's first lines
+  say DISPATCHER, it opened in the main checkout, and the fallback is the pasted prompt.
+- **The route choice by project, and the per-task override, go.**
+
+Three probes (desktop app 2.19675.0, Claude Code 2.1.286) are in the decision record. The
+session-context hook's dispatcher line now says what `/dispatch` does and names the base branch.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/skills/dispatch/SKILL.md` (module; a packaged project gets it with its pin)
+  and, in a committed project, `.claude/hooks/session-context.sh` and `.claude/hooks/README.md`.
+- **Merge** `docs/PARALLEL-AGENTS.md`: its roles and routes sections changed. Your § Shared services
+  stays.
+- Nothing to migrate. Worktrees made before stay workers. A project whose worktrees took Claude Code's
+  route now gets worktrees beside the main checkout. Check `WORKTREE_PARENT` in `worktree.conf` if
+  the main checkout's folder isn't one of its own.
+
 ## v1.3.0 — 2026-10-06 — Every task goes through `/dispatch`
 
 A minor release for teams with the `parallel-agents` module

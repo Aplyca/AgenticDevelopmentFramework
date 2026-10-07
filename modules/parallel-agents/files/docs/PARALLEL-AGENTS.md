@@ -10,8 +10,8 @@ the project needs them, its own copy of the env file and a port of its own.
 
 | | Main checkout — **dispatcher** | A worktree — **worker** |
 |---|---|---|
-| Where | The clone itself | Any linked worktree: Claude Code's own, or a sibling the scripts create (`../feat-newsletter-signup`) |
-| Does | Takes every task with `/dispatch` and hands it to a new session in a worktree of its own, by the project's route (§ Two routes) | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
+| Where | The clone itself | Any linked worktree — normally a sibling the scripts create (`../feat-newsletter-signup`) |
+| Does | Takes every task with `/dispatch`: creates its worktree and hands it to a new session there (§ How a task gets its worktree) | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
 | Never | Reads code, analyzes, edits, starts anything | Goes back to the hub to work |
 | Network | Reads only (the task, `git fetch`) | Whatever the workflow allows — outward actions only when asked |
 
@@ -20,35 +20,35 @@ hook holds the dispatcher to it: a file edit in the main checkout is stopped (`H
 `.claude/hooks/config.sh`). The same goes for maintenance such as a framework upgrade — dispatch it
 to a worktree of its own like any other task.
 
-## Two routes to a worktree
+## How a task gets its worktree
 
-Every task starts in the main checkout with `/dispatch`, and the project's settings in
-`worktree.conf` pick its route — not the task. Whether a task will run the app is a question for its
-triage, after the hand-off, and a wrong guess at dispatch costs a second dispatch.
+Every task starts in the main checkout with `/dispatch`, and every task takes the same route:
 
-| | Claude Code's worktree | The scripts' worktree |
-|---|---|---|
-| The project's worktrees need | Nothing from the scripts, and tasks start from the default branch | A port, setup or start commands — or tasks start from a branch other than the default |
-| How `/dispatch` hands it over | Desktop app: a task chip the developer starts with one click. Terminal: `claude --worktree <slug> "<prompt>"` | It runs `scripts/agent/worktree-new.sh <type>/<slug> --no-start`, then gives the worktree's path and a prompt to paste into a new session opened on it |
-| Branch | A generated name — the worker renames it after triage: `git branch -m <type>/<slug>` | `<type>/<slug>` from the start |
-| Env file | Copied from the main checkout by `.worktreeinclude` | Seeded from the main checkout by the script |
-| Port, setup, start commands | None | What `worktree.conf` sets |
-| Starts from | The default branch | `BASE_BRANCH`, or `--from <ref>` |
+1. **The scripts create the worktree:** `scripts/agent/worktree-new.sh <type>/<slug> --no-start` makes
+   a sibling of the main checkout named after the branch (`feat/newsletter-signup` →
+   `../feat-newsletter-signup`), on a new branch from `BASE_BRANCH`, with the env file seeded from the
+   main checkout's and, when worktrees run a server, a port reserved. Nothing starts.
+2. **A new session opens there.**
+   - **Desktop app:** a task chip whose folder is the worktree. The developer starts it in that
+     folder, not in a new worktree, with one click. Its title carries the branch
+     (`feat/newsletter-signup · Show the chosen topics after signup`), since the app shows the title,
+     not the folder or branch, for a session started this way.
+   - **Terminal:** `cd <worktree> && claude "<prompt>"`.
+   - **Fallback:** open a new session with the worktree as its folder and paste the prompt.
+3. **The session's first lines confirm it:** `Role: WORKER` and the worktree's path. If they say
+   DISPATCHER, the session opened in the main checkout: close it and take the fallback.
 
-The developer can pick the other route for one task — `/dispatch <task> chip` for a copy change in a
-project whose worktrees run a server, or `scripts` anywhere — but never a chip when tasks start from
-another branch.
+Whether a task will run the app is its triage's question, after the hand-off. The worktree can,
+because the scripts gave it the env file and its port; the worker starts the environment only when a
+step needs it.
 
-**Why the scripts' worktree is never handed over as a chip.** A chip always creates a worktree of its
-own under `.claude/worktrees/`, without the env file, port, or setup, even when it's given the
-scripts' worktree as its folder. A `WorktreeCreate` hook can't change that: it's told neither the
-folder nor the task, and the app skips it when it reuses a parked worktree. So that route costs one
-manual step per task: open a session on the worktree and paste the prompt.
-
-Both kinds are workers, and the session-context hook names what a worktree lacks when it starts: a
-generated branch, the env file, or the scripts' setup. Keep `.worktreeinclude` in step with
-`ENV_FILE`. The desktop app removes its worktrees when a session is archived — or once the pull
-request merges, with auto-archive on; `worktree-rm.sh` removes the scripts'.
+**Claude Code's own worktrees** — a session started with the desktop app's worktree option, a chip
+started in a new worktree, or `claude --worktree` — are workers too, but they sit under
+`.claude/worktrees/`, inside the main checkout, on a generated branch, with no port or setup. The
+session-context hook names what such a worktree lacks. `.worktreeinclude` copies the env file into
+them; keep it in step with `ENV_FILE`. The desktop app removes its own worktrees when a session is
+archived — or once the pull request merges, with auto-archive on; `worktree-rm.sh` removes the
+scripts'.
 
 **Why split them.** The main checkout is shared: an edit, a running process, or a half-finished
 change there gets in the way of everyone who starts next. And analysis done in the hub is thrown
@@ -124,5 +124,5 @@ Claude Code also creates worktrees for subagents with `isolation: worktree` and 
 sessions, under `.claude/worktrees/`. Those are its own, short-lived ones; `.claude/worktrees/` stays
 in `.gitignore` and `.claudeignore`. A task worktree from the desktop app or `claude --worktree`
 lands there too, unless the app's **Worktree location** setting moves it: wherever it is, it's a
-worker (§ Two routes). Archive sessions you're done with, so their worktrees don't pile up —
+worker (§ How a task gets its worktree). Archive sessions you're done with, so their worktrees don't pile up —
 `worktree-ls.sh` flags the ones left on a generated branch or a detached HEAD.

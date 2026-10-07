@@ -1,6 +1,6 @@
 # 0020: Every task goes through `/dispatch` in the main checkout (parallel-agents module)
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0021](0021-sibling-worktree-and-chip.md) (one route: the scripts create every task's worktree beside the main checkout, and a chip pointed at it hands it over)
 - **Date:** 2026-10-06
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — what the dispatcher takes; [0015](0015-tool-worktrees-are-workers.md) — who picks a task's route; [0016](0016-packaged-install.md) — a module's skill comes from the plugin
 
