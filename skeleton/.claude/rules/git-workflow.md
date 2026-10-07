@@ -58,6 +58,9 @@ a human asks** — and each one is confirmed again when Claude Code's permission
 
 ## Pull requests
 
+- **Open after the local check.** When the change alters something a person can see or use, the
+  developer tests it by hand on the local environment and approves it before the pull request
+  opens (`AGENTS.md` § Delivery rules).
 - **Open as a draft.** Promote to ready only after a human has exercised the change (preview,
   manual QC). An agent never marks a pull request ready on its own initiative — it hasn't seen the
   result; it runs `gh pr ready` only when the developer, having QC'd the change, asks it to.

@@ -60,7 +60,8 @@ agents working under the same rules as people:
    plan and its change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
 3. **Approval gate** — scope, change surface, and assumptions are signed off before implementation.
 4. **Docs first, then one task at a time** — each task's test fails first, then passes; one commit per task.
-5. **Review and a draft pull request** (every lane) — QC'd by a person, then marked ready.
+5. **Review, your local check, and a draft pull request** (every lane) — you test the change by hand
+   on the local environment before the pull request opens; it's QC'd on the preview, then marked ready.
 
 How it works in detail: [AGENTS.md](AGENTS.md), [specs/README.md](specs/README.md),
 [docs/SPEC-MODEL.md](docs/SPEC-MODEL.md), and [CONTRIBUTING.md](CONTRIBUTING.md).

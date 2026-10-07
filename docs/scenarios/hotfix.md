@@ -57,7 +57,8 @@ yes on the risky part.
    red-then-green evidence (a hotfix has no `tasks.md`). Hooks run; under pressure is exactly when
    `--no-verify` is tempting, and the guard blocks it anyway.
 
-8. **Quick `/review`, then deliver when asked.** `/open-pr` pushes and opens a **draft** pull
+8. **Quick `/review`, a local check, then deliver when asked.** The developer reproduces the bug's
+   steps on the local environment, sees it fixed, and approves. Then `/open-pr` pushes and opens a **draft** pull
    request; each push and pull request action is confirmed. A human QCs it — the preview, the
    reproduction — and only then is it marked ready, reviewed, and merged. In model B someone also tags
    the patch release and opens the back-merge. The agent does any of these only when asked, never on

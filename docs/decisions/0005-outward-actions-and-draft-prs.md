@@ -1,6 +1,6 @@
 # 0005: Outward actions only on request; pull requests stay drafts until a human QCs them
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0022](0022-local-check-before-the-pull-request.md) (the developer approves a change on the local environment before its pull request opens)
 - **Date:** 2026-10-01
 
 ## Context

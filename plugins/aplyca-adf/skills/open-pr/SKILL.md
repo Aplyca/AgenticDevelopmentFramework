@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Never marks the pull request ready on its own. Use only when the developer asks to push or open a pull request.
+description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Never marks the pull request ready on its own, and never opens it before the developer approved a change they can see or use in a local check. Use only when the developer asks to push or open a pull request.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
 disable-model-invocation: true
 ---
@@ -28,6 +28,12 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    hasn't run since the last commit, run it now (commands in `AGENTS.md` § Quick reference) and
    update the gate results. Anything you can't run — needs a preview, needs a shared service — is
    listed as *not verified*, with the reason.
+
+   Then the **local check** (`AGENTS.md` § Delivery rules). When the change alters something a person
+   can see or use, the developer must have tested it by hand on the local environment and approved it.
+   If they haven't, stop before pushing and offer it: start the environment, give the local URL and
+   what to try — the acceptance criteria, or the fast lane's "done when" — and continue only after
+   their OK. Docs-only, CI-only, and answer-only work has nothing to run and skips it.
 
 3. **Verify the pull request, not just the diff.**
    - `git log --oneline <base>..HEAD` and `git diff --stat <base>...HEAD`: no unrelated files, no
@@ -57,6 +63,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
    ## Verified / not verified
    - Verified: <commands run, counts — from tasks.md § Gate results>
+   - Local check: <what the developer tried on the local environment, and their OK — or "nothing to run">
    - Not verified: <what you could not check, and why — e.g. "UI on the preview deployment">
 
    ## Merge danger
@@ -99,6 +106,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
 | "They asked me to commit, so pushing is implied" | Commit is local; push is outward. Each needs its own ask. |
+| "The tests pass, and the preview will show it" | The developer approves the change on the local environment before the pull request exists. The preview check comes later, before ready. |
 | "I'll post the link on the tracker task while I'm here" | That's a write the requester sees. Confirm the exact text first, every time. |
 
 ## Red flags (stop and reassess)
@@ -107,10 +115,12 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 - The gate hasn't run since the last commit and you were about to describe it as passing.
 - The diff includes `.env` files, credentials, lockfile churn unrelated to the change, or debug code.
 - The tasks in `tasks.md` aren't all ticked and the description doesn't say why.
+- The change alters something a person can see or use, and the developer hasn't approved it locally.
 
 ## Verification
 
 - [ ] The developer asked for the push / pull request in this conversation
+- [ ] The developer approved the change after testing it by hand on the local environment — or it has nothing to run
 - [ ] Opened as a **draft**; not marked ready
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results

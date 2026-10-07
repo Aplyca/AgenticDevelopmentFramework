@@ -87,7 +87,9 @@ adjustment — updating the doc is a normal part of this phase, not an exception
     counts, what you could **not** run and why, pre-existing failures. With every task ticked, set
     `status: implemented` in `spec.md` — it merges with the pull request, so the folder reads as built.
     Commit (`docs: record <slug> gate results`).
-14. **Self-review**, then `/review`. Don't push. Offer `/open-pr` when the developer wants to deliver.
+14. **Self-review**, then `/review`. Don't push. Then the local check (`AGENTS.md` § Delivery rules):
+    start the change on the local environment, give the developer the URL and the acceptance criteria
+    to try, and wait for their approval. Offer `/open-pr` when they want to deliver.
 
 ## Rationalizations (do not accept these)
 

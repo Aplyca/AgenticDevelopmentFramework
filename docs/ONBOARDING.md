@@ -50,7 +50,8 @@ The full lane flows:
 | Docs first | `/write-docs` | Pre-implementable docs; skips cleanly when there are none | `docs:` |
 | Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
-| Deliver, when asked | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified | — |
+| Local check | You, on the local environment | You test the change by hand and approve it | — |
+| Deliver, when asked | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and your local check | — |
 | Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
@@ -247,7 +248,9 @@ One person drives; another plays marketing, the requester.
 4. Read the *Gate results* in `tasks.md`: red then green per task, commands and counts, what couldn't
    run and why. A claim without evidence doesn't count.
 5. Run `/review` and fix what it finds.
-6. With a remote, type `/open-pr`. Claude Code asks before the push; the pull request opens as a
+6. The local check: the agent starts the change on your machine and gives you the URL and what to
+   try. Test it by hand and approve it.
+7. With a remote, type `/open-pr`. Claude Code asks before the push; the pull request opens as a
    draft. QC it yourself — the preview, if you have one — then mark it ready.
 
 ## Week 2: The full workflow in practice

@@ -109,7 +109,8 @@ pull request's review approves the diff, and its URL joins `pull-requests:` as `
    recorded under the CR's part of `tasks.md`, with `status: implemented` once every task is ticked;
    then `/review`.
 
-10. **Deliver when asked.** `/open-pr` pushes and opens a **draft** naming `specs/NNN-<slug>/ (CR N)`
+10. **Local check, then deliver when asked.** The developer tests the change by hand on the local
+    environment and approves it. Then `/open-pr` pushes and opens a **draft** naming `specs/NNN-<slug>/ (CR N)`
     — Claude Code asks you to confirm the push and the pull request — and records its URL in
     `pull-requests:` with `· CR N`. A human QCs the preview before it's marked ready; the agent runs
     `gh pr ready` only if that person asks. For a tracker task, `/stakeholder-update` drafts the reply

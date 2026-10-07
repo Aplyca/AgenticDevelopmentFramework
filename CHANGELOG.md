@@ -11,6 +11,40 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The developer approves a change on the local environment before its pull request opens
+
+([0022](docs/decisions/0022-local-check-before-the-pull-request.md), amending [0005](docs/decisions/0005-outward-actions-and-draft-prs.md))
+
+A new step in every lane, between the review and the pull request: **the local check**.
+
+- **When it applies:** a change alters something a person can see or use.
+- **What the agent does:** starts the change on the local environment and gives the developer the URL
+  and what to try (the acceptance criteria, or the fast lane's "done when").
+- **What the developer does:** tests it by hand and approves it. Only then does the pull request open,
+  and it records what they tried under "Local check".
+- **Skipped** by docs-only, CI-only, and answer-only work, and by refactors.
+- **The preview QC before ready doesn't change.**
+
+`/open-pr` stops without the approval and offers the check. `/implement` ends with it.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/rules/git-workflow.md`, and in a committed project
+  `.claude/skills/open-pr/SKILL.md`, `.claude/skills/implement/SKILL.md`, and
+  `.claude/skills/spec-workflow/SKILL.md`. A packaged project gets the skills with its next pin; it
+  commits the rule either way.
+- **Merge** `AGENTS.md`:
+  - the lanes sentence in § 2;
+  - the new step 7 in § 3;
+  - the new "Local check before the pull request" bullet and the "after the local check" in
+    § Delivery rules.
+- **Merge** `specs/README.md` (the lanes paragraph, the flow line, and the new Local check row) and
+  `README.md` (step 5).
+- **A project that can't run locally:** say so in `AGENTS.md` § Delivery rules, and check on the
+  preview instead.
+- **Several tasks under check at once** need the `parallel-agents` module's per-worktree ports, so
+  their environments don't collide.
+
 ## v1.3.0 — 2026-10-06 — Every task goes through `/dispatch`
 
 A minor release for teams with the `parallel-agents` module
