@@ -11,6 +11,41 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### `/dispatch` hands every task to a new session that creates its worktree beside the main checkout
+
+([0021](docs/decisions/0021-sibling-worktree-and-chip.md), amending [0020](docs/decisions/0020-every-task-through-dispatch.md))
+
+v1.3.0 gave each project one of two routes. The first real dispatches showed that a task chip opens
+its session in a folder and, in our probes, created no worktree even with the card's worktree option.
+A team also asked for every worktree beside the main checkout, a dispatcher that only hands the task
+over, and a session that creates its own worktree and branch. So there's one route now:
+
+- **The dispatcher names the task and hands it over** — a task chip for the main checkout in the
+  desktop app, titled with the branch, or `claude "<prompt>"` in a terminal. Its three-line prompt
+  holds the task, the branch, and the first step. The dispatcher runs nothing.
+- **The new session's first step is the worktree.** `worktree-new.sh <type>/<slug> --no-start` creates
+  it beside the main checkout, named after the branch, on a new branch from the base branch, with the
+  env file and, where the project uses them, a port. Then the session moves in — `change_directory`
+  in the desktop app, which asks the developer to approve the folder once, `EnterWorktree` in a
+  terminal — and confirms with `pwd` before triage.
+- **The session-context hook** tells a session in the main checkout that, when its prompt hands it
+  one task and its branch, it is that task's worker, and what its first step is. Hooks don't run again
+  after the move. The protect-hub hook's message says the same.
+- **The route choice by project, and the per-task override, go.**
+
+The probes (desktop app 2.19675.0, Claude Code 2.1.286) are in the decision record.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/skills/dispatch/SKILL.md` (module; a packaged project gets it with its pin)
+  and, in a committed project, `.claude/hooks/session-context.sh`, `.claude/hooks/protect-hub.sh`, and
+  `.claude/hooks/README.md`.
+- **Merge** `docs/PARALLEL-AGENTS.md`: its roles and routes sections changed. Your § Shared services
+  stays.
+- Nothing to migrate. Worktrees made before stay workers. A project whose worktrees took Claude Code's
+  route now gets worktrees beside the main checkout. Check `WORKTREE_PARENT` in `worktree.conf` if
+  the main checkout's folder isn't one of its own.
+
 ## v1.3.0 — 2026-10-06 — Every task goes through `/dispatch`
 
 A minor release for teams with the `parallel-agents` module

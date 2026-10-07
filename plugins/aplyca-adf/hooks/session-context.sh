@@ -76,15 +76,11 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   main="$(dirname "$common_dir")" # a linked worktree's common dir is absolute: <main checkout>/.git
 
   if [ "$checkout" = "main checkout" ]; then
-    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /aplyca-adf:dispatch: it hands the task to a new session in a worktree of its own."
-    # The project's settings pick the route, not the task (decision 0020).
-    if [ -n "$other_base" ]; then
-      echo "- Route: the scripts' worktree, with a prompt to paste — tasks here start from $base_branch, and Claude Code's own worktrees start from $default_branch."
-    elif [ -n "$needs" ]; then
-      echo "- Route: the scripts' worktree, with a prompt to paste — this project's worktrees need $needs. The developer can ask for a chip for a task that won't run the app."
-    else
-      echo "- Route: Claude Code's worktree — a task chip in the desktop app, or claude --worktree in a terminal."
-    fi
+    # Every task takes one route (decision 0021): /aplyca-adf:dispatch hands it to a new session that opens here,
+    # creates the task's worktree beside this checkout with the scripts, and moves into it. Hooks don't
+    # run again after the move, so the worker's first step is spelled out here.
+    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /aplyca-adf:dispatch: it hands the task to a new session, which creates the task's worktree beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves into it."
+    echo "- A session whose prompt hands it one task and its branch (from /aplyca-adf:dispatch) is that task's worker, not the dispatcher. Its first step is the worktree: scripts/agent/worktree-new.sh <branch> --no-start, then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd before anything else."
   else
     echo "- Role: WORKER. This worktree is yours for one task — start with triage (/aplyca-adf:triage)."
     # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.

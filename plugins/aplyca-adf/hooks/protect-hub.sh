@@ -19,4 +19,4 @@ root="$(repo_root_for "$file")"
 
 [ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 
-block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task to /aplyca-adf:dispatch, which hands it to a new session in a worktree of its own, and make this change from that session."
+block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task to /aplyca-adf:dispatch, which hands it to a new session in a worktree of its own, and make this change from that session. If this session is a dispatched task's worker, create its worktree first (scripts/agent/worktree-new.sh <branch> --no-start) and move this session there."
