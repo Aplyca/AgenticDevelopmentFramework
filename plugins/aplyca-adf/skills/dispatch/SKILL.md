@@ -48,9 +48,9 @@ worktree can, because the scripts give it the env file and, where the project us
 
 3. **Hand it over.**
    - **Desktop app:** offer the task as a task chip for this main checkout, with the worker prompt.
-     Title it with the branch and the task's title — `feat/newsletter-signup-topics · Show the chosen
-     topics after signup` — because the app shows the session's folder, not its branch. Tell the
-     developer to start it in this folder, not in a new worktree: the card's worktree option makes
+     Title it with the task's title alone — `Show the chosen topics after signup` — not the branch:
+     once the session moves into the worktree, the app shows that folder as the session's, and the
+     folder is named after the branch. Tell the developer to start it in this folder, not in a new worktree: the card's worktree option makes
      the app's own worktree under `.claude/worktrees/`, on a generated branch, without the env file,
      port, or setup.
    - **Terminal:** give the developer one command to run in a new terminal, in this main checkout:
@@ -72,6 +72,7 @@ clearing it (`/clear`) between dispatches keeps the hub's session cheap.
 | "It's a one-line fix — I'll just do it here" | The main checkout is shared. A stray edit or a running server here collides with every other session. |
 | "I'll create the worktree here and point the chip at it" | Creating it is the new session's first step: it runs the script and moves in, so the app shows that session in the worktree's folder. The dispatcher runs nothing. |
 | "The chip can make the worktree itself" | The card's worktree option makes the app's own worktree under `.claude/worktrees/`, inside the main checkout, on a generated branch, without the env file, port, or setup. The prompt has the session make the task's worktree with the scripts. |
+| "I'll put the branch in the chip's title so the developer can see it" | The session's folder shows it. Once the session moves in, the app shows the worktree's folder, named after the branch (`../feat-newsletter-signup-topics`). The title is the task's. |
 | "I'll start the environment so it's ready" | The worker may not need one (an answer-only task). It decides after triage. |
 | "I'll open a placeholder issue or take the next spec number for the branch" | That's an outward-facing write, and numbers collide between parallel dispatchers. The slug is the join. |
 | "I'll put the full workflow in the handoff to be safe" | Restated steps drift from `AGENTS.md`. Point at the process; don't copy it. |
@@ -88,7 +89,7 @@ clearing it (`/clear`) between dispatches keeps the hub's session cheap.
 
 - [ ] Only the task's title and type were read
 - [ ] Nothing was run, edited, committed, or posted from the main checkout
-- [ ] The chip is for this main checkout and its title carries the branch — or the developer has the command
+- [ ] The chip is for this main checkout and its title is the task's title, without the branch — or the developer has the command
 - [ ] The worker prompt has the task, the branch, the first step — create the worktree with `worktree-new.sh --no-start` and move into it — and "follow AGENTS.md, starting with triage"; nothing else
 
 ## Principles

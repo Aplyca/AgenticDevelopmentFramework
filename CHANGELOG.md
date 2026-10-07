@@ -11,6 +11,21 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### A dispatched session's title is the task's, without the branch
+
+([0021](docs/decisions/0021-sibling-worktree-and-chip.md), amended)
+
+`/dispatch` titles the task chip with the task's title alone — `Show the chosen topics after
+signup`, not `feat/newsletter-signup-topics · Show the chosen topics after signup`. Once the new
+session moves into its worktree, the desktop app shows that folder as the session's, and the folder
+is named after the branch, so the title doesn't need to repeat it.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/skills/dispatch/SKILL.md` (module; a packaged project gets it with its pin).
+- **Merge** `docs/PARALLEL-AGENTS.md`: one sentence in § How a task gets its worktree.
+- Nothing to migrate. Sessions already started keep their titles.
+
 ## v1.4.0 — 2026-10-06 — The developer approves a change locally, and that opens its draft pull request
 
 A minor release with two changes:
