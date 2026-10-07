@@ -96,7 +96,7 @@ triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE �
 | **Implement** | one commit per task | Write the test, watch it fail, write the code, watch it pass, commit, tick the task (`/implement`) |
 | **Verify** | `tasks.md` § Gate results | Full gate run; `/implement` records the red-then-green evidence and what could not be run; `/review` checks it |
 | **Local check** | the developer's OK | The developer tests the change by hand on the local environment and approves it (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use |
-| **Deliver** | draft PR | Only when asked, after the local check: push and open a **draft** PR naming the spec folder and tracker task (`/open-pr`). A human QCs it and marks it ready. |
+| **Deliver** | draft PR | On the developer's approval in the local check (with nothing to run, once the gate and review pass): push and open a **draft** PR naming the spec folder and tracker task (`/open-pr`). A human QCs it and marks it ready. |
 
 The approval gate sits after the plan on purpose: approving a spec alone is cheap but checks
 the wrong thing — the riskiest part of an agent's convincing analysis is usually **which files

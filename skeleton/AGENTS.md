@@ -15,7 +15,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 `docs/CONSTITUTION.md` holds the non-negotiable principles and **overrides this file** on conflict. Day to day:
 
 - **Don't invent requirements.** When the task or spec leaves something open — a missing criterion, a field that doesn't exist, two requirements that conflict — stop and ask. If you must proceed, state the assumption and surface it in the pull request.
-- **Nothing leaves this machine unless a human asks:** no push, no pull request opened, readied or merged, no tag or release, no tracker comment or chat message.
+- **Nothing leaves this machine unless a human asks** — except the draft pull request, which opens on its own once the developer approves the local check (§ Delivery rules). No other push, no pull request readied or merged, no tag or release, no tracker comment or chat message.
 - **Never bypass the gates** — git hooks (`--no-verify`), lint, typecheck, tests, secret scanning.
 - **Never commit secrets.** Every environment variable the code reads is declared, without its value, in [`.env.example`].
 - **No merge without human review**, AI-generated changes included. CI is a signal; the review is the gate.
@@ -55,7 +55,7 @@ Tests, the hooks, CI, review, and the human checks run in every lane — the dev
 5. **Implement one task at a time** — write the test, run it and **watch it fail**, write the code, run it to **green**, commit, tick the task. One task = one commit. When reality contradicts the plan, update the plan in the same branch; re-confirm with the developer if the change surface grows.
 6. **Reconcile and verify** — bring committed docs in line with what was built, run the full gate, and record the evidence (red-then-green, counts, anything you could not run) under *Gate results* in `tasks.md`. Review before delivering (`/review`).
 7. **Local check** — the developer tests the change by hand on the local environment and approves it (see Delivery rules).
-8. **Deliver only when asked** — push and open a **draft** pull request (see Delivery rules).
+8. **Deliver** — once the developer approves, push and open a **draft** pull request (`/open-pr`), without waiting to be asked.
 
 ### 4. Change request on delivered work
 
@@ -90,7 +90,7 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 
 - **Branches:** `<type>/<slug>` from [`main`] — `<type>` is the commit type, `<slug>` matches the spec folder. Never commit directly to [`main`]. <!-- CUSTOMIZE: integration and release branches — CONTRIBUTING.md holds the full model -->
 - **Commits:** one per green task; prefixes and phase order in `.claude/rules/git-workflow.md`. Don't amend or rewrite pushed history unless asked.
-- **Local check before the pull request:** when a change alters something a person can see or use, start it on the local environment (§ Quick reference), give the developer the local URL and what to try — the acceptance criteria, or the fast lane's "done when" — and wait. The developer tests it by hand and approves it; only then does the pull request open, saying what they checked. A fix found there goes in before the pull request. Docs-only, CI-only, and answer-only work has nothing to run and skips it.
+- **Local check before the pull request:** when a change alters something a person can see or use, start it on the local environment (§ Quick reference), give the developer the local URL and what to try — the acceptance criteria, or the fast lane's "done when" — and wait. The developer tests it by hand and approves it — and that approval opens the **draft** pull request: push and run `/open-pr` without waiting to be asked. A fix found there goes in first, and the check repeats. Docs-only and CI-only work has nothing to run: the draft opens once the full gate and `/review` pass. Answer-only work has no pull request unless the task asks for one.
 - **Pull requests:** open as **drafts**, after the local check; name the spec folder (or the light `CR N`) and link the tracker task; state the lane and why, what you verified, and what you could not. Never mark a pull request ready on your own — a human QCs it (preview, manual check) and promotes it, or asks you to once they have. Ready means "a person has exercised this".
 - **Parallel sessions:** when several agent sessions work at once, each gets its own git worktree; never edit in a checkout another session is using. <!-- CUSTOMIZE: with the parallel-agents module installed, replace with: "In the main checkout you dispatch; you never work — see docs/PARALLEL-AGENTS.md." -->
 

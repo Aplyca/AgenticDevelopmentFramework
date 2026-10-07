@@ -58,6 +58,12 @@ run guard-git.sh 2 "$(bash_event 'git push origin HEAD')" "blocks pushing HEAD f
 run guard-git.sh 0 "$(bash_event 'git push --tags')" "allows a tags-only push"
 run guard-git.sh 0 "$(bash_event 'git pull --ff-only')" "allows pull"
 run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing')" "allows creating a work branch"
+# Decision 0022: the agent opens the pull request on its own, so the draft rule lives here.
+run guard-git.sh 2 "$(bash_event 'gh pr create --title "Add signup" --body-file /tmp/body.md')" "blocks a pull request that isn't a draft"
+run guard-git.sh 0 "$(bash_event 'gh pr create --draft --title "Add signup" --body-file /tmp/body.md')" "allows a draft pull request"
+run guard-git.sh 0 "$(bash_event 'git push -u origin feat/new-thing && gh pr create -d --fill')" "allows a draft by its short flag, after a work-branch push"
+run guard-git.sh 2 "$(bash_event 'gh pr create --title "--draft later" --fill')" "isn't fooled by --draft inside a quoted title"
+run guard-git.sh 0 "$(bash_event 'gh pr view 12 --json state')" "ignores other gh commands"
 
 git -C "$T" switch -q -c feat/newsletter-signup
 # guard-git — on a work branch
@@ -68,7 +74,7 @@ run guard-git.sh 0 "$(bash_event "$heredoc")" "ignores a heredoc commit message"
 run guard-git.sh 2 "$(bash_event 'git commit --no-verify -m x')" "blocks --no-verify"
 run guard-git.sh 2 "$(bash_event 'git commit -nm x')" "blocks -n folded into short flags"
 run guard-git.sh 2 "$(bash_event 'git merge --no-verify feat/x')" "blocks --no-verify on merge"
-run guard-git.sh 0 "$(bash_event 'git push -u origin feat/newsletter-signup')" "allows pushing the work branch (permissions.ask confirms it)"
+run guard-git.sh 0 "$(bash_event 'git push -u origin feat/newsletter-signup')" "allows pushing the work branch (after the local check, decision 0022)"
 run guard-git.sh 2 "$(bash_event 'git push origin main')" "blocks a push to main"
 run guard-git.sh 2 "$(bash_event 'git push origin feat/x:main')" "blocks a refspec targeting main"
 run guard-git.sh 2 "$(bash_event 'git push --force-with-lease origin +main')" "blocks a force-push to main"

@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: Bash). Makes three git rules mechanical instead of advisory:
+# PreToolUse hook (matcher: Bash). Makes four delivery rules mechanical instead of advisory:
 #   1. never bypass git hooks (--no-verify, or -n on commit)
 #   2. never commit on a protected branch
 #   3. never push to, force-push to, or delete a protected branch
-# Protected branches come from PROTECTED_BRANCHES in config.sh. Pushing anywhere else is still
-# an outward action: permissions.ask in .claude/settings.json makes a human confirm it.
+#   4. a pull request opens as a draft (gh pr create needs --draft)
+# Protected branches come from PROTECTED_BRANCHES in config.sh. An agent pushes its work branch and
+# opens the draft pull request on its own once the developer approves the local check (decision
+# 0022), so rule 4 holds the draft rule that a confirmation prompt used to.
 # Matching works on the command text an agent writes, so it is a guardrail, not a sandbox.
 set -uo pipefail
 . "$(dirname "$0")/_lib.sh"
 
 command_text="$(json_get '.tool_input.command')"
 [ -n "$command_text" ] || exit 0
-case "$command_text" in *git*) ;; *) exit 0 ;; esac
+case "$command_text" in *git* | *gh*) ;; *) exit 0 ;; esac
 
 cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="$PWD"
@@ -88,6 +90,14 @@ check_push() {
   done
 }
 
+check_pr_create() {
+  local token
+  for token in "$@"; do
+    case "$token" in --draft | -d) return 0 ;; esac
+  done
+  block "'gh pr create' without --draft. Pull requests open as drafts; a person marks one ready after QC on the preview."
+}
+
 analyze_segment() {
   local -a tokens
   read -r -a tokens <<< "$1"
@@ -102,6 +112,10 @@ analyze_segment() {
   fi
   while [ $i -lt $n ] && [[ ${tokens[$i]} == *=* && ${tokens[$i]} != -* ]]; do i=$((i + 1)); done
   case "${tokens[$i]:-}" in command | exec | nohup | time) i=$((i + 1)) ;; esac
+  if [ "${tokens[$i]:-}" = "gh" ] && [ "${tokens[$((i + 1))]:-}" = "pr" ] && [ "${tokens[$((i + 2))]:-}" = "create" ]; then
+    check_pr_create "${tokens[@]:$((i + 3))}"
+    return 0
+  fi
   [ "${tokens[$i]:-}" = "git" ] || return 0
   i=$((i + 1))
   gitdir="$cwd"

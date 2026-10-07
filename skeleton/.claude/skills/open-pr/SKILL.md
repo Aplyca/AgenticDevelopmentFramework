@@ -1,14 +1,15 @@
 ---
 name: open-pr
-description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Never marks the pull request ready on its own, and never opens it before the developer approved a change they can see or use in a local check. Use only when the developer asks to push or open a pull request.
+description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Use as soon as the developer approves the change in the local check — or, for work with nothing to run, once the full gate and /review pass — or when the developer asks. Never before the local check, and never marks the pull request ready.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
-disable-model-invocation: true
 ---
 
 # Open a Draft Pull Request
 
-Pushing and opening a pull request leave this machine, so this skill runs only when the developer
-asks for it — and Claude Code still asks you to confirm the push and the `gh pr create` call.
+Pushing and opening a pull request leave this machine. The developer's approval in the local check
+is what lets them (decision 0022): once they approve, open the draft without waiting to be asked. Work
+with nothing to run — docs, CI — opens it once the full gate and `/review` pass. The git guard hook
+refuses a `gh pr create` without `--draft`.
 
 The pull request opens as a **draft** and stays one. Marking it ready is a claim — *"a person has
 exercised this"* — that an agent can't make: it hasn't opened the preview, clicked through the flow,
@@ -31,7 +32,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    can see or use, the developer must have tested it by hand on the local environment and approved it.
    If they haven't, stop before pushing and offer it: start the environment, give the local URL and
    what to try — the acceptance criteria, or the fast lane's "done when" — and continue only after
-   their OK. Docs-only, CI-only, and answer-only work has nothing to run and skips it.
+   their OK. Docs-only and CI-only work has nothing to run: the full gate and a clean `/review` stand
+   in for the approval.
 
 3. **Verify the pull request, not just the diff.**
    - `git log --oneline <base>..HEAD` and `git diff --stat <base>...HEAD`: no unrelated files, no
@@ -77,7 +79,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    migration that drops or rewrites data, a sent email, a published URL or API contract, or a
    changed external integration is not undone by a revert — say what isn't.
 
-5. **Show the title and body to the developer**, then push and open the draft:
+5. **Push and open the draft**, then show the developer the title and body:
    ```bash
    git push -u origin <type>/<slug>
    gh pr create --draft --base <base> --title "<title>" --body-file <file>
@@ -86,7 +88,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
 6. **Record the link** when there's a spec folder — full lane or a light change request. Add the
    pull request URL to `pull-requests:` in `spec.md` (`· CR N` for a change request) and commit it
-   (`spec: link <slug> pull request`); it goes up with the next push the developer asks for.
+   (`spec: link <slug> pull request`), and push it to the same branch.
 
 7. **Offer — don't do — the tracker link-back.** Adding the pull request link to the tracker task is
    a write the requester can see: show the exact text and post it only on the developer's yes.
@@ -103,7 +105,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 | "I'll open it ready so the reviewer saves a click" | A ready pull request asks for attention now. Reviewers would spend it on a first QC pass the author should have done. |
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
-| "They asked me to commit, so pushing is implied" | Commit is local; push is outward. Each needs its own ask. |
+| "The tests pass, so I'll push now" | The push waits for the developer's approval in the local check — or, with nothing to run, for the full gate and a clean `/review`. |
 | "The tests pass, and the preview will show it" | The developer approves the change on the local environment before the pull request exists. The preview check comes later, before ready. |
 | "I'll post the link on the tracker task while I'm here" | That's a write the requester sees. Confirm the exact text first, every time. |
 
@@ -117,7 +119,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
 ## Verification
 
-- [ ] The developer asked for the push / pull request in this conversation
+- [ ] The push followed the developer's local-check approval — or, with nothing to run, a passing full gate and a clean `/review` — or the developer's ask
 - [ ] The developer approved the change after testing it by hand on the local environment — or it has nothing to run
 - [ ] Opened as a **draft**; not marked ready
 - [ ] The body names the spec folder and links the tracker task
@@ -129,7 +131,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
 ## Principles
 
-- Outward actions happen only when asked.
+- The draft opens on the developer's approval in the local check; every other outward action waits to be asked.
 - Draft until a human has exercised it; the developer promotes it.
 - Say what you verified and what you could not — evidence, not confidence.
 - The description must be true to the diff.

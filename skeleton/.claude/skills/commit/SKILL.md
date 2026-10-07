@@ -56,7 +56,7 @@ approved spec folder, a docs-first doc, or one task from `tasks.md` (its test an
 7. **Confirm:** `git log -1 --stat` and `git status` — the commit holds what you meant; the tree is
    clean or shows only unrelated work.
 
-Pushing is **not** part of committing. It happens only when the developer asks (`/open-pr`).
+Pushing is **not** part of committing. It happens in `/open-pr`, once the developer approves the local check.
 
 ## Rationalizations (do not accept these)
 
@@ -68,7 +68,7 @@ Pushing is **not** part of committing. It happens only when the developer asks (
 | "The hook is slow / flaky — `--no-verify` just this once" | Hooks catch real mistakes, and the git guard blocks it anyway. Fix the cause. |
 | "I'll amend the previous commit to keep history tidy" | Amending rewrites history and can destroy work. New commit, unless asked. |
 | "I'll leave the debug log in and remove it later" | Debug code doesn't belong in commits. Remove it now. |
-| "Committed — I'll push too, it's the next step" | Push is outward. Only when asked. |
+| "Committed — I'll push too, it's the next step" | Push is outward. It waits for the review and the developer's approval in the local check. |
 
 ## Red flags (stop and reassess)
 

@@ -280,8 +280,7 @@ sequenceDiagram
     Agent->>Agent: /review — the lane, the spec, constitution, security, tests, docs
     Agent->>Dev: starts it on the local environment — the URL and what to try
     Dev->>Agent: tests it by hand and approves it
-    Dev->>Agent: asks to open the pull request
-    Agent->>PR: /open-pr — a draft with the lane, the evidence, and what was not verified
+    Agent->>PR: /open-pr on that approval — a draft with the lane, the evidence, the local check, and what was not verified
     Dev->>PR: QC on the preview, then marks it ready
     Dev->>PR: reviews and merges — CI is a signal, the review is the gate
     Dev->>Agent: asks to update the client

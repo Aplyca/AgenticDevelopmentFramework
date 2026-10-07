@@ -57,7 +57,7 @@ old library is removed in the same branch.
    did the complexity move? Does every consumer of the shared code still work? Is there a pattern the
    project doesn't use elsewhere?
 
-6. **Deliver when asked** — a draft pull request that's boring to review. If a reviewer has to ask
+6. **Deliver** — once the full gate and `/review` pass, a draft pull request that's boring to review; a refactor has nothing new to try locally. If a reviewer has to ask
    "did this change behavior?", it does too much.
 
 ## Example

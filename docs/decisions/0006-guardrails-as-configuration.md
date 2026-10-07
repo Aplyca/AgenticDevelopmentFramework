@@ -1,6 +1,6 @@
 # 0006: Guardrails that must hold are configuration and code, not prose
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0022](0022-local-check-before-the-pull-request.md) (the work branch's push and its draft pull request no longer ask; `guard-git.sh` enforces the draft)
 - **Date:** 2026-10-01
 
 ## Context

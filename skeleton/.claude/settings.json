@@ -17,10 +17,6 @@
       "Bash(gh run view *)"
     ],
     "ask": [
-      "Bash(git push)",
-      "Bash(git push *)",
-      "Bash(gh pr create)",
-      "Bash(gh pr create *)",
       "Bash(gh pr ready)",
       "Bash(gh pr ready *)",
       "Bash(gh pr merge)",

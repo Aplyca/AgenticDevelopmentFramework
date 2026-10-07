@@ -46,18 +46,24 @@ The probes (desktop app 2.19675.0, Claude Code 2.1.286) are in the decision reco
   route now gets worktrees beside the main checkout. Check `WORKTREE_PARENT` in `worktree.conf` if
   the main checkout's folder isn't one of its own.
 
-### The developer approves a change on the local environment before its pull request opens
+### The developer approves a change on the local environment, and the approval opens its draft pull request
 
-([0022](docs/decisions/0022-local-check-before-the-pull-request.md), amending [0005](docs/decisions/0005-outward-actions-and-draft-prs.md))
+([0022](docs/decisions/0022-local-check-before-the-pull-request.md), amending [0005](docs/decisions/0005-outward-actions-and-draft-prs.md) and [0006](docs/decisions/0006-guardrails-as-configuration.md))
 
 A new step in every lane, between the review and the pull request: **the local check**.
 
 - **When it applies:** a change alters something a person can see or use.
 - **What the agent does:** starts the change on the local environment and gives the developer the URL
   and what to try (the acceptance criteria, or the fast lane's "done when").
-- **What the developer does:** tests it by hand and approves it. Only then does the pull request open,
-  and it records what they tried under "Local check".
-- **Skipped** by docs-only, CI-only, and answer-only work, and by refactors.
+- **What the developer does:** tests it by hand and approves it.
+- **The approval opens the draft pull request.** The agent pushes and runs `/open-pr` without waiting
+  to be asked, and the pull request records what the developer tried under "Local check". Docs-only
+  and CI-only work, and refactors, have nothing to try: their draft opens once the full gate and
+  `/review` pass.
+- **No prompt before that push and that draft.** `git push` and `gh pr create` leave
+  `permissions.ask`, and `/open-pr` can start on its own. In their place, `guard-git.sh` refuses a
+  `gh pr create` without `--draft`. Marking ready, merging, comments, issue and tracker writes, and
+  releases still ask.
 - **The preview QC before ready doesn't change.**
 
 `/open-pr` stops without the approval and offers the check. `/implement` ends with it.
@@ -65,10 +71,15 @@ A new step in every lane, between the review and the pull request: **the local c
 **Upgrade impact:**
 
 - **Overwrite** `.claude/rules/git-workflow.md`, and in a committed project
-  `.claude/skills/open-pr/SKILL.md`, `.claude/skills/implement/SKILL.md`, and
-  `.claude/skills/spec-workflow/SKILL.md`. A packaged project gets the skills with its next pin; it
+  `.claude/skills/open-pr/SKILL.md`, `implement`, `commit`, and `spec-workflow`, and
+  `.claude/hooks/guard-git.sh`. A packaged project gets the skills and the hook with its next pin; it
   commits the rule either way.
+- **Merge** `.claude/settings.json`: remove `Bash(git push)`, `Bash(git push *)`,
+  `Bash(gh pr create)`, and `Bash(gh pr create *)` from `permissions.ask`. A team that wants a click
+  before each push keeps them; the rest of the change works either way.
+- **Merge** `CLAUDE.md`: two rows of § Guardrails and the `/open-pr` sentence below it.
 - **Merge** `AGENTS.md`:
+  - the ground rule on outward actions;
   - the lanes sentence in § 2;
   - the new step 7 in § 3;
   - the new "Local check before the pull request" bullet and the "after the local check" in

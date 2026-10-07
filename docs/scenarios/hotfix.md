@@ -57,12 +57,12 @@ yes on the risky part.
    red-then-green evidence (a hotfix has no `tasks.md`). Hooks run; under pressure is exactly when
    `--no-verify` is tempting, and the guard blocks it anyway.
 
-8. **Quick `/review`, a local check, then deliver when asked.** The developer reproduces the bug's
-   steps on the local environment, sees it fixed, and approves. Then `/open-pr` pushes and opens a **draft** pull
-   request; each push and pull request action is confirmed. A human QCs it — the preview, the
+8. **Quick `/review`, a local check, then deliver.** The developer reproduces the bug's steps on the
+   local environment, sees it fixed, and approves. On that approval `/open-pr` pushes and opens a
+   **draft** pull request. A human QCs it — the preview, the
    reproduction — and only then is it marked ready, reviewed, and merged. In model B someone also tags
    the patch release and opens the back-merge. The agent does any of these only when asked, never on
-   its own initiative.
+   its own initiative: only the draft follows the local check by itself.
 
 9. **Watch production recover** — the affected page, the error rate, the logs.
 
@@ -121,7 +121,7 @@ losing every signup costs more than a short window without the limit.
 **Fix**: the route catches the store failure, logs `newsletter.rate_limit.store_unavailable`, and
 carries on. The test passes; the unit suite and lint pass.
 
-**Delivery**: the developer asked for the pull request; `/open-pr` opened a draft into `main`. The
+**Delivery**: the developer approved the fix locally; `/open-pr` opened a draft into `main`. The
 on-call lead checked the preview, marked it ready, reviewed, and merged; the merge deployed. By 10:25
 the error rate was back to normal.
 

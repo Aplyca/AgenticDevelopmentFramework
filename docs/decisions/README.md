@@ -16,7 +16,7 @@ projects.
 | [0003](0003-tdd-at-task-granularity.md) | TDD at task granularity: one task, one red → green cycle, one commit | accepted |
 | [0004](0004-triage-before-setup.md) | Triage a task before setting anything up | accepted |
 | [0005](0005-outward-actions-and-draft-prs.md) | Outward actions only on request; pull requests stay drafts until a human QCs them | accepted; amended by 0022 |
-| [0006](0006-guardrails-as-configuration.md) | Guardrails that must hold are configuration and code, not prose | accepted |
+| [0006](0006-guardrails-as-configuration.md) | Guardrails that must hold are configuration and code, not prose | accepted; amended by 0022 |
 | [0007](0007-process-decision-records.md) | Process decisions are recorded as PDRs; the constitution is amended through them | accepted |
 | [0008](0008-dispatcher-and-worker-worktrees.md) | The main checkout dispatches; worktrees do the work (optional module) | accepted; amended by 0015, 0020 |
 | [0009](0009-optional-modules.md) | Host- and team-specific harness ships as optional modules | accepted; amended by 0016 |
@@ -32,7 +32,7 @@ projects.
 | [0019](0019-reference-docs-in-the-plugin.md) | A packaged project reads the framework's reference docs from the plugin | accepted |
 | [0020](0020-every-task-through-dispatch.md) | Every task goes through `/dispatch` in the main checkout (parallel-agents module) | accepted; amended by 0021 |
 | [0021](0021-sibling-worktree-and-chip.md) | `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module) | accepted |
-| [0022](0022-local-check-before-the-pull-request.md) | The developer approves a change on the local environment before its pull request opens | accepted |
+| [0022](0022-local-check-before-the-pull-request.md) | The developer approves a change on the local environment, and the approval opens its draft pull request | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
