@@ -20,7 +20,7 @@ a second session starts, it gets its own worktree.
 
 | | Main checkout — **dispatcher** | A worktree — **worker** |
 |---|---|---|
-| Does | Takes every task with `/dispatch` and hands it to a new session in its own worktree, by the project's route | Everything from triage on: spec folder, gate, TDD, commits |
+| Does | Takes every task with `/dispatch` and hands it to a new session, which creates the task's worktree and moves into it | Everything from triage on: spec folder, gate, TDD, commits |
 | Never | Reads code, analyzes, edits, starts environments | Goes back to the main checkout to work |
 
 The `session-context` hook tells each session its role when it starts.
@@ -37,33 +37,44 @@ again anyway, where it can check it. The dispatcher's context stays cheap: a bra
 
 Every task starts here, with `/dispatch <tracker link>`, and takes the same route
 ([0020](../decisions/0020-every-task-through-dispatch.md),
-[0021](../decisions/0021-sibling-worktree-and-chip.md)). `/dispatch` does four things and nothing
-else:
+[0021](../decisions/0021-sibling-worktree-and-chip.md)). `/dispatch` does three things and runs
+nothing:
 
 1. **Names the task** — its title and type only; no code reading, no requirements analysis. A short
    kebab-case slug. A task that names a delivered feature starts its slug with that feature's
    spec-folder slug and adds the change (`feat/newsletter-signup-topics`) — `ls specs/` is enough;
    whether it really is a change request is the worker's triage to decide.
-2. **Creates the worktree** — `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
-   directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
-   branch, the env file seeded from the main checkout's — and, since the newsletter site runs a server
-   in each worktree, a reserved port. `--no-start` because whether the task needs anything running is
-   the worker's call.
-3. **Hands it over** — in the desktop app, a task chip whose folder is the worktree and whose title
-   carries the branch (`feat/newsletter-signup-topics · Show the chosen topics after signup`). You
-   start it in that folder, not in a new worktree, with one click. In a terminal:
-   `cd <worktree> && claude "<prompt>"`. The new session's first lines say `Role: WORKER` and name the
-   worktree; if they say DISPATCHER, it opened in the main checkout — close it, open a session on the
-   worktree's folder, and paste the prompt.
-4. **Writes the handoff** — three lines, pointers only:
+2. **Writes the handoff** — three lines: pointers, and the one setup step the worker takes first:
 
    ```
    Task: <tracker link>
-   Worktree: <absolute path> — branch <type>/<slug>
-   Follow AGENTS.md end to end, starting with triage.
+   Branch: feat/newsletter-signup-topics
+   First create this task's worktree — scripts/agent/worktree-new.sh feat/newsletter-signup-topics --no-start — and move this session into it; then follow AGENTS.md end to end, starting with triage.
    ```
 
    The workflow isn't restated: a copy in a handoff is one more thing that drifts from `AGENTS.md`.
+3. **Hands it over** — in the desktop app, a task chip for the main checkout whose title carries the
+   branch (`feat/newsletter-signup-topics · Show the chosen topics after signup`). You start it in
+   that folder, not in a new worktree, with one click. In a terminal: `claude "<prompt>"` in the main
+   checkout.
+
+### In the new session — the worktree first
+
+The new session opens in the main checkout, so its first lines say `Role: DISPATCHER` — and that a
+session handed one task and its branch is that task's worker. Before anything else it:
+
+1. **Creates the worktree** — `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
+   directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
+   branch, the env file seeded from the main checkout's — and, since the newsletter site runs a server
+   in each worktree, a reserved port. `--no-start` because whether the task needs anything running is
+   triage's call.
+2. **Moves into it** — `change_directory` to the path the script printed, in the desktop app (you
+   approve the folder once, and the session carries on there by itself), or `EnterWorktree` in a
+   terminal. `pwd` confirms it. If the move is refused, the session gives you the worktree's path and
+   stops: open a session on that folder and paste the prompt.
+
+Until the move it edits nothing — the protect-hub hook stops any edit in the main checkout. Hooks
+don't run again after the move, so the worker finds its spec folder at triage.
 
 ### In the worktree — work
 
@@ -136,7 +147,7 @@ Monday morning, three tasks arrive for the newsletter site:
 The team keeps the main checkout in a folder of its own, `/home/dev/code/newsletter-site/main`, as
 `worktree.conf` suggests, and sets `PROJECT_PREFIX="newsletter-site"` there — otherwise every project
 name would start with `main-`. The dispatcher session in the main checkout runs `/dispatch` three
-times. The first:
+times, and you start the three chips. The first worker's first step:
 
 ```
 $ scripts/agent/worktree-new.sh feat/newsletter-signup --no-start
@@ -152,7 +163,7 @@ $ scripts/agent/worktree-new.sh feat/newsletter-signup --no-start
 --no-start: the environment is left down. The worker starts it when a step needs it.
 ```
 
-Each worker gets a new session on its worktree and its three-line prompt. An hour later:
+Each worker moves into its worktree and starts triage. An hour later:
 
 ```
 $ scripts/agent/worktree-ls.sh
@@ -204,10 +215,11 @@ cd ../feat-newsletter-signup && claude
 |---|---|---|
 | Analyzing in the main checkout "to give the worker a head start" | Unverified conclusions, a burned context, drift in the handoff | Name the task; hand off |
 | A one-line fix in the main checkout | A stray edit collides with every other session | Even one line goes to a worktree |
-| Dispatching without `--no-start` out of habit | An environment built for a task that may not need one | The worker starts it after triage |
-| Built-in worktree tools for task work | A worktree inside the main checkout, on a generated branch, with no port or start command; the app collides with another worktree's | `/dispatch`, which creates the worktree beside the main checkout |
-| Starting the chip in a new worktree | A second worktree under `.claude/worktrees/`, without this one's env file or port | Start it in the folder it points at |
-| Working on after the first lines say DISPATCHER | The session is in the main checkout, not the task's worktree | Close it; open a session on the worktree's folder and paste the prompt |
+| Creating the worktree without `--no-start` out of habit | An environment built for a task that may not need one | The worker starts it after triage |
+| Built-in worktree tools for task work | A worktree inside the main checkout, on a generated branch, with no port or start command; the app collides with another worktree's | `/dispatch`, whose session creates the task's worktree beside the main checkout |
+| Starting the chip in a new worktree | The app's own worktree under `.claude/worktrees/`, on a generated branch, without the env file or port | Start it in the main checkout's folder; its first step makes the task's worktree |
+| The dispatcher creating the worktree itself | The hub runs scripts and fetches — the task's work, in the shared checkout | The new session's first step creates it and moves in |
+| A worker that starts triage before moving | It works in the shared main checkout, where the protect-hub hook stops its first edit | Create the worktree, move into it, confirm with `pwd` — then triage |
 | Raw `git worktree add` with the module installed | Ports and env files drift from what the scripts track | The scripts |
 | Changing a service every worktree shares | Every other worker's environment changes under them | That worktree gets its own copy (§ Shared services) |
 | Keeping a squash-merged branch | The next change request on that feature starts from stale code | Delete it after merge |

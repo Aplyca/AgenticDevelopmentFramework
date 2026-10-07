@@ -11,9 +11,9 @@ the project needs them, its own copy of the env file and a port of its own.
 | | Main checkout — **dispatcher** | A worktree — **worker** |
 |---|---|---|
 | Where | The clone itself | Any linked worktree — normally a sibling the scripts create (`../feat-newsletter-signup`) |
-| Does | Takes every task with `/dispatch`: creates its worktree and hands it to a new session there (§ How a task gets its worktree) | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
+| Does | Takes every task with `/dispatch`: names it and hands it to a new session, which creates the task's worktree and moves into it (§ How a task gets its worktree) | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
 | Never | Reads code, analyzes, edits, starts anything | Goes back to the hub to work |
-| Network | Reads only (the task, `git fetch`) | Whatever the workflow allows — outward actions only when asked |
+| Network | Reads only (the task) | Whatever the workflow allows — outward actions only when asked |
 
 The session-context hook tells each session which role it has when it starts, and the protect-hub
 hook holds the dispatcher to it: a file edit in the main checkout is stopped (`HUB_READONLY` in
@@ -24,19 +24,32 @@ to a worktree of its own like any other task.
 
 Every task starts in the main checkout with `/dispatch`, and every task takes the same route:
 
-1. **The scripts create the worktree:** `scripts/agent/worktree-new.sh <type>/<slug> --no-start` makes
-   a sibling of the main checkout named after the branch (`feat/newsletter-signup` →
-   `../feat-newsletter-signup`), on a new branch from `BASE_BRANCH`, with the env file seeded from the
-   main checkout's and, when worktrees run a server, a port reserved. Nothing starts.
-2. **A new session opens there.**
-   - **Desktop app:** a task chip whose folder is the worktree. The developer starts it in that
-     folder, not in a new worktree, with one click. Its title carries the branch
-     (`feat/newsletter-signup · Show the chosen topics after signup`), since the app shows the title,
-     not the folder or branch, for a session started this way.
-   - **Terminal:** `cd <worktree> && claude "<prompt>"`.
-   - **Fallback:** open a new session with the worktree as its folder and paste the prompt.
-3. **The session's first lines confirm it:** `Role: WORKER` and the worktree's path. If they say
-   DISPATCHER, the session opened in the main checkout: close it and take the fallback.
+1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
+   prompt: the task, the branch, and the first step.
+   - **Desktop app:** a task chip for the main checkout, started in that folder — not in a new
+     worktree — with one click. Its title carries the branch
+     (`feat/newsletter-signup · Show the chosen topics after signup`), since the app shows the
+     session's folder but not its branch.
+   - **Terminal:** `claude "<prompt>"`, run in the main checkout.
+2. **The new session creates the worktree.** It opens in the main checkout, so its first lines say
+   `Role: DISPATCHER` — and that a session handed one task and its branch is that task's worker. Its
+   first step is `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
+   checkout named after the branch (`feat/newsletter-signup` → `../feat-newsletter-signup`), on a new
+   branch from `BASE_BRANCH`, with the env file seeded from the main checkout's and, when worktrees run
+   a server, a port reserved. Nothing starts.
+3. **The session moves into it.**
+   - **Desktop app:** `change_directory` to the path the script printed. The developer approves the
+     folder once, and the session carries on there by itself; the app then shows the session in that
+     folder.
+   - **Terminal:** `EnterWorktree` with that path.
+
+   `pwd` confirms the move. Session-start hooks don't run again after it, so the worker reads its
+   spec folder at triage rather than from the first lines. If the move is refused, the worker gives
+   the developer the worktree's path and stops; the developer opens a session on that folder and
+   pastes the prompt.
+
+Until the move, the session is in the shared main checkout: it runs the script and nothing else, and
+the protect-hub hook stops any edit there.
 
 Whether a task will run the app is its triage's question, after the hand-off. The worktree can,
 because the scripts gave it the env file and its port; the worker starts the environment only when a
@@ -71,7 +84,7 @@ the scripts keep branches, env files, and ports consistent.
 **Match the environment to the lane.** Most tasks need only what the git hooks and the tests use
 (`--setup-only`); start anything heavier when a test or check actually needs it. Everything a
 worktree starts is setup time, memory, and log output the session pays for. The worker decides after
-triage; the dispatcher always creates with `--no-start`.
+triage; a dispatched session always creates its worktree with `--no-start`.
 
 ### Why the details matter
 
