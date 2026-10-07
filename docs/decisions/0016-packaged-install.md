@@ -81,6 +81,29 @@ Packaged is for teams that work in Claude Code only.
   project** bumps the pinned tag — a one-line change — and merges the committed layer as it does
   today.
 
+*Clarified 2026-10-07:* the rules stay committed for two reasons, not one.
+
+- **A plugin can't carry them.** The plugin reference (Claude Code 2.1.286) lists what a plugin
+  ships: skills, commands, agents, hooks, MCP and LSP servers, output styles, workflows, themes,
+  monitors, executables, and two settings. There are no rules, and a `CLAUDE.md` in a plugin isn't
+  loaded. Rules load from the project's `.claude/rules/` and the user's `~/.claude/rules/`, not from a plugin. Each
+  workaround loses something a rule needs:
+
+  | Workaround | What it loses |
+  |---|---|
+  | A symlink to the plugin's copy | It counts as an external import, which needs approval, and then only rules without `paths:` load. Every framework rule has `paths:`, and this repository allows no symlinks. |
+  | An `@import` from `CLAUDE.md`, or a SessionStart hook that prints the rules | Every rule loads at launch, not when a matching file is read. |
+  | `~/.claude/rules/` | The rules apply to every project on the machine. |
+  | Turning rules into skills | A skill loads when the model chooses to, not whenever a matching file is read. |
+- **They are the project's own anyway.**
+  - Five of the nine have `<!-- CUSTOMIZE -->` sections.
+  - `/adopt` fits every rule's `paths:` to the project and deletes the ones that don't apply.
+  - Teammates on other tools read them through `AGENTS.md`.
+
+The cost is in releases: one that changes a universal rule (code-quality, testing, security,
+git-workflow) asks each project to merge it. If plugins gain rules, those four could move into the
+plugin, with a project-side override.
+
 ## Consequences
 
 - **Positive:**
