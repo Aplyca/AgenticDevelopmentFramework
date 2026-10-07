@@ -618,6 +618,7 @@ check_practices() {
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'move this session into it' || missing+=("/dispatch: the worker's prompt has it move into the worktree (0021)")
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task chip for this main checkout' || missing+=("/dispatch: the chip opens in the main checkout (0021)")
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'It runs no scripts' || missing+=("/dispatch: the dispatcher runs nothing (0021)")
+    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh` in this' || missing+=("/dispatch: stops without the module, since the plugin carries it (0020)")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/.generated" '^skills/dispatch$' || missing+=("the plugin carries /dispatch (0020)")

@@ -27,9 +27,9 @@ Every task starts in the main checkout with `/dispatch`, and every task takes th
 1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
    prompt: the task, the branch, and the first step.
    - **Desktop app:** a task chip for the main checkout, started in that folder — not in a new
-     worktree — with one click. Its title carries the branch
-     (`feat/newsletter-signup · Show the chosen topics after signup`), since the app shows the
-     session's folder but not its branch.
+     worktree — with one click. Its title is the task's title (`Show the chosen topics after
+     signup`), without the branch: once the session moves in (step 3), the app shows the worktree as
+     its folder, and the folder is named after the branch.
    - **Terminal:** `claude "<prompt>"`, run in the main checkout.
 2. **The new session creates the worktree.** It opens in the main checkout, so its first lines say
    `Role: DISPATCHER` — and that a session handed one task and its branch is that task's worker. Its

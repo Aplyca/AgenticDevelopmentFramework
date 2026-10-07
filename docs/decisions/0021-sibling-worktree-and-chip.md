@@ -1,6 +1,6 @@
 # 0021: `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module)
 
-- **Status:** accepted
+- **Status:** accepted; amended 2026-10-07 (the chip's title is the task's title, without the branch)
 - **Date:** 2026-10-06
 - **Amends:** [0020](0020-every-task-through-dispatch.md) — how a task gets its worktree and its session
 
@@ -68,6 +68,11 @@ repositories):
 - **Nothing is left to route.** 0020's route choice by project, and the developer's per-task
   override, go. A session a developer starts with Claude Code's worktree option is still a worker
   (0015).
+
+*Amended 2026-10-07:* the chip's title is the task's title alone, without the branch. Once the
+session moves into its worktree, the app shows that folder as the session's, and the folder is named
+after the branch, so the title doesn't repeat it. The consequence "the chip's title carries it"
+below no longer holds: the folder carries it.
 
 ## Consequences
 

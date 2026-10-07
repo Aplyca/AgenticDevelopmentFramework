@@ -53,9 +53,10 @@ nothing:
    ```
 
    The workflow isn't restated: a copy in a handoff is one more thing that drifts from `AGENTS.md`.
-3. **Hands it over** — in the desktop app, a task chip for the main checkout whose title carries the
-   branch (`feat/newsletter-signup-topics · Show the chosen topics after signup`). You start it in
-   that folder, not in a new worktree, with one click. In a terminal: `claude "<prompt>"` in the main
+3. **Hands it over** — in the desktop app, a task chip for the main checkout, titled with the task's
+   title (`Show the chosen topics after signup`). You start it in that folder, not in a new worktree,
+   with one click. Once the session moves into its worktree, the app shows that folder —
+   `feat-newsletter-signup-topics` — as the session's. In a terminal: `claude "<prompt>"` in the main
    checkout.
 
 ### In the new session — the worktree first
