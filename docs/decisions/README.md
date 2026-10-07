@@ -30,7 +30,8 @@ projects.
 | [0017](0017-semantic-versioning.md) | Releases follow semantic versioning | accepted |
 | [0018](0018-packaged-by-default.md) | The packaged install is the default | accepted |
 | [0019](0019-reference-docs-in-the-plugin.md) | A packaged project reads the framework's reference docs from the plugin | accepted |
-| [0020](0020-every-task-through-dispatch.md) | Every task goes through `/dispatch` in the main checkout (parallel-agents module) | accepted |
+| [0020](0020-every-task-through-dispatch.md) | Every task goes through `/dispatch` in the main checkout (parallel-agents module) | accepted; amended by 0021 |
+| [0021](0021-sibling-worktree-and-chip.md) | `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module) | accepted |
 | [0022](0022-local-check-before-the-pull-request.md) | The developer approves a change on the local environment before its pull request opens | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in

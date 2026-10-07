@@ -316,18 +316,16 @@ if there's no tracker task). Check for business language, verified claims, and y
 
 Each agent session gets its own git worktree — never two in one checkout. With the
 [`parallel-agents` module](../modules/parallel-agents/MODULE.md), the main checkout **only
-dispatches**: every task goes to `/dispatch` there, which hands it to a new session in a worktree of
-its own. The project's settings pick the route. When its worktrees need nothing from the scripts,
-that's Claude Code's worktree: a task chip you start with one click in the desktop app, or a
-`claude --worktree` command. When they need the project's setup, such as a port, `/dispatch` creates
-the worktree with the scripts and gives you a three-line prompt to paste into a session opened on it.
-You can ask for the other route for one task. The worker there does everything from triage on. The
-main checkout is shared — an edit or a dev server there collides with every other session — and
-analysis there is wasted: the dispatcher can't run the app or the tests, so the worker re-reads
-everything where it can verify it.
+dispatches**: every task goes to `/dispatch` there, which names it and hands it to a new session: a
+task chip you start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.
+That session's first step creates the task's worktree beside the main checkout with the scripts —
+named after the branch, on a new branch, with the env file and, when the project needs one, a port —
+and moves into it; you approve the new folder once. The worker there does everything from triage on. The main checkout is shared — an edit or a dev server there collides with
+every other session — and analysis there is wasted: the dispatcher can't run the app or the tests, so
+the worker re-reads everything where it can verify it.
 ([decisions 0008](decisions/0008-dispatcher-and-worker-worktrees.md),
-[0015](decisions/0015-tool-worktrees-are-workers.md), and
-[0020](decisions/0020-every-task-through-dispatch.md))
+[0020](decisions/0020-every-task-through-dispatch.md), and
+[0021](decisions/0021-sibling-worktree-and-chip.md))
 
 **Exercise (module installed):** dispatch the typo and the topics estimate. The main checkout's
 `git status` stays clean, each worker's session context says WORKER, and

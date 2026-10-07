@@ -51,7 +51,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 
 | Skill | Module | Purpose |
 |---|---|---|
-| `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session in a worktree of its own, by the project's route — Claude Code's worktree through a task chip (desktop app) or a `claude --worktree` command, or, when the project's worktrees need a port, setup or start commands, or a non-default base branch, the scripts' worktree (`worktree-new.sh --no-start`) with a three-line prompt to paste. The developer can pick the other route for one task. Reads only; no analysis, no edits. A packaged install gets it from the plugin, as `/aplyca-adf:dispatch`. |
+| `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session with a three-line prompt — a task chip in the desktop app, a `claude "<prompt>"` command in a terminal. The new session's first step creates the task's worktree beside the main checkout (`worktree-new.sh <type>/<slug> --no-start`) and moves into it. Reads only; runs nothing, analyzes nothing, edits nothing. A packaged install gets it from the plugin, as `/aplyca-adf:dispatch`. |
 
 ## Dynamic workflows
 
