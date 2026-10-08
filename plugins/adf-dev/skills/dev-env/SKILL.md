@@ -40,11 +40,11 @@ Each fact has one home, and this skill writes only what a command it ran has sho
 
 1. **Check the module.** Read the first line of `CLAUDE.md` (`head -1 CLAUDE.md` — Claude Code strips
    that comment from the file it loads). Unless its `modules:` list names `docker`, say "the docker
-   module isn't installed in this project — `/aplyca-adf:upgrade` offers it" and stop.
+   module isn't installed in this project — `/adf:upgrade` offers it" and stop.
 
 2. **Check where you are.** If `scripts/agent/worktree-new.sh` exists and `git rev-parse --git-dir`
    equals `git rev-parse --git-common-dir`, this is the main checkout of a hub: environments run in
-   worktrees. Say so, point to `/aplyca-adf:dispatch`, and stop.
+   worktrees. Say so, point to `/adf:dispatch`, and stop.
 
 3. **Read the facts, running nothing yet:** the Compose files (`compose.yaml`, `compose.yml`,
    `docker-compose.y*ml`, and their overrides), the Dockerfiles, `.env.example`, `DEV-SETUP.md`,
@@ -58,7 +58,7 @@ Each fact has one home, and this skill writes only what a command it ran has sho
 
 ## Mode: set up
 
-1. **No Compose file yet?** Writing one is an infrastructure change — `/aplyca-adf:triage` it like any change
+1. **No Compose file yet?** Writing one is an infrastructure change — `/adf:triage` it like any change
    (the careful lane at least). Draft it to the project's conventions in `deployment.md` § Docker and
    these: pinned image tags; a healthcheck on every service another one waits for, and
    `depends_on: { <service>: { condition: service_healthy } }`; host ports from the env file, bound to
@@ -103,7 +103,7 @@ Needs the parallel-agents module (`scripts/agent/worktree.conf`); without it, sa
 
 ## Mode: diagnose
 
-`/aplyca-adf:debug`'s order, applied to the environment.
+`/adf:debug`'s order, applied to the environment.
 
 1. **Get a failing signal** — one command that fails on this problem: `docker compose up -d --wait`,
    the state and health in `docker compose ps`, or `curl -fsS <url>`. Show the command and its output,
@@ -117,10 +117,10 @@ Needs the parallel-agents module (`scripts/agent/worktree.conf`); without it, sa
    `COMPOSE_PROJECT_NAME`); a platform mismatch on Apple silicon; a full disk (`docker system df`).
 3. **Rank 3–5 hypotheses** when the simple things don't explain it, each with what would prove it
    wrong, and test them one at a time.
-4. **The cause is in the application, not the environment?** Hand over to `/aplyca-adf:debug` with the signal.
+4. **The cause is in the application, not the environment?** Hand over to `/adf:debug` with the signal.
 5. **Fix:** a local step that touches only this project — start the daemon, restart this stack — just
    do it and say so. Stopping or removing anything that isn't this project's waits for a yes. A change
-   to a Compose file or a Dockerfile goes through `/aplyca-adf:triage` (infrastructure: the careful lane).
+   to a Compose file or a Dockerfile goes through `/adf:triage` (infrastructure: the careful lane).
 6. **Report:** symptom, signal, cause, ruled out, fix, and how to verify. When the next person would
    hit the same thing, add it to `DEV-SETUP.md` § Troubleshooting.
 

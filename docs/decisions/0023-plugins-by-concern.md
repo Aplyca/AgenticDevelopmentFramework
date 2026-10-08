@@ -62,9 +62,9 @@ allow a plugin for every module.
 
    | Plugin | Concern | Carries | Today |
    |---|---|---|---|
-   | `aplyca-adf` (`adf` from v2.0.0) | The process | The skeleton's skills, agents, workflows, and hooks; the reference docs; the installer; process modules' skills (`parallel-agents`' `/dispatch`) | Built |
+   | `adf` (`aplyca-adf` until v2.0.0) | The process | The skeleton's skills, agents, workflows, and hooks; the reference docs; the installer; process modules' skills (`parallel-agents`' `/dispatch`) | Built |
    | `adf-dev` | Development | The skills and agents of development modules (`docker`'s `/dev-env`; performance and frontend next) | Built |
-   | `adf-connect` | Trackers and services | Machinery around the project's MCP servers and trackers: a `/connect` skill that writes a project's MCP configuration from safe templates, and a guard that makes MCP writes ask | Planned |
+   | `adf-connect` | Trackers and services | `/connect`, which writes a project's MCP configuration from a catalog of safe defaults and pre-approves only the tools that read | Built in v2.0.0 |
 
 2. **Modules stay each project's switch and its half.** A module commits what the project owns:
    config, scripts, templates, permission rules, MCP configuration. It names the plugin that carries
@@ -74,13 +74,13 @@ allow a plugin for every module.
 
 3. **How the plugins are built.** Each plugin folder has a hand-written manifest and README. Every
    plugin is listed in the marketplace by hand. `scripts/build-plugins.sh` generates:
-   - `aplyca-adf`'s machinery from the skeleton;
+   - `adf`'s machinery from the skeleton;
    - every plugin's module skills from the modules that name it;
-   - aplyca-adf's version, copied into the others' manifests.
+   - `adf`'s version, copied into the others' manifests.
 
-   Names are unique across every plugin. `aplyca-adf` never names another plugin's skill.
+   Names are unique across every plugin. `adf` never names another plugin's skill.
 
-4. **Turning the plugins on.** A packaged project turns a module's plugin on beside `aplyca-adf`,
+4. **Turning the plugins on.** A packaged project turns a module's plugin on beside `adf`,
    once however many of its modules it has: `"adf-dev@aplyca": true` in `enabledPlugins`, and
    `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`. A committed project copies
    the modules' skills and leaves the plugin off.
@@ -90,18 +90,29 @@ allow a plugin for every module.
    written by a module or by `adf-connect`'s `/connect`, with a read-only allowlist, as `clickup` does.
    Other tools read that file too.
 
-   One pattern could change this, and needs testing first. A plugin server whose `url` is empty shows
-   as "not configured" and never connects. If a project's committed settings `env` can fill in
-   `"url": "${ADF_SUPABASE_URL:-}"`, then `adf-connect` could carry the server catalog itself, off
-   until a project opts in.
+   **A spike ruled out the alternative** (2026-10-08, Claude Code 2.1.286, `claude mcp list` on a
+   plugin loaded with `CLAUDE_CODE_PLUGIN_DIRS`). The idea was that `adf-connect` would carry the
+   server catalog, each server off until a project's settings `env` fills in its URL. What happened:
+   - A settings file's `env` does fill a plugin server's `url`: `"${ADF_SPIKE_URL:-}"` expanded from a
+     `--settings` file. An untrusted folder's project settings didn't apply, as expected; a trusted
+     project's committed settings are expected to behave like the `--settings` file, which wasn't
+     observed.
+   - A server whose variable is unset is an error, not "not configured". `${VAR:-}` expanding to empty
+     reports `Plugin … has an invalid MCP url`. Only a literal `"url": ""` shows `Not configured`.
+
+   So every project with the plugin on would show a failed server for each service it doesn't use.
+
+   A guard that makes every MCP write ask, whatever a project's allow list says, belongs to the
+   process, not to `adf-connect`. Confirming outward actions is the core's rule (0005, 0006), and
+   committed installs need it too. It's planned as a core hook.
 
 6. **Vendor plugins are recommended, not rebuilt or depended on.** The reasons are 0013's: updates
    outside our changelog, and overlapping skills.
 
-7. **Renaming the core to `adf` is a major release, v2.0.0.** It is typed most, so `/adf:triage`
+7. **The core is renamed `adf`, a major release, v2.0.0.** It is typed most, so `/adf:triage`
    instead of `/aplyca-adf:triage`. It also avoids "the workflow plugin's workflows". The release
-   adds `"renames": {"aplyca-adf": "adf"}` to the marketplace. `/aplyca-adf:upgrade` does what
-   `renames` doesn't:
+   adds `"renames": {"aplyca-framework": "aplyca-adf", "aplyca-adf": "adf"}` to the marketplace.
+   `/aplyca-adf:upgrade` does what `renames` doesn't:
    - moves the read rule to the plugin's new folder;
    - renames the commands in `CLAUDE.md`'s names note and `DEV-SETUP.md`;
    - moves the pin and the stamp.
@@ -124,9 +135,9 @@ allow a plugin for every module.
 | Addition | Module | Plugin |
 |---|---|---|
 | GitHub Issues as the tracker | — (the `gh` CLI, with the skeleton's permissions) | — |
-| GitLab | `gitlab`: MR template, GitLab CI secret detection and branch policy, a `glab` permission fragment, optional GitLab MCP. Also a core fix: `guard-git.sh` drafts `glab mr create` | `aplyca-adf` (the guard) |
-| Jira, Linear | On `clickup`'s pattern, when needed | `adf-connect` |
-| Supabase, Vercel, Contentful | The project's MCP server with safe defaults (Supabase `read_only=true`, a non-production project) and a read-only allowlist; the vendor plugin recommended where one exists | `adf-connect` |
+| GitLab | `gitlab`: MR template, GitLab CI secret detection and branch policy, a `glab` permission fragment. GitLab MCP through `/connect`. Also a core fix: `guard-git.sh` drafts `glab mr create` | `adf` (the guard), `adf-connect` |
+| Jira, Linear | None needed: `/connect` writes the project's server | `adf-connect` |
+| Supabase, Vercel, Contentful | None needed: `/connect` writes the project's MCP server with safe defaults (Supabase `read_only=true`, a non-production project) and a read-only allowlist, and mentions the vendor plugin where one exists | `adf-connect` |
 | Ibexa | Deferred while `ibexa/mcp` is experimental | — |
 | Docker development environment | `docker`, built now | `adf-dev` |
 | Performance, frontend | Modules whose skills and reviewer agents plug into existing phases — `/review` calling a specialty reviewer, the local check — never a second workflow (0013) | `adf-dev` |

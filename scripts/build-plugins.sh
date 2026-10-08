@@ -2,27 +2,27 @@
 #
 # Builds the generated half of the framework's plugins, one per concern (decision 0023):
 #
-# - plugins/aplyca-adf, the process (docs/decisions/0016-packaged-install.md): from skeleton/.claude/,
+# - plugins/adf, the process (docs/decisions/0016-packaged-install.md): from skeleton/.claude/,
 #   the core skills, the agents as flat files, the workflows, and the hook scripts with their
 #   hooks.json; from skeleton/docs/, the framework's reference docs (decision 0019).
 # - plugins/adf-dev, development, and every other plugin whose manifest is in plugins/: the skills and
 #   agents of the modules that name it.
 #
 # A module names the plugin that carries its skills and agents in modules/<module>/module.json —
-# parallel-agents' /dispatch goes to aplyca-adf, docker's /dev-env to adf-dev. The module stays the one
+# parallel-agents' /dispatch goes to adf, docker's /dev-env to adf-dev. The module stays the one
 # source: a committed install copies those files, a packaged one turns the plugin on. Every plugin
-# carries aplyca-adf's version, which this script copies into the others' manifests.
+# carries adf's version, which this script copies into the others' manifests.
 #
 # Claude Code puts everything a plugin carries under the plugin's name, so the copies name each other
-# that way: `/triage` becomes `/aplyca-adf:triage`, `@code-reviewer` becomes
-# `@aplyca-adf:code-reviewer`, and `/dev-env` becomes `/adf-dev:dev-env`. Names are unique across every
+# that way: `/triage` becomes `/adf:triage`, `@code-reviewer` becomes
+# `@adf:code-reviewer`, and `/dev-env` becomes `/adf-dev:dev-env`. Names are unique across every
 # plugin. The hooks read the project's .claude/hooks/config.sh. The copies act only in a packaged
 # project: each skill and agent opens with a step that hands over to the committed copy unless
 # CLAUDE.md says "This project uses the packaged install" (visible text — Claude Code strips the
 # HTML-comment stamp when it loads the file), and the hooks stand down unless the stamp on CLAUDE.md's
 # first line says `install: packaged` (_lib.sh, which reads the file itself).
 #
-# Each plugin's manifest and README, aplyca-adf's installer skills (adopt, upgrade, cost-report), and
+# Each plugin's manifest and README, adf's installer skills (adopt, upgrade, cost-report), and
 # the marketplace are written by hand and left alone, apart from the version this script keeps equal:
 # it rebuilds only the paths each plugin's .generated file lists. Never edit those paths. Change
 # skeleton/ or the module and run this again; evals/static/check-skills.sh fails when a plugin and its
@@ -40,7 +40,7 @@ import json, os, re, shutil, sys
 
 root, out_root = sys.argv[1], sys.argv[2]
 src = os.path.join(root, "skeleton", ".claude")
-CORE = "aplyca-adf"
+CORE = "adf"
 REPO_URL = "https://github.com/aplyca/AgenticDevelopmentFramework"
 DECISION = f"[decision 0023]({REPO_URL}/blob/main/docs/decisions/0023-plugins-by-concern.md)"
 
@@ -49,7 +49,7 @@ agents = sorted(os.listdir(os.path.join(src, "agents")))
 workflows = sorted(f[:-3] for f in os.listdir(os.path.join(src, "workflows")) if f.endswith(".js"))
 
 # Every plugin and what it carries: {plugin: {"skills": {name: folder}, "agents": {name: agent.md}}}.
-# A plugin is a folder in plugins/ with a hand-written manifest; aplyca-adf also takes the skeleton's.
+# A plugin is a folder in plugins/ with a hand-written manifest; adf also takes the skeleton's.
 plugin_dirs = sorted(d for d in os.listdir(os.path.join(out_root, "plugins")) if os.path.isdir(os.path.join(out_root, "plugins", d)))
 for folder in plugin_dirs:
     assert os.path.exists(os.path.join(out_root, "plugins", folder, ".claude-plugin", "plugin.json")), \
@@ -132,8 +132,8 @@ def copy(plugin, source, target, executable=False, kind=None, name=None):
         # The core can't depend on a plugin a project may not have turned on.
         assert not (other_command and other_command.search(text)), f"{source} names a skill another plugin carries"
     elif kind:
-        # ${CLAUDE_PLUGIN_ROOT} is this plugin's folder, and the reference docs are in aplyca-adf's.
-        assert not reference.search(text), f"{source} names a reference doc only aplyca-adf can reach"
+        # ${CLAUDE_PLUGIN_ROOT} is this plugin's folder, and the reference docs are in adf's.
+        assert not reference.search(text), f"{source} names a reference doc only adf can reach"
     if kind:
         named = reference.sub(r"${CLAUDE_PLUGIN_ROOT}/docs/\1.md", text)
         text = hand_over(named, kind, name, plugin, docs=named != text)
@@ -187,6 +187,11 @@ def clean(out):
 
 def copy_skills_and_agents(plugin, out):
     generated = []
+    # What clean() left is written by hand, such as adf's /adopt: a generated skill never replaces it.
+    for kind, names in (("skills", plugins[plugin]["skills"]), ("agents", plugins[plugin]["agents"])):
+        for name in names:
+            target = os.path.join(out, kind, name if kind == "skills" else name + ".md")
+            assert not os.path.exists(target), f"plugins/{plugin}/{kind}/{os.path.basename(target)} is written by hand; rename the generated one"
     for name, folder in sorted(plugins[plugin]["skills"].items()):
         for directory, _, files in os.walk(folder):
             for file in files:
@@ -199,7 +204,7 @@ def copy_skills_and_agents(plugin, out):
     return generated
 
 
-# ─── aplyca-adf ───────────────────────────────────────────────────────────────
+# ─── adf ───────────────────────────────────────────────────────────────
 
 out = os.path.join(out_root, "plugins", CORE)
 listing = clean(out)
@@ -275,7 +280,7 @@ for plugin in others:
         generated.append("agents")
     with open(listing, "w", encoding="utf-8") as f:
         f.write("".join(f"{rel}\n" for rel in sorted(generated)))
-    # One release, one version: aplyca-adf's, which a release sets by hand.
+    # One release, one version: adf's, which a release sets by hand.
     path = os.path.join(out, ".claude-plugin", "plugin.json")
     with open(path, encoding="utf-8") as f:
         manifest = json.load(f)

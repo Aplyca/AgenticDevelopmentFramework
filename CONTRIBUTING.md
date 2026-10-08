@@ -1,14 +1,14 @@
 # Contributing to the Agentic Development Framework
 
-Thanks for helping improve the framework. This repository is not an application — it is a portable skeleton, optional modules, documentation, and the `aplyca-adf` Claude Code plugin. Its "code" is mostly prompts, rules, and templates that end up inside other teams' repositories, so a one-line change here changes how many AI agents behave. The guidelines below exist to keep those changes safe to adopt.
+Thanks for helping improve the framework. This repository is not an application — it is a portable skeleton, optional modules, documentation, and the `adf` Claude Code plugin. Its "code" is mostly prompts, rules, and templates that end up inside other teams' repositories, so a one-line change here changes how many AI agents behave. The guidelines below exist to keep those changes safe to adopt.
 
 ## Ways to contribute
 
 - **Report a problem** — open an issue describing what you expected, what the AI or the template did instead, and which tool you used (Claude Code, Cursor, Copilot, Antigravity, …).
 - **Improve the skeleton** — clearer rules, better skill instructions, missing spec sections, hooks, tool-compatibility fixes.
-- **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's `module.json` names the plugin that carries its skills and agents — `aplyca-adf` for the process, `adf-dev` for development ([decision 0023](docs/decisions/0023-plugins-by-concern.md)).
+- **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's `module.json` names the plugin that carries its skills and agents — `adf` for the process, `adf-dev` for development ([decision 0023](docs/decisions/0023-plugins-by-concern.md)).
 - **Add worked material** — new playbooks in `docs/scenarios/` or end-to-end examples in `docs/examples/`.
-- **Fix the plugin** — the `/adopt` and `/upgrade` skills in `plugins/aplyca-adf/`.
+- **Fix the plugin** — the `/adopt` and `/upgrade` skills in `plugins/adf/`.
 
 For anything larger than a focused fix, open an issue first so we can agree on the direction before you invest the time.
 
@@ -37,12 +37,12 @@ the version by [decision 0017](docs/decisions/0017-semantic-versioning.md): MAJO
 act, MINOR for additive or opt-in capabilities, PATCH for fixes. In one pull request, rename
 `Unreleased` to `## vX.Y.Z — <date> — <title>`, open it with the order to upgrade in when it spans
 several parts, add an empty `Unreleased` above it, and set `"version"` in
-`plugins/aplyca-adf/.claude-plugin/plugin.json` to `X.Y.Z`, then run `scripts/build-plugins.sh`,
+`plugins/adf/.claude-plugin/plugin.json` to `X.Y.Z`, then run `scripts/build-plugins.sh`,
 which carries it into every other plugin (a static check holds them all equal to the release). Once
 it merges, tag the merge commit `vX.Y.Z` and push the tag: packaged projects pin it, and without it
 they can't take the release.
 
-**The machinery in `plugins/` is generated** by `scripts/build-plugins.sh` — in `aplyca-adf`, from
+**The machinery in `plugins/` is generated** by `scripts/build-plugins.sh` — in `adf`, from
 `skeleton/.claude/` and the reference docs; in every plugin, the skills and agents of the modules
 whose `module.json` names it. Each plugin's manifest and README, and the marketplace, are written by
 hand. Every path a plugin's `.generated` file lists is the script's. Never edit those; after changing a source,
@@ -65,7 +65,7 @@ claude plugin validate .
 ```
 
 ```bash
-claude plugin validate plugins/aplyca-adf
+claude plugin validate plugins/adf
 ```
 
 and each other plugin the same way (`claude plugin validate plugins/adf-dev`).

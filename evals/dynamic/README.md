@@ -30,7 +30,7 @@ dynamic/
       project.sh                   - builds a project on the packaged install, with something for each hook to stop
       inspect.sh                   - checks that the case's hook fired (or stood down): ✓ or ✘ per check
       stand-down.setup.sh          - switches that case's copy to the committed install
-      ...                          - each of the aplyca-adf plugin's hooks, in a real session
+      ...                          - each of the adf plugin's hooks, in a real session
     plugin-docs/
       project.sh                   - builds a packaged project without the reference docs, linked at the release
       inspect.sh                   - checks which reads reached the plugin's docs, asked first, or went to the web
@@ -74,12 +74,12 @@ signal without installing anything.
 The adopt suite's **packaged** case, and the **upgrade** suite's **switch-to-packaged**, check the
 packaged install's two ways in: adopting on it, and switching a committed project to it. The upgrade
 suite builds a committed adoption at v1.0.0 from that tag (`project.sh` gets this checkout's path), and
-`/aplyca-adf:upgrade` moves it to the newest release. Both cases' `inspect.sh` run
+`/adf:upgrade` moves it to the newest release. Both cases' `inspect.sh` run
 `check-packaged.sh`: the stamp naming the newest release and its commit, no framework machinery committed, the plugin pinned to that release and
 turned on, no `hooks` block, the stamp, and the names people type — each marked ✓ or ✘ — plus the PDR
 that records the choice. Both are long sessions; run them on one model.
 
-The **plugin-hooks** suite checks the `aplyca-adf` plugin's hooks in real sessions, which the static
+The **plugin-hooks** suite checks the `adf` plugin's hooks in real sessions, which the static
 hook tests can't: that Claude Code runs them from the plugin, and that what they print reaches the
 session. Its project is on the packaged install, with the plugin loaded from this checkout per session.
 Each case drives one hook — the session context, `--no-verify`, the triage reminder, a lockfile edit,

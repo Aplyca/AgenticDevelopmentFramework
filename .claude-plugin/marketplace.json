@@ -1,21 +1,31 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "aplyca",
-  "description": "Aplyca's agentic development tooling — the Agentic Development Framework's plugins: aplyca-adf for the process, and adf-dev for development",
+  "description": "Aplyca's agentic development tooling — the Agentic Development Framework's plugins: adf for the process, adf-dev for development, and adf-connect for trackers and services",
   "owner": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
   },
   "plugins": [
     {
-      "name": "aplyca-adf",
+      "name": "adf",
       "description": "The Agentic Development Framework for Claude Code: /adopt and /upgrade install and maintain it in a repository, committed or packaged; /cost-report measures what agent sessions cost. A packaged project also takes the framework's skills, agents, workflows, and guardrail hooks from this plugin, pinned to a release.",
       "author": {
         "name": "Aplyca",
         "email": "dev@aplyca.com"
       },
       "category": "productivity",
-      "source": "./plugins/aplyca-adf"
+      "source": "./plugins/adf"
+    },
+    {
+      "name": "adf-connect",
+      "description": "The Agentic Development Framework's connections plugin: /adf-connect:connect connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, with safe defaults and only its read tools pre-approved.",
+      "author": {
+        "name": "Aplyca",
+        "email": "dev@aplyca.com"
+      },
+      "category": "development",
+      "source": "./plugins/adf-connect"
     },
     {
       "name": "adf-dev",
@@ -27,5 +37,9 @@
       "category": "development",
       "source": "./plugins/adf-dev"
     }
-  ]
+  ],
+  "renames": {
+    "aplyca-framework": "aplyca-adf",
+    "aplyca-adf": "adf"
+  }
 }

@@ -12,14 +12,14 @@ branch, delivered as a pull request it doesn't push.
 
 A project adopted at v1.0.0 on the committed install, for a team that works in Claude Code only: the
 skeleton without the Antigravity and Cursor layers, its hooks wired in `.claude/settings.json`, the
-`aplyca-adf` plugin turned on and pinned to `v1.0.0`, PDR-0001, and the stamp — all committed on
+`adf` plugin turned on and pinned to `v1.0.0`, PDR-0001, and the stamp — all committed on
 `main`. The plugin is loaded from this checkout for the session only (`--plugin-dir`); the
 framework's releases are tagged on GitHub. There is no remote.
 
 ## Prompt to give the AI
 
 ```
-/aplyca-adf:upgrade
+/adf:upgrade
 ```
 
 ## Follow-up

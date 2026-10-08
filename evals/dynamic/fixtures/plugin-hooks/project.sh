@@ -2,7 +2,7 @@
 #
 # Builds a project on the packaged install (decision 0016): no hook scripts of its own, only
 # .claude/hooks/config.sh, and the stamp on CLAUDE.md's first line saying `install: packaged`, so the
-# aplyca-adf plugin's hooks — loaded per session with --plugin-dir — act. On a work branch with a spec
+# adf plugin's hooks — loaded per session with --plugin-dir — act. On a work branch with a spec
 # folder, a sensitive area, a lockfile, and an env template, so each hook has something to stop.
 #
 cd "$1" || exit 1

@@ -9,7 +9,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${REPO_ROOT:-$( cd "$SCRIPT_DIR/../.." && pwd )}"
-REPORT="$REPO_ROOT/plugins/aplyca-adf/skills/cost-report/session_cost.py"
+REPORT="$REPO_ROOT/plugins/adf/skills/cost-report/session_cost.py"
 
 PASS=0
 FAIL=0
@@ -64,7 +64,7 @@ PY
 run() { python3 "$REPORT" "$PROJECT" --projects-dir "$WORK/projects" --days 0 "$@" 2>&1; }
 
 echo ""
-echo "Plugin tests — plugins/aplyca-adf"
+echo "Plugin tests — plugins/adf"
 echo "======================================="
 
 out=$(run)
@@ -95,7 +95,7 @@ SITE="$WORK/linked"
 cp -R "$REPO_ROOT/skeleton" "$SITE"
 NAMES='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
 local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/" -e "/docs/[A-Z-]*\.md$"; }
-plugin_docs=$(cd "$REPO_ROOT/plugins/aplyca-adf/docs" && ls | sort | tr '\n' ' ')
+plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
 check "link-reference-docs: the plugin carries the four reference docs (got: $plugin_docs)" \
     "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md SPEC-MODEL.md ' ]"
 first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)

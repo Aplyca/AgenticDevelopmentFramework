@@ -26,7 +26,7 @@ projects.
 | [0013](0013-adapt-practices-not-a-second-workflow.md) | Adapt practices from other skill collections into our skills — never a second workflow | accepted |
 | [0014](0014-test-first-in-every-lane.md) | Test first in every lane | accepted |
 | [0015](0015-tool-worktrees-are-workers.md) | Worktrees that Claude Code creates are workers too (parallel-agents module) | accepted; amended by 0020 |
-| [0016](0016-packaged-install.md) | A packaged install — the framework's machinery from its pinned plugin, `aplyca-adf` (opt-in, Claude Code only) | accepted; amended by 0018, 0019, 0020, 0023 |
+| [0016](0016-packaged-install.md) | A packaged install — the framework's machinery from its pinned plugin, `aplyca-adf` (opt-in, Claude Code only) | accepted; amended by 0018, 0019, 0020, 0023 (renamed `adf` in v2.0.0) |
 | [0017](0017-semantic-versioning.md) | Releases follow semantic versioning | accepted; amended by 0023 |
 | [0018](0018-packaged-by-default.md) | The packaged install is the default | accepted |
 | [0019](0019-reference-docs-in-the-plugin.md) | A packaged project reads the framework's reference docs from the plugin | accepted |

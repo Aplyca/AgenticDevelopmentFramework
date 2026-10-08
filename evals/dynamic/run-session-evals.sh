@@ -16,7 +16,7 @@
 # copy before the session. Transcripts land in the output directory for grading against each
 # fixture's .expected.md.
 #
-# The upgrade suite: a committed adoption at v1.0.0, built from that tag, which /aplyca-adf:upgrade moves
+# The upgrade suite: a committed adoption at v1.0.0, built from that tag, which /adf:upgrade moves
 # to the newest release — the switch-to-packaged case switches it to the packaged install on the way. It
 # runs like the adopt suite (bypassPermissions on throwaway copies, the plugin per session).
 #
@@ -253,12 +253,12 @@ PY
   elif [ -n "$DOCS_RULE" ]; then flags+=(--permission-mode default)
   else flags+=(--permission-mode acceptEdits); fi
   if grep -q '<!-- run: plugin-dir -->' "$input"; then
-    flags+=(--plugin-dir "$FWC/plugins/aplyca-adf")
+    flags+=(--plugin-dir "$FWC/plugins/adf")
     [ -n "$DOCS_RULE" ] || dirs+=("$FWC")
   fi
   if [ -n "$DOCS_RULE" ]; then # reads in the project need no rule; the plugin's folder, the committed one
     reads=() run_env=(ANTHROPIC_DEFAULT_OPUS_MODEL=claude-haiku-4-5-20251001)
-    grep -q '<!-- run: no-read-rule -->' "$input" || reads=("Read(/$FWC/plugins/aplyca-adf/**)")
+    grep -q '<!-- run: no-read-rule -->' "$input" || reads=("Read(/$FWC/plugins/adf/**)")
   fi
   [ -d "$SOURCE" ] && [ "$SOURCE" != "$FWC" -o ${#dirs[@]} -eq 0 ] && dirs+=("$SOURCE")
   [ ${#dirs[@]} -gt 0 ] && flags+=(--add-dir "${dirs[@]}")

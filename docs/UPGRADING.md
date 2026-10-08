@@ -248,11 +248,31 @@ does it and reports a user-scope copy to remove), then run `/upgrade` in a new s
 the release's parts newest first and offers the modules you don't have. If the project uses the
 dispatcher hub, run it from a worktree: from this release on, the hub's main checkout takes no edits.
 
+### "Our settings still turn on `aplyca-adf`" — moving to v2.0.0
+
+From v2.0.0 the framework's plugin is `adf` ([decision 0023](decisions/0023-plugins-by-concern.md)):
+`/adf:triage` instead of `/aplyca-adf:triage`. Upgrade the usual way, with `/aplyca-adf:upgrade` in a
+new session. It reads the release's migration steps and renames the plugin everywhere the project
+names it:
+
+- `enabledPlugins`: `adf@aplyca` replaces `aplyca-adf@aplyca`. The marketplace's `renames` map lets
+  Claude Code rewrite that key itself once its copy of the marketplace is at v2.0.0, so the change may
+  already be there, uncommitted.
+- The read rule: `Read(~/.claude/plugins/cache/aplyca/adf/**)`.
+- The names people type, in `CLAUDE.md`'s names note and `DEV-SETUP.md`: `/adf:triage`,
+  `@adf:code-reviewer`.
+
+Once its pull request merges, each developer runs `/plugin install adf@aplyca` once in a session — a
+marketplace from GitHub doesn't fetch a renamed plugin on its own — and removes the old one:
+`claude plugin uninstall aplyca-adf@aplyca --scope project`. A developer with another project still on
+v1 sees that project's marketplace entry follow whichever project they opened last; upgrade both.
+
 ### "We adopted before v1.0.0 (2026-10-02)"
 
-The installer plugin is now `aplyca-adf`; the project's settings still turn on `aplyca-framework`.
-Install `aplyca-adf` with the README's install prompt, which refreshes the marketplace first, then run
-`/aplyca-adf:upgrade` in a new session. It replaces the old name in the committed settings, pins the
+The installer plugin is now `adf` (it was `aplyca-adf` from v1.0.0 to v2.0.0); the project's settings
+still turn on `aplyca-framework`.
+Install `adf` with the README's install prompt, which refreshes the marketplace first, then run
+`/adf:upgrade` in a new session. It replaces the old name in the committed settings, pins the
 marketplace to the release, and restamps with the version. Once its pull request merges, remove the
 old plugin from each machine that installed it:
 `claude plugin uninstall aplyca-framework@aplyca --scope project`.
@@ -263,7 +283,7 @@ A packaged project ([decision 0016](decisions/0016-packaged-install.md)) doesn't
 agents, workflows, hook scripts, or the framework's reference docs
 ([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), nor the `parallel-agents`
 module's `/dispatch` once its pinned release's plugin carries it
-([decision 0020](decisions/0020-every-task-through-dispatch.md)): they come from the `aplyca-adf`
+([decision 0020](decisions/0020-every-task-through-dispatch.md)): they come from the `adf`
 plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means two things:
 
 - **Bump the pin:** the marketplace's `"ref"` moves to the new release tag, `vX.Y.Z`. That one line upgrades
@@ -274,12 +294,12 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
 - **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
-- **Turn on the plugin that carries an installed module's skills** when it isn't `aplyca-adf`
+- **Turn on the plugin that carries an installed module's skills** when it isn't `adf`
   ([decision 0023](decisions/0023-plugins-by-concern.md)) — `adf-dev` for `docker`: `"adf-dev@aplyca": true` in
   `enabledPlugins`, its read rule, and no committed copy of the module's skills. The same pin covers
   it.
 
-`/aplyca-adf:upgrade` does both, and offers to switch a committed project to packaged (or back). The
+`/adf:upgrade` does both, and offers to switch a committed project to packaged (or back). The
 switch is recorded as a process decision (PDR) in the same pull request, and it removes only the
 machinery files unchanged since your baseline. A skill or hook your team edited stays committed,
 under a name of its own, or goes upstream as a change to the framework.

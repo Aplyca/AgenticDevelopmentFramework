@@ -4,7 +4,7 @@
 
 HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# The plugin's copy of a hook (aplyca-adf, decision 0016) acts only in a packaged project — the stamp
+# The plugin's copy of a hook (adf, decision 0016) acts only in a packaged project — the stamp
 # on CLAUDE.md's first line says `install: packaged`. A committed project runs its own copies from its
 # settings, and a project that hasn't adopted the framework runs none.
 if [ -n "${CLAUDE_PROJECT_DIR:-}" ] &&
@@ -49,7 +49,7 @@ read_settings() {
   done < <(cat "$file")
 }
 # The settings sit next to the scripts in a committed install. In the packaged install (the
-# aplyca-adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
+# adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
 # project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR.
 for config in "$HOOKS_DIR/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
   if [ -n "$config" ] && [ -f "$config" ]; then

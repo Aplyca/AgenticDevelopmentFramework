@@ -11,11 +11,11 @@ stops.
 
 It is one of the framework's plugins by concern
 ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)):
-`aplyca-adf` carries the process, `adf-dev` development, and `adf-connect` (planned) the connections to
-trackers and services. All of them are listed in the `aplyca` marketplace at the same version, and a
+`adf` carries the process, `adf-dev` development, and `adf-connect` the connections to trackers and
+services. All of them are listed in the `aplyca` marketplace at the same version, and a
 project pins them together.
 
-`/aplyca-adf:adopt` and `/aplyca-adf:upgrade` turn it on in a packaged project that installs one of its
+`/adf:adopt` and `/adf:upgrade` turn it on in a packaged project that installs one of its
 modules: `"adf-dev@aplyca": true` in `enabledPlugins`, and
 `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`. A committed project copies the
 modules' skills instead and leaves it off.

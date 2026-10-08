@@ -24,7 +24,7 @@ No rule of its own: Compose and Dockerfile conventions live in the skeleton's
   `modules/docker/install.sh /path/to/your-repo`.
 - **Packaged install:** leave `files/.claude/skills/` out, run
   `modules/docker/install.sh /path/to/your-repo`, and turn the plugin on in `.claude/settings.json`
-  beside `aplyca-adf` — `"adf-dev@aplyca": true` in `enabledPlugins`, and
+  beside `adf` — `"adf-dev@aplyca": true` in `enabledPlugins`, and
   `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 
 `install.sh` merges into `.claude/settings.json`: it keeps your rules and their order, adds only

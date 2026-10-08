@@ -10,17 +10,17 @@ Code session, or with these commands:
 cd your-project
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
 claude plugin marketplace update aplyca
-claude plugin install aplyca-adf@aplyca --scope project
-# then, in the repository:  /aplyca-adf:adopt
+claude plugin install adf@aplyca --scope project
+# then, in the repository:  /adf:adopt
 ```
 
 `--scope project` turns the plugin on in this project only, through its committed
 `.claude/settings.json` — teammates get it once they trust the folder, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
 `--scope local`. From the desktop app's Code tab:
-[the plugin's README § In the desktop app](../plugins/aplyca-adf/README.md#in-the-desktop-app).
+[the plugin's README § In the desktop app](../plugins/adf/README.md#in-the-desktop-app).
 
-`/aplyca-adf:adopt` recommends the **packaged** install by default
+`/adf:adopt` recommends the **packaged** install by default
 ([decision 0018](decisions/0018-packaged-by-default.md)): the skills, agents, workflows, hook
 scripts, and the framework's reference docs come from the pinned plugin, and the repository commits
 only its own layer —
@@ -86,6 +86,12 @@ cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
 
 Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
 
+**Connecting a tracker or a service** — Jira, Linear, GitLab, Supabase, Vercel, Contentful — is a job
+for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca": true` in
+`enabledPlugins`, then run `/adf-connect:connect <service>`. It writes the project's `.mcp.json` entry
+with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
+tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
+
 ## 3. Fill in AGENTS.md — the file every tool reads
 
 Replace every `[bracketed placeholder]` with facts you can point to in the repository (manifests,
@@ -150,7 +156,7 @@ Each customizable doc starts with `<!-- owner · last_updated · scope -->` — 
 `docs/SPEC-MODEL.md` and `specs/_templates/spec.md` ship with defaults for web projects. To change role
 names, mandatory sections, or conditional rules, update the template, `docs/SPEC-MODEL.md`, and the
 enforcement step in `.claude/skills/write-spec/SKILL.md` together. That takes the committed install:
-in a packaged project, the spec model and `/aplyca-adf:write-spec` come from the plugin.
+in a packaged project, the spec model and `/adf:write-spec` come from the plugin.
 
 ## 8. Stamp, commit, and open a draft pull request
 
@@ -160,7 +166,7 @@ Fill the first line of `CLAUDE.md`:
 <!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <list or none> — … -->
 ```
 
-`<vX.Y.Z>` is the release you copied from, and `<SHA>` its commit: `/aplyca-adf:upgrade` diffs against it
+`<vX.Y.Z>` is the release you copied from, and `<SHA>` its commit: `/adf:upgrade` diffs against it
 later ([decision 0017](decisions/0017-semantic-versioning.md)). With the plugin, pin the same release
 in `.claude/settings.json` — `"ref": "v<X.Y.Z>"` on the `aplyca` marketplace — so the plugin's copies of
 the skills match your committed ones.
@@ -178,7 +184,7 @@ Open the pull request as a draft; merge after review like any other change.
 repository: 20 skills, 8 agents, 4 workflows, the hook scripts, the framework's reference docs
 ([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), and the `parallel-agents`
 module's `/dispatch` ([decision 0020](decisions/0020-every-task-through-dispatch.md)) come from the
-`aplyca-adf` plugin, pinned to a release tag. A development module's skills come the same way from
+`adf` plugin, pinned to a release tag. A development module's skills come the same way from
 `adf-dev` — `docker`'s `/dev-env` ([decision 0023](decisions/0023-plugins-by-concern.md)). The repository commits its own
 layer as above, and every module's other files.
 Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
@@ -195,7 +201,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    `.agents/`, `.cursor/`, and the four reference docs: `docs/COST-MODEL.md`,
    `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as
    usual, but leave out `.claude/skills/dispatch/` when the release's plugin carries it
-   (`plugins/aplyca-adf/skills/dispatch/` in the framework copy); an older release's plugin doesn't,
+   (`plugins/adf/skills/dispatch/` in the framework copy); an older release's plugin doesn't,
    so copy it there. A module whose `module.json` names another plugin (`adf-dev`) leaves out all its
    `.claude/skills/`. Then point the files that name the reference docs at the
    release you pin, from the framework copy you took the skeleton from:
@@ -211,12 +217,12 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
          "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>" }
        }
      },
-     "enabledPlugins": { "aplyca-adf@aplyca": true },
-     "permissions": { "allow": ["Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)"] }
+     "enabledPlugins": { "adf@aplyca": true },
+     "permissions": { "allow": ["Read(~/.claude/plugins/cache/aplyca/adf/**)"] }
    }
    ```
 
-   With a module whose skills `adf-dev` carries, turn that on beside `aplyca-adf`, with its own read
+   With a module whose skills `adf-dev` carries, turn that on beside `adf`, with its own read
    rule: `"adf-dev@aplyca": true` in `enabledPlugins` and
    `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 
@@ -227,23 +233,23 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    to the start of `CLAUDE.md` § Skills, agents, and workflows:
 
    > **This project uses the packaged install.** Skills, agents, and workflows come from the
-   > `aplyca-adf` plugin, pinned in `.claude/settings.json`. Where these files name a skill or
-   > workflow — `/triage`, `/deep-review` — type `/aplyca-adf:triage`, `/aplyca-adf:deep-review`.
-   > Where they name an agent — `@code-reviewer` — its name is `aplyca-adf:code-reviewer`. The
+   > `adf` plugin, pinned in `.claude/settings.json`. Where these files name a skill or
+   > workflow — `/triage`, `/deep-review` — type `/adf:triage`, `/adf:deep-review`.
+   > Where they name an agent — `@code-reviewer` — its name is `adf:code-reviewer`. The
    > framework's reference docs — the spec model, the cost model, the memory strategy, MCP
    > integration — come from the plugin too; these files link them at the pinned release.
 
    People read the key commands in `docs/getting-started/DEV-SETUP.md` § AI-assisted development,
-   so write them there by their full names: `/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`. A
+   so write them there by their full names: `/adf:triage`, `@adf:code-reviewer`. A
    module's skills go by the name of the plugin that carries them: `/adf-dev:dev-env`.
 
 4. **Stamp the install** (step 8): `<!-- Skeleton source: v<X.Y.Z> · <SHA> (<date>) · modules: <list> · install: packaged — … -->`,
    with the pinned release and its commit. `install: packaged` is what turns the plugin's copies on.
 
 **Verify** as below, with two differences. Pipe the hook samples to the plugin's scripts, with the
-project and the plugin named: `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/aplyca-adf <marketplace folder>/plugins/aplyca-adf/hooks/guard-git.sh`,
+project and the plugin named: `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/adf <marketplace folder>/plugins/adf/hooks/guard-git.sh`,
 where the marketplace folder is the `installLocation` of `aplyca` in
-`claude plugin marketplace list --json`. And in a new session, `/aplyca-adf:triage` is offered.
+`claude plugin marketplace list --json`. And in a new session, `/adf:triage` is offered.
 
 Each teammate gets the plugin, and the read rule, once they trust the folder. A machine nobody opens a
 session on — CI — installs it first, from the repository's folder; a headless run (`claude -p`) never
@@ -251,8 +257,8 @@ trusts the folder, so pass the read rule with `--allowedTools` if it uses the pl
 
 ```bash
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
-claude plugin install aplyca-adf@aplyca --scope project
-claude -p "<the task>" --allowedTools "Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)"
+claude plugin install adf@aplyca --scope project
+claude -p "<the task>" --allowedTools "Read(~/.claude/plugins/cache/aplyca/adf/**)"
 ```
 
 A job that uses `adf-dev`'s skills installs that plugin too, and passes its read rule:
@@ -281,7 +287,7 @@ request:
 
 ```bash
 claude plugin marketplace update aplyca
-claude plugin update aplyca-adf@aplyca
+claude plugin update adf@aplyca
 ```
 
 By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's

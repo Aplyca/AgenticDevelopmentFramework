@@ -33,10 +33,10 @@ for line in open(out, encoding="utf-8", errors="replace"):
             results[block.get("tool_use_id")] = (bool(block.get("is_error")), text if isinstance(text, str) else json.dumps(text))
 
 def read_ok(doc, heading):
-    return any(path.endswith("/plugins/aplyca-adf/docs/" + doc) and not results.get(i, (True, ""))[0] and heading in results[i][1]
+    return any(path.endswith("/plugins/adf/docs/" + doc) and not results.get(i, (True, ""))[0] and heading in results[i][1]
                for i, path in reads.items())
 
-plugin_denials = [d for d in denials if "/plugins/aplyca-adf/" in json.dumps(d.get("tool_input", {}))]
+plugin_denials = [d for d in denials if "/plugins/adf/" in json.dumps(d.get("tool_input", {}))]
 def check(label, ok):
     print(f"- {'✓' if ok else '✘'} {label}")
 

@@ -4,7 +4,7 @@
 
 This fixture verifies `/adopt` with the packaged install (decision 0016): given a team that works in
 Claude Code only, it commits only the project's own layer — no framework skills, agents, workflows,
-or hook scripts — pins the `aplyca-adf` plugin to the newest release tag, stamps
+or hook scripts — pins the `adf` plugin to the newest release tag, stamps
 `install: packaged`, and tells people the names they type.
 
 ## Repository context to give the AI
@@ -17,7 +17,7 @@ There is no remote.
 ## Prompt to give the AI
 
 ```
-/aplyca-adf:adopt
+/adf:adopt
 ```
 
 ## Follow-up
