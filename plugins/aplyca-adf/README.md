@@ -23,7 +23,12 @@ where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
 `workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` from its
-module — by `scripts/build-aplyca-adf.sh`; never edit it here.
+module — by `scripts/build-plugins.sh`; never edit it here.
+
+It carries the process. The `aplyca` marketplace also lists `adf-dev`, the development plugin —
+the `docker` module's `/dev-env` — built by the same script, at this plugin's version
+([decision 0023](../../docs/decisions/0023-plugins-by-concern.md)). `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` turn it on
+in a packaged project that installs one of its modules.
 
 ## Install
 
@@ -157,7 +162,10 @@ the plugin by a relative path. A machine where nobody trusts the folder — CI �
 A packaged project also lets Claude read the plugin's own folder,
 `"permissions": { "allow": ["Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)"] }`, so its skills
 and agents open the reference docs without asking
-([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)).
+([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)). With a development
+module, a packaged project turns `adf-dev` on too, with its own read rule —
+`"adf-dev@aplyca": true` and `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)`; the same pin covers
+it.
 
 Every project pins its release with `"ref"`, and `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` keep
 it equal to the release in the `CLAUDE.md` stamp. In a packaged project the pin chooses the

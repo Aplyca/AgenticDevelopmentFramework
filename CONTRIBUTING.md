@@ -6,7 +6,7 @@ Thanks for helping improve the framework. This repository is not an application 
 
 - **Report a problem** — open an issue describing what you expected, what the AI or the template did instead, and which tool you used (Claude Code, Cursor, Copilot, Antigravity, …).
 - **Improve the skeleton** — clearer rules, better skill instructions, missing spec sections, hooks, tool-compatibility fixes.
-- **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host or a way of working.
+- **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's `module.json` names the plugin that carries its skills and agents — `aplyca-adf` for the process, `adf-dev` for development ([decision 0023](docs/decisions/0023-plugins-by-concern.md)).
 - **Add worked material** — new playbooks in `docs/scenarios/` or end-to-end examples in `docs/examples/`.
 - **Fix the plugin** — the `/adopt` and `/upgrade` skills in `plugins/aplyca-adf/`.
 
@@ -14,7 +14,7 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 
 ## Ground rules
 
-1. **Keep `skeleton/` and `modules/*/files/` generic.** No project-specific stacks, paths, conventions, company names, or client names. Agents and skills learn project context from the adopting repo's `AGENTS.md`, `CLAUDE.md`, and rules at runtime — never hardcode it.
+1. **Keep `skeleton/` and `modules/*/files/` generic.** No project-specific stacks, paths, conventions, company names, or client names — a module may target a named public product (GitHub, ClickUp, Docker), never one project's setup. Agents and skills learn project context from the adopting repo's `AGENTS.md`, `CLAUDE.md`, and rules at runtime — never hardcode it.
 2. **Never include real client, customer, or internal project names** anywhere in the repository, including examples, commit messages, and PR descriptions. Use the fictional newsletter feature from `docs/examples/` when you need a concrete example.
 3. **Preserve `<!-- CUSTOMIZE -->` markers** in customizable rules and templates; adopting teams rely on them to find what to tailor.
 4. **Write in the adopting project's voice** inside `skeleton/`. Files copied into a target repo shouldn't narrate "the framework"; that voice belongs in the root `docs/` only.
@@ -28,7 +28,7 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 1. Fork the repository and create a branch from `main` (`feat/…`, `fix/…`, `docs/…`, `chore/…`).
 2. Make one logical change per pull request.
 3. **Add a `CHANGELOG.md` entry** under `Unreleased`. Adopting teams upgrade by reading it, so classify every skeleton file you touched against the three-bucket taxonomy in [`docs/UPGRADING.md`](docs/UPGRADING.md): *Overwrite*, *Merge*, or *Additive*. Mark changes that don't land in adopted repos as framework-internal.
-4. **Bump the plugin version** in `plugins/aplyca-adf/.claude-plugin/plugin.json` if you changed anything under `plugins/`.
+4. **Rebuild the plugins** if you changed `skeleton/.claude/`, a module's skills or `plugin.json`, or a reference doc the plugin carries: run `scripts/build-plugins.sh` and commit `plugins/` and `.claude-plugin/marketplace.json` with the change. Leave every plugin's `"version"` alone — it changes only in a release ([decision 0017](docs/decisions/0017-semantic-versioning.md)).
 5. Run the checks below.
 6. Open a pull request that explains what changed and *why*, and lists the checks you ran.
 
@@ -37,13 +37,16 @@ the version by [decision 0017](docs/decisions/0017-semantic-versioning.md): MAJO
 act, MINOR for additive or opt-in capabilities, PATCH for fixes. In one pull request, rename
 `Unreleased` to `## vX.Y.Z — <date> — <title>`, open it with the order to upgrade in when it spans
 several parts, add an empty `Unreleased` above it, and set `"version"` in
-`plugins/aplyca-adf/.claude-plugin/plugin.json` to `X.Y.Z` (a static check holds the two equal). Once
+`plugins/aplyca-adf/.claude-plugin/plugin.json` to `X.Y.Z`, then run `scripts/build-plugins.sh`,
+which carries it into every other plugin (a static check holds them all equal to the release). Once
 it merges, tag the merge commit `vX.Y.Z` and push the tag: packaged projects pin it, and without it
 they can't take the release.
 
-**The machinery in `plugins/aplyca-adf/` is generated** from `skeleton/.claude/` by
-`scripts/build-aplyca-adf.sh` — every path its `.generated` file lists. Never edit those; after any change under `skeleton/.claude/`, run the script and commit its output with
-the change. The static checks fail when the two drift apart.
+**The machinery in `plugins/` is generated** by `scripts/build-plugins.sh` — in `aplyca-adf`, from
+`skeleton/.claude/` and the reference docs; in every plugin, the skills and agents of the modules
+whose `module.json` names it. Each plugin's manifest and README, and the marketplace, are written by
+hand. Every path a plugin's `.generated` file lists is the script's. Never edit those; after changing a source,
+run the script and commit its output with the change. The static checks fail when they drift apart.
 
 ## Checks
 
@@ -64,6 +67,8 @@ claude plugin validate .
 ```bash
 claude plugin validate plugins/aplyca-adf
 ```
+
+and each other plugin the same way (`claude plugin validate plugins/adf-dev`).
 
 If you changed how a skill behaves (not just its structure), consider running the relevant dynamic fixture in [`evals/dynamic/`](evals/dynamic/README.md) and noting the result in your PR. Add a new eval only when a real regression surfaces — see [`evals/STRATEGY.md`](evals/STRATEGY.md).
 

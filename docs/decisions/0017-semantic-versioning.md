@@ -1,6 +1,6 @@
 # 0017: Releases follow semantic versioning
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0023](0023-plugins-by-concern.md) (every plugin in the marketplace carries the release's version)
 - **Date:** 2026-10-02
 - **Supersedes:** the versioning convention in `docs/UPGRADING.md` — "versions are referenced by commit
   SHA + date"

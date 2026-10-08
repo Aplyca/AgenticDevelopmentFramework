@@ -7,7 +7,7 @@ every pull request (`.github/workflows/evals.yml`). Four suites, all run by `../
 |---|---|
 | `check-skills.sh` | **Structure** — skills, agents, workflows, settings and hook wiring, instruction files, spec templates, links, modules |
 | `test-hooks.sh` | **Behavior of the guardrail hooks** — feeds real tool events (JSON on stdin, exactly as Claude Code sends them) into `skeleton/.claude/hooks/` against a throwaway repository and checks block / allow |
-| `test-modules.sh` | **Behavior of the module scripts** — the `git-hooks` `pre-push` against a bare remote, and the `parallel-agents` worktree scripts (create, idempotent rerun, env seeding, port reservation under a lock, setup/start, removal), and the `clickup` installer (merges into existing `.mcp.json` and settings, idempotent, keeps customizations, refuses invalid JSON) in throwaway repositories |
+| `test-modules.sh` | **Behavior of the module scripts** — the `git-hooks` `pre-push` against a bare remote, and the `parallel-agents` worktree scripts (create, idempotent rerun, env seeding, port reservation under a lock, setup/start, removal), the `clickup` installer (merges into existing `.mcp.json` and settings, idempotent, keeps customizations, refuses invalid JSON), and the `docker` installer (merges its permission rules, idempotent, refuses invalid JSON) with a simulation of which docker commands ask, run, or prompt, in throwaway repositories |
 | `test-plugin.sh` | **Behavior of the plugin's scripts** — `/cost-report`'s `session_cost.py` against synthetic transcripts: which folders count, the cost arithmetic, the model tier, and each flag (long context, pauses, browser loops, spec-heavy) |
 
 ## What `check-skills.sh` checks
@@ -28,10 +28,12 @@ every pull request (`.github/workflows/evals.yml`). Four suites, all run by `../
 | Workflow-integrity phrases in `/write-spec`, `/write-plan`, `/implement`, `/write-docs`, `/open-pr` | Removing them silently removes a gate |
 | Spec scaffold: `specs/README.md`, `_templates/{spec,plan,tasks}.md` exist, the legacy template is gone, required frontmatter and sections, the plan's change surface / constitution check / test strategy / documentation plan / assumptions, the tasks' TDD loop and gate results | The templates are the contract every skill reads |
 | Every relative link in `skeleton/` and `modules/*/files/` resolves inside an adopting repository | Framework-only links shipped once and broke in every adopted repo |
-| A module's `settings-fragment.json` pre-approves only MCP tools that read, and its `.mcp.json` carries no credentials | A write tool on the allowlist would post to the client without a prompt |
+| A module's `settings-fragment.json` pre-approves only MCP tools and `Bash` commands that read — no command that changes state or prints secrets, no whole program — and its `.mcp.json` carries no credentials | A write tool on the allowlist would post to the client without a prompt; a destructive command would run without one |
 | Lanes: `specs/README.md` defines them (triggers, checklists, the developer's call, light change requests); `/triage` decides them; `/review` checks them; `CAREFUL_GLOBS` and the `careful-paths` hook are wired; the spec template has the light form | Ceremony follows risk only while every piece of the routing is in place |
-| Plugin skills have valid frontmatter; plugin scripts compile | The plugin ships to every machine that installs it |
-| Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks | Modules install with `cp -R`; a README would overwrite the target's |
+| Plugin skills have valid frontmatter; plugin scripts compile; skill and agent names are unique across plugins | The plugins ship to every machine that installs them, and a bare name must reach one skill |
+| `plugins/` matches a fresh `scripts/build-plugins.sh`; the marketplace lists every plugin folder, `aplyca-adf` first; every plugin's version equals the newest release | A source change that wasn't rebuilt would ship old machinery; one release pins every plugin (decisions 0016, 0017, 0023) |
+| Each plugin carries exactly the skills of the modules whose `module.json` names it, with their Step 0 | A module's skills reach the plugin of its concern and no other (decision 0023) |
+| Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks; a module that ships skills has a `module.json` naming a plugin in `plugins/` | Modules install with `cp -R`; a README would overwrite the target's |
 
 ## Running
 

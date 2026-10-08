@@ -1,6 +1,6 @@
 # 0016: A packaged install — the framework's machinery from its pinned plugin, `aplyca-adf` (opt-in, Claude Code only)
 
-- **Status:** accepted; amended by [0018](0018-packaged-by-default.md) (the packaged install is the default), [0019](0019-reference-docs-in-the-plugin.md) (the reference docs come from the plugin), and [0020](0020-every-task-through-dispatch.md) (so does a module's skill, `/dispatch`)
+- **Status:** accepted; amended by [0018](0018-packaged-by-default.md) (the packaged install is the default), [0019](0019-reference-docs-in-the-plugin.md) (the reference docs come from the plugin), [0020](0020-every-task-through-dispatch.md) (so does a module's skill, `/dispatch`), and [0023](0023-plugins-by-concern.md) (one plugin per concern: the process, development, connections)
 - **Date:** 2026-10-02
 - **Amends:** [0009](0009-optional-modules.md) — what ships as committed files
 

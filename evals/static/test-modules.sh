@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the
-# parallel-agents worktree scripts, and the clickup install script. Builds throwaway repositories (with a bare "origin") in a temp
+# parallel-agents worktree scripts, and the clickup and docker install scripts. Builds throwaway repositories (with a bare "origin") in a temp
 # directory. No AI invocation, no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
 #
 set -uo pipefail
@@ -214,6 +214,57 @@ check "clickup install: keeps a customized clickup server, and says so" "[ \"\$(
 CB="$WORK/clickup-broken"; mkdir -p "$CB/.claude"; printf '{ not json' > "$CB/.claude/settings.json"
 "$MODULES/clickup/install.sh" "$CB" >/dev/null 2>&1; c=$?
 check "clickup install: refuses invalid JSON and leaves the file alone" "[ $c -ne 0 ] && [ \"\$(cat '$CB/.claude/settings.json')\" = '{ not json' ]"
+
+# ─── docker: install.sh merges the permission rules, never overwrites ──────
+DF="$WORK/docker-fresh"; mkdir -p "$DF"
+ALLOWS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["allow"])')
+ASKS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["ask"])')
+"$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1; c=$?
+check "docker install: creates .claude/settings.json with the read-only allows and the destructive asks" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"])')\" = \"($ALLOWS, $ASKS)\" ]"
+check "docker install: no MCP server and nothing enabled" "[ ! -e '$DF/.mcp.json' ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'sorted(d)')\" = \"['permissions']\" ]"
+"$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1
+check "docker install: a second run adds nothing" "[ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"])')\" = \"($ALLOWS, $ASKS)\" ]"
+
+DE="$WORK/docker-existing"; mkdir -p "$DE/.claude"
+printf '{"$schema":"x","model":"sonnet","permissions":{"allow":["Bash(git status)"],"ask":["Bash(git push)"],"deny":["Read(.env)"]}}\n' > "$DE/.claude/settings.json"
+"$MODULES/docker/install.sh" "$DE" >/dev/null 2>&1
+check "docker install: keeps existing settings and permission order" "[ \"\$(jsonq '$DE/.claude/settings.json' 'list(d)[:2] == [chr(36) + \"schema\", \"model\"] and d[\"permissions\"][\"allow\"][0] == \"Bash(git status)\" and d[\"permissions\"][\"ask\"][0] == \"Bash(git push)\" and d[\"permissions\"][\"deny\"] == [\"Read(.env)\"]')\" = True ]"
+
+DB="$WORK/docker-broken"; mkdir -p "$DB/.claude"; printf '{ not json' > "$DB/.claude/settings.json"
+"$MODULES/docker/install.sh" "$DB" >/dev/null 2>&1; c=$?
+check "docker install: refuses invalid JSON and leaves the file alone" "[ $c -ne 0 ] && [ \"\$(cat '$DB/.claude/settings.json')\" = '{ not json' ]"
+
+# Claude Code's matching, as documented: a * matches any text, spaces included; every subcommand
+# is matched on its own; deny, then ask, then allow — an ask rule wins over any allow rule.
+verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" <<'PY'
+import json, re, sys
+perms = json.load(open(sys.argv[1]))["permissions"]
+def matches(rules, command):
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+def verdict(command):
+    parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
+    if any(matches(perms["ask"], p) for p in parts):
+        return "ask"
+    return "allow" if all(matches(perms["allow"], p) for p in parts) else "prompt"
+cases = {
+    "docker compose down -v": "ask", "docker compose down --volumes": "ask",
+    "docker compose -f compose.yaml down -v": "ask", "docker compose down --rmi all": "ask",
+    "cd app && docker compose down -v": "ask", "docker volume rm newsletter_redis-data": "ask",
+    "docker system prune -af": "ask", "docker volume prune": "ask", "docker image prune -a": "ask",
+    "docker rm -f web": "ask", "docker rmi redis:7": "ask", "docker compose rm -f web": "ask",
+    "docker compose ps": "allow", "docker compose logs --tail 100 --no-color web": "allow",
+    "docker compose config --quiet": "allow", "docker compose port web 3000": "allow",
+    "docker system df": "allow",
+    "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
+    "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
+}
+for command, expected in cases.items():
+    if verdict(command) != expected:
+        print(f"'{command}': {verdict(command)}, expected {expected}")
+PY
+)
+check "docker rules: destructive commands ask, read-only ones run, secret-printing ones aren't allowed" "[ -z \"\$verdicts\" ]"
+[ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 
 
 echo "=============================="
