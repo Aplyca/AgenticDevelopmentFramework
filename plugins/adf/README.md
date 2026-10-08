@@ -19,7 +19,7 @@ sessions chooses the **committed** install: the framework as files in the reposi
 [AGENTS.md](https://agents.md) standard plus tool-specific layers), readable by every tool, with no
 runtime dependency on this plugin. In a committed project, the plugin's copies of the machinery step
 aside: its hooks stand down, and its skills and agents hand over to the committed files. They act only
-where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
+where the stamp on `AGENTS.md`'s first line (`CLAUDE.md`'s, before v2.0.0) says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
 `workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` from its
@@ -58,8 +58,8 @@ at user scope.
    plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
 5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
    that copy. Don't run them.
-6. Tell me to start a new session here, then run /adf:upgrade if CLAUDE.md has a
-   "Skeleton source:" line, otherwise /adf:adopt.
+6. Tell me to start a new session here, then run /adf:upgrade if the first line of AGENTS.md
+   (or of CLAUDE.md) is a "Skeleton source:" stamp, otherwise /adf:adopt.
 ```
 
 Or run the commands yourself, from the project's folder. The update refreshes a copy of the
@@ -170,7 +170,7 @@ module, a packaged project turns `adf-dev` on too, with its own read rule —
 it.
 
 Every project pins its release with `"ref"`, and `/adf:adopt` and `/adf:upgrade` keep
-it equal to the release in the `CLAUDE.md` stamp. In a packaged project the pin chooses the
+it equal to the release in the project's stamp. In a packaged project the pin chooses the
 machinery; in a committed one it keeps the plugin's copies at the same release as the committed
 files, so a skill listed twice never runs a different version.
 

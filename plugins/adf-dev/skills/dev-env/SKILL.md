@@ -4,7 +4,7 @@ description: Set up, connect, diagnose, or safely reset this project's Docker Co
 argument-hint: "[set up | worktrees | diagnose <symptom> | reset]"
 ---
 
-> **Step 0 — which copy.** This is the packaged copy, from the `docker` module, carried by `adf-dev` ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/dev-env/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+> **Step 0 — which copy.** This is the packaged copy, from the `docker` module, carried by `adf-dev` ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/dev-env/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
 # Development environment (Docker Compose)
 
@@ -38,9 +38,9 @@ Each fact has one home, and this skill writes only what a command it ran has sho
 
 ## Steps
 
-1. **Check the module.** Read the first line of `CLAUDE.md` (`head -1 CLAUDE.md` — Claude Code strips
-   that comment from the file it loads). Unless its `modules:` list names `docker`, say "the docker
-   module isn't installed in this project — `/adf:upgrade` offers it" and stop.
+1. **Check the module.** Read the stamp on the first line of `AGENTS.md` (`head -1 AGENTS.md`; in a
+   project adopted before v2.0.0, `head -1 CLAUDE.md`). Unless its `modules:` list names `docker`, say
+   "the docker module isn't installed in this project — `/adf:upgrade` offers it" and stop.
 
 2. **Check where you are.** If `scripts/agent/worktree-new.sh` exists and `git rev-parse --git-dir`
    equals `git rev-parse --git-common-dir`, this is the main checkout of a hub: environments run in

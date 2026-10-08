@@ -96,7 +96,9 @@ Once your environment is working, try this to build confidence:
 ## AI-assisted development
 
 This project is set up for AI coding agents: `AGENTS.md` is the shared instruction file, and
-`CLAUDE.md` adds the Claude Code layer (skills, agents, workflows, hooks).
+`.claude/rules/claude-code.md` adds the Claude Code layer (skills, agents, workflows, hooks). Claude
+Code reads both on its own (v2.1.281 or later). Don't add a `CLAUDE.md` or `CLAUDE.local.md`: Claude
+Code would read it instead of `AGENTS.md`.
 
 ```bash
 claude  # Start Claude Code in the project directory

@@ -13,7 +13,7 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
 1. **Understand the question** — What is being decided? What are the constraints? What's the context (project stage, team size, timeline, budget)?
 
 2. **Research** — Before forming an opinion:
-   - Read relevant project files (CLAUDE.md, specs, existing code, rules)
+   - Read relevant project files (AGENTS.md, specs, existing code, rules)
    - Read `docs/ARCHITECTURE.md` and `docs/architecture/decisions/` for existing design decisions and constraints
    - Read `docs/security/SECURITY.md` and `docs/infrastructure/OVERVIEW.md` if the decision affects those areas
    - Search for established patterns, best practices, and prior art

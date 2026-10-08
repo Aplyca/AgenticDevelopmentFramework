@@ -1,9 +1,6 @@
-<!-- Skeleton source: [vX.Y.Z] · [SHA] ([YYYY-MM-DD]) · modules: [none] — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->
-@AGENTS.md
-
 # [PROJECT NAME] — Claude Code
 
-<!-- The import above loads AGENTS.md (the instructions every AI tool shares) first. When a CLAUDE.md exists, Claude Code reads CLAUDE.md instead of AGENTS.md — so never remove the import. This file only adds what is specific to Claude Code. HTML comments like this one are stripped before loading and cost no context. -->
+<!-- The Claude Code layer. AGENTS.md holds the instructions every AI tool shares, and Claude Code reads it natively (v2.1.281 or later); this rule has no `paths:`, so Claude Code loads it in every session beside AGENTS.md, and other tools never read it. Keep the project free of a CLAUDE.md or CLAUDE.local.md: Claude Code reads one of those instead of AGENTS.md (decision 0024 in the framework repository). -->
 
 ## Skills, agents, and workflows
 
@@ -17,7 +14,7 @@
 | Independent second opinion, restricted tools, or parallel to your own work | Agent |
 | Broad fan-out with verification — a large diff, every spec, every instruction file | Workflow |
 
-Full catalogs (purpose, tools, model tier) are `SKILLS-REFERENCE.md` and `AGENTS-REFERENCE.md` in the framework repository. Agents and skills are generic: they learn this project from `AGENTS.md`, this file, and `.claude/rules/`.
+Full catalogs (purpose, tools, model tier) are `SKILLS-REFERENCE.md` and `AGENTS-REFERENCE.md` in the framework repository. Agents and skills are generic: they learn this project from `AGENTS.md` and `.claude/rules/`, this file included.
 
 ## Guardrails enforced by configuration
 
@@ -67,10 +64,11 @@ Knowledge lives in layers — `AGENTS.md` (identity and rules), this file (Claud
 
 ## Engineering standards (path-scoped rules)
 
-Rules in `.claude/rules/` load when Claude reads a file matching their `paths:` frontmatter:
+Rules in `.claude/rules/` load when Claude reads a file matching their `paths:` frontmatter; a rule without `paths:`, like this one, loads in every session:
 
 | Rule | Scope |
 |---|---|
+| `claude-code.md` | Every session — this file, the Claude Code layer |
 | `code-quality.md` | Source code — typing, naming, error handling, comments |
 | `security.md` | Source code |
 | `testing.md` | Test files |

@@ -183,7 +183,7 @@ Check `GEMINI.md` for current MCP support. As of writing, Antigravity supports M
 
 ## Cost implications
 
-MCP resource definitions are **deferred by default** in Claude Code — only the resource names consume context until you actually read one. This means exposing a 200-spec corpus via MCP costs roughly the same as exposing a 5-spec corpus, until the AI actually reads one. Big efficiency win vs. dumping all specs into CLAUDE.md.
+MCP resource definitions are **deferred by default** in Claude Code — only the resource names consume context until you actually read one. This means exposing a 200-spec corpus via MCP costs roughly the same as exposing a 5-spec corpus, until the AI actually reads one. Big efficiency win vs. dumping all specs into the always-loaded instructions.
 
 See `COST-MODEL.md` for the broader cost discipline.
 

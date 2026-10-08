@@ -6,7 +6,7 @@ Adopting projects copy them verbatim. In Claude Code, invoke a skill with `/skil
 read the `SKILL.md` and follow it. Skills run in the main conversation; workflows fan out to many
 agents.
 
-For routing (skill vs agent vs workflow), see `skeleton/CLAUDE.md` § Skills, agents, and workflows.
+For routing (skill vs agent vs workflow), see `skeleton/.claude/rules/claude-code.md` § Skills, agents, and workflows.
 For model tiers, see `skeleton/docs/COST-MODEL.md`. For why the workflow is shaped this way, see
 [`decisions/`](decisions/README.md).
 

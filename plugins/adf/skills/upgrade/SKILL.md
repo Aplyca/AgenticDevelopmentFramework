@@ -25,7 +25,8 @@ blind sync.
 
 ## Step 1 — Establish OLD_SHA and the installed modules
 
-Read the baseline from the top of the target's `CLAUDE.md`:
+Read the baseline from the stamp on the first line of the target's `AGENTS.md` — of `CLAUDE.md` in a
+project adopted before v2.0.0 (decision 0024):
 `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<date>) · modules: <list> -->`. OLD_SHA is the commit; stamps
 from before v1.0.0 have no version (and older ones no `modules:` part —
 treat it as `none`, and check for module files on disk: `.github/pull_request_template.md`,
@@ -104,7 +105,7 @@ ask, and never discard it.
   carries it), agents, workflows, hook scripts, and reference docs the plugin carries — only those
   unchanged since OLD_SHA;
   one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add
-  the pinned marketplace and `adf`, the names note in `CLAUDE.md`, the full names in
+  the pinned marketplace and `adf`, the names note in `.claude/rules/claude-code.md`, the full names in
   `DEV-SETUP.md`'s key commands, and `install: packaged` in the stamp, then add the plugin's read
   rule and run `link-reference-docs.py --packaged`, both in Step 5. An installed module whose
   `module.json` names another plugin (`adf-dev`, decision 0023) switches the same way: its
@@ -130,13 +131,31 @@ one, rename it in this upgrade — everywhere the project names it:
   from the marketplace's `renames` map, as an uncommitted change: commit that.
 - **The read rule:** `Read(~/.claude/plugins/cache/aplyca/adf/**)` replaces the old folder's rule.
 - **The names people type:** `/aplyca-adf:triage` becomes `/adf:triage` and `@aplyca-adf:code-reviewer`
-  becomes `@adf:code-reviewer` — in `CLAUDE.md`'s names note, `DEV-SETUP.md`'s key commands, and any
+  becomes `@adf:code-reviewer` — in the names note, `DEV-SETUP.md`'s key commands, and any
   other doc of the project's that names them (search for `aplyca-adf:`).
 
 Give the developer the commands for each machine after the merge: `/plugin install adf@aplyca` once
 in a session (a marketplace from GitHub doesn't fetch a renamed plugin on its own), then
 `claude plugin uninstall aplyca-adf@aplyca --scope project`. Until the change merges, teammates still
 on the old name have the old `/upgrade`.
+
+**From `CLAUDE.md` to `AGENTS.md`** (v2.0.0, decision 0024). When the new release's skeleton has no
+`CLAUDE.md` and the project has one, Claude Code reads that file instead of `AGENTS.md`. Move it in
+this upgrade:
+
+1. **The stamp** moves to `AGENTS.md`'s first line; the restamp in Step 5 writes it there.
+2. **The Claude Code layer** becomes `.claude/rules/claude-code.md`. Take the new skeleton's copy and
+   reapply the project's customizations from its `CLAUDE.md`: the sections match, and the packaged
+   names note goes with them. This is a Merge.
+3. **Anything else the team added to `CLAUDE.md`:** project facts go to `AGENTS.md`, Claude-specific
+   instructions to the rule. Show the developer where each part went.
+4. **Delete `CLAUDE.md`.**
+
+Tell the team two things:
+- **The version floor:** every machine and CI job needs Claude Code v2.1.281 or later.
+- **No `CLAUDE.md` or `CLAUDE.local.md` above the repository or in it.** Each developer moves or
+  removes theirs, or sets **Project instructions** to `claude-md-and-agents-md` in `/config`. The
+  session-context hook warns until they do.
 
 **Check where the plugin is turned on.** The upgrade's pull request must leave
 `"enabledPlugins": {"adf@aplyca": true}`, with its `aplyca` entry in
@@ -163,7 +182,7 @@ release carries them in `<framework-root>/plugins/adf/docs/`, the reference docs
 | Bucket | Typical contents | Action |
 |---|---|---|
 | **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
@@ -198,7 +217,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 - Migration steps from the changelog, in order.
 - Newly chosen modules: copy or install them, then their customize steps.
 - An install switch, when the developer accepted it: the removals or copies, the settings, the
-  `CLAUDE.md` note and stamp, and its PDR.
+  names note and the stamp, and its PDR.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
 - Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
   if the project has none). In a packaged project that one line upgrades the plugin's skills, agents,
@@ -229,7 +248,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
-   `CLAUDE_PROJECT_DIR` set); `@AGENTS.md` import present; skill frontmatter
+   `CLAUDE_PROJECT_DIR` set); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `scripts/agent/worktree-ls.sh` lists the worktrees
    (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template

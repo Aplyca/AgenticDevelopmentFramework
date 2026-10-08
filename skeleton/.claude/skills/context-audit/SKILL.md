@@ -1,6 +1,6 @@
 ---
 name: context-audit
-description: Read-only audit of the agent-instruction and process files (AGENTS.md and nested ones, CLAUDE.md, rules, constitution, CONTRIBUTING, PR template, decision indexes, hook and CI configuration) against the repository and against each other — stale commands and paths, claims the code doesn't back, contradictions between files, missing metadata. Reports findings; fixes nothing. Use monthly, after process changes or framework upgrades, and before onboarding someone.
+description: Read-only audit of the agent-instruction and process files (AGENTS.md and nested ones, rules, constitution, CONTRIBUTING, PR template, decision indexes, hook and CI configuration) against the repository and against each other — stale commands and paths, claims the code doesn't back, contradictions between files, missing metadata. Reports findings; fixes nothing. Use monthly, after process changes or framework upgrades, and before onboarding someone.
 argument-hint: "[file or directory to limit the audit to — default: everything]"
 ---
 
@@ -24,7 +24,8 @@ agent tool, not only Claude Code.
 ### Phase 1: Inventory
 
 1. List what's in scope (or what the argument names):
-   - `AGENTS.md` and every nested `AGENTS.md`; `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/`
+   - `AGENTS.md` and every nested `AGENTS.md`; `GEMINI.md`, `.cursor/rules/`; a `CLAUDE.md` or
+     `CLAUDE.local.md` anywhere is a finding: Claude Code reads it instead of `AGENTS.md`
    - `.claude/rules/`, project-specific skills and agents, `.claude/settings.json`, `.claude/hooks/config.sh`
    - `docs/CONSTITUTION.md`, `CONTRIBUTING.md`, `README.md`, `specs/README.md`
    - `.github/pull_request_template.md` (or the host's equivalent), CI workflows, git hooks

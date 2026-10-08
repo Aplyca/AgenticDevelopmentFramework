@@ -94,7 +94,7 @@ LINKS="$REPO_ROOT/scripts/link-reference-docs.py"
 SITE="$WORK/linked"
 cp -R "$REPO_ROOT/skeleton" "$SITE"
 NAMES='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
-local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/" -e "/docs/[A-Z-]*\.md$"; }
+local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/\(skills\|agents\|workflows\|hooks\)/" -e "/docs/[A-Z-]*\.md$"; }
 plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
 check "link-reference-docs: the plugin carries the four reference docs (got: $plugin_docs)" \
     "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md SPEC-MODEL.md ' ]"
@@ -105,12 +105,12 @@ again=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
 check "link-reference-docs: a second run changes nothing" "echo \"\$again\" | grep -q 'in 0 file(s)'"
 python3 "$LINKS" "$SITE" --packaged v9.9.10 >/dev/null
 check "link-reference-docs: a new pin moves every link" \
-    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/skeleton/docs/COST-MODEL.md' \"\$SITE/CLAUDE.md\""
+    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/skeleton/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
 python3 "$LINKS" "$SITE" --committed >/dev/null
 check "link-reference-docs: --committed restores the skeleton's files exactly" "diff -r \"\$REPO_ROOT/skeleton\" \"\$SITE\" >/dev/null"
 bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
 check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
-check "link-reference-docs: the files it rewrote are the skeleton's" "echo \"\$first\" | grep -q 'AGENTS.md, CLAUDE.md, CONTRIBUTING.md'"
+check "link-reference-docs: the files it rewrote are the skeleton's, its committed rules included" "echo \"\$first\" | grep -q 'AGENTS.md, CONTRIBUTING.md' && echo \"\$first\" | grep -q '\.claude/rules/claude-code.md'"
 
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"

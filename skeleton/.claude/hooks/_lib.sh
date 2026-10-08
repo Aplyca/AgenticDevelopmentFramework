@@ -5,11 +5,13 @@
 HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # The plugin's copy of a hook (adf, decision 0016) acts only in a packaged project — the stamp
-# on CLAUDE.md's first line says `install: packaged`. A committed project runs its own copies from its
-# settings, and a project that hasn't adopted the framework runs none.
+# on AGENTS.md's first line says `install: packaged` (on CLAUDE.md's, in a project adopted before
+# decision 0024). A committed project runs its own copies from its settings, and a project that hasn't
+# adopted the framework runs none.
+stamped_packaged() { head -n 1 "$1" 2>/dev/null | grep -q 'install: packaged'; }
 if [ -n "${CLAUDE_PROJECT_DIR:-}" ] &&
   [ "$(cd "$HOOKS_DIR" && pwd -P)" != "$(cd "$CLAUDE_PROJECT_DIR/.claude/hooks" 2>/dev/null && pwd -P)" ] &&
-  ! head -n 1 "$CLAUDE_PROJECT_DIR/CLAUDE.md" 2>/dev/null | grep -q 'install: packaged'; then
+  ! stamped_packaged "$CLAUDE_PROJECT_DIR/AGENTS.md" && ! stamped_packaged "$CLAUDE_PROJECT_DIR/CLAUDE.md"; then
   exit 0
 fi
 

@@ -26,7 +26,7 @@ existed (a pull request template, for example). The `clickup` module is the exce
 files every repository already has (`.mcp.json`, `.claude/settings.json`), so it installs with
 `modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module copies,
 then merges its permission rules with `modules/docker/install.sh <repo>`. Then follow the module's customization steps and
-record the module in the `Skeleton source` line at the top of `CLAUDE.md`
+record the module in the `Skeleton source` line at the top of `AGENTS.md`
 (`· modules: github, clickup`) so `/upgrade` knows to update it.
 
 The framework's `/adopt` skill offers each module during adoption and installs the ones you choose.

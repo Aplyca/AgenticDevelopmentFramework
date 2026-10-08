@@ -11,9 +11,52 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-**Upgrading from v1:** this is a major release. The framework's plugin is renamed, and every project
-acts once: run `/aplyca-adf:upgrade`, which carries out the migration below, then each developer
-installs `adf@aplyca` once.
+**Upgrading from v1:** this is a major release. The framework's plugin is renamed and `CLAUDE.md` goes
+away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out both migrations below.
+Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
+or later.
+
+### No `CLAUDE.md`: Claude Code reads `AGENTS.md`, and its own layer is a rule
+
+([0024](docs/decisions/0024-agents-md-only.md))
+
+Claude Code reads `AGENTS.md` natively, and reads a `CLAUDE.md` *instead* of it when one exists. So
+the skeleton has no `CLAUDE.md` any more:
+
+- **The Claude Code layer** — skills, agents, workflows, guardrails, lanes, cost, memory — is
+  `.claude/rules/claude-code.md`. It's a rule without `paths:`, so it loads in every session, and
+  other tools never read it.
+- **The stamp is `AGENTS.md`'s first line.** The hooks, `/upgrade`, `/dev-env`, `/adopt`, and the
+  install prompt read it there, and still read `CLAUDE.md`'s for a project not yet moved.
+- **Step 0 of every plugin skill and agent** checks the project's instructions for the packaged note,
+  not a named file.
+- **The session-context hook warns** when a `CLAUDE.md` or `CLAUDE.local.md` in the project or a folder
+  above it would replace `AGENTS.md`. It stays quiet when a `CLAUDE.md` still imports `AGENTS.md`, or
+  the developer's settings load both.
+- **`link-reference-docs.py`** also rewrites the committed rules, now that one of them names the
+  reference docs.
+- **Nested `AGENTS.md` files** — one per module in a monorepo — now reach Claude Code too.
+- **This repository's own instructions** are `AGENTS.md`.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/hooks/_lib.sh` and `.claude/hooks/session-context.sh`, and the skills and
+  agents that named `CLAUDE.md`: `init-project`, `context-audit`, `evaluate`, `code-reviewer`, and
+  `deep-context-audit`.
+- **Additive** `.claude/rules/claude-code.md`.
+- **Merge:** `AGENTS.md` (the stamp on its first line, and its header comment), `DEV-SETUP.md` (one
+  paragraph), `README.md`, `MEMORY-STRATEGY.md`, `COST-MODEL.md`, and `MCP-INTEGRATION.md` in a
+  committed install.
+- **Migration**, every project:
+  1. Move the stamp from `CLAUDE.md`'s first line to `AGENTS.md`'s.
+  2. Take the new `.claude/rules/claude-code.md`, and reapply the customizations from the project's
+     `CLAUDE.md`. Its sections match, and the packaged names note goes with them.
+  3. Move anything else the team added to `CLAUDE.md`: project facts to `AGENTS.md`, Claude-specific
+     instructions to the rule.
+  4. Delete `CLAUDE.md`.
+  5. Each developer removes a `CLAUDE.md` above the repository or a `CLAUDE.local.md` in it, or sets
+     **Project instructions** to `claude-md-and-agents-md` in `/config`.
+
 
 ### `adf-connect`: connect a tracker or a service with `/connect`
 

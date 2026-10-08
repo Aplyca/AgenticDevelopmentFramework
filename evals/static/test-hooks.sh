@@ -261,7 +261,7 @@ git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree
 # CLAUDE_PROJECT_DIR — both set by Claude Code.
 PKG_ROOT="$WORK/plugin root"; PKG="$PKG_ROOT/hooks"; mkdir -p "$PKG" && cp "$REPO_ROOT/plugins/adf/hooks/"* "$PKG/"
 PROJ="$WORK/packaged"; mkdir -p "$PROJ/.claude/hooks" && git -C "$PROJ" init -q -b main
-echo '<!-- Skeleton source: v1.0.0 · abc1234 (2026-10-02) · modules: none · install: packaged -->' > "$PROJ/CLAUDE.md"
+echo '<!-- Skeleton source: v2.0.0 · abc1234 (2026-10-08) · modules: none · install: packaged -->' > "$PROJ/AGENTS.md"
 echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 pkg_push() { printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin %s"}}' "$PROJ" "$1" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?; }
 if [ "$(pkg_push release-x)" = 2 ] && [ "$(pkg_push main)" = 0 ]; then
@@ -282,6 +282,29 @@ if [ "$untouched" = 0 ]; then
     PASS=$((PASS+1)); echo "✓ _lib.sh: the plugin's copy does nothing in a project that hasn't adopted the framework"
 else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: the plugin's copy acted in a project without the framework"
+fi
+# Decision 0024: the stamp is on AGENTS.md's first line, and a project adopted before keeps it on CLAUDE.md's.
+LEGACY="$WORK/packaged-legacy"; mkdir -p "$LEGACY/.claude/hooks" && git -C "$LEGACY" init -q -b main
+printf '%s\n@AGENTS.md\n' '<!-- Skeleton source: v1.4.0 · abc1234 (2026-10-06) · modules: none · install: packaged -->' > "$LEGACY/CLAUDE.md"
+echo 'PROTECTED_BRANCHES="release-x"' > "$LEGACY/.claude/hooks/config.sh"
+legacy=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin release-x"}}' "$LEGACY" | CLAUDE_PROJECT_DIR="$LEGACY" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?)
+if [ "$legacy" = 2 ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: the plugin's copy acts in a packaged project still stamped on CLAUDE.md"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: the plugin's copy stood down in a project stamped on CLAUDE.md (exit $legacy, want 2)"
+fi
+# Decision 0024: Claude Code reads AGENTS.md only when no CLAUDE.md or CLAUDE.local.md is in the project
+# or above it, so the session is told when one is.
+AM="$WORK/agents-md"; mkdir -p "$AM" "$WORK/home/.claude" && git -C "$AM" init -q -b main && echo '# Project' > "$AM/AGENTS.md"
+am_context() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$AM" | HOME="$WORK/home" "$H/session-context.sh" | grep -c "replaces this project's AGENTS.md"; }
+clean=$(am_context)
+touch "$AM/CLAUDE.local.md"; local_md=$(am_context)
+echo '{"pluginConfigs":{"cc-plugin-agents-md@builtin":{"options":{"instructionFiles":"claude-md-and-agents-md"}}}}' > "$WORK/home/.claude/settings.json"; both=$(am_context); rm "$WORK/home/.claude/settings.json"
+printf '@AGENTS.md\n' > "$AM/CLAUDE.md"; imported=$(am_context)
+if [ "$clean" = 0 ] && [ "$local_md" = 1 ] && [ "$both" = 0 ] && [ "$imported" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ session-context.sh: warns when a CLAUDE.local.md replaces AGENTS.md — not when none is there, the developer loads both, or a CLAUDE.md imports it"
+else
+    FAIL=$((FAIL+1)); echo "✘ session-context.sh: AGENTS.md warning printed clean=$clean local=$local_md (want 0 1), both=$both imported=$imported (want 0 0)"
 fi
 # Decision 0019: a packaged session learns where the plugin's reference docs are — unless the project
 # still keeps its own copies.

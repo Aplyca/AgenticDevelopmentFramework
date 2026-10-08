@@ -78,7 +78,7 @@ const scopeHint = typeof args === 'string' && args.trim() ? `Limit the inventory
 phase('Inventory')
 const inventory = await agent(
   `List the agent-instruction and process files in this repository. ${READ_ONLY} ${scopeHint}
-Include when present: AGENTS.md and every nested AGENTS.md, CLAUDE.md, GEMINI.md, .cursor/rules/*, .claude/rules/*, project-specific .claude/skills/*/SKILL.md and .claude/agents/*, .claude/settings.json, .claude/hooks/config.sh, docs/CONSTITUTION.md, CONTRIBUTING.md, README.md, specs/README.md, the pull request template, CI workflow files, git hook scripts, and the ADR and PDR index READMEs. Exclude node_modules, build output, and .claude/worktrees.`,
+Include when present: AGENTS.md and every nested AGENTS.md, any CLAUDE.md or CLAUDE.local.md (a finding: Claude Code reads it instead of AGENTS.md), GEMINI.md, .cursor/rules/*, .claude/rules/*, project-specific .claude/skills/*/SKILL.md and .claude/agents/*, .claude/settings.json, .claude/hooks/config.sh, docs/CONSTITUTION.md, CONTRIBUTING.md, README.md, specs/README.md, the pull request template, CI workflow files, git hook scripts, and the ADR and PDR index READMEs. Exclude node_modules, build output, and .claude/worktrees.`,
   { label: 'inventory', phase: 'Inventory', schema: INVENTORY_SCHEMA },
 )
 

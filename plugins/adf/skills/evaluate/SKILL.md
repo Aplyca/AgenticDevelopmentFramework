@@ -4,7 +4,7 @@ description: Deep analysis of a question, proposal, or decision. Researches thor
 argument-hint: "[question, proposal, or decision to evaluate]"
 ---
 
-> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/evaluate/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+> **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/evaluate/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
 # Evaluate
 
@@ -15,7 +15,7 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
 1. **Understand the question** — What is being decided? What are the constraints? What's the context (project stage, team size, timeline, budget)?
 
 2. **Research** — Before forming an opinion:
-   - Read relevant project files (CLAUDE.md, specs, existing code, rules)
+   - Read relevant project files (AGENTS.md, specs, existing code, rules)
    - Read `docs/ARCHITECTURE.md` and `docs/architecture/decisions/` for existing design decisions and constraints
    - Read `docs/security/SECURITY.md` and `docs/infrastructure/OVERVIEW.md` if the decision affects those areas
    - Search for established patterns, best practices, and prior art

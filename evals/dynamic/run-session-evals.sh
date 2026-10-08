@@ -221,7 +221,7 @@ fill("AGENTS.md", [
     ("- Full gate before a PR: `[command]`", "- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`"),
 ])
 fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS=""', 'CAREFUL_GLOBS="src/billing/*"'), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])
-fill("CLAUDE.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — Claude Code")])
+fill(".claude/rules/claude-code.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — Claude Code")])
 PY
 [ -f "$FIXTURES/setup.sh" ] && bash "$FIXTURES/setup.sh" "$REPO"
 git add -A && git commit -qm "chore: adopt the Agentic Development Framework"
