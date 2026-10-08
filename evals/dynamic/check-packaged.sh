@@ -4,7 +4,8 @@
 # install), pinned to <release>: no framework machinery committed, the plugin pinned and turned on, no
 # hooks block, the stamp, and the names people type — and, on a release whose plugin carries the
 # reference docs (decision 0019), none of them in docs/, links to them at the release, and the rule that
-# lets Claude read them; on one whose plugin carries /dispatch (decision 0020), no committed copy of it.
+# lets Claude read them; on one whose plugin carries /dispatch (decision 0020), no committed copy of it;
+# and for each module in the stamp that has its own plugin at the release (decision 0023), that plugin on.
 # Prints ✓ or ✘ per check. Read-only.
 # Usage: check-packaged.sh <project> <release, e.g. v1.0.6> <the release's commit, short> [<framework checkout>]
 #
@@ -37,4 +38,15 @@ fi
 if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/aplyca-adf/skills/dispatch/SKILL.md" 2>/dev/null; then
   check "no committed \`/dispatch\` — the plugin carries it (decision 0020)" "[ ! -e .claude/skills/dispatch ]"
 fi
+# A module with its own plugin at the release (decision 0023): the plugin is turned on, Claude may read
+# its folder, its skills aren't committed, and DEV-SETUP.md names them by their full names.
+modules=$(head -1 CLAUDE.md | sed -n 's/.*· modules: \([^·]*\).*/\1/p' | tr ',' ' ')
+for m in $modules; do
+  [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf-$m/.claude-plugin/plugin.json" 2>/dev/null || continue
+  check "the settings turn on \`adf-$m\` and let Claude read its folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if s.get(\"enabledPlugins\", {}).get(\"adf-$m@aplyca\") is True and \"Read(~/.claude/plugins/cache/aplyca/adf-$m/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
+  for skill in $(git -C "$fw" ls-tree --name-only "$release:plugins/adf-$m/skills"); do
+    check "no committed \`/$skill\` — \`adf-$m\` carries it (decision 0023)" "[ ! -e .claude/skills/$skill ]"
+    check "\`DEV-SETUP.md\` names \`/adf-$m:$skill\`" "grep -q '/adf-$m:$skill' docs/getting-started/DEV-SETUP.md"
+  done
+done
 check "everything is committed" "[ -z \"\$(git status --short)\" ]"
