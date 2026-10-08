@@ -6,7 +6,7 @@ This fixture verifies, in a real session, that Claude itself — not a skill or 
 
 ## Repository context to give the AI
 
-A project on the packaged install with no reference docs in `docs/`; its files link them at the pinned release on GitHub. The `aplyca-adf` plugin is loaded from this checkout for the session only (`--plugin-dir`), in default permission mode, with the read rule for the plugin's folder.
+A project on the packaged install with no reference docs in `docs/`; its files link them at the pinned release on GitHub. The `adf` plugin is loaded from this checkout for the session only (`--plugin-dir`), in default permission mode, with the read rule for the plugin's folder.
 
 ## Prompt to give the AI
 

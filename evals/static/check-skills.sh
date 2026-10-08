@@ -517,7 +517,7 @@ check_modules() {
         if [ -f "$module/files/README.md" ]; then
             fail "module '$name': files/README.md would overwrite the adopting repo's README"
         fi
-        # A module names the plugin that carries its skills and agents (decision 0023): aplyca-adf
+        # A module names the plugin that carries its skills and agents (decision 0023): adf
         # for the process, adf-dev for development.
         local problem
         problem=$(python3 - "$module" "$name" "$REPO_ROOT/plugins" <<'PY'
@@ -659,26 +659,28 @@ check_practices() {
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh` in this' || missing+=("/dispatch: stops without the module, since the plugin carries it (0020)")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/.generated" '^skills/dispatch$' || missing+=("the plugin carries /dispatch (0020)")
+    file_contains "$REPO_ROOT/plugins/adf/.generated" '^skills/dispatch$' || missing+=("the plugin carries /dispatch (0020)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Give every task to /dispatch' || missing+=("session-context.sh: the dispatcher gives every task to /dispatch (0020)")
     file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
     file_contains "$AGENTS_MD" 'write or update the test that asserts the new behavior and watch it fail' || missing+=("AGENTS.md: the fast lane is test-first")
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Ask how to install' || missing+=("/adopt: committed or packaged (0016)")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Packaged\*\* — the default' || missing+=("/adopt: packaged is the default (0018)")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Adopt from a release' || missing+=("/adopt: takes the framework at the release it pins")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" "sort=-v:refname" || missing+=("/upgrade: moves a packaged project to the newest release tag")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'aplyca-framework@aplyca' || missing+=("/upgrade: migrates the plugin's old name")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Ask how to install' || missing+=("/adopt: committed or packaged (0016)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Packaged\*\* — the default' || missing+=("/adopt: packaged is the default (0018)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Adopt from a release' || missing+=("/adopt: takes the framework at the release it pins")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "sort=-v:refname" || missing+=("/upgrade: moves a packaged project to the newest release tag")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'aplyca-framework@aplyca' || missing+=("/upgrade: migrates the plugin's old name")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'aplyca-adf@aplyca' || missing+=("/upgrade: renames aplyca-adf to adf (v2.0.0, 0023)")
+    python3 -c 'import json, sys; sys.exit(0 if json.load(open(sys.argv[1])).get("renames") == {"aplyca-framework": "aplyca-adf", "aplyca-adf": "adf"} else 1)' "$REPO_ROOT/.claude-plugin/marketplace.json" || missing+=("marketplace: renames aplyca-framework → aplyca-adf → adf, append-only")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
     file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
     file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
@@ -740,7 +742,7 @@ PY
 }
 
 check_packaged_plugin() {
-    # The machinery in plugins/ is generated: aplyca-adf's from skeleton/.claude (decision 0016), and
+    # The machinery in plugins/ is generated: adf's from skeleton/.claude (decision 0016), and
     # each plugin's module skills from the modules that name it (decision 0023). A source change that
     # wasn't rebuilt would ship the old machinery to every packaged project.
     local tmp report
@@ -759,32 +761,32 @@ import json, os, re, sys
 root = sys.argv[1]
 market = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
 folders = sorted(d for d in os.listdir(os.path.join(root, "plugins")) if os.path.isdir(os.path.join(root, "plugins", d)))
-expected = ["aplyca-adf"] + [d for d in folders if d != "aplyca-adf"]
+expected = ["adf"] + [d for d in folders if d != "adf"]
 names = [p["name"] for p in market["plugins"]]
 if names != expected:
-    print(f"marketplace.json should list every plugin in plugins/, aplyca-adf first, {expected} — it lists {names}")
+    print(f"marketplace.json should list every plugin in plugins/, adf first, {expected} — it lists {names}")
 for entry in market["plugins"]:
     if entry.get("source") != f"./plugins/{entry['name']}":
         print(f"{entry['name']}: source should be ./plugins/{entry['name']}")
     if "version" in entry:
         print(f"{entry['name']}: the marketplace entry sets a version — plugin.json carries it")
-version = json.load(open(os.path.join(root, "plugins", "aplyca-adf", ".claude-plugin", "plugin.json"))).get("version", "")
+version = json.load(open(os.path.join(root, "plugins", "adf", ".claude-plugin", "plugin.json"))).get("version", "")
 if not re.fullmatch(r"\d+\.\d+\.\d+", version):
-    print(f"aplyca-adf's version '{version}' isn't MAJOR.MINOR.PATCH (decision 0017)")
+    print(f"adf's version '{version}' isn't MAJOR.MINOR.PATCH (decision 0017)")
 releases = re.findall(r"^## v(\d+\.\d+\.\d+) ", open(os.path.join(root, "CHANGELOG.md"), encoding="utf-8").read(), re.M)
 if releases and releases[0] != version:
-    print(f"aplyca-adf is {version}, but the newest release in CHANGELOG.md is v{releases[0]}")
+    print(f"adf is {version}, but the newest release in CHANGELOG.md is v{releases[0]}")
 for name in expected:
     manifest = os.path.join(root, "plugins", name, ".claude-plugin", "plugin.json")
     data = json.load(open(manifest)) if os.path.exists(manifest) else {}
     if data.get("name") != name:
         print(f"plugins/{name}/.claude-plugin/plugin.json: name should be {name}")
     if data.get("version") != version:
-        print(f"{name} is {data.get('version')}, aplyca-adf is {version} — every plugin carries the release (decision 0023)")
+        print(f"{name} is {data.get('version')}, adf is {version} — every plugin carries the release (decision 0023)")
 PY
 )
     if [ -z "$report" ]; then
-        pass "marketplace lists every plugin, aplyca-adf first; every plugin's version is the newest release"
+        pass "marketplace lists every plugin, adf first; every plugin's version is the newest release"
     else
         fail "plugin versions and marketplace: $report"
     fi
@@ -812,7 +814,7 @@ for module in sorted(os.listdir(os.path.join(root, "modules"))):
         if holders != [plugin]:
             print(f"{module}'s /{name} is in {holders or 'no plugin'}, its module.json names {plugin} — run scripts/build-plugins.sh")
             continue
-        if plugin == "aplyca-adf":
+        if plugin == "adf":
             continue
         text = open(os.path.join(root, "plugins", plugin, "skills", name, "SKILL.md"), encoding="utf-8").read()
         if f"from the `{module}` module, carried by `{plugin}`" not in text:
@@ -858,7 +860,7 @@ check_install_scope() {
 check_install_prompt() {
     # The install prompt is printed in two READMEs; a fix made in one must reach the other.
     local report
-    report=$(python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/plugins/aplyca-adf/README.md" <<'PY'
+    report=$(python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/plugins/adf/README.md" <<'PY'
 import sys, textwrap
 blocks = []
 for path in sys.argv[1:]:

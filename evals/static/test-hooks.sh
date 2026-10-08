@@ -259,7 +259,7 @@ git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree
 # Packaged install (decision 0016): the plugin's generated scripts, with no config.sh of their own,
 # load _lib.sh from CLAUDE_PLUGIN_ROOT and read the project's .claude/hooks/config.sh through
 # CLAUDE_PROJECT_DIR — both set by Claude Code.
-PKG_ROOT="$WORK/plugin root"; PKG="$PKG_ROOT/hooks"; mkdir -p "$PKG" && cp "$REPO_ROOT/plugins/aplyca-adf/hooks/"* "$PKG/"
+PKG_ROOT="$WORK/plugin root"; PKG="$PKG_ROOT/hooks"; mkdir -p "$PKG" && cp "$REPO_ROOT/plugins/adf/hooks/"* "$PKG/"
 PROJ="$WORK/packaged"; mkdir -p "$PROJ/.claude/hooks" && git -C "$PROJ" init -q -b main
 echo '<!-- Skeleton source: v1.0.0 · abc1234 (2026-10-02) · modules: none · install: packaged -->' > "$PROJ/CLAUDE.md"
 echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
@@ -285,7 +285,7 @@ else
 fi
 # Decision 0019: a packaged session learns where the plugin's reference docs are — unless the project
 # still keeps its own copies.
-mkdir -p "$PKG_ROOT/docs" && cp "$REPO_ROOT/plugins/aplyca-adf/docs/"* "$PKG_ROOT/docs/"
+mkdir -p "$PKG_ROOT/docs" && cp "$REPO_ROOT/plugins/adf/docs/"* "$PKG_ROOT/docs/"
 pkg_context() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/session-context.sh"; }
 names=$(pkg_context | grep -c -F -- "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md — are in $PKG_ROOT/docs/")
 mkdir -p "$PROJ/docs" && echo '# Spec model' > "$PROJ/docs/SPEC-MODEL.md"

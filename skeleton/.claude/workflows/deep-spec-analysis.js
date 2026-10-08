@@ -11,7 +11,7 @@ export const meta = {
 
 const READ_ONLY = 'Do not modify, create, or delete any file. Read files and run read-only commands (git log, grep) only.'
 
-// The spec model the lenses check against. The aplyca-adf plugin's copy carries the model's text here
+// The spec model the lenses check against. The adf plugin's copy carries the model's text here
 // instead: a packaged project keeps no copy of it in docs/ (decision 0019).
 const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'
 

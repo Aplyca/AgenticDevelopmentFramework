@@ -17,7 +17,7 @@ remote.
 ## Prompt to give the AI
 
 ```
-/aplyca-adf:adopt
+/adf:adopt
 ```
 
 ## Follow-up

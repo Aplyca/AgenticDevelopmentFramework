@@ -2,9 +2,9 @@
 """Point a project's links to the framework's reference docs at the copy its install uses.
 
 The reference docs (decision 0019) are the framework's own: generic, and never edited by a project. A
-packaged project reads them from the aplyca-adf plugin and commits none of them, so its files link
+packaged project reads them from the adf plugin and commits none of them, so its files link
 them at the release it pins, on GitHub. A committed project keeps them in docs/ and links them there.
-/aplyca-adf:adopt and /aplyca-adf:upgrade run this from the framework at the release they install.
+/adf:adopt and /adf:upgrade run this from the framework at the release they install.
 
 Usage:
   link-reference-docs.py <repo> --packaged vX.Y.Z   link the release on GitHub (and move an older pin)
@@ -20,7 +20,7 @@ import re
 import sys
 
 FRAMEWORK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOCS = sorted(f[:-3] for f in os.listdir(os.path.join(FRAMEWORK, "plugins", "aplyca-adf", "docs")) if f.endswith(".md"))
+DOCS = sorted(f[:-3] for f in os.listdir(os.path.join(FRAMEWORK, "plugins", "adf", "docs")) if f.endswith(".md"))
 NAMES = "|".join(map(re.escape, DOCS))
 RELEASE = "https://github.com/aplyca/AgenticDevelopmentFramework/blob/{tag}/skeleton/docs/{name}.md"
 TEXT_FILES = (".md", ".mdc")

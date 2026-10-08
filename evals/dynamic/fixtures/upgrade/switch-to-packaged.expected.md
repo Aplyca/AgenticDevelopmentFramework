@@ -17,7 +17,7 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 - [ ] (auto) The framework's skills, agents, workflows, and hook scripts are gone; `.claude/hooks/`
       holds only `config.sh`
 - [ ] (auto) `.claude/settings.json` has no `hooks` block, pins the marketplace to the newest release,
-      and turns on `aplyca-adf@aplyca`
+      and turns on `adf@aplyca`
 - [ ] (auto) `CLAUDE.md` has the names note, and `DEV-SETUP.md` gives the commands by their full names
 - [ ] (auto) A new PDR records the switch, and PDR-0001 is marked amended
 - [ ] (auto) Everything is committed

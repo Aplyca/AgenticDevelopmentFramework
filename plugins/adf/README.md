@@ -1,0 +1,183 @@
+# adf plugin
+
+The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. It has two jobs:
+
+- **Install and maintain the framework** in a repository: `/adf:adopt`,
+  `/adf:upgrade`, and `/adf:cost-report`, in every project that uses the framework.
+- **Carry the framework's machinery for a packaged install** ([decision 0016](../../docs/decisions/0016-packaged-install.md)):
+  20 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
+  `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md)),
+  pinned to a release. Typed as
+  `/adf:triage`, `/adf:deep-review`, and so on.
+
+By default, an adopting repository uses the **packaged** install
+([decision 0018](../../docs/decisions/0018-packaged-by-default.md)): the machinery comes from this
+plugin, pinned to a release, and the repository commits only its own layer — about 50 fewer files
+([docs/SETUP.md § Packaged install](../../docs/SETUP.md#packaged-install-claude-code-only)). A team that
+also uses other AI tools — Cursor, Copilot, Antigravity, Windsurf, Aider — or Claude Code's cloud
+sessions chooses the **committed** install: the framework as files in the repository (the
+[AGENTS.md](https://agents.md) standard plus tool-specific layers), readable by every tool, with no
+runtime dependency on this plugin. In a committed project, the plugin's copies of the machinery step
+aside: its hooks stand down, and its skills and agents hand over to the committed files. They act only
+where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
+
+The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
+`workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` from its
+module — by `scripts/build-plugins.sh`; never edit it here.
+
+It carries the process. The `aplyca` marketplace also lists `adf-dev`, the development plugin —
+the `docker` module's `/dev-env` — built by the same script, at this plugin's version
+([decision 0023](../../docs/decisions/0023-plugins-by-concern.md)). `/adf:adopt` and `/adf:upgrade` turn it on
+in a packaged project that installs one of its modules.
+
+## Install
+
+Install it once per project, when the project adopts the framework. Paste this prompt into a Claude
+Code session opened on the project — in the terminal, the desktop app, or an IDE:
+
+<!-- install-prompt: keep identical in README.md and the plugin's README -->
+```text
+Install the adf plugin (Agentic Development Framework) for this project only — never
+at user scope.
+
+1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
+   adf@aplyca, or aplyca-adf@aplyca (its name before v2.0.0), there is nothing to install: tell me
+   to start a new session here and accept the prompt to trust the folder, which turns the plugin
+   on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
+   stop.
+2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
+   equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
+   worktree.
+3. From this folder, run:
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin marketplace update aplyca
+   claude plugin install adf@aplyca --scope project
+   The update refreshes a copy of the marketplace added before; without it the install can't
+   find adf.
+4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
+   plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
+   that copy. Don't run them.
+6. Tell me to start a new session here, then run /adf:upgrade if CLAUDE.md has a
+   "Skeleton source:" line, otherwise /adf:adopt.
+```
+
+Or run the commands yourself, from the project's folder. The update refreshes a copy of the
+marketplace added before, which doesn't list `adf` yet:
+
+```bash
+cd your-project
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+claude plugin marketplace update aplyca
+claude plugin install adf@aplyca --scope project
+```
+
+Always pass `--scope`: without it, Claude Code installs at `user` scope, which turns the plugin on in
+every project on your machine and offers `/adopt` in sessions that have nothing to do with the
+framework.
+
+| Scope | Recorded in | Who gets the plugin |
+|---|---|---|
+| `--scope project` (use this) | The project's committed `.claude/settings.json` | Everyone on the project — teammates get it once they trust the folder |
+| `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this repository only — to try it before the team sees it |
+
+In a project that uses the dispatcher hub (the parallel-agents module), use `project`: the committed
+setting reaches every task's worktree on every platform, and every teammate. A local install reaches
+the worktrees only on macOS and Linux with Claude Code 2.1.211 or later, which keeps
+`.claude/settings.local.json` at the main checkout; on Windows it stays in the checkout where you ran
+it. Claude Code keeps the downloaded plugin files in its own cache under your home folder; the scope
+decides where the plugin is turned on.
+
+### In the desktop app
+
+The Code tab of the Claude desktop app reads the same settings files as the terminal, so an install
+made with the commands above works there too. To install from the app instead:
+
+1. Add the marketplace from a terminal in the project's folder — the app's plugin browser lists the
+   plugins of marketplaces already added:
+
+   ```bash
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
+   claude plugin marketplace update aplyca
+   ```
+
+2. In a local or SSH session on the project, click **+** next to the prompt box, then **Plugins** →
+   **Add plugin**. Select `adf` and choose **this project** as the scope.
+
+**+ → Plugins → Manage plugins** enables, disables, or uninstalls it later. Worktree sessions the app
+creates load a project-scope plugin (Claude Code 2.1.200 or later). Plugins don't load in WSL
+sessions, and cloud sessions don't install the plugins a repository's settings declare — run `/adopt`
+and `/upgrade` in a local session.
+
+**Installed `aplyca-framework` before?** That was this plugin's name until v1.0.0. Install
+`adf` with the prompt above, then remove the old one — from the project, and from user scope
+if you ever installed it there:
+
+```bash
+claude plugin uninstall aplyca-framework@aplyca --scope project
+claude plugin uninstall aplyca-framework@aplyca --scope user
+claude plugin marketplace remove aplyca --scope user
+```
+
+`/adf:upgrade` replaces the old name in the project's committed settings.
+
+## Skills
+
+| Skill | Purpose |
+|---|---|
+| `/adf:adopt` | Bootstrap a repo: inspect it (stack, commands, branching model, tracker, Git host), choose the install (committed or packaged), copy the skeleton and the [optional modules](../../modules/README.md) you choose, fill placeholders from verified repo facts, configure the guardrail hooks, record the adoption as PDR-0001, stamp the release and modules, verify (settings schema, hook smoke tests, the `@AGENTS.md` import), and prepare a draft adoption PR. On an already-adopted repo it adds modules. Automates [docs/SETUP.md](../../docs/SETUP.md). |
+| `/adf:upgrade` | Sync an adopted repo — skeleton and installed modules — to a newer release via the three-bucket taxonomy, OLD → NEW diff discipline, and the changelog's migration steps; bump a packaged project's pinned release; offer the modules it doesn't have yet and a switch between the two installs. Automates [docs/UPGRADING.md](../../docs/UPGRADING.md). |
+| `/adf:cost-report` | What agent sessions on a project cost — calls, active time, context size, tokens, estimated cost — from Claude Code's local transcripts, with what Opus sessions would have cost on Sonnet and the expensive patterns flagged (long context, pauses past the cache lifetime, browser loops, spec-heavy small changes). Read-only; nothing leaves the machine. See the skeleton's [COST-MODEL.md](../../skeleton/docs/COST-MODEL.md). |
+
+`/adf:adopt` and `/adf:upgrade` work branch-and-PR only — they never commit to a default
+branch, and never push without explicit approval. `/adf:cost-report` only reads.
+
+**In a packaged project,** the rest of the framework comes from here too: the workflow skills
+(`/adf:triage`, `/adf:write-spec`, `/adf:implement`, `/adf:review`, …), the
+agents (`adf:code-reviewer`, `adf:spec-analyzer`, …), the `/adf:deep-…`
+workflows, the hooks, which read the project's `.claude/hooks/config.sh`, and the framework's
+reference docs — the spec model, the cost model, the memory strategy, and MCP integration
+([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)). The catalogs:
+[SKILLS-REFERENCE.md](../../docs/SKILLS-REFERENCE.md) and [AGENTS-REFERENCE.md](../../docs/AGENTS-REFERENCE.md).
+
+## For teams
+
+These are the entries `--scope project` writes to `.claude/settings.json`, with the release pin that
+`/adf:adopt` and `/adf:upgrade` add (they add the rest too, when the plugin was
+installed another way). They work like a package manifest: a teammate who opens the project and
+accepts the prompt to trust the folder gets the plugin with no install command. Claude Code fetches
+the marketplace at the pinned release and loads the plugin from it, because the marketplace lists
+the plugin by a relative path. A machine where nobody trusts the folder — CI — installs it first
+([SETUP.md](../../docs/SETUP.md)).
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "aplyca": {
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v1.4.0" }
+    }
+  },
+  "enabledPlugins": { "adf@aplyca": true }
+}
+```
+
+A packaged project also lets Claude read the plugin's own folder,
+`"permissions": { "allow": ["Read(~/.claude/plugins/cache/aplyca/adf/**)"] }`, so its skills
+and agents open the reference docs without asking
+([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)). With a development
+module, a packaged project turns `adf-dev` on too, with its own read rule —
+`"adf-dev@aplyca": true` and `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)`; the same pin covers
+it.
+
+Every project pins its release with `"ref"`, and `/adf:adopt` and `/adf:upgrade` keep
+it equal to the release in the `CLAUDE.md` stamp. In a packaged project the pin chooses the
+machinery; in a committed one it keeps the plugin's copies at the same release as the committed
+files, so a skill listed twice never runs a different version.
+
+## Updating the plugin
+
+Every project pins a release, so updating the plugin changes nothing until the pin moves.
+`/adf:upgrade` moves it to the newest release and brings the committed files along, in one pull
+request; restart Claude Code after it merges. A project adopted before v1.0.0 isn't pinned and turns
+on `aplyca-framework`: install `adf` with the [install prompt](#install), then run
+`/adf:upgrade`, which renames the setting and pins the release.

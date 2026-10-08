@@ -40,14 +40,14 @@ Code loads: the framework's machinery, one plugin per concern
 
 | Plugin | Concern | Carries the skills of |
 |---|---|---|
-| `aplyca-adf` | The process | `parallel-agents` (`/dispatch`) |
+| `adf` | The process | `parallel-agents` (`/dispatch`) |
 | `adf-dev` | Development | `docker` (`/dev-env`) |
 | `adf-connect` (planned) | Trackers and services | — |
 
 A module's skills and agents are machinery no project edits, so a packaged install takes them from
 the plugin its `module.json` names, instead of committing them; a module without skills has no
 `module.json`. `scripts/build-plugins.sh` generates them into that plugin. A packaged project with the
-module leaves its `.claude/skills/` out and turns the plugin on beside `aplyca-adf` when it's another
+module leaves its `.claude/skills/` out and turns the plugin on beside `adf` when it's another
 one — `"adf-dev@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)`
 in `permissions.allow`. A committed project copies the skills and leaves the plugin off. Each skill
 acts only where the stamp names its module, so a plugin turned on for one module never acts for

@@ -11,6 +11,42 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+**Upgrading from v1:** this is a major release. The framework's plugin is renamed, and every project
+acts once: run `/aplyca-adf:upgrade`, which carries out the migration below, then each developer
+installs `adf@aplyca` once.
+
+### The framework's plugin is `adf`
+
+([0023](docs/decisions/0023-plugins-by-concern.md))
+
+`aplyca-adf` is now **`adf`**, so the commands typed most are shorter: `/adf:triage`,
+`@adf:code-reviewer`. It's the process plugin beside `adf-dev`. The marketplace's `renames` map
+(`aplyca-framework` → `aplyca-adf` → `adf`) lets Claude Code load the plugin under its new name and
+rewrite `enabledPlugins` in the user, project, and local settings. `/upgrade` does the rest.
+
+- **The plugin** moves to `plugins/adf/`. Its skills, agents, workflows, and hooks name each other
+  `/adf:<name>` and `@adf:<name>`.
+- **`/adf:upgrade`** recognizes both old names, `aplyca-adf@aplyca` and `aplyca-framework@aplyca`,
+  and renames them everywhere the project names them.
+- **`/adf:adopt`, the install prompt, `ADOPT.md`, and the docs** install `adf@aplyca`. The install
+  prompt and `ADOPT.md` stop for a project that still enables `aplyca-adf@aplyca`, and send it to
+  `/aplyca-adf:upgrade`.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/hooks/_lib.sh`, `.claude/hooks/session-context.sh`, and
+  `.claude/workflows/deep-spec-analysis.js` (comments only).
+- **Merge** `docs/getting-started/DEV-SETUP.md`: one sentence names the plugin.
+- **Migration**, every project, committed or packaged — in `.claude/settings.json`:
+  1. `"aplyca-adf@aplyca": true` becomes `"adf@aplyca": true` in `enabledPlugins`.
+  2. Packaged: `Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)` becomes
+     `Read(~/.claude/plugins/cache/aplyca/adf/**)` in `permissions.allow`.
+  3. Every `/aplyca-adf:` and `@aplyca-adf:` the project's files name becomes `/adf:` and `@adf:` —
+     `CLAUDE.md`'s names note, `DEV-SETUP.md`'s key commands, and any doc of the team's (search for
+     `aplyca-adf:`).
+  4. After the merge, each developer runs `/plugin install adf@aplyca` once, then
+     `claude plugin uninstall aplyca-adf@aplyca --scope project`.
+
 ### Plugins by concern, and the `docker` module in `adf-dev`
 
 ([0023](docs/decisions/0023-plugins-by-concern.md), amending 0009, 0016, 0017, and 0020)

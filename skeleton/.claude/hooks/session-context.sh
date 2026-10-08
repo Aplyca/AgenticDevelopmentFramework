@@ -109,7 +109,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
   fi
 fi
 
-# A packaged project reads the framework's reference docs from the aplyca-adf plugin, which links in
+# A packaged project reads the framework's reference docs from the adf plugin, which links in
 # the project's files only point at on GitHub (decision 0019).
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -d "${CLAUDE_PLUGIN_ROOT}/docs" ] && [ ! -f "$root/docs/SPEC-MODEL.md" ]; then
   echo "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md — are in ${CLAUDE_PLUGIN_ROOT}/docs/: read them there, not on GitHub."

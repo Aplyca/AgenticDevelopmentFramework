@@ -30,7 +30,7 @@ Most of what's here was proven in real client projects first — some built on t
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
 - **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` sets up, diagnoses, and safely resets a Docker Compose local environment, one stack per worktree; destructive docker commands ask first). ([Modules](modules/README.md))
-- **The `aplyca-adf` plugin** — `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` for Claude Code, plus `/aplyca-adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/aplyca-adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release. Beside it, `adf-dev` carries the development skills of the modules a project installs — `/adf-dev:dev-env` with `docker` — and `adf-connect`, for trackers and services, is planned ([why](docs/decisions/0023-plugins-by-concern.md)).
+- **The `adf` plugin** — `/adf:adopt` and `/adf:upgrade` for Claude Code, plus `/adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release. Beside it, `adf-dev` carries the development skills of the modules a project installs — `/adf-dev:dev-env` with `docker` — and `adf-connect`, for trackers and services, is planned ([why](docs/decisions/0023-plugins-by-concern.md)).
 - **Evals** — structural checks plus functional tests of the hooks, module scripts, and plugin, run in CI on every pull request at zero token cost; routing evals that run `/triage` in real Claude Code sessions on Sonnet and Opus, with graded reports. ([Evals](evals/README.md) · [latest report](evals/dynamic/reports/2026-10-01-triage-routing.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
@@ -58,27 +58,29 @@ any code exists. Step by step:
 
    <!-- install-prompt: keep identical in README.md and the plugin's README -->
    ```text
-   Install the aplyca-adf plugin (Agentic Development Framework) for this project only — never
+   Install the adf plugin (Agentic Development Framework) for this project only — never
    at user scope.
 
    1. Check that this folder is the root of a git repository. If .claude/settings.json already enables
-      aplyca-adf@aplyca, there is nothing to install: tell me to start a new session here and accept
-      the prompt to trust the folder, which turns the plugin on, and stop.
+      adf@aplyca, or aplyca-adf@aplyca (its name before v2.0.0), there is nothing to install: tell me
+      to start a new session here and accept the prompt to trust the folder, which turns the plugin
+      on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
+      stop.
    2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
       equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
       worktree.
    3. From this folder, run:
       claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
       claude plugin marketplace update aplyca
-      claude plugin install aplyca-adf@aplyca --scope project
+      claude plugin install adf@aplyca --scope project
       The update refreshes a copy of the marketplace added before; without it the install can't
-      find aplyca-adf.
+      find adf.
    4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
       plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
    5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
       that copy. Don't run them.
-   6. Tell me to start a new session here, then run /aplyca-adf:upgrade if CLAUDE.md has a
-      "Skeleton source:" line, otherwise /aplyca-adf:adopt.
+   6. Tell me to start a new session here, then run /adf:upgrade if CLAUDE.md has a
+      "Skeleton source:" line, otherwise /adf:adopt.
    ```
 
    Or run the commands yourself, from the project's folder:
@@ -87,7 +89,7 @@ any code exists. Step by step:
    cd your-project
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
    claude plugin marketplace update aplyca
-   claude plugin install aplyca-adf@aplyca --scope project
+   claude plugin install adf@aplyca --scope project
    ```
 
    They write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
@@ -96,9 +98,9 @@ any code exists. Step by step:
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
    In the desktop app's Code tab, add the marketplace the same way, then install from
    **+ → Plugins → Add plugin** with the scope set to this project
-   ([details](plugins/aplyca-adf/README.md#in-the-desktop-app)).
+   ([details](plugins/adf/README.md#in-the-desktop-app)).
 
-2. **Run `/aplyca-adf:adopt`** in the project. It inspects the repository (stack, commands, branching model,
+2. **Run `/adf:adopt`** in the project. It inspects the repository (stack, commands, branching model,
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
    skeleton, fills the placeholders from verified repository facts only, and configures the guardrail
    hooks (`.claude/hooks/config.sh`). It records the adoption as a process decision (PDR-0001), stamps
@@ -117,10 +119,10 @@ any code exists. Step by step:
    `/adopt` again in the adopted repository.
 
 By default, adopted repositories use the **packaged** install: the skills, agents, workflows, hook
-scripts, and the framework's reference docs come from the `aplyca-adf` plugin, pinned to a release,
+scripts, and the framework's reference docs come from the `adf` plugin, pinned to a release,
 and the repository commits only its own layer — about 50 fewer files. A team that also uses other AI tools, or Claude Code's cloud
 sessions, chooses the **committed** install: plain files every AI tool can read, with or without the
-plugin, which then only installs and maintains them. `/aplyca-adf:adopt` asks which one.
+plugin, which then only installs and maintains them. `/adf:adopt` asks which one.
 ([Packaged install](docs/SETUP.md#packaged-install-claude-code-only) · [why](docs/decisions/0016-packaged-install.md) · [the default](docs/decisions/0018-packaged-by-default.md))
 
 ### By hand
@@ -138,7 +140,7 @@ hooks, stamp the baseline, and verify.
 
 ## Update a project
 
-Updates are deliberate: `/aplyca-adf:upgrade` moves a project from one release to the next in a draft
+Updates are deliberate: `/adf:upgrade` moves a project from one release to the next in a draft
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
@@ -147,15 +149,15 @@ local environment, and that approval opens its draft pull request. With the `par
 a dispatched session now creates its own worktree beside the main checkout. **v1.3.0** took every
 task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction files, and
 **v1.2.0** moved the framework's reference docs out of packaged projects and into the plugin.
-**v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade in. A
+**v1.0.0** (2026-10-02) renamed the plugin `adf` and opens with the order to upgrade in. A
 baseline older than `7383422` takes that release's order first, and one older than `3eb7777` takes its
 three fixes before that — they affect every adopted repository.
 
 1. **Get the plugin into the project.** Adopted before v1.0.0 — a stamp with no `v` version? Paste
    the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
-   project; it installs `aplyca-adf`. Then start a new session. A project already pinned to a release
+   project; it installs `adf`. Then start a new session. A project already pinned to a release
    needs nothing here: the pinned plugin runs the upgrade.
-2. **Run `/aplyca-adf:upgrade`** in the adopted project. It reads the baseline stamp
+2. **Run `/adf:upgrade`** in the adopted project. It reads the baseline stamp
    (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    release to the newest. It sorts every changed file into overwrite, merge, or additive, applies the
    CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
@@ -167,9 +169,9 @@ three fixes before that — they affect every adopted repository.
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
    Once it merges, everyone's next session loads the new release.
 
-Installed the plugin at user scope, or under its old name `aplyca-framework`? `/aplyca-adf:upgrade`
+Installed the plugin at user scope, or under its old name `aplyca-framework`? `/adf:upgrade`
 fixes the project setting in its pull request; then remove the old copy
-([how](plugins/aplyca-adf/README.md#install)).
+([how](plugins/adf/README.md#install)).
 
 By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.md).
 
@@ -402,7 +404,7 @@ skeleton/                 Portable project skeleton — what an adopting reposit
                           getting-started/
 
 modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/, docker/
-plugins/aplyca-adf/       The Claude Code plugin: /aplyca-adf:adopt, :upgrade, :cost-report — and, for
+plugins/adf/       The Claude Code plugin: /adf:adopt, :upgrade, :cost-report — and, for
                           packaged projects, the skills, agents, workflows, hooks, and reference
                           docs (generated)
 plugins/adf-dev/          The development plugin: the skills of development modules such as docker

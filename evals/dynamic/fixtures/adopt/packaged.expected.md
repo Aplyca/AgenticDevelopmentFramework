@@ -16,7 +16,7 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 - [ ] (auto) No framework skills, agents, or workflows are committed; `.claude/hooks/` holds only
       `config.sh`
 - [ ] (auto) `.claude/settings.json` has no `hooks` block, pins the `aplyca` marketplace to the newest
-      release (`"ref"`), and turns on `aplyca-adf@aplyca`
+      release (`"ref"`), and turns on `adf@aplyca`
 - [ ] (auto) `CLAUDE.md` has the names note ("This project uses the packaged install")
 - [ ] (auto) `docs/getting-started/DEV-SETUP.md` gives the key commands by their full names
 - [ ] (auto) PDR-0001 records the packaged install and why

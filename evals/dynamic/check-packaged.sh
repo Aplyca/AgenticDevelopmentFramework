@@ -17,35 +17,35 @@ check "the stamp names $release, its commit $commit, and \`install: packaged\`" 
 check "no framework skills, agents, or workflows committed" \
   "[ ! -e .claude/skills/triage ] && [ ! -e .claude/skills/write-spec ] && [ ! -e .claude/agents ] && [ ! -e .claude/workflows ]"
 check "\`.claude/hooks/\` holds only \`config.sh\`" "[ -f .claude/hooks/config.sh ] && [ \"\$(ls .claude/hooks)\" = config.sh ]"
-check "the settings: no \`hooks\` block, the marketplace pinned to $release, \`aplyca-adf\` turned on" "python3 - '$release' <<'PY'
+check "the settings: no \`hooks\` block, the marketplace pinned to $release, \`adf\` turned on" "python3 - '$release' <<'PY'
 import json, sys
 s = json.load(open('.claude/settings.json'))
 source = s.get('extraKnownMarketplaces', {}).get('aplyca', {}).get('source', {})
 ok = 'hooks' not in s and source.get('repo', '').lower() == 'aplyca/agenticdevelopmentframework' \
-    and source.get('ref') == sys.argv[1] and s.get('enabledPlugins', {}).get('aplyca-adf@aplyca') is True
+    and source.get('ref') == sys.argv[1] and s.get('enabledPlugins', {}).get('adf@aplyca') is True
 sys.exit(0 if ok else 1)
 PY"
 check "\`CLAUDE.md\` says the project uses the packaged install" "grep -q 'uses the packaged install' CLAUDE.md"
-check "\`DEV-SETUP.md\` gives the commands by their full names" "grep -q '/aplyca-adf:triage' docs/getting-started/DEV-SETUP.md"
-if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/aplyca-adf/docs" 2>/dev/null; then
+check "\`DEV-SETUP.md\` gives the commands by their full names" "grep -q '/adf:triage' docs/getting-started/DEV-SETUP.md"
+if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf/docs" 2>/dev/null; then
   names='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
   check "no reference docs in \`docs/\` — the plugin carries them" \
     "! ls docs 2>/dev/null | grep -qE '^($names)\.md\$'"
   check "the project's files link the reference docs at $release, none locally" \
     "grep -q 'blob/$release/skeleton/docs/SPEC-MODEL.md' AGENTS.md && ! grep -qE '(^|[^/.A-Za-z0-9_-])docs/($names)\.md' AGENTS.md CLAUDE.md CONTRIBUTING.md README.md specs/README.md specs/_templates/spec.md 2>/dev/null"
-  check "the settings let Claude read the plugin's folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if \"Read(~/.claude/plugins/cache/aplyca/aplyca-adf/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
+  check "the settings let Claude read the plugin's folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if \"Read(~/.claude/plugins/cache/aplyca/adf/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
 fi
-if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/aplyca-adf/skills/dispatch/SKILL.md" 2>/dev/null; then
+if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf/skills/dispatch/SKILL.md" 2>/dev/null; then
   check "no committed \`/dispatch\` — the plugin carries it (decision 0020)" "[ ! -e .claude/skills/dispatch ]"
 fi
-# A module whose module.json, at the release, names a plugin other than aplyca-adf (decision 0023):
+# A module whose module.json, at the release, names a plugin other than adf (decision 0023):
 # that plugin is turned on, Claude may read its folder, the module's skills aren't committed, and
 # DEV-SETUP.md names them by their full names.
 modules=$(head -1 CLAUDE.md | sed -n 's/.*· modules: \([^·]*\).*/\1/p' | tr ',' ' ')
 for m in $modules; do
   [ -n "$fw" ] || break
   p=$(git -C "$fw" show "$release:modules/$m/module.json" 2>/dev/null | python3 -c 'import json, sys; print(json.load(sys.stdin)["plugin"])' 2>/dev/null)
-  [ -n "$p" ] && [ "$p" != aplyca-adf ] || continue
+  [ -n "$p" ] && [ "$p" != adf ] || continue
   check "the settings turn on \`$p\` and let Claude read its folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if s.get(\"enabledPlugins\", {}).get(\"$p@aplyca\") is True and \"Read(~/.claude/plugins/cache/aplyca/$p/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
   for skill in $(git -C "$fw" ls-tree --name-only "$release:modules/$m/files/.claude/skills" 2>/dev/null); do
     check "no committed \`/$skill\` — \`$p\` carries it (decision 0023)" "[ ! -e .claude/skills/$skill ]"

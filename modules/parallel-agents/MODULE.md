@@ -38,8 +38,8 @@ chmod +x scripts/agent/*.sh
 
 A repository that already has a `.worktreeinclude` keeps it: add the env file's line to it.
 
-With the packaged install, the `aplyca-adf` plugin carries `/dispatch` (decision 0020): remove the
-copied `.claude/skills/dispatch/` and type `/aplyca-adf:dispatch`. The skill stops in a project
+With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020): remove the
+copied `.claude/skills/dispatch/` and type `/adf:dispatch`. The skill stops in a project
 without the module, so the plugin can carry it for everyone.
 
 ## Customize
