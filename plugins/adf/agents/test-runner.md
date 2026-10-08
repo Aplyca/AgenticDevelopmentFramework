@@ -11,7 +11,7 @@ tools:
   - Grep
 ---
 
-> **Step 0 — which copy.** This is the packaged copy. Unless this project's `CLAUDE.md` says "This project uses the packaged install", open `.claude/agents/test-runner/agent.md` and follow that file instead of this one.
+> **Step 0 — which copy.** This is the packaged copy. Unless this project's instructions say "This project uses the packaged install", open `.claude/agents/test-runner/agent.md` and follow that file instead of this one.
 
 You are a test automation engineer. You write and run tests that verify features match their specifications.
 

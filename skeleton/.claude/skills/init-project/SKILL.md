@@ -34,8 +34,9 @@ structure.
 3. **Fill `docs/CONSTITUTION.md`** — 5–10 real non-negotiables, the amendment process, and who
    approves amendments. It overrides `AGENTS.md`, so it must agree with it.
 
-4. **Review `CLAUDE.md`** — keep the `@AGENTS.md` import as its first instruction (Claude Code reads
-   `CLAUDE.md` *instead of* `AGENTS.md` when both exist). Stamp the skeleton source line at the top.
+4. **Review `.claude/rules/claude-code.md`** — the Claude Code layer, which loads in every session
+   beside `AGENTS.md`. Keep the skeleton source stamp as `AGENTS.md`'s first line. Keep the project
+   free of a `CLAUDE.md` or `CLAUDE.local.md`: Claude Code reads one of those *instead of* `AGENTS.md`.
 
 5. **Customize the rules** — every `.claude/rules/` file with `<!-- CUSTOMIZE -->` (architecture,
    ui-ux, deployment, performance, observability): real layers, paths, environments, targets. Update
@@ -92,8 +93,9 @@ Fill each doc's `owner · last_updated · scope` header. Context without an owne
 15. **Commit** on a work branch, not the default branch:
     `docs: initialize AI-assisted development configuration`.
 16. **Verify:**
-    - Start a new Claude Code session and run `/memory` (or `/context`): `CLAUDE.md` is loaded and
-      `AGENTS.md` comes in through the import. The session-context hook prints its lines.
+    - Start a new Claude Code session and run `/memory` (or `/context`): `AGENTS.md` and
+      `.claude/rules/claude-code.md` are both loaded. The session-context hook prints its lines, with
+      no warning about a `CLAUDE.md`.
     - Ask `@code-reviewer` to review an existing file: it should cite this project's conventions.
     - Run `/context-audit` for a first drift check of the filled-in files.
 
@@ -106,14 +108,14 @@ Fill each doc's `owner · last_updated · scope` header. Context without an owne
 | "I'll guess the commands from the stack" | Commands must be exactly what runs here. Read the manifests; run them if you can. |
 | "Security docs aren't needed for a PoC" | PoCs become products. Even a rough threat model prevents the worst mistakes. |
 | "I'll leave placeholder text for now" | Placeholders teach agents nothing. Rough real content, or a TODO with a concrete question. |
-| "CLAUDE.md doesn't need the AGENTS.md import — they're both in the repo" | Claude Code reads only `CLAUDE.md` when both exist. Without the import it never sees `AGENTS.md`. |
+| "I'll add a CLAUDE.md for the Claude-specific notes" | Claude Code reads a `CLAUDE.md` *instead of* `AGENTS.md`. Claude-specific notes go in `.claude/rules/claude-code.md`. |
 
 ## Verification
 
 - [ ] `AGENTS.md` has no remaining `[bracketed placeholders]`; unknowns are `TODO(team)` questions
 - [ ] Every command in Quick reference was found in the manifests (and run where possible)
 - [ ] `docs/CONSTITUTION.md` has real principles and agrees with `AGENTS.md`
-- [ ] `CLAUDE.md` imports `AGENTS.md`, and a new session shows both loaded
+- [ ] No `CLAUDE.md` or `CLAUDE.local.md`; a new session shows `AGENTS.md` and `.claude/rules/claude-code.md` loaded
 - [ ] `.claude/hooks/config.sh` names the real protected branches, sensitive areas, and append-only paths
 - [ ] Customizable rules updated or deleted; `paths:` frontmatter matches the real structure
 - [ ] `docs/ARCHITECTURE.md` and `docs/GLOSSARY.md` have real content and metadata headers

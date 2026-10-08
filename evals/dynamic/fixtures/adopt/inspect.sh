@@ -5,7 +5,7 @@
 # checks the packaged layout (../../check-packaged.sh). Read-only.
 #
 cd "$1" || exit 1
-if [ ! -f CLAUDE.md ]; then
+if ! head -1 AGENTS.md 2>/dev/null | grep -q 'Skeleton source:'; then
   echo "Not adopted — top level: $(ls -A | tr '\n' ' ')· commits: $(git rev-list --all --count 2>/dev/null || echo 0)" \
     "· uncommitted paths: $(git status --short | wc -l | tr -d ' ')"
   exit 0
@@ -21,9 +21,10 @@ echo "### Top level"
 echo '```'
 ls -A
 echo '```'
-echo "### CLAUDE.md, first line"
+echo "### AGENTS.md, first line · CLAUDE.md"
 echo '```'
-head -1 CLAUDE.md 2>&1
+head -1 AGENTS.md 2>&1
+[ -e CLAUDE.md ] && echo "CLAUDE.md present — Claude Code reads it instead of AGENTS.md" || echo "no CLAUDE.md"
 echo '```'
 echo "### Planned entries in AGENTS.md"
 echo '```'

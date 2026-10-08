@@ -13,7 +13,8 @@ branch, delivered as a draft pull request — and wait for their go-ahead.
 
 - **Not a git repository?** Offer `git init -b <default branch>` (ask for the name; suggest `main`).
   A new project with no code yet is fine: `/adopt` has a mode for it.
-- **Already adopted?** If `CLAUDE.md` has a `Skeleton source:` line, the framework is already here.
+- **Already adopted?** If the first line of `AGENTS.md` — or of `CLAUDE.md`, before v2.0.0 — is a
+  `Skeleton source:` stamp, the framework is already here.
   When `.claude/settings.json` enables `adf@aplyca`, a developer joining the project has
   nothing to install: they start a new session and accept the prompt to trust the folder. Ask
   whether they want an upgrade instead; if so, follow steps 2 and 3 with `/upgrade` in place of

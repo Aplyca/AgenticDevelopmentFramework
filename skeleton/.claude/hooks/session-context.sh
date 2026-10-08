@@ -23,6 +23,23 @@ else
 fi
 echo "- ${checkout}: $root — branch $branch, $changes uncommitted change(s)"
 
+# Claude Code reads AGENTS.md only when no CLAUDE.md or CLAUDE.local.md is in the project or a folder
+# above it (decision 0024). Such a file replaces this project's instructions with no error, so say so —
+# unless a CLAUDE.md here still imports AGENTS.md, or the developer's settings load both.
+if [ -f "$root/AGENTS.md" ] && ! grep -q '^@AGENTS.md' "$root/CLAUDE.md" 2>/dev/null &&
+  ! grep -q 'claude-md-and-agents-md' "$HOME/.claude/settings.json" 2>/dev/null; then
+  dir="$root"
+  while :; do
+    for name in CLAUDE.md CLAUDE.local.md .claude/CLAUDE.md; do
+      [ -f "$dir/$name" ] && [ "$dir/$name" != "$HOME/.claude/CLAUDE.md" ] || continue
+      echo "- $dir/$name replaces this project's AGENTS.md: Claude Code reads AGENTS.md only when no CLAUDE.md or CLAUDE.local.md is here or above. Read AGENTS.md now, and tell the developer: move or remove that file, or set Project instructions to claude-md-and-agents-md in /config."
+      break 2
+    done
+    [ "$dir" = "/" ] && break
+    dir="$(dirname "$dir")"
+  done
+fi
+
 if in_words "$branch" "$PROTECTED_BRANCHES"; then
   echo "- $branch is protected: create a work branch (<type>/<slug>) before changing anything."
 fi

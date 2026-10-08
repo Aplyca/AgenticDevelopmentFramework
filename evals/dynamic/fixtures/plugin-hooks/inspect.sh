@@ -30,5 +30,5 @@ case "$case_name" in
 esac
 echo "### End state"
 echo '```'
-cd "$work" && git log --oneline -3 && git status --short && head -1 CLAUDE.md
+cd "$work" && git log --oneline -3 && git status --short && head -1 AGENTS.md
 echo '```'

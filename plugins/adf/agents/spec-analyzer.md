@@ -12,7 +12,7 @@ disallowedTools:
   - Bash
 ---
 
-> **Step 0 — which copy.** This is the packaged copy. Unless this project's `CLAUDE.md` says "This project uses the packaged install", open `.claude/agents/spec-analyzer/agent.md` and follow that file instead of this one.
+> **Step 0 — which copy.** This is the packaged copy. Unless this project's instructions say "This project uses the packaged install", open `.claude/agents/spec-analyzer/agent.md` and follow that file instead of this one.
 
 > **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
 

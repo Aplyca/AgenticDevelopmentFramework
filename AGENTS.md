@@ -9,14 +9,14 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 ## Repository structure
 
 - `skeleton/` — **the portable project skeleton** (copied into any software project)
-  - `skeleton/AGENTS.md` — universal AI instructions (read by all AI tools; Claude Code reads it through the `@AGENTS.md` import in `skeleton/CLAUDE.md`)
-  - `skeleton/CLAUDE.md` — Claude Code layer (skills, agents, workflows, enforced guardrails)
+  - `skeleton/AGENTS.md` — universal AI instructions, read natively by every AI tool, Claude Code included; its first line is the framework's stamp
+  - `skeleton/.claude/rules/claude-code.md` — the Claude Code layer (skills, agents, workflows, enforced guardrails): a rule with no `paths:`, loaded in every session. There is no `CLAUDE.md` (decision 0024): Claude Code would read it instead of `AGENTS.md`
   - `skeleton/GEMINI.md` — Antigravity / Gemini layer
   - `skeleton/.claude/` — agents, skills, workflows (`*.js`), hooks (+ `config.sh`), rules, `settings.json`
   - `skeleton/.cursor/rules/` — Cursor rule files (`.mdc`)
   - `skeleton/specs/` — `README.md` (the process) and `_templates/{spec,plan,tasks}.md`
   - `skeleton/docs/` — constitution, spec model, process (PDRs), reference, tracker integration, and documentation templates
-- `modules/` — optional additions (`github/`, `git-hooks/`, `clickup/`, `parallel-agents/`, `docker/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo, and a module whose skills a packaged install takes from a plugin of its own has a `plugin.json` beside them (decision 0023)
+- `modules/` — optional additions (`github/`, `git-hooks/`, `clickup/`, `parallel-agents/`, `docker/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo, and a module with skills or agents names the plugin that carries them in `module.json` (decision 0023)
 - `plugins/adf/` — the Claude Code plugin: the installer (`/adf:adopt`, `:upgrade`, `:cost-report`, written by hand) and, for the packaged install (decisions 0016, 0017, 0019, 0020), the skeleton's skills, agents, workflows, hook scripts, and four reference docs, and the `parallel-agents` module's `/dispatch` — **generated** by `scripts/build-plugins.sh` into the paths its `.generated` file lists; never edit those by hand
 - `plugins/adf-dev/` — the development plugin (decision 0023): its manifest and README are written by hand; its skills and agents are **generated** by `scripts/build-plugins.sh` from the modules whose `module.json` names it (`docker`'s `/dev-env`) into the paths its `.generated` file lists; never edit those by hand
 - `plugins/adf-connect/` — the connections plugin: `/adf-connect:connect`, written by hand, which writes a project's MCP configuration from a catalog of safe defaults; the servers stay in each project (decision 0023)
@@ -24,11 +24,12 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 - `docs/` — framework guides (setup, upgrading, onboarding, catalogs, examples, scenarios) and `docs/decisions/` (why the framework works the way it does)
 - `evals/` — static checks, hook and module functional tests, dynamic fixtures
 - `.claude/` — configuration for working on **this framework repo** (not for target projects)
+- This file is `AGENTS.md`, read natively by Claude Code and other tools; don't add a `CLAUDE.md` or `CLAUDE.local.md`, which Claude Code would read instead
 
 ## When editing this repo
 
 - Everything inside `skeleton/` and `modules/*/files/` must stay **generic** — no project-specific stack, paths, or conventions
-- Agent definitions learn project context from `AGENTS.md`, `CLAUDE.md`, and rules at runtime; skills reference them — never hardcode specifics
+- Agent definitions learn project context from `AGENTS.md` and the rules at runtime; skills reference them — never hardcode specifics
 - Universal rules (code-quality, testing, security, git-workflow) apply to any language/framework; customizable rules (architecture, ui-ux, deployment, performance, observability) have `<!-- CUSTOMIZE -->` markers
 - Skill and agent frontmatter use only documented keys, hyphenated (`argument-hint`, `disable-model-invocation`, `user-invocable`) — unknown keys are silently ignored. Hooks use the nested `hooks` array and read the event from stdin
 - No symlinks anywhere in the repository — the Claude Directory's checks reject them. A link a project needs (Antigravity's `.agents/skills`) is created by `/adopt`

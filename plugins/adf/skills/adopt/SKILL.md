@@ -45,7 +45,8 @@ Record the release (the tag), its commit (`git -C <framework-root> rev-parse --s
 commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`). With no release tag yet,
 use the default branch's head and say so.
 
-**Already adopted?** If the target's `CLAUDE.md` has a `Skeleton source:` line, don't re-adopt: offer
+**Already adopted?** If the first line of the target's `AGENTS.md` — or of `CLAUDE.md`, in a project
+adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
 checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
@@ -121,7 +122,8 @@ Present the table before going further. Wrong facts here poison every file downs
     below is copied into the repository: every AI tool reads it, and nothing depends on a plugin.
 
   For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
-  out, the settings, the names in `CLAUDE.md` and `DEV-SETUP.md`, the stamp, and the checks.
+  out, the settings, the names in `.claude/rules/claude-code.md` and `DEV-SETUP.md`, the stamp, and the
+  checks.
   **The reference docs** (decision 0019) — `COST-MODEL.md`, `MCP-INTEGRATION.md`,
   `MEMORY-STRATEGY.md`, `SPEC-MODEL.md` — stay out of `docs/` when the release carries them in
   `<framework-root>/plugins/adf/docs/`; an older release has none there, so copy them as
@@ -132,8 +134,13 @@ Present the table before going further. Wrong facts here poison every file downs
 - Copy `skeleton/` into the repo **without overwriting existing files**. For collisions (`README.md`,
   `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
   skeleton's missing sections.
-- Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `CLAUDE.md` +
-  `.claude/` (Claude Code), `GEMINI.md` (Antigravity/Gemini), `.cursor/` (Cursor).
+- **An existing `CLAUDE.md`** (decision 0024): Claude Code reads it *instead of* `AGENTS.md`. Move its
+  project facts into `AGENTS.md` and its Claude-specific instructions into
+  `.claude/rules/claude-code.md`, show the developer where each part went, and delete it once they
+  agree. A team that keeps one makes `@AGENTS.md` its first line.
+- Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `.claude/` (Claude
+  Code, with its layer in `.claude/rules/claude-code.md`), `GEMINI.md` (Antigravity/Gemini),
+  `.cursor/` (Cursor).
   `AGENTS.md` always stays. For Antigravity, link its skills folder to Claude Code's — the framework
   ships no symlinks: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills`.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
@@ -177,9 +184,9 @@ Present the table before going further. Wrong facts here poison every file downs
   differ (template in `/init-project`).
 - **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
   the two must agree.
-- **`CLAUDE.md`** — keep `@AGENTS.md` as its first instruction (Claude Code reads `CLAUDE.md` instead
-  of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5. Packaged: add the names
-  note from `docs/SETUP.md` § Packaged install.
+- **`.claude/rules/claude-code.md`** — the Claude Code layer, which loads in every session beside
+  `AGENTS.md`. Leave the stamp on `AGENTS.md`'s first line for step 5. Packaged: add the names note
+  from `docs/SETUP.md` § Packaged install.
 - **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
   development by their full names (`/adf:triage`, `@adf:code-reviewer`); a module
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
@@ -212,7 +219,7 @@ Present the table before going further. Wrong facts here poison every file downs
 
 ## Step 5 — Stamp the baseline and record the decision
 
-- Top of `CLAUDE.md`:
+- First line of `AGENTS.md`:
   `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
   The release, its commit, and the date are the ones Step 1 recorded. Without the stamp, `/upgrade` has
   no baseline to diff against. Packaged: `· install: packaged` follows the modules — it's what turns
@@ -244,7 +251,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
 - [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
-- [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
+- [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
 - [ ] Skill frontmatter uses hyphenated keys only (no `user_invocable` and the like)
 - [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones) — in a new project, a GAP until the first code lands

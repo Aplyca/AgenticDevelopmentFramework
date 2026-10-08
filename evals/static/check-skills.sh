@@ -27,7 +27,7 @@ HOOKS_DIR="$SKELETON/.claude/hooks"
 SETTINGS="$SKELETON/.claude/settings.json"
 TEMPLATES="$SKELETON/specs/_templates"
 AGENTS_MD="$SKELETON/AGENTS.md"
-CLAUDE_MD="$SKELETON/CLAUDE.md"
+CLAUDE_LAYER="$SKELETON/.claude/rules/claude-code.md"
 GIT_RULE="$SKELETON/.claude/rules/git-workflow.md"
 MODULES_DIR="$REPO_ROOT/modules"
 
@@ -314,17 +314,24 @@ check_hook_scripts_syntax() {
 
 # ─── Instruction files ─────────────────────────────────────────────────────
 
-check_claude_md_imports_agents_md() {
-    # Claude Code reads CLAUDE.md INSTEAD of AGENTS.md when both exist — the import is what loads it.
-    if file_contains "$CLAUDE_MD" '^@AGENTS\.md$'; then
-        pass "CLAUDE.md: imports AGENTS.md (@AGENTS.md)"
+check_instruction_files() {
+    # Claude Code reads AGENTS.md natively, and reads a CLAUDE.md or CLAUDE.local.md INSTEAD of it
+    # (decision 0024): the skeleton ships neither, the stamp is AGENTS.md's first line, and the Claude
+    # Code layer is a rule with no paths:, which loads in every session.
+    if [ ! -e "$SKELETON/CLAUDE.md" ] && [ ! -e "$SKELETON/CLAUDE.local.md" ] && [ ! -e "$SKELETON/.claude/CLAUDE.md" ]; then
+        pass "skeleton: no CLAUDE.md to read instead of AGENTS.md"
     else
-        fail "CLAUDE.md: missing the '@AGENTS.md' import" "without it Claude Code never loads AGENTS.md"
+        fail "skeleton: ships a CLAUDE.md" "Claude Code would read it instead of AGENTS.md (decision 0024)"
     fi
-    if file_contains "$CLAUDE_MD" 'Skeleton source:'; then
-        pass "CLAUDE.md: has the skeleton-source stamp line"
+    if head -n 1 "$AGENTS_MD" | grep -q '^<!-- Skeleton source:'; then
+        pass "AGENTS.md: the skeleton-source stamp is its first line"
     else
-        fail "CLAUDE.md: missing the 'Skeleton source:' stamp line"
+        fail "AGENTS.md: the 'Skeleton source:' stamp must be its first line" "/upgrade and the plugin's hooks read it there"
+    fi
+    if [ -f "$CLAUDE_LAYER" ] && ! frontmatter "$CLAUDE_LAYER" | grep -q '^paths:' && file_contains "$CLAUDE_LAYER" '^## Skills, agents, and workflows'; then
+        pass ".claude/rules/claude-code.md: the Claude Code layer, with no paths: so it loads in every session"
+    else
+        fail ".claude/rules/claude-code.md: missing, scoped by paths:, or without its skills section"
     fi
 }
 
@@ -679,6 +686,10 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Offer `adf-connect`' || missing+=("/adopt: offers adf-connect (0023)")
+    file_contains "$HOOKS_DIR/session-context.sh" "replaces this project's AGENTS.md" || missing+=("session-context.sh: warns when a CLAUDE.md replaces AGENTS.md (0024)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'From `CLAUDE.md` to `AGENTS.md`' || missing+=("/upgrade: moves CLAUDE.md into AGENTS.md and the rule (0024)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `CLAUDE.md`' || missing+=("/adopt: merges an existing CLAUDE.md (0024)")
+    [ ! -e "$REPO_ROOT/CLAUDE.md" ] || missing+=("this repository: its instructions are AGENTS.md, with no CLAUDE.md (0024)")
     local connect="$REPO_ROOT/plugins/adf-connect/skills/connect/SKILL.md"
     file_contains_literal "$connect" 'No credentials in the repository.' || missing+=("/connect: no credentials committed")
     file_contains_literal "$connect" 'Read-only and not production, unless the developer decides otherwise.' || missing+=("/connect: read-only, not production")
@@ -1011,7 +1022,7 @@ done
 echo ""
 check_settings
 check_hook_scripts_syntax
-check_claude_md_imports_agents_md
+check_instruction_files
 check_agents_md_workflow
 check_git_workflow_prefixes
 

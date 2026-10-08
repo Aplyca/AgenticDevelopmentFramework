@@ -11,9 +11,10 @@ echo '```'
 for b in $(git for-each-ref --format='%(refname:short)' refs/heads); do echo "--- $b"; git log --oneline "$b" 2>&1 | head -5; done
 echo "--- current: $(git branch --show-current) · working tree: $(git status --short | wc -l | tr -d ' ') uncommitted paths"
 echo '```'
-echo "### CLAUDE.md, first line · .claude/ · docs/process/"
+echo "### AGENTS.md, first line · CLAUDE.md · .claude/ · docs/process/"
 echo '```'
-head -1 CLAUDE.md
+head -1 AGENTS.md
+[ -e CLAUDE.md ] && echo "CLAUDE.md still present" || echo "no CLAUDE.md"
 ls .claude .claude/hooks 2>&1
 ls docs/process
 echo '```'

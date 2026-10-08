@@ -147,7 +147,7 @@ AI isn't only for "generating code": it runs through the whole cycle. See sectio
 repo/
 ├── README.md                 # For people: what it is, how to run it, how to contribute
 ├── AGENTS.md                 # For agents: the "agent's README" (see 6.2)
-├── CLAUDE.md                 # Optional: richer Claude Code-specific configuration
+├── .claude/rules/claude-code.md  # Optional: the Claude Code layer (no CLAUDE.md)
 ├── /docs                     # Technical and end-user documentation
 │   ├── architecture.md
 │   └── decisions/            # ADRs (architecture decision records)
@@ -164,7 +164,7 @@ repo/
 
 ### 6.2 `AGENTS.md` — the instructions contract for agents
 
-`AGENTS.md` is an open, vendor-neutral Markdown format: a "README for agents". Codex, Cursor, Copilot, Windsurf, Aider, Gemini (through its own file), and many more read it natively; Claude Code reads it too, while keeping `CLAUDE.md` as its richer native format. It's designed so that **a single file** works across every tool and institutional knowledge doesn't get trapped in chat history.
+`AGENTS.md` is an open, vendor-neutral Markdown format: a "README for agents". Codex, Cursor, Copilot, Windsurf, Aider, Gemini (through its own file), and many more read it natively; Claude Code reads it natively too, as long as there's no `CLAUDE.md`, which it would read instead. It's designed so that **a single file** works across every tool and institutional knowledge doesn't get trapped in chat history.
 
 **What to include** (no field is mandatory; these are the recommended sections):
 
@@ -180,7 +180,7 @@ repo/
 
 - Be **specific**, not exhaustive: don't dump all the documentation into it. Keep the root file focused and **link** to deeper documents (coding standards, architecture).
 - **Hierarchy / nesting**: in large repositories, place nested `AGENTS.md` files per module or feature. Agents automatically read the one closest to the file being edited; context scales from the general (root) to the local (module) to edge cases (feature). The closest one wins, and an explicit prompt from the user in the chat overrides everything.
-- For tool-specific configuration, use each tool's own files (`CLAUDE.md`, `.cursor/rules/`), and keep what's shared in `AGENTS.md`.
+- For tool-specific configuration, use each tool's own files (`.claude/rules/` for Claude Code, `.cursor/rules/` for Cursor), and keep what's shared in `AGENTS.md`.
 
 ### 6.3 The agentic development workflow, step by step
 

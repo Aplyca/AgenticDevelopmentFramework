@@ -79,8 +79,8 @@ any code exists. Step by step:
       plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
    5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
       that copy. Don't run them.
-   6. Tell me to start a new session here, then run /adf:upgrade if CLAUDE.md has a
-      "Skeleton source:" line, otherwise /adf:adopt.
+   6. Tell me to start a new session here, then run /adf:upgrade if the first line of AGENTS.md
+      (or of CLAUDE.md) is a "Skeleton source:" stamp, otherwise /adf:adopt.
    ```
 
    Or run the commands yourself, from the project's folder:
@@ -104,7 +104,8 @@ any code exists. Step by step:
    tracker, Git host) and asks which [optional modules](modules/README.md) you want. Then it copies the
    skeleton, fills the placeholders from verified repository facts only, and configures the guardrail
    hooks (`.claude/hooks/config.sh`). It records the adoption as a process decision (PDR-0001), stamps
-   the baseline version at the top of `CLAUDE.md`, verifies the hooks and the `@AGENTS.md` import, and
+   the baseline version on the first line of `AGENTS.md`, verifies the hooks and that Claude Code loads
+   `AGENTS.md`, and
    prepares a **draft pull request** on its own branch — the plugin setting the install wrote goes
    in with it. It never commits to your default branch.
 3. **Finish what only the team knows** in that pull request: the remaining `[PLACEHOLDER]`s, the
@@ -179,9 +180,8 @@ By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.m
 
 ```
 AGENTS.md          → Universal instructions — identity, ground rules, how work flows, boundaries (read by every AI tool)
-CLAUDE.md          → Imports AGENTS.md, then adds the Claude Code layer: skills, agents, workflows, enforced guardrails
 GEMINI.md          → Imports AGENTS.md, then adds Antigravity / Gemini notes
-.claude/rules/     → Engineering standards, loaded when Claude reads matching files
+.claude/rules/     → The Claude Code layer (claude-code.md, every session) and engineering standards, loaded when Claude reads matching files
 .claude/skills/    → Workflow playbooks (/triage, /write-spec, /write-plan, /implement, …)
 .claude/agents/    → Specialized agents (generic — they learn your project from AGENTS.md)
 .claude/workflows/ → Dynamic multi-agent workflows (/deep-review, …)
@@ -194,13 +194,13 @@ docs/              → Constitution, architecture, ADRs, PDRs, reference pages, 
 
 | File | Read by |
 |---|---|
-| **AGENTS.md** | Codex, Cursor, GitHub Copilot, Windsurf, Aider, Gemini, and [others](https://agents.md) natively; Claude Code through the `@AGENTS.md` import in `CLAUDE.md` |
-| **CLAUDE.md** | Claude Code |
+| **AGENTS.md** | Claude Code, Codex, Cursor, GitHub Copilot, Windsurf, Aider, Gemini, and [others](https://agents.md) natively |
+| **.claude/rules/claude-code.md** | Claude Code — its own layer, in every session |
 | **GEMINI.md** | Antigravity, Gemini CLI |
 | **.cursor/rules/** | Cursor |
 | **.agents/skills/** | Antigravity |
 
-When a repository has both a `CLAUDE.md` and an `AGENTS.md`, Claude Code reads `CLAUDE.md` **instead** — so the skeleton's `CLAUDE.md` imports `AGENTS.md` on its first line. Keep that import.
+There's no `CLAUDE.md`: Claude Code reads `AGENTS.md` natively (v2.1.281 or later), and reads a `CLAUDE.md` or `CLAUDE.local.md` **instead** of it — so keep the project free of both. The session-context hook warns when one turns up ([why](docs/decisions/0024-agents-md-only.md)).
 
 ## The workflows
 
@@ -388,7 +388,7 @@ hold every time. The full reference is the `/spec-workflow` skill and
 
 ```
 skeleton/                 Portable project skeleton — what an adopting repository gets
-├── AGENTS.md · CLAUDE.md · GEMINI.md · README.md · CONTRIBUTING.md · .claudeignore
+├── AGENTS.md · GEMINI.md · README.md · CONTRIBUTING.md · .claudeignore
 ├── .claude/
 │   ├── agents/           8 agents, each with its model alias
 │   ├── skills/           20 skills

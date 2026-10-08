@@ -30,7 +30,7 @@ No rule of its own: Compose and Dockerfile conventions live in the skeleton's
 `install.sh` merges into `.claude/settings.json`: it keeps your rules and their order, adds only
 what's missing, and is safe to run again — `/upgrade` reruns it to pick up new rules.
 
-Then add `docker` to the `modules:` list in the stamp on `CLAUDE.md`'s first line: `/dev-env` stops
+Then add `docker` to the `modules:` list in the stamp on `AGENTS.md`'s first line: `/dev-env` stops
 in a project whose stamp doesn't name it.
 
 ## Customize

@@ -55,7 +55,7 @@ Remove the layers your team doesn't use:
 | Tool | Keep | Remove if unused |
 |---|---|---|
 | Every tool | `AGENTS.md` | — always keep |
-| Claude Code | `CLAUDE.md`, `.claude/` | both |
+| Claude Code | `.claude/` (its layer is `.claude/rules/claude-code.md`) | the directory |
 | Antigravity / Gemini | `GEMINI.md`, and the `.agents/skills` link below | `GEMINI.md` |
 | Cursor | `.cursor/rules/` | the directory |
 | Custom skills, rules, or hooks that need regression tests | `evals/` | the directory (the common case) |
@@ -106,8 +106,10 @@ lockfiles, CI config, `git log`). What you can't verify becomes `<!-- TODO(team)
 Keep it under ~200 lines; it loads in every session. In a monorepo, add a nested `AGENTS.md` in each
 module whose rules differ (the template is in `.claude/skills/init-project/SKILL.md`) — nearest wins.
 
-**`CLAUDE.md` must keep `@AGENTS.md` as its first instruction.** When both files exist, Claude Code
-reads `CLAUDE.md` *instead of* `AGENTS.md`; the import is what loads it.
+**No `CLAUDE.md`.** Claude Code reads `AGENTS.md` natively (v2.1.281 or later), and its own layer
+from `.claude/rules/claude-code.md`. A `CLAUDE.md` or `CLAUDE.local.md` in the project or a folder above
+it makes Claude Code read that file *instead of* `AGENTS.md` ([decision 0024](decisions/0024-agents-md-only.md)). Merge an existing
+`CLAUDE.md` into those two files, then delete it.
 
 ## 4. Write the constitution
 
@@ -160,7 +162,7 @@ in a packaged project, the spec model and `/adf:write-spec` come from the plugin
 
 ## 8. Stamp, commit, and open a draft pull request
 
-Fill the first line of `CLAUDE.md`:
+Fill the first line of `AGENTS.md`, the stamp:
 
 ```markdown
 <!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <list or none> — … -->
@@ -172,7 +174,7 @@ in `.claude/settings.json` — `"ref": "v<X.Y.Z>"` on the `aplyca` marketplace �
 the skills match your committed ones.
 
 ```bash
-git add AGENTS.md CLAUDE.md .claude/ specs/ docs/ CONTRIBUTING.md README.md .claudeignore  # plus tool layers and modules you kept
+git add AGENTS.md .claude/ specs/ docs/ CONTRIBUTING.md README.md .claudeignore  # plus tool layers and modules you kept
 git commit -m "docs: adopt the Agentic Development Framework (skeleton <SHA>)"
 ```
 
@@ -230,7 +232,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    The read rule lets the plugin's skills and agents open its reference docs: Claude Code asks before
    reading any file outside the project, the plugin's own folder included, unless a rule allows it.
 3. **Tell people the names** (step 3). Everything a plugin carries goes by the plugin's name. Add this
-   to the start of `CLAUDE.md` § Skills, agents, and workflows:
+   to the start of `.claude/rules/claude-code.md` § Skills, agents, and workflows:
 
    > **This project uses the packaged install.** Skills, agents, and workflows come from the
    > `adf` plugin, pinned in `.claude/settings.json`. Where these files name a skill or
@@ -269,8 +271,9 @@ claude plugin install adf-dev@aplyca --scope project
 
 ## Verify
 
-- **Both instruction files load:** start a new Claude Code session and run `/memory` — `CLAUDE.md` is
-  listed, with `AGENTS.md` coming in through the import. The session-context hook prints its lines.
+- **Both instruction files load:** start a new Claude Code session and run `/memory` — `AGENTS.md`
+  and `.claude/rules/claude-code.md` are listed. The session-context hook prints its lines, with no
+  warning about a `CLAUDE.md`.
 - **The hooks fire:** on `main`, ask the agent to `git commit --allow-empty -m test` — the git guard
   blocks it. Or test directly:
   ```bash
@@ -296,7 +299,7 @@ By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each
 ## What not to customize
 
 - **Skills, agents, workflows, and hook scripts** are framework-owned and replaced on upgrade. Put
-  project specifics in `AGENTS.md`, `CLAUDE.md`, the rules, and `.claude/hooks/config.sh` — that's
+  project specifics in `AGENTS.md`, the rules, and `.claude/hooks/config.sh` — that's
   where agents and hooks read them.
 - **The workflow skill** (`spec-workflow`) is the shared process; project-specific workflow details
   belong in `AGENTS.md`, `CONTRIBUTING.md`, or a PDR.

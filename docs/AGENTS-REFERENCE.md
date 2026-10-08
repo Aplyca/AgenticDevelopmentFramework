@@ -1,8 +1,8 @@
 # Agents reference
 
-The Agentic Development Framework ships eight specialized agents in `skeleton/.claude/agents/`. Adopting projects copy them verbatim and invoke them with `@agent-name` in Claude Code. All agents are generic — they learn project specifics from the project's `AGENTS.md`, `CLAUDE.md`, and `.claude/rules/` at runtime.
+The Agentic Development Framework ships eight specialized agents in `skeleton/.claude/agents/`. Adopting projects copy them verbatim and invoke them with `@agent-name` in Claude Code. All agents are generic — they learn project specifics from the project's `AGENTS.md` and `.claude/rules/` at runtime.
 
-For the routing decision (skill vs agent vs workflow), see **Skills, agents, and workflows** in `skeleton/CLAUDE.md`. For model-tier rationale, see `skeleton/docs/COST-MODEL.md`.
+For the routing decision (skill vs agent vs workflow), see **Skills, agents, and workflows** in `skeleton/.claude/rules/claude-code.md`. For model-tier rationale, see `skeleton/docs/COST-MODEL.md`.
 
 ## Catalog
 
@@ -29,7 +29,7 @@ Skills are step-by-step playbooks that run in the main conversation. Use them fo
 
 ## Customizing model tiers
 
-Each agent's `model:` frontmatter uses a version-less alias (`haiku`, `sonnet`, `opus`) set per `skeleton/docs/COST-MODEL.md` § Choosing between Sonnet and Opus — reviews and well-specified work on Sonnet, judgment (`@spec-analyzer`, `@architect`) on Opus — so it follows new model releases without changes. An agent runs in its own context, so its model costs the main session no cache switch. To change a tier in your project, edit the agent's `agent.md` — but agents are in the **overwrite** bucket on upgrade, so record the override and its reason in your `CLAUDE.md` and re-apply it after each upgrade.
+Each agent's `model:` frontmatter uses a version-less alias (`haiku`, `sonnet`, `opus`) set per `skeleton/docs/COST-MODEL.md` § Choosing between Sonnet and Opus — reviews and well-specified work on Sonnet, judgment (`@spec-analyzer`, `@architect`) on Opus — so it follows new model releases without changes. An agent runs in its own context, so its model costs the main session no cache switch. To change a tier in your project, edit the agent's `agent.md` — but agents are in the **overwrite** bucket on upgrade, so record the override and its reason in your `.claude/rules/claude-code.md` and re-apply it after each upgrade.
 
 ## Agents inside workflows
 
