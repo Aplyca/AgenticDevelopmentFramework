@@ -4,7 +4,7 @@
 > [ADOPT.md](ADOPT.md) (raw: `https://raw.githubusercontent.com/aplyca/AgenticDevelopmentFramework/main/ADOPT.md`)
 > — don't copy files from this repository by hand.
 
-A production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development.** It ships as a portable project skeleton you drop into any codebase, optional modules for your Git host and ways of working, and an installer plugin for Claude Code. It includes an enforced multi-perspective spec model, specialized agents, workflow skills, multi-agent workflows, and guardrail hooks. Engineering standards and a team onboarding path are part of it too.
+A production-grade framework for professional **multi-perspective spec-driven, test-driven, docs-first AI-assisted development.** It ships as a portable project skeleton you drop into any codebase, optional modules for your Git host, your stack, and your ways of working, and an installer plugin for Claude Code. It includes an enforced multi-perspective spec model, specialized agents, workflow skills, multi-agent workflows, and guardrail hooks. Engineering standards and a team onboarding path are part of it too.
 
 The framework is built on three reinforcing disciplines:
 - **Multi-perspective spec-driven design** — every feature's spec captures input from all relevant roles (business, functional, security, accessibility, privacy, design, performance, and more), with required sections enforced. The plan that follows names the exact **change surface**, and nothing is implemented until a human approves it.
@@ -23,14 +23,14 @@ Most of what's here was proven in real client projects first — some built on t
 - **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist and the developer's yes), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
 - **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](skeleton/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
 - **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
-- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module. ([Catalog](docs/SKILLS-REFERENCE.md))
+- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module and `/dev-env` with `docker`. ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents**, each on the model its work needs — reviewers on `sonnet`; `@spec-analyzer` (which adversarially checks a spec folder before the gate) and `@architect` on `opus`. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
 - **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks give each session its branch and spec folder, remind the agent once to state the triage before its first edit, stop a fast-lane edit in a sensitive area, keep the main checkout edit-free when it's the hub (parallel-agents), block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Each push and pull-request action needs a human to confirm it, and `.env` files are never read.
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
-- **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches). ([Modules](modules/README.md))
-- **The `aplyca-adf` plugin** — `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` for Claude Code, plus `/aplyca-adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/aplyca-adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release.
+- **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` sets up, diagnoses, and safely resets a Docker Compose local environment, one stack per worktree; destructive docker commands ask first). ([Modules](modules/README.md))
+- **The `aplyca-adf` plugin** — `/aplyca-adf:adopt` and `/aplyca-adf:upgrade` for Claude Code, plus `/aplyca-adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/aplyca-adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release; a module with skills of its own ships them in an opt-in plugin beside it, `adf-<module>` ([why](docs/decisions/0023-area-plugins-for-modules.md)).
 - **Evals** — structural checks plus functional tests of the hooks, module scripts, and plugin, run in CI on every pull request at zero token cost; routing evals that run `/triage` in real Claude Code sessions on Sonnet and Opus, with graded reports. ([Evals](evals/README.md) · [latest report](evals/dynamic/reports/2026-10-01-triage-routing.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
@@ -130,6 +130,7 @@ git clone https://github.com/aplyca/AgenticDevelopmentFramework.git
 cp -Rn AgenticDevelopmentFramework/skeleton/. your-project/                 # never overwrites your files
 cp -Rn AgenticDevelopmentFramework/modules/github/files/. your-project/     # each optional module you want
 AgenticDevelopmentFramework/modules/clickup/install.sh your-project          # clickup merges instead of copying
+AgenticDevelopmentFramework/modules/docker/install.sh your-project           # docker copies, then merges its permissions
 ```
 
 Then follow [docs/SETUP.md](docs/SETUP.md): fill `AGENTS.md` and the constitution, configure the
@@ -400,10 +401,11 @@ skeleton/                 Portable project skeleton — what an adopting reposit
                           architecture/decisions/ (ADRs), reference/, security/, infrastructure/,
                           getting-started/
 
-modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/
+modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/, docker/
 plugins/aplyca-adf/       The Claude Code plugin: /aplyca-adf:adopt, :upgrade, :cost-report — and, for
                           packaged projects, the skills, agents, workflows, hooks, and reference
                           docs (generated)
+plugins/adf-<module>/     A module's own opt-in plugin, generated from the module (adf-docker)
 docs/                     Framework docs: SETUP, UPGRADING, ONBOARDING, references, examples,
                           scenarios, decisions
 evals/                    Static checks; hook, module, and plugin tests; triage routing evals and

@@ -87,7 +87,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges) |
+| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |
@@ -274,6 +274,10 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
 - **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
+- **Turn on each installed module's own plugin** when the new release has one
+  ([decision 0023](decisions/0023-area-plugins-for-modules.md)) — `docker`'s `adf-docker`:
+  `"adf-docker@aplyca": true` in `enabledPlugins`, its read rule, and no committed copy of its skills.
+  The same pin covers it.
 
 `/aplyca-adf:upgrade` does both, and offers to switch a committed project to packaged (or back). The
 switch is recorded as a process decision (PDR) in the same pull request, and it removes only the
@@ -286,7 +290,8 @@ Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade`
 you don't have and recommends the ones your repository's facts support — `parallel-agents` when
 several agent sessions may work at once (each task gets its own worktree, branch, pull request, and
 session; the main checkout only dispatches), `clickup` when requirements arrive as ClickUp tasks,
-`github` on GitHub, `git-hooks` for local gates. The ones you choose join the same upgrade pull
+`docker` when the local stack runs on Docker Compose, `github` on GitHub, `git-hooks` for local
+gates. The ones you choose join the same upgrade pull
 request, with their customize steps. Choosing `parallel-agents` moves the upgrade itself into a
 worktree, so the main checkout starts as a clean hub. By hand: `cp -R modules/<name>/files/.` (no
 overwrite) and follow its `MODULE.md`.

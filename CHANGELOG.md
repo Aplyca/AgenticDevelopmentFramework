@@ -11,6 +11,50 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The `docker` module, and a module's own plugin: `adf-docker`
+
+([0023](docs/decisions/0023-area-plugins-for-modules.md), amending 0009, 0016, 0017, and 0020)
+
+Integrations and specialties now have a home, sorted by one test: what a project edits is committed
+in a module, and machinery no project edits is packaged. Every project's machinery stays in
+`aplyca-adf`, and a module's own goes in a plugin of its own. The decision record maps the requested
+additions — GitLab, Supabase, Vercel, Contentful, Ibexa, performance, frontend — onto that test.
+
+- **A module can carry its own opt-in plugin,** `adf-<module>`, listed in the `aplyca` marketplace
+  at the framework's version and generated from the module. A packaged project with the module turns
+  it on beside `aplyca-adf`; a committed one copies the module's skills as before. A project lists
+  only the skills of the modules it chose. `/dispatch` stays in `aplyca-adf` until a major release.
+- **The new `docker` module.** `/dev-env` (packaged: `/adf-docker:dev-env`) works on the local
+  Docker Compose stack:
+  - sets it up from verified facts, written to `DEV-SETUP.md` and `AGENTS.md` § Quick reference;
+  - gives each worktree its own stack with `parallel-agents` (`worktree.conf`);
+  - diagnoses it in `/debug`'s order;
+  - resets it smallest step first, never beyond this project.
+
+  Its permission rules, merged by `modules/docker/install.sh`, let read-only docker commands run
+  and make every command that deletes containers, volumes, or images ask.
+- **`/adopt` and `/upgrade`** recommend the module when the local stack runs on Compose, and in a
+  packaged install turn on `adf-docker@aplyca` with
+  `Read(~/.claude/plugins/cache/aplyca/adf-docker/**)`.
+- **Framework-internal:**
+  - `scripts/build-aplyca-adf.sh` is now `scripts/build-plugins.sh` and builds every plugin and the
+    marketplace's module entries.
+  - The static checks hold every plugin's version to the release, names unique across plugins, and
+    `Bash` allow rules in a module to read-only commands.
+  - CONTRIBUTING no longer says to bump the plugin's version on every change (0017).
+
+**Upgrade impact:**
+
+- **Additive** for a project that doesn't choose the module — `/aplyca-adf:upgrade` offers it.
+- When chosen:
+  - **Merge** `.claude/settings.json` through `modules/docker/install.sh`.
+  - **Additive** `.claude/skills/dev-env/SKILL.md` in a committed install.
+  - A packaged install commits no skill and adds two lines to `.claude/settings.json`:
+    `"adf-docker@aplyca": true` and the read rule.
+  - `/dev-env set up` then fills `DEV-SETUP.md`, the Quick reference, and `deployment.md`'s `paths:`
+    (**Merge**).
+- Nothing to migrate: `/dispatch` is still `/aplyca-adf:dispatch`.
+
 ### A dispatched session's title is the task's, without the branch
 
 ([0021](docs/decisions/0021-sibling-worktree-and-chip.md), amended)
