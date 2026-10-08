@@ -97,6 +97,7 @@ Build a facts table (`fact → evidence file:line`):
 - **History that must stay append-only** — migrations directories; **generated files** — lockfiles, generated types
 - **Requirements source** — ask: which tracker (ClickUp, Jira, Linear, GitHub Issues, none)? Its MCP endpoint, if any
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
+- **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), `.devcontainer/`; what the local stack runs, and how
 - **Ways of working** — ask: several agent sessions in parallel, each needing a running app? A requester who gets status updates?
 - **Boundaries & antipatterns** — frozen or legacy directories, deliberate deviations (ask; rarely has file evidence)
 - **Sensitive areas** — ask: which parts of the code need care whatever the size of the change (billing, auth, migrations, data exports…)? Past incidents and fragile modules are good evidence
@@ -142,11 +143,21 @@ Present the table before going further. Wrong facts here poison every file downs
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
   - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches, every task through `/dispatch` (ports and start commands only if each worktree runs a server)
+  - `docker` — when the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the
+    team wants a containerized local environment: `/dev-env` sets it up from verified facts, gives
+    each worktree its own stack with `parallel-agents`, and diagnoses or resets it; destructive docker
+    commands ask first. A `.devcontainer/` alone is worth mentioning, not recommending
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
-  `modules/clickup/install.sh <repo>`. Packaged: leave out a module's `.claude/skills/` when the
-  pinned release's plugin carries it (`<framework-root>/plugins/aplyca-adf/skills/dispatch/`,
-  decision 0020).
+  `modules/clickup/install.sh <repo>`. `docker` copies like any module, then
+  `modules/docker/install.sh <repo>` merges its permission rules into `.claude/settings.json`.
+  Packaged: leave out a module's `.claude/skills/` when the pinned release's plugins carry it —
+  `aplyca-adf` carries `/dispatch` (`<framework-root>/plugins/aplyca-adf/skills/dispatch/`, decision
+  0020), and a module with a plugin of its own carries its skills in
+  `<framework-root>/plugins/adf-<module>/` (decision 0023). **Turn on a module's own plugin**
+  beside `aplyca-adf`: `"adf-<module>@aplyca": true` in `enabledPlugins`, and
+  `Read(~/.claude/plugins/cache/aplyca/adf-<module>/**)` in `permissions.allow`. A committed install
+  copies the skills and leaves the module's plugin off.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -163,7 +174,8 @@ Present the table before going further. Wrong facts here poison every file downs
   of `AGENTS.md` when both exist). Leave the skeleton-source line for step 5. Packaged: add the names
   note from `docs/SETUP.md` § Packaged install.
 - **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
-  development by their full names (`/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`).
+  development by their full names (`/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`); a module
+  plugin's skill goes by that plugin's name (`/adf-docker:dev-env`).
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
@@ -183,7 +195,11 @@ Present the table before going further. Wrong facts here poison every file downs
   tracker.
 - **Modules** — `scripts/agent/worktree.conf`; the PR template's quality and constitution checklists;
   `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
-  `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`.
+  `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`. For
+  `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
+  `/adf-docker:dev-env set up`) in a new session, once the stamp names the module — it fills
+  `DEV-SETUP.md`, the Quick reference's start and stop lines, and `deployment.md`'s `paths:` from
+  what it verifies.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
 - Every unknown: `<!-- TODO(team): <question> -->`. Fill each doc's `owner · last_updated · scope`.
 
@@ -218,6 +234,8 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] Packaged: in a new session, `/aplyca-adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
+- [ ] Packaged, with a module that has its own plugin: `adf-<module>@aplyca` is turned on with its read rule, its skills aren't committed, and `/adf-<module>:<skill>` is offered in a new session
+- [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
