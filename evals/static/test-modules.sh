@@ -263,7 +263,8 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "docker rules: destructive commands ask, read-only ones run, secret-printing ones aren't allowed" "[ -z \"\$verdicts\" ]" || echo "    $verdicts"
+check "docker rules: destructive commands ask, read-only ones run, secret-printing ones aren't allowed" "[ -z \"\$verdicts\" ]"
+[ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 
 
 echo "=============================="
