@@ -517,12 +517,45 @@ check_modules() {
         if [ -f "$module/files/README.md" ]; then
             fail "module '$name': files/README.md would overwrite the adopting repo's README"
         fi
+        # A module's skills and agents ship in a plugin of its own (decision 0023); only
+        # parallel-agents' /dispatch still rides in aplyca-adf (decision 0020).
+        local problem
+        problem=$(python3 - "$module" "$name" <<'PY'
+import json, os, sys
+module, name = sys.argv[1], sys.argv[2]
+claude = os.path.join(module, "files", ".claude")
+carries = any(os.path.isdir(os.path.join(claude, k)) and os.listdir(os.path.join(claude, k)) for k in ("skills", "agents"))
+manifest = os.path.join(module, "plugin.json")
+if not os.path.exists(manifest):
+    if carries and name != "parallel-agents":
+        print("ships skills or agents but has no plugin.json")
+    sys.exit()
+try:
+    data = json.load(open(manifest, encoding="utf-8"))
+except Exception as e:
+    print(f"plugin.json is not valid JSON: {e}"); sys.exit()
+if set(data) - {"name", "description", "category", "keywords"}:
+    print(f"plugin.json has keys the build doesn't take: {sorted(set(data) - {'name', 'description', 'category', 'keywords'})} (the version comes from aplyca-adf)")
+if data.get("name") != f"adf-{name}":
+    print(f"plugin.json's name should be adf-{name}")
+if len(data.get("description", "")) < 40:
+    print("plugin.json needs a meaningful description")
+if not carries:
+    print("has a plugin.json but no skills or agents for it to carry")
+PY
+)
+        if [ -n "$problem" ]; then
+            fail "module '$name': $problem"
+        elif [ -f "$module/plugin.json" ]; then
+            pass "module '$name': its plugin.json names adf-$name and takes its version from aplyca-adf"
+        fi
     done
     local fragment problems
     for fragment in "$MODULES_DIR"/*/settings-fragment.json; do
         [ -f "$fragment" ] || continue
         name=$(basename "$(dirname "$fragment")")
-        # A module may pre-approve MCP tools only if they read: a write tool must always prompt.
+        # A module may pre-approve MCP tools and commands only if they read: a write must always
+        # prompt, and so must a command that prints secrets.
         problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" <<'PY'
 import json, re, sys
 fragment, mcp = sys.argv[1], sys.argv[2]
@@ -532,11 +565,18 @@ try:
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
+changes = re.compile(r"\b(down|rm|rmi|prune|kill|stop|restart|start|exec|run|up|build|pull|push|cp|create|inspect|login|delete|remove)\b")
 for rule in allow:
     if rule.startswith("mcp__"):
         tool = rule.split("__", 2)[-1]
         if tool in ("", "*") or write.search(tool):
             out.append(f"allows a tool that may write: {rule}")
+    elif rule.startswith("Bash("):
+        command = rule[5:-1]
+        if changes.search(command) or command.rstrip(" *").endswith(" config") or re.search(r"\bconfig\b(?! --(quiet|services)\b)", command):
+            out.append(f"allows a command that changes state or prints secrets: {rule}")
+        elif re.fullmatch(r"[\w-]+( \*)?", command):
+            out.append(f"allows a whole program: {rule}")
 try:
     servers = json.load(open(mcp)).get("mcpServers", {})
     for name, cfg in servers.items():
@@ -550,7 +590,7 @@ print("; ".join(out))
 PY
 )
         if [ -z "$problems" ]; then
-            pass "module '$name': pre-approves read-only MCP tools only; no credentials in .mcp.json"
+            pass "module '$name': pre-approves read-only MCP tools and commands only; no credentials in .mcp.json"
         else
             fail "module '$name': $problems"
         fi
@@ -652,12 +692,38 @@ check_practices() {
 }
 
 check_plugin() {
-    local plugin="$REPO_ROOT/plugins/aplyca-adf" skill
-    for skill in "$plugin"/skills/*/; do
+    local skill
+    for skill in "$REPO_ROOT"/plugins/*/skills/*/; do
         [ -d "$skill" ] && check_skill_frontmatter "$skill"
     done
+    local report
+    report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
+import os, re, sys
+plugins = sys.argv[1]
+owner = {}
+for plugin in sorted(os.listdir(plugins)):
+    for kind in ("skills", "agents"):
+        folder = os.path.join(plugins, plugin, kind)
+        for entry in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+            name = entry[:-3] if kind == "agents" else entry
+            if (kind, name) in owner:
+                print(f"{kind[:-1]} '{name}' is in both {owner[kind, name]} and {plugin}")
+            owner[kind, name] = plugin
+            if kind == "agents":
+                head = open(os.path.join(folder, entry), encoding="utf-8").read().split("\n---\n")[0]
+                if not re.search(rf"^name: {re.escape(name)}$", head, re.M):
+                    print(f"{plugin}/agents/{entry}: frontmatter 'name:' isn't {name}")
+                if not re.search(r"^description: .{40,}", head, re.M):
+                    print(f"{plugin}/agents/{entry}: no meaningful description")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "plugins: every skill and agent name is unique across plugins; flat agents have valid frontmatter"
+    else
+        fail "plugins: $report"
+    fi
     local script
-    for script in "$plugin"/skills/*/*.py; do
+    for script in "$REPO_ROOT"/plugins/*/skills/*/*.py; do
         [ -f "$script" ] || continue
         if python3 -c 'import sys; compile(open(sys.argv[1], encoding="utf-8").read(), sys.argv[1], "exec")' "$script" 2>/dev/null; then
             pass "plugin script '$(basename "$script")': compiles"
@@ -668,38 +734,95 @@ check_plugin() {
 }
 
 check_packaged_plugin() {
-    # The machinery in plugins/aplyca-adf is generated from skeleton/.claude (decision 0016). A
-    # skeleton change that wasn't rebuilt would ship the old machinery to every packaged project.
+    # The machinery in plugins/ is generated: aplyca-adf's from skeleton/.claude (decision 0016), each
+    # adf-<module> from its module (decision 0023), and their marketplace entries with them. A source
+    # change that wasn't rebuilt would ship the old machinery to every packaged project.
     local tmp report
     tmp="$(mktemp -d)"
-    cp -R "$REPO_ROOT/plugins/aplyca-adf" "$tmp/aplyca-adf"
-    if ! "$REPO_ROOT/scripts/build-aplyca-adf.sh" "$tmp/aplyca-adf" >/dev/null 2>&1; then
-        fail "plugins/aplyca-adf: scripts/build-aplyca-adf.sh failed"
-    elif diff -r "$tmp/aplyca-adf" "$REPO_ROOT/plugins/aplyca-adf" >/dev/null 2>&1; then
-        pass "plugins/aplyca-adf matches skeleton/.claude"
+    cp -R "$REPO_ROOT/plugins" "$tmp/plugins"
+    cp -R "$REPO_ROOT/.claude-plugin" "$tmp/.claude-plugin"
+    if ! "$REPO_ROOT/scripts/build-plugins.sh" "$tmp" >/dev/null 2>&1; then
+        fail "plugins: scripts/build-plugins.sh failed" "$("$REPO_ROOT/scripts/build-plugins.sh" "$tmp" 2>&1 | tail -1)"
+    elif diff -r "$tmp/plugins" "$REPO_ROOT/plugins" >/dev/null 2>&1 \
+        && diff -r "$tmp/.claude-plugin" "$REPO_ROOT/.claude-plugin" >/dev/null 2>&1; then
+        pass "plugins/ and the marketplace match skeleton/.claude and the modules"
     else
-        fail "plugins/aplyca-adf is out of date with skeleton/.claude — run scripts/build-aplyca-adf.sh"
+        fail "plugins/ or the marketplace is out of date with skeleton/.claude or a module — run scripts/build-plugins.sh"
     fi
     rm -rf "$tmp"
     report=$(python3 - "$REPO_ROOT" <<'PY'
 import json, os, re, sys
 root = sys.argv[1]
 market = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
+modules = sorted(m for m in os.listdir(os.path.join(root, "modules"))
+                 if os.path.exists(os.path.join(root, "modules", m, "plugin.json")))
+expected = ["aplyca-adf"] + [f"adf-{m}" for m in modules]
 names = [p["name"] for p in market["plugins"]]
-if names != ["aplyca-adf"]:
-    print(f"marketplace.json should list the one plugin, aplyca-adf — it lists {names}")
+if names != expected:
+    print(f"marketplace.json should list aplyca-adf and one plugin per module with a plugin.json, {expected} — it lists {names}")
+for entry in market["plugins"]:
+    if entry.get("source") != f"./plugins/{entry['name']}":
+        print(f"{entry['name']}: source should be ./plugins/{entry['name']}")
+    if "version" in entry:
+        print(f"{entry['name']}: the marketplace entry sets a version — plugin.json carries it")
+folders = sorted(d for d in os.listdir(os.path.join(root, "plugins")) if os.path.isdir(os.path.join(root, "plugins", d)))
+if folders != sorted(expected):
+    print(f"plugins/ holds {folders}, the marketplace lists {expected}")
 version = json.load(open(os.path.join(root, "plugins", "aplyca-adf", ".claude-plugin", "plugin.json"))).get("version", "")
 if not re.fullmatch(r"\d+\.\d+\.\d+", version):
     print(f"aplyca-adf's version '{version}' isn't MAJOR.MINOR.PATCH (decision 0017)")
 releases = re.findall(r"^## v(\d+\.\d+\.\d+) ", open(os.path.join(root, "CHANGELOG.md"), encoding="utf-8").read(), re.M)
 if releases and releases[0] != version:
     print(f"aplyca-adf is {version}, but the newest release in CHANGELOG.md is v{releases[0]}")
+for name in expected:
+    manifest = os.path.join(root, "plugins", name, ".claude-plugin", "plugin.json")
+    data = json.load(open(manifest)) if os.path.exists(manifest) else {}
+    if data.get("name") != name:
+        print(f"plugins/{name}/.claude-plugin/plugin.json: name should be {name}")
+    if data.get("version") != version:
+        print(f"{name} is {data.get('version')}, aplyca-adf is {version} — every plugin carries the release (decision 0023)")
 PY
 )
     if [ -z "$report" ]; then
-        pass "marketplace lists aplyca-adf; its version is semver and matches the newest release"
+        pass "marketplace lists aplyca-adf and each module's plugin; every plugin's version is the newest release"
     else
-        fail "plugin version: $report"
+        fail "plugin versions and marketplace: $report"
+    fi
+}
+
+check_module_plugins() {
+    # A module's own plugin carries its skills (decision 0023); aplyca-adf carries only the
+    # grandfathered /dispatch (decision 0020), so a project lists what it chose and nothing else.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import os, re, sys
+root = sys.argv[1]
+listed = open(os.path.join(root, "plugins", "aplyca-adf", ".generated"), encoding="utf-8").read().split()
+for module in sorted(os.listdir(os.path.join(root, "modules"))):
+    if not os.path.exists(os.path.join(root, "modules", module, "plugin.json")):
+        continue
+    plugin = os.path.join(root, "plugins", f"adf-{module}")
+    if not os.path.exists(os.path.join(plugin, ".generated")):
+        print(f"plugins/adf-{module} isn't built — run scripts/build-plugins.sh")
+        continue
+    folder = os.path.join(root, "modules", module, "files", ".claude", "skills")
+    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+        if f"skills/{name}" in listed:
+            print(f"aplyca-adf carries {name}, which adf-{module} owns")
+        text = open(os.path.join(plugin, "skills", name, "SKILL.md"), encoding="utf-8").read()
+        if f"from the `{module}` module's own plugin" not in text:
+            print(f"adf-{module}:{name} lacks the module plugin's Step 0")
+        for bare in re.findall(rf"/adf-{module}:([\w-]+)", text):
+            if not os.path.isdir(os.path.join(plugin, "skills", bare)):
+                print(f"adf-{module}:{name} names /adf-{module}:{bare}, which the plugin doesn't carry")
+if "skills/dispatch" not in listed:
+    print("aplyca-adf no longer carries /dispatch — moving it is a major release (decision 0023)")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "module plugins: each carries its module's skills with its own Step 0; aplyca-adf carries only /dispatch"
+    else
+        fail "module plugins: $report"
     fi
 }
 
@@ -772,14 +895,18 @@ check_directory_rules() {
     links=$(git -C "$REPO_ROOT" ls-files -s | awk '$1 == "120000" { print $4 }' | tr '\n' ' ')
     # The Claude Directory refuses a command whose file the shell computes, and inline programs: the
     # plugin's hooks name every file they load or run literally, and keep programs in files.
-    bad=$(python3 - "$REPO_ROOT/plugins/aplyca-adf/hooks" <<'PY'
+    bad=$(python3 - "$REPO_ROOT/plugins" <<'PY'
 import glob, json, os, re, sys
-hooks_dir = sys.argv[1]
-for group in json.load(open(os.path.join(hooks_dir, "hooks.json")))["hooks"].values():
-    for entry in group:
-        for hook in entry["hooks"]:
-            if not re.fullmatch(r'"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/[a-z-]+\.sh"', hook["command"]):
-                print(f"hooks.json: {hook['command']}")
+hooks_dirs = sorted(glob.glob(os.path.join(sys.argv[1], "*", "hooks")))
+for hooks_dir in hooks_dirs:
+    wiring = os.path.join(hooks_dir, "hooks.json")
+    if not os.path.exists(wiring):
+        continue
+    for group in json.load(open(wiring))["hooks"].values():
+        for entry in group:
+            for hook in entry["hooks"]:
+                if not re.fullmatch(r'"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/[a-z-]+\.sh"', hook["command"]):
+                    print(f"{os.path.relpath(wiring, sys.argv[1])}: {hook['command']}")
 command = r'(?:^|[|;&({`]|\$\(|\bthen\b|\bdo\b|\belse\b)\s*'  # where a program name starts a command
 rules = [
     (r'^\s*(\.|source)\s+(?!"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/_lib\.sh"$)', "sources a computed path"),
@@ -799,16 +926,16 @@ rules = [
     (r'\$\{TMPDIR:-/tmp\}', "builds a path from a defaulted variable"),
     (r'>\.', "has a greater-than sign before a period, read as a redirect to the folder"),
 ]
-for path in sorted(glob.glob(os.path.join(hooks_dir, "*.sh"))):
+for path in sorted(p for d in hooks_dirs for p in glob.glob(os.path.join(d, "*.sh"))):
     for number, line in enumerate(open(path, encoding="utf-8"), 1):
         if line.lstrip().startswith("#"):
             continue
         for pattern, what in rules:
             if re.search(pattern, line):
-                print(f"{os.path.basename(path)}:{number} {what}")
+                print(f"{os.path.relpath(path, sys.argv[1])}:{number} {what}")
 PY
 )
-    bad+=$(git -C "$REPO_ROOT" grep -n -F '${CLAUDE_PLUGIN_ROOT}/..' -- plugins/aplyca-adf | sed 's/$/ reaches outside the plugin/')
+    bad+=$(git -C "$REPO_ROOT" grep -n -F '${CLAUDE_PLUGIN_ROOT}/..' -- plugins | sed 's/$/ reaches outside the plugin/')
     if [ -z "$links" ] && [ -z "$bad" ]; then
         pass "the Claude Directory's checks: no symlinks; the plugin's hooks name every file they load or run literally, with no inline programs; nothing reaches outside the plugin"
     else
@@ -838,7 +965,7 @@ done
 check_agent_descriptions_not_misleading
 
 echo ""
-for workflow in "$WORKFLOWS_DIR"/*.js "$REPO_ROOT"/plugins/aplyca-adf/workflows/*.js; do
+for workflow in "$WORKFLOWS_DIR"/*.js "$REPO_ROOT"/plugins/*/workflows/*.js; do
     [ -f "$workflow" ] && check_workflow "$workflow"
 done
 
@@ -860,6 +987,7 @@ check_links
 check_modules
 check_marketplace_snippets
 check_packaged_plugin
+check_module_plugins
 check_install_scope
 check_install_prompt
 check_lanes

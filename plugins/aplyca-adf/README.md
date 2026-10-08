@@ -23,7 +23,7 @@ where the stamp on `CLAUDE.md`'s first line says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
 `workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` from its
-module — by `scripts/build-aplyca-adf.sh`; never edit it here.
+module — by `scripts/build-plugins.sh`; never edit it here.
 
 ## Install
 

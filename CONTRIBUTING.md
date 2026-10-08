@@ -42,7 +42,7 @@ it merges, tag the merge commit `vX.Y.Z` and push the tag: packaged projects pin
 they can't take the release.
 
 **The machinery in `plugins/aplyca-adf/` is generated** from `skeleton/.claude/` by
-`scripts/build-aplyca-adf.sh` — every path its `.generated` file lists. Never edit those; after any change under `skeleton/.claude/`, run the script and commit its output with
+`scripts/build-plugins.sh` — every path its `.generated` file lists. Never edit those; after any change under `skeleton/.claude/`, run the script and commit its output with
 the change. The static checks fail when the two drift apart.
 
 ## Checks
