@@ -13,12 +13,12 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 ## End state (after the follow-up)
 
 - [ ] (auto) `main` is untouched; the upgrade and the switch are on their own branch
-- [ ] (auto) `CLAUDE.md`'s stamp names the newest release tag and `install: packaged`
+- [ ] (auto) `AGENTS.md`'s stamp names the newest release tag and `install: packaged`; `CLAUDE.md` is gone (decision 0024)
 - [ ] (auto) The framework's skills, agents, workflows, and hook scripts are gone; `.claude/hooks/`
       holds only `config.sh`
 - [ ] (auto) `.claude/settings.json` has no `hooks` block, pins the marketplace to the newest release,
       and turns on `adf@aplyca`
-- [ ] (auto) `CLAUDE.md` has the names note, and `DEV-SETUP.md` gives the commands by their full names
+- [ ] (auto) `.claude/rules/claude-code.md` has the names note, and `DEV-SETUP.md` gives the commands by their full names
 - [ ] (auto) A new PDR records the switch, and PDR-0001 is marked amended
 - [ ] (auto) Everything is committed
 - [ ] The pull request body is shown, naming the switch and its PDR; nothing is pushed

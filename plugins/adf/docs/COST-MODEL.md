@@ -244,7 +244,7 @@ Anthropic's prompt caching can reduce input cost by ~90% on cache hits (with a 5
 
 | Stable (cache prefix — put first) | Variable (cache suffix — put last) |
 |---|---|
-| AGENTS.md, CLAUDE.md | Current conversation messages |
+| AGENTS.md, rules without `paths:` (`claude-code.md`) | Current conversation messages |
 | Loaded engineering rules (`.claude/rules/`) | Per-task spec / test / doc references |
 | Loaded skill (`.claude/skills/<name>/SKILL.md`) | Tool call results from this turn |
 | Long-lived memory facts | Active file edits |
@@ -252,9 +252,9 @@ Anthropic's prompt caching can reduce input cost by ~90% on cache hits (with a 5
 
 ### Practical rules to keep cache hit rates high
 
-- **Don't edit AGENTS.md / CLAUDE.md / engineering rules continuously.** Each edit busts the cache for every subsequent request. Batch edits into a single PR.
-- **Avoid putting per-feature volatile content in CLAUDE.md.** That belongs in the feature's spec or in memory. CLAUDE.md should describe the project's stable identity.
-- **Memory entries are great for project-specific gotchas** that change occasionally — they evolve without busting the CLAUDE.md cache.
+- **Don't edit AGENTS.md / engineering rules continuously.** Each edit busts the cache for every subsequent request. Batch edits into a single PR.
+- **Avoid putting per-feature volatile content in AGENTS.md.** That belongs in the feature's spec or in memory. AGENTS.md should describe the project's stable identity.
+- **Memory entries are great for project-specific gotchas** that change occasionally — they evolve without busting the cache of the always-loaded instructions.
 - **Subagents have their own cache.** A subagent invocation doesn't bust the parent's cache. Use them for anything that loads a lot of one-off context.
 - **Long conversations get compacted automatically.** Cleared tool outputs cost nothing on subsequent turns. You don't need to manage compaction by hand, but be aware that it can change cache prefix length.
 
@@ -309,10 +309,10 @@ The framework's structural choices already help cost. To get the most savings:
 1. **Match the lane to the risk.** The full lane's plan-then-execute prevents expensive wrong paths where there's something to decide; for precise requests, the fast lane gets the same proof for a fraction of the calls.
 2. **Use subagents for context-heavy work.** When you need to load a lot of one-off context (e.g., reading 20 files to answer one question), invoke a subagent with the right tools — it returns a summary, the parent's context stays clean, and your cache prefix stays stable.
 3. **Keep sessions short.** One task per session, `/clear` between tasks, short tool output. Auto-compaction helps when a window fills, but a session that never grows that large is cheaper on every call.
-4. **Use memory for repeated context.** Per-project gotchas, terminology, recurring patterns — these belong in memory (where they're loaded just-in-time) not in CLAUDE.md (where they bloat every request).
+4. **Use memory for repeated context.** Per-project gotchas, terminology, recurring patterns — these belong in memory (where they're loaded just-in-time) not in AGENTS.md (where they bloat every request).
 5. **Use the smallest model that works for the job.** Default to Sonnet, not Opus — chosen per session. Haiku belongs to subagents with small contexts.
 6. **Run static evals in CI, not dynamic evals.** Static checks cost nothing. Dynamic evals cost real tokens — run them nightly or pre-release, not on every PR (see `evals/README.md`, if this project keeps evals).
-7. **Cache aggressively.** Keep AGENTS.md / CLAUDE.md / rules stable. Batch edits. Don't put per-feature content in shared files.
+7. **Cache aggressively.** Keep AGENTS.md / rules stable. Batch edits. Don't put per-feature content in shared files.
 
 ## Quick reference: when costs spike
 

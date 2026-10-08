@@ -22,7 +22,7 @@ every pull request (`.github/workflows/evals.yml`). Four suites, all run by `../
 | Workflows: `meta` is a pure literal with a matching name and a description, phase titles match, no `Date.now()` / `Math.random()`, the script parses | Workflows fail at load or break resume otherwise |
 | `settings.json`: valid JSON, alias model, every hook entry nests a `hooks` array, no `$CLAUDE_FILE_PATH`, referenced scripts exist and are executable, outward actions are in `permissions.ask` | The flat hook schema silently never ran; outward actions must need a human |
 | Hook scripts pass `bash -n` | Syntax errors would turn a guardrail into a notice |
-| `CLAUDE.md` imports `AGENTS.md` and carries the stamp line | Without the import, Claude Code never reads `AGENTS.md` when a `CLAUDE.md` exists |
+| The skeleton has no `CLAUDE.md`; `AGENTS.md`'s first line is the stamp; `.claude/rules/claude-code.md` has no `paths:` | Claude Code reads a `CLAUDE.md` instead of `AGENTS.md`; `/upgrade` and the plugin's hooks read the stamp; the Claude layer must load in every session (decision 0024) |
 | `AGENTS.md` covers triage with the lane, the three lanes, the approval gate, the change surface, docs first, red before green, change requests, sensitive areas, working economically, boundaries — in ≤200 lines | The always-loaded contract must be complete and lean |
 | The git-workflow rule lists the commit prefixes and the draft / outward-action rules | Workflow integrity |
 | Workflow-integrity phrases in `/write-spec`, `/write-plan`, `/implement`, `/write-docs`, `/open-pr` | Removing them silently removes a gate |

@@ -73,10 +73,12 @@ def text_files(top, skip=()):
 
 
 def skeleton_files():
-    """The skeleton's own files that name a reference doc — not its .claude/, which the plugin carries."""
+    """The skeleton's own files that name a reference doc — not the machinery the plugin carries
+    (.claude/skills, agents, workflows, hooks). The rules stay in the project, so they're included."""
     skeleton = os.path.join(FRAMEWORK, "skeleton")
     reference = {os.path.join("docs", name + ".md") for name in DOCS}
-    for rel in text_files(skeleton, skip={".claude"}):
+    carried = {os.path.join(".claude", d) for d in ("skills", "agents", "workflows", "hooks")}
+    for rel in text_files(skeleton, skip=carried):
         if rel in reference:
             continue
         with open(os.path.join(skeleton, rel), encoding="utf-8") as f:

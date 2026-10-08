@@ -12,12 +12,12 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 ## End state (after the follow-up)
 
 - [ ] `main` has exactly one commit, the README; the adoption is on its own branch
-- [ ] (auto) `CLAUDE.md`'s stamp names the newest release tag and `install: packaged`
+- [ ] (auto) `AGENTS.md`'s stamp names the newest release tag and `install: packaged`; there's no `CLAUDE.md`
 - [ ] (auto) No framework skills, agents, or workflows are committed; `.claude/hooks/` holds only
       `config.sh`
 - [ ] (auto) `.claude/settings.json` has no `hooks` block, pins the `aplyca` marketplace to the newest
       release (`"ref"`), and turns on `adf@aplyca`
-- [ ] (auto) `CLAUDE.md` has the names note ("This project uses the packaged install")
+- [ ] (auto) `.claude/rules/claude-code.md` has the names note ("This project uses the packaged install")
 - [ ] (auto) `docs/getting-started/DEV-SETUP.md` gives the key commands by their full names
 - [ ] (auto) PDR-0001 records the packaged install and why
 - [ ] (auto) Everything is committed

@@ -17,10 +17,11 @@
 # that way: `/triage` becomes `/adf:triage`, `@code-reviewer` becomes
 # `@adf:code-reviewer`, and `/dev-env` becomes `/adf-dev:dev-env`. Names are unique across every
 # plugin. The hooks read the project's .claude/hooks/config.sh. The copies act only in a packaged
-# project: each skill and agent opens with a step that hands over to the committed copy unless
-# CLAUDE.md says "This project uses the packaged install" (visible text — Claude Code strips the
-# HTML-comment stamp when it loads the file), and the hooks stand down unless the stamp on CLAUDE.md's
-# first line says `install: packaged` (_lib.sh, which reads the file itself).
+# project: each skill and agent opens with a step that hands over to the committed copy unless the
+# project's instructions say "This project uses the packaged install" (visible text in
+# .claude/rules/claude-code.md — not the HTML-comment stamp), and the hooks stand down unless the stamp
+# on AGENTS.md's first line (CLAUDE.md's before decision 0024) says `install: packaged` (_lib.sh,
+# which reads the file itself).
 #
 # Each plugin's manifest and README, adf's installer skills (adopt, upgrade, cost-report), and
 # the marketplace are written by hand and left alone, apart from the version this script keeps equal:
@@ -144,10 +145,10 @@ def copy(plugin, source, target, executable=False, kind=None, name=None):
 
 HANDOVER = {
     "skill": "> **Step 0 — which copy.** This is the packaged copy{source}. "
-             "Unless this project's `CLAUDE.md` says \"This project uses the packaged install\", stop here: open "
+             "Unless this project's instructions say \"This project uses the packaged install\", stop here: open "
              "`.claude/skills/{name}/SKILL.md` and follow that file instead — it's the version this project "
              "upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.\n\n",
-    "agent": "> **Step 0 — which copy.** This is the packaged copy{source}. Unless this project's `CLAUDE.md` says "
+    "agent": "> **Step 0 — which copy.** This is the packaged copy{source}. Unless this project's instructions say "
              "\"This project uses the packaged install\", open `.claude/agents/{name}/agent.md` and follow that file "
              "instead of this one.\n\n",
 }

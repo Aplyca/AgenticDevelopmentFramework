@@ -105,7 +105,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 
 | Rule | Enforced by |
 |---|---|
-| Claude Code loads `AGENTS.md` — it reads only `CLAUDE.md` when both exist | `@AGENTS.md` on the first line of `CLAUDE.md` |
+| Claude Code loads `AGENTS.md` — a `CLAUDE.md` or `CLAUDE.local.md` would replace it | The session-context hook warns when one is in the project or above it |
 | No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
@@ -158,7 +158,7 @@ release, and the originals are linked below:
 3. `specs/README.md` and `docs/SPEC-MODEL.md` — when a spec folder is needed, the flow, change
    requests; a spec's required, conditional, and optional sections. The most important concept here.
    ([original](../skeleton/docs/SPEC-MODEL.md); 20 min)
-4. `CONTRIBUTING.md` and your tool's layer — `CLAUDE.md`, `GEMINI.md`, or `.cursor/rules/`. (10 min)
+4. `CONTRIBUTING.md` and your tool's layer — `.claude/rules/claude-code.md`, `GEMINI.md`, or `.cursor/rules/`. (10 min)
 5. The [`triage`](../skeleton/.claude/skills/triage/SKILL.md),
    [`write-plan`](../skeleton/.claude/skills/write-plan/SKILL.md), and
    [`implement`](../skeleton/.claude/skills/implement/SKILL.md) skills — above all their
@@ -170,7 +170,7 @@ release, and the originals are linked below:
 
 | Tool | Reads | Skills and agents | Rules | Hooks, permissions |
 |---|---|---|---|---|
-| Claude Code | `CLAUDE.md`, which imports `AGENTS.md` | `/skill`, `@agent`, `/deep-…` workflows | `.claude/rules/`, by path | Yes |
+| Claude Code | `AGENTS.md`, and `.claude/rules/claude-code.md` | `/skill`, `@agent`, `/deep-…` workflows | `.claude/rules/`, by path | Yes |
 | Cursor | `AGENTS.md` | Read the step's `SKILL.md` | `.cursor/rules/` | No |
 | Antigravity / Gemini | `GEMINI.md`, which imports `AGENTS.md` | `.agents/skills/` (links to `.claude/skills/`) | Point it at `.claude/rules/` | No |
 | Copilot, Codex, others | `AGENTS.md` | Read the step's `SKILL.md` | — | No |
@@ -178,7 +178,7 @@ release, and the originals are linked below:
 **Exercise — watch the guardrails fire**, in a Claude Code session in the practice repository:
 
 1. Read the session-context lines at the top (checkout, branch, spec folder). Run `/memory`:
-   `CLAUDE.md` is listed, and `AGENTS.md` comes in through the import.
+   `AGENTS.md` and `.claude/rules/claude-code.md` are listed.
 2. On `main`, ask the agent to commit something — the git guard blocks it. Ask it to edit the
    lockfile by hand — blocked too.
 3. On a work branch, ask for a server file that reads `process.env.MAILCHIMP_API_KEY`. The env hook
@@ -341,7 +341,7 @@ the worker re-reads everything where it can verify it.
 - **Context drift** — instructions go stale the moment a change lands without them, and agents follow
   them literally. Run `/context-audit` monthly, after upgrades, and before onboarding someone;
   `/spec-drift` per area monthly and `/deep-drift-sweep` quarterly. All are read-only. Keep
-  `AGENTS.md` and `CLAUDE.md` short and stable: every edit busts the prompt cache.
+  `AGENTS.md` and `.claude/rules/claude-code.md` short and stable: every edit busts the prompt cache.
 - **Evals** — your project needs them only for custom skills, rules, or hooks you write
   ([`evals/README.md`](../skeleton/evals/README.md)); the framework tests its own.
 

@@ -1,6 +1,6 @@
 # Memory strategy
 
-How to decide where a piece of project knowledge belongs — `AGENTS.md`, `CLAUDE.md`, engineering rules, persistent memory, spec folders, decision records, reference pages, or the tracker. Each layer has a different cadence, scope, and load behavior; using the wrong one wastes tokens, bloats context, or causes facts to go stale.
+How to decide where a piece of project knowledge belongs — `AGENTS.md`, tool-specific layers, engineering rules, persistent memory, spec folders, decision records, reference pages, or the tracker. Each layer has a different cadence, scope, and load behavior; using the wrong one wastes tokens, bloats context, or causes facts to go stale.
 
 ## The persistence layers
 
@@ -9,8 +9,8 @@ This framework has **nine** places where project knowledge can live. Each has a 
 | Layer | Where | Loaded when | Change cadence | Owned by |
 |---|---|---|---|---|
 | **Non-negotiables** | `docs/CONSTITUTION.md` | Read before every spec, plan, and review; overrides everything below | Rare (amendments) | Tech lead + approvers |
-| **Project identity & rules** | `AGENTS.md` (+ nested `AGENTS.md` per module) | Every session, every AI tool (Claude Code via the `@AGENTS.md` import); nested files when working in their folder | Slow (months) | Tech lead |
-| **Tool-specific config** | `CLAUDE.md`, `GEMINI.md`, `.claude/settings.json`, hooks | Every session, by the matching tool | Slow (months) | Tech lead |
+| **Project identity & rules** | `AGENTS.md` (+ nested `AGENTS.md` per module) | Every session, every AI tool (Claude Code natively, when no `CLAUDE.md` or `CLAUDE.local.md` is present); nested files when working in their folder | Slow (months) | Tech lead |
+| **Tool-specific config** | `.claude/rules/claude-code.md`, `GEMINI.md`, `.claude/settings.json`, hooks | Every session, by the matching tool | Slow (months) | Tech lead |
 | **Engineering rules** | `.claude/rules/*.md` | When Claude reads a file matching the rule's `paths:` | Slow (months) | Tech lead |
 | **Per-feature knowledge** | `specs/NNN-<slug>/` (spec, plan, tasks), plus the user-facing docs they produce | On demand when working on that feature | Per feature and per change request | The team |
 | **Decisions** | `docs/architecture/decisions/` (ADRs) and `docs/process/` (PDRs) | On demand when revisiting a decision | Per decision (rare) | Architect / tech lead / team |
@@ -30,7 +30,7 @@ Is this knowledge about... ?
 │   └── docs/CONSTITUTION.md (amended via a PDR, never casually)
 │
 ├── ...the project's identity, stack, or workflow conventions?
-│   └── AGENTS.md (universal; nested AGENTS.md for one module) or CLAUDE.md / GEMINI.md (tool-specific)
+│   └── AGENTS.md (universal; nested AGENTS.md for one module) or .claude/rules/claude-code.md / GEMINI.md (tool-specific)
 │
 ├── ...how to write/review code in a specific path?
 │   └── .claude/rules/<area>.md (path-scoped)
@@ -148,7 +148,7 @@ Teams that work on many projects (consultancies, agencies) have a unique conside
 
 Recommended split:
 
-- **Per-client repo `CLAUDE.md`** — that client's stack, conventions, critical rules. Goes in their repo.
+- **Per-client repo `AGENTS.md`** — that client's stack, conventions, critical rules. Goes in their repo.
 - **Per-client memory entries** (project-type) — gotchas specific to that client's setup. Stored in your local memory, scoped to their repo's project slug.
 - **Cross-client memory entries** (reference or project) — recurring patterns (e.g., "Contentful gotchas that affect every Contentful project we build"). Stored at user-level memory, available across all projects.
 
@@ -162,9 +162,9 @@ Example:
 
 Memory entries are loaded just-in-time when relevant — so they don't bloat every request. This is good for cache efficiency.
 
-But: **AGENTS.md and CLAUDE.md are loaded every session and form the cache prefix.** If you put recurring-but-volatile knowledge there instead of memory, every edit busts the cache (see [`COST-MODEL.md`](COST-MODEL.md)).
+But: **AGENTS.md and the rules without `paths:` are loaded every session and form the cache prefix.** If you put recurring-but-volatile knowledge there instead of memory, every edit busts the cache (see [`COST-MODEL.md`](COST-MODEL.md)).
 
-Rule of thumb: **if you'd edit a fact more than once a quarter, it doesn't belong in AGENTS.md / CLAUDE.md / rules. It belongs in memory or a spec.**
+Rule of thumb: **if you'd edit a fact more than once a quarter, it doesn't belong in AGENTS.md / rules. It belongs in memory or a spec.**
 
 ## When the AI asks "should I save this to memory?"
 
@@ -182,7 +182,7 @@ When in doubt: don't save. A small, sharp memory beats a bloated one the AI can'
 ## See also
 
 - [`AGENTS.md`](../AGENTS.md) — project identity layer
-- [`CLAUDE.md`](../CLAUDE.md) — Claude Code-specific tool config
+- [`.claude/rules/claude-code.md`](../.claude/rules/claude-code.md) — Claude Code-specific tool config
 - [`docs/SPEC-MODEL.md`](SPEC-MODEL.md) — per-feature knowledge layer
 - [`docs/architecture/decisions/`](architecture/decisions/) — ADR layer
 - [`docs/COST-MODEL.md`](COST-MODEL.md) — cache implications of where knowledge lives

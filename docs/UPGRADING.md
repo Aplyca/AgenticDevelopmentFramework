@@ -28,7 +28,7 @@ removed skill, setting, or plugin), **MINOR** for additive or opt-in capabilitie
 that change no workflow. Each release is tagged `vX.Y.Z`. Releases before v1.0.0 are referenced by
 **commit SHA + date**.
 
-To make future upgrades tractable, record the skeleton baseline — and the optional modules you installed — in the first line of your project's `CLAUDE.md`:
+To make future upgrades tractable, record the skeleton baseline — and the optional modules you installed — in the first line of your project's `AGENTS.md` (of `CLAUDE.md`, before v2.0.0):
 
 ```markdown
 <!-- Skeleton source: v1.0.0 · 1a2b3c4 (2026-10-02) · modules: github, parallel-agents -->
@@ -77,8 +77,8 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | Path | Why it needs merging |
 |---|---|
 | `AGENTS.md` | Project identity (stack, conventions, terminology) — your team filled this in |
-| `CLAUDE.md` | Project identity + tool-specific config; may include team-specific notes |
-| `GEMINI.md` | Same as CLAUDE.md, for Antigravity |
+| `.claude/rules/claude-code.md` | The Claude Code layer; may include team-specific notes |
+| `GEMINI.md` | The Antigravity layer; may include team-specific notes |
 | `.claude/settings.json` | Hooks, permissions, env vars — team-customized |
 | `.claude/hooks/config.sh` | Protected branches, append-only and generated paths, sensitive paths (`CAREFUL_GLOBS`), env template |
 | `CONTRIBUTING.md` | Your branching model, status vocabulary, what's enforced |
@@ -111,7 +111,7 @@ Concrete steps. Do this on a branch in the target project.
 
 ### 1. Identify the baseline
 
-Read the skeleton-source line at the top of your project's `CLAUDE.md`. If absent, infer it: read the framework's `git log --oneline` and pick the latest SHA whose features you can identify in your project. Record this as `OLD_SHA`.
+Read the skeleton-source stamp on the first line of your project's `AGENTS.md` (of `CLAUDE.md`, before v2.0.0). If absent, infer it: read the framework's `git log --oneline` and pick the latest SHA whose features you can identify in your project. Record this as `OLD_SHA`.
 
 The target is the newest release, `vX.Y.Z` (`git -C /path/to/AgenticDevelopmentFramework tag --list 'v*' --sort=-v:refname | head -1`). The commit its tag points to is `NEW_SHA`.
 
@@ -166,13 +166,13 @@ Resolve conflicts manually. The principle: keep your customizations (project ide
 
 - **Configuration is valid:** `python3 -m json.tool .claude/settings.json`, and every hook entry nests its command in a `hooks` array.
 - **Hooks fire:** pipe a sample event into each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh; echo $?` prints `2`.
-- **Both instruction files load:** start a new Claude Code session and check `/memory` — `CLAUDE.md`, with `AGENTS.md` through the import.
+- **Both instruction files load:** start a new Claude Code session and check `/memory` — `AGENTS.md` and `.claude/rules/claude-code.md`.
 - **Your own evals,** if the project keeps any (`evals/`).
 - **A smoke test** of a skill that changed — invoke it and confirm it references the right project paths.
 
 ### 6. Update the baseline
 
-Edit the top of `CLAUDE.md`:
+Edit the first line of `AGENTS.md`:
 
 ```markdown
 <!-- Skeleton source: <vX.Y.Z> · <NEW_SHA> (<today's date>) · modules: <list or none> -->
@@ -248,6 +248,23 @@ does it and reports a user-scope copy to remove), then run `/upgrade` in a new s
 the release's parts newest first and offers the modules you don't have. If the project uses the
 dispatcher hub, run it from a worktree: from this release on, the hub's main checkout takes no edits.
 
+### "Our project has a `CLAUDE.md`" — moving to v2.0.0
+
+From v2.0.0 a project has no `CLAUDE.md` ([decision 0024](decisions/0024-agents-md-only.md)). Claude Code reads `AGENTS.md`
+natively, and a `CLAUDE.md` makes it read that file instead. `/upgrade` moves it in the same pull
+request:
+
+- **The stamp** goes to `AGENTS.md`'s first line.
+- **The Claude Code layer** goes to `.claude/rules/claude-code.md`, with your customizations and the
+  packaged names note.
+- **Anything else your team added:** project facts go to `AGENTS.md`, Claude-specific instructions to
+  the rule.
+- **`CLAUDE.md` is deleted.**
+
+Every machine and CI job then needs Claude Code v2.1.281 or later. A developer with a `CLAUDE.md` above
+the repository, or a `CLAUDE.local.md` in it, moves or removes it — or sets **Project instructions**
+to `claude-md-and-agents-md` in `/config`. The session-context hook says when one is in the way.
+
 ### "Our settings still turn on `aplyca-adf`" — moving to v2.0.0
 
 From v2.0.0 the framework's plugin is `adf` ([decision 0023](decisions/0023-plugins-by-concern.md)):
@@ -259,7 +276,7 @@ names it:
   Claude Code rewrite that key itself once its copy of the marketplace is at v2.0.0, so the change may
   already be there, uncommitted.
 - The read rule: `Read(~/.claude/plugins/cache/aplyca/adf/**)`.
-- The names people type, in `CLAUDE.md`'s names note and `DEV-SETUP.md`: `/adf:triage`,
+- The names people type, in the names note and `DEV-SETUP.md`: `/adf:triage`,
   `@adf:code-reviewer`.
 
 Once its pull request merges, each developer runs `/plugin install adf@aplyca` once in a session — a
@@ -291,7 +308,7 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
   name the release too: `python3 <framework>/scripts/link-reference-docs.py . --packaged vX.Y.Z`,
   from the new release, moves them. Every project moves from release to release, committed ones
   too: their pin keeps the plugin's copies at the same release as their committed files.
-- **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
+- **Merge the committed layer** as in the procedure above — `AGENTS.md`, `.claude/rules/claude-code.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
 - **Turn on the plugin that carries an installed module's skills** when it isn't `adf`
@@ -357,7 +374,7 @@ Agents are safe-to-overwrite — accept the new model. The framework's per-agent
 
 ### "A skill was renamed or removed"
 
-Treat as a deliberate framework decision. Read the commit message. If a skill was removed, your project's references to it (in `CLAUDE.md`, in team docs) need updating. If it was renamed, update references.
+Treat as a deliberate framework decision. Read the commit message. If a skill was removed, your project's references to it (in `.claude/rules/claude-code.md`, in team docs) need updating. If it was renamed, update references.
 
 ## What this guide doesn't cover
 
@@ -370,5 +387,5 @@ Treat as a deliberate framework decision. Read the commit message. If a skill wa
 
 - [`SETUP.md`](./SETUP.md) — initial skeleton adoption (the upgrade is the long-tail follow-up to this)
 - [`../skeleton/docs/COST-MODEL.md`](../skeleton/docs/COST-MODEL.md) — model recommendations that affect agent frontmatter
-- [`../skeleton/docs/MEMORY-STRATEGY.md`](../skeleton/docs/MEMORY-STRATEGY.md) — memory survives upgrades; rules and CLAUDE.md may not
+- [`../skeleton/docs/MEMORY-STRATEGY.md`](../skeleton/docs/MEMORY-STRATEGY.md) — memory survives upgrades; rules and `AGENTS.md` may not
 - [`../skeleton/evals/README.md`](../skeleton/evals/README.md) — regression-checking pattern for after an upgrade

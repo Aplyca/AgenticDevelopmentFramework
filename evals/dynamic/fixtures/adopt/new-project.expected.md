@@ -15,7 +15,7 @@ The session should satisfy ALL of these invariants.
 
 - [ ] `main` has exactly one commit — the first commit, holding the README; the adoption is on its
       own branch (`docs/agentic-adoption` or similar) with at least one commit
-- [ ] `CLAUDE.md` starts with the `Skeleton source:` stamp, listing the `github` module
+- [ ] `AGENTS.md` starts with the `Skeleton source:` stamp, listing the `github` module, and there's no `CLAUDE.md`
 - [ ] `AGENTS.md` marks the stack and the other planned answers `<!-- planned: … -->`; no
       `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`
 - [ ] The quick-reference commands are `TODO(team)` or marked planned — none presented as verified

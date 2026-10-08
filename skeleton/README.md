@@ -55,7 +55,7 @@ agents working under the same rules as people:
    careful (the same in a risk area, plus its checklist and a confirmation), or full (something to
    decide — the steps below).
    In Claude Code it also names the model: Sonnet for work with a clear spec and a way to check it,
-   Opus for the full lane's spec and plan (`CLAUDE.md` § Lanes).
+   Opus for the full lane's spec and plan (`.claude/rules/claude-code.md` § Lanes).
 2. **Spec folder** (full lane) — `specs/NNN-<slug>/`: requirements from every role (`spec.md`), the
    plan and its change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
 3. **Approval gate** — scope, change surface, and assumptions are signed off before implementation.
@@ -69,7 +69,7 @@ How it works in detail: [AGENTS.md](AGENTS.md), [specs/README.md](specs/README.m
 ### AI agents and skills
 
 `AGENTS.md` is read by every AI coding tool. Claude Code adds skills (type `/`), specialized agents
-(type `@`), dynamic workflows (`/deep-…`), and guardrail hooks — see `CLAUDE.md`.
+(type `@`), dynamic workflows (`/deep-…`), and guardrail hooks — see `.claude/rules/claude-code.md`.
 
 ## Environment variables
 

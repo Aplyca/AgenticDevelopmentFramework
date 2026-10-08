@@ -147,7 +147,7 @@ La IA no es solo para "generar código": atraviesa todo el ciclo. Ver sección 5
 repo/
 ├── README.md                 # Para humanos: qué es, cómo correrlo, cómo contribuir
 ├── AGENTS.md                 # Para agentes: el "README del agente" (ver 6.2)
-├── CLAUDE.md                 # Opcional: config más rica específica de Claude Code
+├── .claude/rules/claude-code.md  # Opcional: la capa específica de Claude Code (sin CLAUDE.md)
 ├── /docs                     # Documentación técnica y de usuario final
 │   ├── architecture.md
 │   └── decisions/            # ADRs (registros de decisiones de arquitectura)
@@ -164,7 +164,7 @@ repo/
 
 ### 6.2 `AGENTS.md` — el contrato de instrucciones para agentes
 
-`AGENTS.md` es un formato Markdown abierto y neutral de proveedor: un "README para agentes". Lo leen de forma nativa Codex, Cursor, Copilot, Windsurf, Aider, Gemini (vía su propio archivo) y muchos más; Claude Code también lo lee, manteniendo `CLAUDE.md` como su formato nativo más rico. Está pensado para que **un solo archivo** funcione en todas las herramientas y evite que el conocimiento institucional quede atrapado en el historial de chat.
+`AGENTS.md` es un formato Markdown abierto y neutral de proveedor: un "README para agentes". Lo leen de forma nativa Codex, Cursor, Copilot, Windsurf, Aider, Gemini (vía su propio archivo) y muchos más; Claude Code también lo lee de forma nativa, siempre que no haya un `CLAUDE.md`, que leería en su lugar. Está pensado para que **un solo archivo** funcione en todas las herramientas y evite que el conocimiento institucional quede atrapado en el historial de chat.
 
 **Qué incluir** (no hay campos obligatorios; estas secciones son las recomendadas):
 
@@ -180,7 +180,7 @@ repo/
 
 - Sé **específico**, no exhaustivo: no vuelques toda la documentación dentro. Mantén el archivo raíz enfocado y **enlaza** a documentos más profundos (estándares de código, arquitectura).
 - **Jerarquía / anidamiento**: en repos grandes, coloca `AGENTS.md` anidados por módulo o feature. Los agentes leen automáticamente el más cercano al archivo editado; el contexto escala de lo general (raíz) a lo local (módulo) a casos borde (feature). El más cercano gana, y un prompt explícito del usuario en el chat sobreescribe todo.
-- Para config específica de herramienta, usa los archivos propios de cada una (`CLAUDE.md`, `.cursor/rules/`) y deja en `AGENTS.md` lo compartido.
+- Para config específica de herramienta, usa los archivos propios de cada una (`.claude/rules/` para Claude Code, `.cursor/rules/` para Cursor) y deja en `AGENTS.md` lo compartido.
 
 ### 6.3 Workflow de desarrollo agéntico (paso a paso)
 
