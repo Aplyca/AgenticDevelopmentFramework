@@ -79,6 +79,12 @@ flagged. In a packaged project, every skill above also comes from the plugin, ty
 `/adf:<name>` — except a development module's, typed by `adf-dev`'s name
 (`/adf-dev:dev-env`). See the [plugin README](../plugins/adf/README.md).
 
+The `adf-connect` plugin adds `/adf-connect:connect`: connect the project to its tracker or a stack
+service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP
+server. It writes the project's `.mcp.json` entry with safe defaults (read-only, never production, no
+credentials committed), pre-approves only the tools that read, and writes it down in `DEV-SETUP.md`.
+Any project can turn it on, committed or packaged. See the [plugin README](../plugins/adf-connect/README.md).
+
 ## Adding custom skills
 
 Projects can add their own skills in `.claude/skills/` (project-owned; never touched by upgrades).

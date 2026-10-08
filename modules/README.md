@@ -42,7 +42,7 @@ Code loads: the framework's machinery, one plugin per concern
 |---|---|---|
 | `adf` | The process | `parallel-agents` (`/dispatch`) |
 | `adf-dev` | Development | `docker` (`/dev-env`) |
-| `adf-connect` (planned) | Trackers and services | — |
+| `adf-connect` | Trackers and services | — (its `/connect` writes a project's MCP configuration itself) |
 
 A module's skills and agents are machinery no project edits, so a packaged install takes them from
 the plugin its `module.json` names, instead of committing them; a module without skills has no

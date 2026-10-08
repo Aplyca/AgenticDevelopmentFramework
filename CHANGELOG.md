@@ -15,6 +15,31 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 acts once: run `/aplyca-adf:upgrade`, which carries out the migration below, then each developer
 installs `adf@aplyca` once.
 
+### `adf-connect`: connect a tracker or a service with `/connect`
+
+([0023](docs/decisions/0023-plugins-by-concern.md))
+
+The third plugin, for trackers and services. `/adf-connect:connect <service>` connects the project to
+Supabase, Vercel, Contentful, GitLab, Linear, or Jira through the service's official MCP server:
+
+- **It writes the project's own configuration:** the `.mcp.json` entry and `enabledMcpjsonServers`.
+- **Safe defaults:** read-only where the server allows it, a development project rather than
+  production, and OAuth or a `${VARIABLE}` instead of a committed credential.
+- **Only reads are pre-approved,** taken from the server's real tool names, so every write prompts.
+- **It writes it down** in `DEV-SETUP.md`, and in `TRACKER-INTEGRATION.md` for a tracker.
+- **It verifies** that the server connects, that its reads run without a prompt, and that a write
+  prompts.
+
+The servers stay in the project, not the plugin. A spike found that a plugin's server whose URL a
+project leaves unset reports an error in every session, instead of staying off (decision 0023).
+ClickUp keeps its module, and GitHub keeps the `gh` CLI. `/adf:adopt` and `/adf:upgrade` offer the
+plugin when a project has such a tracker or services.
+
+**Upgrade impact:**
+
+- **Additive:** turn on `"adf-connect@aplyca": true` in `enabledPlugins` to use it, committed or
+  packaged. It needs no read rule.
+
 ### The framework's plugin is `adf`
 
 ([0023](docs/decisions/0023-plugins-by-concern.md))

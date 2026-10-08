@@ -64,7 +64,7 @@ allow a plugin for every module.
    |---|---|---|---|
    | `adf` (`aplyca-adf` until v2.0.0) | The process | The skeleton's skills, agents, workflows, and hooks; the reference docs; the installer; process modules' skills (`parallel-agents`' `/dispatch`) | Built |
    | `adf-dev` | Development | The skills and agents of development modules (`docker`'s `/dev-env`; performance and frontend next) | Built |
-   | `adf-connect` | Trackers and services | Machinery around the project's MCP servers and trackers: a `/connect` skill that writes a project's MCP configuration from safe templates, and a guard that makes MCP writes ask | Planned |
+   | `adf-connect` | Trackers and services | `/connect`, which writes a project's MCP configuration from a catalog of safe defaults and pre-approves only the tools that read | Built in v2.0.0 |
 
 2. **Modules stay each project's switch and its half.** A module commits what the project owns:
    config, scripts, templates, permission rules, MCP configuration. It names the plugin that carries
@@ -102,6 +102,10 @@ allow a plugin for every module.
 
    So every project with the plugin on would show a failed server for each service it doesn't use.
 
+   A guard that makes every MCP write ask, whatever a project's allow list says, belongs to the
+   process, not to `adf-connect`. Confirming outward actions is the core's rule (0005, 0006), and
+   committed installs need it too. It's planned as a core hook.
+
 6. **Vendor plugins are recommended, not rebuilt or depended on.** The reasons are 0013's: updates
    outside our changelog, and overlapping skills.
 
@@ -131,9 +135,9 @@ allow a plugin for every module.
 | Addition | Module | Plugin |
 |---|---|---|
 | GitHub Issues as the tracker | — (the `gh` CLI, with the skeleton's permissions) | — |
-| GitLab | `gitlab`: MR template, GitLab CI secret detection and branch policy, a `glab` permission fragment, optional GitLab MCP. Also a core fix: `guard-git.sh` drafts `glab mr create` | `aplyca-adf` (the guard) |
-| Jira, Linear | On `clickup`'s pattern, when needed | `adf-connect` |
-| Supabase, Vercel, Contentful | The project's MCP server with safe defaults (Supabase `read_only=true`, a non-production project) and a read-only allowlist; the vendor plugin recommended where one exists | `adf-connect` |
+| GitLab | `gitlab`: MR template, GitLab CI secret detection and branch policy, a `glab` permission fragment. GitLab MCP through `/connect`. Also a core fix: `guard-git.sh` drafts `glab mr create` | `adf` (the guard), `adf-connect` |
+| Jira, Linear | None needed: `/connect` writes the project's server | `adf-connect` |
+| Supabase, Vercel, Contentful | None needed: `/connect` writes the project's MCP server with safe defaults (Supabase `read_only=true`, a non-production project) and a read-only allowlist, and mentions the vendor plugin where one exists | `adf-connect` |
 | Ibexa | Deferred while `ibexa/mcp` is experimental | — |
 | Docker development environment | `docker`, built now | `adf-dev` |
 | Performance, frontend | Modules whose skills and reviewer agents plug into existing phases — `/review` calling a specialty reviewer, the local check — never a second workflow (0013) | `adf-dev` |

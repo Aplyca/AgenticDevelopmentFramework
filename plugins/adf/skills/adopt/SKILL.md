@@ -96,6 +96,7 @@ Build a facts table (`fact → evidence file:line`):
   merge, tag ships) from the skeleton's `CONTRIBUTING.md` — or note a third shape
 - **History that must stay append-only** — migrations directories; **generated files** — lockfiles, generated types
 - **Requirements source** — ask: which tracker (ClickUp, Jira, Linear, GitHub Issues, none)? Its MCP endpoint, if any
+- **Connected services** — ask: which services does the stack use that agents should read — a database, hosting, a CMS (Supabase, Vercel, Contentful…)? Each one with an official MCP server is a later `/adf-connect:connect`
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
 - **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), `.devcontainer/`; what the local stack runs, and how
 - **Ways of working** — ask: several agent sessions in parallel, each needing a running app? A requester who gets status updates?
@@ -159,6 +160,11 @@ Present the table before going further. Wrong facts here poison every file downs
   modules the project has: `"<plugin>@aplyca": true` in `enabledPlugins`, and
   `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`. A committed install
   copies the skills and leaves that plugin off.
+- **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than GitHub Issues or
+  ClickUp (Jira, Linear, GitLab), or connected services: turn on `"adf-connect@aplyca": true` in
+  `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
+  `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
+  team reviews on its own.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 

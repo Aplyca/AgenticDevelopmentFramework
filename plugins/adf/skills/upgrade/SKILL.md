@@ -77,7 +77,11 @@ repository's facts, by the same rules as `/adopt` Step 3:
   wants a containerized local environment: `/dev-env` sets it up, gives each worktree its own stack,
   and diagnoses or resets it; destructive docker commands ask first
 
-Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade.
+Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
+release with `adf-connect` (decision 0023), offer it the same way when the project works with a
+tracker other than GitHub Issues or ClickUp, or with services agents should read: turn on
+`"adf-connect@aplyca": true` in `enabledPlugins`, and list `/adf-connect:connect <service>` as a
+follow-up.
 
 **If the developer chooses `parallel-agents`,** do the whole upgrade in a worktree of its own, created
 with plain git since the module's script isn't there yet:

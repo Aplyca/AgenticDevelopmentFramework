@@ -678,6 +678,12 @@ check_practices() {
     python3 -c 'import json, sys; sys.exit(0 if json.load(open(sys.argv[1])).get("renames") == {"aplyca-framework": "aplyca-adf", "aplyca-adf": "adf"} else 1)' "$REPO_ROOT/.claude-plugin/marketplace.json" || missing+=("marketplace: renames aplyca-framework → aplyca-adf → adf, append-only")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Offer `adf-connect`' || missing+=("/adopt: offers adf-connect (0023)")
+    local connect="$REPO_ROOT/plugins/adf-connect/skills/connect/SKILL.md"
+    file_contains_literal "$connect" 'No credentials in the repository.' || missing+=("/connect: no credentials committed")
+    file_contains_literal "$connect" 'Read-only and not production, unless the developer decides otherwise.' || missing+=("/connect: read-only, not production")
+    file_contains_literal "$connect" 'Never allow `mcp__<server>__*`.' || missing+=("/connect: never pre-approves a whole server")
+    file_contains_literal "$connect" 'Asking for a write — drafted, not sent — prompts' || missing+=("/connect: verifies that writes prompt")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")

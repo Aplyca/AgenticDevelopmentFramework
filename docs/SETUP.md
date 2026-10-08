@@ -86,6 +86,12 @@ cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
 
 Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
 
+**Connecting a tracker or a service** — Jira, Linear, GitLab, Supabase, Vercel, Contentful — is a job
+for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca": true` in
+`enabledPlugins`, then run `/adf-connect:connect <service>`. It writes the project's `.mcp.json` entry
+with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
+tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
+
 ## 3. Fill in AGENTS.md — the file every tool reads
 
 Replace every `[bracketed placeholder]` with facts you can point to in the repository (manifests,

@@ -187,6 +187,11 @@ def clean(out):
 
 def copy_skills_and_agents(plugin, out):
     generated = []
+    # What clean() left is written by hand, such as adf's /adopt: a generated skill never replaces it.
+    for kind, names in (("skills", plugins[plugin]["skills"]), ("agents", plugins[plugin]["agents"])):
+        for name in names:
+            target = os.path.join(out, kind, name if kind == "skills" else name + ".md")
+            assert not os.path.exists(target), f"plugins/{plugin}/{kind}/{os.path.basename(target)} is written by hand; rename the generated one"
     for name, folder in sorted(plugins[plugin]["skills"].items()):
         for directory, _, files in os.walk(folder):
             for file in files:
