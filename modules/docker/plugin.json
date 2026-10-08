@@ -1,6 +1,0 @@
-{
-  "name": "adf-docker",
-  "description": "The docker module's skill for a packaged install: /adf-docker:dev-env sets up a Docker Compose local environment from verified facts, gives each worktree its own stack, diagnoses one signal-first, and resets it without touching other projects. Turn it on only where the docker module is installed; elsewhere it stops.",
-  "category": "development",
-  "keywords": ["docker", "compose", "local-environment", "worktrees"]
-}

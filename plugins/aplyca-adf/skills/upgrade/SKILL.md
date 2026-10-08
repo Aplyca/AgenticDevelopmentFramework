@@ -101,14 +101,14 @@ ask, and never discard it.
   one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add
   the pinned marketplace and `aplyca-adf`, the names note in `CLAUDE.md`, the full names in
   `DEV-SETUP.md`'s key commands, and `install: packaged` in the stamp, then add the plugin's read
-  rule and run `link-reference-docs.py --packaged`, both in Step 5. An installed module with a plugin
-  of its own (`<framework-root>/plugins/adf-<module>/`, decision 0023) switches the same way: its
-  committed skills go, and `adf-<module>@aplyca` is turned on with its read rule.
+  rule and run `link-reference-docs.py --packaged`, both in Step 5. An installed module whose
+  `module.json` names another plugin (`adf-dev`, decision 0023) switches the same way: its
+  committed skills go, and that plugin is turned on with its read rule.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
   copy the machinery (with the installed modules' skills), the reference docs, and the `hooks` block
   back, remove `install: packaged`, the
-  names note, the plugin's read rule, every `adf-<module>@aplyca` with its read rule, and the
-  `aplyca-adf:` and `adf-<module>:` prefixes in `DEV-SETUP.md`, and run
+  names note, the plugin's read rule, every other `<plugin>@aplyca` (`adf-dev`) with its read rule,
+  and the `aplyca-adf:` and `<plugin>:` prefixes in `DEV-SETUP.md`, and run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --committed`.
   Keep `aplyca-adf` turned on and pinned, for `/aplyca-adf:upgrade`.
 - **Record the switch** — it changes how the team works — as a process decision in the same pull
@@ -139,8 +139,8 @@ teammates still on the old name have no `/upgrade`.
 gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). In a
 packaged project, leave out what the plugins carry — `.claude/skills/` (a module's skill too, when
 the new release's plugin has it in `<framework-root>/plugins/aplyca-adf/skills/`, as it has
-`dispatch` from decision 0020 on, or in the module's own `<framework-root>/plugins/adf-<module>/`,
-decision 0023), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`, and, when the new
+`dispatch` from decision 0020 on, or in the plugin its `module.json` names, such as
+`<framework-root>/plugins/adf-dev/`, decision 0023), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`, and, when the new
 release carries them in `<framework-root>/plugins/aplyca-adf/docs/`, the reference docs in `docs/`
 (decision 0019) — and never add a `hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
@@ -154,8 +154,9 @@ release carries them in `<framework-root>/plugins/aplyca-adf/docs/`, the referen
 (merge a collision such as an existing PR template), except `clickup`, which installs with
 `modules/clickup/install.sh <repo>`; `docker` copies, then runs `modules/docker/install.sh <repo>`.
 In a packaged project, a module whose skills the release's plugins carry leaves its `.claude/skills/`
-out, and one with a plugin of its own turns it on: `"adf-<module>@aplyca": true` in `enabledPlugins`
-and `Read(~/.claude/plugins/cache/aplyca/adf-<module>/**)` in `permissions.allow`. Each module's
+out, and the plugin its `module.json` names, when that isn't `aplyca-adf`, is turned on:
+`"<plugin>@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in
+`permissions.allow`. Each module's
 `MODULE.md` § Customize steps join the plan's
 checklist — for `parallel-agents`, `worktree.conf` (only `BASE_BRANCH` and `SETUP_CMD` unless worktrees
 run a server) and the dispatcher line in `AGENTS.md` § Delivery rules; for `docker`, `/dev-env set up`
@@ -200,12 +201,11 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   (`<framework-root>/plugins/aplyca-adf/skills/dispatch/`): delete the committed
   `.claude/skills/dispatch/` when it's unchanged since OLD_SHA. One the team edited is the
   developer's call — under a name of its own, or upstream as a change to the framework.
-- Packaged, with an installed module that has a plugin of its own at the new release
-  (`<framework-root>/plugins/adf-<module>/`, decision 0023): turn it on —
-  `"adf-<module>@aplyca": true` in `enabledPlugins`, `Read(~/.claude/plugins/cache/aplyca/adf-<module>/**)`
-  in `permissions.allow` — delete each committed skill it carries that's unchanged since OLD_SHA (the
-  same call as `/dispatch` for one the team edited), and give its skills their full names in
-  `DEV-SETUP.md` (`/adf-docker:dev-env`).
+- Packaged, with an installed module whose `module.json` at the new release names a plugin other than
+  `aplyca-adf` (`adf-dev`, decision 0023): turn that plugin on — `"<plugin>@aplyca": true` in
+  `enabledPlugins`, `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow` — delete
+  each committed skill it carries that's unchanged since OLD_SHA (the same call as `/dispatch` for one
+  the team edited), and give its skills their full names in `DEV-SETUP.md` (`/adf-dev:dev-env`).
 - Restamp: `Skeleton source:` → `<new version> · NEW_SHA (<date>) · modules: <list>` — the list includes
   the new ones; a packaged project keeps `· install: packaged`.
 
@@ -219,8 +219,8 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
    exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
    `.claude/settings.json` parses and its `ask` list holds the docker rules (`docker`). Packaged, for
-   a module with its own plugin: `adf-<module>@aplyca` is on with its read rule, and none of its
-   skills is committed.
+   a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
+   none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a

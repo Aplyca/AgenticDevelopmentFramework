@@ -517,37 +517,35 @@ check_modules() {
         if [ -f "$module/files/README.md" ]; then
             fail "module '$name': files/README.md would overwrite the adopting repo's README"
         fi
-        # A module's skills and agents ship in a plugin of its own (decision 0023); only
-        # parallel-agents' /dispatch still rides in aplyca-adf (decision 0020).
+        # A module names the plugin that carries its skills and agents (decision 0023): aplyca-adf
+        # for the process, adf-dev for development.
         local problem
-        problem=$(python3 - "$module" "$name" <<'PY'
+        problem=$(python3 - "$module" "$name" "$REPO_ROOT/plugins" <<'PY'
 import json, os, sys
-module, name = sys.argv[1], sys.argv[2]
+module, name, plugins = sys.argv[1], sys.argv[2], sys.argv[3]
 claude = os.path.join(module, "files", ".claude")
 carries = any(os.path.isdir(os.path.join(claude, k)) and os.listdir(os.path.join(claude, k)) for k in ("skills", "agents"))
-manifest = os.path.join(module, "plugin.json")
+manifest = os.path.join(module, "module.json")
 if not os.path.exists(manifest):
-    if carries and name != "parallel-agents":
-        print("ships skills or agents but has no plugin.json")
+    if carries:
+        print("ships skills or agents but no module.json names the plugin that carries them")
     sys.exit()
 try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
-    print(f"plugin.json is not valid JSON: {e}"); sys.exit()
-if set(data) - {"name", "description", "category", "keywords"}:
-    print(f"plugin.json has keys the build doesn't take: {sorted(set(data) - {'name', 'description', 'category', 'keywords'})} (the version comes from aplyca-adf)")
-if data.get("name") != f"adf-{name}":
-    print(f"plugin.json's name should be adf-{name}")
-if len(data.get("description", "")) < 40:
-    print("plugin.json needs a meaningful description")
+    print(f"module.json is not valid JSON: {e}"); sys.exit()
+if set(data) != {"plugin"}:
+    print(f"module.json takes one key, plugin — it has {sorted(data)}")
+elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
+    print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
 if not carries:
-    print("has a plugin.json but no skills or agents for it to carry")
+    print("has a module.json but no skills or agents for a plugin to carry")
 PY
 )
         if [ -n "$problem" ]; then
             fail "module '$name': $problem"
-        elif [ -f "$module/plugin.json" ]; then
-            pass "module '$name': its plugin.json names adf-$name and takes its version from aplyca-adf"
+        elif [ -f "$module/module.json" ]; then
+            pass "module '$name': module.json names the plugin that carries its skills"
         fi
     done
     local fragment problems
@@ -677,9 +675,9 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" "sort=-v:refname" || missing+=("/upgrade: moves a packaged project to the newest release tag")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'aplyca-framework@aplyca' || missing+=("/upgrade: migrates the plugin's old name")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Turn on a module.s own plugin' || missing+=("/adopt: turns on a module's own plugin in a packaged install (0023)")
+    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
-    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'adf-<module>@aplyca' || missing+=("/upgrade: turns on a module's own plugin (0023)")
+    file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/aplyca-adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
     file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
@@ -742,40 +740,34 @@ PY
 }
 
 check_packaged_plugin() {
-    # The machinery in plugins/ is generated: aplyca-adf's from skeleton/.claude (decision 0016), each
-    # adf-<module> from its module (decision 0023), and their marketplace entries with them. A source
-    # change that wasn't rebuilt would ship the old machinery to every packaged project.
+    # The machinery in plugins/ is generated: aplyca-adf's from skeleton/.claude (decision 0016), and
+    # each plugin's module skills from the modules that name it (decision 0023). A source change that
+    # wasn't rebuilt would ship the old machinery to every packaged project.
     local tmp report
     tmp="$(mktemp -d)"
     cp -R "$REPO_ROOT/plugins" "$tmp/plugins"
-    cp -R "$REPO_ROOT/.claude-plugin" "$tmp/.claude-plugin"
     if ! "$REPO_ROOT/scripts/build-plugins.sh" "$tmp" >/dev/null 2>&1; then
         fail "plugins: scripts/build-plugins.sh failed" "$("$REPO_ROOT/scripts/build-plugins.sh" "$tmp" 2>&1 | tail -1)"
-    elif diff -r "$tmp/plugins" "$REPO_ROOT/plugins" >/dev/null 2>&1 \
-        && diff -r "$tmp/.claude-plugin" "$REPO_ROOT/.claude-plugin" >/dev/null 2>&1; then
-        pass "plugins/ and the marketplace match skeleton/.claude and the modules"
+    elif diff -r "$tmp/plugins" "$REPO_ROOT/plugins" >/dev/null 2>&1; then
+        pass "plugins/ matches skeleton/.claude and the modules"
     else
-        fail "plugins/ or the marketplace is out of date with skeleton/.claude or a module — run scripts/build-plugins.sh"
+        fail "plugins/ is out of date with skeleton/.claude or a module — run scripts/build-plugins.sh"
     fi
     rm -rf "$tmp"
     report=$(python3 - "$REPO_ROOT" <<'PY'
 import json, os, re, sys
 root = sys.argv[1]
 market = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
-modules = sorted(m for m in os.listdir(os.path.join(root, "modules"))
-                 if os.path.exists(os.path.join(root, "modules", m, "plugin.json")))
-expected = ["aplyca-adf"] + [f"adf-{m}" for m in modules]
+folders = sorted(d for d in os.listdir(os.path.join(root, "plugins")) if os.path.isdir(os.path.join(root, "plugins", d)))
+expected = ["aplyca-adf"] + [d for d in folders if d != "aplyca-adf"]
 names = [p["name"] for p in market["plugins"]]
 if names != expected:
-    print(f"marketplace.json should list aplyca-adf and one plugin per module with a plugin.json, {expected} — it lists {names}")
+    print(f"marketplace.json should list every plugin in plugins/, aplyca-adf first, {expected} — it lists {names}")
 for entry in market["plugins"]:
     if entry.get("source") != f"./plugins/{entry['name']}":
         print(f"{entry['name']}: source should be ./plugins/{entry['name']}")
     if "version" in entry:
         print(f"{entry['name']}: the marketplace entry sets a version — plugin.json carries it")
-folders = sorted(d for d in os.listdir(os.path.join(root, "plugins")) if os.path.isdir(os.path.join(root, "plugins", d)))
-if folders != sorted(expected):
-    print(f"plugins/ holds {folders}, the marketplace lists {expected}")
 version = json.load(open(os.path.join(root, "plugins", "aplyca-adf", ".claude-plugin", "plugin.json"))).get("version", "")
 if not re.fullmatch(r"\d+\.\d+\.\d+", version):
     print(f"aplyca-adf's version '{version}' isn't MAJOR.MINOR.PATCH (decision 0017)")
@@ -792,45 +784,48 @@ for name in expected:
 PY
 )
     if [ -z "$report" ]; then
-        pass "marketplace lists aplyca-adf and each module's plugin; every plugin's version is the newest release"
+        pass "marketplace lists every plugin, aplyca-adf first; every plugin's version is the newest release"
     else
         fail "plugin versions and marketplace: $report"
     fi
 }
 
 check_module_plugins() {
-    # A module's own plugin carries its skills (decision 0023); aplyca-adf carries only the
-    # grandfathered /dispatch (decision 0020), so a project lists what it chose and nothing else.
+    # Each plugin carries the skills of the modules that name it in module.json, and only those
+    # (decision 0023): a project lists the skills of the plugins it turned on.
     local report
     report=$(python3 - "$REPO_ROOT" <<'PY'
-import os, re, sys
+import json, os, re, sys
 root = sys.argv[1]
-listed = open(os.path.join(root, "plugins", "aplyca-adf", ".generated"), encoding="utf-8").read().split()
+generated = {}
+for plugin in os.listdir(os.path.join(root, "plugins")):
+    listing = os.path.join(root, "plugins", plugin, ".generated")
+    generated[plugin] = open(listing, encoding="utf-8").read().split() if os.path.exists(listing) else []
 for module in sorted(os.listdir(os.path.join(root, "modules"))):
-    if not os.path.exists(os.path.join(root, "modules", module, "plugin.json")):
+    manifest = os.path.join(root, "modules", module, "module.json")
+    if not os.path.exists(manifest):
         continue
-    plugin = os.path.join(root, "plugins", f"adf-{module}")
-    if not os.path.exists(os.path.join(plugin, ".generated")):
-        print(f"plugins/adf-{module} isn't built — run scripts/build-plugins.sh")
-        continue
+    plugin = json.load(open(manifest, encoding="utf-8")).get("plugin")
     folder = os.path.join(root, "modules", module, "files", ".claude", "skills")
     for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
-        if f"skills/{name}" in listed:
-            print(f"aplyca-adf carries {name}, which adf-{module} owns")
-        text = open(os.path.join(plugin, "skills", name, "SKILL.md"), encoding="utf-8").read()
-        if f"from the `{module}` module's own plugin" not in text:
-            print(f"adf-{module}:{name} lacks the module plugin's Step 0")
-        for bare in re.findall(rf"/adf-{module}:([\w-]+)", text):
-            if not os.path.isdir(os.path.join(plugin, "skills", bare)):
-                print(f"adf-{module}:{name} names /adf-{module}:{bare}, which the plugin doesn't carry")
-if "skills/dispatch" not in listed:
-    print("aplyca-adf no longer carries /dispatch — moving it is a major release (decision 0023)")
+        holders = sorted(p for p, listed in generated.items() if f"skills/{name}" in listed)
+        if holders != [plugin]:
+            print(f"{module}'s /{name} is in {holders or 'no plugin'}, its module.json names {plugin} — run scripts/build-plugins.sh")
+            continue
+        if plugin == "aplyca-adf":
+            continue
+        text = open(os.path.join(root, "plugins", plugin, "skills", name, "SKILL.md"), encoding="utf-8").read()
+        if f"from the `{module}` module, carried by `{plugin}`" not in text:
+            print(f"{plugin}:{name} lacks its module's Step 0")
+        for bare in re.findall(rf"/{re.escape(plugin)}:([\w-]+)", text):
+            if not os.path.isdir(os.path.join(root, "plugins", plugin, "skills", bare)):
+                print(f"{plugin}:{name} names /{plugin}:{bare}, which the plugin doesn't carry")
 PY
 )
     if [ -z "$report" ]; then
-        pass "module plugins: each carries its module's skills with its own Step 0; aplyca-adf carries only /dispatch"
+        pass "plugins by concern: each carries exactly the skills of the modules that name it, with their Step 0"
     else
-        fail "module plugins: $report"
+        fail "plugins by concern: $report"
     fi
 }
 

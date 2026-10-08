@@ -1,36 +1,35 @@
 #!/usr/bin/env bash
 #
-# Builds the framework's plugins and the module-plugin entries of the `aplyca` marketplace.
+# Builds the generated half of the framework's plugins, one per concern (decision 0023):
 #
-# plugins/aplyca-adf (docs/decisions/0016-packaged-install.md): its packaged half, from
-# skeleton/.claude/ — the core skills, the agents as flat files, the workflows, and the hook scripts
-# with their hooks.json — and, from skeleton/docs/, the framework's reference docs (decision 0019).
-# It also carries the parallel-agents module's /dispatch (decision 0020), the one module skill that
-# predates module plugins.
+# - plugins/aplyca-adf, the process (docs/decisions/0016-packaged-install.md): from skeleton/.claude/,
+#   the core skills, the agents as flat files, the workflows, and the hook scripts with their
+#   hooks.json; from skeleton/docs/, the framework's reference docs (decision 0019).
+# - plugins/adf-dev, development, and every other plugin whose manifest is in plugins/: the skills and
+#   agents of the modules that name it.
 #
-# plugins/adf-<module> (decision 0023): a module with a plugin.json beside its MODULE.md gets a plugin
-# of its own, opt-in, built from the module's files/.claude/skills and files/.claude/agents, and
-# listed in .claude-plugin/marketplace.json. The module stays the one source: a committed install
-# copies those files, a packaged one turns the plugin on. Every plugin carries aplyca-adf's version.
+# A module names the plugin that carries its skills and agents in modules/<module>/module.json —
+# parallel-agents' /dispatch goes to aplyca-adf, docker's /dev-env to adf-dev. The module stays the one
+# source: a committed install copies those files, a packaged one turns the plugin on. Every plugin
+# carries aplyca-adf's version, which this script copies into the others' manifests.
 #
 # Claude Code puts everything a plugin carries under the plugin's name, so the copies name each other
 # that way: `/triage` becomes `/aplyca-adf:triage`, `@code-reviewer` becomes
-# `@aplyca-adf:code-reviewer`, and a module plugin's `/dev-env` becomes `/adf-docker:dev-env`. Names
-# are unique across all of them. The hooks read the project's .claude/hooks/config.sh. The copies act
-# only in a packaged project: each skill and agent opens with a step that hands over to the committed
-# copy unless CLAUDE.md says "This project uses the packaged install" (visible text — Claude Code
-# strips the HTML-comment stamp when it loads the file), and the hooks stand down unless the stamp on
-# CLAUDE.md's first line says `install: packaged` (_lib.sh, which reads the file itself).
+# `@aplyca-adf:code-reviewer`, and `/dev-env` becomes `/adf-dev:dev-env`. Names are unique across every
+# plugin. The hooks read the project's .claude/hooks/config.sh. The copies act only in a packaged
+# project: each skill and agent opens with a step that hands over to the committed copy unless
+# CLAUDE.md says "This project uses the packaged install" (visible text — Claude Code strips the
+# HTML-comment stamp when it loads the file), and the hooks stand down unless the stamp on CLAUDE.md's
+# first line says `install: packaged` (_lib.sh, which reads the file itself).
 #
-# aplyca-adf's installer skills (adopt, upgrade, cost-report), plugin.json, and README.md are written
-# by hand and left alone, as are the marketplace's top-level fields and its aplyca-adf entry: the
-# script rebuilds only the paths each plugin's .generated file lists. Never edit those paths. Change
+# Each plugin's manifest and README, aplyca-adf's installer skills (adopt, upgrade, cost-report), and
+# the marketplace are written by hand and left alone, apart from the version this script keeps equal:
+# it rebuilds only the paths each plugin's .generated file lists. Never edit those paths. Change
 # skeleton/ or the module and run this again; evals/static/check-skills.sh fails when a plugin and its
 # source drift apart.
 #
 # Usage: scripts/build-plugins.sh [output root — default: this repository]
-#   Writes <root>/plugins/<plugin>/ and <root>/.claude-plugin/marketplace.json; the sources are always
-#   this repository's skeleton/ and modules/.
+#   Writes <root>/plugins/<plugin>/; the sources are always this repository's skeleton/ and modules/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -42,20 +41,25 @@ import json, os, re, shutil, sys
 root, out_root = sys.argv[1], sys.argv[2]
 src = os.path.join(root, "skeleton", ".claude")
 CORE = "aplyca-adf"
-# A module skill the core plugin carried before module plugins existed (decision 0020). Moving it to
-# a plugin of its own renames what people type, so it waits for a major release (decision 0023).
-GRANDFATHERED = {"parallel-agents"}
-MANIFEST_KEYS = {"name", "description", "category", "keywords"}
 REPO_URL = "https://github.com/aplyca/AgenticDevelopmentFramework"
+DECISION = f"[decision 0023]({REPO_URL}/blob/main/docs/decisions/0023-plugins-by-concern.md)"
 
 skills = sorted(os.listdir(os.path.join(src, "skills")))
 agents = sorted(os.listdir(os.path.join(src, "agents")))
 workflows = sorted(f[:-3] for f in os.listdir(os.path.join(src, "workflows")) if f.endswith(".js"))
 
 # Every plugin and what it carries: {plugin: {"skills": {name: folder}, "agents": {name: agent.md}}}.
-plugins = {CORE: {"module": None, "skills": {n: os.path.join(src, "skills", n) for n in skills},
-                  "agents": {n: os.path.join(src, "agents", n, "agent.md") for n in agents}}}
-manifests = {}
+# A plugin is a folder in plugins/ with a hand-written manifest; aplyca-adf also takes the skeleton's.
+plugin_dirs = sorted(d for d in os.listdir(os.path.join(out_root, "plugins")) if os.path.isdir(os.path.join(out_root, "plugins", d)))
+for folder in plugin_dirs:
+    assert os.path.exists(os.path.join(out_root, "plugins", folder, ".claude-plugin", "plugin.json")), \
+        f"plugins/{folder} has no .claude-plugin/plugin.json"
+plugins = {name: {"skills": {}, "agents": {}} for name in plugin_dirs}
+assert CORE in plugins, f"plugins/{CORE} is missing"
+plugins[CORE]["skills"] = {n: os.path.join(src, "skills", n) for n in skills}
+plugins[CORE]["agents"] = {n: os.path.join(src, "agents", n, "agent.md") for n in agents}
+module_of = {}  # a module's skill or agent name -> its module
+carried = []    # (plugin, kind, name, path) in the order the modules list them
 for module in sorted(os.listdir(os.path.join(root, "modules"))):
     base = os.path.join(root, "modules", module)
     if not os.path.isdir(base):
@@ -63,26 +67,23 @@ for module in sorted(os.listdir(os.path.join(root, "modules"))):
     claude = os.path.join(base, "files", ".claude")
     for kind in ("workflows", "hooks"):
         assert not os.path.isdir(os.path.join(claude, kind)), \
-            f"modules/{module} ships .claude/{kind}: a module plugin carries skills and agents only (decision 0023)"
+            f"modules/{module} ships .claude/{kind}: a module's plugin carries its skills and agents only (decision 0023)"
     folder = os.path.join(claude, "skills")
-    found = {n: os.path.join(folder, n) for n in sorted(os.listdir(folder))} if os.path.isdir(folder) else {}
+    found = [("skills", n, os.path.join(folder, n)) for n in sorted(os.listdir(folder))] if os.path.isdir(folder) else []
     folder = os.path.join(claude, "agents")
-    found_agents = {n: os.path.join(folder, n, "agent.md") for n in sorted(os.listdir(folder))} if os.path.isdir(folder) else {}
-    manifest_path = os.path.join(base, "plugin.json")
-    if os.path.exists(manifest_path):
-        with open(manifest_path, encoding="utf-8") as f:
-            manifest = json.load(f)
-        unknown = set(manifest) - MANIFEST_KEYS
-        assert not unknown, f"modules/{module}/plugin.json: unknown keys {sorted(unknown)} — the version comes from {CORE}"
-        assert manifest.get("name") == f"adf-{module}", f"modules/{module}/plugin.json: the name must be adf-{module}"
-        assert len(manifest.get("description", "")) >= 40, f"modules/{module}/plugin.json: needs a description"
-        assert found or found_agents, f"modules/{module}/plugin.json: the module has no skills or agents to carry"
-        plugins[manifest["name"]] = {"module": module, "skills": found, "agents": found_agents}
-        manifests[manifest["name"]] = manifest
-    elif found or found_agents:
-        assert module in GRANDFATHERED and not found_agents, \
-            f"modules/{module} ships skills or agents but has no plugin.json (decision 0023)"
-        plugins[CORE]["skills"].update(found)  # names are checked below
+    found += [("agents", n, os.path.join(folder, n, "agent.md")) for n in sorted(os.listdir(folder))] if os.path.isdir(folder) else []
+    manifest = os.path.join(base, "module.json")
+    if not os.path.exists(manifest):
+        assert not found, f"modules/{module} ships skills or agents but no module.json names the plugin that carries them (decision 0023)"
+        continue
+    with open(manifest, encoding="utf-8") as f:
+        data = json.load(f)
+    assert set(data) == {"plugin"}, f"modules/{module}/module.json takes one key, plugin"
+    assert data["plugin"] in plugins, f"modules/{module}/module.json names {data['plugin']}, which isn't in plugins/"
+    assert found, f"modules/{module}/module.json names a plugin, but the module has no skills or agents for it"
+    for kind, name, path in found:
+        carried.append((data["plugin"], kind, name, path))
+        module_of[name] = module
 
 # One owner per name, across every plugin: a bare name must reach one skill (decision 0016, finding 2),
 # and a committed install puts every module's skills in one .claude/skills/.
@@ -96,16 +97,19 @@ def claim(table, name, plugin, what):
 
 for name in workflows:
     claim(owner, name, CORE, "skills or workflows")
-for plugin, carried in plugins.items():
-    for name in carried["skills"]:
-        claim(owner, name, plugin, "skills or workflows")
-    for name in carried["agents"]:
-        claim(agent_owner, name, plugin, "agents")
+for name in skills:
+    claim(owner, name, CORE, "skills or workflows")
+for name in agents:
+    claim(agent_owner, name, CORE, "agents")
+for plugin, kind, name, path in carried:
+    claim(owner if kind == "skills" else agent_owner, name, plugin, "skills or workflows" if kind == "skills" else "agents")
+    plugins[plugin][kind][name] = path
 
 # A name counts only on its own: not inside a path (skills/review/SKILL.md), a URL, or a longer name.
 command = re.compile(r"(?<![\w./@:-])/(" + "|".join(map(re.escape, sorted(owner))) + r")(?![\w-])")
 agent = re.compile(r"(?<![\w./-])@(" + "|".join(map(re.escape, sorted(agent_owner))) + r")(?![\w-])")
-module_command = re.compile(r"/adf-[a-z-]+:")
+others = [p for p in plugins if p != CORE]
+other_command = re.compile(r"/(" + "|".join(map(re.escape, others)) + r"):") if others else None
 
 
 # The framework's reference docs (decision 0019): generic, never edited by a project, so a packaged
@@ -126,10 +130,10 @@ def copy(plugin, source, target, executable=False, kind=None, name=None):
         text = rename(f.read())
     if plugin == CORE:
         # The core can't depend on a plugin a project may not have turned on.
-        assert not module_command.search(text), f"{source} names a module plugin's skill"
+        assert not (other_command and other_command.search(text)), f"{source} names a skill another plugin carries"
     elif kind:
         # ${CLAUDE_PLUGIN_ROOT} is this plugin's folder, and the reference docs are in aplyca-adf's.
-        assert not reference.search(text), f"{source} names a reference doc a module plugin can't reach"
+        assert not reference.search(text), f"{source} names a reference doc only aplyca-adf can reach"
     if kind:
         named = reference.sub(r"${CLAUDE_PLUGIN_ROOT}/docs/\1.md", text)
         text = hand_over(named, kind, name, plugin, docs=named != text)
@@ -149,11 +153,9 @@ HANDOVER = {
 }
 
 
-def source_note(plugin, kind):
-    module = plugins[plugin]["module"]
-    if module:
-        return (f", from the `{module}` module's own plugin "
-                f"([decision 0023]({REPO_URL}/blob/main/docs/decisions/0023-area-plugins-for-modules.md))")
+def source_note(plugin, kind, name):
+    if plugin != CORE:
+        return f", from the `{module_of[name]}` module, carried by `{plugin}` ({DECISION})"
     return f" ([decision 0016]({REPO_URL}/blob/main/docs/decisions/0016-packaged-install.md))" if kind == "skill" else ""
 
 
@@ -166,7 +168,7 @@ DOCS_NOTE = ("> **The reference docs this file names are the plugin's copies,** 
 def hand_over(text, kind, name, plugin, docs=False):
     # After the frontmatter, so the name and description still come first.
     head, sep, body = text.partition("\n---\n")
-    note = HANDOVER[kind].format(name=name, source=source_note(plugin, kind))
+    note = HANDOVER[kind].format(name=name, source=source_note(plugin, kind, name))
     return head + sep + "\n" + note + (DOCS_NOTE if docs else "") + body.lstrip("\n")
 
 
@@ -257,79 +259,29 @@ with open(os.path.join(out, "hooks", "hooks.json"), "w", encoding="utf-8") as f:
 
 with open(listing, "w", encoding="utf-8") as f:
     f.write("\n".join(sorted(generated)) + "\n")
-grandfathered = len(plugins[CORE]["skills"]) - len(skills)
-print(f"{out}: {len(skills)} skills and {grandfathered} from modules, {len(agents)} agents, {len(workflows)} workflows, "
+from_modules = len(plugins[CORE]["skills"]) - len(skills)
+print(f"{out}: {len(skills)} skills and {from_modules} from modules, {len(agents)} agents, {len(workflows)} workflows, "
       f"{len([f for f in os.listdir(os.path.join(out, 'hooks')) if f.endswith('.sh')])} hook scripts")
 
-# ─── Module plugins (decision 0023) ───────────────────────────────────────────
+# ─── The other plugins (decision 0023) ────────────────────────────────────────
 
 with open(os.path.join(out_root, "plugins", CORE, ".claude-plugin", "plugin.json"), encoding="utf-8") as f:
-    core_manifest = json.load(f)
-for plugin, manifest in sorted(manifests.items()):
-    module = plugins[plugin]["module"]
+    version = json.load(f)["version"]
+for plugin in others:
     out = os.path.join(out_root, "plugins", plugin)
     listing = clean(out)
     generated = copy_skills_and_agents(plugin, out)
     if plugins[plugin]["agents"]:
         generated.append("agents")
-    data = {"name": plugin, "description": manifest["description"], "version": core_manifest["version"],
-            "author": core_manifest["author"], "homepage": core_manifest["homepage"]}
-    if manifest.get("keywords"):
-        data["keywords"] = manifest["keywords"]
-    os.makedirs(os.path.join(out, ".claude-plugin"), exist_ok=True)
-    with open(os.path.join(out, ".claude-plugin", "plugin.json"), "w", encoding="utf-8") as f:
-        f.write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
-    carried = [f"`/{plugin}:{n}`" for n in plugins[plugin]["skills"]] + [f"`@{plugin}:{n}`" for n in plugins[plugin]["agents"]]
-    readme = (
-        f"# {plugin}\n\n"
-        f"The `{module}` module's machinery for a packaged install of the "
-        f"[Agentic Development Framework]({REPO_URL}): {', '.join(carried)}.\n\n"
-        f"{manifest['description']}\n\n"
-        f"**Generated** from [`modules/{module}/`]({REPO_URL}/tree/main/modules/{module}) by "
-        f"`scripts/build-plugins.sh` ([decision 0023]({REPO_URL}/blob/main/docs/decisions/0023-area-plugins-for-modules.md)); "
-        f"never edit it here.\n\n"
-        f"It is listed in the `aplyca` marketplace beside `aplyca-adf`, at the same version. "
-        f"`/aplyca-adf:adopt` and `/aplyca-adf:upgrade` turn it on in a packaged project that installs the "
-        f"`{module}` module; a committed project copies the module's files instead and leaves it off. "
-        f"Anywhere else its skills say so and stop. What the module adds, and how to install and customize "
-        f"it: [`MODULE.md`]({REPO_URL}/blob/main/modules/{module}/MODULE.md).\n"
-    )
-    with open(os.path.join(out, "README.md"), "w", encoding="utf-8") as f:
-        f.write(readme)
-    generated += [".claude-plugin/plugin.json", "README.md"]
     with open(listing, "w", encoding="utf-8") as f:
-        f.write("\n".join(sorted(generated)) + "\n")
-    print(f"{out}: {len(plugins[plugin]['skills'])} skills, {len(plugins[plugin]['agents'])} agents, from modules/{module}")
-
-# A module plugin whose module no longer has a manifest: remove what the build made. A folder the
-# build never made is someone's work — stop rather than delete it.
-for folder in sorted(os.listdir(os.path.join(out_root, "plugins"))):
-    out = os.path.join(out_root, "plugins", folder)
-    if folder in plugins or not os.path.isdir(out):
-        continue
-    assert os.path.exists(os.path.join(out, ".generated")), \
-        f"plugins/{folder} isn't a plugin this script builds: give its module a plugin.json, or remove it"
-    os.remove(clean(out))
-    for directory, _, _ in sorted(os.walk(out), reverse=True):
-        if not os.listdir(directory):
-            os.rmdir(directory)
-    if os.path.isdir(out):
-        sys.exit(f"plugins/{folder}: removed what the build made, but other files are left there")
-    print(f"{out}: removed — modules/{folder[4:]} no longer has a plugin.json")
-
-# ─── The marketplace ──────────────────────────────────────────────────────────
-
-path = os.path.join(out_root, ".claude-plugin", "marketplace.json")
-with open(path, encoding="utf-8") as f:
-    market = json.load(f)
-core_entries = [p for p in market["plugins"] if p["name"] == CORE]
-assert len(core_entries) == 1, f"marketplace.json must list {CORE} once"
-strays = [p["name"] for p in market["plugins"] if p["name"] != CORE and not p["name"].startswith("adf-")]
-assert not strays, f"marketplace.json lists plugins no module generates: {strays}"
-entries = [{"name": plugin, "description": manifests[plugin]["description"], "author": core_entries[0]["author"],
-            "category": manifests[plugin].get("category", "development"), "source": f"./plugins/{plugin}"}
-           for plugin in sorted(manifests)]
-market["plugins"] = core_entries + entries
-with open(path, "w", encoding="utf-8") as f:
-    f.write(json.dumps(market, indent=2, ensure_ascii=False) + "\n")
+        f.write("".join(f"{rel}\n" for rel in sorted(generated)))
+    # One release, one version: aplyca-adf's, which a release sets by hand.
+    path = os.path.join(out, ".claude-plugin", "plugin.json")
+    with open(path, encoding="utf-8") as f:
+        manifest = json.load(f)
+    assert manifest.get("name") == plugin, f"plugins/{plugin}/.claude-plugin/plugin.json: the name must be {plugin}"
+    manifest["version"] = version
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
+    print(f"{out}: {len(plugins[plugin]['skills'])} skills and {len(plugins[plugin]['agents'])} agents from modules")
 PY

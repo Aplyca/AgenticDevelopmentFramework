@@ -50,13 +50,13 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 ## Module skills
 
 A module's skill is copied with the module in a committed install. In a packaged install it comes
-from a plugin: `/dispatch` from `aplyca-adf`, and a module with a plugin of its own from that plugin,
-`adf-<module>` ([decision 0023](decisions/0023-area-plugins-for-modules.md)).
+from the plugin the module's `module.json` names: `/dispatch` from `aplyca-adf`, the process, and
+`/dev-env` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
 | Skill | Module | Purpose |
 |---|---|---|
 | `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session with a three-line prompt — a task chip in the desktop app, a `claude "<prompt>"` command in a terminal. The new session's first step creates the task's worktree beside the main checkout (`worktree-new.sh <type>/<slug> --no-start`) and moves into it. Reads only; runs nothing, analyzes nothing, edits nothing. A packaged install gets it from the plugin, as `/aplyca-adf:dispatch`. |
-| `/dev-env` | `docker` | Set up, connect, diagnose, or safely reset the project's Docker Compose local environment: verified commands written to `DEV-SETUP.md` and the Quick reference, one stack per worktree with `parallel-agents`, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without a yes. A packaged install gets it from the module's own plugin, as `/adf-docker:dev-env`. |
+| `/dev-env` | `docker` | Set up, connect, diagnose, or safely reset the project's Docker Compose local environment: verified commands written to `DEV-SETUP.md` and the Quick reference, one stack per worktree with `parallel-agents`, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without a yes. A packaged install gets it from `adf-dev`, as `/adf-dev:dev-env`. |
 
 ## Dynamic workflows
 
@@ -76,8 +76,8 @@ The `aplyca-adf` plugin adds installer and measurement skills on the machine, no
 repository: `/aplyca-adf:adopt`, `/aplyca-adf:upgrade`, and `/aplyca-adf:cost-report` — what agent
 sessions on a project cost, from Claude Code's local transcripts, with the expensive patterns
 flagged. In a packaged project, every skill above also comes from the plugin, typed
-`/aplyca-adf:<name>` — except a module's own plugin's, typed by that plugin's name
-(`/adf-docker:dev-env`). See the [plugin README](../plugins/aplyca-adf/README.md).
+`/aplyca-adf:<name>` — except a development module's, typed by `adf-dev`'s name
+(`/adf-dev:dev-env`). See the [plugin README](../plugins/aplyca-adf/README.md).
 
 ## Adding custom skills
 

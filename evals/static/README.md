@@ -31,9 +31,9 @@ every pull request (`.github/workflows/evals.yml`). Four suites, all run by `../
 | A module's `settings-fragment.json` pre-approves only MCP tools and `Bash` commands that read — no command that changes state or prints secrets, no whole program — and its `.mcp.json` carries no credentials | A write tool on the allowlist would post to the client without a prompt; a destructive command would run without one |
 | Lanes: `specs/README.md` defines them (triggers, checklists, the developer's call, light change requests); `/triage` decides them; `/review` checks them; `CAREFUL_GLOBS` and the `careful-paths` hook are wired; the spec template has the light form | Ceremony follows risk only while every piece of the routing is in place |
 | Plugin skills have valid frontmatter; plugin scripts compile; skill and agent names are unique across plugins | The plugins ship to every machine that installs them, and a bare name must reach one skill |
-| `plugins/` and the marketplace match a fresh `scripts/build-plugins.sh`; the marketplace lists `aplyca-adf` and one `adf-<module>` per module `plugin.json`; every plugin's version equals the newest release | A source change that wasn't rebuilt would ship old machinery; one release pins every plugin (decisions 0016, 0017, 0023) |
-| Each module plugin carries its module's skills with its own Step 0, and `aplyca-adf` carries none of them — only `/dispatch` | A project lists only the skills of the modules it chose (decision 0023) |
-| Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks; a module that ships skills has a valid `plugin.json` (only `parallel-agents` is exempt) | Modules install with `cp -R`; a README would overwrite the target's |
+| `plugins/` matches a fresh `scripts/build-plugins.sh`; the marketplace lists every plugin folder, `aplyca-adf` first; every plugin's version equals the newest release | A source change that wasn't rebuilt would ship old machinery; one release pins every plugin (decisions 0016, 0017, 0023) |
+| Each plugin carries exactly the skills of the modules whose `module.json` names it, with their Step 0 | A module's skills reach the plugin of its concern and no other (decision 0023) |
+| Every module has `MODULE.md` and a `files/` tree, no `files/README.md`; module skills pass the skill checks; a module that ships skills has a `module.json` naming a plugin in `plugins/` | Modules install with `cp -R`; a README would overwrite the target's |
 
 ## Running
 

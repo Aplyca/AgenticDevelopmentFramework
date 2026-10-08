@@ -10,7 +10,7 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | [`git-hooks/`](git-hooks/MODULE.md) | A tool-agnostic `pre-push` hook that refuses pushes to protected branches and runs the fast checks | You want local gates that apply to every git client, not only to Claude Code |
 | [`clickup/`](clickup/MODULE.md) | ClickUp's official MCP server in `.mcp.json` and a read-only permission allowlist, so agents read tasks freely and every write prompts | Requirements arrive as ClickUp tasks |
 | [`parallel-agents/`](parallel-agents/MODULE.md) | Worktree scripts (`worktree-new`, `-rm`, `-ls`) that give every task its own worktree, branch, env file, and port; the `/dispatch` skill; the dispatcher/worker process doc | Several agent sessions work on the same repository at once, and each needs a running app |
-| [`docker/`](docker/MODULE.md) | The `/dev-env` skill — set up, connect per worktree, diagnose, and safely reset a Docker Compose local environment — and permission rules that let read-only docker commands run and make destructive ones ask. Packaged, the skill comes from the module's plugin, `adf-docker` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
+| [`docker/`](docker/MODULE.md) | The `/dev-env` skill — set up, connect per worktree, diagnose, and safely reset a Docker Compose local environment — and permission rules that let read-only docker commands run and make destructive ones ask. Packaged, the skill comes from the development plugin, `adf-dev` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
 
 ## Installing a module
 
@@ -31,17 +31,24 @@ record the module in the `Skeleton source` line at the top of `CLAUDE.md`
 
 The framework's `/adopt` skill offers each module during adoption and installs the ones you choose.
 
-## A module's own plugin
+## Modules and plugins
 
-A module's skills and agents are machinery no project edits, so a packaged install takes them from a
-plugin instead of committing them ([decision 0023](../docs/decisions/0023-area-plugins-for-modules.md)).
-A module with a `plugin.json` beside its `MODULE.md` gets one of its own, `adf-<module>`, which
-`scripts/build-plugins.sh` generates from the module's `files/.claude/` into `plugins/adf-<module>/`
-and lists in the `aplyca` marketplace, at the framework's version. A packaged project with the module
-leaves its `.claude/skills/` out and turns the plugin on beside `aplyca-adf` —
-`"adf-<module>@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/adf-<module>/**)`
-in `permissions.allow`. A committed project copies the skills and leaves the plugin off. The
-`parallel-agents` module's `/dispatch` predates this and still comes from `aplyca-adf`.
+A module is what a project turns on and owns: committed files — CI workflows, templates, scripts,
+permission rules, MCP configuration — that every AI tool and CI can read. A plugin is what Claude
+Code loads: the framework's machinery, one plugin per concern
+([decision 0023](../docs/decisions/0023-plugins-by-concern.md)):
 
-The manifest takes `name` (`adf-<module>`), `description`, `category`, and `keywords` — the version
-comes from `aplyca-adf`. Skill and agent names are unique across every plugin.
+| Plugin | Concern | Carries the skills of |
+|---|---|---|
+| `aplyca-adf` | The process | `parallel-agents` (`/dispatch`) |
+| `adf-dev` | Development | `docker` (`/dev-env`) |
+| `adf-connect` (planned) | Trackers and services | — |
+
+A module's skills and agents are machinery no project edits, so a packaged install takes them from
+the plugin its `module.json` names, instead of committing them; a module without skills has no
+`module.json`. `scripts/build-plugins.sh` generates them into that plugin. A packaged project with the
+module leaves its `.claude/skills/` out and turns the plugin on beside `aplyca-adf` when it's another
+one — `"adf-dev@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)`
+in `permissions.allow`. A committed project copies the skills and leaves the plugin off. Each skill
+acts only where the stamp names its module, so a plugin turned on for one module never acts for
+another the project doesn't have. Skill and agent names are unique across every plugin.

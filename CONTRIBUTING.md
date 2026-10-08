@@ -6,7 +6,7 @@ Thanks for helping improve the framework. This repository is not an application 
 
 - **Report a problem** — open an issue describing what you expected, what the AI or the template did instead, and which tool you used (Claude Code, Cursor, Copilot, Antigravity, …).
 - **Improve the skeleton** — clearer rules, better skill instructions, missing spec sections, hooks, tool-compatibility fixes.
-- **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's skills and agents ship in a plugin of its own, `adf-<module>` ([decision 0023](docs/decisions/0023-area-plugins-for-modules.md)).
+- **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's `module.json` names the plugin that carries its skills and agents — `aplyca-adf` for the process, `adf-dev` for development ([decision 0023](docs/decisions/0023-plugins-by-concern.md)).
 - **Add worked material** — new playbooks in `docs/scenarios/` or end-to-end examples in `docs/examples/`.
 - **Fix the plugin** — the `/adopt` and `/upgrade` skills in `plugins/aplyca-adf/`.
 
@@ -38,14 +38,14 @@ act, MINOR for additive or opt-in capabilities, PATCH for fixes. In one pull req
 `Unreleased` to `## vX.Y.Z — <date> — <title>`, open it with the order to upgrade in when it spans
 several parts, add an empty `Unreleased` above it, and set `"version"` in
 `plugins/aplyca-adf/.claude-plugin/plugin.json` to `X.Y.Z`, then run `scripts/build-plugins.sh`,
-which carries it into every module plugin (a static check holds them all equal to the release). Once
+which carries it into every other plugin (a static check holds them all equal to the release). Once
 it merges, tag the merge commit `vX.Y.Z` and push the tag: packaged projects pin it, and without it
 they can't take the release.
 
 **The machinery in `plugins/` is generated** by `scripts/build-plugins.sh` — in `aplyca-adf`, from
-`skeleton/.claude/` and the reference docs; each `adf-<module>` whole, from its module's
-`plugin.json` and `files/.claude/`; and their entries in `.claude-plugin/marketplace.json`. Every
-path a plugin's `.generated` file lists is the script's. Never edit those; after changing a source,
+`skeleton/.claude/` and the reference docs; in every plugin, the skills and agents of the modules
+whose `module.json` names it. Each plugin's manifest and README, and the marketplace, are written by
+hand. Every path a plugin's `.generated` file lists is the script's. Never edit those; after changing a source,
 run the script and commit its output with the change. The static checks fail when they drift apart.
 
 ## Checks
@@ -68,7 +68,7 @@ claude plugin validate .
 claude plugin validate plugins/aplyca-adf
 ```
 
-and each module plugin the same way (`claude plugin validate plugins/adf-docker`).
+and each other plugin the same way (`claude plugin validate plugins/adf-dev`).
 
 If you changed how a skill behaves (not just its structure), consider running the relevant dynamic fixture in [`evals/dynamic/`](evals/dynamic/README.md) and noting the result in your PR. Add a new eval only when a real regression surfaces — see [`evals/STRATEGY.md`](evals/STRATEGY.md).
 

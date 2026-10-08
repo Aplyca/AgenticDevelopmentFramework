@@ -4,7 +4,7 @@ description: Set up, connect, diagnose, or safely reset this project's Docker Co
 argument-hint: "[set up | worktrees | diagnose <symptom> | reset]"
 ---
 
-> **Step 0 — which copy.** This is the packaged copy, from the `docker` module's own plugin ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-area-plugins-for-modules.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/dev-env/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+> **Step 0 — which copy.** This is the packaged copy, from the `docker` module, carried by `adf-dev` ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)). Unless this project's `CLAUDE.md` says "This project uses the packaged install", stop here: open `.claude/skills/dev-env/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
 # Development environment (Docker Compose)
 

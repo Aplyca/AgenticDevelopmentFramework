@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "aplyca",
-  "description": "Aplyca's agentic development tooling — the Agentic Development Framework's plugin, aplyca-adf, and the opt-in plugins of its modules (adf-*)",
+  "description": "Aplyca's agentic development tooling — the Agentic Development Framework's plugins: aplyca-adf for the process, and adf-dev for development",
   "owner": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
@@ -18,14 +18,14 @@
       "source": "./plugins/aplyca-adf"
     },
     {
-      "name": "adf-docker",
-      "description": "The docker module's skill for a packaged install: /adf-docker:dev-env sets up a Docker Compose local environment from verified facts, gives each worktree its own stack, diagnoses one signal-first, and resets it without touching other projects. Turn it on only where the docker module is installed; elsewhere it stops.",
+      "name": "adf-dev",
+      "description": "The Agentic Development Framework's development plugin: skills and agents for building, running, and checking the code, each from an optional module — /adf-dev:dev-env sets up, diagnoses, and safely resets a Docker Compose local environment (the docker module). Turn it on in a packaged project with one of its modules; elsewhere its skills stop.",
       "author": {
         "name": "Aplyca",
         "email": "dev@aplyca.com"
       },
       "category": "development",
-      "source": "./plugins/adf-docker"
+      "source": "./plugins/adf-dev"
     }
   ]
 }

@@ -274,10 +274,10 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
 - **Merge the committed layer** as in the procedure above — `AGENTS.md`, `CLAUDE.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
-- **Turn on each installed module's own plugin** when the new release has one
-  ([decision 0023](decisions/0023-area-plugins-for-modules.md)) — `docker`'s `adf-docker`:
-  `"adf-docker@aplyca": true` in `enabledPlugins`, its read rule, and no committed copy of its skills.
-  The same pin covers it.
+- **Turn on the plugin that carries an installed module's skills** when it isn't `aplyca-adf`
+  ([decision 0023](decisions/0023-plugins-by-concern.md)) — `adf-dev` for `docker`: `"adf-dev@aplyca": true` in
+  `enabledPlugins`, its read rule, and no committed copy of the module's skills. The same pin covers
+  it.
 
 `/aplyca-adf:upgrade` does both, and offers to switch a committed project to packaged (or back). The
 switch is recorded as a process decision (PDR) in the same pull request, and it removes only the

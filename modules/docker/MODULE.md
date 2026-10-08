@@ -11,7 +11,7 @@ that deletes containers, volumes, or images asks first.
 | File | Purpose |
 |---|---|
 | `.claude/settings.json` (merged) | `permissions.allow` for read-only commands (`docker compose ps`, `logs`, `port`, `ls`, `config --quiet`, `docker ps`, `volume ls`, `system df`); `permissions.ask` for destructive ones (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`). An ask rule wins over any allow rule, so a broad `Bash(docker *)` the project already has can't skip the prompt |
-| `.claude/skills/dev-env/SKILL.md` | **Committed install only.** A packaged project gets `/adf-docker:dev-env` from this module's plugin, `adf-docker`, instead ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-area-plugins-for-modules.md)) |
+| `.claude/skills/dev-env/SKILL.md` | **Committed install only.** A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 No rule of its own: Compose and Dockerfile conventions live in the skeleton's
 `.claude/rules/deployment.md` § Docker, which `/dev-env` keeps pointed at the project's files.
@@ -24,8 +24,8 @@ No rule of its own: Compose and Dockerfile conventions live in the skeleton's
   `modules/docker/install.sh /path/to/your-repo`.
 - **Packaged install:** leave `files/.claude/skills/` out, run
   `modules/docker/install.sh /path/to/your-repo`, and turn the plugin on in `.claude/settings.json`
-  beside `aplyca-adf` — `"adf-docker@aplyca": true` in `enabledPlugins`, and
-  `Read(~/.claude/plugins/cache/aplyca/adf-docker/**)` in `permissions.allow`.
+  beside `aplyca-adf` — `"adf-dev@aplyca": true` in `enabledPlugins`, and
+  `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 
 `install.sh` merges into `.claude/settings.json`: it keeps your rules and their order, adds only
 what's missing, and is safe to run again — `/upgrade` reruns it to pick up new rules.
@@ -35,12 +35,12 @@ in a project whose stamp doesn't name it.
 
 ## Customize
 
-Run `/dev-env set up` (packaged: `/adf-docker:dev-env set up`) once the module is in. It fills these
+Run `/dev-env set up` (packaged: `/adf-dev:dev-env set up`) once the module is in. It fills these
 from what it verifies, and you review them:
 
 1. **`docs/getting-started/DEV-SETUP.md`** — the Docker prerequisite, § 4 Set up local services (the
    command, the services and their ports), the command surface, and § Troubleshooting for problems
-   actually met. Packaged: `/adf-docker:dev-env` joins the key commands under § AI-assisted
+   actually met. Packaged: `/adf-dev:dev-env` joins the key commands under § AI-assisted
    development.
 2. **`AGENTS.md` § Quick reference** — the start and stop commands; the local check before the
    pull request starts the stack from there.
@@ -65,7 +65,7 @@ from what it verifies, and you review them:
 ## Verify
 
 - `python3 -m json.tool .claude/settings.json` parses, and its `ask` list holds the docker rules.
-- In a new session, `/dev-env` (packaged: `/adf-docker:dev-env`) is offered; `docker compose ps`
+- In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps`
   runs without a prompt; asking the agent to remove the stack's volumes prompts.
 
 ## Requirements

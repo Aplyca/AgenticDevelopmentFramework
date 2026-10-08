@@ -151,13 +151,14 @@ Present the table before going further. Wrong facts here poison every file downs
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
   `modules/clickup/install.sh <repo>`. `docker` copies like any module, then
   `modules/docker/install.sh <repo>` merges its permission rules into `.claude/settings.json`.
-  Packaged: leave out a module's `.claude/skills/` when the pinned release's plugins carry it —
-  `aplyca-adf` carries `/dispatch` (`<framework-root>/plugins/aplyca-adf/skills/dispatch/`, decision
-  0020), and a module with a plugin of its own carries its skills in
-  `<framework-root>/plugins/adf-<module>/` (decision 0023). **Turn on a module's own plugin**
-  beside `aplyca-adf`: `"adf-<module>@aplyca": true` in `enabledPlugins`, and
-  `Read(~/.claude/plugins/cache/aplyca/adf-<module>/**)` in `permissions.allow`. A committed install
-  copies the skills and leaves the module's plugin off.
+  Packaged: leave out a module's `.claude/skills/` when the pinned release's plugins carry it. The
+  module's `<framework-root>/modules/<name>/module.json` names the plugin (decision 0023):
+  `aplyca-adf` for the process (`/dispatch`, decision 0020), `adf-dev` for development
+  (`docker`'s `/dev-env`); a release without the file carries no module skills but `/dispatch`.
+  **Turn on the plugin that carries a module** when it isn't `aplyca-adf`, once however many of its
+  modules the project has: `"<plugin>@aplyca": true` in `enabledPlugins`, and
+  `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`. A committed install
+  copies the skills and leaves that plugin off.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -175,7 +176,7 @@ Present the table before going further. Wrong facts here poison every file downs
   note from `docs/SETUP.md` § Packaged install.
 - **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
   development by their full names (`/aplyca-adf:triage`, `@aplyca-adf:code-reviewer`); a module
-  plugin's skill goes by that plugin's name (`/adf-docker:dev-env`).
+  module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
@@ -197,7 +198,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
   `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`. For
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
-  `/adf-docker:dev-env set up`) in a new session, once the stamp names the module — it fills
+  `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it fills
   `DEV-SETUP.md`, the Quick reference's start and stop lines, and `deployment.md`'s `paths:` from
   what it verifies.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
@@ -234,7 +235,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] Packaged: in a new session, `/aplyca-adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
-- [ ] Packaged, with a module that has its own plugin: `adf-<module>@aplyca` is turned on with its read rule, its skills aren't committed, and `/adf-<module>:<skill>` is offered in a new session
+- [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
 - [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`) — ask the user to start a new session and confirm with `/memory` that both load
