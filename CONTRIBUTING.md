@@ -22,6 +22,7 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 6. **Use documented configuration only.** Hyphenated skill and agent frontmatter keys (unknown keys are silently ignored), nested `hooks` arrays in `settings.json`, hooks that read the event from stdin. Verify against the Claude Code docs when in doubt — several past defects were configuration that looked right and silently never ran.
 7. **Never link from the skeleton to framework-only docs.** Adopting repos get the skeleton without `docs/`, `evals/`, or `modules/`; the link check fails on such links.
 8. **Record significant design decisions** in `docs/decisions/` — context with evidence, decision, consequences including the cost, alternatives.
+9. **Write everything in English** — files, comments, examples, commit messages, and PR descriptions. Adopting teams of any language read the skeleton, and agents follow it more consistently in one language. The static checks fail on Spanish text.
 
 ## Making a change
 

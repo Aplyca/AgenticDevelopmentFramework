@@ -40,6 +40,14 @@ plugin when a project has such a tracker or services.
 - **Additive:** turn on `"adf-connect@aplyca": true` in `enabledPlugins` to use it, committed or
   packaged. It needs no read rule.
 
+### Everything in English
+
+The agentic development guide the framework implements, `docs/AgenticDevelopmentGuide.md`, is now
+in English; it was the repository's one Spanish file. CONTRIBUTING gains the ground rule **Write
+everything in English**, and a static check fails on Spanish text.
+
+**Upgrade impact:** none — framework-internal (`docs/`, `evals/`, `CONTRIBUTING.md`).
+
 ### The framework's plugin is `adf`
 
 ([0023](docs/decisions/0023-plugins-by-concern.md))
