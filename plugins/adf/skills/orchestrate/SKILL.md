@@ -53,7 +53,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
    Rule of thumb: review agents (code, security, UX) examining the SAME diff are independent → parallel. An agent whose input is another agent's output is dependent → sequential. Most review work is parallel.
 
-4. **Determine model tiering** — each agent's `agent.md` frontmatter sets its model alias; don't override it without a specific reason. The reviewers, `@adf:spec-writer`, `@adf:test-runner`, and `@adf:debugger` run on `sonnet`; `@adf:spec-analyzer` and `@adf:architect` on `opus`. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the per-agent reasons and trade-offs.
+4. **Determine model tiering** — each agent's `model:` frontmatter sets its alias. Keep it, unless the project's rules record an override for that agent: then pass that model when you spawn it. The reviewers, `@adf:spec-writer`, `@adf:test-runner`, and `@adf:debugger` run on `sonnet`; `@adf:spec-analyzer` and `@adf:architect` on `opus`. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the per-agent reasons and trade-offs.
 
 5. **Present the orchestration plan**:
    ```

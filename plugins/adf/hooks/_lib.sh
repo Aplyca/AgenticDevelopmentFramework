@@ -119,7 +119,9 @@ repo_root_for() {
   git -C "$dir" rev-parse --show-toplevel 2>/dev/null
 }
 
+# block <reason> — stop the call. The hook is named, not its path: the scripts run from .claude/hooks/
+# in a committed install and from the adf plugin in a packaged one.
 block() {
-  echo "Blocked by .claude/hooks/$(basename "$0"): $1" >&2
+  echo "Blocked by the $(basename "$0" .sh) hook: $1" >&2
   exit 2
 }
