@@ -14,7 +14,7 @@ git_dir="$(git -C "$root" rev-parse --absolute-git-dir 2>/dev/null)"
 common_dir="$(git -C "$root" rev-parse --git-common-dir 2>/dev/null)"
 changes="$(git -C "$root" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
 
-echo "Session context (.claude/hooks/session-context.sh):"
+echo "Session context (the session-context hook):"
 # Git reports the main checkout's git dir and common dir alike (.git), a linked worktree's apart.
 if [ "$(git -C "$root" rev-parse --git-dir 2>/dev/null)" = "$common_dir" ]; then
   checkout="main checkout"

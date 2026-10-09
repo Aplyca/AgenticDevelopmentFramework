@@ -17,6 +17,22 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### The hooks name themselves, not a committed install's folder
+
+Two of the hooks' messages placed the script in `.claude/hooks/`, a folder that, in a packaged project
+(the default install), holds only `config.sh`: the hooks run from the `adf` plugin's `hooks/`.
+
+- **A blocked call** reads `Blocked by the guard-git hook: …`, not
+  `Blocked by .claude/hooks/guard-git.sh: …`. The same goes for every hook that blocks.
+- **The session's context** opens with `Session context (the session-context hook):`, not
+  `Session context (.claude/hooks/session-context.sh):`.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/hooks/_lib.sh` and `.claude/hooks/session-context.sh` in a committed install:
+  two labels, no behavior changed.
+- **A packaged project:** nothing to do.
+
 ### A project changes an agent's model in its own rule, in either install
 
 ([0031](docs/decisions/0031-agent-model-overrides-in-the-project-rule.md))
