@@ -82,7 +82,8 @@ Say why each recommendation fits, and what each one costs. The chosen ones join 
 release with `adf-connect` (decision 0023), offer it the same way when the project works with a
 tracker other than GitHub Issues or ClickUp, or with services agents should read: turn on
 `"adf-connect@aplyca": true` in `enabledPlugins`, and list `/adf-connect:connect <service>` as a
-follow-up.
+follow-up. On a release whose `adf-dev` carries the local-environment band (decision 0026), offer it
+when the app runs locally: `"adf-dev@aplyca": true`, and `LOCAL_URL` in `.claude/hooks/config.sh`.
 
 **If the developer chooses `parallel-agents`,** do the whole upgrade in a worktree of its own, created
 with plain git since the module's script isn't there yet:

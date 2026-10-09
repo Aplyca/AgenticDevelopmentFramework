@@ -177,6 +177,10 @@ Present the table before going further. Wrong facts here poison every file downs
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
   `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
   team reviews on its own.
+- **Offer `adf-dev`'s band** (decision 0026) when the app runs locally: a line above the prompt with
+  the local environment's URL, and whether it answers, for the local check. Turn on
+  `"adf-dev@aplyca": true` in `enabledPlugins`, in either install, and fill `LOCAL_URL` below. It needs
+  Claude Code v2.1.287 or later in a terminal, or the desktop app from v2.1.286.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -197,7 +201,9 @@ Present the table before going further. Wrong facts here poison every file downs
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
-  areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
+  areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the developer
+  opens for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
+  parallel-agents module, or leave it empty there and let `READY_URL` serve).
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
   Packaged: no `hooks` block, since the plugin wires them, and

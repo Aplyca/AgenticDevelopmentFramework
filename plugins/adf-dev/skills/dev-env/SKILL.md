@@ -73,8 +73,9 @@ Each fact has one home, and this skill writes only what a command it ran has sho
    the project's quickest test that needs the stack passes against it.
 5. **Write down what you verified** — a docs change, so it goes through triage too: in `DEV-SETUP.md`,
    the Docker row of Prerequisites, § 4's command and the services with their ports, and the command
-   surface; in `AGENTS.md` § Quick reference, the start and stop lines; in `deployment.md`, `paths:`
-   naming the project's Compose and Docker files. § Troubleshooting gets only problems you actually
+   surface; in `AGENTS.md` § Quick reference, the start and stop lines; in `.claude/hooks/config.sh`,
+   `LOCAL_URL` — the URL that answered — so the band above the prompt shows it; in `deployment.md`,
+   `paths:` naming the project's Compose and Docker files. § Troubleshooting gets only problems you actually
    met. For example, the newsletter site: `web` (the Next.js app on `APP_PORT`) and `redis` (the
    signup rate limiter), started with `docker compose up -d --wait`.
 
