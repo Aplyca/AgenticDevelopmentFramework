@@ -1,6 +1,6 @@
 # 0027: The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module)
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0032](0032-local-environment-layout.md) (the module's folder is `ops/agent/`; the commands read `scripts/agent/` until a project moves it)
 - **Date:** 2026-10-09
 - **Amends:** [0016](0016-packaged-install.md) — what a packaged project commits for a module;
   [0023](0023-plugins-by-concern.md) — what a module's plugin carries
