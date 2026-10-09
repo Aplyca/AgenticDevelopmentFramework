@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { chooseUrl, expand, markdownLink, parseSettings } from '../hooks/local-url'
+import { chooseUrl, expand, markdownLink, parsePublishedPort, parseService, parseSettings } from '../hooks/local-url'
 
 describe('parseSettings', () => {
   test('reads quoted, single-quoted, and bare values, ignoring comments and other keys', () => {
@@ -37,8 +37,11 @@ describe('chooseUrl', () => {
   test("a worktree's READY_URL with its own port", () => {
     expect(chooseUrl({}, { READY_URL: 'http://localhost:${APP_PORT}' }, { APP_PORT: '41180' })).toEqual({
       url: 'http://localhost:41180',
-      from: 'scripts/agent/worktree.conf',
+      from: 'ops/agent/worktree.conf',
     })
+    expect(
+      chooseUrl({}, { READY_URL: 'http://localhost:${APP_PORT}' }, { APP_PORT: '41180' }, 'scripts/agent/worktree.conf'),
+    ).toEqual({ url: 'http://localhost:41180', from: 'scripts/agent/worktree.conf' })
   })
 
   test('none: nothing declared, a port the checkout lacks, or a value that is not an http URL', () => {
@@ -46,6 +49,27 @@ describe('chooseUrl', () => {
     expect(chooseUrl({}, { READY_URL: 'http://localhost:${APP_PORT}' }, {})).toBeNull()
     expect(chooseUrl({ LOCAL_URL: 'localhost:3000' }, {}, {})).toBeNull()
     expect(chooseUrl({ LOCAL_URL: 'file:///etc/passwd' }, {}, {})).toBeNull()
+  })
+})
+
+describe('parseService', () => {
+  test("a Compose service and its container port, and nothing else", () => {
+    expect(parseService('web:3000')).toEqual({ service: 'web', port: '3000' })
+    expect(parseService('api-v2.internal_1:8080')).toEqual({ service: 'api-v2.internal_1', port: '8080' })
+    for (const odd of [undefined, '', 'web', ':3000', 'web:', 'Web:3000', 'web:3000:1', 'web;rm:3000', '-p:3000', 'web:123456']) {
+      expect(parseService(odd)).toBeNull()
+    }
+  })
+})
+
+describe('parsePublishedPort', () => {
+  test("the host port docker compose port prints, or null", () => {
+    expect(parsePublishedPort('127.0.0.1:50916\n')).toBe('50916')
+    expect(parsePublishedPort('[::1]:50916')).toBe('50916')
+    expect(parsePublishedPort('0.0.0.0:41000\n127.0.0.1:50916\n')).toBe('50916')
+    for (const odd of ['', 'service "web" is not running', '127.0.0.1:0', '127.0.0.1:70000', ':']) {
+      expect(parsePublishedPort(odd)).toBeNull()
+    }
   })
 })
 

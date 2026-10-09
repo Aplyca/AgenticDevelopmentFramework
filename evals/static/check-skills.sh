@@ -1043,7 +1043,9 @@ check_mods() {
     # The framework's mods are display-only (decision 0026): they read, draw, and add commands. They
     # never approve, refuse, or rewrite a tool call or a prompt, start a turn, run a process, write a
     # file, call a model, or change settings — each of those is the process's, through skills, hooks,
-    # and permissions every install shares. Each mod carries tests (`claude plugin test`).
+    # and permissions every install shares. One exception (decision 0032): adf-dev's band may run
+    # `docker compose port <service> <port>`, read-only, for the port Docker picked — that call,
+    # with that argument vector, in that file, and no other. Each mod carries tests (`claude plugin test`).
     local report
     report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
 import glob, json, os, re, sys
@@ -1051,6 +1053,7 @@ plugins = sys.argv[1]
 display = {"session.start", "session.end", "turn.complete", "command.run", "command.describe",
            "ui.render", "ui.press", "ui.input", "ui.select", "ui.close", "ui.focus", "ui.scroll"}
 banned = re.compile(r"\$\.(prompt\.submit|tool\.|process\.|model\.|agent\.|fs\.write|config\.set|env\.set|session\.(?:send|append|compact))")
+lookup = re.compile(r"\$\.process\.run\(\['docker', 'compose', 'port', target\.service, target\.port\], \{")
 for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json"))):
     if not json.load(open(wiring)).get("modules"):
         continue
@@ -1062,14 +1065,18 @@ for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json")
         for event in re.findall(r"\bon\(\s*['\"]([\w.]+)['\"]", text):
             if event not in display:
                 print(f"{name}/hooks/{os.path.basename(path)} hooks {event}, which a display-only mod doesn't")
-        for call in banned.findall(text):
+        calls = banned.findall(text)
+        if (name, os.path.basename(path)) == ("adf-dev", "register.tsx") and calls.count("process.") == 1 \
+                and len(lookup.findall(text)) == 1 and "const target = parseService(service)" in text:
+            calls.remove("process.")
+        for call in calls:
             print(f"{name}/hooks/{os.path.basename(path)} calls $.{call}, which a display-only mod doesn't")
     if not glob.glob(os.path.join(plugin, "**", "*.test.ts*"), recursive=True):
         print(f"{name}: a mod with no *.test.ts")
 PY
 )
     if [ -z "$report" ]; then
-        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt; each has tests"
+        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt, and run no process but the band's docker compose port lookup (0032); each has tests"
     else
         fail "mods: $report"
     fi
