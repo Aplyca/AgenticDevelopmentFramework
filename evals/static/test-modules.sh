@@ -257,6 +257,11 @@ cases = {
     "docker system df": "allow",
     "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
     "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
+    # The Makefile's targets (decision 0032): reset deletes the stack's volumes; four read-only ones run.
+    "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
+    "make urls && make reset": "ask",
+    "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
+    "make ps down": "prompt", "make up": "prompt", "make down": "prompt", "make native": "prompt",
 }
 for command, expected in cases.items():
     if verdict(command) != expected:
@@ -265,6 +270,75 @@ PY
 )
 check "docker rules: destructive commands ask, read-only ones run, secret-printing ones aren't allowed" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
+
+# ─── docker: the stack /dev-env writes from its templates (decision 0032) ──
+# A stub docker answers `docker compose port` from STUB_PORTS, so this runs without Docker; the
+# helper runs under /bin/bash, which is 3.2 on macOS.
+TPL="$REPO_ROOT/plugins/adf-dev/skills/dev-env/templates"
+DS="$WORK/docker-stack"; mkdir -p "$DS/site" "$DS/bin"
+cp -R "$TPL/." "$DS/site/"
+cat > "$DS/bin/docker" <<'STUB'
+#!/bin/sh
+[ "$1 $2" = "compose port" ] || exit 2
+for entry in $STUB_PORTS; do
+  [ "${entry%%=*}" = "$3:$4" ] && { echo "127.0.0.1:${entry#*=}"; exit 0; }
+done
+echo "service \"$3\" is not running" >&2; exit 1
+STUB
+chmod +x "$DS/bin/docker"
+git -C "$DS/site" init -q -b main && printf '.env\n' > "$DS/site/.gitignore"
+git -C "$DS/site" add -A && git -C "$DS/site" -c user.email=t@e -c user.name=t commit -qm init
+stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" "$@"); }
+ports() { stack env PORTS='APP_PORT=web:3000 REDIS_PORT=redis:6379' /bin/bash ops/scripts/ports.sh "$@"; }
+
+check "templates: ports.sh is executable" "[ -x '$TPL/ops/scripts/ports.sh' ]"
+out=$(stack make env 2>&1)
+check "make env: creates .env from .env.example, readable only by its owner" \
+    "[ -f '$DS/site/.env' ] && [ \"\$(stat -f %Lp '$DS/site/.env' 2>/dev/null || stat -c %a '$DS/site/.env')\" = 600 ] && cmp -s '$DS/site/.env' '$DS/site/.env.example'"
+echo 'MAILCHIMP_API_KEY=topsecret' >> "$DS/site/.env"
+out=$(stack make env 2>&1)
+check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
+out=$(stack make help 2>&1)
+check "make help: the default target lists every task" \
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell services native test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+out=$(stack make -n reset 2>&1)
+check "make reset: deletes the volumes, after the worktree guard" \
+    "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'ports.sh guard'"
+out=$(stack make -n logs 2>&1)
+check "make logs: the last lines, never followed" \
+    "echo \"\$out\" | grep -q -- '--tail 100 --no-color' && ! echo \"\$out\" | grep -qE -- ' -f( |\$)|--follow'"
+out=$(STUB_PORTS='web:3000=51000 redis:6379=51001' ports urls 2>&1); code=$?
+check "ports.sh urls: where Docker published each service, the app as a URL" \
+    "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'web .*http://localhost:51000  (APP_PORT)' && echo \"\$out\" | grep -q 'redis .*localhost:51001  (REDIS_PORT)'"
+out=$(STUB_PORTS='redis:6379=51001' ports urls 2>&1)
+check "ports.sh urls: a service that's down says so" "echo \"\$out\" | grep -q 'web .*not running'"
+out=$(STUB_PORTS='redis:6379=51001' ports env 2>&1); code=$?
+check "ports.sh env: each backing service's port, and a free port for the app on the host" \
+    "[ $code -eq 0 ] && echo \"\$out\" | grep -q '^export REDIS_PORT=51001$' && echo \"\$out\" | grep -qE '^export APP_PORT=[0-9]+$'"
+sed -i.bak 's/^APP_PORT=$/APP_PORT=48765/' "$DS/site/.env" && rm -f "$DS/site/.env.bak"
+out=$(STUB_PORTS='redis:6379=51001' ports env 2>&1)
+check "ports.sh env: the app keeps a port pinned in .env" "echo \"\$out\" | grep -q '^export APP_PORT=48765$'"
+out=$(STUB_PORTS='redis:6379=51001' APP_PORT=47000 ports env 2>&1)
+check "ports.sh env: a value in the shell wins, as it does for Compose" "echo \"\$out\" | grep -q '^export APP_PORT=47000$'"
+out=$(ports env 2>&1); code=$?
+check "ports.sh env: refuses while the backing services are down" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'make services'"
+out=$(ports free); code=$?
+check "ports.sh free: a port nothing listens on" \
+    "[ $code -eq 0 ] && [ \"\$out\" -ge 20000 ] && [ \"\$out\" -lt 32000 ] && ! (exec 3<>/dev/tcp/127.0.0.1/\$out) 2>/dev/null"
+out=$({ STUB_PORTS='web:3000=51000 redis:6379=51001' ports urls; STUB_PORTS='redis:6379=51001' ports env; ports guard; } 2>&1)
+check "ports.sh: never prints a value from .env but the ports" "! echo \"\$out\" | grep -q topsecret"
+check "ports.sh guard: passes in the main checkout" "ports guard"
+git -C "$DS/site" worktree add -q -b feat/copied "$DS/site-feat-copied" && cp "$DS/site/.env" "$DS/site-feat-copied/.env"
+out=$(cd "$DS/site-feat-copied" && /bin/bash ops/scripts/ports.sh guard 2>&1); code=$?
+reset_out=$(cd "$DS/site-feat-copied" && PATH="$DS/bin:$PATH" make reset 2>&1)
+check "ports.sh guard: refuses in a worktree whose .env repeats the main checkout's pinned port, and so does make reset" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'APP_PORT' && echo \"\$reset_out\" | grep -q 'repeats the main checkout' && ! echo \"\$reset_out\" | grep -q 'down -v'"
+sed -i.bak 's/^APP_PORT=48765$/APP_PORT=/' "$DS/site-feat-copied/.env" && rm -f "$DS/site-feat-copied/.env.bak"
+check "ports.sh guard: passes there once the copied port is emptied" "(cd '$DS/site-feat-copied' && /bin/bash ops/scripts/ports.sh guard)"
+if docker compose version >/dev/null 2>&1; then
+    check "compose.yaml: valid, with an empty .env and with pinned ports" \
+        "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
+fi
 
 
 echo "=============================="

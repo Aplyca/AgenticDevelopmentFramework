@@ -1,0 +1,8 @@
+# What the build of ops/docker/web/Dockerfile never sees: secrets, history, and the agents' files.
+# BuildKit, Compose's builder, reads it from beside the Dockerfile.
+.git
+.env
+.env.*
+!.env.example
+.claude/
+# CUSTOMIZE: dependency and build folders the image makes for itself
