@@ -55,6 +55,14 @@ function httpUrl(text: string | null): string | null {
   }
 }
 
+// `[url](url)`, with the characters Markdown reads as syntax escaped: brackets in the text (an IPv6
+// host), parentheses and spaces in the target.
+export function markdownLink(url: string): string {
+  const text = url.replace(/[[\]\\]/g, ch => `\\${ch}`)
+  const target = url.replace(/[()\s]/g, ch => encodeURIComponent(ch).replace('(', '%28').replace(')', '%29'))
+  return `[${text}](${target})`
+}
+
 // The project's own LOCAL_URL wins; otherwise the worktree's READY_URL; otherwise there's none.
 export function chooseUrl(config: Settings, worktree: Settings, env: Settings): Source | null {
   const declared = httpUrl(config.LOCAL_URL ? expand(config.LOCAL_URL, env) : null)

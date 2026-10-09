@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { chooseUrl, expand, parseSettings } from '../hooks/local-url'
+import { chooseUrl, expand, markdownLink, parseSettings } from '../hooks/local-url'
 
 describe('parseSettings', () => {
   test('reads quoted, single-quoted, and bare values, ignoring comments and other keys', () => {
@@ -46,5 +46,13 @@ describe('chooseUrl', () => {
     expect(chooseUrl({}, { READY_URL: 'http://localhost:${APP_PORT}' }, {})).toBeNull()
     expect(chooseUrl({ LOCAL_URL: 'localhost:3000' }, {}, {})).toBeNull()
     expect(chooseUrl({ LOCAL_URL: 'file:///etc/passwd' }, {}, {})).toBeNull()
+  })
+})
+
+describe('markdownLink', () => {
+  test('links the URL, escaping what Markdown would read as syntax', () => {
+    expect(markdownLink('http://127.0.0.1:47801')).toBe('[http://127.0.0.1:47801](http://127.0.0.1:47801)')
+    expect(markdownLink('http://[::1]:3000')).toBe('[http://\\[::1\\]:3000](http://[::1]:3000)')
+    expect(markdownLink('http://localhost:3000/a(b)c')).toBe('[http://localhost:3000/a(b)c](http://localhost:3000/a%28b%29c)')
   })
 })

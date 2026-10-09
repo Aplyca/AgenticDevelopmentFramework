@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { LocalEnvironment } from '../types'
-import { chooseUrl, parseSettings, type Settings } from './local-url'
+import { chooseUrl, markdownLink, parseSettings, type Settings } from './local-url'
 
 // The local environment's URL above the prompt, and whether it answers, for the developer's local
 // check before the pull request. It only reads three of the project's files and requests the URL:
@@ -75,13 +75,15 @@ export const register: Register = on => {
     if (found === null || e.props.hasSurvey) {
       return next(e)
     }
-    const { Box, Link, Text } = $.ui.resolve(e)
+    const { Box, Markdown, Text } = $.ui.resolve(e)
 
+    // A Markdown link, not a Link: the desktop app draws a Link plain unless it's https:, and a local
+    // URL is usually http:. The surface opens it as it opens any link in a reply.
     return (
       <Box>
         <Text color={found.isUp ? 'success' : 'inactive'}>{found.isUp ? '● ' : '○ '}</Text>
         <Text dimColor>Local: </Text>
-        <Link href={found.url} />
+        <Markdown text={markdownLink(found.url)} />
         {found.isUp ? null : <Text dimColor> · not answering</Text>}
       </Box>
     )

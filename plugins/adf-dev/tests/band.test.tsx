@@ -31,6 +31,8 @@ test("a worktree's URL shows above the prompt, answering", async ($, on) => {
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ plugin: 'adf-dev', surface, ...BAND })
     expect(await ui.find({ type: 'Text', text: /Local:/ })).toBeDefined()
+    // A Markdown link, which the desktop app opens for http: too
+    expect((await ui.find({ type: 'Markdown' }))?.props.text).toBe('[http://localhost:41180](http://localhost:41180)')
     expect(await ui.find({ type: 'Text', text: /not answering/ })).toBeUndefined()
     await ui.unmount()
   }
