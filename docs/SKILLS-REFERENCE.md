@@ -63,7 +63,11 @@ from the plugin the module's `module.json` names: `/dispatch` from `adf`, the pr
 ## Dynamic workflows
 
 Deterministic multi-agent scripts (`.claude/workflows/*.js`, Claude Code). Several times the cost of
-the skill they extend; use them where coverage and confidence are worth it.
+the skill they extend; use them where coverage and confidence are worth it. `/deep-drift-sweep`'s
+auditors follow `/spec-drift`'s steps: a committed project's workflow points at
+`.claude/skills/spec-drift/SKILL.md`, and the plugin's carries the steps' text, because a packaged
+project has no `.claude/skills/` and a workflow can't reach the plugin's skills
+([decision 0030](decisions/0030-workflows-carry-skill-steps.md)).
 
 | Workflow | What it runs | Use when |
 |---|---|---|
