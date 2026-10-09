@@ -11,11 +11,73 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-**Upgrading from v1:** this is a major release. The framework's plugin is renamed, and `CLAUDE.md` and
-`GEMINI.md` go away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out the
-migrations below.
+**Upgrading from v1:** this is a major release. The framework's plugin is renamed, `CLAUDE.md` and
+`GEMINI.md` go away, the parallel-agents module moves to `ops/agent/`, and every project acts once.
+Run `/aplyca-adf:upgrade`, which carries out the migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
+
+### The local environment: `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks
+
+([0032](docs/decisions/0032-local-environment-layout.md))
+
+The docker module's `/dev-env` drafted a Compose stack from loose conventions, with a fixed default
+port. The skeleton's files listed fixed ports and said to copy `.env.example` to `.env.local`, which
+Compose never reads. No convention said where operational code goes, how containers get their
+variables, or which commands people and agents share, and nothing ran the app outside Docker.
+
+- **The conventions,** which `/dev-env` and the skeleton's `deployment.md` now state:
+  - `compose.yaml` at the root, the one Compose entry point. The root holds only it, the `Makefile`,
+    `.env`, and `.env.example`.
+  - Operational code in `ops/`: `ops/docker/<service>/` for Dockerfiles and service config,
+    `ops/scripts/` for helpers, `ops/agent/` for the parallel-agents module.
+  - A `Makefile` as the command surface: `help`, `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`,
+    `shell`, `services`, `native`, `test`, `lint`, `reset`.
+  - Three levels of variables: `.env`, which Compose reads; each service's `environment:`, in container
+    form; and `.env.example`. No `env_file:`.
+  - Ports Docker picks: `"127.0.0.1:${<NAME>_PORT:-}:<port>"`, empty in `.env.example`, so any number of
+    checkouts and worktrees run side by side. `make urls` shows where each service is; a developer pins
+    a port in `.env` when the app must know its own URL.
+  - A native option: `make native` runs the app on the host against the backing services in Docker.
+- **`/dev-env` carries templates** (`templates/`): `compose.yaml`, `Makefile`, `.env.example`,
+  `ops/docker/web/Dockerfile` with its `.dockerignore`, and `ops/scripts/ports.sh`, which looks up the
+  ports Docker picked, hands the backing services' ports to the app on the host, and stops a worktree
+  from running the main checkout's stack through a copied `.env`. **Set up** writes a missing stack from
+  them, or audits an existing one and proposes the move as a careful-lane change. A new **native** mode
+  runs the app on the host. **Worktrees** need no port slots: `PORT_SLOTS=0`,
+  `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, `START_CMD="make up"`, `ENV_INFO_CMD="make urls"`.
+- **The band looks up the port Docker picked.** With `LOCAL_SERVICE` set in `.claude/hooks/config.sh`
+  (`web:3000`) and no `APP_PORT` pinned, `adf-dev`'s mod runs one read-only command,
+  `docker compose port <service> <port>` — the one exception to 0026's "mods run no process", which the
+  static check holds to that argument vector.
+- **The docker module's permissions** allow exactly `make help`, `make ps`, `make urls`, and
+  `make logs`, and ask before any `make` command that names `reset`.
+- **The parallel-agents module moves from `scripts/agent/` to `ops/agent/`.** `module.json` names the old
+  folder in a new `moved_from` key. The `adf-worktree-*` commands, the session-context and protect-hub
+  hooks, `/adf:dispatch`, `/adf-connect:connect`, `/adf-dev:dev-env`, and the band read `ops/agent/`
+  first and `scripts/agent/` after it, until the next major release.
+- **Fixed:** `/adopt`, `/upgrade`, `README.md`, and `modules/README.md` said the docker module copies
+  files; it has none. The skeleton's `DEV-SETUP.md` and `README.md` say `.env`, not `.env.local`, and
+  no longer show fixed ports.
+
+**Upgrade impact:**
+
+- **Migration (parallel-agents), in either install:** `/adf:upgrade` runs `git mv scripts/agent ops/agent`,
+  fixes any `*_CMD` or `ENV_INFO_CMD` in `worktree.conf` and the comment in `.worktreeinclude` that name
+  `scripts/agent/`, renames the scripts in `AGENTS.md` § Quick reference for a committed install, and
+  updates the other mentions `git grep scripts/agent` finds. A packaged project keeps working before the
+  move: the commands and hooks read either folder.
+- **Overwrite** in a committed install: `.claude/skills/dev-env/` (now with `templates/`),
+  `.claude/skills/dispatch/SKILL.md`, `.claude/hooks/_lib.sh`, `session-context.sh`, `protect-hub.sh`,
+  and the module's scripts, at `ops/agent/`.
+- **Merge:** `.claude/rules/deployment.md` (its `paths:` and sections), `.claude/rules/claude-code.md`,
+  `docs/getting-started/DEV-SETUP.md`, `README.md`, `AGENTS.md` (the Quick reference and the
+  constitution example), `.claude/hooks/config.sh` (the new `LOCAL_SERVICE`), `docs/infrastructure/OVERVIEW.md`,
+  `ops/agent/worktree.conf` (comments and examples), `.worktreeinclude`, and `docs/PARALLEL-AGENTS.md`.
+  Rerun `modules/docker/install.sh` for the `make` rules.
+- **Optional (docker):** in a new session, `/adf-dev:dev-env set up` (committed: `/dev-env set up`)
+  audits the stack and proposes moving it to the conventions; with parallel-agents,
+  `/dev-env worktrees` proposes the new `worktree.conf` values.
 
 ### The drift sweep's auditors return the schema, and carried sections end where their heading's section ends
 

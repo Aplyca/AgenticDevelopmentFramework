@@ -1,6 +1,6 @@
 # 0008: The main checkout dispatches; worktrees do the work (optional module)
 
-- **Status:** accepted; amended by [0015](0015-tool-worktrees-are-workers.md) (Claude Code's own worktrees are workers too) and [0020](0020-every-task-through-dispatch.md) (every task goes through `/dispatch`)
+- **Status:** accepted; amended by [0015](0015-tool-worktrees-are-workers.md) (Claude Code's own worktrees are workers too), [0020](0020-every-task-through-dispatch.md) (every task goes through `/dispatch`), and [0032](0032-local-environment-layout.md) (a Docker stack's worktrees need no port slots: each folder names its Compose project, and Docker picks the ports)
 - **Date:** 2026-10-01
 
 ## Context

@@ -6,10 +6,12 @@
 # project's copies from them. Three things are generated:
 #
 # - In every plugin's bin/, the commands its modules list in module.json (decision 0027):
-#   parallel-agents' scripts/agent/worktree-new.sh becomes adf's adf-worktree-new, on the Bash tool's
+#   parallel-agents' ops/agent/worktree-new.sh becomes adf's adf-worktree-new, on the Bash tool's
 #   PATH while the plugin is on. A module's scripts stay in the module, which a committed install copies.
 #   Each command carries the helper its script loads, finds the project from the working directory, and
-#   runs the project's own script instead when a committed install has one.
+#   runs the project's own script instead when a committed install has one. A module whose scripts moved
+#   names their old folder in module.json's moved_from, and the command reads it when the project
+#   hasn't moved it yet (decision 0032).
 # - The spec model, the agents' checklists, and the skills' steps in adf's workflows: Claude Code
 #   doesn't fill in ${CLAUDE_PLUGIN_ROOT} in a workflow script, so the line `const SPEC_MODEL = "…"`
 #   carries docs/SPEC-MODEL.md's text, `const SECURITY_REVIEWER_CHECKLIST = "…"` the checklist in
@@ -57,15 +59,21 @@ if ! ADF_CHECKOUT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
   exit 1
 fi
 # A project without the module has no {folder}/: in a packaged install it keeps the module's settings.
-if [ ! -d "$ADF_CHECKOUT/{folder}" ]; then
+if [ -d "$ADF_CHECKOUT/{folder}" ]; then
+  ADF_MODULE_DIR="$ADF_CHECKOUT/{folder}"
+{legacy}else
   echo "Error: this project doesn't use the {module} module (no {folder}/)." >&2
   exit 1
 fi
 # A committed install keeps the module's script: run that, the version this project upgraded to.
-if [ -x "$ADF_CHECKOUT/{rel}" ]; then
-  exec "$ADF_CHECKOUT/{rel}" "$@"
+if [ -x "$ADF_MODULE_DIR/{script}" ]; then
+  exec "$ADF_MODULE_DIR/{script}" "$@"
 fi
 
+"""
+LEGACY = """elif [ -d "$ADF_CHECKOUT/{moved_from}" ]; then
+  # The folder before decision 0032, until /adf:upgrade moves it.
+  ADF_MODULE_DIR="$ADF_CHECKOUT/{moved_from}"
 """
 
 
@@ -84,7 +92,7 @@ def write_commands(plugin, out):
             with open(os.path.join(os.path.dirname(path), m.group(1)), encoding="utf-8") as f:
                 helper = f.read()
             assert len(SELF_DIR.findall(helper)) == 1, f"{m.group(1)} doesn't find its folder the way the build rewrites"
-            helper = SELF_DIR.sub(lambda d: f'{d.group(1)}="$ADF_CHECKOUT/{folder}"', helper)
+            helper = SELF_DIR.sub(lambda d: f'{d.group(1)}="$ADF_MODULE_DIR"', helper)
             helper = re.sub(r"\A(#.*\n)+\n*", "", helper)  # its header says it's sourced, never run
             return f"# ── {m.group(1)}, inlined ──\n{helper.rstrip()}\n# ── end of {m.group(1)} ──"
 
@@ -93,7 +101,10 @@ def write_commands(plugin, out):
             f"{rel} finds a file beside itself, which a command can't: load it the way the build inlines"
         target = os.path.join(out, "bin", name)
         os.makedirs(os.path.dirname(target), exist_ok=True)
-        head = COMMAND_HEAD.format(name=name, plugin=plugin, rel=rel, module=module, folder=folder)
+        moved_from = machinery.moved_from.get(module)
+        legacy = LEGACY.format(moved_from=moved_from) if moved_from else ""
+        head = COMMAND_HEAD.format(name=name, plugin=plugin, rel=rel, module=module, folder=folder,
+                                   script=os.path.basename(rel), legacy=legacy)
         with open(target, "w", encoding="utf-8") as f:
             f.write(head + machinery.to_plugin_names(body))
         os.chmod(target, 0o755)

@@ -180,8 +180,8 @@ fi
 # the main checkout, worker in any linked worktree (decision 0015). In a worktree the scripts didn't
 # set up, it also learns what that worktree lacks. The module's settings are what show it's there: a
 # packaged project commits them without the scripts (decision 0027).
-mkdir -p "$T/scripts/agent" && printf 'BASE_BRANCH="main"\nENV_FILE=".env"\n' > "$T/scripts/agent/worktree.conf"
-git -C "$T" add scripts/agent && git -C "$T" commit -qm "add the worktree settings"
+mkdir -p "$T/ops/agent" && printf 'BASE_BRANCH="main"\nENV_FILE=".env"\n' > "$T/ops/agent/worktree.conf"
+git -C "$T" add ops/agent && git -C "$T" commit -qm "add the worktree settings"
 git -C "$T" update-ref refs/remotes/origin/main HEAD && git -C "$T" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
 echo 'SECRET=1' > "$T/.env"
 git -C "$T" worktree add -q -b feat/role-check "$WORK/feat-role-check"
@@ -200,7 +200,7 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
 }
 check_ctx "dispatcher in the main checkout, which gives every task to /dispatch" "$T" "Give every task to /dispatch"
 check_ctx "the dispatcher's tasks get worktrees beside the main checkout, from the base branch" "$T" "worktree beside this checkout, on a new branch from main," "Route:"
-check_ctx "a dispatched session in the main checkout is told to create its worktree and move first" "$T" "first step is the worktree: scripts/agent/worktree-new.sh <branch> --no-start, then move this session"
+check_ctx "a dispatched session in the main checkout is told to create its worktree and move first" "$T" "first step is the worktree: ops/agent/worktree-new.sh <branch> --no-start, then move this session"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 check_ctx "worker in Claude Code's worktree, told to rename its generated branch" "$T/.claude/worktrees/eager-lamport" "branch name is generated (claude/eager-lamport)"
 check_ctx "worker in Claude Code's worktree, told the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here"
@@ -209,22 +209,22 @@ check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somew
 git -C "$T/.claude/worktrees/eager-lamport" branch -q -m feat/renamed
 cp "$T/.env" "$T/.claude/worktrees/eager-lamport/.env"
 check_ctx "a renamed branch with its env file needs nothing more" "$T/.claude/worktrees/eager-lamport" "Role: WORKER" "generated\|No .env\|Not set up"
-printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf"
-cp "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf" "$T/scripts/agent/worktree.conf"
+printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf"
+cp "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf" "$T/ops/agent/worktree.conf"
 check_ctx "a project whose worktrees run a server takes the same route" "$T" "Give every task to /dispatch" "Route:"
 check_ctx "Claude Code's worktree there lacks the port and start command" "$T/.claude/worktrees/eager-lamport" "lacks a port and setup or start commands"
-printf 'BASE_BRANCH="staging"\nENV_FILE=".env"\n' > "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf"
-cp "$T/.claude/worktrees/eager-lamport/scripts/agent/worktree.conf" "$T/scripts/agent/worktree.conf"
+printf 'BASE_BRANCH="staging"\nENV_FILE=".env"\n' > "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf"
+cp "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf" "$T/ops/agent/worktree.conf"
 check_ctx "the dispatcher names the branch tasks start from" "$T" "on a new branch from staging,"
 check_ctx "Claude Code's worktree there started from the wrong base" "$T/.claude/worktrees/eager-lamport" "started this worktree from main, but tasks here start from staging"
-printf 'BASE_BRANCH="staging" # integration\nSETUP_CMD="$(touch %s/conf-ran)"\n' "$WORK" > "$T/scripts/agent/worktree.conf"
+printf 'BASE_BRANCH="staging" # integration\nSETUP_CMD="$(touch %s/conf-ran)"\n' "$WORK" > "$T/ops/agent/worktree.conf"
 check_ctx "worktree.conf is read as data, comments and all" "$T" "on a new branch from staging,"
 if [ ! -e "$WORK/conf-ran" ]; then
     PASS=$((PASS+1)); echo "✓ session-context.sh: nothing in worktree.conf runs"
 else
     FAIL=$((FAIL+1)); echo "✘ session-context.sh: a command in worktree.conf ran"
 fi
-git -C "$T" checkout -q -- scripts/agent/worktree.conf && rm -f "$T/.env"
+git -C "$T" checkout -q -- ops/agent/worktree.conf && rm -f "$T/.env"
 for w in "$WORK/feat-role-check" "$T/.claude/worktrees/eager-lamport" "$T/.claude/worktrees/calm-turing" "$WORK/somewhere-else"; do
     git -C "$T" worktree remove --force "$w"
 done
@@ -324,15 +324,26 @@ else
 fi
 # Decision 0027: a packaged project with the parallel-agents module commits only its settings, and the
 # plugin's hooks name the plugin's command for the worker's first step.
-mkdir -p "$PROJ/scripts/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/scripts/agent/worktree.conf"
+mkdir -p "$PROJ/ops/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/ops/agent/worktree.conf"
 echo 'HUB_READONLY="1"' >> "$PROJ/.claude/hooks/config.sh"
 step=$(pkg_context | grep -c -F "Its first step is the worktree: adf-worktree-new <branch> --no-start")
 hub=$(printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s/src/app.ts"}}' "$PROJ" "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/protect-hub.sh" 2>&1 >/dev/null; echo "exit=$?")
+rm -rf "$PROJ/ops"
+# Decision 0032: a project that hasn't moved the module's settings to ops/agent/ yet keeps them in
+# scripts/agent/, and the hooks still find them there.
+mkdir -p "$PROJ/scripts/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/scripts/agent/worktree.conf"
+legacy_step=$(pkg_context | grep -c -F "Its first step is the worktree: adf-worktree-new <branch> --no-start")
+legacy_hub=$(printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s/src/app.ts"}}' "$PROJ" "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/protect-hub.sh" 2>&1 >/dev/null; echo "exit=$?")
 rm -rf "$PROJ/scripts" && echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 if [ "$step" = 1 ] && echo "$hub" | grep -q 'exit=2' && echo "$hub" | grep -q -F "(adf-worktree-new <branch> --no-start)"; then
     PASS=$((PASS+1)); echo "✓ packaged hooks: the module's settings alone make the hub, and the worker's first step is adf-worktree-new"
 else
     FAIL=$((FAIL+1)); echo "✘ packaged hooks: first-step line printed $step time(s) (want 1); protect-hub said: $hub"
+fi
+if [ "$legacy_step" = 1 ] && echo "$legacy_hub" | grep -q 'exit=2'; then
+    PASS=$((PASS+1)); echo "✓ packaged hooks: settings still in scripts/agent/ make the hub too"
+else
+    FAIL=$((FAIL+1)); echo "✘ packaged hooks: with scripts/agent/, first-step line printed $legacy_step time(s) (want 1); protect-hub said: $legacy_hub"
 fi
 # config.sh is data: quoting styles, indentation, and trailing comments parse, and nothing in it runs.
 cat > "$PROJ/.claude/hooks/config.sh" <<CONF

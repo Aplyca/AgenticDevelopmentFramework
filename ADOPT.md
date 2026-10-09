@@ -19,8 +19,8 @@ branch, delivered as a draft pull request — and wait for their go-ahead.
   nothing to install: they start a new session and accept the prompt to trust the folder. Ask
   whether they want an upgrade instead; if so, follow steps 2 and 3 with `/upgrade` in place of
   `/adopt`.
-- **The main checkout of a hub?** If `scripts/agent/worktree.conf` exists and
-  `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, stop: the hub takes no edits. Ask
+- **The main checkout of a hub?** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`)
+  exists and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, stop: the hub takes no edits. Ask
   the developer to start a session in a worktree and run this there.
 
 ## 2. Install the plugin for this project only

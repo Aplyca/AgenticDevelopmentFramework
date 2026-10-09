@@ -6,7 +6,7 @@
 # flagged while they sit on a generated branch or a detached HEAD. Everything is derived on each
 # run: environments come and go, so a written-down copy would be wrong by the time anyone read it.
 #
-# Usage: scripts/agent/worktree-ls.sh [--info]
+# Usage: ops/agent/worktree-ls.sh [--info]
 set -uo pipefail
 . "$(dirname "$0")/_worktree-lib.sh"
 
@@ -74,7 +74,7 @@ for row in "${rows[@]}"; do
 done
 
 for port in $duplicates; do
-  printf '\n  !! Two worktrees claim port %s — one of them is talking to the other'"'"'s app.\n     Fix one with: scripts/agent/worktree-new.sh <its branch> --refresh-env\n' "$port"
+  printf '\n  !! Two worktrees claim port %s — one of them is talking to the other'"'"'s app.\n     Fix one with: ops/agent/worktree-new.sh <its branch> --refresh-env\n' "$port"
 done
 while IFS='|' read -r branch path; do
   [ -n "$path" ] || continue
@@ -84,7 +84,7 @@ done <<<"$unnamed"
 if [ -n "$INFO" ]; then
   if [ -z "$ENV_INFO_CMD" ]; then
     echo
-    echo "  Set ENV_INFO_CMD in scripts/agent/worktree.conf to print what someone needs to use each"
+    echo "  Set ENV_INFO_CMD in ops/agent/worktree.conf to print what someone needs to use each"
     echo "  environment (its URLs, the accounts to sign in with)."
   elif [ -n "$details" ]; then
     printf '%s\n' "$details"

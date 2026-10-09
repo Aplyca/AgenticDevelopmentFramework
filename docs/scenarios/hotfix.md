@@ -77,7 +77,7 @@ yes on the risky part.
     backfill.
 
 With the parallel-agents module, a model-B hotfix branches from the release tag:
-`scripts/agent/worktree-new.sh hotfix/<slug> --from v1.6.0`.
+`ops/agent/worktree-new.sh hotfix/<slug> --from v1.6.0`.
 
 ## Example
 

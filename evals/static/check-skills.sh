@@ -562,8 +562,8 @@ try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
     print(f"module.json is not valid JSON: {e}"); sys.exit()
-if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands"}:
-    print(f"module.json takes plugin and, optionally, skills and commands — it has {sorted(data)}")
+if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands", "moved_from"}:
+    print(f"module.json takes plugin and, optionally, skills, commands, and moved_from — it has {sorted(data)}")
 elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
     print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
 for skill in data.get("skills", []):
@@ -576,6 +576,10 @@ for command, rel in commands.items():
         print(f"module.json: command {command} must be named {data.get('plugin')}-<name> and come from a script in files/")
 if not data.get("skills") and not commands:
     print("has a module.json but no skills or commands for a plugin to carry")
+# Decision 0032: the folder the commands' scripts lived in before, which the commands still read.
+folders = {os.path.dirname(rel) for rel in commands.values()}
+if "moved_from" in data and (len(folders) != 1 or not isinstance(data["moved_from"], str) or data["moved_from"] in folders):
+    print("module.json: moved_from is the one folder all its commands' scripts lived in before, not the one they're in")
 PY
 )
         if [ -n "$problem" ]; then
@@ -688,11 +692,11 @@ check_practices() {
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree.conf` in this' || missing+=("/dispatch: stops without the module's settings, since the plugin carries it (0020, 0027)")
-    file_contains_literal "$HOOKS_DIR/protect-hub.sh" '[ -f "$root/scripts/agent/worktree.conf" ] || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0027)")
+    file_contains_literal "$HOOKS_DIR/protect-hub.sh" 'worktree_settings "$root" >/dev/null || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0027)")
     file_contains "$REPO_ROOT/plugins/adf/.generated" '^bin$' || missing+=("the plugin carries the worktree scripts as commands (0027)")
     [ -f "$REPO_ROOT/plugins/adf/skills/dispatch/SKILL.md" ] || missing+=("the plugin carries /dispatch (0020)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Give every task to /dispatch' || missing+=("session-context.sh: the dispatcher gives every task to /dispatch (0020)")
-    file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
+    file_contains "$MODULES_DIR/parallel-agents/files/ops/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
     file_contains "$AGENTS_MD" 'write or update the test that asserts the new behavior and watch it fail' || missing+=("AGENTS.md: the fast lane is test-first")
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
@@ -727,6 +731,13 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'No `env_file:`' || missing+=("/dev-env: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
+    file_contains "$SKELETON/.claude/rules/deployment.md" '^  - "compose.yaml"$' || missing+=("deployment.md: its paths name compose.yaml (0032)")
+    file_contains "$SKELETON/.claude/rules/deployment.md" 'env_file:' || missing+=("deployment.md: the three levels of variables, no env_file: (0032)")
+    ! grep -rqF '.env.example .env.local' "$SKELETON" || missing+=("skeleton: copies .env.example to .env, which Compose reads, not .env.local (0032)")
     ! file_contains "$REPO_ROOT/CONTRIBUTING.md" 'Bump the plugin version' || missing+=("CONTRIBUTING.md: the plugin's version changes only in a release (0017)")
     file_contains "$REPO_ROOT/docs/SETUP.md" '## Packaged install' || missing+=("SETUP.md: the packaged install")
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
@@ -736,7 +747,7 @@ check_practices() {
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install, the local environment's conventions (0032)"
     else
         fail "practices: missing" "${missing[*]}"
     fi
@@ -1039,7 +1050,9 @@ check_mods() {
     # The framework's mods are display-only (decision 0026): they read, draw, and add commands. They
     # never approve, refuse, or rewrite a tool call or a prompt, start a turn, run a process, write a
     # file, call a model, or change settings — each of those is the process's, through skills, hooks,
-    # and permissions every install shares. Each mod carries tests (`claude plugin test`).
+    # and permissions every install shares. One exception (decision 0032): adf-dev's band may run
+    # `docker compose port <service> <port>`, read-only, for the port Docker picked — that call,
+    # with that argument vector, in that file, and no other. Each mod carries tests (`claude plugin test`).
     local report
     report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
 import glob, json, os, re, sys
@@ -1047,6 +1060,7 @@ plugins = sys.argv[1]
 display = {"session.start", "session.end", "turn.complete", "command.run", "command.describe",
            "ui.render", "ui.press", "ui.input", "ui.select", "ui.close", "ui.focus", "ui.scroll"}
 banned = re.compile(r"\$\.(prompt\.submit|tool\.|process\.|model\.|agent\.|fs\.write|config\.set|env\.set|session\.(?:send|append|compact))")
+lookup = re.compile(r"\$\.process\.run\(\['docker', 'compose', 'port', target\.service, target\.port\], \{")
 for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json"))):
     if not json.load(open(wiring)).get("modules"):
         continue
@@ -1058,16 +1072,108 @@ for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json")
         for event in re.findall(r"\bon\(\s*['\"]([\w.]+)['\"]", text):
             if event not in display:
                 print(f"{name}/hooks/{os.path.basename(path)} hooks {event}, which a display-only mod doesn't")
-        for call in banned.findall(text):
+        calls = banned.findall(text)
+        if (name, os.path.basename(path)) == ("adf-dev", "register.tsx") and calls.count("process.") == 1 \
+                and len(lookup.findall(text)) == 1 and "const target = parseService(service)" in text:
+            calls.remove("process.")
+        for call in calls:
             print(f"{name}/hooks/{os.path.basename(path)} calls $.{call}, which a display-only mod doesn't")
     if not glob.glob(os.path.join(plugin, "**", "*.test.ts*"), recursive=True):
         print(f"{name}: a mod with no *.test.ts")
 PY
 )
     if [ -z "$report" ]; then
-        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt; each has tests"
+        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt, and run no process but the band's docker compose port lookup (0032); each has tests"
     else
         fail "mods: $report"
+    fi
+}
+
+check_dev_env_templates() {
+    # Decision 0032: the stack /dev-env writes from its templates keeps the local-environment
+    # conventions — and the scripts any module or skill ships run on macOS's bash 3.2.
+    local problems
+    problems=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
+def read(rel):
+    with open(os.path.join(tpl, rel), encoding="utf-8") as f:
+        return f.read()
+files = ["compose.yaml", "Makefile", ".env.example", "ops/scripts/ports.sh", "ops/docker/web/Dockerfile",
+         "ops/docker/web/Dockerfile.dockerignore"]
+missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
+for f in missing:
+    print(f"templates/{f} is missing")
+if missing:
+    sys.exit()
+if not os.access(os.path.join(tpl, "ops/scripts/ports.sh"), os.X_OK):
+    print("templates/ops/scripts/ports.sh isn't executable")
+
+declared = {m.group(1): m.group(2) for m in re.finditer(r"^([A-Z_][A-Z0-9_]*)=(.*)$", read(".env.example"), re.M)}
+for name, value in declared.items():
+    if (name.endswith("_PORT") or name == "COMPOSE_PROJECT_NAME") and value:
+        print(f".env.example: {name} has a value — empty lets Docker pick the port and the folder name the project")
+
+compose = [l for l in read("compose.yaml").split("\n") if not l.lstrip().startswith("#")]
+text = "\n".join(compose)
+for key in ("env_file:", "container_name:"):
+    if key in text:
+        print(f"compose.yaml uses {key}")
+if re.search(r"^name:", text, re.M):
+    print("compose.yaml has a top-level name:")
+for var in sorted(set(re.findall(r"[$][{]([A-Z_][A-Z0-9_]*)", text)) - set(declared)):
+    print(f"compose.yaml uses the variable {var}, which .env.example doesn't declare")
+for image in re.findall(r"^\s*image:\s*(\S+)", text, re.M):
+    if ":" not in image or image.endswith(":latest"):
+        print(f"compose.yaml: image {image} isn't pinned")
+services, current, in_ports = {}, None, False
+for line in compose:
+    if re.match(r"^  [a-z][\w-]*:\s*$", line):
+        current = line.strip()[:-1]
+        services[current] = ""
+    elif current and line.startswith("    "):
+        services[current] += line + "\n"
+    elif line and not line.startswith(" "):
+        current = None
+for name, body in services.items():
+    for port in re.findall(r"^      - (.+)$", body.split("    ports:\n", 1)[1].split("\n    ", 1)[0], re.M) if "    ports:\n" in body else []:
+        if not re.fullmatch(r'"127[.]0[.]0[.]1:[$][{][A-Z_][A-Z0-9_]*_PORT:-[}]:[0-9]+"', port.strip()):
+            print(f"compose.yaml: {name} publishes {port.strip()}, not on 127.0.0.1 from an empty <NAME>_PORT")
+    for dep, condition in re.findall(r"^      ([\w-]+):\n        condition: (\S+)", body, re.M):
+        if condition != "service_healthy" or "healthcheck:" not in services.get(dep, ""):
+            print(f"compose.yaml: {name} waits for {dep} without a healthcheck it waits on")
+
+make = read("Makefile")
+targets = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
+for target in "help env up down build ps logs urls shell services native test lint reset".split():
+    if target not in targets:
+        print(f"Makefile has no {target} target")
+if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
+    print("Makefile: help isn't the default target")
+for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
+                 (r"^export\b", "export")):
+    if re.search(bad, make, re.M):
+        print(f"Makefile uses {why}, which GNU make 3.81 lacks or which leaks .env")
+if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and "=" not in l.split(":")[0]), re.M):
+    print("Makefile: a recipe line is indented with spaces, not a tab")
+logs = re.search(r"^logs:.*\n((?:\t.*\n)+)", make, re.M)
+if not logs or not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
+    print("Makefile: logs must show the last lines and never follow")
+
+bash4 = re.compile(r"declare -A|\bmapfile\b|\breadarray\b|\$\{\w+(,,|\^\^)|\|&|&>>|\bcoproc\b")
+scripts = glob.glob(os.path.join(root, "modules", "*", "files", "**", "*.sh"), recursive=True)
+scripts += glob.glob(os.path.join(root, "plugins", "*", "skills", "**", "*.sh"), recursive=True)
+for script in sorted(scripts):
+    for n, line in enumerate(open(script, encoding="utf-8"), 1):
+        if not line.lstrip().startswith("#") and bash4.search(line):
+            print(f"{os.path.relpath(script, root)}:{n} needs bash 4, and macOS has 3.2")
+PY
+)
+    if [ -z "$problems" ]; then
+        pass "dev-env templates: compose.yaml, the Makefile, and .env.example keep the conventions (0032); shipped scripts run on bash 3.2"
+    else
+        fail "dev-env templates" "$(echo "$problems" | tr '\n' ';')"
     fi
 }
 
@@ -1195,6 +1301,7 @@ check_lanes
 check_practices
 check_plugin
 check_mods
+check_dev_env_templates
 check_no_tracked_junk
 check_english
 check_directory_rules

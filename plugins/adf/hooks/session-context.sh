@@ -70,13 +70,13 @@ if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
   fi
 fi
 
-if [ -f "$root/scripts/agent/worktree.conf" ]; then
+if worktree_conf="$(worktree_settings "$root")"; then
   # The parallel-agents module: its settings, which both installs commit (the scripts themselves are
   # the plugin's commands in a packaged one, decision 0027). What this project's worktrees need beyond
   # what Claude Code gives its own — a port, setup or start commands, a base branch other than the
   # default — comes from the scripts' defaults, then worktree.conf, read as data, never run.
   PORT_SLOTS=0 SETUP_CMD="" START_CMD="" BASE_BRANCH="main" ENV_FILE=".env"
-  read_settings "$root/scripts/agent/worktree.conf" PORT_SLOTS SETUP_CMD START_CMD BASE_BRANCH ENV_FILE
+  read_settings "$worktree_conf" PORT_SLOTS SETUP_CMD START_CMD BASE_BRANCH ENV_FILE
   needs=""
   [ "$PORT_SLOTS" -gt 0 ] 2>/dev/null && needs="a port"
   [ -z "$SETUP_CMD$START_CMD" ] || needs="${needs:+$needs and }setup or start commands"

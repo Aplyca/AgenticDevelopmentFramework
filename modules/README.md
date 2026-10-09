@@ -10,7 +10,7 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | [`git-hooks/`](git-hooks/MODULE.md) | A tool-agnostic `pre-push` hook that refuses pushes to protected branches and runs the fast checks | You want local gates that apply to every git client, not only to Claude Code |
 | [`clickup/`](clickup/MODULE.md) | ClickUp's official MCP server in `.mcp.json` and a read-only permission allowlist, so agents read tasks freely and every write prompts | Requirements arrive as ClickUp tasks |
 | [`parallel-agents/`](parallel-agents/MODULE.md) | Worktree scripts (`worktree-new`, `-rm`, `-ls`) that give every task its own worktree, branch, env file, and port; the `/dispatch` skill; the dispatcher/worker process doc | Several agent sessions work on the same repository at once, and each needs a running app |
-| [`docker/`](docker/MODULE.md) | The `/dev-env` skill — set up, connect per worktree, diagnose, and safely reset a Docker Compose local environment — and permission rules that let read-only docker commands run and make destructive ones ask. Packaged, the skill comes from the development plugin, `adf-dev` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
+| [`docker/`](docker/MODULE.md) | The `/dev-env` skill — write or migrate a Docker Compose local environment to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), run it natively or per worktree, diagnose it, and safely reset it — and permission rules that let read-only docker commands run and make destructive ones ask. Packaged, the skill comes from the development plugin, `adf-dev` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
 
 ## Installing a module
 
@@ -24,8 +24,9 @@ cp -R modules/<module>/files/. /path/to/your-repo/
 Nothing is overwritten that you didn't mean to — check `git status` and merge any file that already
 existed (a pull request template, for example). The `clickup` module is the exception: it changes
 files every repository already has (`.mcp.json`, `.claude/settings.json`), so it installs with
-`modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module copies,
-then merges its permission rules with `modules/docker/install.sh <repo>`. Then follow the module's customization steps and
+`modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module has no
+files to copy: `modules/docker/install.sh <repo>` merges its permission rules, and `/dev-env set up`
+writes the stack from the skill's templates. Then follow the module's customization steps and
 record the module in the `Skeleton source` line at the top of `AGENTS.md`
 (`· modules: github, clickup`) so `/upgrade` knows to update it.
 

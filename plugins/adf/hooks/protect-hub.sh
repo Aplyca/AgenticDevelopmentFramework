@@ -2,8 +2,8 @@
 # PreToolUse hook (matcher: Edit|Write|MultiEdit). With the parallel-agents module installed, the main
 # checkout is the shared hub: the dispatcher hands each task to its own worktree and edits nothing
 # here (docs/PARALLEL-AGENTS.md). This stops any file edit in the main checkout; edits in linked
-# worktrees pass. Without the module — no scripts/agent/worktree.conf, its settings, which both
-# installs commit — it does nothing. Empty HUB_READONLY turns it off. File writes made through Bash
+# worktrees pass. Without the module — no ops/agent/worktree.conf (scripts/agent/ before decision
+# 0032), its settings, which both installs commit — it does nothing. Empty HUB_READONLY turns it off. File writes made through Bash
 # aren't seen by this hook.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
@@ -16,7 +16,7 @@ case "$file" in /*) ;; *) file="$(json_get '.cwd')/$file" ;; esac
 
 root="$(repo_root_for "$file")"
 [ -n "$root" ] || exit 0
-[ -f "$root/scripts/agent/worktree.conf" ] || exit 0
+worktree_settings "$root" >/dev/null || exit 0
 
 [ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 

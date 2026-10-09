@@ -18,7 +18,7 @@ projects.
 | [0005](0005-outward-actions-and-draft-prs.md) | Outward actions only on request; pull requests stay drafts until a human QCs them | accepted; amended by 0022 |
 | [0006](0006-guardrails-as-configuration.md) | Guardrails that must hold are configuration and code, not prose | accepted; amended by 0022 |
 | [0007](0007-process-decision-records.md) | Process decisions are recorded as PDRs; the constitution is amended through them | accepted |
-| [0008](0008-dispatcher-and-worker-worktrees.md) | The main checkout dispatches; worktrees do the work (optional module) | accepted; amended by 0015, 0020 |
+| [0008](0008-dispatcher-and-worker-worktrees.md) | The main checkout dispatches; worktrees do the work (optional module) | accepted; amended by 0015, 0020, 0032 |
 | [0009](0009-optional-modules.md) | Host- and team-specific harness ships as optional modules | accepted; amended by 0016, 0023 |
 | [0010](0010-model-aliases.md) | Configure models with version-less aliases | accepted |
 | [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted; partly superseded by 0014 |
@@ -36,12 +36,13 @@ projects.
 | [0023](0023-plugins-by-concern.md) | One plugin per concern — the process, development, connections — and modules as each project's switches | accepted; amended by 0027, 0028 |
 | [0024](0024-agents-md-only.md) | No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule | accepted |
 | [0025](0025-no-gemini-md.md) | No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it | accepted |
-| [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | accepted |
-| [0027](0027-worktree-scripts-as-plugin-commands.md) | The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module) | accepted |
+| [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | accepted; amended by 0032 |
+| [0027](0027-worktree-scripts-as-plugin-commands.md) | The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module) | accepted; amended by 0032 |
 | [0028](0028-plugins-are-the-source.md) | The plugins are the machinery's source, and a committed install is written from them | accepted; amended by 0029 |
 | [0029](0029-workflows-carry-agent-checklists.md) | A workflow carries the agent checklists its lenses follow | accepted; amended by 0030 |
 | [0030](0030-workflows-carry-skill-steps.md) | A workflow carries the skill steps its agents follow | accepted |
 | [0031](0031-agent-model-overrides-in-the-project-rule.md) | A project changes an agent's model in its own rule, which the session passes when it spawns the agent | accepted |
+| [0032](0032-local-environment-layout.md) | A project's local environment: `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

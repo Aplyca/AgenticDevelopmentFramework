@@ -86,7 +86,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | `git-hooks` | You want a `pre-push` gate for every git client, not only Claude Code |
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
 | `parallel-agents` | Several agent sessions work at once, each needing a running app |
-| `docker` | The local stack runs on Docker Compose — `/dev-env` sets it up, gives each worktree its own stack, and diagnoses or resets it; destructive docker commands ask first (then run `modules/docker/install.sh .`, which merges its permission rules) |
+| `docker` | The local stack runs on Docker Compose — `/dev-env` writes it from its templates or moves it to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks — [decision 0032](decisions/0032-local-environment-layout.md)), runs it natively or per worktree, and diagnoses or resets it; destructive docker commands ask first (run `modules/docker/install.sh .`, which merges its permission rules; it copies no files) |
 
 ```bash
 cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
@@ -218,7 +218,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    carry the machinery, the modules' skills included. Leave out `.gemini/`, `.agents/`, and `.cursor/`.
    Modules copy as usual, except a module's scripts its `module.json` lists as `commands`, which the
    plugin carries in `bin/` ([decision 0027](decisions/0027-worktree-scripts-as-plugin-commands.md)):
-   for `parallel-agents`, leave out everything in `scripts/agent/` but `worktree.conf`, the project's
+   for `parallel-agents`, leave out everything in `ops/agent/` but `worktree.conf`, the project's
    settings. Then point the files that name the reference docs at the release you pin, from the framework copy you took the skeleton from:
    `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
@@ -254,7 +254,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    > framework's reference docs — the spec model, the cost model, the memory strategy, MCP
    > integration — come from the plugin too; these files link them at the pinned release.
    > With the parallel-agents module, the worktree scripts are the plugin's commands: where these
-   > files name `scripts/agent/worktree-new.sh`, `worktree-ls.sh`, or `worktree-rm.sh`, run
+   > files name `ops/agent/worktree-new.sh`, `worktree-ls.sh`, or `worktree-rm.sh`, run
    > `adf-worktree-new`, `adf-worktree-ls`, or `adf-worktree-rm`.
 
    People read the key commands in `docs/getting-started/DEV-SETUP.md` § AI-assisted development,

@@ -2,7 +2,7 @@
 # Tear down a worktree created by worktree-new.sh: stop its environment (STOP_CMD), remove the
 # worktree, and delete its branch only if git sees it as merged.
 #
-# Usage: scripts/agent/worktree-rm.sh <type>/<slug | slug> [--force]
+# Usage: ops/agent/worktree-rm.sh <type>/<slug | slug> [--force]
 #   --force   remove even with uncommitted changes (they are lost)
 set -euo pipefail
 . "$(dirname "$0")/_worktree-lib.sh"

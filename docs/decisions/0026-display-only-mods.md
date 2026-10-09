@@ -1,6 +1,6 @@
 # 0026: The framework's mods are display-only — the first shows the local environment's URL
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0032](0032-local-environment-layout.md) (the band may run one read-only lookup, `docker compose port`, for the port Docker picked)
 - **Date:** 2026-10-08
 - **Builds on:** [0022](0022-local-check-before-the-pull-request.md) — the local check before the pull
   request; [0023](0023-plugins-by-concern.md) — mods as a later layer, one plugin per concern

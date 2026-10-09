@@ -1,0 +1,51 @@
+# The local stack: the one Compose file, at the repository's root. The conventions are in
+# .claude/rules/deployment.md § Docker.
+#
+# - Compose reads .env beside this file to fill each ${...}. A service gets its variables only from
+#   its own `environment:`, in container form; there's no env_file:, which would hand every
+#   variable to every container.
+# - No container_name: and no top-level name:. Either one stops a second checkout or worktree of
+#   this repository from running its own stack beside this one.
+# - Each published port is "127.0.0.1:${<NAME>_PORT:-}:<port>". Leave <NAME>_PORT empty in .env and
+#   Docker picks a free host port each time the service starts (`make urls` shows it); set it to
+#   pin one.
+# - Images are pinned, and a service another one waits for has a healthcheck.
+
+services:
+  # CUSTOMIZE: the app — e.g. the newsletter site's web app
+  web:
+    build:
+      context: .
+      dockerfile: ops/docker/web/Dockerfile
+      target: dev
+    ports:
+      # CUSTOMIZE: the port the app listens on inside the container
+      - "127.0.0.1:${APP_PORT:-}:3000"
+    environment:
+      # CUSTOMIZE: every variable the app reads, in container form (service names, container ports)
+      REDIS_URL: redis://redis:6379
+      # A credential passes through from .env, e.g.
+      # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
+    volumes:
+      # CUSTOMIZE: the source, for reloads — keep dependency and build folders out of the mount
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # CUSTOMIZE: each backing service the app needs — e.g. the newsletter site's signup rate limiter
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      # Published so the app can reach it from the host too (`make native`)
+      - "127.0.0.1:${REDIS_PORT:-}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  redis-data:
