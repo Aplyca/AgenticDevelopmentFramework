@@ -17,6 +17,32 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### The drift sweep's auditors return the schema, and carried sections end where their heading's section ends
+
+Follow-ups to 0029 and 0030, which carry an agent's checklist or a skill's steps into a plugin workflow.
+
+- **Each `deep-drift-sweep` auditor returns its findings in the response schema.** The steps it follows end
+  with a written drift report, which the workflow didn't use. The auditor's prompt now says to return
+  the same findings through the schema instead, in both installs.
+- **A carried section ends at the next real heading.** The build took a section up to the first line
+  starting with `## `, including one inside a code block, such as a sample report. That cut the section
+  short with no error. Now a heading inside a fenced block doesn't count, and a fence that never closes
+  fails the build.
+- **Only a line whose value is a carried section's is treated as one.** Any `const <NAME>_STEPS` or
+  `const <NAME>_CHECKLIST` line counted. A workflow's own constant with one of those names, such as
+  `MAX_STEPS`, failed the build.
+- **A static check finds a committed install's paths in the plugins' text.** The skills a committed
+  install carries, the agents, the reference docs, and the hooks may name `.claude/agents/`,
+  `.claude/workflows/`, `.claude/skills/`, `agent.md`, or a hook script in `.claude/hooks/` only in the
+  Step 0 or where the text says it's about a committed install. A packaged project has none of them.
+  The check fails on the nine mentions that the last four changes fixed by hand.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/workflows/deep-drift-sweep.js` in a committed install: one line added to the
+  auditor's prompt.
+- **A packaged project:** nothing to do.
+
 ### The hooks name themselves, not a committed install's folder
 
 Two of the hooks' messages placed the script in `.claude/hooks/`, a folder that, in a packaged project

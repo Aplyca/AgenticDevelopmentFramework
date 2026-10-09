@@ -47,16 +47,56 @@ SPEC_MODEL_INTRO = "The spec model (SPEC-MODEL.md), which these checks follow:\n
 # skills either. The plugin's `const SECURITY_REVIEWER_CHECKLIST` carries the `## … checklist` section
 # of agents/security-reviewer.md, and `const SPEC_DRIFT_STEPS` the `## Steps` section of
 # skills/spec-drift/SKILL.md; a committed workflow points at the project's agent.md or SKILL.md.
-CARRIED = {  # the constant's suffix: (what it names, the section it carries, the committed line, the intro)
-    "CHECKLIST": ("agent", re.compile(r"^## [^\n]*checklist\n.*?(?=^## |\Z)", re.M | re.S | re.I),
+CARRIED = {  # the constant's suffix: (what it names, the heading of the section it carries, the committed line, the intro)
+    "CHECKLIST": ("agent", re.compile(r"## .*checklist", re.I),
                   "Follow the checklist in .claude/agents/{name}/agent.md.",
                   "The {name} agent's checklist, which this review follows:\n\n"),
-    "STEPS": ("skill", re.compile(r"^## Steps\n.*?(?=^## |\Z)", re.M | re.S),
+    "STEPS": ("skill", re.compile(r"## Steps"),
               "Follow the steps in .claude/skills/{name}/SKILL.md.",
               "The {name} skill's steps, which this audit follows:\n\n"),
 }
-CARRIED_LINE = re.compile(r"^const ([A-Z][A-Z_]*)_(" + "|".join(CARRIED) + r") = '.*'$", re.M)
-CARRIED_TEXT = re.compile(r'^const ([A-Z][A-Z_]*)_(' + "|".join(CARRIED) + r') = ".*"$', re.M)
+
+
+def _any_name(template):
+    """A pattern for the template with any agent or skill name in it."""
+    before, after = template.split("{name}")
+    return re.escape(before) + r"[a-z0-9-]+" + re.escape(after)
+
+
+# A line counts only when its value is a carried section's, so another constant named …_STEPS or
+# …_CHECKLIST stays a workflow's own.
+SUFFIXES = "|".join(CARRIED)
+CARRIED_LINE = re.compile(r"^const ([A-Z][A-Z_]*)_(" + SUFFIXES + r") = '(?:"
+                          + "|".join(_any_name(line) for _, _, line, _ in CARRIED.values()) + r")'$", re.M)
+CARRIED_TEXT = re.compile(r'^const ([A-Z][A-Z_]*)_(' + SUFFIXES + r') = "(?:'
+                          + "|".join(_any_name(json.dumps(intro)[1:-1]) for _, _, _, intro in CARRIED.values())
+                          + r').*"$', re.M)
+FENCE = re.compile(r"[ \t]*(`{3,}|~{3,})")
+SECTION_END = re.compile(r"#{1,2} ")
+
+
+def sections(text, heading):
+    """Each section whose `## ` heading matches, through the line before the next `#` or `## ` heading.
+
+    A heading inside a fenced code block, such as one in a sample report, neither starts nor ends a
+    section: a regex that ended at the first `## ` line cut a carried section short without a word."""
+    found, current, fence = [], None, None
+    for line in text.splitlines(keepends=True):
+        if fence:
+            if line.strip() and set(line.strip()) == {fence[0]} and len(line.strip()) >= len(fence):
+                fence = None
+        elif FENCE.match(line):
+            fence = FENCE.match(line).group(1)
+        elif SECTION_END.match(line):
+            if current is not None:
+                found.append("".join(current))
+            current = [] if heading.fullmatch(line.rstrip("\n")) else None
+        if current is not None:
+            current.append(line)
+    assert fence is None, "a code fence that never closes"
+    if current is not None:
+        found.append("".join(current))
+    return found
 
 # The Claude Directory refuses a path the shell computes for a file a hook loads or runs: the plugin's
 # hooks name _lib.sh, the hooks folder, and the helpers in it literally; a committed hook finds them
@@ -233,12 +273,12 @@ class Machinery:
         return f"const {constant}_{suffix} = '{CARRIED[suffix][2].format(name=name)}'"
 
     def carried(self, constant, suffix):
-        _, section, _, intro = CARRIED[suffix]
+        _, heading, _, intro = CARRIED[suffix]
         name, rel = self.carried_source(constant, suffix)
-        sections = section.findall(read(self.path(rel)))
-        assert len(sections) == 1, f"{rel} has {len(sections)} sections a workflow would carry as {suffix}; it carries one"
-        assert "${CLAUDE_PLUGIN_ROOT}" not in sections[0], f"{rel}: the section a workflow carries names the plugin's folder, which a workflow can't reach"
-        text = intro.format(name=name) + sections[0].strip()
+        found = sections(read(self.path(rel)), heading)
+        assert len(found) == 1, f"{rel} has {len(found)} sections a workflow would carry as {suffix}; it carries one"
+        assert "${CLAUDE_PLUGIN_ROOT}" not in found[0], f"{rel}: the section a workflow carries names the plugin's folder, which a workflow can't reach"
+        text = intro.format(name=name) + found[0].strip()
         return f"const {constant}_{suffix} = " + json.dumps(text, ensure_ascii=False)
 
     def to_plugin_workflow(self, text):

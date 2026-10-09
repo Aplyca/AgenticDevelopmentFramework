@@ -872,6 +872,51 @@ PY
     fi
 }
 
+check_plugin_committed_paths() {
+    # The skills, agents, reference docs, and hooks a packaged project runs are the plugin's: it has no
+    # .claude/agents/, .claude/workflows/, or .claude/skills/ of the framework's, no agent.md, and no hook
+    # script in .claude/hooks/ but config.sh. Text that names one sends a packaged project to a file that
+    # isn't there, unless its paragraph says it's about a committed install. The Step 0 names the committed
+    # copy on purpose, a glob names the project's own, and the installer's skills (no Step 0) cover both
+    # installs.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+sys.path.insert(0, os.path.join(root, "scripts"))
+from forms import STEP0, Machinery
+machinery = Machinery(root)
+files = glob.glob(os.path.join(root, "plugins", "*", "agents", "*.md"))
+files += glob.glob(os.path.join(root, "plugins", "*", "docs", "*.md"))
+files += [f for f in glob.glob(os.path.join(root, "plugins", "*", "hooks", "*"))
+          if os.path.basename(f) not in ("hooks.json", "README.md")]
+for name, plugin in machinery.skills.items():
+    files += glob.glob(os.path.join(root, "plugins", plugin, "skills", name, "**", "*.md"), recursive=True)
+committed_only = re.compile(r"\.claude/(?:agents|workflows|skills)(?:/[\w<>{}*./-]*)?"
+                            r"|(?<![\w/-])agent\.md\b|\.claude/hooks/(?!config\.sh)[\w$][^\s\x60\x27\x22):]*")
+for path in sorted(files):
+    text = open(path, encoding="utf-8").read()
+    step0 = STEP0.match(text)
+    # The context that can say "a committed install": a paragraph of prose; one line of a script, where
+    # a comment elsewhere in the block doesn't cover a message the hook prints.
+    gap = "\n\n" if path.endswith(".md") else "\n"
+    for m in committed_only.finditer(text):
+        if "*" in m.group(0) or (step0 and len(step0.group(1)) <= m.start() < step0.end()):
+            continue
+        start = text.rfind(gap, 0, m.start())
+        end = text.find(gap, m.end())
+        if "committed" in text[start + 1:end if end != -1 else len(text)].lower():
+            continue
+        print(f"{os.path.relpath(path, root)}:{text.count(chr(10), 0, m.start()) + 1} names {m.group(0)}")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "plugin skills, agents, docs, and hooks: no committed install's path (.claude/agents/, workflows/, skills/, agent.md, a hook script) outside a paragraph about a committed install"
+    else
+        fail "plugin text names a path only a committed install has — name the skill, agent, or workflow instead (/adf:review, @adf:code-reviewer), or say the paragraph is about a committed install" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
 check_module_plugins() {
     # Each plugin carries the skills of the modules that name it in module.json (decision 0023), and a
     # committed install carries every skill with a Step 0 (decision 0028). The ones without run only from
@@ -1142,6 +1187,7 @@ check_modules
 check_marketplace_snippets
 check_packaged_plugin
 check_plugin_workflow_paths
+check_plugin_committed_paths
 check_module_plugins
 check_install_scope
 check_install_prompt

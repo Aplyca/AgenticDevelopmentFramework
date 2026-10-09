@@ -73,7 +73,8 @@ const audited = await pipeline(
     agent(
       `Run a read-only drift audit of ${spec}. ${READ_ONLY}
 Read the whole spec (every section and change request), plan.md and tasks.md when present. Identify the implementation surface from the plan's change surface and the tests named in tasks.md (legacy specs: their Technical section, then heuristics). Compare each acceptance criterion, edge case, testable requirement, documentation claim and plan item with the current code, tests and docs. Categorize each divergence: CONTRADICTION, MISSING, DRIFT, STALE REFERENCE, DOC MISMATCH. Report the last commit that touched the spec (git log -1 --format='%h %cs' -- ${spec}).
-${SPEC_DRIFT_STEPS}`,
+${SPEC_DRIFT_STEPS}
+Return the findings in the response schema, one per divergence, instead of writing the report the steps describe.`,
       { label: `drift:${spec}`, phase: 'Audit', schema: DRIFT_SCHEMA },
     ),
   (drift) =>
