@@ -1,6 +1,6 @@
 # 0019: A packaged project reads the framework's reference docs from the plugin
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0028](0028-plugins-are-the-source.md) (the plugin's copies are the docs' source, and a committed project's are written from them)
 - **Date:** 2026-10-05
 - **Amends:** [0016](0016-packaged-install.md) — what a packaged project commits
 

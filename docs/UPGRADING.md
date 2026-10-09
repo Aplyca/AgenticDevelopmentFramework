@@ -53,6 +53,11 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 
 ### Safe to overwrite
 
+The machinery in this bucket — skills, agents, workflows, hook scripts, and the reference docs — has
+its source in the framework's plugins from v2.0.0
+([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged project has none of it; a
+committed one takes the new release's copies from `scripts/build-committed.py` (§ 4).
+
 | Path | Notes |
 |---|---|
 | `.claude/skills/*` | All skill SKILL.md files. Skills are framework playbooks; rewrite by replacement. |
@@ -136,17 +141,21 @@ git checkout -b chore/skeleton-upgrade-<NEW_SHA>
 
 ### 4. Bucket-by-bucket execution
 
-**Bucket 1 — overwrite**: copy each file from the new skeleton over your project's copy. Don't think hard about these.
+**Bucket 1 — overwrite**: copy each file from the new release over your project's copy. Don't think hard about these.
+
+A committed install writes the new release's machinery into an empty folder first, with the modules you
+have, then copies it over; the universal rules come from the skeleton:
 
 ```bash
-FW=/path/to/AgenticDevelopmentFramework/skeleton
-cp -R $FW/.claude/skills/* .claude/skills/
-cp -R $FW/.claude/agents/* .claude/agents/
-mkdir -p .claude/workflows && cp $FW/.claude/workflows/*.js .claude/workflows/
-cp $FW/.claude/hooks/*.sh $FW/.claude/hooks/*.jq $FW/.claude/hooks/*.py $FW/.claude/hooks/README.md .claude/hooks/   # not config.sh — that one merges
-cp $FW/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
-cp $FW/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION}.md docs/   # committed install only
+FW=/path/to/AgenticDevelopmentFramework
+python3 $FW/scripts/build-committed.py /tmp/adf-new --modules <your modules, comma-separated>   # committed install only
+cp -R /tmp/adf-new/. .                     # skills, agents, workflows, hook scripts, reference docs
+cp $FW/skeleton/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
 ```
+
+To see what changed in the machinery between your baseline and the new release, write the old one too —
+from a checkout of the framework at your baseline, the same command; a release before v2.0.0 keeps it
+in `skeleton/.claude/` and `skeleton/docs/` instead — and `diff -rq` the two folders.
 
 Inspect the diff for surprise (removed files, renamed files). Adjust if the framework has restructured anything.
 
@@ -344,10 +353,12 @@ overwrite) and follow its `MODULE.md`.
 
 ### "I just want one new skill" (e.g. `/triage`)
 
-You don't need a full upgrade. Cherry-pick the skill directory:
+You don't need a full upgrade. Write the committed machinery into a scratch folder and take the skill
+directory from there:
 
 ```bash
-cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/triage .claude/skills/
+python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py /tmp/adf-new
+cp -R /tmp/adf-new/.claude/skills/triage .claude/skills/
 ```
 
 Skills appear in Claude Code's `/` menu automatically. Check that the skill doesn't depend on
@@ -395,6 +406,6 @@ Treat as a deliberate framework decision. Read the commit message. If a skill wa
 ## See also
 
 - [`SETUP.md`](./SETUP.md) — initial skeleton adoption (the upgrade is the long-tail follow-up to this)
-- [`../skeleton/docs/COST-MODEL.md`](../skeleton/docs/COST-MODEL.md) — model recommendations that affect agent frontmatter
-- [`../skeleton/docs/MEMORY-STRATEGY.md`](../skeleton/docs/MEMORY-STRATEGY.md) — memory survives upgrades; rules and `AGENTS.md` may not
+- [`../plugins/adf/docs/COST-MODEL.md`](../plugins/adf/docs/COST-MODEL.md) — model recommendations that affect agent frontmatter
+- [`../plugins/adf/docs/MEMORY-STRATEGY.md`](../plugins/adf/docs/MEMORY-STRATEGY.md) — memory survives upgrades; rules and `AGENTS.md` may not
 - [`../skeleton/evals/README.md`](../skeleton/evals/README.md) — regression-checking pattern for after an upgrade

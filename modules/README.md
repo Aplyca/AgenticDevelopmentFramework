@@ -44,12 +44,12 @@ Code loads: the framework's machinery, one plugin per concern
 | `adf-dev` | Development | `docker` (`/dev-env`) |
 | `adf-connect` | Trackers and services | — (its `/connect` writes a project's MCP configuration itself) |
 
-A module's skills and agents are machinery no project edits, so a packaged install takes them from
-the plugin its `module.json` names, instead of committing them; a module without skills has no
-`module.json`. `scripts/build-plugins.sh` generates them into that plugin. A packaged project with the
-module leaves its `.claude/skills/` out and turns the plugin on beside `adf` when it's another
-one — `"adf-dev@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)`
-in `permissions.allow`. A committed project copies the skills and leaves the plugin off. Each skill
+A module's skills are machinery no project edits, so their source is the plugin its `module.json`
+names, which lists them ([decision 0028](../docs/decisions/0028-plugins-are-the-source.md)); a module
+with neither skills nor commands has no `module.json`. A packaged project with the module turns the
+plugin on beside `adf` when it's another one — `"adf-dev@aplyca": true` in `enabledPlugins` and
+`Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`. A committed project writes the
+skills with `scripts/build-committed.py <repo> --modules <name>` and leaves the plugin off. Each skill
 acts only where the stamp names its module, so a plugin turned on for one module never acts for
 another the project doesn't have. Skill and agent names are unique across every plugin.
 

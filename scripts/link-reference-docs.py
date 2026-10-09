@@ -22,7 +22,6 @@ import sys
 FRAMEWORK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = sorted(f[:-3] for f in os.listdir(os.path.join(FRAMEWORK, "plugins", "adf", "docs")) if f.endswith(".md"))
 NAMES = "|".join(map(re.escape, DOCS))
-RELEASE = "https://github.com/aplyca/AgenticDevelopmentFramework/blob/{tag}/skeleton/docs/{name}.md"
 TEXT_FILES = (".md", ".mdc")
 SKIP_DIRS = {".git", "node_modules"}
 
@@ -30,15 +29,22 @@ SKIP_DIRS = {".git", "node_modules"}
 LOCAL_CODE = re.compile(r"`docs/(" + NAMES + r")\.md`")
 LOCAL_LINK = re.compile(r"\[([^\]\n]*)\]\((?:\./|(?:\.\./)+)?docs/(" + NAMES + r")\.md(#[^)\s]*)?\)")
 LOCAL_BARE = re.compile(r"(?<![\w/.-])docs/(" + NAMES + r")\.md")
-# On GitHub, at any release: the same three shapes.
-URL = r"https://github\.com/aplyca/AgenticDevelopmentFramework/blob/[^/\s)]+/skeleton/docs/(" + NAMES + r")\.md"
+# On GitHub, at any release: the same three shapes, in either home the docs have had.
+URL = r"https://github\.com/aplyca/AgenticDevelopmentFramework/blob/[^/\s)]+/(?:skeleton|plugins/adf)/docs/(" + NAMES + r")\.md"
 RELEASE_CODE = re.compile(r"\[`(" + NAMES + r")\.md`\]\(" + URL + r"\)", re.I)
 RELEASE_LINK = re.compile(r"\[([^\]\n]*)\]\(" + URL + r"(#[^)\s]*)?\)", re.I)
 RELEASE_BARE = re.compile(URL, re.I)
 
 
+def release_url(tag, name):
+    """The doc at a release. From v2.0.0 the plugin is its only home (decision 0028); before, the
+    skeleton kept the source in skeleton/docs/."""
+    folder = "plugins/adf/docs" if int(tag[1:].split(".")[0]) >= 2 else "skeleton/docs"
+    return f"https://github.com/aplyca/AgenticDevelopmentFramework/blob/{tag}/{folder}/{name}.md"
+
+
 def to_release(text, tag):
-    url = lambda name: RELEASE.format(tag=tag, name=name)
+    url = lambda name: release_url(tag, name)
     text = RELEASE_BARE.sub(lambda m: url(m.group(1)), text)  # an older pin moves to this one
     text = LOCAL_CODE.sub(lambda m: f"[`{m.group(1)}.md`]({url(m.group(1))})", text)
     text = LOCAL_LINK.sub(
@@ -73,14 +79,11 @@ def text_files(top, skip=()):
 
 
 def skeleton_files():
-    """The skeleton's own files that name a reference doc — not the machinery the plugin carries
-    (.claude/skills, agents, workflows, hooks). The rules stay in the project, so they're included."""
+    """The skeleton's files that name a reference doc, its committed rules included. The machinery
+    isn't among them: a packaged project takes it from the plugin, and a committed one's copies, which
+    scripts/build-committed.py writes, link docs/ in the project."""
     skeleton = os.path.join(FRAMEWORK, "skeleton")
-    reference = {os.path.join("docs", name + ".md") for name in DOCS}
-    carried = {os.path.join(".claude", d) for d in ("skills", "agents", "workflows", "hooks")}
-    for rel in text_files(skeleton, skip=carried):
-        if rel in reference:
-            continue
+    for rel in text_files(skeleton):
         with open(os.path.join(skeleton, rel), encoding="utf-8") as f:
             if LOCAL_BARE.search(f.read()):
                 yield rel
@@ -129,7 +132,7 @@ def main():
     if args.packaged and present:
         print("Still in docs/ (a packaged project reads the plugin's copy): " + ", ".join(present))
     if args.committed and len(present) < len(DOCS):
-        print("Missing from docs/ (copy them from the skeleton): "
+        print("Missing from docs/ (scripts/build-committed.py writes them): "
               + ", ".join(f"docs/{name}.md" for name in DOCS if f"docs/{name}.md" not in present))
 
 

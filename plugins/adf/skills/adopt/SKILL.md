@@ -119,22 +119,26 @@ Present the table before going further. Wrong facts here poison every file downs
     (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`); with none
     yet, say so and install committed.
   - **Committed** — recommend it instead when the team also uses another AI tool for the framework's
-    skills (Cursor, Copilot, Gemini or Antigravity) or needs Claude Code's cloud sessions. Everything
-    below is copied into the repository: every AI tool reads it, and nothing depends on a plugin.
+    skills (Cursor, Copilot, Gemini or Antigravity) or needs Claude Code's cloud sessions. The
+    machinery is written into the repository too: every AI tool reads it, and nothing depends on a
+    plugin.
 
   For packaged, follow `docs/SETUP.md` § Packaged install alongside the steps below: what to leave
   out, the settings, the names in `.claude/rules/claude-code.md` and `DEV-SETUP.md`, the stamp, and the
   checks.
   **The reference docs** (decision 0019) — `COST-MODEL.md`, `MCP-INTEGRATION.md`,
-  `MEMORY-STRATEGY.md`, `SPEC-MODEL.md` — stay out of `docs/` when the release carries them in
-  `<framework-root>/plugins/adf/docs/`; an older release has none there, so copy them as
-  usual. Once the files are in, run
+  `MEMORY-STRATEGY.md`, `SPEC-MODEL.md` — come from the plugin. Once the files are in, run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged <tag>`: it points the
   files that name a reference doc at the pinned release, and lists any other file that still names
   one — one the team wrote follows by hand.
-- Copy `skeleton/` into the repo **without overwriting existing files**. For collisions (`README.md`,
-  `CONTRIBUTING.md`, `.claude/settings.json` are common), merge: keep the project's content, add the
-  skeleton's missing sections.
+- Copy `skeleton/` into the repo **without overwriting existing files**: it's the layer the project
+  owns. For collisions (`README.md`, `CONTRIBUTING.md`, `.claude/settings.json` are common), merge:
+  keep the project's content, add the skeleton's missing sections.
+- **Committed: write the machinery** from the plugins, its source (decision 0028):
+  `python3 <framework-root>/scripts/build-committed.py <repo> --modules <the chosen modules, comma-separated>`
+  — the skills, agents, workflows, hook scripts, and reference docs, with the chosen modules' skills.
+  It never overwrites a file, and lists the ones it kept: merge each, or keep the project's under a
+  name of its own. Packaged: skip it.
 - **An existing `CLAUDE.md`** (decision 0024): Claude Code reads it *instead of* `AGENTS.md`. Move its
   project facts into `AGENTS.md` and its Claude-specific instructions into
   `.claude/rules/claude-code.md`, show the developer where each part went, and delete it once they
@@ -165,19 +169,16 @@ Present the table before going further. Wrong facts here poison every file downs
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
   `modules/clickup/install.sh <repo>`. `docker` copies like any module, then
   `modules/docker/install.sh <repo>` merges its permission rules into `.claude/settings.json`.
-  Packaged: leave out a module's `.claude/skills/` when the pinned release's plugins carry it. The
-  module's `<framework-root>/modules/<name>/module.json` names the plugin (decision 0023):
-  `adf` for the process (`/dispatch`, decision 0020), `adf-dev` for development
-  (`docker`'s `/dev-env`); a release without the file carries no module skills but `/dispatch`.
-  **Turn on the plugin that carries a module** when it isn't `adf`, once however many of its
-  modules the project has: `"<plugin>@aplyca": true` in `enabledPlugins`, and
-  `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`. A committed install
-  copies the skills and leaves that plugin off.
+  A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
+  and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020), `adf-dev` for
+  development (`docker`'s `/dev-env`). A committed install writes them with `build-committed.py`
+  above and leaves that plugin off. **Turn on the plugin that carries a module** in a packaged
+  install when it isn't `adf`, once however many of its modules the project has: `"<plugin>@aplyca": true` in
+  `enabledPlugins`, and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`.
   Packaged, too: leave out the scripts the pinned release's plugin carries as commands — the
   `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0027). For
   `parallel-agents`, that's every file in `scripts/agent/` but `worktree.conf`, which stays: it's the
-  project's settings, and what shows the module is installed. A release without `bin/` carries none,
-  so copy them as usual.
+  project's settings, and what shows the module is installed.
 - **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than GitHub Issues or
   ClickUp (Jira, Linear, GitLab), or connected services: turn on `"adf-connect@aplyca": true` in
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:

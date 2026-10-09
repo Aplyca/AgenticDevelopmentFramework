@@ -10,20 +10,29 @@ set -uo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # This script lives at evals/static/ in the framework repo; the files under evaluation live under
-# skeleton/ and modules/.
+# plugins/ (the machinery's source, decision 0028), skeleton/, and modules/.
 REPO_ROOT="${REPO_ROOT:-$( cd "$SCRIPT_DIR/../.." && pwd )}"
 SKELETON="$REPO_ROOT/skeleton"
 
-if [ ! -d "$SKELETON/.claude/skills" ]; then
-    echo "ERROR: cannot locate skeleton/.claude/skills under $REPO_ROOT" >&2
+if [ ! -d "$REPO_ROOT/plugins/adf/skills" ] || [ ! -d "$SKELETON" ]; then
+    echo "ERROR: cannot locate plugins/adf/skills and skeleton/ under $REPO_ROOT" >&2
     echo "       This script must be run from inside the framework repo." >&2
     exit 2
 fi
 
-SKILLS_DIR="$SKELETON/.claude/skills"
-AGENTS_DIR="$SKELETON/.claude/agents"
-WORKFLOWS_DIR="$SKELETON/.claude/workflows"
-HOOKS_DIR="$SKELETON/.claude/hooks"
+# Most checks read the machinery the way a committed project keeps it: scripts/build-committed.py
+# writes that copy from the plugins, with every module's skills, and the skeleton's config.sh joins it.
+COMMITTED="$(mktemp -d)"
+trap 'rm -rf "$COMMITTED"' EXIT
+if ! python3 "$REPO_ROOT/scripts/build-committed.py" "$COMMITTED" --modules all >/dev/null; then
+    echo "ERROR: scripts/build-committed.py couldn't write the committed install" >&2
+    exit 2
+fi
+cp "$SKELETON/.claude/hooks/config.sh" "$COMMITTED/.claude/hooks/"
+SKILLS_DIR="$COMMITTED/.claude/skills"
+AGENTS_DIR="$COMMITTED/.claude/agents"
+WORKFLOWS_DIR="$COMMITTED/.claude/workflows"
+HOOKS_DIR="$COMMITTED/.claude/hooks"
 SETTINGS="$SKELETON/.claude/settings.json"
 TEMPLATES="$SKELETON/specs/_templates"
 AGENTS_MD="$SKELETON/AGENTS.md"
@@ -258,7 +267,7 @@ check_settings() {
         return
     fi
     local report
-    report=$(python3 - "$SETTINGS" "$SKELETON" <<'PY'
+    report=$(python3 - "$SETTINGS" "$COMMITTED" <<'PY'
 import json, os, re, sys
 path, skeleton = sys.argv[1], sys.argv[2]
 problems = []
@@ -468,12 +477,13 @@ check_spec_templates() {
 # ─── Links ─────────────────────────────────────────────────────────────────
 
 check_links() {
-    # Relative markdown links inside the skeleton must resolve inside the skeleton — an adopting repo
-    # has no framework docs next to it. Module files may also point at skeleton files.
+    # Relative markdown links inside the skeleton must resolve inside the adopted repo — it has no
+    # framework docs next to it. That repo is the skeleton plus, in a committed install, the machinery
+    # build-committed.py writes (the reference docs among it); module files may point at either.
     local report
-    report=$(python3 - "$SKELETON" "$MODULES_DIR" <<'PY'
+    report=$(python3 - "$SKELETON" "$MODULES_DIR" "$COMMITTED" <<'PY'
 import os, re, sys
-skeleton, modules = sys.argv[1], sys.argv[2]
+skeleton, modules, committed = sys.argv[1], sys.argv[2], sys.argv[3]
 link = re.compile(r'\]\(([^)\s#]+)(#[^)]*)?\)')
 fence = re.compile(r'^\s*(```|~~~)')
 broken = []
@@ -499,18 +509,20 @@ def scan(root, fallbacks):
                     relative_dir = os.path.relpath(directory, root)
                     candidates += [os.path.normpath(os.path.join(base, relative_dir, target)) for base in fallbacks]
                     if not any(os.path.exists(candidate) for candidate in candidates):
-                        broken.append(f"{os.path.relpath(path, os.path.dirname(skeleton))}:{number} -> {target}")
-scan(skeleton, [])
+                        where = os.path.relpath(path, committed) if path.startswith(committed) else os.path.relpath(path, os.path.dirname(skeleton))
+                        broken.append(f"{where}:{number} -> {target}")
+scan(skeleton, [committed])
+scan(committed, [skeleton])
 if os.path.isdir(modules):
     for module in os.listdir(modules):
         files = os.path.join(modules, module, "files")
         if os.path.isdir(files):
-            scan(files, [skeleton])
+            scan(files, [skeleton, committed])
 print("\n".join(broken) if broken else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "links: every relative link in skeleton/ and modules/*/files resolves inside the adopted repo"
+        pass "links: every relative link in skeleton/, the committed machinery, and modules/*/files resolves inside the adopted repo"
     else
         fail "links: broken relative links (framework-only targets don't exist in adopting repos)" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -523,10 +535,11 @@ check_modules() {
     local module name
     for module in "$MODULES_DIR"/*/; do
         name=$(basename "$module")
-        if [ -f "$module/MODULE.md" ] && [ -d "$module/files" ]; then
-            pass "module '$name': has MODULE.md and files/"
+        # A module whose plugin carries all it adds (a skill, decision 0028) has no files/ of its own.
+        if [ -f "$module/MODULE.md" ] && { [ -d "$module/files" ] || [ -f "$module/module.json" ]; }; then
+            pass "module '$name': has MODULE.md, and files/ or a module.json"
         else
-            fail "module '$name': needs MODULE.md and a files/ tree"
+            fail "module '$name': needs MODULE.md, and a files/ tree or a module.json"
         fi
         if [ -f "$module/files/README.md" ]; then
             fail "module '$name': files/README.md would overwrite the adopting repo's README"
@@ -538,33 +551,37 @@ check_modules() {
 import json, os, sys
 module, name, plugins = sys.argv[1], sys.argv[2], sys.argv[3]
 claude = os.path.join(module, "files", ".claude")
-carries = any(os.path.isdir(os.path.join(claude, k)) and os.listdir(os.path.join(claude, k)) for k in ("skills", "agents"))
+# A module's skills and agents are its plugin's, never files the module copies (decision 0028).
+for kind in ("skills", "agents", "workflows", "hooks"):
+    if os.path.isdir(os.path.join(claude, kind)):
+        print(f"ships files/.claude/{kind}/: its plugin carries a module's skills, and a committed install takes them from there")
 manifest = os.path.join(module, "module.json")
 if not os.path.exists(manifest):
-    if carries:
-        print("ships skills or agents but no module.json names the plugin that carries them")
     sys.exit()
 try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
     print(f"module.json is not valid JSON: {e}"); sys.exit()
-if "plugin" not in data or not set(data) <= {"plugin", "commands"}:
-    print(f"module.json takes plugin and, optionally, commands — it has {sorted(data)}")
+if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands"}:
+    print(f"module.json takes plugin and, optionally, skills and commands — it has {sorted(data)}")
 elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
     print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
+for skill in data.get("skills", []):
+    if not os.path.isfile(os.path.join(plugins, str(data.get("plugin")), "skills", skill, "SKILL.md")):
+        print(f"module.json names the skill {skill}, which plugins/{data.get('plugin')} doesn't carry")
 # Decision 0027: the scripts a plugin carries as commands, each named after the plugin.
 commands = data.get("commands", {})
 for command, rel in commands.items():
     if not command.startswith(f"{data.get('plugin')}-") or not os.path.isfile(os.path.join(module, "files", rel)):
         print(f"module.json: command {command} must be named {data.get('plugin')}-<name> and come from a script in files/")
-if not carries and not commands:
-    print("has a module.json but no skills, agents, or commands for a plugin to carry")
+if not data.get("skills") and not commands:
+    print("has a module.json but no skills or commands for a plugin to carry")
 PY
 )
         if [ -n "$problem" ]; then
             fail "module '$name': $problem"
         elif [ -f "$module/module.json" ]; then
-            pass "module '$name': module.json names the plugin that carries its skills"
+            pass "module '$name': module.json names the plugin that carries its skills and commands"
         fi
     done
     local fragment problems
@@ -612,13 +629,6 @@ PY
             fail "module '$name': $problems"
         fi
     done
-    local skill
-    for skill in "$MODULES_DIR"/*/files/.claude/skills/*/; do
-        [ -d "$skill" ] || continue
-        check_skill_frontmatter "$skill"
-        check_skill_has_steps_or_phases "$skill"
-        check_skill_discipline "$skill"
-    done
 }
 
 check_lanes() {
@@ -663,7 +673,7 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/testing.md" 'Expected values come from outside the code' || missing+=("testing rule: independent expected values")
     file_contains "$SKILLS_DIR/record-decision/SKILL.md" 'hard to reverse' || missing+=("/record-decision: threshold")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'Declined before' || missing+=("/triage: declined-before check")
-    file_contains "$SKELETON/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
+    file_contains "$COMMITTED/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
@@ -671,16 +681,16 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" 'branch name is generated' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")
     [ -f "$MODULES_DIR/parallel-agents/files/.worktreeinclude" ] || missing+=("parallel-agents: .worktreeinclude")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: the worker's prompt has it create the task's worktree with the scripts (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'move this session into it' || missing+=("/dispatch: the worker's prompt has it move into the worktree (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task chip for this main checkout' || missing+=("/dispatch: the chip opens in the main checkout (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'It runs no scripts' || missing+=("/dispatch: the dispatcher runs nothing (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: the worker's prompt has it create the task's worktree with the scripts (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'move this session into it' || missing+=("/dispatch: the worker's prompt has it move into the worktree (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task chip for this main checkout' || missing+=("/dispatch: the chip opens in the main checkout (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'It runs no scripts' || missing+=("/dispatch: the dispatcher runs nothing (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree.conf` in this' || missing+=("/dispatch: stops without the module's settings, since the plugin carries it (0020, 0027)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree.conf` in this' || missing+=("/dispatch: stops without the module's settings, since the plugin carries it (0020, 0027)")
     file_contains_literal "$HOOKS_DIR/protect-hub.sh" '[ -f "$root/scripts/agent/worktree.conf" ] || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0027)")
     file_contains "$REPO_ROOT/plugins/adf/.generated" '^bin$' || missing+=("the plugin carries the worktree scripts as commands (0027)")
-    file_contains "$REPO_ROOT/plugins/adf/.generated" '^skills/dispatch$' || missing+=("the plugin carries /dispatch (0020)")
+    [ -f "$REPO_ROOT/plugins/adf/skills/dispatch/SKILL.md" ] || missing+=("the plugin carries /dispatch (0020)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Give every task to /dispatch' || missing+=("session-context.sh: the dispatcher gives every task to /dispatch (0020)")
     file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
     file_contains "$AGENTS_MD" 'write or update the test that asserts the new behavior and watch it fail' || missing+=("AGENTS.md: the fast lane is test-first")
@@ -714,9 +724,9 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
-    file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
-    file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
-    file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
     ! file_contains "$REPO_ROOT/CONTRIBUTING.md" 'Bump the plugin version' || missing+=("CONTRIBUTING.md: the plugin's version changes only in a release (0017)")
     file_contains "$REPO_ROOT/docs/SETUP.md" '## Packaged install' || missing+=("SETUP.md: the packaged install")
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
@@ -775,18 +785,25 @@ PY
 }
 
 check_packaged_plugin() {
-    # The machinery in plugins/ is generated: adf's from skeleton/.claude (decision 0016), and
-    # each plugin's module skills from the modules that name it (decision 0023). A source change that
-    # wasn't rebuilt would ship the old machinery to every packaged project.
+    # The plugins are the machinery's source (decision 0028); build-plugins.sh generates the parts that
+    # can't be kept by hand — the module commands in bin/, the spec model in adf's workflows, and the
+    # version. A source change that wasn't rebuilt would ship the old ones to every packaged project.
     local tmp report
     tmp="$(mktemp -d)"
     cp -R "$REPO_ROOT/plugins" "$tmp/plugins"
     if ! "$REPO_ROOT/scripts/build-plugins.sh" "$tmp" >/dev/null 2>&1; then
         fail "plugins: scripts/build-plugins.sh failed" "$("$REPO_ROOT/scripts/build-plugins.sh" "$tmp" 2>&1 | tail -1)"
     elif diff -r "$tmp/plugins" "$REPO_ROOT/plugins" >/dev/null 2>&1; then
-        pass "plugins/ matches skeleton/.claude and the modules"
+        pass "plugins/: the generated parts match the modules' scripts, the spec model, and adf's version"
     else
-        fail "plugins/ is out of date with skeleton/.claude or a module — run scripts/build-plugins.sh"
+        fail "plugins/ is out of date with a module's scripts, the spec model, or adf's version — run scripts/build-plugins.sh"
+    fi
+    # Every file a committed install carries comes back unchanged from its committed form, so the two
+    # forms can't drift apart: a bare /triage, a local docs/ path, or a stale Step 0 fails here.
+    if report=$(python3 "$REPO_ROOT/scripts/build-committed.py" --check 2>&1); then
+        pass "plugins: every carried file survives the round trip to the committed form and back"
+    else
+        fail "plugins: the committed form doesn't round-trip" "$(printf '%s' "$report" | head -12 | tr '\n' ' ')"
     fi
     rm -rf "$tmp"
     report=$(python3 - "$REPO_ROOT" <<'PY'
@@ -826,39 +843,38 @@ PY
 }
 
 check_module_plugins() {
-    # Each plugin carries the skills of the modules that name it in module.json, and only those
-    # (decision 0023): a project lists the skills of the plugins it turned on.
+    # Each plugin carries the skills of the modules that name it in module.json (decision 0023), and a
+    # committed install carries every skill with a Step 0 (decision 0028). The ones without run only from
+    # their plugin: adf's installer, and adf-connect's /connect. A Step 0 dropped by mistake would take a
+    # skill out of every committed project.
     local report
     report=$(python3 - "$REPO_ROOT" <<'PY'
-import json, os, re, sys
+import os, re, sys
 root = sys.argv[1]
-generated = {}
-for plugin in os.listdir(os.path.join(root, "plugins")):
-    listing = os.path.join(root, "plugins", plugin, ".generated")
-    generated[plugin] = open(listing, encoding="utf-8").read().split() if os.path.exists(listing) else []
-for module in sorted(os.listdir(os.path.join(root, "modules"))):
-    manifest = os.path.join(root, "modules", module, "module.json")
-    if not os.path.exists(manifest):
-        continue
-    plugin = json.load(open(manifest, encoding="utf-8")).get("plugin")
-    folder = os.path.join(root, "modules", module, "files", ".claude", "skills")
-    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
-        holders = sorted(p for p, listed in generated.items() if f"skills/{name}" in listed)
-        if holders != [plugin]:
-            print(f"{module}'s /{name} is in {holders or 'no plugin'}, its module.json names {plugin} — run scripts/build-plugins.sh")
-            continue
-        if plugin == "adf":
-            continue
+sys.path.insert(0, os.path.join(root, "scripts"))
+from forms import CORE, Machinery
+try:
+    machinery = Machinery(root)
+except AssertionError as error:
+    print(error); sys.exit()
+plugin_only = {"adf": {"adopt", "upgrade", "cost-report"}, "adf-connect": {"connect"}}
+for plugin in machinery.plugins:
+    folder = os.path.join(root, "plugins", plugin, "skills")
+    names = set(os.listdir(folder)) if os.path.isdir(folder) else set()
+    only = names - {n for n, p in machinery.skills.items() if p == plugin}
+    if only != plugin_only.get(plugin, set()):
+        print(f"{plugin}'s skills without a Step 0 are {sorted(only)} — expected {sorted(plugin_only.get(plugin, set()))}")
+for module, skills in machinery.module_skills.items():
+    plugin = machinery.module_plugin[module]
+    for name in skills:
         text = open(os.path.join(root, "plugins", plugin, "skills", name, "SKILL.md"), encoding="utf-8").read()
-        if f"from the `{module}` module, carried by `{plugin}`" not in text:
-            print(f"{plugin}:{name} lacks its module's Step 0")
         for bare in re.findall(rf"/{re.escape(plugin)}:([\w-]+)", text):
             if not os.path.isdir(os.path.join(root, "plugins", plugin, "skills", bare)):
                 print(f"{plugin}:{name} names /{plugin}:{bare}, which the plugin doesn't carry")
 PY
 )
     if [ -z "$report" ]; then
-        pass "plugins by concern: each carries exactly the skills of the modules that name it, with their Step 0"
+        pass "plugins by concern: each carries the skills its modules name; every skill but the installer's goes to a committed install"
     else
         fail "plugins by concern: $report"
     fi

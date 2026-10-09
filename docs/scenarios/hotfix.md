@@ -192,7 +192,7 @@ b7d0e3a docs: add the rate-limit store quota check to the newsletter runbook
 | Model B: forgetting the back-merge | The next release brings the bug back | Back-merge `main` into the integration branch right away |
 | Skipping the backfill | The spec describes a system that no longer exists | Backfill within days — it's part of the hotfix |
 
-**Reference:** [`/debug`](../../skeleton/.claude/skills/debug/SKILL.md) ·
+**Reference:** [`/debug`](../../plugins/adf/skills/debug/SKILL.md) ·
 [`CONTRIBUTING.md` § Branching and release](../../skeleton/CONTRIBUTING.md#branching-and-release) ·
-[`/open-pr`](../../skeleton/.claude/skills/open-pr/SKILL.md) ·
+[`/open-pr`](../../plugins/adf/skills/open-pr/SKILL.md) ·
 [testing rules — red, then green](../../skeleton/.claude/rules/testing.md)

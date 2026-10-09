@@ -29,9 +29,12 @@ project pins them together.
 
 `/adf:adopt` and `/adf:upgrade` turn it on in a packaged project that installs one of its
 modules, and offer it to any project whose app runs locally, for the mod: `"adf-dev@aplyca": true` in `enabledPlugins`, and
-`Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`. A committed project copies the
-modules' skills instead and leaves it off.
+`Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`. A committed project keeps
+copies of the modules' skills instead, which `scripts/build-committed.py` writes from here, and leaves
+it off.
 
-`skills/` and `agents/` are generated from the modules by `scripts/build-plugins.sh` — every path
-`.generated` lists. Never edit them here; change the module and run the script. The mod — `hooks/`,
-`types/`, `tests/` — is written here.
+Everything here is written by hand ([decision 0028](../../docs/decisions/0028-plugins-are-the-source.md)):
+`skills/` holds the source of each development module's skill, in the form a packaged project loads it
+— a Step 0 that names its module, and `/adf-dev:dev-env` — and the module's `module.json` names it.
+The mod — `hooks/`, `types/`, `tests/` — is written here too. `scripts/build-plugins.sh` only keeps the
+version equal to `adf`'s.

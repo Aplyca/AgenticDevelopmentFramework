@@ -19,9 +19,9 @@ Most of what's here was proven in real client projects first — some built on t
 
 ## What's included
 
-- **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](skeleton/docs/SPEC-MODEL.md))
+- **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](plugins/adf/docs/SPEC-MODEL.md))
 - **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist and the developer's yes), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
-- **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](skeleton/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
+- **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](plugins/adf/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
 - **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
 - **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module and `/dev-env` with `docker`. ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents**, each on the model its work needs — reviewers on `sonnet`; `@spec-analyzer` (which adversarially checks a spec folder before the gate) and `@architect` on `opus`. ([Catalog](docs/AGENTS-REFERENCE.md))
@@ -349,7 +349,7 @@ flowchart TD
 fix": raising the lane is always honored; lowering it keeps a risk area's checklist unless the
 developer explicitly accepts the risk. More effort has other dials too — questions before any code,
 `/evaluate` to compare designs, a higher effort level or model, `/deep-review` — each with its cost in
-[`COST-MODEL.md` § Effort](skeleton/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
+[`COST-MODEL.md` § Effort](plugins/adf/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
 Teams list their **sensitive areas** once (`AGENTS.md`, mirrored in `CAREFUL_GLOBS`), and a hook stops
 a fast-lane edit there.
 
@@ -367,7 +367,7 @@ per session, short tool output, and the model:
 - **Check the picker.** The project sets `"model": "sonnet"`, but the desktop app's model picker and
   `/model` decide per session — and Claude Code's own default is Opus.
 
-[`COST-MODEL.md`](skeleton/docs/COST-MODEL.md) has the measured numbers, and the plugin's
+[`COST-MODEL.md`](plugins/adf/docs/COST-MODEL.md) has the measured numbers, and the plugin's
 `/cost-report` shows what your own sessions cost. In the routing evals, Sonnet triaged as accurately
 as Opus at about half the cost.
 

@@ -227,5 +227,5 @@ cd ../feat-newsletter-signup && claude
 | Restating the workflow in the handoff | The copy drifts from `AGENTS.md` | Three lines, pointers only |
 
 **Reference:** [`docs/PARALLEL-AGENTS.md`](../../modules/parallel-agents/files/docs/PARALLEL-AGENTS.md) ·
-[`/dispatch`](../../modules/parallel-agents/files/.claude/skills/dispatch/SKILL.md) ·
+[`/dispatch`](../../plugins/adf/skills/dispatch/SKILL.md) ·
 [`worktree.conf`](../../modules/parallel-agents/files/scripts/agent/worktree.conf)

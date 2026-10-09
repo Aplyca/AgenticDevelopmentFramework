@@ -4,7 +4,7 @@ The same checks as `check-skills.sh`, expressed as a checklist for when you can'
 reviewing the framework in conversation, or having an AI agent verify it without shell access. The
 behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no checklist substitute.
 
-## Per skill (every `skeleton/.claude/skills/*` and module skill)
+## Per skill (every skill a committed install carries — `plugins/adf/skills/*` and the modules' skills)
 
 - [ ] YAML frontmatter with `name:` equal to the directory name and a meaningful `description:`
 - [ ] Frontmatter keys are hyphenated — no `user_invocable`, `disable_model_invocation`, `allowed_tools`, `argument_hint`
