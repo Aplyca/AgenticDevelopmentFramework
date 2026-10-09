@@ -390,7 +390,7 @@ If the same heading was edited in both (yours and the framework's), read both an
 
 ### "An agent's model changed (Sonnet → Haiku)"
 
-Agents are safe-to-overwrite — accept the new model. The framework's per-agent recommendations are documented in `docs/COST-MODEL.md`. If you previously overrode the model for project-specific reasons, document why in your project's `CLAUDE.md` and re-apply the override after copying.
+Agents are safe-to-overwrite — accept the new model. The framework's per-agent recommendations are documented in `docs/COST-MODEL.md`. A project's own override is a row in its `.claude/rules/claude-code.md`, which the upgrade merges rather than overwrites; check that its reason still holds against the new default. An override made by editing the agent's `agent.md` (committed install) is lost on copying: move it into the rule (`docs/COST-MODEL.md` § Per-agent recommendations), or re-apply it after copying.
 
 ### "A skill was renamed or removed"
 

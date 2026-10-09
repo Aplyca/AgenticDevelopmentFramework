@@ -182,7 +182,7 @@ Configure models with these aliases everywhere Claude Code takes one: `.claude/s
 
 - `/model` — built-in command to switch the session's model (e.g. `/model opus` before a hard reasoning task, then `/model sonnet` after). Switching mid-session means the new model reads the whole context uncached once — switch at the start of a task, not for a single step.
 - Precedence — the desktop app's model picker and `/model` override the project's `.claude/settings.json`, which overrides user settings. A user-level `"model": "opus[1m]"` is a costly default for routine work.
-- Agent frontmatter — set `model:` in an agent's `agent.md` to pin that agent to a tier regardless of the session default (aliases here too). Use it for work that should always run on a given tier, e.g. `@adf:code-reviewer` / `@adf:security-reviewer` on `haiku`.
+- Agent frontmatter — an agent's `model:` pins it to a tier regardless of the session default (aliases here too). Every framework agent sets one (§ Per-agent recommendations); give your own agents one for work that should always run on a given tier. Only a model passed when the agent is spawned outranks it.
 - `/fast` — built-in Claude Code toggle (research preview) that runs Opus in a faster-output configuration. It is the same model — it does NOT downgrade to a smaller one — with up to ~2.5× faster output at premium pricing ($8 / $40 per MTok on Opus 5.5, vs $4 / $20 standard). Supported on Opus 5.5, Opus 5, and Opus 4.8, and only through the Anthropic API or subscription plans' usage credits (not Bedrock, Google Cloud, or Foundry). Turn it on at the start of a session: enabling it mid-conversation bills the whole existing context at the fast-mode uncached input rate. Useful when you're already on Opus for a hard problem and want quicker streaming; it's a per-user preference (`fastMode` in user settings), not a project-level setting.
 
 ## Per-skill recommendations
@@ -225,7 +225,26 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 | `@adf:ux-reviewer` | `model: sonnet` | Review against the spec's stories, states, and accessibility — well-defined review work |
 | `@adf:spec-analyzer` | `model: opus` | Adversarial analysis of a plan is judgment work, and it runs once per full-lane folder, before the gate — where a missed problem is most expensive |
 
-**To override** for a specific project, edit the agent's `agent.md` frontmatter. Document your override and why.
+**To change an agent's tier in your project**, record it in `.claude/rules/claude-code.md`, the project's own Claude Code rule, which every session loads:
+
+```markdown
+## Agent model overrides
+
+When you spawn one of these agents, pass the model shown here.
+
+| Agent | Model | Why |
+|---|---|---|
+| `@adf:code-reviewer` | `haiku` | <the project's reason> |
+```
+
+A model passed when an agent is spawned outranks the agent's `model:`, so the session runs it on yours. This works in either install, and upgrades keep it: the rule is the project's own. It's an instruction rather than a setting, so a session that misses it runs the agent on the default above. A committed project can also set `model:` in `.claude/agents/<name>/agent.md`, which doesn't depend on the session, but an upgrade overwrites that file: keep the rule's row, and re-apply the edit after each upgrade.
+
+What doesn't change one agent's tier:
+
+- **Editing the plugin's copy.** In a packaged project, the agents are the plugin's, and an update replaces them.
+- **`CLAUDE_CODE_SUBAGENT_MODEL`.** It applies only to agents that name no model, and every framework agent names one. With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` it replaces every agent's model, the framework's and your own: one tier for all of them.
+- **`ANTHROPIC_DEFAULT_SONNET_MODEL` and the other alias variables.** They change what an alias resolves to for the whole session, the main conversation included.
+- **A project agent with the same name, in a packaged project.** A plugin's agents carry the plugin's name as a prefix, so the project's agent sits beside the plugin's instead of replacing it, and the framework's skills keep calling the plugin's.
 
 ## Dynamic workflows
 

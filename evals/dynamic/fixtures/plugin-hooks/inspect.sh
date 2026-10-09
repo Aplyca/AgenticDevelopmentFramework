@@ -17,7 +17,7 @@ echo "### Checks"
 case "$case_name" in
   session-context) check "session-context names the branch's spec folder and its status" \
     "has 'Spec folder for this branch: specs/007-newsletter-signup/ (status: draft)'" ;;
-  guard-git) check "guard-git blocks --no-verify" "has 'Blocked by .claude/hooks/guard-git.sh: --no-verify'" ;;
+  guard-git) check "guard-git blocks --no-verify" "has 'Blocked by the guard-git hook: --no-verify'" ;;
   triage-first) check "triage-first reminds before the first edit when no lane is stated" \
     "has 'write the triage as your next message'" ;;
   protect-paths) check "protect-paths blocks a hand edit to a generated file" "has 'package-lock.json is generated'" ;;
@@ -25,8 +25,8 @@ case "$case_name" in
   check-env-declared) check "check-env-declared reports the undeclared variable to Claude" \
     "grep -q -F 'reads NEWSLETTER_LIST_ID but .env.example does not declare it' \"\$(transcript)\"" ;;
   stand-down)
-    check "the plugin's guard stays out of a committed project" "! has 'Blocked by .claude/hooks/'"
-    check "the plugin's session context stays out of a committed project" "! has 'Session context ('" ;;
+    check "the plugin's guard stays out of a committed project" "! has 'Blocked by the guard-git hook'"
+    check "the plugin's session context stays out of a committed project" "! has 'Session context (the session-context hook):'" ;;
 esac
 echo "### End state"
 echo '```'
