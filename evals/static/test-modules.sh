@@ -69,10 +69,10 @@ M="$P/main"
 git -C "$M" config user.email test@example.com
 git -C "$M" config user.name test
 git -C "$M" symbolic-ref HEAD refs/heads/main   # the clone is empty; don't depend on init.defaultBranch
-cp -R "$MODULES/parallel-agents/files/." "$M/" && chmod +x "$M"/scripts/agent/*.sh
+cp -R "$MODULES/parallel-agents/files/." "$M/" && chmod +x "$M"/ops/agent/*.sh
 printf 'SECRET=\nAPP_PORT=\n' > "$M/.env.example"
 printf '.env\nsetup.txt\nstarted.txt\n' > "$M/.gitignore"
-CONF="$M/scripts/agent/worktree.conf"
+CONF="$M/ops/agent/worktree.conf"
 replace "$CONF" 'REQUIRED_ENV=""' 'REQUIRED_ENV="SECRET"'
 replace "$CONF" 'SETUP_CMD=""' 'SETUP_CMD="echo setup-${SLUG} > setup.txt"'
 replace "$CONF" 'START_CMD=""' 'START_CMD="echo started-${APP_PORT} > started.txt"'
@@ -87,7 +87,7 @@ printf 'SECRET=abc\nAPP_PORT=1\nCOMPOSE_PROJECT_NAME=stale\n' > "$M/.env"
 port_of() { sed -n 's/^APP_PORT=//p' "$1/.env"; }
 
 cd "$M" || exit 1
-out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
 W1="$P/feat-newsletter-signup"
 check "worktree-new: creates a sibling worktree on a new branch" "[ $code -eq 0 ] && [ -f '$W1/.git' ] && git -C '$M' show-ref --verify --quiet refs/heads/feat/newsletter-signup"
 check "worktree-new: the new branch has no upstream" "! git -C '$W1' rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1"
@@ -96,20 +96,20 @@ P1=$(port_of "$W1")
 check "worktree-new: replaces stale overrides with exactly one port ($P1)" "[ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ] && [ '$P1' != 1 ] && [ \$(grep -c '^COMPOSE_PROJECT_NAME=' '$W1/.env') -eq 1 ]"
 check "worktree-new: expands placeholders; project prefix is the repository name" "grep -q '^COMPOSE_PROJECT_NAME=origin-feat-newsletter-signup$' '$W1/.env' && grep -q '^SITE_URL=http://localhost:$P1$' '$W1/.env'"
 check "worktree-new: --no-start runs no commands" "[ ! -f '$W1/setup.txt' ] && [ ! -f '$W1/started.txt' ]"
-out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
 check "worktree-new: rerunning with --no-start changes nothing" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'Worktree exists' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ ! -f '$W1/setup.txt' ]"
-out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --setup-only 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/newsletter-signup --setup-only 2>&1); code=$?
 check "worktree-new: --setup-only on an existing worktree runs only the setup" "[ $code -eq 0 ] && [ -f '$W1/setup.txt' ] && [ ! -f '$W1/started.txt' ]"
-out=$(scripts/agent/worktree-new.sh feat/newsletter-signup 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/newsletter-signup 2>&1); code=$?
 check "worktree-new: rerunning without --no-start starts an existing worktree" "[ $code -eq 0 ] && grep -q 'started-$P1' '$W1/started.txt'"
 replace "$M/.env" 'SECRET=abc' 'SECRET=rotated'
-out=$(scripts/agent/worktree-new.sh feat/newsletter-signup --refresh-env --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/newsletter-signup --refresh-env --no-start 2>&1); code=$?
 check "worktree-new: --refresh-env re-seeds secrets and keeps the port" "[ $code -eq 0 ] && grep -q '^SECRET=rotated$' '$W1/.env' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ]"
 replace "$M/.env" 'SECRET=rotated' 'SECRET=abc'
 
 echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
 cd "$W1" || exit 1
-out=$(scripts/agent/worktree-new.sh fix/other-thing 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh fix/other-thing 2>&1); code=$?
 W2="$P/fix-other-thing"
 P2=$(port_of "$W2" 2>/dev/null)
 check "worktree-new: works from inside another worktree, with setup and start" "[ $code -eq 0 ] && grep -q setup-fix-other-thing '$W2/setup.txt' && grep -q 'started-$P2' '$W2/started.txt'"
@@ -118,61 +118,61 @@ check "worktree-new: gives each worktree its own port ($P1, $P2)" "[ -n '$P2' ] 
 
 cd "$M" || exit 1
 replace "$M/.env" 'SECRET=abc' 'SECRET='
-out=$(scripts/agent/worktree-new.sh feat/needs-secret 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/needs-secret 2>&1); code=$?
 check "worktree-new: refuses to start with a required variable empty" "[ $code -ne 0 ] && echo \"\$out\" | grep -q SECRET"
 replace "$M/.env" 'SECRET=' 'SECRET=abc'
 
 git -C "$M" branch -q feat/from-remote && git -C "$M" push -q origin feat/from-remote 2>/dev/null && git -C "$M" branch -q -D feat/from-remote
-out=$(scripts/agent/worktree-new.sh feat/from-remote --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/from-remote --no-start 2>&1); code=$?
 check "worktree-new: tracks a branch that exists on origin" "[ $code -eq 0 ] && [ \"\$(git -C '$P/feat-from-remote' rev-parse --abbrev-ref '@{u}')\" = origin/feat/from-remote ]"
 
 mkdir -p "$P/.origin-worktree-ports.lock" && echo 999999 > "$P/.origin-worktree-ports.lock/pid"
-out=$(scripts/agent/worktree-new.sh chore/stale-lock --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh chore/stale-lock --no-start 2>&1); code=$?
 check "worktree-new: reclaims a lock left by a dead process" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'stale port lock' && [ ! -d '$P/.origin-worktree-ports.lock' ]"
 
 git -C "$M" tag -a v1.0.0 -m "Release v1.0.0"
 echo later > "$M/later.txt" && git -C "$M" add later.txt && git -C "$M" commit -qm later && git -C "$M" push -q origin main 2>/dev/null
-out=$(scripts/agent/worktree-new.sh hotfix/broken-login --from v1.0.0 --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh hotfix/broken-login --from v1.0.0 --no-start 2>&1); code=$?
 check "worktree-new: --from starts a new branch at a release tag" "[ $code -eq 0 ] && [ \"\$(git -C '$P/hotfix-broken-login' rev-parse HEAD)\" = \"\$(git -C '$M' rev-parse 'v1.0.0^{commit}')\" ]"
 
 git -C "$M" branch -q feat/old-delivery v1.0.0
-out=$(scripts/agent/worktree-new.sh feat/old-delivery --no-start 2>&1); code=$?
+out=$(ops/agent/worktree-new.sh feat/old-delivery --no-start 2>&1); code=$?
 check "worktree-new: warns when reusing a local branch that is behind the base" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'behind origin/main'"
 
-out=$(scripts/agent/worktree-ls.sh 2>&1)
+out=$(ops/agent/worktree-ls.sh 2>&1)
 check "worktree-ls: lists every worktree and marks the main checkout" "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
-out=$(scripts/agent/worktree-ls.sh --info 2>&1)
+out=$(ops/agent/worktree-ls.sh --info 2>&1)
 check "worktree-ls --info: runs ENV_INFO_CMD in each worktree, with its placeholders" "echo \"\$out\" | grep -q 'info-feat-newsletter-signup-$P1'"
 check "worktree-new: marks the worktrees it sets up, in their own git directory" "[ -f \"\$(git -C '$W1' rev-parse --absolute-git-dir)/agent-worktree\" ] && [ -z \"\$(git -C '$W1' status --porcelain)\" ]"
 git -C "$M" worktree add -q -b claude/eager-lamport "$M/.claude/worktrees/eager-lamport" main 2>/dev/null
 git -C "$M" worktree add -q -b fix/in-app "$M/.claude/worktrees/calm-hopper" main 2>/dev/null
-out=$(scripts/agent/worktree-ls.sh 2>&1)
+out=$(ops/agent/worktree-ls.sh 2>&1)
 check "worktree-ls: lists Claude Code's worktrees, and flags one on a generated branch" "echo \"\$out\" | grep -q 'eager-lamport is on a generated branch (claude/eager-lamport)' && echo \"\$out\" | grep -q 'fix/in-app'"
 check "worktree-ls: no flag for a renamed branch, and the scripts' worktrees count as theirs" "! echo \"\$out\" | grep -q 'calm-hopper is on' && ! echo \"\$out\" | grep 'feat-newsletter-signup' | grep -q 'not from the scripts'"
 git -C "$M" worktree remove --force "$M/.claude/worktrees/eager-lamport"; git -C "$M" worktree remove --force "$M/.claude/worktrees/calm-hopper"
 
 echo work > "$W2/work.txt" && git -C "$W2" add work.txt && git -C "$W2" commit -qm work
 echo dirty > "$W2/dirty.txt"
-out=$(scripts/agent/worktree-rm.sh fix/other-thing 2>&1); code=$?
+out=$(ops/agent/worktree-rm.sh fix/other-thing 2>&1); code=$?
 check "worktree-rm: refuses uncommitted changes" "[ $code -ne 0 ] && [ -d '$W2' ]"
-out=$(scripts/agent/worktree-rm.sh fix/other-thing --force 2>&1); code=$?
+out=$(ops/agent/worktree-rm.sh fix/other-thing --force 2>&1); code=$?
 check "worktree-rm: --force stops, removes, and keeps an unmerged branch" "[ $code -eq 0 ] && [ ! -d '$W2' ] && [ -f '$P/stopped-fix-other-thing.txt' ] && echo \"\$out\" | grep -q 'kept branch'"
-out=$(scripts/agent/worktree-rm.sh chore-stale-lock 2>&1); code=$?
+out=$(ops/agent/worktree-rm.sh chore-stale-lock 2>&1); code=$?
 check "worktree-rm: by slug, deletes a merged branch" "[ $code -eq 0 ] && ! git -C '$M' show-ref --verify --quiet refs/heads/chore/stale-lock"
-out=$(scripts/agent/worktree-rm.sh main 2>&1); code=$?
+out=$(ops/agent/worktree-rm.sh main 2>&1); code=$?
 check "worktree-rm: refuses the main checkout" "[ $code -ne 0 ] && [ -d '$M' ]"
 
 X="$WORK/slots"
 mkdir -p "$X" && new_repo "$X/repo"
 XR="$X/repo"
-cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/scripts/agent/*.sh
+cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/ops/agent/*.sh
 printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
-replace "$XR/scripts/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
+replace "$XR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
 git -C "$XR" add -A && git -C "$XR" commit -qm init
 cd "$XR" || exit 1
-scripts/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
-scripts/agent/worktree-new.sh feat/two --no-start >/dev/null 2>&1; c2=$?
-o3=$(scripts/agent/worktree-new.sh feat/three --no-start 2>&1); c3=$?
+ops/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
+ops/agent/worktree-new.sh feat/two --no-start >/dev/null 2>&1; c2=$?
+o3=$(ops/agent/worktree-new.sh feat/three --no-start 2>&1); c3=$?
 q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
@@ -182,12 +182,12 @@ check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-work
 N="$WORK/plain"
 mkdir -p "$N" && new_repo "$N/repo"
 NR="$N/repo"
-cp -R "$MODULES/parallel-agents/files/." "$NR/" && chmod +x "$NR"/scripts/agent/*.sh
+cp -R "$MODULES/parallel-agents/files/." "$NR/" && chmod +x "$NR"/ops/agent/*.sh
 git -C "$NR" add -A && git -C "$NR" commit -qm init
 cd "$NR" || exit 1
-o5=$(scripts/agent/worktree-new.sh feat/cli-flag 2>&1); c5=$?
+o5=$(ops/agent/worktree-new.sh feat/cli-flag 2>&1); c5=$?
 check "worktree-new, defaults: a worktree with no env file, port, or commands when the project has none" "[ $c5 -eq 0 ] && [ -f '$N/feat-cli-flag/.git' ] && [ ! -e '$N/feat-cli-flag/.env' ] && ! echo \"\$o5\" | grep -qE 'Port:|Project:|--setup-only'"
-o6=$(scripts/agent/worktree-ls.sh 2>&1)
+o6=$(ops/agent/worktree-ls.sh 2>&1)
 check "worktree-ls, defaults: no port columns when no worktree has a port" "echo \"\$o6\" | grep -q feat/cli-flag && ! echo \"\$o6\" | grep -q PORT"
 
 # ─── clickup: install.sh merges, never overwrites ──────────────────────────

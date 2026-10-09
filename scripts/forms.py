@@ -4,7 +4,7 @@ The plugins in plugins/ are the source. Each skill, agent, workflow, and hook is
 packaged project loads it: `/adf:triage`, `@adf:code-reviewer`, `${CLAUDE_PLUGIN_ROOT}/docs/SPEC-MODEL.md`,
 `adf-worktree-new`, and a Step 0 that hands over to a committed copy. scripts/build-committed.py turns
 each file into the form a committed project keeps — `/triage`, `@code-reviewer`, `docs/SPEC-MODEL.md`,
-`scripts/agent/worktree-new.sh`, no Step 0 — and to_plugin() is the way back. The static checks require
+`ops/agent/worktree-new.sh`, no Step 0 — and to_plugin() is the way back. The static checks require
 every file to survive the round trip unchanged, so the two forms can't drift apart.
 
 A committed install carries every skill and agent that opens with a Step 0 (adf's installer skills and
@@ -132,7 +132,7 @@ class Machinery:
         alternation = lambda words: "|".join(map(re.escape, sorted(words, key=len, reverse=True)))
         plugins = alternation(self.plugins)
         # A name counts only on its own: not inside a path (skills/review/SKILL.md), a URL, or a longer
-        # name. A script counts on its own too: not the end of a longer path ("$root/scripts/agent/…",
+        # name. A script counts on its own too: not the end of a longer path ("$root/ops/agent/…",
         # which a hook tests for).
         self.bare_skill = re.compile(r"(?<![\w./@:-])/(" + alternation(names) + r")(?![\w-])")
         self.plugin_skill = re.compile(r"(?<![\w./@:-])/(" + plugins + r"):(" + alternation(names) + r")(?![\w-])")
@@ -145,15 +145,15 @@ class Machinery:
     def _modules(self):
         """Each module's module.json: the plugin that carries its skills and commands (decisions 0023, 0027)."""
         self.module_plugin, self.module_skills, self.module_of = {}, {}, {}
-        self.command_script, self.script_of, self.command_module = {}, {}, {}
+        self.command_script, self.script_of, self.command_module, self.moved_from = {}, {}, {}, {}
         modules = os.path.join(self.modules_root, "modules")
         for module in sorted(os.listdir(modules)):
             manifest = os.path.join(modules, module, "module.json")
             if not os.path.isfile(manifest):
                 continue
             data = json.loads(read(manifest))
-            assert "plugin" in data and set(data) <= {"plugin", "skills", "commands"}, \
-                f"modules/{module}/module.json takes plugin and, optionally, skills and commands"
+            assert "plugin" in data and set(data) <= {"plugin", "skills", "commands", "moved_from"}, \
+                f"modules/{module}/module.json takes plugin and, optionally, skills, commands, and moved_from"
             plugin = data["plugin"]
             assert plugin in self.plugins, f"modules/{module}/module.json names {plugin}, which isn't in plugins/"
             assert data.get("skills") or data.get("commands"), \
@@ -179,6 +179,13 @@ class Machinery:
                 for mention in (rel, os.path.basename(rel)):
                     assert mention not in self.script_of, f"two commands come from scripts named {mention}"
                     self.script_of[mention] = name
+            # The folder the scripts lived in before a move (decision 0032): the commands still read it,
+            # until a project's upgrade moves it.
+            if "moved_from" in data:
+                folders = {os.path.dirname(rel) for rel in data.get("commands", {}).values()}
+                assert len(folders) == 1 and data["moved_from"] not in folders, \
+                    f"modules/{module}/module.json: moved_from is the one folder its commands' scripts lived in before"
+                self.moved_from[module] = data["moved_from"]
 
     def _carried(self):
         """Every skill and agent with a Step 0, in any plugin; adf's workflows, hooks, and docs."""

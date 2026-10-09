@@ -47,6 +47,6 @@ SPECS_DIR="specs"
 # CUSTOMIZE: the local environment's URL — what the developer opens for the local check before the
 # pull request. Claude Code shows it above the prompt, and whether it answers, with the adf-dev
 # plugin's mod. ${APP_PORT} is filled from the env file, for worktrees with a port each
-# (parallel-agents). Empty: the mod uses READY_URL from scripts/agent/worktree.conf, or shows nothing.
+# (parallel-agents). Empty: the mod uses READY_URL from ops/agent/worktree.conf, or shows nothing.
 # E.g. "http://localhost:3000".
 LOCAL_URL=""

@@ -49,7 +49,7 @@ nothing:
    ```
    Task: <tracker link>
    Branch: feat/newsletter-signup-topics
-   First create this task's worktree — scripts/agent/worktree-new.sh feat/newsletter-signup-topics --no-start — and move this session into it; then follow AGENTS.md end to end, starting with triage.
+   First create this task's worktree — ops/agent/worktree-new.sh feat/newsletter-signup-topics --no-start — and move this session into it; then follow AGENTS.md end to end, starting with triage.
    ```
 
    The workflow isn't restated: a copy in a handoff is one more thing that drifts from `AGENTS.md`.
@@ -64,7 +64,7 @@ nothing:
 The new session opens in the main checkout, so its first lines say `Role: DISPATCHER` — and that a
 session handed one task and its branch is that task's worker. Before anything else it:
 
-1. **Creates the worktree** — `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
+1. **Creates the worktree** — `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
    directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
    branch, the env file seeded from the main checkout's — and, since the newsletter site runs a server
    in each worktree, a reserved port. `--no-start` because whether the task needs anything running is
@@ -82,12 +82,12 @@ don't run again after the move, so the worker finds its spec folder at triage.
 The worker follows whichever scenario its triage picks. What's specific to worktrees:
 
 - **The environment on demand.** When a step needs the app or the tests, run
-  `scripts/agent/worktree-new.sh <branch>` from the worktree: for an existing worktree it leaves the
-  branch alone and runs `SETUP_CMD` and `START_CMD` from `scripts/agent/worktree.conf`, then waits
+  `ops/agent/worktree-new.sh <branch>` from the worktree: for an existing worktree it leaves the
+  branch alone and runs `SETUP_CMD` and `START_CMD` from `ops/agent/worktree.conf`, then waits
   for the app. On the newsletter site the app reads its port (and Compose its project name) from the
   env file, so it comes up on the worktree's port; a project that runs nothing locally sets neither.
 - **Host dependencies before the first commit**, even with no environment —
-  `scripts/agent/worktree-new.sh <branch> --setup-only`: git hooks run on the host, and an agent
+  `ops/agent/worktree-new.sh <branch> --setup-only`: git hooks run on the host, and an agent
   never bypasses a failing hook.
 - **Configuration comes from the main checkout.** Keep secrets right in the main checkout's env file;
   every new worktree inherits them, and `--refresh-env` brings an existing worktree up to date. Don't
@@ -126,7 +126,7 @@ command. `worktree-ls.sh` flags the ones left on a generated branch. `.claude/wo
 When the pull request has merged, or the task is dropped:
 
 ```
-scripts/agent/worktree-rm.sh feat/newsletter-signup
+ops/agent/worktree-rm.sh feat/newsletter-signup
 ```
 
 It stops the environment, removes the worktree, and deletes the branch only if git sees it as
@@ -151,7 +151,7 @@ name would start with `main-`. The dispatcher session in the main checkout runs 
 times, and you start the three chips. The first worker's first step:
 
 ```
-$ scripts/agent/worktree-new.sh feat/newsletter-signup --no-start
+$ ops/agent/worktree-new.sh feat/newsletter-signup --no-start
 ==> Fetching origin
 ==> Creating 'feat/newsletter-signup' from origin/main
 ==> Seeding .env from the main checkout
@@ -167,7 +167,7 @@ $ scripts/agent/worktree-new.sh feat/newsletter-signup --no-start
 Each worker moves into its worktree and starts triage. An hour later:
 
 ```
-$ scripts/agent/worktree-ls.sh
+$ ops/agent/worktree-ls.sh
 
   BRANCH                               PORT    STATE  CHANGES  PATH
   main                                 -       -      0        /home/dev/code/newsletter-site/main (main checkout)
@@ -228,4 +228,4 @@ cd ../feat-newsletter-signup && claude
 
 **Reference:** [`docs/PARALLEL-AGENTS.md`](../../modules/parallel-agents/files/docs/PARALLEL-AGENTS.md) ·
 [`/dispatch`](../../plugins/adf/skills/dispatch/SKILL.md) ·
-[`worktree.conf`](../../modules/parallel-agents/files/scripts/agent/worktree.conf)
+[`worktree.conf`](../../modules/parallel-agents/files/ops/agent/worktree.conf)

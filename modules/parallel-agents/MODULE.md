@@ -9,11 +9,11 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 
 | File | Purpose |
 |---|---|
-| `scripts/agent/worktree-new.sh` | A worktree per task: branch `<type>/<slug>`, the env file seeded from the main checkout (when the project has one), optional setup and start commands, and — for projects that run a server — a port reserved under a lock. Idempotent; `--no-start`, `--setup-only`, `--refresh-env`, `--from <ref>` |
-| `scripts/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
-| `scripts/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
-| `scripts/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
-| `scripts/agent/_worktree-lib.sh` | Shared helpers |
+| `ops/agent/worktree-new.sh` | A worktree per task: branch `<type>/<slug>`, the env file seeded from the main checkout (when the project has one), optional setup and start commands, and — for projects that run a server — a port reserved under a lock. Idempotent; `--no-start`, `--setup-only`, `--refresh-env`, `--from <ref>` |
+| `ops/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
+| `ops/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
+| `ops/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
+| `ops/agent/_worktree-lib.sh` | Shared helpers |
 | `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
 | `docs/PARALLEL-AGENTS.md` | The dispatcher/worker process, the scripts, shared vs isolated services |
@@ -33,7 +33,7 @@ covers passing work in progress on.
 
 ```bash
 cp -R modules/parallel-agents/files/. /path/to/your-repo/
-chmod +x scripts/agent/*.sh
+chmod +x ops/agent/*.sh
 python3 scripts/build-committed.py /path/to/your-repo --modules parallel-agents   # committed install: /dispatch
 ```
 
@@ -45,13 +45,17 @@ for everyone.
 
 It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0027):
 remove the copied `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh`, keep
-`scripts/agent/worktree.conf`, and run `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`.
-They read the project's `worktree.conf`, stop in a project without `scripts/agent/`, and run the
+`ops/agent/worktree.conf`, and run `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`.
+They read the project's `worktree.conf`, stop in a project without `ops/agent/`, and run the
 committed script instead where a project keeps one. A developer's own terminal doesn't have them.
+
+**Moved from `scripts/agent/`** (decision 0032): the module's folder was `scripts/agent/` before
+operational code moved to `ops/`. The commands and the hooks still read `scripts/agent/` in a project
+that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops/agent`.
 
 ## Customize
 
-1. **`scripts/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
+1. **`ops/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
    project has an env file; `SETUP_CMD` for what the git hooks and tests need. Only if each worktree
    runs a server: `PORT_SLOTS`, `ENV_OVERRIDES`, `START_CMD`, `READY_URL`, `STOP_CMD` — and make the
    app read its port from the env file.

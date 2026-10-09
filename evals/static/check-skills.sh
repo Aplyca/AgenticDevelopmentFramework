@@ -562,8 +562,8 @@ try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
     print(f"module.json is not valid JSON: {e}"); sys.exit()
-if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands"}:
-    print(f"module.json takes plugin and, optionally, skills and commands — it has {sorted(data)}")
+if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands", "moved_from"}:
+    print(f"module.json takes plugin and, optionally, skills, commands, and moved_from — it has {sorted(data)}")
 elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
     print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
 for skill in data.get("skills", []):
@@ -576,6 +576,10 @@ for command, rel in commands.items():
         print(f"module.json: command {command} must be named {data.get('plugin')}-<name> and come from a script in files/")
 if not data.get("skills") and not commands:
     print("has a module.json but no skills or commands for a plugin to carry")
+# Decision 0032: the folder the commands' scripts lived in before, which the commands still read.
+folders = {os.path.dirname(rel) for rel in commands.values()}
+if "moved_from" in data and (len(folders) != 1 or not isinstance(data["moved_from"], str) or data["moved_from"] in folders):
+    print("module.json: moved_from is the one folder all its commands' scripts lived in before, not the one they're in")
 PY
 )
         if [ -n "$problem" ]; then
@@ -688,11 +692,11 @@ check_practices() {
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree.conf` in this' || missing+=("/dispatch: stops without the module's settings, since the plugin carries it (0020, 0027)")
-    file_contains_literal "$HOOKS_DIR/protect-hub.sh" '[ -f "$root/scripts/agent/worktree.conf" ] || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0027)")
+    file_contains_literal "$HOOKS_DIR/protect-hub.sh" 'worktree_settings "$root" >/dev/null || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0027)")
     file_contains "$REPO_ROOT/plugins/adf/.generated" '^bin$' || missing+=("the plugin carries the worktree scripts as commands (0027)")
     [ -f "$REPO_ROOT/plugins/adf/skills/dispatch/SKILL.md" ] || missing+=("the plugin carries /dispatch (0020)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Give every task to /dispatch' || missing+=("session-context.sh: the dispatcher gives every task to /dispatch (0020)")
-    file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
+    file_contains "$MODULES_DIR/parallel-agents/files/ops/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
     file_contains "$AGENTS_MD" 'write or update the test that asserts the new behavior and watch it fail' || missing+=("AGENTS.md: the fast lane is test-first")
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")

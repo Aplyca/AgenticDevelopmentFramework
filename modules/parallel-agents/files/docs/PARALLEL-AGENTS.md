@@ -33,7 +33,7 @@ Every task starts in the main checkout with `/dispatch`, and every task takes th
    - **Terminal:** `claude "<prompt>"`, run in the main checkout.
 2. **The new session creates the worktree.** It opens in the main checkout, so its first lines say
    `Role: DISPATCHER` — and that a session handed one task and its branch is that task's worker. Its
-   first step is `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
+   first step is `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
    checkout named after the branch (`feat/newsletter-signup` → `../feat-newsletter-signup`), on a new
    branch from `BASE_BRANCH`, with the env file seeded from the main checkout's and, when worktrees run
    a server, a port reserved. Nothing starts.
@@ -73,13 +73,13 @@ a task can be picked up by an agent on any machine. Passing work on later in a t
 
 | Command | Does |
 |---|---|
-| `scripts/agent/worktree-new.sh <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
-| `scripts/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
-| `scripts/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, deletes the branch only if git sees it as merged |
+| `ops/agent/worktree-new.sh <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
+| `ops/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
+| `ops/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, deletes the branch only if git sees it as merged |
 
-Settings live in `scripts/agent/worktree.conf`, and the defaults assume nothing: no ports, no
+Settings live in `ops/agent/worktree.conf`, and the defaults assume nothing: no ports, no
 containers, no commands. **With the packaged install,** the scripts are the `adf` plugin's commands
-and `scripts/agent/` holds only `worktree.conf`: run `adf-worktree-new`, `adf-worktree-ls`, and
+and `ops/agent/` holds only `worktree.conf`: run `adf-worktree-new`, `adf-worktree-ls`, and
 `adf-worktree-rm`, with the same arguments. Claude Code's sessions have them; your own terminal
 doesn't, so go through `/adf:dispatch`, or ask Claude to list or remove a worktree. Never create or remove the scripts' worktrees with raw `git worktree add` —
 the scripts keep branches, env files, and ports consistent.
@@ -129,7 +129,7 @@ costs.
 
 ## Seeing your environments
 
-`scripts/agent/worktree-ls.sh` lists every worktree at once. `--info` runs `ENV_INFO_CMD` in each
+`ops/agent/worktree-ls.sh` lists every worktree at once. `--info` runs `ENV_INFO_CMD` in each
 one — the place for whatever someone needs to use that environment: its URLs, the accounts to sign
 in with. Derive these every time: environments come and go, so a table committed to the repository
 would be wrong by the time anyone read it.

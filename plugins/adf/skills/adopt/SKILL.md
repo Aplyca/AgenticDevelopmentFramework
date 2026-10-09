@@ -51,7 +51,7 @@ to install modules (steps 3–4 for the chosen modules only, then update the `mo
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
 checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
 (`adf-worktree-new chore/add-modules --no-start`, the plugin's command, which runs the committed
-`scripts/agent/worktree-new.sh` where the project has one).
+script where the project has one).
 
 ### A new project
 
@@ -177,7 +177,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `enabledPlugins`, and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`.
   Packaged, too: leave out the scripts the pinned release's plugin carries as commands — the
   `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0027). For
-  `parallel-agents`, that's every file in `scripts/agent/` but `worktree.conf`, which stays: it's the
+  `parallel-agents`, that's every file in `ops/agent/` but `worktree.conf`, which stays: it's the
   project's settings, and what shows the module is installed.
 - **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than GitHub Issues or
   ClickUp (Jira, Linear, GitLab), or connected services: turn on `"adf-connect@aplyca": true` in
@@ -225,7 +225,7 @@ Present the table before going further. Wrong facts here poison every file downs
   module, fill the values its `MODULE.md` § Customize lists (task links, statuses via
   `clickup_get_task` with `expand_statuses: true`, where PR links go). Delete the page if there is no
   tracker.
-- **Modules** — `scripts/agent/worktree.conf`; the PR template's quality and constitution checklists;
+- **Modules** — `ops/agent/worktree.conf`; the PR template's quality and constitution checklists;
   `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
   `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`, and its
   Quick reference lines — packaged, the commands' names (`adf-worktree-new`, `adf-worktree-ls`,
@@ -269,7 +269,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
-- [ ] Packaged, with `parallel-agents`, on a release whose plugin carries the commands: `scripts/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
+- [ ] Packaged, with `parallel-agents`, on a release whose plugin carries the commands: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
 - [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`

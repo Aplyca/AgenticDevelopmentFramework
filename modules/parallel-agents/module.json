@@ -4,8 +4,9 @@
     "dispatch"
   ],
   "commands": {
-    "adf-worktree-new": "scripts/agent/worktree-new.sh",
-    "adf-worktree-ls": "scripts/agent/worktree-ls.sh",
-    "adf-worktree-rm": "scripts/agent/worktree-rm.sh"
-  }
+    "adf-worktree-new": "ops/agent/worktree-new.sh",
+    "adf-worktree-ls": "ops/agent/worktree-ls.sh",
+    "adf-worktree-rm": "ops/agent/worktree-rm.sh"
+  },
+  "moved_from": "scripts/agent"
 }

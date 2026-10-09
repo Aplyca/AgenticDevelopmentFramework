@@ -14,11 +14,12 @@ blind sync.
 - **Never commit to the default branch.** Work on a feature branch (suggest
   `chore/skeleton-upgrade-<NEW_SHA>`); deliver a reviewable draft PR.
 - **In a hub repository, work in a worktree.** When the parallel-agents module is installed
-  (`scripts/agent/worktree.conf` exists), the main checkout is the hub and the protect-hub hook
-  stops edits there. Run this from a session in a worktree of its own — dispatch it like any task
+  (`ops/agent/worktree.conf` exists, or `scripts/agent/worktree.conf` in a project that hasn't moved
+  it yet), the main checkout is the hub and the protect-hub hook stops edits there. Run this from a
+  session in a worktree of its own — dispatch it like any task
   (`adf-worktree-new chore/skeleton-upgrade-<NEW_SHA> --no-start`, the plugin's command, which runs
-  the committed `scripts/agent/worktree-new.sh` where the project has one) — and if you were started
-  in the main checkout, say so and stop.
+  the committed script where the project has one) — and if you were started in the main checkout,
+  say so and stop.
 - **Plan before touching.** No file is modified until the user approves the per-file plan.
 - **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest
@@ -31,7 +32,7 @@ project adopted before v2.0.0 (decision 0024):
 `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<date>) · modules: <list> -->`. OLD_SHA is the commit; stamps
 from before v1.0.0 have no version (and older ones no `modules:` part —
 treat it as `none`, and check for module files on disk: `.github/pull_request_template.md`,
-`.githooks/pre-push`, `scripts/agent/`, a `clickup` server in `.mcp.json`, the docker rules in
+`.githooks/pre-push`, `ops/agent/` or `scripts/agent/`, a `clickup` server in `.mcp.json`, the docker rules in
 `.claude/settings.json`).
 
 For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
@@ -104,7 +105,7 @@ ask, and never discard it.
 
 - **Committed → packaged** — recommend it to a team that works in Claude Code only, since packaged is
   the default for new projects: remove the skills (a module's `/dispatch` included, when the plugin
-  carries it), agents, workflows, hook scripts, module scripts (`scripts/agent/` but `worktree.conf`,
+  carries it), agents, workflows, hook scripts, module scripts (`ops/agent/` but `worktree.conf`,
   when the plugin carries them as commands), and reference docs the plugin carries — only those
   unchanged since OLD_SHA;
   one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. An
@@ -123,7 +124,7 @@ ask, and never discard it.
   `hooks` block back, remove `install: packaged`, the
   names note, the plugin's read rule, every other `<plugin>@aplyca` (`adf-dev`) with its read rule,
   the `adf:` and `<plugin>:` prefixes in `DEV-SETUP.md`, and the commands' names in `AGENTS.md`
-  § Quick reference (`scripts/agent/worktree-new.sh` again), and run
+  § Quick reference (`ops/agent/worktree-new.sh` again), and run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --committed`.
   Keep `adf` turned on and pinned, for `/adf:upgrade`.
 - **Record the switch** — it changes how the team works — as a process decision in the same pull
@@ -234,8 +235,9 @@ as a follow-up in a new session once the stamp names the module.
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the
-skeleton because the Claude Directory accepts no symlinks, and `/adopt` now creates it. Files that moved (e.g. `specs/_template.md` → `specs/_templates/`)
-follow the changelog's migration notes.
+skeleton because the Claude Directory accepts no symlinks, and `/adopt` now creates it. Files that moved
+(`R` in `--name-status`, e.g. `specs/_template.md` → `specs/_templates/`, or the parallel-agents
+module's `scripts/agent/` → `ops/agent/`) follow the changelog's migration notes.
 
 ## Step 4 — Present the plan
 
@@ -250,6 +252,20 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 - Bucket 2: apply the new template, then reapply each detected customization; where the new template
   restructured a section, place the customization where it now belongs and flag it in the PR body.
 - Migration steps from the changelog, in order.
+- **The parallel-agents module moves to `ops/agent/`** (decision 0032) when the project has
+  `scripts/agent/`, in either install — before Bucket 1 copies the scripts, so they land at the new
+  path:
+  1. `git mv scripts/agent ops/agent` — the whole folder: `worktree.conf`, the committed scripts, and
+     any helper the team keeps there.
+  2. In `ops/agent/worktree.conf`, any `*_CMD` or `ENV_INFO_CMD` that names `scripts/agent/`.
+  3. The comment in `.worktreeinclude`.
+  4. `AGENTS.md` § Quick reference: a committed install names `ops/agent/worktree-new.sh` and its
+     siblings; a packaged one keeps the commands' names (`adf-worktree-new`).
+  5. Every other hit of `git grep -n scripts/agent` — docs, CI, settings, a Makefile.
+  6. Remove `scripts/` if it's now empty.
+
+  Worktrees branched before the merge keep `scripts/agent/` until they merge; the commands and hooks
+  read either folder, so nothing breaks meanwhile.
 - Newly chosen modules: copy or install them, then their customize steps.
 - An install switch, when the developer accepted it: the removals or copies, the settings, the
   names note and the stamp, and its PDR.
@@ -273,12 +289,12 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   developer's call — under a name of its own, or upstream as a change to the framework.
 - Packaged, with the parallel-agents module, on a release whose plugin carries its scripts as
   commands (`<framework-root>/plugins/adf/bin/adf-worktree-new`, decision 0027): delete
-  `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from `scripts/agent/`
+  `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from `ops/agent/`
   when none of them changed since OLD_SHA, and keep `worktree.conf`. If the team edited one, the four
   stay together — each script loads `_worktree-lib.sh` from beside it — and the developer decides, as
   for `/dispatch`: while a script stays, its command runs it.
   Name the commands where the project names the scripts — `adf-worktree-new` for
-  `scripts/agent/worktree-new.sh`, and so on — in `AGENTS.md` § Quick reference and any other doc of
+  `ops/agent/worktree-new.sh`, and so on — in `AGENTS.md` § Quick reference and any other doc of
   the project's, and add the commands' sentence of `docs/SETUP.md`'s names note to the project's.
 - Packaged, with an installed module whose `module.json` at the new release names a plugin other than
   `adf` (`adf-dev`, decision 0023): turn that plugin on — `"<plugin>@aplyca": true` in
@@ -294,7 +310,8 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
    `CLAUDE_PROJECT_DIR` set); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
-   installed module, its own check: `adf-worktree-ls` lists the worktrees (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
+   installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
+   gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
    exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
    `.claude/settings.json` parses and its `ask` list holds the docker rules (`docker`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and

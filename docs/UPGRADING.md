@@ -75,7 +75,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/process/0000-pdr-template.md` | The PDR template |
 | `.cursor/rules/*.mdc` | Cursor mirrors of the rules |
 | `specs/_templates/*` | The spec-folder templates (`spec.md`, `plan.md`, `tasks.md`) — merge instead if your team customized them. Your filled-in specs are project-owned |
-| Module scripts | `scripts/agent/*.sh`, `.github/workflows/secret-scan.yml` — a packaged project has no worktree scripts once its release's plugin carries them as commands (`adf-worktree-new`, decision 0027); `worktree.conf` stays, under Merge |
+| Module scripts | `ops/agent/*.sh` (`scripts/agent/` before decision 0032: move the folder with `git mv`, then copy), `.github/workflows/secret-scan.yml` — a packaged project has no worktree scripts once its release's plugin carries them as commands (`adf-worktree-new`, decision 0027); `worktree.conf` stays, under Merge |
 
 ### Merge required
 
@@ -92,7 +92,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges) |
+| Module configuration | `ops/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |

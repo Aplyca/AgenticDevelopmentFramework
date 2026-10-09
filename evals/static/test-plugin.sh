@@ -126,7 +126,7 @@ out=$(python3 "$BC" "$CP" --modules parallel-agents 2>&1); code=$?
 check "build-committed: writes the core skills, agents, workflows, hooks, and reference docs" \
     "[ $code -eq 0 ] && [ -f '$CP/.claude/skills/triage/SKILL.md' ] && [ -f '$CP/.claude/agents/code-reviewer/agent.md' ] && [ -f '$CP/.claude/workflows/deep-review.js' ] && [ -x '$CP/.claude/hooks/guard-git.sh' ] && [ ! -x '$CP/.claude/hooks/_lib.sh' ] && [ -f '$CP/docs/SPEC-MODEL.md' ]"
 check "build-committed: the committed form — bare names, local docs, no Step 0, the module's script" \
-    "grep -q '/write-spec' '$CP/.claude/skills/triage/SKILL.md' && ! grep -rqE '/adf:(triage|write-spec|dispatch)|@adf:|CLAUDE_PLUGIN_ROOT|Step 0 — which copy|adf-worktree-new' '$CP/.claude/skills' '$CP/.claude/agents' && grep -q 'scripts/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/.claude/skills/dispatch/SKILL.md' && grep -q \"const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'\" '$CP/.claude/workflows/deep-spec-analysis.js'"
+    "grep -q '/write-spec' '$CP/.claude/skills/triage/SKILL.md' && ! grep -rqE '/adf:(triage|write-spec|dispatch)|@adf:|CLAUDE_PLUGIN_ROOT|Step 0 — which copy|adf-worktree-new' '$CP/.claude/skills' '$CP/.claude/agents' && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/.claude/skills/dispatch/SKILL.md' && grep -q \"const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'\" '$CP/.claude/workflows/deep-spec-analysis.js'"
 check "build-committed: takes only the modules it's given, and never the installer's skills" \
     "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
 check "build-committed: keeps a file the project already has, and says so" \
@@ -142,15 +142,15 @@ check "commands: adf carries $COMMANDS, executable" "for c in $COMMANDS; do [ -x
 check "commands: each is one file — none loads a helper or looks beside itself" \
     "! grep -l -e 'dirname \"\$0\"' -e BASH_SOURCE -e '_worktree-lib.sh\"' \"\$BIN\"/* | grep -q ."
 check "commands: the plugins' copies name the commands, not the module's scripts" \
-    "! grep -rnE '(^|[^/\$A-Za-z0-9_-])(scripts/agent/)?worktree-(new|ls|rm)\.sh' \"\$REPO_ROOT/plugins/adf/skills/dispatch\" \"\$REPO_ROOT/plugins/adf/hooks\" \"\$REPO_ROOT/plugins/adf-dev/skills\" \"\$BIN\" | grep -v -e 'ADF_CHECKOUT/scripts/agent/' -e \"plugin's copy of the\" | grep -q ."
+    "! grep -rnE '(^|[^/\$A-Za-z0-9_-])((ops|scripts)/agent/)?worktree-(new|ls|rm)\.sh' \"\$REPO_ROOT/plugins/adf/skills/dispatch\" \"\$REPO_ROOT/plugins/adf/hooks\" \"\$REPO_ROOT/plugins/adf-dev/skills\" \"\$BIN\" | grep -v -e 'ADF_MODULE_DIR/' -e \"plugin's copy of the\" | grep -q ."
 on_path() { PATH="$PATH:$BIN" "$@"; }
 WT="$WORK/worktrees"
 mkdir -p "$WT" && git init -q --bare "$WT/origin.git" && git clone -q "$WT/origin.git" "$WT/site" 2>/dev/null
 S="$WT/site"
 git -C "$S" config user.email test@example.com && git -C "$S" config user.name test && git -C "$S" symbolic-ref HEAD refs/heads/main
-mkdir -p "$S/scripts/agent" "$S/docs"
-cp "$REPO_ROOT/modules/parallel-agents/files/scripts/agent/worktree.conf" "$S/scripts/agent/"
-python3 - "$S/scripts/agent/worktree.conf" <<'CONF'
+mkdir -p "$S/ops/agent" "$S/docs"
+cp "$REPO_ROOT/modules/parallel-agents/files/ops/agent/worktree.conf" "$S/ops/agent/"
+python3 - "$S/ops/agent/worktree.conf" <<'CONF'
 import sys
 path = sys.argv[1]
 text = open(path).read()
@@ -187,10 +187,32 @@ mkdir -p "$WT/plain" && git -C "$WT/plain" init -q -b main && git -C "$WT/plain"
 out=$(cd "$WT/plain" && on_path adf-worktree-new feat/nothing --no-start 2>&1); code=$?
 check "adf-worktree-new: in a project without the module, stops and creates nothing" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/feat-nothing' ]"
-printf '#!/bin/sh\necho "$@" > "%s/handed-over"\n' "$WT" > "$S/scripts/agent/worktree-new.sh" && chmod +x "$S/scripts/agent/worktree-new.sh"
+printf '#!/bin/sh\necho "$@" > "%s/handed-over"\n' "$WT" > "$S/ops/agent/worktree-new.sh" && chmod +x "$S/ops/agent/worktree-new.sh"
 out=$(cd "$S" && on_path adf-worktree-new feat/committed --no-start 2>&1); code=$?
 check "adf-worktree-new: in a committed install, runs the project's own script with the same arguments" \
     "[ $code -eq 0 ] && [ \"\$(cat '$WT/handed-over' 2>/dev/null)\" = 'feat/committed --no-start' ] && [ ! -e '$WT/feat-committed' ]"
+
+# A project that hasn't moved the module to ops/agent/ yet (decision 0032): the commands read scripts/agent/.
+LW="$WORK/legacy"
+mkdir -p "$LW" && git init -q --bare "$LW/origin.git" && git clone -q "$LW/origin.git" "$LW/site" 2>/dev/null
+L="$LW/site"
+git -C "$L" config user.email test@example.com && git -C "$L" config user.name test && git -C "$L" symbolic-ref HEAD refs/heads/main
+mkdir -p "$L/scripts/agent"
+sed -e 's/^PORT_SLOTS=0/PORT_SLOTS=180/' -e "s|^ENV_OVERRIDES=''|ENV_OVERRIDES='FROM=scripts'|" \
+    "$REPO_ROOT/modules/parallel-agents/files/ops/agent/worktree.conf" > "$L/scripts/agent/worktree.conf"
+printf 'APP_PORT=\n' > "$L/.env.example" && printf '.env\n' > "$L/.gitignore"
+git -C "$L" add -A && git -C "$L" commit -qm init && git -C "$L" push -q -u origin main 2>/dev/null
+out=$(cd "$L" && on_path adf-worktree-new feat/legacy --no-start 2>&1); code=$?
+check "adf-worktree-new: in a project that still keeps scripts/agent/, reads its settings there" \
+    "[ $code -eq 0 ] && grep -q '^FROM=scripts$' '$LW/feat-legacy/.env' && grep -qE '^APP_PORT=[0-9]+$' '$LW/feat-legacy/.env'"
+mkdir -p "$L/ops/agent" && sed 's/FROM=scripts/FROM=ops/' "$L/scripts/agent/worktree.conf" > "$L/ops/agent/worktree.conf"
+out=$(cd "$L" && on_path adf-worktree-new feat/both --no-start 2>&1); code=$?
+check "adf-worktree-new: with both folders, ops/agent/ wins" "[ $code -eq 0 ] && grep -q '^FROM=ops$' '$LW/feat-both/.env'"
+rm -rf "$L/ops"
+printf '#!/bin/sh\necho "$@" > "%s/legacy-handed-over"\n' "$LW" > "$L/scripts/agent/worktree-new.sh" && chmod +x "$L/scripts/agent/worktree-new.sh"
+out=$(cd "$L" && on_path adf-worktree-new feat/old-committed --no-start 2>&1); code=$?
+check "adf-worktree-new: runs a committed script still in scripts/agent/" \
+    "[ $code -eq 0 ] && [ \"\$(cat '$LW/legacy-handed-over' 2>/dev/null)\" = 'feat/old-committed --no-start' ]"
 
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"

@@ -331,7 +331,7 @@ the worker re-reads everything where it can verify it.
 
 **Exercise (module installed):** dispatch the typo and the topics estimate. The main checkout's
 `git status` stays clean, each worker's session context says WORKER, and
-`scripts/agent/worktree-ls.sh` lists both. ([scenario](scenarios/parallel-agents.md))
+`ops/agent/worktree-ls.sh` lists both. ([scenario](scenarios/parallel-agents.md))
 
 ### High stakes and upkeep
 

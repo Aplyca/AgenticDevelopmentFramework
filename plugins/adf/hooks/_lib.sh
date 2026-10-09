@@ -50,6 +50,19 @@ read_settings() {
     printf -v "$setting" '%s' "$value"
   done < <(cat "$file")
 }
+# worktree_settings <root> — print the parallel-agents module's settings file in <root>: ops/agent/,
+# or scripts/agent/ in a project that hasn't moved it there yet (decision 0032). Fails with neither.
+worktree_settings() {
+  local dir
+  for dir in ops/agent scripts/agent; do
+    if [ -f "$1/$dir/worktree.conf" ]; then
+      printf '%s\n' "$1/$dir/worktree.conf"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # The settings sit next to the scripts in a committed install. In the packaged install (the
 # adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
 # project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR.

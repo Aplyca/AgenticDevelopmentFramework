@@ -218,7 +218,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    carry the machinery, the modules' skills included. Leave out `.gemini/`, `.agents/`, and `.cursor/`.
    Modules copy as usual, except a module's scripts its `module.json` lists as `commands`, which the
    plugin carries in `bin/` ([decision 0027](decisions/0027-worktree-scripts-as-plugin-commands.md)):
-   for `parallel-agents`, leave out everything in `scripts/agent/` but `worktree.conf`, the project's
+   for `parallel-agents`, leave out everything in `ops/agent/` but `worktree.conf`, the project's
    settings. Then point the files that name the reference docs at the release you pin, from the framework copy you took the skeleton from:
    `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
@@ -254,7 +254,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    > framework's reference docs — the spec model, the cost model, the memory strategy, MCP
    > integration — come from the plugin too; these files link them at the pinned release.
    > With the parallel-agents module, the worktree scripts are the plugin's commands: where these
-   > files name `scripts/agent/worktree-new.sh`, `worktree-ls.sh`, or `worktree-rm.sh`, run
+   > files name `ops/agent/worktree-new.sh`, `worktree-ls.sh`, or `worktree-rm.sh`, run
    > `adf-worktree-new`, `adf-worktree-ls`, or `adf-worktree-rm`.
 
    People read the key commands in `docs/getting-started/DEV-SETUP.md` § AI-assisted development,
