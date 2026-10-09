@@ -66,7 +66,7 @@ any code exists. Step by step:
       to start a new session here and accept the prompt to trust the folder, which turns the plugin
       on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
       stop.
-   2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
+   2. If scripts/agent/worktree.conf exists and this is the main checkout (git rev-parse --git-dir
       equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
       worktree.
    3. From this folder, run:

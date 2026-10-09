@@ -55,7 +55,7 @@ from the plugin the module's `module.json` names: `/dispatch` from `adf`, the pr
 
 | Skill | Module | Purpose |
 |---|---|---|
-| `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session with a three-line prompt — a task chip in the desktop app, a `claude "<prompt>"` command in a terminal. The new session's first step creates the task's worktree beside the main checkout (`worktree-new.sh <type>/<slug> --no-start`) and moves into it. Reads only; runs nothing, analyzes nothing, edits nothing. A packaged install gets it from the plugin, as `/adf:dispatch`. |
+| `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session with a three-line prompt — a task chip in the desktop app, a `claude "<prompt>"` command in a terminal. The new session's first step creates the task's worktree beside the main checkout (`worktree-new.sh <type>/<slug> --no-start`) and moves into it. Reads only; runs nothing, analyzes nothing, edits nothing. A packaged install gets it from the plugin, as `/adf:dispatch`, and the worker runs the plugin's `adf-worktree-new` (decision 0027). |
 | `/dev-env` | `docker` | Set up, connect, diagnose, or safely reset the project's Docker Compose local environment: verified commands written to `DEV-SETUP.md` and the Quick reference, one stack per worktree with `parallel-agents`, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without a yes. A packaged install gets it from `adf-dev`, as `/adf-dev:dev-env`. |
 
 ## Dynamic workflows

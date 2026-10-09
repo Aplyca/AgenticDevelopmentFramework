@@ -17,7 +17,7 @@ check it. The dispatcher's context stays cheap: a branch name, not a plan.
 A dispatcher **writes nothing outside this machine** and takes no outward-facing action. Its only
 network call is a read: the task in step 1. It runs no scripts — not even the worktree script.
 
-This skill needs the `parallel-agents` module: without `scripts/agent/worktree-new.sh` in this
+This skill needs the `parallel-agents` module: without `scripts/agent/worktree.conf` in this
 repository, say the module isn't installed and stop.
 
 Every task takes the same route. The dispatcher names the task and hands it over. The
@@ -39,7 +39,7 @@ worktree can, because the scripts give it the env file and, where the project us
    ```
    Task: <tracker link or one-line description>
    Branch: <type>/<slug>
-   First create this task's worktree — scripts/agent/worktree-new.sh <type>/<slug> --no-start — and move this session into it; then follow AGENTS.md end to end, starting with triage.
+   First create this task's worktree — adf-worktree-new <type>/<slug> --no-start — and move this session into it; then follow AGENTS.md end to end, starting with triage.
    ```
    A hotfix from a release tag adds `--from <tag>` to the script. Don't restate the workflow: the
    worker reads it in `AGENTS.md`, and a copy in a handoff message is one more thing that drifts. If
@@ -90,7 +90,7 @@ clearing it (`/clear`) between dispatches keeps the hub's session cheap.
 - [ ] Only the task's title and type were read
 - [ ] Nothing was run, edited, committed, or posted from the main checkout
 - [ ] The chip is for this main checkout and its title is the task's title, without the branch — or the developer has the command
-- [ ] The worker prompt has the task, the branch, the first step — create the worktree with `worktree-new.sh --no-start` and move into it — and "follow AGENTS.md, starting with triage"; nothing else
+- [ ] The worker prompt has the task, the branch, the first step — create the worktree with `adf-worktree-new --no-start` and move into it — and "follow AGENTS.md, starting with triage"; nothing else
 
 ## Principles
 

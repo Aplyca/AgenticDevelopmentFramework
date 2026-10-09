@@ -14,10 +14,11 @@ blind sync.
 - **Never commit to the default branch.** Work on a feature branch (suggest
   `chore/skeleton-upgrade-<NEW_SHA>`); deliver a reviewable draft PR.
 - **In a hub repository, work in a worktree.** When the parallel-agents module is installed
-  (`scripts/agent/worktree-new.sh` exists), the main checkout is the hub and the protect-hub hook
+  (`scripts/agent/worktree.conf` exists), the main checkout is the hub and the protect-hub hook
   stops edits there. Run this from a session in a worktree of its own — dispatch it like any task
-  (`scripts/agent/worktree-new.sh chore/skeleton-upgrade-<NEW_SHA> --no-start`) — and if you were
-  started in the main checkout, say so and stop.
+  (`adf-worktree-new chore/skeleton-upgrade-<NEW_SHA> --no-start`, the plugin's command, which runs
+  the committed `scripts/agent/worktree-new.sh` where the project has one) — and if you were started
+  in the main checkout, say so and stop.
 - **Plan before touching.** No file is modified until the user approves the per-file plan.
 - **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest
@@ -103,19 +104,22 @@ ask, and never discard it.
 
 - **Committed → packaged** — recommend it to a team that works in Claude Code only, since packaged is
   the default for new projects: remove the skills (a module's `/dispatch` included, when the plugin
-  carries it), agents, workflows, hook scripts, and reference docs the plugin carries — only those
+  carries it), agents, workflows, hook scripts, module scripts (`scripts/agent/` but `worktree.conf`,
+  when the plugin carries them as commands), and reference docs the plugin carries — only those
   unchanged since OLD_SHA;
   one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add
   the pinned marketplace and `adf`, the names note in `.claude/rules/claude-code.md`, the full names in
-  `DEV-SETUP.md`'s key commands, and `install: packaged` in the stamp, then add the plugin's read
+  `DEV-SETUP.md`'s key commands and the commands' names in `AGENTS.md` § Quick reference
+  (`adf-worktree-new`), and `install: packaged` in the stamp, then add the plugin's read
   rule and run `link-reference-docs.py --packaged`, both in Step 5. An installed module whose
   `module.json` names another plugin (`adf-dev`, decision 0023) switches the same way: its
   committed skills go, and that plugin is turned on with its read rule.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
-  copy the machinery (with the installed modules' skills), the reference docs, and the `hooks` block
-  back, remove `install: packaged`, the
+  copy the machinery (with the installed modules' skills and scripts), the reference docs, and the
+  `hooks` block back, remove `install: packaged`, the
   names note, the plugin's read rule, every other `<plugin>@aplyca` (`adf-dev`) with its read rule,
-  and the `adf:` and `<plugin>:` prefixes in `DEV-SETUP.md`, and run
+  the `adf:` and `<plugin>:` prefixes in `DEV-SETUP.md`, and the commands' names in `AGENTS.md`
+  § Quick reference (`scripts/agent/worktree-new.sh` again), and run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --committed`.
   Keep `adf` turned on and pinned, for `/adf:upgrade`.
 - **Record the switch** — it changes how the team works — as a process decision in the same pull
@@ -186,9 +190,11 @@ gives the changed set (module paths map into the repo by dropping `modules/<name
 packaged project, leave out what the plugins carry — `.claude/skills/` (a module's skill too, when
 the new release's plugin has it in `<framework-root>/plugins/adf/skills/`, as it has
 `dispatch` from decision 0020 on, or in the plugin its `module.json` names, such as
-`<framework-root>/plugins/adf-dev/`, decision 0023), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`, and, when the new
-release carries them in `<framework-root>/plugins/adf/docs/`, the reference docs in `docs/`
-(decision 0019) — and never add a `hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
+`<framework-root>/plugins/adf-dev/`, decision 0023), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`,
+a module's scripts the new release's plugin carries as commands (its `module.json`'s `commands`, in
+`<framework-root>/plugins/adf/bin/` — the parallel-agents scripts but `worktree.conf`, decision 0027),
+and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, the reference docs in
+`docs/` (decision 0019) — and never add a `hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
 | Bucket | Typical contents | Action |
 |---|---|---|
@@ -247,6 +253,15 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   (`<framework-root>/plugins/adf/skills/dispatch/`): delete the committed
   `.claude/skills/dispatch/` when it's unchanged since OLD_SHA. One the team edited is the
   developer's call — under a name of its own, or upstream as a change to the framework.
+- Packaged, with the parallel-agents module, on a release whose plugin carries its scripts as
+  commands (`<framework-root>/plugins/adf/bin/adf-worktree-new`, decision 0027): delete
+  `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from `scripts/agent/`
+  when none of them changed since OLD_SHA, and keep `worktree.conf`. If the team edited one, the four
+  stay together — each script loads `_worktree-lib.sh` from beside it — and the developer decides, as
+  for `/dispatch`: while a script stays, its command runs it.
+  Name the commands where the project names the scripts — `adf-worktree-new` for
+  `scripts/agent/worktree-new.sh`, and so on — in `AGENTS.md` § Quick reference and any other doc of
+  the project's, and add the commands' sentence of `docs/SETUP.md`'s names note to the project's.
 - Packaged, with an installed module whose `module.json` at the new release names a plugin other than
   `adf` (`adf-dev`, decision 0023): turn that plugin on — `"<plugin>@aplyca": true` in
   `enabledPlugins`, `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow` — delete
@@ -261,8 +276,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
    `CLAUDE_PROJECT_DIR` set); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
-   installed module, its own check: `scripts/agent/worktree-ls.sh` lists the worktrees
-   (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
+   installed module, its own check: `adf-worktree-ls` lists the worktrees (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
    exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
    `.claude/settings.json` parses and its `ask` list holds the docker rules (`docker`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and

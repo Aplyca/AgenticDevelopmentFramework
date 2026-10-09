@@ -78,7 +78,10 @@ a task can be picked up by an agent on any machine. Passing work on later in a t
 | `scripts/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, deletes the branch only if git sees it as merged |
 
 Settings live in `scripts/agent/worktree.conf`, and the defaults assume nothing: no ports, no
-containers, no commands. Never create or remove the scripts' worktrees with raw `git worktree add` —
+containers, no commands. **With the packaged install,** the scripts are the `adf` plugin's commands
+and `scripts/agent/` holds only `worktree.conf`: run `adf-worktree-new`, `adf-worktree-ls`, and
+`adf-worktree-rm`, with the same arguments. Claude Code's sessions have them; your own terminal
+doesn't, so go through `/adf:dispatch`, or ask Claude to list or remove a worktree. Never create or remove the scripts' worktrees with raw `git worktree add` —
 the scripts keep branches, env files, and ports consistent.
 
 **Match the environment to the lane.** Most tasks need only what the git hooks and the tests use

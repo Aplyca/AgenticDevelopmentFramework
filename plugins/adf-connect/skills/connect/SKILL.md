@@ -59,7 +59,7 @@ the one this skill writes, so keep one.
 
 ## Steps
 
-1. **Check where you are.** If `scripts/agent/worktree-new.sh` exists and `git rev-parse --git-dir`
+1. **Check where you are.** If `scripts/agent/worktree.conf` exists and `git rev-parse --git-dir`
    equals `git rev-parse --git-common-dir`, this is the main checkout of a hub, which takes no
    edits. Say so, point to `/adf:dispatch`, and stop.
 
