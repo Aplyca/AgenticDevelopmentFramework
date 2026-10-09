@@ -17,6 +17,19 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### `/orchestrate` names the `/deep-*` workflows without their folder
+
+`/orchestrate`'s "Not a dynamic workflow" note placed the `/deep-*` workflows "in `.claude/workflows/`",
+a folder a packaged project doesn't have: in the default install, the workflows are the `adf` plugin's.
+The note already names each one (`/adf:deep-review`, `/adf:deep-spec-analysis`,
+`/adf:deep-context-audit`, `/adf:deep-drift-sweep`), so it now drops the folder.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/skills/orchestrate/SKILL.md` in a committed install: one line, no guidance
+  changed.
+- **A packaged project:** nothing to do.
+
 ### The cost model names agents, workflows, and skills, not the folders a committed install keeps them in
 
 `docs/COST-MODEL.md` pointed at three folders a packaged project doesn't have: the agents' defaults were

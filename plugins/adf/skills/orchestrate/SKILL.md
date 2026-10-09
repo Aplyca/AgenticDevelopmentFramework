@@ -29,7 +29,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
 - **Not a "build the whole feature" command.** Each workflow phase has its own gate for a reason. Orchestration is for analytical/review work, not auto-progression.
 - **Not a replacement for `/adf:review`.** `/adf:review` is a single-context multi-perspective review (lighter, faster). `/adf:orchestrate review` dispatches separate agents (heavier, more thorough). Pick based on diff size and stakes.
-- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows in `.claude/workflows/` are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
+- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
 
 ## Built-in task types
 
