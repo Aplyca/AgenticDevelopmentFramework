@@ -69,6 +69,7 @@ signal without installing anything.
 ./run-session-evals.sh --suite plugin-hooks              # the plugin's hooks, on Haiku
 ./run-session-evals.sh --suite plugin-docs               # the plugin's reference docs, on Haiku
 ./run-session-evals.sh --suite upgrade --models sonnet   # /upgrade, switching to the packaged install
+./run-session-evals.sh --suite upgrade-from-v1 --models sonnet   # v1.4.0's /upgrade to the newest release
 ```
 
 The adopt suite's **packaged** case, and the **upgrade** suite's **switch-to-packaged**, check the
@@ -78,6 +79,27 @@ suite builds a committed adoption at v1.0.0 from that tag (`project.sh` gets thi
 `check-packaged.sh`: the stamp naming the newest release and its commit, no framework machinery committed, the plugin pinned to that release and
 turned on, no `hooks` block, the stamp, and the names people type — each marked ✓ or ✘ — plus the PDR
 that records the choice. Both are long sessions; run them on one model.
+
+The **upgrade-from-v1** suite rehearses the path every v1 team takes to v2. Its project is an adoption
+at v1.4.0, the last v1 release, built from that tag. The cases:
+- **committed:** a team on several AI tools;
+- **packaged:** the default install;
+- **packaged-parallel-agents:** with the module. Its session starts in a worktree on the upgrade's
+  branch, because v1.4.0's `/upgrade` won't run in the hub.
+
+Each fixture is marked `<!-- run: plugin-dir v1.4.0 -->`, which loads the plugin as that release shipped
+it (`aplyca-adf`). Its `/aplyca-adf:upgrade` moves to the newest release tag, not to this checkout's
+unreleased changes. It reads the tag from the run's copy of this checkout, which sits beside the
+project, or from a clone of GitHub. `inspect.sh` checks what v2.0.0 asks of every v1 project:
+- the stamp moves to `AGENTS.md`, with no `CLAUDE.md` or `GEMINI.md`;
+- the Claude Code rule;
+- the plugin's new name, with no old names left;
+- for the committed case, the machinery `build-committed.py` writes;
+- for the packaged cases, `check-packaged.sh` at the newest release;
+- with the module, `ops/agent/` without the scripts the plugin's commands replace.
+
+Long sessions: run it on one model. Three sessions on Sonnet cost about $3.40. Report:
+[`reports/2026-10-09-upgrade-from-v1.md`](reports/2026-10-09-upgrade-from-v1.md).
 
 The **plugin-hooks** suite checks the `adf` plugin's hooks in real sessions, which the static
 hook tests can't: that Claude Code runs them from the plugin, and that what they print reaches the
