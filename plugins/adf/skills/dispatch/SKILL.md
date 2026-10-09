@@ -20,7 +20,7 @@ network call is a read: the task in step 1. It runs no scripts — not even the 
 This skill needs the `parallel-agents` module: without `scripts/agent/worktree-new.sh` in this
 repository, say the module isn't installed and stop.
 
-Every task takes the same route (decision 0021). The dispatcher names the task and hands it over. The
+Every task takes the same route. The dispatcher names the task and hands it over. The
 new session opens here, in the main checkout, and its first step is the task's worktree: the scripts
 create it beside the main checkout, on a new branch from the base branch, and the session moves into
 it before anything else. Whether the task will run the app is its triage's question, after that; the

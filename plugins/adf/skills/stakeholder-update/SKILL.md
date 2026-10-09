@@ -44,7 +44,8 @@ Read these before writing; they hold what this skill doesn't hardcode:
 3. **Write the draft**, following the style rules and template below, in the language the client
    uses on the task.
 
-4. **Show the full draft to the developer in chat.** Don't rely on a question dialog's preview; it
+4. **Show the full draft to the developer in chat,** as the last text of your turn: text written just
+   before a tool call can reach the developer only as a summary, and a question dialog's preview
    may not display.
 
 5. **Post it on the pull request** as a single comment, with the team note from the template on top

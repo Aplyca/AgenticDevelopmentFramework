@@ -18,15 +18,7 @@ paths:
 
 ## Naming
 
-| Element | Convention |
-|---|---|
-| Files (components/classes) | PascalCase |
-| Files (utilities/hooks) | camelCase |
-| Functions/methods | camelCase |
-| Constants | UPPER_SNAKE_CASE |
-| CSS classes / URLs | kebab-case |
-
-Adapt to your language's idioms (e.g., snake_case for Python, PascalCase for Go exports).
+Follow the naming conventions in `AGENTS.md` § Coding conventions.
 
 Name domain concepts with the terms in `docs/GLOSSARY.md`, never with a word it lists under
 *Avoid*. A name that disagrees with the glossary makes code and specs talk about different things.
