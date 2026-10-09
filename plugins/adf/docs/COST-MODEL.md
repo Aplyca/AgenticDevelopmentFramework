@@ -212,7 +212,7 @@ Skills run in your conversation, on its model. A skill could name its own model,
 
 ## Per-agent recommendations
 
-Agents have a `model:` field in their frontmatter, so the framework CAN enforce model choice for them. Current defaults in `.claude/agents/`:
+Agents have a `model:` field in their frontmatter, so the framework CAN enforce model choice for them. Current defaults, by agent:
 
 | Agent | Current frontmatter | Why |
 |---|---|---|
@@ -229,7 +229,7 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 
 ## Dynamic workflows
 
-The `/deep-*` workflows in `.claude/workflows/` fan out to many agents — one per review dimension,
+The `/deep-*` workflows fan out to many agents — one per review dimension,
 spec lens, file, or spec — and then spend more agents verifying each finding. A `/adf:deep-review` of a
 moderate diff typically runs 6–7 reviewers plus one verifier per finding: several times the cost of
 `/adf:review`, for higher coverage and fewer false positives. Use them where that trade pays — high-stakes
@@ -246,7 +246,7 @@ Anthropic's prompt caching can reduce input cost by ~90% on cache hits (with a 5
 |---|---|
 | AGENTS.md, rules without `paths:` (`claude-code.md`) | Current conversation messages |
 | Loaded engineering rules (`.claude/rules/`) | Per-task spec / test / doc references |
-| Loaded skill (`.claude/skills/<name>/SKILL.md`) | Tool call results from this turn |
+| Loaded skill (its `SKILL.md`) | Tool call results from this turn |
 | Long-lived memory facts | Active file edits |
 | Reference docs (architecture, security, glossary) | |
 
