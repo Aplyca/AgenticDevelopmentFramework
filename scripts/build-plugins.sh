@@ -10,16 +10,18 @@
 #   PATH while the plugin is on. A module's scripts stay in the module, which a committed install copies.
 #   Each command carries the helper its script loads, finds the project from the working directory, and
 #   runs the project's own script instead when a committed install has one.
-# - The spec model and the agents' checklists in adf's workflows: Claude Code doesn't fill in
-#   ${CLAUDE_PLUGIN_ROOT} in a workflow script, so the line `const SPEC_MODEL = "…"` carries
-#   docs/SPEC-MODEL.md's text, and `const SECURITY_REVIEWER_CHECKLIST = "…"` carries the checklist in
-#   agents/security-reviewer.md (decision 0029), kept equal here. A new checklist line can be written
-#   in its committed form, `const <AGENT>_CHECKLIST = '…'`; this script carries the text.
+# - The spec model, the agents' checklists, and the skills' steps in adf's workflows: Claude Code
+#   doesn't fill in ${CLAUDE_PLUGIN_ROOT} in a workflow script, so the line `const SPEC_MODEL = "…"`
+#   carries docs/SPEC-MODEL.md's text, `const SECURITY_REVIEWER_CHECKLIST = "…"` the checklist in
+#   agents/security-reviewer.md (decision 0029), and `const SPEC_DRIFT_STEPS = "…"` the steps in
+#   skills/spec-drift/SKILL.md (decision 0030), kept equal here. A new line can be written in its
+#   committed form, `const <AGENT>_CHECKLIST = '…'` or `const <SKILL>_STEPS = '…'`; this script
+#   carries the text.
 # - Every plugin's version, which is adf's: a release sets it by hand (decision 0017), and this script
 #   copies it into the others' manifests (decision 0023).
 #
 # Each plugin's .generated file lists the paths this script owns; never edit those. Change the module's
-# script, the doc, an agent's checklist, or adf's version, and run this again;
+# script, the doc, an agent's checklist, a skill's steps, or adf's version, and run this again;
 # evals/static/check-skills.sh fails when a plugin and its sources drift apart.
 #
 # Usage: scripts/build-plugins.sh [output root — default: this repository]
@@ -35,7 +37,7 @@ import json, os, re, shutil, sys
 
 root, out_root = sys.argv[1], sys.argv[2]
 sys.path.insert(0, os.path.join(root, "scripts"))
-from forms import CHECKLIST_LINE, CHECKLIST_TEXT, CORE, SPEC_MODEL_TEXT, Machinery
+from forms import CARRIED_LINE, CARRIED_TEXT, CORE, SPEC_MODEL_TEXT, Machinery
 
 machinery = Machinery(out_root, modules_root=root)  # the plugins being built, with this repository's modules
 
@@ -120,12 +122,12 @@ for name in machinery.workflows:
     with open(path, encoding="utf-8") as f:
         text = f.read()
     built = SPEC_MODEL_TEXT.sub(lambda m: spec_model, text)
-    for line in (CHECKLIST_TEXT, CHECKLIST_LINE):
-        built = line.sub(lambda m: machinery.checklist(m.group(1)), built)
+    for line in (CARRIED_TEXT, CARRIED_LINE):
+        built = line.sub(lambda m: machinery.carried(*m.groups()), built)
     if built != text:
         with open(path, "w", encoding="utf-8") as f:
             f.write(built)
-print(f"plugins/{CORE}: {len(machinery.command_script)} commands from modules; the spec model and checklists in its workflows")
+print(f"plugins/{CORE}: {len(machinery.command_script)} commands from modules; the spec model, checklists, and steps in its workflows")
 
 # ─── The other plugins (decision 0023) ────────────────────────────────────────
 

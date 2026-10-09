@@ -1,6 +1,7 @@
 # 0029: A workflow carries the agent checklists its lenses follow
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0030](0030-workflows-carry-skill-steps.md) (a workflow also carries
+  a skill's steps, and the static check covers `.claude/skills/`)
 - **Date:** 2026-10-09
 - **Amends:** [0028](0028-plugins-are-the-source.md) — what `scripts/build-plugins.sh` generates
 

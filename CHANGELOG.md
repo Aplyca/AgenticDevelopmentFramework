@@ -17,6 +17,37 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### `deep-drift-sweep` carries the steps its auditors follow
+
+([0030](docs/decisions/0030-workflows-carry-skill-steps.md))
+
+Each auditor was told to follow the method in `.claude/skills/spec-drift/SKILL.md`. A packaged project
+has no such file, and a workflow can't reach the plugin's skills. So in the default install, the
+auditors worked from the prompt's one-paragraph summary.
+
+- **The plugin's `deep-drift-sweep` carries the skill's steps:** `const SPEC_DRIFT_STEPS` holds the
+  `## Steps` section of `spec-drift`'s `SKILL.md`, and each auditor's prompt ends with it.
+- **A committed project's copy points at its own skill,** so a team that edits its `/spec-drift` still
+  gets the edit in its sweeps.
+- **`scripts/build-plugins.sh` keeps the text equal to the skill's,** as it does for the agents'
+  checklists (0029). A `const <SKILL>_STEPS` line carries the `## Steps` section of one of `adf`'s
+  own skills.
+- **The static check covers `.claude/skills/` paths too.** It fails when a plugin workflow names a
+  `.claude/agents/` or `.claude/skills/` path that a packaged project lacks.
+- **The spec model names the playbooks by skill.** Its "Related" list named
+  `.claude/skills/write-spec/`, `write-plan/`, and `implement/`. It now names `/adf:write-spec`,
+  `/adf:write-plan`, and `/adf:implement`, which a committed project's copy reads as `/write-spec`,
+  `/write-plan`, and `/implement`.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/workflows/deep-drift-sweep.js` in a committed install: each auditor's prompt
+  ends with "Follow the steps in `.claude/skills/spec-drift/SKILL.md`."
+- **Overwrite** `docs/SPEC-MODEL.md` in a committed install, a framework reference doc: one line in
+  "Related".
+- **A packaged project:** nothing to do. The plugin's `deep-drift-sweep` now gives its auditors the
+  steps.
+
 ### `deep-review` carries the checklists its security and UX lenses follow
 
 ([0029](docs/decisions/0029-workflows-carry-agent-checklists.md))

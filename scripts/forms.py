@@ -42,13 +42,21 @@ PLUGIN_DOC = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/docs/(" + "|".join(REFERENCE_
 SPEC_MODEL_LINE = "const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'"
 SPEC_MODEL_TEXT = re.compile(r'^const SPEC_MODEL = ".*"$', re.M)
 SPEC_MODEL_INTRO = "The spec model (SPEC-MODEL.md), which these checks follow:\n\n"
-# A lens that follows an agent's checklist works the same way (decision 0029): a packaged project keeps
-# no copy of the agents either. The plugin's `const SECURITY_REVIEWER_CHECKLIST` carries the
-# `## … checklist` section of agents/security-reviewer.md; a committed workflow points at its agent.md.
-CHECKLIST_LINE = re.compile(r"^const ([A-Z][A-Z_]*)_CHECKLIST = '.*'$", re.M)
-CHECKLIST_TEXT = re.compile(r'^const ([A-Z][A-Z_]*)_CHECKLIST = ".*"$', re.M)
-CHECKLIST_SECTION = re.compile(r"^## [^\n]*checklist\n.*?(?=^## |\Z)", re.M | re.S | re.I)
-CHECKLIST_INTRO = "The {name} agent's checklist, which this review follows:\n\n"
+# A lens that follows an agent's checklist works the same way (decision 0029), and so does an auditor
+# that follows a skill's steps (decision 0030): a packaged project keeps no copy of the agents or the
+# skills either. The plugin's `const SECURITY_REVIEWER_CHECKLIST` carries the `## … checklist` section
+# of agents/security-reviewer.md, and `const SPEC_DRIFT_STEPS` the `## Steps` section of
+# skills/spec-drift/SKILL.md; a committed workflow points at the project's agent.md or SKILL.md.
+CARRIED = {  # the constant's suffix: (what it names, the section it carries, the committed line, the intro)
+    "CHECKLIST": ("agent", re.compile(r"^## [^\n]*checklist\n.*?(?=^## |\Z)", re.M | re.S | re.I),
+                  "Follow the checklist in .claude/agents/{name}/agent.md.",
+                  "The {name} agent's checklist, which this review follows:\n\n"),
+    "STEPS": ("skill", re.compile(r"^## Steps\n.*?(?=^## |\Z)", re.M | re.S),
+              "Follow the steps in .claude/skills/{name}/SKILL.md.",
+              "The {name} skill's steps, which this audit follows:\n\n"),
+}
+CARRIED_LINE = re.compile(r"^const ([A-Z][A-Z_]*)_(" + "|".join(CARRIED) + r") = '.*'$", re.M)
+CARRIED_TEXT = re.compile(r'^const ([A-Z][A-Z_]*)_(' + "|".join(CARRIED) + r') = ".*"$', re.M)
 
 # The Claude Directory refuses a path the shell computes for a file a hook loads or runs: the plugin's
 # hooks name _lib.sh, the hooks folder, and the helpers in it literally; a committed hook finds them
@@ -209,23 +217,29 @@ class Machinery:
     def spec_model(self):
         return "const SPEC_MODEL = " + json.dumps(SPEC_MODEL_INTRO + read(self.path("docs", "SPEC-MODEL.md")), ensure_ascii=False)
 
-    def checklist_agent(self, constant):
-        """SECURITY_REVIEWER, from SECURITY_REVIEWER_CHECKLIST, is the agent security-reviewer."""
+    def carried_source(self, constant, suffix):
+        """SECURITY_REVIEWER_CHECKLIST names the agent security-reviewer; SPEC_DRIFT_STEPS the skill spec-drift."""
         name = constant.lower().replace("_", "-")
-        assert name in self.agents, f"a workflow names {constant}_CHECKLIST, but adf has no agent {name}"
-        return name
+        if CARRIED[suffix][0] == "agent":
+            assert name in self.agents, f"a workflow names {constant}_{suffix}, but adf has no agent {name}"
+            return name, os.path.join("agents", name + ".md")
+        # A skill every committed install carries: adf's own, not a module's.
+        assert self.skills.get(name) == CORE and name not in self.module_of, \
+            f"a workflow names {constant}_{suffix}, but adf has no skill {name} that every committed install carries"
+        return name, os.path.join("skills", name, "SKILL.md")
 
-    def checklist_line(self, constant):
-        name = self.checklist_agent(constant)
-        return f"const {constant}_CHECKLIST = 'Follow the checklist in .claude/agents/{name}/agent.md.'"
+    def carried_line(self, constant, suffix):
+        name, _ = self.carried_source(constant, suffix)
+        return f"const {constant}_{suffix} = '{CARRIED[suffix][2].format(name=name)}'"
 
-    def checklist(self, constant):
-        name = self.checklist_agent(constant)
-        sections = CHECKLIST_SECTION.findall(read(self.path("agents", name + ".md")))
-        assert len(sections) == 1, f"agents/{name}.md has {len(sections)} sections headed '## … checklist'; a workflow carries one"
-        assert "${CLAUDE_PLUGIN_ROOT}" not in sections[0], f"agents/{name}.md: its checklist names the plugin's folder, which a workflow can't reach"
-        text = CHECKLIST_INTRO.format(name=name) + sections[0].strip()
-        return f"const {constant}_CHECKLIST = " + json.dumps(text, ensure_ascii=False)
+    def carried(self, constant, suffix):
+        _, section, _, intro = CARRIED[suffix]
+        name, rel = self.carried_source(constant, suffix)
+        sections = section.findall(read(self.path(rel)))
+        assert len(sections) == 1, f"{rel} has {len(sections)} sections a workflow would carry as {suffix}; it carries one"
+        assert "${CLAUDE_PLUGIN_ROOT}" not in sections[0], f"{rel}: the section a workflow carries names the plugin's folder, which a workflow can't reach"
+        text = intro.format(name=name) + sections[0].strip()
+        return f"const {constant}_{suffix} = " + json.dumps(text, ensure_ascii=False)
 
     def to_plugin_workflow(self, text):
         text = self.to_plugin_names(text)
@@ -233,16 +247,16 @@ class Machinery:
         text = text.replace(SPEC_MODEL_LINE, self.spec_model())
 
         def carry(m):
-            assert m.group(0) == self.checklist_line(m.group(1)), f"a workflow's line should read {self.checklist_line(m.group(1))}"
-            return self.checklist(m.group(1))
+            assert m.group(0) == self.carried_line(*m.groups()), f"a workflow's line should read {self.carried_line(*m.groups())}"
+            return self.carried(*m.groups())
 
-        text = CHECKLIST_LINE.sub(carry, text)
+        text = CARRIED_LINE.sub(carry, text)
         assert not LOCAL_DOC.search(text), "a workflow names a reference doc, which the plugin can't reach from a script"
         return text
 
     def to_committed_workflow(self, text):
         text = SPEC_MODEL_TEXT.sub(lambda m: SPEC_MODEL_LINE, text)
-        text = CHECKLIST_TEXT.sub(lambda m: self.checklist_line(m.group(1)), text)
+        text = CARRIED_TEXT.sub(lambda m: self.carried_line(*m.groups()), text)
         return self.to_committed_names(text)
 
     def to_plugin_hook(self, text, name):
