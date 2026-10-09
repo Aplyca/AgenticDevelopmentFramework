@@ -157,6 +157,16 @@ Tell the team two things:
   removes theirs, or sets **Project instructions** to `claude-md-and-agents-md` in `/config`. The
   session-context hook warns until they do.
 
+**No `GEMINI.md`** (v2.0.0, decision 0025). When the new release's skeleton has no `GEMINI.md` and the
+project has one:
+
+- **Unchanged since OLD_SHA:** delete it. Antigravity reads `AGENTS.md` natively.
+- **Customized:** move what's shared into `AGENTS.md` and what only Antigravity needs into
+  `.agents/rules/antigravity.md`, with `trigger: always_on` frontmatter. Show the developer where each
+  part went, then delete it.
+- **The team uses Gemini CLI:** add the skeleton's `.gemini/settings.json`, which points Gemini CLI at
+  `AGENTS.md`, or merge its `context.fileName` into an existing one.
+
 **Check where the plugin is turned on.** The upgrade's pull request must leave
 `"enabledPlugins": {"adf@aplyca": true}`, with its `aplyca` entry in
 `extraKnownMarketplaces`, committed in `.claude/settings.json`:
@@ -182,7 +192,7 @@ release carries them in `<framework-root>/plugins/adf/docs/`, the reference docs
 | Bucket | Typical contents | Action |
 |---|---|---|
 | **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `GEMINI.md`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting

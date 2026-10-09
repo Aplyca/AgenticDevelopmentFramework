@@ -2,7 +2,7 @@
 # [PROJECT NAME]
 
 <!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: instructions for every AI coding agent working in this repository -->
-<!-- Follows the AGENTS.md open standard (https://agents.md), read natively by Codex, Cursor, Copilot, Windsurf, Aider, Gemini and others. Claude Code reads it natively. Tool-specific layers: .claude/rules/claude-code.md (Claude Code), GEMINI.md, .cursor/rules/. The comment on the first line is the framework's stamp: `/upgrade` reads it, so keep it first. A nested AGENTS.md overrides this one for files under its directory — nearest wins. -->
+<!-- Follows the AGENTS.md open standard (https://agents.md), read natively by Codex, Cursor, Copilot, Windsurf, Aider, Gemini and others. Claude Code reads it natively. Antigravity reads it natively too, and Gemini CLI through .gemini/settings.json. Tool-specific layers: .claude/rules/claude-code.md (Claude Code), .cursor/rules/ (Cursor). The comment on the first line is the framework's stamp: `/upgrade` reads it, so keep it first. A nested AGENTS.md overrides this one for files under its directory — nearest wins. -->
 <!-- CUSTOMIZE: replace everything in [brackets]. Keep this file short (under ~200 lines): link to deeper docs instead of inlining them. -->
 
 ## Project identity

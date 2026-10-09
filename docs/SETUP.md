@@ -56,11 +56,13 @@ Remove the layers your team doesn't use:
 |---|---|---|
 | Every tool | `AGENTS.md` | — always keep |
 | Claude Code | `.claude/` (its layer is `.claude/rules/claude-code.md`) | the directory |
-| Antigravity / Gemini | `GEMINI.md`, and the `.agents/skills` link below | `GEMINI.md` |
+| Antigravity | `AGENTS.md`, which it reads natively, and the `.agents/skills` link below | — |
+| Gemini CLI | `.gemini/settings.json`, which points it at `AGENTS.md` | `.gemini/` |
 | Cursor | `.cursor/rules/` | the directory |
 | Custom skills, rules, or hooks that need regression tests | `evals/` | the directory (the common case) |
 
-Antigravity reads skills from `.agents/skills`. The framework ships no symlinks, so link it to Claude
+There's no `GEMINI.md` ([decision 0025](decisions/0025-no-gemini-md.md)): Antigravity reads `AGENTS.md` natively, and loads
+a `GEMINI.md` beside it, so one would only repeat it. Antigravity reads skills from `.agents/skills`. The framework ships no symlinks, so link it to Claude
 Code's skills yourself:
 
 ```bash
@@ -199,7 +201,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 **What changes from the steps above:**
 
 1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
-   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`,
+   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `.gemini/`,
    `.agents/`, `.cursor/`, and the four reference docs: `docs/COST-MODEL.md`,
    `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as
    usual, but leave out `.claude/skills/dispatch/` when the release's plugin carries it

@@ -158,7 +158,7 @@ release, and the originals are linked below:
 3. `specs/README.md` and `docs/SPEC-MODEL.md` — when a spec folder is needed, the flow, change
    requests; a spec's required, conditional, and optional sections. The most important concept here.
    ([original](../skeleton/docs/SPEC-MODEL.md); 20 min)
-4. `CONTRIBUTING.md` and your tool's layer — `.claude/rules/claude-code.md`, `GEMINI.md`, or `.cursor/rules/`. (10 min)
+4. `CONTRIBUTING.md` and your tool's layer — `.claude/rules/claude-code.md` or `.cursor/rules/`. (10 min)
 5. The [`triage`](../skeleton/.claude/skills/triage/SKILL.md),
    [`write-plan`](../skeleton/.claude/skills/write-plan/SKILL.md), and
    [`implement`](../skeleton/.claude/skills/implement/SKILL.md) skills — above all their
@@ -172,7 +172,8 @@ release, and the originals are linked below:
 |---|---|---|---|---|
 | Claude Code | `AGENTS.md`, and `.claude/rules/claude-code.md` | `/skill`, `@agent`, `/deep-…` workflows | `.claude/rules/`, by path | Yes |
 | Cursor | `AGENTS.md` | Read the step's `SKILL.md` | `.cursor/rules/` | No |
-| Antigravity / Gemini | `GEMINI.md`, which imports `AGENTS.md` | `.agents/skills/` (links to `.claude/skills/`) | Point it at `.claude/rules/` | No |
+| Antigravity | `AGENTS.md` | `.agents/skills/` (links to `.claude/skills/`) | `.agents/rules/` — it doesn't read `.claude/rules/` | No |
+| Gemini CLI | `AGENTS.md`, through `.gemini/settings.json` | Read the step's `SKILL.md` | — | No |
 | Copilot, Codex, others | `AGENTS.md` | Read the step's `SKILL.md` | — | No |
 
 **Exercise — watch the guardrails fire**, in a Claude Code session in the practice repository:
