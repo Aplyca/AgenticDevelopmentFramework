@@ -11,11 +11,59 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-**Upgrading from v1:** this is a major release. The framework's plugin is renamed, `CLAUDE.md` and
-`GEMINI.md` go away, the parallel-agents module moves to `ops/agent/`, and every project acts once.
-Run `/aplyca-adf:upgrade`, which carries out the migrations below.
-Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
-or later.
+## v2.0.0 — 2026-10-09 — The plugin is `adf`, and `AGENTS.md` is the one instruction file
+
+A major release: every project acts once. The framework's plugin `aplyca-adf` is now `adf`, a project
+keeps no `CLAUDE.md` or `GEMINI.md`, and the parallel-agents module moves to `ops/agent/`.
+
+- **One plugin per concern** (0023): `adf` for the process, `adf-dev` for development (the docker
+  module's `/dev-env`, and the local environment's URL above the prompt, 0026), and `adf-connect` for
+  trackers and services (`/connect`).
+- **`AGENTS.md` is the one instruction file** (0024, 0025). Claude Code's own layer is the rule
+  `.claude/rules/claude-code.md`, and Gemini CLI is pointed at `AGENTS.md`.
+- **The local environment's conventions** (0032): `compose.yaml` and a `Makefile` at the root,
+  operational code in `ops/`, and ports Docker picks.
+- **The plugins are the machinery's source** (0028). `scripts/build-committed.py` writes a committed
+  install from them. The parallel-agents scripts are `adf`'s commands (0027), and the `/deep-*`
+  workflows carry the checklists and steps their agents follow (0029, 0030).
+- **A project changes an agent's model in its own rule** (0031). The release also carries fixes from
+  a prompt audit and from a sweep for paths only a committed install has.
+
+**Upgrading from v1.x**, in this order:
+
+1. **Update Claude Code** to v2.1.281 or later on every machine and CI job (`claude update`). With no
+   `CLAUDE.md`, a project relies on Claude Code reading `AGENTS.md` natively.
+2. **Run `/aplyca-adf:upgrade`,** the plugin's v1 name, which the project still has. It moves the pin
+   to `v2.0.0` and, in one draft pull request:
+   1. **renames the plugin:** `aplyca-adf@aplyca` becomes `adf@aplyca` in `enabledPlugins`, and in a
+      packaged project's read rule; every `/aplyca-adf:` and `@aplyca-adf:` the project names becomes
+      `/adf:` and `@adf:`;
+   2. **moves `CLAUDE.md`:** the stamp goes to `AGENTS.md`'s first line, and the Claude Code layer and
+      the names note go to `.claude/rules/claude-code.md`. The team's other additions go to `AGENTS.md`,
+      and then `CLAUDE.md` is deleted;
+   3. **deletes `GEMINI.md`,** moving any content the team added first, and adds
+      `.gemini/settings.json` for a team on Gemini CLI;
+   4. **with the parallel-agents module:** a packaged project deletes the worktree scripts it never
+      edited, which `adf`'s `adf-worktree-*` commands replace. Then either install runs
+      `git mv scripts/agent ops/agent` and fixes the paths that name the folder;
+   5. **in a committed project,** writes the release's machinery with `scripts/build-committed.py`. An
+      agent whose `model:` the team changed first gets a row in `.claude/rules/claude-code.md`
+      § Agent model overrides;
+   6. **merges the project's layer** as each entry below says: `AGENTS.md`, the rules, `config.sh`
+      (`LOCAL_URL`, `LOCAL_SERVICE`), `DEV-SETUP.md`, and `README.md`.
+3. **After the merge, each developer:**
+   - runs `/plugin install adf@aplyca` once, then
+     `claude plugin uninstall aplyca-adf@aplyca --scope project`;
+   - removes any `CLAUDE.md` above the repository and any `CLAUDE.local.md` in it, or sets
+     **Project instructions** to `claude-md-and-agents-md` in `/config`. The session-context hook warns
+     about either file.
+4. **Optional:**
+   - `"adf-dev@aplyca": true` adds the URL band, which needs Claude Code v2.1.287 in a terminal, or the
+     desktop app from v2.1.286. With the docker module, it also brings `/adf-dev:dev-env`; its
+     `set up` mode audits the stack against the new conventions.
+   - `"adf-connect@aplyca": true` adds `/adf-connect:connect`.
+
+Each entry below lists its own **Upgrade impact**.
 
 ### The local environment: `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks
 

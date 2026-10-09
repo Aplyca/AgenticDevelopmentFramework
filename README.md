@@ -145,12 +145,13 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v1.4.0** (2026-10-06), adds the local check: the developer approves a change on the
-local environment, and that approval opens its draft pull request. With the `parallel-agents` module,
-a dispatched session now creates its own worktree beside the main checkout. **v1.3.0** took every
+The latest, **v2.0.0** (2026-10-09), is a major release. The plugin is renamed `adf`, with
+`adf-dev` and `adf-connect` beside it. A project keeps no `CLAUDE.md` or `GEMINI.md`, and the
+`parallel-agents` module moves to `ops/agent/`. Its changelog section opens with the order to upgrade
+in, and `/aplyca-adf:upgrade` carries it out. **v1.4.0** added the local check, **v1.3.0** took every
 task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction files, and
 **v1.2.0** moved the framework's reference docs out of packaged projects and into the plugin.
-**v1.0.0** (2026-10-02) renamed the plugin `adf` and opens with the order to upgrade in. A
+**v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade in. A
 baseline older than `7383422` takes that release's order first, and one older than `3eb7777` takes its
 three fixes before that — they affect every adopted repository.
 
@@ -158,7 +159,8 @@ three fixes before that — they affect every adopted repository.
    the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
    project; it installs `adf`. Then start a new session. A project already pinned to a release
    needs nothing here: the pinned plugin runs the upgrade.
-2. **Run `/adf:upgrade`** in the adopted project. It reads the baseline stamp
+2. **Run `/adf:upgrade`** in the adopted project (`/aplyca-adf:upgrade` in a project still on v1).
+   It reads the baseline stamp
    (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    release to the newest. It sorts every changed file into overwrite, merge, or additive, applies the
    CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
