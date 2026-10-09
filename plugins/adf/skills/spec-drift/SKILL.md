@@ -115,7 +115,7 @@ This workflow enforces consistency at *write time* (spec and plan before docs be
 
 ## Red flags (stop and reassess)
 
-- More than 10 divergences in one spec → the spec is stale enough that "drift detection" isn't the right tool. Recommend a full spec-update workflow instead.
+- More than 10 divergences in one spec → the spec is stale enough that "drift detection" isn't the right tool. Recommend a full change request on the folder instead (`specs/README.md` § Change requests).
 - The implementation surface is unclear → spec is too abstract OR code has moved significantly. Surface this as a finding.
 - You find yourself wanting to make changes → stop. This skill is read-only. Hand off to `/adf:write-spec` for spec updates.
 

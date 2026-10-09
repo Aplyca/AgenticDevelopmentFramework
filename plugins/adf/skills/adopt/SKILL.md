@@ -140,10 +140,15 @@ Present the table before going further. Wrong facts here poison every file downs
   `.claude/rules/claude-code.md`, show the developer where each part went, and delete it once they
   agree. A team that keeps one makes `@AGENTS.md` its first line.
 - Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `.claude/` (Claude
-  Code, with its layer in `.claude/rules/claude-code.md`), `GEMINI.md` (Antigravity/Gemini),
-  `.cursor/` (Cursor).
-  `AGENTS.md` always stays. For Antigravity, link its skills folder to Claude Code's — the framework
+  Code, with its layer in `.claude/rules/claude-code.md`), `.gemini/` (Gemini CLI, which it points at
+  `AGENTS.md`), `.cursor/` (Cursor).
+  `AGENTS.md` always stays, and there's no `GEMINI.md`: Antigravity reads `AGENTS.md` natively
+  (decision 0025). For Antigravity, link its skills folder to Claude Code's — the framework
   ships no symlinks: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills`.
+- **An existing `GEMINI.md`** (decision 0025): Antigravity loads it beside `AGENTS.md`. Move what's
+  shared into `AGENTS.md` and what only Antigravity needs into `.agents/rules/antigravity.md` (with
+  `trigger: always_on` frontmatter), show the developer where each part went, and delete it once
+  they agree.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
   common case — delete `evals/`.
 - **Offer the modules** (`modules/README.md`), recommending from the facts:
@@ -178,6 +183,10 @@ Present the table before going further. Wrong facts here poison every file downs
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
   `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
   team reviews on its own.
+- **Offer `adf-dev`'s band** (decision 0026) when the app runs locally: a line above the prompt with
+  the local environment's URL, and whether it answers, for the local check. Turn on
+  `"adf-dev@aplyca": true` in `enabledPlugins`, in either install, and fill `LOCAL_URL` below. It needs
+  Claude Code v2.1.287 or later in a terminal, or the desktop app from v2.1.286.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -198,7 +207,9 @@ Present the table before going further. Wrong facts here poison every file downs
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
-  areas, as path globs), `ENV_TEMPLATE` if not auto-detected.
+  areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the developer
+  opens for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
+  parallel-agents module, or leave it empty there and let `READY_URL` serve).
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
   Packaged: no `hooks` block, since the plugin wires them, and

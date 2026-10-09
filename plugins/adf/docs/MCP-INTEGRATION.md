@@ -173,7 +173,7 @@ Cursor supports MCP servers via the Settings → MCP Servers UI. Add the same co
 
 ### Antigravity / Gemini
 
-Check `GEMINI.md` for current MCP support. As of writing, Antigravity supports MCP servers via its `.agent/` configuration. Same command/args pattern.
+Gemini CLI reads MCP servers from `mcpServers` in `.gemini/settings.json`; Antigravity configures them in its own MCP settings. Same command/args pattern.
 
 ## Authentication & secrets
 

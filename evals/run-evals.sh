@@ -22,6 +22,23 @@ for suite in check-skills.sh test-hooks.sh test-modules.sh test-plugin.sh; do
     "$SCRIPT_DIR/static/$suite" || STATUS=1
 done
 
+# The plugins' mods carry their own tests, which Claude Code runs (decision 0026). Where the CLI
+# isn't installed, as in CI, they're skipped, and the static checks still hold each mod to them.
+echo ""
+echo "Mod tests — claude plugin test"
+echo "=============================="
+if command -v claude >/dev/null 2>&1; then
+    for plugin in "$SCRIPT_DIR"/../plugins/*/; do
+        [ -n "$(find "$plugin" -name '*.test.ts*' -print -quit)" ] || continue
+        echo "--- $(basename "$plugin")"
+        out=$(claude plugin test "$plugin" 2>&1) || STATUS=1
+        printf '%s\n' "$out" | tail -3
+    done
+else
+    echo "(skipped: the claude CLI isn't installed)"
+fi
+echo ""
+
 if [ "${1:-}" = "--all" ]; then
     echo ""
     echo "----------------------------------------"

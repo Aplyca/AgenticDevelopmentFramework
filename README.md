@@ -30,7 +30,7 @@ Most of what's here was proven in real client projects first — some built on t
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
 - **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` sets up, diagnoses, and safely resets a Docker Compose local environment, one stack per worktree; destructive docker commands ask first). ([Modules](modules/README.md))
-- **The `adf` plugin** — `/adf:adopt` and `/adf:upgrade` for Claude Code, plus `/adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release. Beside it, `adf-dev` carries the development skills of the modules a project installs — `/adf-dev:dev-env` with `docker` — and `adf-connect` connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, with read-only, non-production defaults and only its read tools pre-approved ([why](docs/decisions/0023-plugins-by-concern.md)).
+- **The `adf` plugin** — `/adf:adopt` and `/adf:upgrade` for Claude Code, plus `/adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release. Beside it, `adf-dev` carries the development skills of the modules a project installs — `/adf-dev:dev-env` with `docker` — and a mod that shows the local environment's URL above the prompt, and whether it answers; and `adf-connect` connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, with read-only, non-production defaults and only its read tools pre-approved ([why](docs/decisions/0023-plugins-by-concern.md)).
 - **Evals** — structural checks plus functional tests of the hooks, module scripts, and plugin, run in CI on every pull request at zero token cost; routing evals that run `/triage` in real Claude Code sessions on Sonnet and Opus, with graded reports. ([Evals](evals/README.md) · [latest report](evals/dynamic/reports/2026-10-01-triage-routing.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
@@ -180,7 +180,7 @@ By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.m
 
 ```
 AGENTS.md          → Universal instructions — identity, ground rules, how work flows, boundaries (read by every AI tool)
-GEMINI.md          → Imports AGENTS.md, then adds Antigravity / Gemini notes
+.gemini/          → Gemini CLI settings that point it at AGENTS.md
 .claude/rules/     → The Claude Code layer (claude-code.md, every session) and engineering standards, loaded when Claude reads matching files
 .claude/skills/    → Workflow playbooks (/triage, /write-spec, /write-plan, /implement, …)
 .claude/agents/    → Specialized agents (generic — they learn your project from AGENTS.md)
@@ -194,9 +194,9 @@ docs/              → Constitution, architecture, ADRs, PDRs, reference pages, 
 
 | File | Read by |
 |---|---|
-| **AGENTS.md** | Claude Code, Codex, Cursor, GitHub Copilot, Windsurf, Aider, Gemini, and [others](https://agents.md) natively |
+| **AGENTS.md** | Claude Code, Antigravity, Codex, Cursor, GitHub Copilot, Windsurf, Aider, and [others](https://agents.md) natively |
 | **.claude/rules/claude-code.md** | Claude Code — its own layer, in every session |
-| **GEMINI.md** | Antigravity, Gemini CLI |
+| **.gemini/settings.json** | Gemini CLI — points it at `AGENTS.md` (Antigravity reads `AGENTS.md` natively) |
 | **.cursor/rules/** | Cursor |
 | **.agents/skills/** | Antigravity |
 
@@ -388,7 +388,7 @@ hold every time. The full reference is the `/spec-workflow` skill and
 
 ```
 skeleton/                 Portable project skeleton — what an adopting repository gets
-├── AGENTS.md · GEMINI.md · README.md · CONTRIBUTING.md · .claudeignore
+├── AGENTS.md · README.md · CONTRIBUTING.md · .claudeignore
 ├── .claude/
 │   ├── agents/           8 agents, each with its model alias
 │   ├── skills/           20 skills

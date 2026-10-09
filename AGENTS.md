@@ -9,16 +9,16 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 ## Repository structure
 
 - `skeleton/` — **the portable project skeleton** (copied into any software project)
-  - `skeleton/AGENTS.md` — universal AI instructions, read natively by every AI tool, Claude Code included; its first line is the framework's stamp
+  - `skeleton/AGENTS.md` — universal AI instructions, read natively by Claude Code and most other AI tools (Gemini CLI through the settings file below); its first line is the framework's stamp
   - `skeleton/.claude/rules/claude-code.md` — the Claude Code layer (skills, agents, workflows, enforced guardrails): a rule with no `paths:`, loaded in every session. There is no `CLAUDE.md` (decision 0024): Claude Code would read it instead of `AGENTS.md`
-  - `skeleton/GEMINI.md` — Antigravity / Gemini layer
+  - `skeleton/.gemini/settings.json` — points Gemini CLI at `AGENTS.md`. There is no `GEMINI.md` (decision 0025): Antigravity reads `AGENTS.md` natively
   - `skeleton/.claude/` — agents, skills, workflows (`*.js`), hooks (+ `config.sh`), rules, `settings.json`
   - `skeleton/.cursor/rules/` — Cursor rule files (`.mdc`)
   - `skeleton/specs/` — `README.md` (the process) and `_templates/{spec,plan,tasks}.md`
   - `skeleton/docs/` — constitution, spec model, process (PDRs), reference, tracker integration, and documentation templates
 - `modules/` — optional additions (`github/`, `git-hooks/`, `clickup/`, `parallel-agents/`, `docker/`); each has a `MODULE.md` and a `files/` tree mirroring the target repo, and a module with skills or agents names the plugin that carries them in `module.json` (decision 0023)
 - `plugins/adf/` — the Claude Code plugin: the installer (`/adf:adopt`, `:upgrade`, `:cost-report`, written by hand) and, for the packaged install (decisions 0016, 0017, 0019, 0020), the skeleton's skills, agents, workflows, hook scripts, and four reference docs, and the `parallel-agents` module's `/dispatch` — **generated** by `scripts/build-plugins.sh` into the paths its `.generated` file lists; never edit those by hand
-- `plugins/adf-dev/` — the development plugin (decision 0023): its manifest and README are written by hand; its skills and agents are **generated** by `scripts/build-plugins.sh` from the modules whose `module.json` names it (`docker`'s `/dev-env`) into the paths its `.generated` file lists; never edit those by hand
+- `plugins/adf-dev/` — the development plugin (decision 0023): its manifest and README are written by hand; its skills and agents are **generated** by `scripts/build-plugins.sh` from the modules whose `module.json` names it (`docker`'s `/dev-env`) into the paths its `.generated` file lists; never edit those by hand. Its mod — the local-environment band (`hooks/`, `types/`, `tests/`) — is written there by hand, display-only (decision 0026), and tested with `claude plugin test`
 - `plugins/adf-connect/` — the connections plugin: `/adf-connect:connect`, written by hand, which writes a project's MCP configuration from a catalog of safe defaults; the servers stay in each project (decision 0023)
 - `ADOPT.md` — the adoption procedure for AI agents, which the top of `README.md` points to; keep it in step with `/adopt`
 - `docs/` — framework guides (setup, upgrading, onboarding, catalogs, examples, scenarios) and `docs/decisions/` (why the framework works the way it does)

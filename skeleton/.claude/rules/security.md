@@ -29,4 +29,4 @@ paths:
 
 ## Dependencies
 - Review new dependencies before adding. Check: actively maintained? Known vulnerabilities? Widely used?
-- Run your language's audit tool periodically (`npm audit`, `pip audit`, `go vet`, etc.). Address high/critical vulnerabilities.
+- Run your language's audit tool periodically (`npm audit`, `pip-audit`, `govulncheck`, etc.). Address high/critical vulnerabilities.

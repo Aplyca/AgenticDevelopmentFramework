@@ -11,8 +11,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-**Upgrading from v1:** this is a major release. The framework's plugin is renamed and `CLAUDE.md` goes
-away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out both migrations below.
+**Upgrading from v1:** this is a major release. The framework's plugin is renamed, and `CLAUDE.md` and
+`GEMINI.md` go away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out the
+migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
@@ -50,6 +51,83 @@ them:
      other doc of the project's.
   3. Add the commands' sentence of `docs/SETUP.md`'s names note to `.claude/rules/claude-code.md`.
 - A committed project keeps its scripts and needs nothing else.
+
+### Instruction text checked against the current models
+
+A prompt audit of the skeleton against Claude Opus 5.5 and Sonnet 5.5 fixed facts the repository had
+outgrown and a few lines written for older models:
+
+- **Stale facts:** `AGENTS.md` no longer lists Gemini among the tools that read it natively — Gemini
+  CLI reads it through `.gemini/settings.json`. `security.md` names the vulnerability auditors
+  `pip-audit` and `govulncheck`, not `pip audit` and `go vet`. `/spec-drift` recommends a full change
+  request, the workflow's current name.
+- **One home for naming conventions:** `code-quality.md` points at `AGENTS.md` § Coding conventions,
+  which `/init-project` customizes, instead of repeating its table.
+- **`/init-project`** fills `LOCAL_URL` in `.claude/hooks/config.sh`.
+- **No framework decision numbers in skill text:** `/open-pr` and `/dispatch` state their rule
+  without "decision 00NN", which in an adopting project could name the project's own record.
+- **`@debugger`:** no stack-specific list of common causes and no "do not skip steps" line; it
+  suggests fixes for the root cause, since it fixes nothing itself.
+- **`/stakeholder-update`** ends its turn with the draft: on current models, long text written just
+  before a tool call can reach the developer only as a summary.
+
+**Upgrade impact:**
+
+- **Merge** `AGENTS.md`: one comment line, on the tools that read it natively.
+- **Overwrite** `.claude/rules/code-quality.md` and `.claude/rules/security.md`. A project that
+  edited the naming table in `code-quality.md` moves those conventions to `AGENTS.md` § Coding
+  conventions first.
+- **Overwrite** `/spec-drift`, `/stakeholder-update`, `/open-pr`, `/init-project`, `@debugger`, and
+  the parallel-agents module's `/dispatch`.
+
+### The local environment's URL above the prompt — the first mod, in `adf-dev`
+
+([0026](docs/decisions/0026-display-only-mods.md))
+
+With `adf-dev` turned on, a line above the prompt shows the local environment's URL — what the
+developer opens for the local check before the pull request — and whether it answers (● or ○),
+refreshed every 15 seconds and after each turn. `/local-url` says the same where nothing draws.
+
+- **Where the URL comes from:** `LOCAL_URL`, a new setting in `.claude/hooks/config.sh`, or, with the
+  parallel-agents module, the worktree's `READY_URL` with its own `APP_PORT`. `/adopt` and
+  `/dev-env set up` fill `LOCAL_URL`.
+- **Display-only:** the mod reads those files — only `APP_PORT` from the env file — and requests the
+  URL; it never acts on a tool call or a prompt. A static check holds every framework mod to that and
+  to having tests, which `run-evals.sh` runs with `claude plugin test` where the CLI is installed.
+- **Requirements:** Claude Code v2.1.287 or later in a terminal, or the desktop app from v2.1.286. It
+  works in a committed install too, with `adf-dev` turned on.
+- **Framework-internal:** the hook-wiring check now reads a `hooks.json` that holds `modules`. It
+  used to crash quietly on one and pass.
+
+**Upgrade impact:**
+
+- **Merge** `.claude/hooks/config.sh`: the new `LOCAL_URL` setting, empty by default.
+- **Merge** `.claude/rules/claude-code.md`: one bullet on where the URL lives.
+- **Overwrite** `/dev-env` (the docker module), which now fills `LOCAL_URL`.
+- **Additive** to use it: `"adf-dev@aplyca": true` in `enabledPlugins`.
+
+### No `GEMINI.md`: Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it
+
+([0025](docs/decisions/0025-no-gemini-md.md))
+
+Antigravity reads `AGENTS.md` natively, and loads a `GEMINI.md` beside it. The skeleton's `GEMINI.md`
+imported `AGENTS.md`, restated its workflow, and pointed at Antigravity's legacy `.agent/` paths, so
+it only repeated `AGENTS.md`. The skeleton drops it:
+
+- **`.gemini/settings.json`** points Gemini CLI at `AGENTS.md` (`context.fileName`).
+- **`.agents/skills`** still links Antigravity to Claude Code's skills.
+- **`/adopt` and `/upgrade`** move a customized `GEMINI.md`: shared notes into `AGENTS.md`,
+  Antigravity-only ones into `.agents/rules/antigravity.md` (`trigger: always_on`).
+- **`context-audit` and `deep-context-audit`** report a `GEMINI.md` as a finding.
+
+**Upgrade impact:**
+
+- **Overwrite** `context-audit` and `deep-context-audit`.
+- **Additive** `.gemini/settings.json`, for a team on Gemini CLI.
+- **Merge** `AGENTS.md`'s header comment, and `MEMORY-STRATEGY.md` and `MCP-INTEGRATION.md` in a
+  committed install.
+- **Migration:** delete `GEMINI.md` when it's unchanged; otherwise move its content as above, then
+  delete it.
 
 ### No `CLAUDE.md`: Claude Code reads `AGENTS.md`, and its own layer is a rule
 

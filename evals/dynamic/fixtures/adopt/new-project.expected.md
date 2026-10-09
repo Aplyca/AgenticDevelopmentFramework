@@ -22,7 +22,7 @@ The session should satisfy ALL of these invariants.
 - [ ] `docs/architecture/decisions/0001-*.md` records the stack, status `proposed`, with the
       alternatives considered; `docs/process/0001-adopt-ai-assisted-workflow.md` exists
 - [ ] `.claude/settings.json` is valid JSON
-- [ ] Unused layers are gone (`GEMINI.md`, `.agents/`, `.cursor/`) and `evals/` is deleted; the
+- [ ] Unused layers are gone (`.gemini/`, `.agents/`, `.cursor/`), there's no `GEMINI.md`, and `evals/` is deleted; the
       `github` module's PR template is present
 - [ ] The verification reports the commands as a GAP ("no code yet"), not a failure
 - [ ] No push attempted; with no remote, the PR body is shown with how to open it later

@@ -56,11 +56,13 @@ Remove the layers your team doesn't use:
 |---|---|---|
 | Every tool | `AGENTS.md` | — always keep |
 | Claude Code | `.claude/` (its layer is `.claude/rules/claude-code.md`) | the directory |
-| Antigravity / Gemini | `GEMINI.md`, and the `.agents/skills` link below | `GEMINI.md` |
+| Antigravity | `AGENTS.md`, which it reads natively, and the `.agents/skills` link below | — |
+| Gemini CLI | `.gemini/settings.json`, which points it at `AGENTS.md` | `.gemini/` |
 | Cursor | `.cursor/rules/` | the directory |
 | Custom skills, rules, or hooks that need regression tests | `evals/` | the directory (the common case) |
 
-Antigravity reads skills from `.agents/skills`. The framework ships no symlinks, so link it to Claude
+There's no `GEMINI.md` ([decision 0025](decisions/0025-no-gemini-md.md)): Antigravity reads `AGENTS.md` natively, and loads
+a `GEMINI.md` beside it, so one would only repeat it. Antigravity reads skills from `.agents/skills`. The framework ships no symlinks, so link it to Claude
 Code's skills yourself:
 
 ```bash
@@ -92,6 +94,12 @@ for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca
 with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
 tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
+**Seeing the local environment's URL** — turn on `adf-dev` (`"adf-dev@aplyca": true` in
+`enabledPlugins`, in either install) and set `LOCAL_URL` in `.claude/hooks/config.sh` (step 5). Its mod
+draws a line above the prompt with the URL and whether it answers; with the parallel-agents module,
+each worktree shows its own port from `READY_URL`. It needs Claude Code v2.1.287 or later in a
+terminal, or the desktop app from v2.1.286 ([decision 0026](decisions/0026-display-only-mods.md)).
+
 ## 3. Fill in AGENTS.md — the file every tool reads
 
 Replace every `[bracketed placeholder]` with facts you can point to in the repository (manifests,
@@ -121,7 +129,7 @@ on conflict, so the two must agree — especially about branches and merge targe
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (e.g. migrations), `GENERATED_GLOBS` (add generated types), `CAREFUL_GLOBS` (the sensitive areas you
   list in `AGENTS.md` — any change there takes at least the careful lane), `ENV_TEMPLATE` if not
-  auto-detected.
+  auto-detected, `LOCAL_URL` (the URL the developer opens for the local check).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
   the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
   On GitLab, add the `glab` equivalents of the `gh` rules.
@@ -199,7 +207,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 **What changes from the steps above:**
 
 1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
-   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `GEMINI.md`,
+   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `.gemini/`,
    `.agents/`, `.cursor/`, and the four reference docs: `docs/COST-MODEL.md`,
    `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as
    usual, but leave out `.claude/skills/dispatch/` when the release's plugin carries it

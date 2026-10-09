@@ -7,7 +7,7 @@ argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
 # Open a Draft Pull Request
 
 Pushing and opening a pull request leave this machine. The developer's approval in the local check
-is what lets them (decision 0022): once they approve, open the draft without waiting to be asked. Work
+is what lets them: once they approve, open the draft without waiting to be asked. Work
 with nothing to run — docs, CI — opens it once the full gate and `/review` pass. The git guard hook
 refuses a `gh pr create` without `--draft`.
 

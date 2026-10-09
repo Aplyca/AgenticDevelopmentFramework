@@ -30,7 +30,8 @@
 # on AGENTS.md's first line (CLAUDE.md's before decision 0024) says `install: packaged` (_lib.sh,
 # which reads the file itself).
 #
-# Each plugin's manifest and README, adf's installer skills (adopt, upgrade, cost-report), and
+# Each plugin's manifest and README, its mods (hooks/ in a plugin other than adf, decision 0026),
+# adf's installer skills (adopt, upgrade, cost-report), and
 # the marketplace are written by hand and left alone, apart from the version this script keeps equal:
 # it rebuilds only the paths each plugin's .generated file lists. Never edit those paths. Change
 # skeleton/ or the module and run this again; evals/static/check-skills.sh fails when a plugin and its

@@ -78,7 +78,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 |---|---|
 | `AGENTS.md` | Project identity (stack, conventions, terminology) — your team filled this in |
 | `.claude/rules/claude-code.md` | The Claude Code layer; may include team-specific notes |
-| `GEMINI.md` | The Antigravity layer; may include team-specific notes |
+| `.gemini/settings.json` | Gemini CLI's settings; may hold the team's own |
 | `.claude/settings.json` | Hooks, permissions, env vars — team-customized |
 | `.claude/hooks/config.sh` | Protected branches, append-only and generated paths, sensitive paths (`CAREFUL_GLOBS`), env template |
 | `CONTRIBUTING.md` | Your branching model, status vocabulary, what's enforced |
@@ -264,6 +264,15 @@ request:
 Every machine and CI job then needs Claude Code v2.1.281 or later. A developer with a `CLAUDE.md` above
 the repository, or a `CLAUDE.local.md` in it, moves or removes it — or sets **Project instructions**
 to `claude-md-and-agents-md` in `/config`. The session-context hook says when one is in the way.
+
+### "Our project has a `GEMINI.md`" — moving to v2.0.0
+
+From v2.0.0 a project has no `GEMINI.md` ([decision 0025](decisions/0025-no-gemini-md.md)). Antigravity reads `AGENTS.md`
+natively and loads a `GEMINI.md` beside it, so the skeleton's — which imported `AGENTS.md` and
+restated its workflow — only repeated it. `/upgrade` deletes one that's unchanged. A customized one
+moves: what's shared into `AGENTS.md`, what only Antigravity needs into `.agents/rules/antigravity.md`
+(`trigger: always_on`). A team on Gemini CLI takes `.gemini/settings.json`, which points it at
+`AGENTS.md`.
 
 ### "Our settings still turn on `aplyca-adf`" — moving to v2.0.0
 

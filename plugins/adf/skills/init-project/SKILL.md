@@ -47,8 +47,10 @@ structure.
 
 6. **Configure the hooks** — `.claude/hooks/config.sh`: protected branches, sensitive areas
    (`CAREFUL_GLOBS`, matching `AGENTS.md` § Sensitive areas — ask the team), append-only paths
-   (migrations), generated files, the env template. Extend `permissions` in `.claude/settings.json`
-   with this repository's routine read-only commands.
+   (migrations), generated files, the env template, and `LOCAL_URL` — the URL the developer opens
+   for the local check, from the dev server and port in Quick reference (its comment covers
+   worktrees). Extend `permissions` in `.claude/settings.json` with this repository's routine
+   read-only commands.
 
 7. **Customize `README.md` and `CONTRIBUTING.md`** — real setup steps, the branching and release
    model, and the status words for stakeholder updates.
@@ -118,7 +120,7 @@ Fill each doc's `owner · last_updated · scope` header. Context without an owne
 - [ ] Every command in Quick reference was found in the manifests (and run where possible)
 - [ ] `docs/CONSTITUTION.md` has real principles and agrees with `AGENTS.md`
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md`; a new session shows `AGENTS.md` and `.claude/rules/claude-code.md` loaded
-- [ ] `.claude/hooks/config.sh` names the real protected branches, sensitive areas, and append-only paths
+- [ ] `.claude/hooks/config.sh` names the real protected branches, sensitive areas, and append-only paths, and `LOCAL_URL` when the app runs locally
 - [ ] Customizable rules updated or deleted; `paths:` frontmatter matches the real structure
 - [ ] `docs/ARCHITECTURE.md` and `docs/GLOSSARY.md` have real content and metadata headers
 - [ ] Committed on a work branch, not the default branch
