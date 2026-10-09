@@ -20,6 +20,13 @@
 # to the newest release — the switch-to-packaged case switches it to the packaged install on the way. It
 # runs like the adopt suite (bypassPermissions on throwaway copies, the plugin per session).
 #
+# The upgrade-from-v1 suite: the path a v1 team takes to v2. A committed adoption at v1.4.0, built from
+# that tag; a case's setup turns its copy into a packaged one, with or without the parallel-agents
+# module (in a worktree, where v1.4.0's /upgrade runs). A fixture marked <!-- run: plugin-dir v1.4.0 -->
+# loads the framework's plugin as that release shipped it (aplyca-adf). Its /aplyca-adf:upgrade moves
+# to the newest release tag: it finds the run's copy of this checkout, with its tags, beside the
+# project, or clones the framework from GitHub.
+#
 # The plugin-hooks suite: a project on the packaged install, with the plugin loaded per session; each
 # case drives one of the plugin's hooks in a real session (Haiku by default), and inspect.sh checks
 # that it fired — or, in a committed project, that it stood down.
@@ -38,7 +45,7 @@
 # this checkout — with deny rules, which hold in every mode, for `claude` commands, `git push`, and
 # file-tool edits under your home folder.
 #
-# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|plugin-hooks|plugin-docs] [--models "sonnet opus"] [--cases "a b ..."]
+# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|upgrade-from-v1|plugin-hooks|plugin-docs] [--models "sonnet opus"] [--cases "a b ..."]
 #                               [--out DIR] [--budget USD] [--parallel 4] [--read-only] [--source URL|PATH]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
@@ -71,7 +78,7 @@ FIXTURES="$SCRIPT_DIR/fixtures/$SUITE"
 [ -d "$FIXTURES" ] || { echo "no such suite: $SUITE" >&2; exit 2; }
 case "$SUITE" in
   debug) MAX_TURNS=30; EXTRA_TOOLS="Bash(node:*)|Bash(pnpm test:*)|Bash(npm test:*)" ;;
-  adopt | upgrade) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
+  adopt | upgrade | upgrade-from-v1) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
     EXTRA_TOOLS="WebFetch|Bash(git:*)|Bash(cp:*)|Bash(mkdir:*)|Bash(mv:*)|Bash(rm:*)|Bash(chmod:*)|Bash(python3:*)|Bash(printf:*)|Bash(echo:*)|Bash(test:*)|Bash(sed:*)|Bash(touch:*)|Bash(diff:*)" ;;
   plugin-hooks) MAX_TURNS=8; BUDGET="${BUDGET:-0.50}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS="Bash(git commit:*)" ;;
   plugin-docs) MAX_TURNS=12; BUDGET="${BUDGET:-0.75}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS=""; DOCS_RULE=1 ;;
@@ -93,6 +100,11 @@ if [ -n "$BYPASS" ]; then # sessions get a copy of this checkout, never the chec
   FWC="$WORK/framework" && mkdir -p "$FWC" && cp -R "$FW/." "$FWC/"
   [ "$SOURCE" = "$FW" ] && SOURCE="$FWC"
 fi
+
+# A fixture marked <!-- run: plugin-dir vX.Y.Z --> loads the framework's plugin as that release shipped it.
+for tag in $(sed -n 's/.*<!-- run: plugin-dir \(v[0-9][0-9.]*\) -->.*/\1/p' "$FIXTURES"/*.input.md | sort -u); do
+  mkdir -p "$WORK/release-$tag" && git -C "$FW" archive "$tag" plugins | tar -x -C "$WORK/release-$tag" || exit 1
+done
 
 # ─── The fictional project ──────────────────────────────────────────────────
 mkdir -p "$REPO"
@@ -252,9 +264,13 @@ PY
     flags+=(--permission-mode bypassPermissions --disallowedTools "Bash(claude:*)" "Bash(git push:*)" "Edit(~/**)" "Write(~/**)")
   elif [ -n "$DOCS_RULE" ]; then flags+=(--permission-mode default)
   else flags+=(--permission-mode acceptEdits); fi
+  local tag
+  tag="$(sed -n 's/.*<!-- run: plugin-dir \(v[0-9][0-9.]*\) -->.*/\1/p' "$input" | head -1)"
   if grep -q '<!-- run: plugin-dir -->' "$input"; then
     flags+=(--plugin-dir "$FWC/plugins/adf")
     [ -n "$DOCS_RULE" ] || dirs+=("$FWC")
+  elif [ -n "$tag" ]; then # the core plugin: adf from v2.0.0, aplyca-adf before
+    flags+=(--plugin-dir "$(ls -d "$WORK/release-$tag/plugins/adf" "$WORK/release-$tag/plugins/aplyca-adf" 2>/dev/null | head -1)")
   fi
   if [ -n "$DOCS_RULE" ]; then # reads in the project need no rule; the plugin's folder, the committed one
     reads=() run_env=(ANTHROPIC_DEFAULT_OPUS_MODEL=claude-haiku-4-5-20251001)
