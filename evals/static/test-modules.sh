@@ -293,8 +293,10 @@ ports() { stack env PORTS='APP_PORT=web:3000 REDIS_PORT=redis:6379' /bin/bash op
 
 check "templates: ports.sh is executable" "[ -x '$TPL/ops/scripts/ports.sh' ]"
 out=$(stack make env 2>&1)
+# GNU stat first: its -f means "file system" and takes %Lp for a file name, so BSD's form tried first
+# prints more than the mode on Linux.
 check "make env: creates .env from .env.example, readable only by its owner" \
-    "[ -f '$DS/site/.env' ] && [ \"\$(stat -f %Lp '$DS/site/.env' 2>/dev/null || stat -c %a '$DS/site/.env')\" = 600 ] && cmp -s '$DS/site/.env' '$DS/site/.env.example'"
+    "[ -f '$DS/site/.env' ] && [ \"\$(stat -c %a '$DS/site/.env' 2>/dev/null || stat -f %Lp '$DS/site/.env')\" = 600 ] && cmp -s '$DS/site/.env' '$DS/site/.env.example'"
 echo 'MAILCHIMP_API_KEY=topsecret' >> "$DS/site/.env"
 out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
