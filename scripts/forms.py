@@ -42,6 +42,13 @@ PLUGIN_DOC = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/docs/(" + "|".join(REFERENCE_
 SPEC_MODEL_LINE = "const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'"
 SPEC_MODEL_TEXT = re.compile(r'^const SPEC_MODEL = ".*"$', re.M)
 SPEC_MODEL_INTRO = "The spec model (SPEC-MODEL.md), which these checks follow:\n\n"
+# A lens that follows an agent's checklist works the same way (decision 0029): a packaged project keeps
+# no copy of the agents either. The plugin's `const SECURITY_REVIEWER_CHECKLIST` carries the
+# `## … checklist` section of agents/security-reviewer.md; a committed workflow points at its agent.md.
+CHECKLIST_LINE = re.compile(r"^const ([A-Z][A-Z_]*)_CHECKLIST = '.*'$", re.M)
+CHECKLIST_TEXT = re.compile(r'^const ([A-Z][A-Z_]*)_CHECKLIST = ".*"$', re.M)
+CHECKLIST_SECTION = re.compile(r"^## [^\n]*checklist\n.*?(?=^## |\Z)", re.M | re.S | re.I)
+CHECKLIST_INTRO = "The {name} agent's checklist, which this review follows:\n\n"
 
 # The Claude Directory refuses a path the shell computes for a file a hook loads or runs: the plugin's
 # hooks name _lib.sh, the hooks folder, and the helpers in it literally; a committed hook finds them
@@ -202,15 +209,41 @@ class Machinery:
     def spec_model(self):
         return "const SPEC_MODEL = " + json.dumps(SPEC_MODEL_INTRO + read(self.path("docs", "SPEC-MODEL.md")), ensure_ascii=False)
 
+    def checklist_agent(self, constant):
+        """SECURITY_REVIEWER, from SECURITY_REVIEWER_CHECKLIST, is the agent security-reviewer."""
+        name = constant.lower().replace("_", "-")
+        assert name in self.agents, f"a workflow names {constant}_CHECKLIST, but adf has no agent {name}"
+        return name
+
+    def checklist_line(self, constant):
+        name = self.checklist_agent(constant)
+        return f"const {constant}_CHECKLIST = 'Follow the checklist in .claude/agents/{name}/agent.md.'"
+
+    def checklist(self, constant):
+        name = self.checklist_agent(constant)
+        sections = CHECKLIST_SECTION.findall(read(self.path("agents", name + ".md")))
+        assert len(sections) == 1, f"agents/{name}.md has {len(sections)} sections headed '## … checklist'; a workflow carries one"
+        assert "${CLAUDE_PLUGIN_ROOT}" not in sections[0], f"agents/{name}.md: its checklist names the plugin's folder, which a workflow can't reach"
+        text = CHECKLIST_INTRO.format(name=name) + sections[0].strip()
+        return f"const {constant}_CHECKLIST = " + json.dumps(text, ensure_ascii=False)
+
     def to_plugin_workflow(self, text):
         text = self.to_plugin_names(text)
         assert text.count(SPEC_MODEL_LINE) <= 1, "a workflow names the spec model more than once"
         text = text.replace(SPEC_MODEL_LINE, self.spec_model())
+
+        def carry(m):
+            assert m.group(0) == self.checklist_line(m.group(1)), f"a workflow's line should read {self.checklist_line(m.group(1))}"
+            return self.checklist(m.group(1))
+
+        text = CHECKLIST_LINE.sub(carry, text)
         assert not LOCAL_DOC.search(text), "a workflow names a reference doc, which the plugin can't reach from a script"
         return text
 
     def to_committed_workflow(self, text):
-        return self.to_committed_names(SPEC_MODEL_TEXT.sub(lambda m: SPEC_MODEL_LINE, text))
+        text = SPEC_MODEL_TEXT.sub(lambda m: SPEC_MODEL_LINE, text)
+        text = CHECKLIST_TEXT.sub(lambda m: self.checklist_line(m.group(1)), text)
+        return self.to_committed_names(text)
 
     def to_plugin_hook(self, text, name):
         text = self.to_plugin_names(text)

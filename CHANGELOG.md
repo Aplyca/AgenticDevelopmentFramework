@@ -17,6 +17,31 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### `deep-review` carries the checklists its security and UX lenses follow
+
+([0029](docs/decisions/0029-workflows-carry-agent-checklists.md))
+
+The security and UX lenses sent their reviewers to `.claude/agents/security-reviewer/agent.md` and
+`.claude/agents/ux-reviewer/agent.md`. A packaged project has neither file, and a workflow can't reach
+the plugin's agents. So in the default install, these two lenses ran without their checklists.
+
+- **The plugin's `deep-review` carries each checklist's text:** `const SECURITY_REVIEWER_CHECKLIST`
+  and `const UX_REVIEWER_CHECKLIST` hold the agent's `## … checklist` section, and the lens's prompt
+  ends with it.
+- **A committed project's copy points at its own agents,** so a team that edits a checklist still
+  gets the edit in its deep reviews.
+- **`scripts/build-plugins.sh` keeps the text equal to the agent's,** as it does for the spec model.
+  The round trip fails on a stale line.
+- **A static check** fails when a plugin workflow names a `.claude/agents/` path that a packaged
+  project lacks.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/workflows/deep-review.js` in a committed install: each of the two lenses
+  ends with "Follow the checklist in `.claude/agents/<name>/agent.md`."
+- **A packaged project:** nothing to do. The plugin's `deep-review` now gives these lenses the
+  checklists.
+
 ### The plugins are the machinery's source; a committed install is written from them
 
 ([0028](docs/decisions/0028-plugins-are-the-source.md))

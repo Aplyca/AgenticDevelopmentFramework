@@ -33,7 +33,7 @@ Each agent's `model:` frontmatter uses a version-less alias (`haiku`, `sonnet`, 
 
 ## Agents inside workflows
 
-The `/deep-*` workflows (`plugins/adf/workflows/`) don't call these agents directly — their reviewers need to run read-only `git` commands, which the read-only agents can't. Instead each workflow agent is pointed at the matching checklist (for example `.claude/agents/security-reviewer/agent.md`), so the standards stay in one place.
+The `/deep-*` workflows (`plugins/adf/workflows/`) don't call these agents directly — their reviewers need to run read-only `git` commands, which the read-only agents can't. Instead a lens follows the matching agent's checklist, so the standards stay in one place. A committed project's workflow points at the project's copy (for example `.claude/agents/security-reviewer/agent.md`). The plugin's workflow carries the checklist's text, because a packaged project has no `.claude/agents/` and a workflow can't reach the plugin's agents ([decision 0029](decisions/0029-workflows-carry-agent-checklists.md)).
 
 ## Adding custom agents
 
