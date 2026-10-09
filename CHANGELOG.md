@@ -17,6 +17,34 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### Instruction text checked against the current models
+
+A prompt audit of the skeleton against Claude Opus 5.5 and Sonnet 5.5 fixed facts the repository had
+outgrown and a few lines written for older models:
+
+- **Stale facts:** `AGENTS.md` no longer lists Gemini among the tools that read it natively — Gemini
+  CLI reads it through `.gemini/settings.json`. `security.md` names the vulnerability auditors
+  `pip-audit` and `govulncheck`, not `pip audit` and `go vet`. `/spec-drift` recommends a full change
+  request, the workflow's current name.
+- **One home for naming conventions:** `code-quality.md` points at `AGENTS.md` § Coding conventions,
+  which `/init-project` customizes, instead of repeating its table.
+- **`/init-project`** fills `LOCAL_URL` in `.claude/hooks/config.sh`.
+- **No framework decision numbers in skill text:** `/open-pr` and `/dispatch` state their rule
+  without "decision 00NN", which in an adopting project could name the project's own record.
+- **`@debugger`:** no stack-specific list of common causes and no "do not skip steps" line; it
+  suggests fixes for the root cause, since it fixes nothing itself.
+- **`/stakeholder-update`** ends its turn with the draft: on current models, long text written just
+  before a tool call can reach the developer only as a summary.
+
+**Upgrade impact:**
+
+- **Merge** `AGENTS.md`: one comment line, on the tools that read it natively.
+- **Overwrite** `.claude/rules/code-quality.md` and `.claude/rules/security.md`. A project that
+  edited the naming table in `code-quality.md` moves those conventions to `AGENTS.md` § Coding
+  conventions first.
+- **Overwrite** `/spec-drift`, `/stakeholder-update`, `/open-pr`, `/init-project`, `@debugger`, and
+  the parallel-agents module's `/dispatch`.
+
 ### The local environment's URL above the prompt — the first mod, in `adf-dev`
 
 ([0026](docs/decisions/0026-display-only-mods.md))
