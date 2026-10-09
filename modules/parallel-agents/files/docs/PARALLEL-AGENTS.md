@@ -105,8 +105,18 @@ triage; a dispatched session always creates its worktree with `--no-start`.
 ## When each worktree runs a server
 
 Only for projects where a worktree runs something that listens — a web app, an API. Two copies can't
-listen on one port, so set `PORT_SLOTS` in `worktree.conf` and make the app read its port from the
-env file:
+listen on one port.
+
+**A Docker Compose stack needs nothing reserved** (the docker module's conventions): each published
+port is `"127.0.0.1:${<NAME>_PORT:-}:<port>"`, empty in the env file, so Docker picks a free one each
+time a service starts, and the worktree's folder — or `COMPOSE_PROJECT_NAME=${PROJECT}` in
+`ENV_OVERRIDES` — names its Compose project. Keep `PORT_SLOTS=0`, start it with `START_CMD="make up"`,
+and set `ENV_INFO_CMD="make urls"` so `--info` shows where each worktree's services are. Don't pin a
+port in the main checkout's env file: every worktree's copy would repeat it. If the main checkout needs
+one, blank it for worktrees in `ENV_OVERRIDES` (`APP_PORT=`).
+
+**A server on the host** takes a port the scripts reserve: set `PORT_SLOTS` in `worktree.conf` and make
+the app read its port from the env file:
 
 - **Ports derive from the branch name** (stable across restarts) and are **reserved under a lock**.
   "Taken" means listening now *or* reserved in a sibling's env file whose app isn't up yet — checking

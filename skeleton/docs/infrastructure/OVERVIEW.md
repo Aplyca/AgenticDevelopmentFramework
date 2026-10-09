@@ -30,7 +30,7 @@ Users → CDN → Load Balancer → App Instances (PaaS) → Database (Managed)
 
 | Environment | Purpose | URL | Branch | Auto-deploy? |
 |---|---|---|---|---|
-| Development | Local development | `localhost:[port]` | Any | No |
+| Development | Local development | `localhost`, on the port each checkout's stack gets (`make urls`) | Any | No |
 | Staging | Pre-production validation | [staging URL] | `main` | Yes |
 | Production | Live | [production URL] | Release tag | Manual approval |
 

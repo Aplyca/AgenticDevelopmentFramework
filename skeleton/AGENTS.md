@@ -21,7 +21,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 - **Never commit secrets.** Every environment variable the code reads is declared, without its value, in [`.env.example`].
 - **No merge without human review**, AI-generated changes included. CI is a signal; the review is the gate.
 <!-- CUSTOMIZE: add the day-to-day subset of your constitution every agent needs in context, e.g.
-- [Tests run on port XXXX — never the dev server's port YYYY]
+- [Tests run on their own port — never the dev server's]
 - [All data access goes through the service layer in src/lib/services — never from components] -->
 
 ## How work flows
@@ -178,10 +178,10 @@ docs/                Documentation
 
 ## Quick reference
 
-<!-- CUSTOMIZE: the commands an agent can run, exactly as typed. One command surface (make, npm scripts, just…) for humans and agents alike. -->
+<!-- CUSTOMIZE: the commands an agent can run, exactly as typed. One command surface for humans and agents alike — a Makefile at the root (`make help`), or the stack's own scripts. -->
 
 - Install: `[command]`
-- Dev server: `[command]` (port [XXXX])
-- Tests: `[command]` (port [YYYY])
+- Dev server: `[command, e.g. make up]` · stop: `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`
+- Tests: `[command]` (on their own port)
 - Lint: `[command]` · Typecheck: `[command]`
 - Full gate before a PR: `[command]`

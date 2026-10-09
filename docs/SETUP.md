@@ -86,7 +86,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | `git-hooks` | You want a `pre-push` gate for every git client, not only Claude Code |
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
 | `parallel-agents` | Several agent sessions work at once, each needing a running app |
-| `docker` | The local stack runs on Docker Compose — `/dev-env` sets it up, gives each worktree its own stack, and diagnoses or resets it; destructive docker commands ask first (then run `modules/docker/install.sh .`, which merges its permission rules) |
+| `docker` | The local stack runs on Docker Compose — `/dev-env` writes it from its templates or moves it to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks — [decision 0032](decisions/0032-local-environment-layout.md)), runs it natively or per worktree, and diagnoses or resets it; destructive docker commands ask first (run `modules/docker/install.sh .`, which merges its permission rules; it copies no files) |
 
 ```bash
 cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
