@@ -17,6 +17,25 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### The cost model names agents, workflows, and skills, not the folders a committed install keeps them in
+
+`docs/COST-MODEL.md` pointed at three folders a packaged project doesn't have: the agents' defaults were
+"in `.claude/agents/`", the `/deep-*` workflows "in `.claude/workflows/`", and a loaded skill was
+`.claude/skills/<name>/SKILL.md` in the prompt-caching table. In the default install, the agents are
+the `adf` plugin's, the workflows too, and a skill's `SKILL.md` is the plugin's copy.
+
+- **Per-agent recommendations** introduces its table as the current defaults by agent. The table already
+  names each one: `@adf:code-reviewer` and the rest, which a committed project's copy reads as
+  `@code-reviewer`.
+- **Dynamic workflows** names the `/deep-*` workflows without their folder.
+- **The prompt-caching table** lists a loaded skill as "its `SKILL.md`".
+
+**Upgrade impact:**
+
+- **Overwrite** `docs/COST-MODEL.md` in a committed install, a framework reference doc: three lines,
+  none of them guidance that changed.
+- **A packaged project:** nothing to do.
+
 ### `deep-drift-sweep` carries the steps its auditors follow
 
 ([0030](docs/decisions/0030-workflows-carry-skill-steps.md))
