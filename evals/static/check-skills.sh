@@ -900,6 +900,34 @@ PY
     fi
 }
 
+check_english() {
+    # Everything in the repository is in English (CONTRIBUTING.md § Ground rules): adopting teams of
+    # any language read it, and agents follow one language more consistently.
+    git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    local hits
+    # This check names the words it looks for, so it skips its own file.
+    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | python3 -c '
+import re, sys
+spanish = re.compile(r"[áíóúñÁÍÓÚÑ¿¡]|\b(también|según|además|herramienta|desarrollo|cómo|qué|está|nuestr[oa]s?)\b", re.I)
+for path in sys.stdin.read().split("\0"):
+    if not path:
+        continue
+    try:
+        lines = open(path, encoding="utf-8").read().split("\n")
+    except (OSError, UnicodeDecodeError):
+        continue
+    for number, line in enumerate(lines, 1):
+        if spanish.search(line):
+            print(f"{path}:{number}")
+            break
+' 2>/dev/null)
+    if [ -z "$hits" ]; then
+        pass "language: every file is in English"
+    else
+        fail "language: Spanish text — write it in English (CONTRIBUTING.md § Ground rules)" "$(echo "$hits" | tr '\n' ' ')"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -1016,6 +1044,7 @@ check_lanes
 check_practices
 check_plugin
 check_no_tracked_junk
+check_english
 check_directory_rules
 
 echo ""
