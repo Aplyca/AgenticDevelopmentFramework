@@ -72,7 +72,7 @@ fi
 
 if [ -f "$root/scripts/agent/worktree.conf" ]; then
   # The parallel-agents module: its settings, which both installs commit (the scripts themselves are
-  # the plugin's commands in a packaged one, decision 0025). What this project's worktrees need beyond
+  # the plugin's commands in a packaged one, decision 0027). What this project's worktrees need beyond
   # what Claude Code gives its own — a port, setup or start commands, a base branch other than the
   # default — comes from the scripts' defaults, then worktree.conf, read as data, never run.
   PORT_SLOTS=0 SETUP_CMD="" START_CMD="" BASE_BRANCH="main" ENV_FILE=".env"

@@ -1,4 +1,4 @@
-# 0025: The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module)
+# 0027: The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module)
 
 - **Status:** accepted
 - **Date:** 2026-10-09

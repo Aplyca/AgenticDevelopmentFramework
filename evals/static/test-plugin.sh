@@ -113,7 +113,7 @@ bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
 check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
 check "link-reference-docs: the files it rewrote are the skeleton's, its committed rules included" "echo \"\$first\" | grep -q 'AGENTS.md, CONTRIBUTING.md' && echo \"\$first\" | grep -q '\.claude/rules/claude-code.md'"
 
-# The plugin's commands (decision 0025): the parallel-agents scripts, on the Bash tool's PATH — last,
+# The plugin's commands (decision 0027): the parallel-agents scripts, on the Bash tool's PATH — last,
 # as Claude Code puts the plugin's bin/ — in a packaged project, which commits only worktree.conf.
 BIN="$REPO_ROOT/plugins/adf/bin"
 COMMANDS="adf-worktree-new adf-worktree-ls adf-worktree-rm"

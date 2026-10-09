@@ -169,7 +169,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`. A committed install
   copies the skills and leaves that plugin off.
   Packaged, too: leave out the scripts the pinned release's plugin carries as commands — the
-  `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0025). For
+  `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0027). For
   `parallel-agents`, that's every file in `scripts/agent/` but `worktree.conf`, which stays: it's the
   project's settings, and what shows the module is installed. A release without `bin/` carries none,
   so copy them as usual.

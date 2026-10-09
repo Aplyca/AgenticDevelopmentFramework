@@ -18,7 +18,7 @@ or later.
 
 ### The worktree scripts are the plugin's commands: `adf-worktree-new`, `-ls`, `-rm`
 
-([0025](docs/decisions/0025-worktree-scripts-as-plugin-commands.md))
+([0027](docs/decisions/0027-worktree-scripts-as-plugin-commands.md))
 
 The parallel-agents scripts are machinery no project edits, so a packaged project stops committing
 them:

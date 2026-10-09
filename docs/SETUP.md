@@ -207,7 +207,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    so copy it there. A module whose `module.json` names another plugin (`adf-dev`) leaves out all its
    `.claude/skills/`. A module whose `module.json` lists `commands` leaves out those scripts when the
    release's plugin carries them (`plugins/adf/bin/` in the framework copy,
-   [decision 0025](decisions/0025-worktree-scripts-as-plugin-commands.md)): for `parallel-agents`,
+   [decision 0027](decisions/0027-worktree-scripts-as-plugin-commands.md)): for `parallel-agents`,
    everything in `scripts/agent/` but `worktree.conf`, the project's settings. Then point the files
    that name the reference docs at the release you pin, from the framework copy you took the skeleton from:
    `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.

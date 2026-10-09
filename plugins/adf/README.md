@@ -8,7 +8,7 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
   20 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
   `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md))
   and worktree scripts, as the commands `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`
-  ([decision 0025](../../docs/decisions/0025-worktree-scripts-as-plugin-commands.md)), pinned to a release. Typed as
+  ([decision 0027](../../docs/decisions/0027-worktree-scripts-as-plugin-commands.md)), pinned to a release. Typed as
   `/adf:triage`, `/adf:deep-review`, and so on.
 
 By default, an adopting repository uses the **packaged** install

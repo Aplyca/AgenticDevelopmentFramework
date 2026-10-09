@@ -54,7 +54,7 @@ acts only where the stamp names its module, so a plugin turned on for one module
 another the project doesn't have. Skill and agent names are unique across every plugin.
 
 A module's scripts that no project edits go the same way when its `module.json` lists them under
-`commands` ([decision 0025](../docs/decisions/0025-worktree-scripts-as-plugin-commands.md)): the
+`commands` ([decision 0027](../docs/decisions/0027-worktree-scripts-as-plugin-commands.md)): the
 plugin carries each in its `bin/`, named after the plugin, on the Bash tool's PATH. A packaged project
 leaves the scripts out and keeps their settings; a committed one copies them, and the command runs the
 committed script.

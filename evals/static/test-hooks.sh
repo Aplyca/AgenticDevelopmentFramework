@@ -175,7 +175,7 @@ fi
 # With the parallel-agents module, each session learns its role from where it runs: dispatcher in
 # the main checkout, worker in any linked worktree (decision 0015). In a worktree the scripts didn't
 # set up, it also learns what that worktree lacks. The module's settings are what show it's there: a
-# packaged project commits them without the scripts (decision 0025).
+# packaged project commits them without the scripts (decision 0027).
 mkdir -p "$T/scripts/agent" && printf 'BASE_BRANCH="main"\nENV_FILE=".env"\n' > "$T/scripts/agent/worktree.conf"
 git -C "$T" add scripts/agent && git -C "$T" commit -qm "add the worktree settings"
 git -C "$T" update-ref refs/remotes/origin/main HEAD && git -C "$T" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
@@ -318,7 +318,7 @@ if [ "$names" = 1 ] && [ "$kept" = 0 ]; then
 else
     FAIL=$((FAIL+1)); echo "✘ session-context.sh: reference-docs line printed $names time(s) (want 1), $kept with local copies (want 0)"
 fi
-# Decision 0025: a packaged project with the parallel-agents module commits only its settings, and the
+# Decision 0027: a packaged project with the parallel-agents module commits only its settings, and the
 # plugin's hooks name the plugin's command for the worker's first step.
 mkdir -p "$PROJ/scripts/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/scripts/agent/worktree.conf"
 echo 'HUB_READONLY="1"' >> "$PROJ/.claude/hooks/config.sh"

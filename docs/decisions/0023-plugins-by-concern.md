@@ -1,6 +1,6 @@
 # 0023: One plugin per concern — the process, development, connections — and modules as each project's switches
 
-- **Status:** accepted; amended by [0025](0025-worktree-scripts-as-plugin-commands.md) (a module's plugin carries its scripts too, as commands, when its `module.json` lists them)
+- **Status:** accepted; amended by [0027](0027-worktree-scripts-as-plugin-commands.md) (a module's plugin carries its scripts too, as commands, when its `module.json` lists them)
 - **Date:** 2026-10-08
 - **Amends:** [0009](0009-optional-modules.md) — what a module may be about, and where its skills go;
   [0016](0016-packaged-install.md) — the marketplace lists more than one plugin;

@@ -70,7 +70,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `docs/process/0000-pdr-template.md` | The PDR template |
 | `.cursor/rules/*.mdc` | Cursor mirrors of the rules |
 | `specs/_templates/*` | The spec-folder templates (`spec.md`, `plan.md`, `tasks.md`) — merge instead if your team customized them. Your filled-in specs are project-owned |
-| Module scripts | `scripts/agent/*.sh`, `.github/workflows/secret-scan.yml` — a packaged project has no worktree scripts once its release's plugin carries them as commands (`adf-worktree-new`, decision 0025); `worktree.conf` stays, under Merge |
+| Module scripts | `scripts/agent/*.sh`, `.github/workflows/secret-scan.yml` — a packaged project has no worktree scripts once its release's plugin carries them as commands (`adf-worktree-new`, decision 0027); `worktree.conf` stays, under Merge |
 
 ### Merge required
 

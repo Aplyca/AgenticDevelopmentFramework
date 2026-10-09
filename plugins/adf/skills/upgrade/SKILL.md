@@ -181,7 +181,7 @@ the new release's plugin has it in `<framework-root>/plugins/adf/skills/`, as it
 `dispatch` from decision 0020 on, or in the plugin its `module.json` names, such as
 `<framework-root>/plugins/adf-dev/`, decision 0023), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`,
 a module's scripts the new release's plugin carries as commands (its `module.json`'s `commands`, in
-`<framework-root>/plugins/adf/bin/` — the parallel-agents scripts but `worktree.conf`, decision 0025),
+`<framework-root>/plugins/adf/bin/` — the parallel-agents scripts but `worktree.conf`, decision 0027),
 and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, the reference docs in
 `docs/` (decision 0019) — and never add a `hooks` block to the settings. Classify per the taxonomy in `docs/UPGRADING.md`:
 
@@ -243,7 +243,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   `.claude/skills/dispatch/` when it's unchanged since OLD_SHA. One the team edited is the
   developer's call — under a name of its own, or upstream as a change to the framework.
 - Packaged, with the parallel-agents module, on a release whose plugin carries its scripts as
-  commands (`<framework-root>/plugins/adf/bin/adf-worktree-new`, decision 0025): delete
+  commands (`<framework-root>/plugins/adf/bin/adf-worktree-new`, decision 0027): delete
   `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from `scripts/agent/`
   when none of them changed since OLD_SHA, and keep `worktree.conf`. If the team edited one, the four
   stay together — each script loads `_worktree-lib.sh` from beside it — and the developer decides, as

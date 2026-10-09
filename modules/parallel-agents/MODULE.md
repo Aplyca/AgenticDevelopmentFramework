@@ -42,7 +42,7 @@ With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020):
 copied `.claude/skills/dispatch/` and type `/adf:dispatch`. The skill stops in a project
 without the module, so the plugin can carry it for everyone.
 
-It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0025):
+It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0027):
 remove the copied `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh`, keep
 `scripts/agent/worktree.conf`, and run `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`.
 They read the project's `worktree.conf`, stop in a project without `scripts/agent/`, and run the
