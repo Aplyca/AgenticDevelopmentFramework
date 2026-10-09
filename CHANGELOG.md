@@ -17,6 +17,41 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### A project changes an agent's model in its own rule, in either install
+
+([0031](docs/decisions/0031-agent-model-overrides-in-the-project-rule.md))
+
+The docs said to change an agent's tier by editing its `agent.md`. A packaged project, the default
+install, has no such file: its agents are the `adf` plugin's, and an update replaces them.
+`docs/UPGRADING.md` also said to record the override in `CLAUDE.md`, which no project has since v2.0.0.
+
+- **An override is a row in `.claude/rules/claude-code.md`,** under "Agent model overrides": the
+  agent, its model, and why. The session passes that model when it spawns the agent, and Claude Code
+  ranks a model passed at spawn time above the agent's `model:`. Upgrades merge the rule rather than
+  overwrite it. `docs/COST-MODEL.md` § Per-agent recommendations gives the format. A committed project
+  can still edit `agent.md` too, but an upgrade overwrites that file.
+- **`docs/COST-MODEL.md` names what doesn't change one agent's tier:**
+  - `CLAUDE_CODE_SUBAGENT_MODEL`, which yields to every framework agent's `model:`; with
+    `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` it moves all of them;
+  - the `ANTHROPIC_DEFAULT_*_MODEL` alias variables, which affect the whole session;
+  - a project agent with a plugin agent's name, which sits beside the plugin's.
+
+  Its "Agent frontmatter" line no longer suggests running `@adf:code-reviewer` and
+  `@adf:security-reviewer` on `haiku`; the framework runs them on `sonnet`.
+- **`/adf:orchestrate`** keeps each agent's tier unless the project's rules record an override for it.
+- **`/adf:upgrade`,** switching a committed project to packaged, removes an agent whose only edit is
+  its `model:`, and moves that model into the rule.
+- **`docs/AGENTS-REFERENCE.md` and `docs/UPGRADING.md`** give the same procedure. `UPGRADING.md` no
+  longer names `CLAUDE.md`.
+
+**Upgrade impact:**
+
+- **Overwrite** `docs/COST-MODEL.md` and `.claude/skills/orchestrate/SKILL.md` in a committed install.
+- **Migration** (committed install, only if the team changed an agent's `model:`): before overwriting
+  `.claude/agents/`, add a row for it to `.claude/rules/claude-code.md` § Agent model overrides, with
+  the reason. The format is in `docs/COST-MODEL.md` § Per-agent recommendations.
+- **A packaged project:** nothing to do. To change an agent's tier, add the row.
+
 ### `/orchestrate` names the `/deep-*` workflows without their folder
 
 `/orchestrate`'s "Not a dynamic workflow" note placed the `/deep-*` workflows "in `.claude/workflows/`",

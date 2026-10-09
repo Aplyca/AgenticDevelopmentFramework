@@ -107,7 +107,10 @@ ask, and never discard it.
   carries it), agents, workflows, hook scripts, module scripts (`scripts/agent/` but `worktree.conf`,
   when the plugin carries them as commands), and reference docs the plugin carries — only those
   unchanged since OLD_SHA;
-  one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. Add
+  one the team edited stays, under a name of its own, or goes upstream — and the `hooks` block. An
+  agent whose only edit is its `model:` goes too, and its model becomes a row in
+  `.claude/rules/claude-code.md` § Agent model overrides
+  (`${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Per-agent recommendations, decision 0031). Add
   the pinned marketplace and `adf`, the names note in `.claude/rules/claude-code.md`, the full names in
   `DEV-SETUP.md`'s key commands and the commands' names in `AGENTS.md` § Quick reference
   (`adf-worktree-new`), and `install: packaged` in the stamp, then add the plugin's read

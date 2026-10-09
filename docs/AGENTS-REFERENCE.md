@@ -29,7 +29,7 @@ Skills are step-by-step playbooks that run in the main conversation. Use them fo
 
 ## Customizing model tiers
 
-Each agent's `model:` frontmatter uses a version-less alias (`haiku`, `sonnet`, `opus`) set per `plugins/adf/docs/COST-MODEL.md` § Choosing between Sonnet and Opus — reviews and well-specified work on Sonnet, judgment (`@spec-analyzer`, `@architect`) on Opus — so it follows new model releases without changes. An agent runs in its own context, so its model costs the main session no cache switch. To change a tier in your project, edit the agent's `agent.md` — but agents are in the **overwrite** bucket on upgrade, so record the override and its reason in your `.claude/rules/claude-code.md` and re-apply it after each upgrade.
+Each agent's `model:` frontmatter uses a version-less alias (`haiku`, `sonnet`, `opus`) set per `plugins/adf/docs/COST-MODEL.md` § Choosing between Sonnet and Opus — reviews and well-specified work on Sonnet, judgment (`@spec-analyzer`, `@architect`) on Opus — so it follows new model releases without changes. An agent runs in its own context, so its model costs the main session no cache switch. To change a tier in your project, record the agent, its model, and the reason in your `.claude/rules/claude-code.md`. The session passes that model when it spawns the agent, which outranks the agent's frontmatter. This works in both installs: a packaged project has no agent file to edit (an update replaces the plugin's copy), and an upgrade overwrites a committed project's. The format, and the settings that don't do this, are in `plugins/adf/docs/COST-MODEL.md` § Per-agent recommendations ([decision 0031](decisions/0031-agent-model-overrides-in-the-project-rule.md)).
 
 ## Agents inside workflows
 
