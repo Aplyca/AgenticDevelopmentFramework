@@ -10,7 +10,7 @@ This framework has **nine** places where project knowledge can live. Each has a 
 |---|---|---|---|---|
 | **Non-negotiables** | `docs/CONSTITUTION.md` | Read before every spec, plan, and review; overrides everything below | Rare (amendments) | Tech lead + approvers |
 | **Project identity & rules** | `AGENTS.md` (+ nested `AGENTS.md` per module) | Every session, every AI tool (Claude Code natively, when no `CLAUDE.md` or `CLAUDE.local.md` is present); nested files when working in their folder | Slow (months) | Tech lead |
-| **Tool-specific config** | `.claude/rules/claude-code.md`, `GEMINI.md`, `.claude/settings.json`, hooks | Every session, by the matching tool | Slow (months) | Tech lead |
+| **Tool-specific config** | `.claude/rules/claude-code.md`, `.claude/settings.json`, hooks, `.cursor/rules/`, `.gemini/settings.json` | Every session, by the matching tool | Slow (months) | Tech lead |
 | **Engineering rules** | `.claude/rules/*.md` | When Claude reads a file matching the rule's `paths:` | Slow (months) | Tech lead |
 | **Per-feature knowledge** | `specs/NNN-<slug>/` (spec, plan, tasks), plus the user-facing docs they produce | On demand when working on that feature | Per feature and per change request | The team |
 | **Decisions** | `docs/architecture/decisions/` (ADRs) and `docs/process/` (PDRs) | On demand when revisiting a decision | Per decision (rare) | Architect / tech lead / team |
@@ -30,7 +30,7 @@ Is this knowledge about... ?
 │   └── docs/CONSTITUTION.md (amended via a PDR, never casually)
 │
 ├── ...the project's identity, stack, or workflow conventions?
-│   └── AGENTS.md (universal; nested AGENTS.md for one module) or .claude/rules/claude-code.md / GEMINI.md (tool-specific)
+│   └── AGENTS.md (universal; nested AGENTS.md for one module) or .claude/rules/claude-code.md / .cursor/rules/ (tool-specific)
 │
 ├── ...how to write/review code in a specific path?
 │   └── .claude/rules/<area>.md (path-scoped)
@@ -189,4 +189,4 @@ When in doubt: don't save. A small, sharp memory beats a bloated one the AI can'
 - Tool-specific memory documentation:
   - Claude Code: [memory tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool)
   - Cursor: project rules + custom rules
-  - Antigravity: see `GEMINI.md`
+  - Antigravity: rules in `.agents/rules/`, which it loads beside `AGENTS.md`

@@ -323,6 +323,13 @@ check_instruction_files() {
     else
         fail "skeleton: ships a CLAUDE.md" "Claude Code would read it instead of AGENTS.md (decision 0024)"
     fi
+    # No GEMINI.md either (decision 0025): Antigravity reads AGENTS.md natively and loads a GEMINI.md
+    # beside it; Gemini CLI reads AGENTS.md through .gemini/settings.json.
+    if [ ! -e "$SKELETON/GEMINI.md" ] && python3 -c 'import json, sys; sys.exit(0 if "AGENTS.md" in json.load(open(sys.argv[1]))["context"]["fileName"] else 1)' "$SKELETON/.gemini/settings.json" 2>/dev/null; then
+        pass "skeleton: no GEMINI.md; .gemini/settings.json points Gemini CLI at AGENTS.md"
+    else
+        fail "skeleton: a GEMINI.md, or .gemini/settings.json doesn't name AGENTS.md in context.fileName" "decision 0025"
+    fi
     if head -n 1 "$AGENTS_MD" | grep -q '^<!-- Skeleton source:'; then
         pass "AGENTS.md: the skeleton-source stamp is its first line"
     else
@@ -689,6 +696,8 @@ check_practices() {
     file_contains "$HOOKS_DIR/session-context.sh" "replaces this project's AGENTS.md" || missing+=("session-context.sh: warns when a CLAUDE.md replaces AGENTS.md (0024)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'From `CLAUDE.md` to `AGENTS.md`' || missing+=("/upgrade: moves CLAUDE.md into AGENTS.md and the rule (0024)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `CLAUDE.md`' || missing+=("/adopt: merges an existing CLAUDE.md (0024)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '\*\*No `GEMINI.md`\*\*' || missing+=("/upgrade: removes GEMINI.md (0025)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `GEMINI.md`' || missing+=("/adopt: merges an existing GEMINI.md (0025)")
     [ ! -e "$REPO_ROOT/CLAUDE.md" ] || missing+=("this repository: its instructions are AGENTS.md, with no CLAUDE.md (0024)")
     local connect="$REPO_ROOT/plugins/adf-connect/skills/connect/SKILL.md"
     file_contains_literal "$connect" 'No credentials in the repository.' || missing+=("/connect: no credentials committed")

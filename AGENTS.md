@@ -11,7 +11,7 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 - `skeleton/` — **the portable project skeleton** (copied into any software project)
   - `skeleton/AGENTS.md` — universal AI instructions, read natively by every AI tool, Claude Code included; its first line is the framework's stamp
   - `skeleton/.claude/rules/claude-code.md` — the Claude Code layer (skills, agents, workflows, enforced guardrails): a rule with no `paths:`, loaded in every session. There is no `CLAUDE.md` (decision 0024): Claude Code would read it instead of `AGENTS.md`
-  - `skeleton/GEMINI.md` — Antigravity / Gemini layer
+  - `skeleton/.gemini/settings.json` — points Gemini CLI at `AGENTS.md`. There is no `GEMINI.md` (decision 0025): Antigravity reads `AGENTS.md` natively
   - `skeleton/.claude/` — agents, skills, workflows (`*.js`), hooks (+ `config.sh`), rules, `settings.json`
   - `skeleton/.cursor/rules/` — Cursor rule files (`.mdc`)
   - `skeleton/specs/` — `README.md` (the process) and `_templates/{spec,plan,tasks}.md`

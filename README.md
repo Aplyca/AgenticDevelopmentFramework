@@ -180,7 +180,7 @@ By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.m
 
 ```
 AGENTS.md          → Universal instructions — identity, ground rules, how work flows, boundaries (read by every AI tool)
-GEMINI.md          → Imports AGENTS.md, then adds Antigravity / Gemini notes
+.gemini/          → Gemini CLI settings that point it at AGENTS.md
 .claude/rules/     → The Claude Code layer (claude-code.md, every session) and engineering standards, loaded when Claude reads matching files
 .claude/skills/    → Workflow playbooks (/triage, /write-spec, /write-plan, /implement, …)
 .claude/agents/    → Specialized agents (generic — they learn your project from AGENTS.md)
@@ -194,9 +194,9 @@ docs/              → Constitution, architecture, ADRs, PDRs, reference pages, 
 
 | File | Read by |
 |---|---|
-| **AGENTS.md** | Claude Code, Codex, Cursor, GitHub Copilot, Windsurf, Aider, Gemini, and [others](https://agents.md) natively |
+| **AGENTS.md** | Claude Code, Antigravity, Codex, Cursor, GitHub Copilot, Windsurf, Aider, and [others](https://agents.md) natively |
 | **.claude/rules/claude-code.md** | Claude Code — its own layer, in every session |
-| **GEMINI.md** | Antigravity, Gemini CLI |
+| **.gemini/settings.json** | Gemini CLI — points it at `AGENTS.md` (Antigravity reads `AGENTS.md` natively) |
 | **.cursor/rules/** | Cursor |
 | **.agents/skills/** | Antigravity |
 
@@ -388,7 +388,7 @@ hold every time. The full reference is the `/spec-workflow` skill and
 
 ```
 skeleton/                 Portable project skeleton — what an adopting repository gets
-├── AGENTS.md · GEMINI.md · README.md · CONTRIBUTING.md · .claudeignore
+├── AGENTS.md · README.md · CONTRIBUTING.md · .claudeignore
 ├── .claude/
 │   ├── agents/           8 agents, each with its model alias
 │   ├── skills/           20 skills

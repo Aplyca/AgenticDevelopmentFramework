@@ -139,10 +139,15 @@ Present the table before going further. Wrong facts here poison every file downs
   `.claude/rules/claude-code.md`, show the developer where each part went, and delete it once they
   agree. A team that keeps one makes `@AGENTS.md` its first line.
 - Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `.claude/` (Claude
-  Code, with its layer in `.claude/rules/claude-code.md`), `GEMINI.md` (Antigravity/Gemini),
-  `.cursor/` (Cursor).
-  `AGENTS.md` always stays. For Antigravity, link its skills folder to Claude Code's — the framework
+  Code, with its layer in `.claude/rules/claude-code.md`), `.gemini/` (Gemini CLI, which it points at
+  `AGENTS.md`), `.cursor/` (Cursor).
+  `AGENTS.md` always stays, and there's no `GEMINI.md`: Antigravity reads `AGENTS.md` natively
+  (decision 0025). For Antigravity, link its skills folder to Claude Code's — the framework
   ships no symlinks: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills`.
+- **An existing `GEMINI.md`** (decision 0025): Antigravity loads it beside `AGENTS.md`. Move what's
+  shared into `AGENTS.md` and what only Antigravity needs into `.agents/rules/antigravity.md` (with
+  `trigger: always_on` frontmatter), show the developer where each part went, and delete it once
+  they agree.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
   common case — delete `evals/`.
 - **Offer the modules** (`modules/README.md`), recommending from the facts:

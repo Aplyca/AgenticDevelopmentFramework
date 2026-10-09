@@ -11,10 +11,34 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-**Upgrading from v1:** this is a major release. The framework's plugin is renamed and `CLAUDE.md` goes
-away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out both migrations below.
+**Upgrading from v1:** this is a major release. The framework's plugin is renamed, and `CLAUDE.md` and
+`GEMINI.md` go away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out the
+migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
+
+### No `GEMINI.md`: Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it
+
+([0025](docs/decisions/0025-no-gemini-md.md))
+
+Antigravity reads `AGENTS.md` natively, and loads a `GEMINI.md` beside it. The skeleton's `GEMINI.md`
+imported `AGENTS.md`, restated its workflow, and pointed at Antigravity's legacy `.agent/` paths, so
+it only repeated `AGENTS.md`. The skeleton drops it:
+
+- **`.gemini/settings.json`** points Gemini CLI at `AGENTS.md` (`context.fileName`).
+- **`.agents/skills`** still links Antigravity to Claude Code's skills.
+- **`/adopt` and `/upgrade`** move a customized `GEMINI.md`: shared notes into `AGENTS.md`,
+  Antigravity-only ones into `.agents/rules/antigravity.md` (`trigger: always_on`).
+- **`context-audit` and `deep-context-audit`** report a `GEMINI.md` as a finding.
+
+**Upgrade impact:**
+
+- **Overwrite** `context-audit` and `deep-context-audit`.
+- **Additive** `.gemini/settings.json`, for a team on Gemini CLI.
+- **Merge** `AGENTS.md`'s header comment, and `MEMORY-STRATEGY.md` and `MCP-INTEGRATION.md` in a
+  committed install.
+- **Migration:** delete `GEMINI.md` when it's unchanged; otherwise move its content as above, then
+  delete it.
 
 ### No `CLAUDE.md`: Claude Code reads `AGENTS.md`, and its own layer is a rule
 

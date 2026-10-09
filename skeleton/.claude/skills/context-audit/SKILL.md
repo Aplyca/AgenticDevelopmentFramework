@@ -24,8 +24,9 @@ agent tool, not only Claude Code.
 ### Phase 1: Inventory
 
 1. List what's in scope (or what the argument names):
-   - `AGENTS.md` and every nested `AGENTS.md`; `GEMINI.md`, `.cursor/rules/`; a `CLAUDE.md` or
-     `CLAUDE.local.md` anywhere is a finding: Claude Code reads it instead of `AGENTS.md`
+   - `AGENTS.md` and every nested `AGENTS.md`; `.cursor/rules/`, `.gemini/settings.json`; a `CLAUDE.md` or
+     `CLAUDE.local.md` anywhere is a finding: Claude Code reads it instead of `AGENTS.md`; a `GEMINI.md`
+     is one too: Antigravity loads it beside `AGENTS.md`, so whatever it repeats costs context twice
    - `.claude/rules/`, project-specific skills and agents, `.claude/settings.json`, `.claude/hooks/config.sh`
    - `docs/CONSTITUTION.md`, `CONTRIBUTING.md`, `README.md`, `specs/README.md`
    - `.github/pull_request_template.md` (or the host's equivalent), CI workflows, git hooks

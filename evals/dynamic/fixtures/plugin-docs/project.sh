@@ -10,7 +10,7 @@ cd "$1" || exit 1
 FW="$2"
 git init -q -b main && git config user.email dev@example.com && git config user.name dev
 cp -R "$FW/skeleton/." .
-rm -rf .claude/skills .claude/agents .claude/workflows .cursor GEMINI.md
+rm -rf .claude/skills .claude/agents .claude/workflows .cursor .gemini
 find .claude/hooks -type f ! -name config.sh -delete
 rm -f docs/COST-MODEL.md docs/MCP-INTEGRATION.md docs/MEMORY-STRATEGY.md docs/SPEC-MODEL.md
 python3 "$FW/scripts/link-reference-docs.py" . --packaged v1.1.0 >/dev/null
