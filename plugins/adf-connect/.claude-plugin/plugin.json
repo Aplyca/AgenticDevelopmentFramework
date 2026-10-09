@@ -1,7 +1,7 @@
 {
   "name": "adf-connect",
   "description": "The Agentic Development Framework's connections plugin: /adf-connect:connect connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, writing the project's own configuration with safe defaults (read-only, never production, no credentials committed) and pre-approving only the tools that read.",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "author": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
