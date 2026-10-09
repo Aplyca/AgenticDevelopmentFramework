@@ -937,6 +937,42 @@ for path in sys.stdin.read().split("\0"):
     fi
 }
 
+check_mods() {
+    # The framework's mods are display-only (decision 0026): they read, draw, and add commands. They
+    # never approve, refuse, or rewrite a tool call or a prompt, start a turn, run a process, write a
+    # file, call a model, or change settings — each of those is the process's, through skills, hooks,
+    # and permissions every install shares. Each mod carries tests (`claude plugin test`).
+    local report
+    report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
+import glob, json, os, re, sys
+plugins = sys.argv[1]
+display = {"session.start", "session.end", "turn.complete", "command.run", "command.describe",
+           "ui.render", "ui.press", "ui.input", "ui.select", "ui.close", "ui.focus", "ui.scroll"}
+banned = re.compile(r"\$\.(prompt\.submit|tool\.|process\.|model\.|agent\.|fs\.write|config\.set|env\.set|session\.(?:send|append|compact))")
+for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json"))):
+    if not json.load(open(wiring)).get("modules"):
+        continue
+    plugin = os.path.dirname(os.path.dirname(wiring))
+    name = os.path.basename(plugin)
+    sources = [p for p in glob.glob(os.path.join(plugin, "hooks", "*")) if re.search(r"\.(m?[jt]sx?|c[jt]s)$", p)]
+    for path in sorted(sources):
+        text = open(path, encoding="utf-8").read()
+        for event in re.findall(r"\bon\(\s*['\"]([\w.]+)['\"]", text):
+            if event not in display:
+                print(f"{name}/hooks/{os.path.basename(path)} hooks {event}, which a display-only mod doesn't")
+        for call in banned.findall(text):
+            print(f"{name}/hooks/{os.path.basename(path)} calls $.{call}, which a display-only mod doesn't")
+    if not glob.glob(os.path.join(plugin, "**", "*.test.ts*"), recursive=True):
+        print(f"{name}: a mod with no *.test.ts")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt; each has tests"
+    else
+        fail "mods: $report"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -961,7 +997,13 @@ for hooks_dir in hooks_dirs:
     wiring = os.path.join(hooks_dir, "hooks.json")
     if not os.path.exists(wiring):
         continue
-    for group in json.load(open(wiring))["hooks"].values():
+    wired = json.load(open(wiring))
+    # A mod's hooks module (decision 0026): one path, beside hooks.json, to a file of the plugin's.
+    for module in wired.get("modules", []):
+        target = os.path.normpath(os.path.join(hooks_dir, module))
+        if module.startswith("/") or ".." in module.split("/") or not os.path.isfile(target):
+            print(f"{os.path.relpath(wiring, sys.argv[1])}: module {module} isn't a file beside it")
+    for group in wired.get("hooks", {}).values():
         for entry in group:
             for hook in entry["hooks"]:
                 if not re.fullmatch(r'"\$\{CLAUDE_PLUGIN_ROOT\}/hooks/[a-z-]+\.sh"', hook["command"]):
@@ -1052,6 +1094,7 @@ check_install_prompt
 check_lanes
 check_practices
 check_plugin
+check_mods
 check_no_tracked_junk
 check_english
 check_directory_rules

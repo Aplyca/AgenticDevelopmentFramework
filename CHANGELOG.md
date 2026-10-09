@@ -17,6 +17,32 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### The local environment's URL above the prompt — the first mod, in `adf-dev`
+
+([0026](docs/decisions/0026-display-only-mods.md))
+
+With `adf-dev` turned on, a line above the prompt shows the local environment's URL — what the
+developer opens for the local check before the pull request — and whether it answers (● or ○),
+refreshed every 15 seconds and after each turn. `/local-url` says the same where nothing draws.
+
+- **Where the URL comes from:** `LOCAL_URL`, a new setting in `.claude/hooks/config.sh`, or, with the
+  parallel-agents module, the worktree's `READY_URL` with its own `APP_PORT`. `/adopt` and
+  `/dev-env set up` fill `LOCAL_URL`.
+- **Display-only:** the mod reads those files — only `APP_PORT` from the env file — and requests the
+  URL; it never acts on a tool call or a prompt. A static check holds every framework mod to that and
+  to having tests, which `run-evals.sh` runs with `claude plugin test` where the CLI is installed.
+- **Requirements:** Claude Code v2.1.287 or later in a terminal, or the desktop app from v2.1.286. It
+  works in a committed install too, with `adf-dev` turned on.
+- **Framework-internal:** the hook-wiring check now reads a `hooks.json` that holds `modules`. It
+  used to crash quietly on one and pass.
+
+**Upgrade impact:**
+
+- **Merge** `.claude/hooks/config.sh`: the new `LOCAL_URL` setting, empty by default.
+- **Merge** `.claude/rules/claude-code.md`: one bullet on where the URL lives.
+- **Overwrite** `/dev-env` (the docker module), which now fills `LOCAL_URL`.
+- **Additive** to use it: `"adf-dev@aplyca": true` in `enabledPlugins`.
+
 ### No `GEMINI.md`: Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it
 
 ([0025](docs/decisions/0025-no-gemini-md.md))

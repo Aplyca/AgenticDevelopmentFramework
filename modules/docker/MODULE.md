@@ -44,6 +44,8 @@ from what it verifies, and you review them:
    development.
 2. **`AGENTS.md` § Quick reference** — the start and stop commands; the local check before the
    pull request starts the stack from there.
+   **`.claude/hooks/config.sh`** — `LOCAL_URL`, the URL that answered, which `adf-dev`'s band shows
+   above the prompt.
 3. **`.claude/rules/deployment.md`** — `paths:` names the project's Compose and Docker files
    (`compose.yaml` isn't in the skeleton's list), and § Docker holds the project's conventions.
 4. **With `parallel-agents`** — `/dev-env worktrees` proposes the `worktree.conf` values that give

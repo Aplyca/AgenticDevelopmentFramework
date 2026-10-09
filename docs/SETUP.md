@@ -94,6 +94,12 @@ for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca
 with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
 tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
+**Seeing the local environment's URL** — turn on `adf-dev` (`"adf-dev@aplyca": true` in
+`enabledPlugins`, in either install) and set `LOCAL_URL` in `.claude/hooks/config.sh` (step 5). Its mod
+draws a line above the prompt with the URL and whether it answers; with the parallel-agents module,
+each worktree shows its own port from `READY_URL`. It needs Claude Code v2.1.287 or later in a
+terminal, or the desktop app from v2.1.286 ([decision 0026](decisions/0026-display-only-mods.md)).
+
 ## 3. Fill in AGENTS.md — the file every tool reads
 
 Replace every `[bracketed placeholder]` with facts you can point to in the repository (manifests,
@@ -123,7 +129,7 @@ on conflict, so the two must agree — especially about branches and merge targe
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (e.g. migrations), `GENERATED_GLOBS` (add generated types), `CAREFUL_GLOBS` (the sensitive areas you
   list in `AGENTS.md` — any change there takes at least the careful lane), `ENV_TEMPLATE` if not
-  auto-detected.
+  auto-detected, `LOCAL_URL` (the URL the developer opens for the local check).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
   the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
   On GitLab, add the `glab` equivalents of the `gh` rules.
