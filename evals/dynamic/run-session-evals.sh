@@ -257,7 +257,7 @@ PY
     [ -n "$DOCS_RULE" ] || dirs+=("$FWC")
   fi
   if [ -n "$DOCS_RULE" ]; then # reads in the project need no rule; the plugin's folder, the committed one
-    reads=() run_env=(ANTHROPIC_DEFAULT_OPUS_MODEL=claude-haiku-4-5-20251001)
+    reads=() run_env=(ANTHROPIC_DEFAULT_OPUS_MODEL=claude-haiku-5-5)
     grep -q '<!-- run: no-read-rule -->' "$input" || reads=("Read(/$FWC/plugins/adf/**)")
   fi
   [ -d "$SOURCE" ] && [ "$SOURCE" != "$FWC" -o ${#dirs[@]} -eq 0 ] && dirs+=("$SOURCE")
