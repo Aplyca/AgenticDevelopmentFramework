@@ -157,15 +157,15 @@ release, and the originals are linked below:
    the most damage. (5 min)
 3. `specs/README.md` and `docs/SPEC-MODEL.md` — when a spec folder is needed, the flow, change
    requests; a spec's required, conditional, and optional sections. The most important concept here.
-   ([original](../skeleton/docs/SPEC-MODEL.md); 20 min)
+   ([original](../plugins/adf/docs/SPEC-MODEL.md); 20 min)
 4. `CONTRIBUTING.md` and your tool's layer — `.claude/rules/claude-code.md` or `.cursor/rules/`. (10 min)
-5. The [`triage`](../skeleton/.claude/skills/triage/SKILL.md),
-   [`write-plan`](../skeleton/.claude/skills/write-plan/SKILL.md), and
-   [`implement`](../skeleton/.claude/skills/implement/SKILL.md) skills — above all their
+5. The [`triage`](../plugins/adf/skills/triage/SKILL.md),
+   [`write-plan`](../plugins/adf/skills/write-plan/SKILL.md), and
+   [`implement`](../plugins/adf/skills/implement/SKILL.md) skills — above all their
    *Rationalizations* tables, the excuses agents (and people) make for skipping a step. (20 min)
 6. `docs/COST-MODEL.md` and `docs/MEMORY-STRATEGY.md` — when to escalate a model, where a fact
-   belongs (originals: [cost model](../skeleton/docs/COST-MODEL.md),
-   [memory strategy](../skeleton/docs/MEMORY-STRATEGY.md)). `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
+   belongs (originals: [cost model](../plugins/adf/docs/COST-MODEL.md),
+   [memory strategy](../plugins/adf/docs/MEMORY-STRATEGY.md)). `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
 7. The worked example: [examples/newsletter-signup/](examples/newsletter-signup/). (20 min)
 
 | Tool | Reads | Skills and agents | Rules | Hooks, permissions |

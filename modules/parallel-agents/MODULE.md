@@ -14,7 +14,7 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 | `scripts/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
 | `scripts/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
 | `scripts/agent/_worktree-lib.sh` | Shared helpers |
-| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts |
+| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
 | `docs/PARALLEL-AGENTS.md` | The dispatcher/worker process, the scripts, shared vs isolated services |
 
@@ -34,13 +34,14 @@ covers passing work in progress on.
 ```bash
 cp -R modules/parallel-agents/files/. /path/to/your-repo/
 chmod +x scripts/agent/*.sh
+python3 scripts/build-committed.py /path/to/your-repo --modules parallel-agents   # committed install: /dispatch
 ```
 
 A repository that already has a `.worktreeinclude` keeps it: add the env file's line to it.
 
-With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020): remove the
-copied `.claude/skills/dispatch/` and type `/adf:dispatch`. The skill stops in a project
-without the module, so the plugin can carry it for everyone.
+With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020): skip the last line
+and type `/adf:dispatch`. The skill stops in a project without the module, so the plugin can carry it
+for everyone.
 
 It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0027):
 remove the copied `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh`, keep

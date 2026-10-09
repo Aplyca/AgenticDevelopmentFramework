@@ -224,6 +224,6 @@ With a legacy single-file spec the history looks the same: the move is part of
 | Rewriting a legacy spec into the new template while moving it | The record of what was delivered changes, and git stops recognizing the move as a rename | Move it as it is; the CR section, plan, and tasks carry the change |
 
 **Reference:** [`specs/README.md` § Change requests](../../skeleton/specs/README.md#change-requests) ·
-[`/write-spec`](../../skeleton/.claude/skills/write-spec/SKILL.md) (amend mode) ·
-[`/write-plan`](../../skeleton/.claude/skills/write-plan/SKILL.md) ·
+[`/write-spec`](../../plugins/adf/skills/write-spec/SKILL.md) (amend mode) ·
+[`/write-plan`](../../plugins/adf/skills/write-plan/SKILL.md) ·
 the `CR N` template at the end of [`spec.md`](../../skeleton/specs/_templates/spec.md)

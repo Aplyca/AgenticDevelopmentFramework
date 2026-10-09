@@ -29,7 +29,7 @@ day-to-day work looks like.
 
 The files follow the templates in [`skeleton/specs/_templates/`](../../skeleton/specs/_templates/spec.md)
 section by section, and the process in [`skeleton/specs/README.md`](../../skeleton/specs/README.md).
-The spec model behind `spec.md` is [`skeleton/docs/SPEC-MODEL.md`](../../skeleton/docs/SPEC-MODEL.md).
+The spec model behind `spec.md` is [`plugins/adf/docs/SPEC-MODEL.md`](../../plugins/adf/docs/SPEC-MODEL.md).
 
 ## Conventions in these examples
 

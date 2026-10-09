@@ -20,10 +20,9 @@ No rule of its own: Compose and Dockerfile conventions live in the skeleton's
 
 `/adopt` and `/upgrade` install it when you choose the module. By hand:
 
-- **Committed install:** `cp -R modules/docker/files/. /path/to/your-repo/`, then
-  `modules/docker/install.sh /path/to/your-repo`.
-- **Packaged install:** leave `files/.claude/skills/` out, run
-  `modules/docker/install.sh /path/to/your-repo`, and turn the plugin on in `.claude/settings.json`
+- **Committed install:** `scripts/build-committed.py /path/to/your-repo --modules docker`, which writes
+  `/dev-env` from the `adf-dev` plugin, then `modules/docker/install.sh /path/to/your-repo`.
+- **Packaged install:** run `modules/docker/install.sh /path/to/your-repo`, and turn the plugin on in `.claude/settings.json`
   beside `adf` — `"adf-dev@aplyca": true` in `enabledPlugins`, and
   `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 

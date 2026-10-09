@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 #
-# Functional tests for the skeleton's Claude Code hooks (skeleton/.claude/hooks/). Each test pipes a
-# tool event as JSON on stdin — exactly what Claude Code sends — into a hook running against a
-# throwaway git repository, and checks the exit code: 2 blocks / reports, 0 allows.
+# Functional tests for the framework's Claude Code hooks: a committed project's copies, which
+# scripts/build-committed.py writes from the adf plugin (decision 0028), with the skeleton's config.sh,
+# and the plugin's own. Each test pipes a tool event as JSON on stdin — exactly what Claude Code sends —
+# into a hook running against a throwaway git repository, and checks the exit code: 2 blocks / reports,
+# 0 allows.
 # No AI invocation. Needs bash, git, and jq or python3. Exit 0 on all-pass.
 #
 set -uo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${REPO_ROOT:-$( cd "$SCRIPT_DIR/../.." && pwd )}"
-HOOKS_SRC="$REPO_ROOT/skeleton/.claude/hooks"
 
 PASS=0
 FAIL=0
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+python3 "$REPO_ROOT/scripts/build-committed.py" "$WORK/committed" >/dev/null || { echo "build-committed.py failed" >&2; exit 1; }
+cp "$REPO_ROOT/skeleton/.claude/hooks/config.sh" "$WORK/committed/.claude/hooks/"
+HOOKS_SRC="$WORK/committed/.claude/hooks"
 
 json_string() { python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }
 
@@ -46,8 +50,8 @@ printf 'API_URL=\n# OPTIONAL_FLAG=\n' > "$T/.env.example"
 git -C "$T" add -A && git -C "$T" commit -qm init
 
 echo ""
-echo "Hook tests — skeleton/.claude/hooks"
-echo "==================================="
+echo "Hook tests — the committed hooks and adf's"
+echo "==========================================="
 
 # guard-git — on the protected main branch
 run guard-git.sh 0 "$(bash_event 'git status')" "allows read-only git"

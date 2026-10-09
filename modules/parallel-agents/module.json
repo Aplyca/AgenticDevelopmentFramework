@@ -1,5 +1,8 @@
 {
   "plugin": "adf",
+  "skills": [
+    "dispatch"
+  ],
   "commands": {
     "adf-worktree-new": "scripts/agent/worktree-new.sh",
     "adf-worktree-ls": "scripts/agent/worktree-ls.sh",

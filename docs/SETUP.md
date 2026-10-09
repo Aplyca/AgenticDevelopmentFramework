@@ -45,10 +45,16 @@ https://github.com/aplyca/AgenticDevelopmentFramework 'v*'` lists them, and
 cd your-project
 git switch -c docs/agentic-adoption
 cp -Rn /path/to/AgenticDevelopmentFramework/skeleton/. .
+python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py .
 ```
 
-`-n` never overwrites a file you already have; merge collisions (`README.md`, `CONTRIBUTING.md`,
-`.claude/settings.json`) by hand — keep your content, add the skeleton's missing sections.
+The skeleton is the layer the project owns and edits. The machinery — 20 skills, 8 agents, 4
+workflows, the hook scripts, and the four reference docs in `docs/` — has its source in the framework's
+plugins, and `build-committed.py` writes the committed install's copies of it
+([decision 0028](decisions/0028-plugins-are-the-source.md)). Neither step overwrites a file you already
+have: `-n` skips it, and the script lists the ones it kept. Merge collisions (`README.md`,
+`CONTRIBUTING.md`, `.claude/settings.json`) by hand — keep your content, add the skeleton's missing
+sections.
 
 Remove the layers your team doesn't use:
 
@@ -84,9 +90,11 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 
 ```bash
 cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
+python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py . --modules <name>
 ```
 
-Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
+The second line adds the module's skills, which its plugin carries — `parallel-agents`' `/dispatch`,
+`docker`'s `/dev-env` — and does nothing for a module without any. Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
 
 **Connecting a tracker or a service** — Jira, Linear, GitLab, Supabase, Vercel, Contentful — is a job
 for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca": true` in
@@ -206,18 +214,12 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 
 **What changes from the steps above:**
 
-1. **Copy less** (step 1). Leave out `.claude/skills/`, `.claude/agents/`, `.claude/workflows/`, the
-   scripts and helpers in `.claude/hooks/` (keep `config.sh`), `.claude/hooks/README.md`, `.gemini/`,
-   `.agents/`, `.cursor/`, and the four reference docs: `docs/COST-MODEL.md`,
-   `docs/MCP-INTEGRATION.md`, `docs/MEMORY-STRATEGY.md`, and `docs/SPEC-MODEL.md`. Modules copy as
-   usual, but leave out `.claude/skills/dispatch/` when the release's plugin carries it
-   (`plugins/adf/skills/dispatch/` in the framework copy); an older release's plugin doesn't,
-   so copy it there. A module whose `module.json` names another plugin (`adf-dev`) leaves out all its
-   `.claude/skills/`. A module whose `module.json` lists `commands` leaves out those scripts when the
-   release's plugin carries them (`plugins/adf/bin/` in the framework copy,
-   [decision 0027](decisions/0027-worktree-scripts-as-plugin-commands.md)): for `parallel-agents`,
-   everything in `scripts/agent/` but `worktree.conf`, the project's settings. Then point the files
-   that name the reference docs at the release you pin, from the framework copy you took the skeleton from:
+1. **Copy less** (steps 1 and 2). Copy the skeleton, but don't run `build-committed.py`: the plugins
+   carry the machinery, the modules' skills included. Leave out `.gemini/`, `.agents/`, and `.cursor/`.
+   Modules copy as usual, except a module's scripts its `module.json` lists as `commands`, which the
+   plugin carries in `bin/` ([decision 0027](decisions/0027-worktree-scripts-as-plugin-commands.md)):
+   for `parallel-agents`, leave out everything in `scripts/agent/` but `worktree.conf`, the project's
+   settings. Then point the files that name the reference docs at the release you pin, from the framework copy you took the skeleton from:
    `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
    since the plugin wires the same hooks, pin the marketplace to the release, and add the read rule to

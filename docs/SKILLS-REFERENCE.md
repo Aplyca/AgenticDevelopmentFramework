@@ -1,13 +1,15 @@
 # Skills and workflows reference
 
-The Agentic Development Framework ships **twenty skills** in `skeleton/.claude/skills/`, two
-more in modules, and **four dynamic workflows** in `skeleton/.claude/workflows/`.
-Adopting projects copy them verbatim. In Claude Code, invoke a skill with `/skill-name`; other tools
-read the `SKILL.md` and follow it. Skills run in the main conversation; workflows fan out to many
+The Agentic Development Framework ships **twenty skills**, two more for modules, and **four dynamic
+workflows**. Their source is the plugins — `plugins/adf/skills/`, `plugins/adf/workflows/`, and
+`plugins/adf-dev/skills/` ([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged
+project loads them from there, as `/adf:skill-name`; a committed one keeps copies in `.claude/`, which
+`scripts/build-committed.py` writes, and invokes them with `/skill-name` — other tools read the
+`SKILL.md` and follow it. Skills run in the main conversation; workflows fan out to many
 agents.
 
 For routing (skill vs agent vs workflow), see `skeleton/.claude/rules/claude-code.md` § Skills, agents, and workflows.
-For model tiers, see `skeleton/docs/COST-MODEL.md`. For why the workflow is shaped this way, see
+For model tiers, see `plugins/adf/docs/COST-MODEL.md`. For why the workflow is shaped this way, see
 [`decisions/`](decisions/README.md).
 
 ## Workflow phase skills

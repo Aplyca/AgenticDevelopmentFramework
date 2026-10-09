@@ -17,6 +17,38 @@ migrations below.
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### The plugins are the machinery's source; a committed install is written from them
+
+([0028](docs/decisions/0028-plugins-are-the-source.md))
+
+The repository kept every skill, agent, workflow, hook script, and reference doc twice: in
+`skeleton/`, and generated into the plugins. Now the plugins are the only copy:
+
+- **`plugins/adf/` and `plugins/adf-dev/` are edited by hand,** in the form a packaged project loads:
+  `/adf:triage`, `@adf:code-reviewer`, `${CLAUDE_PLUGIN_ROOT}/docs/…`, a Step 0 per skill and agent.
+- **`skeleton/` is the project's layer:** `AGENTS.md`, the rules, the settings, `config.sh`, the docs
+  templates, `specs/`. A module's `files/` holds only what a project commits, and its `module.json`
+  lists the skills its plugin carries.
+- **`scripts/build-committed.py` writes a committed install:** the machinery, with the given modules'
+  skills, never overwriting a file. `/adopt`, `/upgrade`, and `docs/SETUP.md` run it.
+- **A round trip keeps the forms together.** Every carried file must come back unchanged from its
+  committed form; `build-committed.py --check` shows what a file should read.
+- **`scripts/build-plugins.sh` generates only** the module commands in `bin/`, the spec model in
+  `adf`'s workflows, and the plugins' versions.
+- **`link-reference-docs.py`** links the reference docs in `plugins/adf/docs/` at a pin from v2.0.0
+  on, and moves an older pin's `skeleton/docs/` links there.
+- **The evals** test the committed copy the script writes: the hooks run, and the skills, agents, and
+  workflows are checked as a committed project keeps them.
+
+**Upgrade impact:**
+
+- **A committed project gets the same files.** The one change is **Overwrite**
+  `.claude/skills/dispatch/SKILL.md`: its checklist names the worktree script by its path.
+- **A packaged project:** nothing.
+- **Upgrading a committed project by hand** writes the new release's machinery with
+  `build-committed.py` into an empty folder and copies it over (`docs/UPGRADING.md` § 4);
+  `/adf:upgrade` does it.
+
 ### The worktree scripts are the plugin's commands: `adf-worktree-new`, `-ls`, `-rm`
 
 ([0027](docs/decisions/0027-worktree-scripts-as-plugin-commands.md))

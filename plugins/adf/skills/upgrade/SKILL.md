@@ -115,7 +115,8 @@ ask, and never discard it.
   `module.json` names another plugin (`adf-dev`, decision 0023) switches the same way: its
   committed skills go, and that plugin is turned on with its read rule.
 - **Packaged → committed**, when the team adds another AI tool or needs Claude Code's cloud sessions:
-  copy the machinery (with the installed modules' skills and scripts), the reference docs, and the
+  write the machinery — `python3 <framework-root>/scripts/build-committed.py <repo> --modules <installed>`,
+  which brings the installed modules' skills and the reference docs — copy the modules' scripts and the
   `hooks` block back, remove `install: packaged`, the
   names note, the plugin's read rule, every other `<plugin>@aplyca` (`adf-dev`) with its read rule,
   the `adf:` and `<plugin>:` prefixes in `DEV-SETUP.md`, and the commands' names in `AGENTS.md`
@@ -186,8 +187,22 @@ project has one:
 ## Step 3 — Classify every changed file
 
 `git -C <framework-root> diff --name-status OLD_SHA NEW_SHA -- skeleton/ modules/<each installed module>/files/`
-gives the changed set (module paths map into the repo by dropping `modules/<name>/files/`). In a
-packaged project, leave out what the plugins carry — `.claude/skills/` (a module's skill too, when
+gives the changed set of the project's own layer (module paths map into the repo by dropping
+`modules/<name>/files/`).
+
+**A committed project's machinery** — skills, agents, workflows, hook scripts, reference docs — has
+its source in the plugins from v2.0.0 (decision 0028), so that diff doesn't show it. Write it at both
+releases, each into an empty folder outside the target, and diff those:
+
+- **NEW:** `python3 <framework-root>/scripts/build-committed.py <new> --modules <installed modules>`.
+- **OLD,** from a worktree of the framework at OLD_SHA: the same command when that release has
+  `scripts/build-committed.py`; before v2.0.0 it has none, and its machinery is `skeleton/.claude/`
+  (all but `rules/`, `settings.json`, and `hooks/config.sh`), the four reference docs in
+  `skeleton/docs/`, and each installed module's `files/.claude/skills/`.
+
+`diff -rq <old> <new>` adds those files to the changed set, at the same paths in the project, and
+`<new>` is where Bucket 1 copies them from. In a packaged project, skip all this, and leave out of the
+changed set what the plugins carry — `.claude/skills/` (a module's skill too, when
 the new release's plugin has it in `<framework-root>/plugins/adf/skills/`, as it has
 `dispatch` from decision 0020 on, or in the plugin its `module.json` names, such as
 `<framework-root>/plugins/adf-dev/`, decision 0023), `.claude/agents/`, `.claude/workflows/`, `.claude/hooks/` except `config.sh`,

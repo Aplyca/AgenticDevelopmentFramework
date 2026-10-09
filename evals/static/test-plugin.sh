@@ -100,18 +100,39 @@ plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
 check "link-reference-docs: the plugin carries the four reference docs (got: $plugin_docs)" \
     "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md SPEC-MODEL.md ' ]"
 first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
-check "link-reference-docs: --packaged links every skeleton file at the release" \
-    "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/skeleton/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
+check "link-reference-docs: --packaged links every skeleton file at the release, in the plugin" \
+    "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/plugins/adf/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
 again=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
 check "link-reference-docs: a second run changes nothing" "echo \"\$again\" | grep -q 'in 0 file(s)'"
 python3 "$LINKS" "$SITE" --packaged v9.9.10 >/dev/null
 check "link-reference-docs: a new pin moves every link" \
-    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/skeleton/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
+    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/plugins/adf/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
+python3 "$LINKS" "$SITE" --packaged v1.4.0 >/dev/null
+old_pin=$(grep -c 'blob/v1.4.0/skeleton/docs/COST-MODEL.md' "$SITE/.claude/rules/claude-code.md")
+python3 "$LINKS" "$SITE" --packaged v2.0.0 >/dev/null
+check "link-reference-docs: a pin before v2.0.0 links skeleton/docs, where the docs were, and moves to the plugin's (decision 0028)" \
+    "[ '$old_pin' -ge 1 ] && ! grep -rq 'skeleton/docs/' \"\$SITE\" && grep -q 'blob/v2.0.0/plugins/adf/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
 python3 "$LINKS" "$SITE" --committed >/dev/null
 check "link-reference-docs: --committed restores the skeleton's files exactly" "diff -r \"\$REPO_ROOT/skeleton\" \"\$SITE\" >/dev/null"
 bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
 check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
 check "link-reference-docs: the files it rewrote are the skeleton's, its committed rules included" "echo \"\$first\" | grep -q 'AGENTS.md, CONTRIBUTING.md' && echo \"\$first\" | grep -q '\.claude/rules/claude-code.md'"
+
+# build-committed.py (decision 0028): a committed project's machinery, written from the plugins.
+BC="$REPO_ROOT/scripts/build-committed.py"
+CP="$WORK/committed-project"
+mkdir -p "$CP/.claude/skills/review" && echo '# our own review' > "$CP/.claude/skills/review/SKILL.md"
+out=$(python3 "$BC" "$CP" --modules parallel-agents 2>&1); code=$?
+check "build-committed: writes the core skills, agents, workflows, hooks, and reference docs" \
+    "[ $code -eq 0 ] && [ -f '$CP/.claude/skills/triage/SKILL.md' ] && [ -f '$CP/.claude/agents/code-reviewer/agent.md' ] && [ -f '$CP/.claude/workflows/deep-review.js' ] && [ -x '$CP/.claude/hooks/guard-git.sh' ] && [ ! -x '$CP/.claude/hooks/_lib.sh' ] && [ -f '$CP/docs/SPEC-MODEL.md' ]"
+check "build-committed: the committed form — bare names, local docs, no Step 0, the module's script" \
+    "grep -q '/write-spec' '$CP/.claude/skills/triage/SKILL.md' && ! grep -rqE '/adf:(triage|write-spec|dispatch)|@adf:|CLAUDE_PLUGIN_ROOT|Step 0 — which copy|adf-worktree-new' '$CP/.claude/skills' '$CP/.claude/agents' && grep -q 'scripts/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/.claude/skills/dispatch/SKILL.md' && grep -q \"const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'\" '$CP/.claude/workflows/deep-spec-analysis.js'"
+check "build-committed: takes only the modules it's given, and never the installer's skills" \
+    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
+check "build-committed: keeps a file the project already has, and says so" \
+    "[ \"\$(cat '$CP/.claude/skills/review/SKILL.md')\" = '# our own review' ] && echo \"\$out\" | grep -q 'Kept 1 .*\.claude/skills/review/SKILL.md'"
+out=$(python3 "$BC" "$WORK/elsewhere-project" --modules no-such-module 2>&1); code=$?
+check "build-committed: refuses a module that doesn't exist" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'no such module'"
 
 # The plugin's commands (decision 0027): the parallel-agents scripts, on the Bash tool's PATH — last,
 # as Claude Code puts the plugin's bin/ — in a packaged project, which commits only worktree.conf.

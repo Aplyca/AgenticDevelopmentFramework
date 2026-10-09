@@ -52,7 +52,7 @@ the task. The approval gate comes later, before implementation code.
 ## Guardrails you'll meet in every scenario
 
 In a repository that adopted the skeleton, these hold in Claude Code whatever the agent decides
-([`skeleton/.claude/hooks/README.md`](../../skeleton/.claude/hooks/README.md)):
+([`plugins/adf/hooks/README.md`](../../plugins/adf/hooks/README.md)):
 
 | Rule | Enforced by |
 |---|---|
