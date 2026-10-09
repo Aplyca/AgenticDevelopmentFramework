@@ -38,9 +38,9 @@ permission rules, MCP configuration — that every AI tool and CI can read. A pl
 Code loads: the framework's machinery, one plugin per concern
 ([decision 0023](../docs/decisions/0023-plugins-by-concern.md)):
 
-| Plugin | Concern | Carries the skills of |
+| Plugin | Concern | Carries the skills and commands of |
 |---|---|---|
-| `adf` | The process | `parallel-agents` (`/dispatch`) |
+| `adf` | The process | `parallel-agents` (`/dispatch`; the worktree scripts as `adf-worktree-new`, `-ls`, `-rm`) |
 | `adf-dev` | Development | `docker` (`/dev-env`) |
 | `adf-connect` | Trackers and services | — (its `/connect` writes a project's MCP configuration itself) |
 
@@ -52,3 +52,9 @@ one — `"adf-dev@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins
 in `permissions.allow`. A committed project copies the skills and leaves the plugin off. Each skill
 acts only where the stamp names its module, so a plugin turned on for one module never acts for
 another the project doesn't have. Skill and agent names are unique across every plugin.
+
+A module's scripts that no project edits go the same way when its `module.json` lists them under
+`commands` ([decision 0025](../docs/decisions/0025-worktree-scripts-as-plugin-commands.md)): the
+plugin carries each in its `bin/`, named after the plugin, on the Bash tool's PATH. A packaged project
+leaves the scripts out and keeps their settings; a committed one copies them, and the command runs the
+committed script.

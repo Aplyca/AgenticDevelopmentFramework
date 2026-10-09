@@ -50,7 +50,8 @@ adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
 checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
-(`scripts/agent/worktree-new.sh chore/add-modules --no-start`).
+(`adf-worktree-new chore/add-modules --no-start`, the plugin's command, which runs the committed
+`scripts/agent/worktree-new.sh` where the project has one).
 
 ### A new project
 
@@ -167,6 +168,11 @@ Present the table before going further. Wrong facts here poison every file downs
   modules the project has: `"<plugin>@aplyca": true` in `enabledPlugins`, and
   `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`. A committed install
   copies the skills and leaves that plugin off.
+  Packaged, too: leave out the scripts the pinned release's plugin carries as commands — the
+  `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0025). For
+  `parallel-agents`, that's every file in `scripts/agent/` but `worktree.conf`, which stays: it's the
+  project's settings, and what shows the module is installed. A release without `bin/` carries none,
+  so copy them as usual.
 - **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than GitHub Issues or
   ClickUp (Jira, Linear, GitLab), or connected services: turn on `"adf-connect@aplyca": true` in
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
@@ -209,7 +215,9 @@ Present the table before going further. Wrong facts here poison every file downs
   tracker.
 - **Modules** — `scripts/agent/worktree.conf`; the PR template's quality and constitution checklists;
   `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
-  `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`. For
+  `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`, and its
+  Quick reference lines — packaged, the commands' names (`adf-worktree-new`, `adf-worktree-ls`,
+  `adf-worktree-rm`), as `DEV-SETUP.md` has the skills' full names. For
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
   `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it fills
   `DEV-SETUP.md`, the Quick reference's start and stop lines, and `deployment.md`'s `paths:` from
@@ -249,6 +257,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
+- [ ] Packaged, with `parallel-agents`, on a release whose plugin carries the commands: `scripts/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
 - [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`

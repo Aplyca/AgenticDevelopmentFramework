@@ -70,20 +70,17 @@ if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
   fi
 fi
 
-if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
-  # What this project's worktrees need beyond what Claude Code gives its own — a port, setup or start
-  # commands, a base branch other than the default — read from scripts/agent/worktree.conf.
-  needs="" base_branch="" env_file=".env"
-  if [ -f "$root/scripts/agent/_worktree-lib.sh" ]; then
-    # The scripts' defaults, then worktree.conf — read as data, never run.
-    PORT_SLOTS=0 SETUP_CMD="" START_CMD="" BASE_BRANCH="main" ENV_FILE=".env"
-    if [ -f "$root/scripts/agent/worktree.conf" ]; then
-      read_settings "$root/scripts/agent/worktree.conf" PORT_SLOTS SETUP_CMD START_CMD BASE_BRANCH ENV_FILE
-    fi
-    [ "$PORT_SLOTS" -gt 0 ] 2>/dev/null && needs="a port"
-    [ -z "$SETUP_CMD$START_CMD" ] || needs="${needs:+$needs and }setup or start commands"
-    base_branch="$BASE_BRANCH" env_file="$ENV_FILE"
-  fi
+if [ -f "$root/scripts/agent/worktree.conf" ]; then
+  # The parallel-agents module: its settings, which both installs commit (the scripts themselves are
+  # the plugin's commands in a packaged one, decision 0025). What this project's worktrees need beyond
+  # what Claude Code gives its own — a port, setup or start commands, a base branch other than the
+  # default — comes from the scripts' defaults, then worktree.conf, read as data, never run.
+  PORT_SLOTS=0 SETUP_CMD="" START_CMD="" BASE_BRANCH="main" ENV_FILE=".env"
+  read_settings "$root/scripts/agent/worktree.conf" PORT_SLOTS SETUP_CMD START_CMD BASE_BRANCH ENV_FILE
+  needs=""
+  [ "$PORT_SLOTS" -gt 0 ] 2>/dev/null && needs="a port"
+  [ -z "$SETUP_CMD$START_CMD" ] || needs="${needs:+$needs and }setup or start commands"
+  base_branch="$BASE_BRANCH" env_file="$ENV_FILE"
   default_branch="$(git -C "$root" symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null)"
   default_branch="${default_branch#origin/}"
   other_base=""
@@ -97,7 +94,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
     # creates the task's worktree beside this checkout with the scripts, and moves into it. Hooks don't
     # run again after the move, so the worker's first step is spelled out here.
     echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /adf:dispatch: it hands the task to a new session, which creates the task's worktree beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves into it."
-    echo "- A session whose prompt hands it one task and its branch (from /adf:dispatch) is that task's worker, not the dispatcher. Its first step is the worktree: scripts/agent/worktree-new.sh <branch> --no-start, then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd before anything else."
+    echo "- A session whose prompt hands it one task and its branch (from /adf:dispatch) is that task's worker, not the dispatcher. Its first step is the worktree: adf-worktree-new <branch> --no-start, then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd before anything else."
   else
     echo "- Role: WORKER. This worktree is yours for one task — start with triage (/adf:triage)."
     # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.
@@ -120,7 +117,7 @@ if [ -x "$root/scripts/agent/worktree-new.sh" ]; then
       if [ -n "$other_base" ]; then
         echo "- Claude Code started this worktree from $default_branch, but tasks here start from $base_branch: ask the developer to /adf:dispatch the task before the first commit."
       elif [ -n "$needs" ]; then
-        echo "- Not set up by scripts/agent/worktree-new.sh, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /adf:dispatch the task."
+        echo "- Not set up by adf-worktree-new, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /adf:dispatch the task."
       fi
     fi
   fi

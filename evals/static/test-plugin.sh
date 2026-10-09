@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
 # Functional tests for the plugin's scripts: /cost-report's session_cost.py against synthetic Claude
-# Code transcripts in a throwaway projects directory, and the reference-doc links /adopt and /upgrade
-# rewrite with scripts/link-reference-docs.py, on a copy of the skeleton. No AI invocation, no
-# network. Needs bash and python3. Exit 0 on all-pass.
+# Code transcripts in a throwaway projects directory, the reference-doc links /adopt and /upgrade
+# rewrite with scripts/link-reference-docs.py, on a copy of the skeleton, and the commands in the
+# plugin's bin/ in throwaway repositories. No AI invocation, no network. Needs bash, git ≥ 2.31, and
+# python3. Exit 0 on all-pass.
 #
 set -uo pipefail
 
@@ -111,6 +112,64 @@ check "link-reference-docs: --committed restores the skeleton's files exactly" "
 bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
 check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
 check "link-reference-docs: the files it rewrote are the skeleton's, its committed rules included" "echo \"\$first\" | grep -q 'AGENTS.md, CONTRIBUTING.md' && echo \"\$first\" | grep -q '\.claude/rules/claude-code.md'"
+
+# The plugin's commands (decision 0025): the parallel-agents scripts, on the Bash tool's PATH — last,
+# as Claude Code puts the plugin's bin/ — in a packaged project, which commits only worktree.conf.
+BIN="$REPO_ROOT/plugins/adf/bin"
+COMMANDS="adf-worktree-new adf-worktree-ls adf-worktree-rm"
+check "commands: adf carries $COMMANDS, executable" "for c in $COMMANDS; do [ -x \"\$BIN/\$c\" ] || exit 1; done"
+check "commands: each is one file — none loads a helper or looks beside itself" \
+    "! grep -l -e 'dirname \"\$0\"' -e BASH_SOURCE -e '_worktree-lib.sh\"' \"\$BIN\"/* | grep -q ."
+check "commands: the plugins' copies name the commands, not the module's scripts" \
+    "! grep -rnE '(^|[^/\$A-Za-z0-9_-])(scripts/agent/)?worktree-(new|ls|rm)\.sh' \"\$REPO_ROOT/plugins/adf/skills/dispatch\" \"\$REPO_ROOT/plugins/adf/hooks\" \"\$REPO_ROOT/plugins/adf-dev/skills\" \"\$BIN\" | grep -v -e 'ADF_CHECKOUT/scripts/agent/' -e \"plugin's copy of the\" | grep -q ."
+on_path() { PATH="$PATH:$BIN" "$@"; }
+WT="$WORK/worktrees"
+mkdir -p "$WT" && git init -q --bare "$WT/origin.git" && git clone -q "$WT/origin.git" "$WT/site" 2>/dev/null
+S="$WT/site"
+git -C "$S" config user.email test@example.com && git -C "$S" config user.name test && git -C "$S" symbolic-ref HEAD refs/heads/main
+mkdir -p "$S/scripts/agent" "$S/docs"
+cp "$REPO_ROOT/modules/parallel-agents/files/scripts/agent/worktree.conf" "$S/scripts/agent/"
+python3 - "$S/scripts/agent/worktree.conf" <<'CONF'
+import sys
+path = sys.argv[1]
+text = open(path).read()
+for old, new in (('PORT_SLOTS=0', 'PORT_SLOTS=180'), ("ENV_OVERRIDES=''", "ENV_OVERRIDES='SITE_URL=http://localhost:${APP_PORT}'")):
+    assert old in text, old
+    text = text.replace(old, new, 1)
+open(path, "w").write(text)
+CONF
+printf 'SECRET=\nAPP_PORT=\n' > "$S/.env.example" && printf '.env\n' > "$S/.gitignore" && echo '# Site' > "$S/docs/README.md"
+git -C "$S" add -A && git -C "$S" commit -qm init && git -C "$S" push -q -u origin main 2>/dev/null
+printf 'SECRET=abc\n' > "$S/.env"
+out=$(cd "$S" && on_path adf-worktree-new feat/newsletter-signup --no-start 2>&1); code=$?
+W1="$WT/feat-newsletter-signup"
+check "adf-worktree-new: creates a sibling worktree in a project that commits only worktree.conf" \
+    "[ $code -eq 0 ] && [ -f '$W1/.git' ] && [ -f \"\$(git -C '$W1' rev-parse --absolute-git-dir)/agent-worktree\" ]"
+check "adf-worktree-new: reads the project's worktree.conf — a port, and the overrides with it" \
+    "grep -q '^SECRET=abc$' '$W1/.env' && grep -qE '^SITE_URL=http://localhost:[0-9]+$' '$W1/.env'"
+echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
+out=$(cd "$W1" && on_path adf-worktree-new fix/other-thing --no-start 2>&1); code=$?
+W2="$WT/fix-other-thing"
+check "adf-worktree-new: from inside a worktree, makes a sibling of the main checkout, seeded from it" \
+    "[ $code -eq 0 ] && [ -f '$W2/.git' ] && grep -q '^SECRET=abc$' '$W2/.env' && ! grep -q LOCAL_EXPERIMENT '$W2/.env'"
+out=$(cd "$S/docs" && on_path adf-worktree-new chore/from-docs --no-start 2>&1); code=$?
+check "adf-worktree-new: works from a subdirectory of the checkout" "[ $code -eq 0 ] && [ -f '$WT/chore-from-docs/.git' ]"
+out=$(cd "$S" && on_path adf-worktree-ls 2>&1)
+check "adf-worktree-ls: lists every worktree and marks the main checkout" \
+    "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
+out=$(cd "$S" && on_path adf-worktree-rm fix/other-thing 2>&1); code=$?
+check "adf-worktree-rm: removes the worktree and its merged branch" \
+    "[ $code -eq 0 ] && [ ! -d '$W2' ] && ! git -C '$S' show-ref --verify --quiet refs/heads/fix/other-thing"
+out=$(cd "$WT" && on_path adf-worktree-new feat/nowhere --no-start 2>&1); code=$?
+check "adf-worktree-new: outside a repository, stops and says so" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'not inside a git repository'"
+mkdir -p "$WT/plain" && git -C "$WT/plain" init -q -b main && git -C "$WT/plain" -c user.email=t@e -c user.name=t commit -q --allow-empty -m init
+out=$(cd "$WT/plain" && on_path adf-worktree-new feat/nothing --no-start 2>&1); code=$?
+check "adf-worktree-new: in a project without the module, stops and creates nothing" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/feat-nothing' ]"
+printf '#!/bin/sh\necho "$@" > "%s/handed-over"\n' "$WT" > "$S/scripts/agent/worktree-new.sh" && chmod +x "$S/scripts/agent/worktree-new.sh"
+out=$(cd "$S" && on_path adf-worktree-new feat/committed --no-start 2>&1); code=$?
+check "adf-worktree-new: in a committed install, runs the project's own script with the same arguments" \
+    "[ $code -eq 0 ] && [ \"\$(cat '$WT/handed-over' 2>/dev/null)\" = 'feat/committed --no-start' ] && [ ! -e '$WT/feat-committed' ]"
 
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"

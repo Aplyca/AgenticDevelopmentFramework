@@ -1,3 +1,8 @@
 {
-  "plugin": "adf"
+  "plugin": "adf",
+  "commands": {
+    "adf-worktree-new": "scripts/agent/worktree-new.sh",
+    "adf-worktree-ls": "scripts/agent/worktree-ls.sh",
+    "adf-worktree-rm": "scripts/agent/worktree-rm.sh"
+  }
 }

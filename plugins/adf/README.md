@@ -6,8 +6,9 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
   `/adf:upgrade`, and `/adf:cost-report`, in every project that uses the framework.
 - **Carry the framework's machinery for a packaged install** ([decision 0016](../../docs/decisions/0016-packaged-install.md)):
   20 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
-  `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md)),
-  pinned to a release. Typed as
+  `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md))
+  and worktree scripts, as the commands `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`
+  ([decision 0025](../../docs/decisions/0025-worktree-scripts-as-plugin-commands.md)), pinned to a release. Typed as
   `/adf:triage`, `/adf:deep-review`, and so on.
 
 By default, an adopting repository uses the **packaged** install
@@ -22,8 +23,10 @@ aside: its hooks stand down, and its skills and agents hand over to the committe
 where the stamp on `AGENTS.md`'s first line (`CLAUDE.md`'s, before v2.0.0) says `install: packaged`.
 
 The machinery under `skills/` (except `adopt`, `upgrade`, and `cost-report`), `agents/`,
-`workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` from its
-module — by `scripts/build-plugins.sh`; never edit it here.
+`workflows/`, `hooks/`, and `docs/` is generated from the skeleton — and `skills/dispatch` and `bin/`
+from the parallel-agents module — by `scripts/build-plugins.sh`; never edit it here. The commands in
+`bin/` are on the Bash tool's PATH while the plugin is on; they act only where `scripts/agent/` exists,
+and run the committed script instead where a project keeps one.
 
 It carries the process. The `aplyca` marketplace also lists `adf-dev`, the development plugin —
 the `docker` module's `/dev-env` — built by the same script, at this plugin's version
@@ -45,7 +48,7 @@ at user scope.
    to start a new session here and accept the prompt to trust the folder, which turns the plugin
    on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
    stop.
-2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
+2. If scripts/agent/worktree.conf exists and this is the main checkout (git rev-parse --git-dir
    equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
    worktree.
 3. From this folder, run:
@@ -135,9 +138,10 @@ branch, and never push without explicit approval. `/adf:cost-report` only reads.
 **In a packaged project,** the rest of the framework comes from here too: the workflow skills
 (`/adf:triage`, `/adf:write-spec`, `/adf:implement`, `/adf:review`, …), the
 agents (`adf:code-reviewer`, `adf:spec-analyzer`, …), the `/adf:deep-…`
-workflows, the hooks, which read the project's `.claude/hooks/config.sh`, and the framework's
+workflows, the hooks, which read the project's `.claude/hooks/config.sh`, the framework's
 reference docs — the spec model, the cost model, the memory strategy, and MCP integration
-([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)). The catalogs:
+([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)) — and, with the
+parallel-agents module, the worktree commands, which read the project's `scripts/agent/worktree.conf`. The catalogs:
 [SKILLS-REFERENCE.md](../../docs/SKILLS-REFERENCE.md) and [AGENTS-REFERENCE.md](../../docs/AGENTS-REFERENCE.md).
 
 ## For teams

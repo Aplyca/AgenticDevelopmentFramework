@@ -205,8 +205,11 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    usual, but leave out `.claude/skills/dispatch/` when the release's plugin carries it
    (`plugins/adf/skills/dispatch/` in the framework copy); an older release's plugin doesn't,
    so copy it there. A module whose `module.json` names another plugin (`adf-dev`) leaves out all its
-   `.claude/skills/`. Then point the files that name the reference docs at the
-   release you pin, from the framework copy you took the skeleton from:
+   `.claude/skills/`. A module whose `module.json` lists `commands` leaves out those scripts when the
+   release's plugin carries them (`plugins/adf/bin/` in the framework copy,
+   [decision 0025](decisions/0025-worktree-scripts-as-plugin-commands.md)): for `parallel-agents`,
+   everything in `scripts/agent/` but `worktree.conf`, the project's settings. Then point the files
+   that name the reference docs at the release you pin, from the framework copy you took the skeleton from:
    `python3 <framework>/scripts/link-reference-docs.py . --packaged v<X.Y.Z>`.
 2. **Wire the plugin, not the hooks** (step 5). Drop the `hooks` block from `.claude/settings.json`,
    since the plugin wires the same hooks, pin the marketplace to the release, and add the read rule to
@@ -240,10 +243,15 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    > Where they name an agent — `@code-reviewer` — its name is `adf:code-reviewer`. The
    > framework's reference docs — the spec model, the cost model, the memory strategy, MCP
    > integration — come from the plugin too; these files link them at the pinned release.
+   > With the parallel-agents module, the worktree scripts are the plugin's commands: where these
+   > files name `scripts/agent/worktree-new.sh`, `worktree-ls.sh`, or `worktree-rm.sh`, run
+   > `adf-worktree-new`, `adf-worktree-ls`, or `adf-worktree-rm`.
 
    People read the key commands in `docs/getting-started/DEV-SETUP.md` § AI-assisted development,
    so write them there by their full names: `/adf:triage`, `@adf:code-reviewer`. A
-   module's skills go by the name of the plugin that carries them: `/adf-dev:dev-env`.
+   module's skills go by the name of the plugin that carries them: `/adf-dev:dev-env`. With the
+   parallel-agents module, `AGENTS.md` § Quick reference lists the worktree commands by theirs:
+   `adf-worktree-new`, `adf-worktree-ls`, `adf-worktree-rm`.
 
 4. **Stamp the install** (step 8): `<!-- Skeleton source: v<X.Y.Z> · <SHA> (<date>) · modules: <list> · install: packaged — … -->`,
    with the pinned release and its commit. `install: packaged` is what turns the plugin's copies on.
@@ -251,7 +259,8 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
 **Verify** as below, with two differences. Pipe the hook samples to the plugin's scripts, with the
 project and the plugin named: `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/adf <marketplace folder>/plugins/adf/hooks/guard-git.sh`,
 where the marketplace folder is the `installLocation` of `aplyca` in
-`claude plugin marketplace list --json`. And in a new session, `/adf:triage` is offered.
+`claude plugin marketplace list --json`. And in a new session, `/adf:triage` is offered — and, with
+the parallel-agents module, `adf-worktree-ls` lists the main checkout.
 
 Each teammate gets the plugin, and the read rule, once they trust the folder. A machine nobody opens a
 session on — CI — installs it first, from the repository's folder; a headless run (`claude -p`) never

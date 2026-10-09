@@ -40,7 +40,7 @@ Each fact has one home, and this skill writes only what a command it ran has sho
    project adopted before v2.0.0, `head -1 CLAUDE.md`). Unless its `modules:` list names `docker`, say
    "the docker module isn't installed in this project — `/adf:upgrade` offers it" and stop.
 
-2. **Check where you are.** If `scripts/agent/worktree-new.sh` exists and `git rev-parse --git-dir`
+2. **Check where you are.** If `scripts/agent/worktree.conf` exists and `git rev-parse --git-dir`
    equals `git rev-parse --git-common-dir`, this is the main checkout of a hub: environments run in
    worktrees. Say so, point to `/dispatch`, and stop.
 

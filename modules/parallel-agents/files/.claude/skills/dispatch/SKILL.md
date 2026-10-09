@@ -15,7 +15,7 @@ check it. The dispatcher's context stays cheap: a branch name, not a plan.
 A dispatcher **writes nothing outside this machine** and takes no outward-facing action. Its only
 network call is a read: the task in step 1. It runs no scripts — not even the worktree script.
 
-This skill needs the `parallel-agents` module: without `scripts/agent/worktree-new.sh` in this
+This skill needs the `parallel-agents` module: without `scripts/agent/worktree.conf` in this
 repository, say the module isn't installed and stop.
 
 Every task takes the same route (decision 0021). The dispatcher names the task and hands it over. The

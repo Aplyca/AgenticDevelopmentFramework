@@ -541,12 +541,17 @@ try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
     print(f"module.json is not valid JSON: {e}"); sys.exit()
-if set(data) != {"plugin"}:
-    print(f"module.json takes one key, plugin — it has {sorted(data)}")
+if "plugin" not in data or not set(data) <= {"plugin", "commands"}:
+    print(f"module.json takes plugin and, optionally, commands — it has {sorted(data)}")
 elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
     print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
-if not carries:
-    print("has a module.json but no skills or agents for a plugin to carry")
+# Decision 0025: the scripts a plugin carries as commands, each named after the plugin.
+commands = data.get("commands", {})
+for command, rel in commands.items():
+    if not command.startswith(f"{data.get('plugin')}-") or not os.path.isfile(os.path.join(module, "files", rel)):
+        print(f"module.json: command {command} must be named {data.get('plugin')}-<name> and come from a script in files/")
+if not carries and not commands:
+    print("has a module.json but no skills, agents, or commands for a plugin to carry")
 PY
 )
         if [ -n "$problem" ]; then
@@ -665,7 +670,9 @@ check_practices() {
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'It runs no scripts' || missing+=("/dispatch: the dispatcher runs nothing (0021)")
     file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh` in this' || missing+=("/dispatch: stops without the module, since the plugin carries it (0020)")
+    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree.conf` in this' || missing+=("/dispatch: stops without the module's settings, since the plugin carries it (0020, 0025)")
+    file_contains_literal "$HOOKS_DIR/protect-hub.sh" '[ -f "$root/scripts/agent/worktree.conf" ] || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0025)")
+    file_contains "$REPO_ROOT/plugins/adf/.generated" '^bin$' || missing+=("the plugin carries the worktree scripts as commands (0025)")
     file_contains "$REPO_ROOT/plugins/adf/.generated" '^skills/dispatch$' || missing+=("the plugin carries /dispatch (0020)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Give every task to /dispatch' || missing+=("session-context.sh: the dispatcher gives every task to /dispatch (0020)")
     file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")

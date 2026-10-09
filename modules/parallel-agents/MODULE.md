@@ -42,6 +42,12 @@ With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020):
 copied `.claude/skills/dispatch/` and type `/adf:dispatch`. The skill stops in a project
 without the module, so the plugin can carry it for everyone.
 
+It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0025):
+remove the copied `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh`, keep
+`scripts/agent/worktree.conf`, and run `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`.
+They read the project's `worktree.conf`, stop in a project without `scripts/agent/`, and run the
+committed script instead where a project keeps one. A developer's own terminal doesn't have them.
+
 ## Customize
 
 1. **`scripts/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
@@ -50,7 +56,8 @@ without the module, so the plugin can carry it for everyone.
    app read its port from the env file.
 2. **`AGENTS.md` § Delivery rules** — replace the "Parallel sessions" line with: *"In the main
    checkout you dispatch; you never work — see `docs/PARALLEL-AGENTS.md`."* Add the three scripts to
-   the Quick reference.
+   the Quick reference — packaged, by the commands' names: `adf-worktree-new`, `adf-worktree-ls`,
+   `adf-worktree-rm`.
 3. **`docs/PARALLEL-AGENTS.md`** — record what worktrees share and what a task may copy (§ Shared
    services); optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
    use each environment.

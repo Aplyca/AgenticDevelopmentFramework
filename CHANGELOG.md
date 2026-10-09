@@ -16,6 +16,41 @@ away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out 
 Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
 or later.
 
+### The worktree scripts are the plugin's commands: `adf-worktree-new`, `-ls`, `-rm`
+
+([0025](docs/decisions/0025-worktree-scripts-as-plugin-commands.md))
+
+The parallel-agents scripts are machinery no project edits, so a packaged project stops committing
+them:
+
+- **`adf` carries them as commands** in its `bin/`, which Claude Code puts on the Bash tool's PATH:
+  `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`, with the scripts' arguments. Each one
+  carries the scripts' helper and reads the project's `scripts/agent/worktree.conf`, which stays.
+- **They act only where they should.** Without `scripts/agent/`, a command says the project doesn't
+  use the module and stops. Where a committed install keeps its script, the command runs that one.
+- **The module's settings show it's installed.** The hooks, `/dispatch`, `/dev-env`, `/connect`, and
+  the install prompt check for `scripts/agent/worktree.conf`, not the script, in either install.
+- **The plugin's copies name the commands.** A packaged session's worker creates its worktree with
+  `adf-worktree-new <branch> --no-start`.
+- **The build learns module commands:** a module's `module.json` lists them under `commands`, and
+  `scripts/build-plugins.sh` generates them.
+- **A developer's own terminal doesn't have them** in a packaged project: go through `/adf:dispatch`,
+  or ask Claude to list or remove a worktree.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/hooks/protect-hub.sh` and `.claude/hooks/session-context.sh`, and, in a
+  committed install, the `dispatch` and `dev-env` skills.
+- **Merge** `docs/PARALLEL-AGENTS.md` (one paragraph under § The scripts).
+- **Migration**, a packaged project with the parallel-agents module (`/adf:upgrade` does it):
+  1. Delete `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from
+     `scripts/agent/` when none changed since the old release; keep `worktree.conf`. If the team
+     edited one, the four stay together, and the commands run them.
+  2. Name the commands where the project names the scripts: `AGENTS.md` § Quick reference and any
+     other doc of the project's.
+  3. Add the commands' sentence of `docs/SETUP.md`'s names note to `.claude/rules/claude-code.md`.
+- A committed project keeps its scripts and needs nothing else.
+
 ### No `CLAUDE.md`: Claude Code reads `AGENTS.md`, and its own layer is a rule
 
 ([0024](docs/decisions/0024-agents-md-only.md))

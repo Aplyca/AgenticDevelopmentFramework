@@ -42,7 +42,7 @@ Each fact has one home, and this skill writes only what a command it ran has sho
    project adopted before v2.0.0, `head -1 CLAUDE.md`). Unless its `modules:` list names `docker`, say
    "the docker module isn't installed in this project — `/adf:upgrade` offers it" and stop.
 
-2. **Check where you are.** If `scripts/agent/worktree-new.sh` exists and `git rev-parse --git-dir`
+2. **Check where you are.** If `scripts/agent/worktree.conf` exists and `git rev-parse --git-dir`
    equals `git rev-parse --git-common-dir`, this is the main checkout of a hub: environments run in
    worktrees. Say so, point to `/adf:dispatch`, and stop.
 
@@ -95,8 +95,8 @@ Needs the parallel-agents module (`scripts/agent/worktree.conf`); without it, sa
      `COMPOSE_PROJECT_NAME` is that worktree's; use `docker compose down` instead to keep data that's
      costly to rebuild;
    - the env file in `.worktreeinclude` when it holds what the stack needs.
-3. **Verify in a worktree:** `scripts/agent/worktree-new.sh <branch>` starts it; `docker compose ls`
-   shows its project beside another worktree's; `scripts/agent/worktree-ls.sh` shows its port; the app
+3. **Verify in a worktree:** `adf-worktree-new <branch>` starts it; `docker compose ls`
+   shows its project beside another worktree's; `adf-worktree-ls` shows its port; the app
    answers on that port.
 4. **Record** in `docs/PARALLEL-AGENTS.md` § Shared services what worktrees share, what each one
    copies, and what a copy costs.
