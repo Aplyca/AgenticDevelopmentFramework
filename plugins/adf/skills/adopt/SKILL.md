@@ -100,7 +100,7 @@ Build a facts table (`fact → evidence file:line`):
 - **Requirements source** — ask: which tracker (ClickUp, Jira, Linear, GitHub Issues, none)? Its MCP endpoint, if any
 - **Connected services** — ask: which services does the stack use that agents should read — a database, hosting, a CMS (Supabase, Vercel, Contentful…)? Each one with an official MCP server is a later `/adf-connect:connect`
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
-- **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), `.devcontainer/`; what the local stack runs, and how
+- **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), a `Makefile`, `ops/`, `.devcontainer/`; what the local stack runs, and how
 - **Ways of working** — ask: several agent sessions in parallel, each needing a running app? A requester who gets status updates?
 - **Boundaries & antipatterns** — frozen or legacy directories, deliberate deviations (ask; rarely has file evidence)
 - **Sensitive areas** — ask: which parts of the code need care whatever the size of the change (billing, auth, migrations, data exports…)? Past incidents and fragile modules are good evidence
@@ -162,13 +162,15 @@ Present the table before going further. Wrong facts here poison every file downs
     commits, or the README are good evidence)
   - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches, every task through `/dispatch` (ports and start commands only if each worktree runs a server)
   - `docker` — when the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the
-    team wants a containerized local environment: `/dev-env` sets it up from verified facts, gives
-    each worktree its own stack with `parallel-agents`, and diagnoses or resets it; destructive docker
-    commands ask first. A `.devcontainer/` alone is worth mentioning, not recommending
+    team wants a containerized local environment: `/dev-env` writes the stack from its templates or
+    moves an existing one to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`,
+    ports Docker picks, decision 0032), runs the app natively, gives each worktree its own stack with
+    `parallel-agents`, and diagnoses or resets it; destructive docker commands ask first. A
+    `.devcontainer/` alone is worth mentioning, not recommending
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
-  `modules/clickup/install.sh <repo>`. `docker` copies like any module, then
-  `modules/docker/install.sh <repo>` merges its permission rules into `.claude/settings.json`.
+  `modules/clickup/install.sh <repo>`. `docker` has no files to copy: `modules/docker/install.sh <repo>`
+  merges its permission rules into `.claude/settings.json`, and `/dev-env set up` writes the stack.
   A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
   and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020), `adf-dev` for
   development (`docker`'s `/dev-env`). A committed install writes them with `build-committed.py`
@@ -231,9 +233,10 @@ Present the table before going further. Wrong facts here poison every file downs
   Quick reference lines — packaged, the commands' names (`adf-worktree-new`, `adf-worktree-ls`,
   `adf-worktree-rm`), as `DEV-SETUP.md` has the skills' full names. For
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
-  `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it fills
-  `DEV-SETUP.md`, the Quick reference's start and stop lines, and `deployment.md`'s `paths:` from
-  what it verifies.
+  `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
+  stack from its templates, or proposes moving the existing one to the conventions, and fills
+  `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_SERVICE`, and `deployment.md`'s
+  `paths:` from what it verifies.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
 - Every unknown: `<!-- TODO(team): <question> -->`. Fill each doc's `owner · last_updated · scope`.
 

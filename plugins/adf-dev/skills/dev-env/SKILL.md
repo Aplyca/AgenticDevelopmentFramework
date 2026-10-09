@@ -1,7 +1,7 @@
 ---
 name: dev-env
-description: Set up, connect, diagnose, or safely reset this project's Docker Compose local environment — verified commands written down for people and agents, one stack per worktree with the parallel-agents module, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without the developer's yes. Use when the next step needs the app running and there's no working stack, when the stack won't start or misbehaves, before the local check, or to reset local data.
-argument-hint: "[set up | worktrees | diagnose <symptom> | reset]"
+description: Set up, migrate, run natively, diagnose, or safely reset this project's Docker Compose local environment — `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, variables from `.env` and each service's `environment:`, host ports Docker picks unless `.env` pins them — written down for people and agents, one stack per worktree with the parallel-agents module, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without the developer's yes. Use when the next step needs the app running and there's no working stack, when a stack should follow the conventions, to run the app on the host, when the stack won't start or misbehaves, before the local check, or to reset local data.
+argument-hint: "[set up | worktrees | native | diagnose <symptom> | reset]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy, from the `docker` module, carried by `adf-dev` ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/dev-env/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -13,14 +13,36 @@ database, and the developer's **local check** before the draft pull request (`AG
 rules). This skill gets a Compose stack to that point and keeps it there. It doesn't decide *whether*
 a task needs an environment — triage does (`AGENTS.md` § How work flows → Environment).
 
+## The conventions
+
+Every stack this skill writes or audits follows them; `.claude/rules/deployment.md` § Docker is the
+project's copy.
+
+| Convention | What it means |
+|---|---|
+| Compose, at the root | `compose.yaml` is the one entry point, with any override as `compose.<name>.yaml` beside it. The root holds only it, the `Makefile`, `.env`, and `.env.example` |
+| Operational code in `ops/` | Dockerfiles and service config in `ops/docker/<service>/`, helper scripts in `ops/scripts/`, and the parallel-agents module in `ops/agent/` |
+| The `Makefile` is the command surface | `make help` lists the tasks — `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `shell`, `services`, `native`, `test`, `lint`, `reset` — and people and agents type the same ones |
+| Three levels of variables | `.env` (untracked) is what Compose reads to fill each `${…}`, and what the app reads on the host. Each service's `environment:` in `compose.yaml` is what that container gets, in container form. `.env.example` (committed) names every variable, without a value. No `env_file:` |
+| Ports Docker picks | Every published port is `"127.0.0.1:${<NAME>_PORT:-}:<port>"`, and `.env.example` leaves `<NAME>_PORT` empty: Docker picks a free port each time the service starts, so any number of checkouts run side by side. `make urls` shows where each service is. A developer pins a port in `.env` when the app must know its own URL |
+| Side by side | No `container_name:`, no top-level `name:`, and an empty `COMPOSE_PROJECT_NAME`: the checkout's folder names the project |
+| Native | `make native` runs the app on the host, against the backing services in Docker |
+
 Each fact has one home, and this skill writes only what a command it ran has shown:
 
 | Fact | Lives in |
 |---|---|
-| How a person sets up and starts the stack, its services and ports, problems met before | `docs/getting-started/DEV-SETUP.md` (§ 4, the command surface, § Troubleshooting) |
+| The services, their healthchecks, and what each container gets | `compose.yaml` |
+| Images and service config | `ops/docker/<service>/` |
+| The tasks people and agents run | `Makefile` (`make help`) |
+| Every variable's name | `.env.example` |
+| This checkout's credentials and pinned ports | `.env` — never read into the conversation |
+| Where the services are now | `make urls` |
+| How a person sets up and starts the stack, its services, problems met before | `docs/getting-started/DEV-SETUP.md` (§ 3–6, the command surface, § Troubleshooting) |
 | The start and stop commands an agent runs | `AGENTS.md` § Quick reference |
-| Compose and Dockerfile conventions | `.claude/rules/deployment.md` § Docker |
-| What each worktree starts, stops, and is told | `scripts/agent/worktree.conf` (parallel-agents) |
+| The conventions, as this project keeps them | `.claude/rules/deployment.md` § Docker |
+| The URL the band above the prompt shows: `LOCAL_URL`, and `LOCAL_SERVICE`, whose port it looks up | `.claude/hooks/config.sh` |
+| What each worktree starts, stops, and is told | `ops/agent/worktree.conf` (parallel-agents; `scripts/agent/` before the module moved) |
 | The procedure | this skill |
 
 ## Safety (always)
@@ -29,11 +51,13 @@ Each fact has one home, and this skill writes only what a command it ran has sho
   remove anything machine-wide — other projects and other worktrees' stacks live on the same Docker.
 - **No secrets in the conversation.** Never run `docker compose config` without `--quiet` or
   `--services`, and never `docker inspect` a container's environment: both print resolved secrets.
-  Never read `.env` (the settings deny it); `.env.example` names the variables. Logs only as
-  `docker compose logs --tail 100 --no-color <service>` — never `-f`, which never returns.
+  Never read `.env` (the settings deny it); `.env.example` names the variables, and `make urls` gives
+  the ports. Logs only as `make logs` or `docker compose logs --tail 100 --no-color <service>` —
+  never `-f`, which never returns.
 - **Destructive steps wait for a yes.** Before anything that deletes containers, volumes, or images,
-  name what is lost and how it comes back (the seed command), and wait for the developer. The
-  module's ask rules prompt as well; if `.claude/settings.json` doesn't have them, ask in chat anyway.
+  name what is lost and how it comes back (the seed command), and wait for the developer. `make reset`
+  is `docker compose down -v`. The module's ask rules prompt as well; if `.claude/settings.json`
+  doesn't have them, ask in chat anyway.
 - **Published ports bind to `127.0.0.1`**, never every interface.
 
 ## Steps
@@ -42,86 +66,148 @@ Each fact has one home, and this skill writes only what a command it ran has sho
    project adopted before v2.0.0, `head -1 CLAUDE.md`). Unless its `modules:` list names `docker`, say
    "the docker module isn't installed in this project — `/adf:upgrade` offers it" and stop.
 
-2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists and `git rev-parse --git-dir`
-   equals `git rev-parse --git-common-dir`, this is the main checkout of a hub: environments run in
-   worktrees. Say so, point to `/adf:dispatch`, and stop.
+2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
+   and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`,
+   this is the main checkout of a hub: environments run in worktrees. Say so, point to
+   `/adf:dispatch`, and stop.
 
 3. **Read the facts, running nothing yet:** the Compose files (`compose.yaml`, `compose.yml`,
-   `docker-compose.y*ml`, and their overrides), the Dockerfiles, `.env.example`, `DEV-SETUP.md`,
-   `AGENTS.md` § Quick reference, `.claude/rules/deployment.md`, and `scripts/agent/worktree.conf` when
-   the project has it. Then `docker version` and `docker compose version`: this skill needs Compose
-   v2 (`docker compose`, with `--wait`).
+   `docker-compose.y*ml`, and their overrides), the Dockerfiles wherever they are, the `Makefile`,
+   `ops/`, `.env.example`, `DEV-SETUP.md`, `AGENTS.md` § Quick reference,
+   `.claude/rules/deployment.md`, `.claude/hooks/config.sh`, and `ops/agent/worktree.conf` when the
+   project has it. Then `docker version` and `docker compose version`: this skill needs Compose v2
+   (`docker compose`, with `--wait`).
 
-4. **Name the mode** in one line — from the argument, or from the situation: no stack yet → set up;
-   parallel worktrees whose stacks collide → worktrees; something fails → diagnose; stale or broken
-   local data → reset.
+4. **Name the mode** in one line — from the argument, or from the situation: no stack yet, or one that
+   doesn't follow the conventions → set up; parallel worktrees whose stacks collide → worktrees; the
+   app on the host → native; something fails → diagnose; stale or broken local data → reset.
 
 ## Mode: set up
 
-1. **No Compose file yet?** Writing one is an infrastructure change — `/adf:triage` it like any change
-   (the careful lane at least). Draft it to the project's conventions in `deployment.md` § Docker and
-   these: pinned image tags; a healthcheck on every service another one waits for, and
-   `depends_on: { <service>: { condition: service_healthy } }`; host ports from the env file, bound to
-   `127.0.0.1` (`"127.0.0.1:${APP_PORT:-3000}:3000"`); no `container_name` and no top-level `name:`
-   (both stop two stacks from running side by side); named volumes for data; secrets only from the
-   untracked env file, every variable declared in `.env.example` without a real value.
-2. **A Compose file exists:** `docker compose config --quiet` must pass. Check that every `${VAR}` it
-   uses is declared in `.env.example`; an undeclared one is a gap to report, not to fill with a guess.
-3. **Start it:** `docker compose up -d --wait` (`--build` the first time, or after a Dockerfile
-   change), then `docker compose ps`. Every service is running, and healthy where it has a check.
-4. **Verify it works:** the app answers (`curl -fsS <url>` on its health route or home page), and
-   the project's quickest test that needs the stack passes against it.
-5. **Write down what you verified** — a docs change, so it goes through triage too: in `DEV-SETUP.md`,
-   the Docker row of Prerequisites, § 4's command and the services with their ports, and the command
-   surface; in `AGENTS.md` § Quick reference, the start and stop lines; in `.claude/hooks/config.sh`,
-   `LOCAL_URL` — the URL that answered — so the band above the prompt shows it; in `deployment.md`,
-   `paths:` naming the project's Compose and Docker files. § Troubleshooting gets only problems you actually
-   met. For example, the newsletter site: `web` (the Next.js app on `APP_PORT`) and `redis` (the
-   signup rate limiter), started with `docker compose up -d --wait`.
+1. **No stack yet?** Writing one is an infrastructure change — `/adf:triage` it like any change (the
+   careful lane at least). Copy the templates in `<this skill's base directory>/templates/` to the
+   same paths in the repository — `compose.yaml`, `Makefile`, `.env.example`, `ops/docker/web/`,
+   `ops/scripts/ports.sh` — never over a file that's there. Then fill every `CUSTOMIZE` from facts
+   you verified:
+   - the app's service, its container port, its Dockerfile, and its dev command;
+   - each backing service the code uses (its client library, the variable its URL comes from),
+     pinned, with a healthcheck the app's `depends_on` waits on;
+   - every variable the code reads: by name in `.env.example`, and in container form in its
+     service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
+   - `PORTS`, `SERVICES`, and `NATIVE_CMD` in the `Makefile`.
+
+   Then `chmod +x ops/scripts/ports.sh`, and make sure `.gitignore` has `.env`.
+2. **A stack that doesn't follow the conventions?** Audit it, and show the gaps in one table —
+   convention, what the project has, the change:
+   - a Compose file away from the root, or under a legacy name;
+   - Dockerfiles, service config, or scripts outside `ops/`;
+   - no `Makefile`, or one without the tasks;
+   - `env_file:`, or a variable the code reads that no `environment:` passes;
+   - a `${VAR}` that `.env.example` doesn't declare — a gap to report, not to fill with a guess;
+   - a fixed host port, or one bound to every interface;
+   - `container_name:` or a top-level `name:`;
+   - a service another one waits for without a healthcheck and `condition: service_healthy`.
+
+   The migration is an infrastructure change: propose it through `/adf:triage` (the careful lane),
+   and move nothing before the developer approves. It moves files with `git mv`, adds the template's
+   tasks to an existing `Makefile` without renaming the team's own, and updates whatever names the
+   old paths — CI, docs, scripts.
+3. **Start it:** `make env` — it creates `.env` from `.env.example` and names the credentials for the
+   developer to fill in — then `docker compose config --quiet`, and `make up`, which waits until
+   every service is healthy and prints where each one is. `make ps`: every service is running, and
+   healthy where it has a check. After a Dockerfile change, `make build` first.
+4. **Verify it works:** `curl -fsS` on the app's URL from `make urls` (its health route or home page),
+   and the project's quickest test that needs the stack passes against it. With a dev command for the
+   host, Mode: native too.
+5. **Write down what you verified** — a docs change, so it goes through triage too:
+   - `DEV-SETUP.md`: the Docker row of Prerequisites, § 3 `make env`, § 4 `make up` and `make urls`
+     with the services, § 6 `make native`, and the command surface;
+   - `AGENTS.md` § Quick reference: `make up` and `make down`, and `make urls` for where the app is;
+   - `.claude/hooks/config.sh`: `LOCAL_URL='http://localhost:${APP_PORT}'`, and `LOCAL_SERVICE` — the
+     app's service and container port, `web:3000` — so the band above the prompt looks up the port
+     Docker picked;
+   - `deployment.md`: `paths:` naming `compose.yaml`, `Makefile`, `ops/**`, and `.env.example`, and in
+     § Docker any convention the project adds.
+
+   § Troubleshooting gets only problems you actually met. For example, the newsletter site: `web`
+   (the Next.js app, on container port 3000) and `redis` (the signup rate limiter), started with
+   `make up`, found with `make urls`.
 
 ## Mode: worktrees
 
-Needs the parallel-agents module (`scripts/agent/worktree.conf`); without it, say so and stop.
+Needs the parallel-agents module (`ops/agent/worktree.conf`, or `scripts/agent/worktree.conf`
+before it moved); without it, say so and stop.
 
-1. **Audit isolation.** Each of these makes two worktrees' stacks collide: a top-level `name:`, a
-   `container_name:`, a fixed host port. Publish only what a person opens — the app, on
-   `"127.0.0.1:${APP_PORT:-3000}:3000"` — and leave backing services unpublished, or publish them on
-   a random port (`"127.0.0.1::6379"`) that `docker compose port <service> <port>` reports.
+1. **Audit isolation.** A stack that follows the conventions already runs once per worktree: the
+   worktree's folder names its Compose project, and Docker picks its ports. What breaks that: a
+   top-level `name:`, a `container_name:`, a fixed host port in `compose.yaml` — set up's migration
+   fixes those — or a port or `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins, which every
+   worktree's copy repeats.
 2. **Propose the `worktree.conf` change** — an infrastructure change the developer approves:
-   - `PORT_SLOTS` (e.g. `180`) so each worktree gets an `APP_PORT`;
-   - `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, plus the app's own URL when it needs one —
-     the project name keeps each worktree's containers, networks, and volumes apart;
-   - `START_CMD="docker compose up -d --wait"` and `READY_URL='http://localhost:${APP_PORT}'`;
-   - `STOP_CMD="docker compose down -v"` — it removes only this worktree's project, since
-     `COMPOSE_PROJECT_NAME` is that worktree's; use `docker compose down` instead to keep data that's
-     costly to rebuild;
-   - the env file in `.worktreeinclude` when it holds what the stack needs.
-3. **Verify in a worktree:** `adf-worktree-new <branch>` starts it; `docker compose ls`
-   shows its project beside another worktree's; `adf-worktree-ls` shows its port; the app
-   answers on that port.
+   - `PORT_SLOTS=0` — the ports are Docker's, so the scripts reserve none;
+   - `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, plus an empty `<NAME>_PORT=` line for each
+     port the main checkout pins — each worktree's project gets a clear name, and its ports stay
+     Docker's;
+   - `START_CMD="make up"` and `STOP_CMD="docker compose down -v"` — it removes only this worktree's
+     project, since its `COMPOSE_PROJECT_NAME` is that worktree's; `make down` instead keeps data
+     that's costly to rebuild;
+   - `READY_URL` empty: `make up` already waits until every service is healthy;
+   - `ENV_INFO_CMD="make urls"`, so `adf-worktree-ls --info` shows where each worktree's services are;
+   - `.env` in `.worktreeinclude` when it holds what the stack needs.
+3. **Verify in a worktree:** `adf-worktree-new <branch>` starts it; `docker compose ls` shows its
+   project beside another worktree's; `adf-worktree-ls --info` shows each one's ports; the app
+   answers on its own. A worktree whose `.env` repeats the main checkout's pinned values stops at
+   `make up`, naming the lines to empty.
 4. **Record** in `docs/PARALLEL-AGENTS.md` § Shared services what worktrees share, what each one
    copies, and what a copy costs.
+
+## Mode: native
+
+The app runs on the host with the stack's own dev command, and its backing services in Docker.
+
+1. **`make native`** starts the backing services (`SERVICES` in the `Makefile`), stops the app's
+   container if it runs, looks up the ports Docker gave the services, and runs `NATIVE_CMD` with each
+   `<NAME>_PORT` exported — `APP_PORT` too: pinned in `.env`, or a free one. The host-form variables
+   in `.env` use them (`REDIS_URL=redis://localhost:${REDIS_PORT}`). For a stack whose env loader
+   doesn't expand `${…}`, `NATIVE_CMD` passes them itself.
+2. **No `NATIVE_CMD` yet?** It's the app's dev command, listening on `$APP_PORT` — from the
+   package manifest, the README, or the project's docs. Setting it is a change to the stack, through
+   triage like any other.
+3. **Verify:** `make ps` shows only the backing services; the app answers on the URL `make native`
+   printed; the quickest test that needs the stack passes. The band shows this URL only when
+   `APP_PORT` is pinned in `.env`: Docker didn't pick this port, so there's nothing for it to look up.
 
 ## Mode: diagnose
 
 `/adf:debug`'s order, applied to the environment.
 
-1. **Get a failing signal** — one command that fails on this problem: `docker compose up -d --wait`,
-   the state and health in `docker compose ps`, or `curl -fsS <url>`. Show the command and its output,
+1. **Get a failing signal** — one command that fails on this problem: `make up`, the state and health
+   in `make ps`, or `curl -fsS` on the URL `make urls` gives. Show the command and its output,
    trimmed, with secrets replaced by `<REDACTED>`.
-2. **Check the simple things, roughly in order:** the Docker daemon isn't running (`docker info`); the
-   port is taken — find its owner with `docker ps --filter publish=<port>` or `lsof -i :<port>`: it may
-   be another worktree's stack or the developer's own process, so never stop it unasked; a "variable
-   is not set" warning; a stale image (`--build`); an unhealthy dependency
-   (`docker compose logs --tail 100 --no-color <service>`, its healthcheck); a volume holding an older
-   schema (migrations or seed); another project's stack answering (a top-level `name:`, or the wrong
-   `COMPOSE_PROJECT_NAME`); a platform mismatch on Apple silicon; a full disk (`docker system df`).
+2. **Check the simple things, roughly in order:**
+   - the Docker daemon isn't running (`docker info`);
+   - a stale URL — Docker picks a new port each time a service starts, so take it from `make urls`
+     again;
+   - a pinned port that's taken — find its owner with `docker ps --filter publish=<port>` or
+     `lsof -iTCP:<port> -sTCP:LISTEN`. It may be another worktree's stack or the developer's own
+     process, so never stop it unasked; offer to unpin it instead;
+   - a variable set in the shell, which wins over `.env` (`printenv <NAME>` for that one name, never
+     `env`);
+   - a worktree's `.env` that repeats the main checkout's pinned values (`make up` says so);
+   - a "variable is not set" warning;
+   - a stale image (`make build`);
+   - an unhealthy dependency (`make logs s=<service>`, its healthcheck);
+   - a volume holding an older schema (migrations or seed);
+   - another project's stack answering (a top-level `name:`, or the wrong `COMPOSE_PROJECT_NAME`);
+   - a platform mismatch on Apple silicon;
+   - a full disk (`docker system df`).
 3. **Rank 3–5 hypotheses** when the simple things don't explain it, each with what would prove it
    wrong, and test them one at a time.
 4. **The cause is in the application, not the environment?** Hand over to `/adf:debug` with the signal.
 5. **Fix:** a local step that touches only this project — start the daemon, restart this stack — just
    do it and say so. Stopping or removing anything that isn't this project's waits for a yes. A change
-   to a Compose file or a Dockerfile goes through `/adf:triage` (infrastructure: the careful lane).
+   to `compose.yaml`, the `Makefile`, or anything in `ops/` goes through `/adf:triage`
+   (infrastructure: the careful lane).
 6. **Report:** symptom, signal, cause, ruled out, fix, and how to verify. When the next person would
    hit the same thing, add it to `DEV-SETUP.md` § Troubleshooting.
 
@@ -131,11 +217,11 @@ Take the smallest step that works, and re-run the signal after each:
 
 1. `docker compose restart <service>`
 2. `docker compose up -d --force-recreate <service>`
-3. `docker compose up -d --build`
-4. `docker compose down`, then `up -d --wait` — containers go, volumes stay
-5. `docker compose down -v` — **last, and only after** listing this project's volumes
-   (`docker volume ls --filter label=com.docker.compose.project=<project>`), naming the data each one
-   holds and how it comes back, and the developer's yes.
+3. `make build`, then `make up`
+4. `make down`, then `make up` — containers go, volumes stay
+5. `make reset` — `docker compose down -v`, then `make up` — **last, and only after** listing this
+   project's volumes (`docker volume ls --filter label=com.docker.compose.project=<project>`), naming
+   the data each one holds and how it comes back, and the developer's yes.
 
 Then run the migrations and the seed the way `DEV-SETUP.md` says, and re-run the signal. Never prune
 machine-wide, never touch a shared service (`docs/PARALLEL-AGENTS.md` § Shared services), and never
@@ -147,10 +233,13 @@ reset in the main checkout of a hub.
 |---|---|
 | "`docker system prune -af` will clear it up" | It removes every project's stopped containers, unused images, and networks — other worktrees' and other repositories' included. Reset this project, smallest step first. |
 | "Let me print `docker compose config` to see what's wrong" | It prints every resolved secret into the conversation. `--quiet` validates; `--services` lists. |
+| "I'll read `.env` to find the port" | `.env` holds credentials, and a port Docker picked isn't in it at all. `make urls` looks it up. |
 | "I'll start the stack now so it's ready" | Whether the task needs an environment is triage's call. Reading code and docs needs none. |
 | "Port 3000 is taken — I'll kill whatever holds it" | It may be another worktree's stack or the developer's own process. Find the owner, report it, and ask. |
-| "A fixed `container_name` and port make it predictable" | They make a second worktree's stack fail to start. Predictability comes from `COMPOSE_PROJECT_NAME` and `APP_PORT`. |
-| "`down -v` will fix the migration error" | It's the last step, not the first, and it deletes data. Find the cause; reset only as far as it needs. |
+| "`3000:3000` is simpler — everyone knows the port" | Only one stack can hold it, so a second worktree's fails to start. Docker picks a free port and `make urls` shows it; a developer who wants a fixed one pins it in their `.env`. |
+| "A fixed `container_name` makes it predictable" | It makes a second worktree's stack fail to start. The checkout's folder names the project. |
+| "`env_file: .env` passes everything at once" | Every container gets every variable, credentials included, and nothing says which service needs what. Each service's `environment:` names what it gets. |
+| "`make reset` will fix the migration error" | It's `docker compose down -v`: it deletes the data. It's the last step, not the first; find the cause, and reset only as far as it needs. |
 | "It started on the second try, so it's fixed" | A retry that works hides a race — usually a missing healthcheck or `depends_on` condition. Find why the first one failed. |
 
 ## Red flags (stop and reassess)
@@ -158,21 +247,26 @@ reset in the main checkout of a hub.
 - You're in the main checkout of a hub
 - A command names no project but would touch every project
 - You're following logs, or about to read `.env` or a resolved config
-- You're editing a Compose file or a Dockerfile before triage
+- You're about to publish a fixed host port, or one on every interface
+- You're editing `compose.yaml`, the `Makefile`, or `ops/` before triage
 - The fix you're about to run deletes something, and the developer hasn't said yes
 
 ## Verification
 
 - [ ] The module check and the hub check ran before anything else
+- [ ] The stack follows the conventions, or its gaps went to the developer as a careful-lane change
 - [ ] Every fact written down traces to a command run in this session
 - [ ] No secret was printed: no unfiltered `config`, no `inspect` of the environment, no `.env`
 - [ ] Every destructive step was scoped to this project, named what it removed, and had the developer's yes
-- [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and port
+- [ ] `make urls` shows each published service, answering
+- [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
+- [ ] With a dev command for the host: `make native` answers, with only the backing services in Docker
 - [ ] After a fix or a reset, the failing signal passes
 
 ## Principles
 
 - Signal first. A command that fails on the problem turns guessing into checking.
 - This project only. The machine's Docker is shared with everything else the developer runs.
+- Ports are looked up, never written down: Docker picks them, and `make urls` says where they are.
 - Write down only what you verified — an unverified command in `DEV-SETUP.md` is a trap for the next person.
 - The smallest reset that works.

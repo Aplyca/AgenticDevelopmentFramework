@@ -7,7 +7,7 @@ stops.
 
 | Skill | Module | What it does |
 |---|---|---|
-| `/adf-dev:dev-env` | [`docker`](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/modules/docker/MODULE.md) | Sets up, connects per worktree, diagnoses, and safely resets a Docker Compose local environment |
+| `/adf-dev:dev-env` | [`docker`](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/modules/docker/MODULE.md) | Writes a Docker Compose local environment from its templates, or moves one to the conventions — `compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md)) — runs it natively or per worktree, diagnoses it, and safely resets it |
 
 It also carries a **mod**, written here by hand: code that runs inside Claude Code and draws in its
 interface ([decision 0026](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0026-display-only-mods.md)).

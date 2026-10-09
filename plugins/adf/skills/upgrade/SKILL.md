@@ -77,8 +77,10 @@ repository's facts, by the same rules as `/adopt` Step 3:
 - `parallel-agents` — several agent sessions may work on the repository at once: each task gets its
   own worktree, branch, pull request, and session, and the main checkout only dispatches
 - `docker` — the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the team
-  wants a containerized local environment: `/dev-env` sets it up, gives each worktree its own stack,
-  and diagnoses or resets it; destructive docker commands ask first
+  wants a containerized local environment: `/dev-env` writes the stack or moves it to the
+  conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), runs the app
+  natively, gives each worktree its own stack, and diagnoses or resets it; destructive docker
+  commands ask first
 
 Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
 release with `adf-connect` (decision 0023), offer it the same way when the project works with a
@@ -223,7 +225,7 @@ and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, 
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
 (merge a collision such as an existing PR template), except `clickup`, which installs with
-`modules/clickup/install.sh <repo>`; `docker` copies, then runs `modules/docker/install.sh <repo>`.
+`modules/clickup/install.sh <repo>`; `docker` has no files to copy: run `modules/docker/install.sh <repo>`.
 In a packaged project, a module whose skills the release's plugins carry leaves its `.claude/skills/`
 out, and the plugin its `module.json` names, when that isn't `adf`, is turned on:
 `"<plugin>@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in
