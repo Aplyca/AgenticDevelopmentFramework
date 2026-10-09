@@ -1,6 +1,7 @@
 # 0028: The plugins are the machinery's source, and a committed install is written from them
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0029](0029-workflows-carry-agent-checklists.md) (the build also
+  generates the agent checklists `deep-review` carries)
 - **Date:** 2026-10-09
 - **Amends:** [0016](0016-packaged-install.md) — where the machinery's source lives ("generated from
   `skeleton/`", "the skeleton stays the single source"); [0019](0019-reference-docs-in-the-plugin.md) —

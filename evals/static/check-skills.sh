@@ -786,17 +786,18 @@ PY
 
 check_packaged_plugin() {
     # The plugins are the machinery's source (decision 0028); build-plugins.sh generates the parts that
-    # can't be kept by hand — the module commands in bin/, the spec model in adf's workflows, and the
-    # version. A source change that wasn't rebuilt would ship the old ones to every packaged project.
+    # can't be kept by hand — the module commands in bin/, the spec model and the agents' checklists in
+    # adf's workflows, and the version. A source change that wasn't rebuilt would ship the old ones to
+    # every packaged project.
     local tmp report
     tmp="$(mktemp -d)"
     cp -R "$REPO_ROOT/plugins" "$tmp/plugins"
     if ! "$REPO_ROOT/scripts/build-plugins.sh" "$tmp" >/dev/null 2>&1; then
         fail "plugins: scripts/build-plugins.sh failed" "$("$REPO_ROOT/scripts/build-plugins.sh" "$tmp" 2>&1 | tail -1)"
     elif diff -r "$tmp/plugins" "$REPO_ROOT/plugins" >/dev/null 2>&1; then
-        pass "plugins/: the generated parts match the modules' scripts, the spec model, and adf's version"
+        pass "plugins/: the generated parts match the modules' scripts, the spec model, the agents' checklists, and adf's version"
     else
-        fail "plugins/ is out of date with a module's scripts, the spec model, or adf's version — run scripts/build-plugins.sh"
+        fail "plugins/ is out of date with a module's scripts, the spec model, an agent's checklist, or adf's version — run scripts/build-plugins.sh"
     fi
     # Every file a committed install carries comes back unchanged from its committed form, so the two
     # forms can't drift apart: a bare /triage, a local docs/ path, or a stale Step 0 fails here.
@@ -839,6 +840,34 @@ PY
         pass "marketplace lists every plugin, adf first; every plugin's version is the newest release"
     else
         fail "plugin versions and marketplace: $report"
+    fi
+}
+
+check_plugin_workflow_paths() {
+    # A packaged project keeps no copy of the agents, and a workflow script can't reach the plugin's
+    # (decision 0019): a plugin workflow that names .claude/agents/ sends its agents to a file that isn't
+    # there. It carries the checklist it needs instead (decision 0029).
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+# What a packaged project has: the skeleton, and the files its modules copy.
+bases = [os.path.join(root, "skeleton")] + glob.glob(os.path.join(root, "modules", "*", "files"))
+for workflow in sorted(glob.glob(os.path.join(root, "plugins", "*", "workflows", "*.js"))):
+    for number, line in enumerate(open(workflow, encoding="utf-8"), 1):
+        if line.lstrip().startswith("//"):
+            continue
+        # A path to an agent; a glob over the project's own (.claude/agents/*) names none.
+        for path in re.findall(r"\.claude/agents/[\w-][\w./-]*", line):
+            path = path.rstrip(".")
+            if not any(os.path.exists(os.path.join(base, path)) for base in bases):
+                print(f"{os.path.relpath(workflow, root)}:{number} names {path}")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "plugin workflows: no .claude/agents/ path a packaged project lacks — each carries the checklists it names"
+    else
+        fail "plugin workflows name an agent file a packaged project lacks — carry its checklist (const <AGENT>_CHECKLIST, decision 0029)" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
 }
 
@@ -1111,6 +1140,7 @@ check_links
 check_modules
 check_marketplace_snippets
 check_packaged_plugin
+check_plugin_workflow_paths
 check_module_plugins
 check_install_scope
 check_install_prompt
