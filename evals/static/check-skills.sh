@@ -1156,12 +1156,14 @@ for target in "help env up down build ps logs urls shell services native test li
 if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
-                 (r"^export\b", "export")):
+                 (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
+                 (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):
     if re.search(bad, make, re.M):
         print(f"Makefile uses {why}, which GNU make 3.81 lacks or which leaks .env")
 if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and "=" not in l.split(":")[0]), re.M):
     print("Makefile: a recipe line is indented with spaces, not a tab")
-logs = re.search(r"^logs:.*\n((?:\t.*\n)+)", make, re.M)
+# The recipe, with the mode's conditionals (decision 0034) read as part of it.
+logs = re.search(r"^logs:.*\n((?:(?:\t|ifeq|else|endif).*\n)+)", make, re.M)
 if not logs or not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
     print("Makefile: logs must show the last lines and never follow")
 

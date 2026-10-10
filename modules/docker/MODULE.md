@@ -17,7 +17,10 @@ that deletes containers, volumes, or images asks first.
   scripts in `ops/scripts/` — and the parallel-agents module in `ops/agent/`.
 - **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
   `logs`, `urls`, `shell`, `services`, `native`, `test`, `lint`, `reset`.
-- **A native option:** `make native` runs the app on the host against the backing services in Docker.
+- **Two modes, one command surface:** `DEV_MODE` in `.env` — or the project's `DEFAULT_MODE` in the
+  `Makefile` — runs the app in Docker or natively on the host, against the backing services in
+  Docker. `make up`, `down`, `ps`, `logs`, `urls`, `test`, and the rest act on the mode in force
+  ([decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)).
 - **Three levels of variables:** `.env` at the root, which Compose reads to fill each `${…}`; each
   service's `environment:` in `compose.yaml`, in container form; and `.env.example`, committed, naming
   them all. No `env_file:`.
@@ -34,7 +37,8 @@ that deletes containers, volumes, or images asks first.
 
 The module copies no files into the project. `/dev-env set up` writes the stack from the skill's
 templates — `compose.yaml`, `Makefile`, `.env.example`, `ops/docker/web/Dockerfile` (with its
-`.dockerignore`), and `ops/scripts/ports.sh`, which looks up the ports Docker picked — and fills in
+`.dockerignore`), `ops/scripts/ports.sh`, which looks up the ports Docker picked, and
+`ops/scripts/native.sh`, which starts and stops the app on the host in native mode — and fills in
 what it verifies about the project. No rule of its own: the conventions live in the skeleton's
 `.claude/rules/deployment.md` § Docker, which `/dev-env` keeps pointed at the project's files.
 
@@ -61,7 +65,7 @@ or proposes moving the existing one to the conventions — a careful-lane change
 fills these from what it verifies, for you to review:
 
 1. **`docs/getting-started/DEV-SETUP.md`** — the Docker prerequisite, § 3 `make env`, § 4 `make up` and
-   `make urls` with the services, § 6 `make native`, the command surface, and § Troubleshooting for
+   `make urls` with the services, § 6 the two modes, the command surface, and § Troubleshooting for
    problems actually met. Packaged: `/adf-dev:dev-env` joins the key commands under § AI-assisted
    development.
 2. **`AGENTS.md` § Quick reference** — `make up`, `make down`, and `make urls`; the local check before

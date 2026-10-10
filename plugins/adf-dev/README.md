@@ -7,16 +7,16 @@ stops.
 
 | Skill | Module | What it does |
 |---|---|---|
-| `/adf-dev:dev-env` | [`docker`](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/modules/docker/MODULE.md) | Writes a Docker Compose local environment from its templates, or moves one to the conventions — `compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md)) — runs it natively or per worktree, diagnoses it, and safely resets it |
+| `/adf-dev:dev-env` | [`docker`](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/modules/docker/MODULE.md) | Writes a Docker Compose local environment from its templates, or moves one to the conventions — `compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md)) — runs the app in Docker or natively on the host, by a setting ([decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)), or per worktree, diagnoses it, and safely resets it |
 
 It also carries a **mod**, written here by hand: code that runs inside Claude Code and draws in its
 interface ([decision 0026](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0026-display-only-mods.md)).
 
 | Mod | What it shows |
 |---|---|
-| Local environment | A line above the prompt: the local environment's URL, and whether it answers (● or ○), refreshed every 15 seconds and after each turn. `/local-url` says the same in places that don't draw. The URL is `LOCAL_URL` in `.claude/hooks/config.sh`, or, with the parallel-agents module, the worktree's `READY_URL`. Its `${APP_PORT}` is the env file's when it pins one; otherwise, with `LOCAL_SERVICE` set (`web:3000`), the port Docker picked, which it looks up |
+| Local environment | A line above the prompt: the local environment's URL, and whether it answers (● or ○), refreshed every 15 seconds and after each turn. `/local-url` says the same in places that don't draw. The URL is `LOCAL_URL` in `.claude/hooks/config.sh`, or, with the parallel-agents module, the worktree's `READY_URL`. Its `${APP_PORT}` is the env file's when it pins one; otherwise, with `LOCAL_SERVICE` set (`web:3000`), the port of the app on the host in native mode (`ops/.run/app.env`), or the port Docker picked, which it looks up |
 
-It's display-only: it reads those files — only `APP_PORT` from the env file — and requests the URL; it
+It's display-only: it reads those files — only `APP_PORT` from the env file and from `ops/.run/app.env` — and requests the URL; it
 never acts on a tool call or a prompt. It runs one command, read-only: `docker compose port <service>
 <port>` in the checkout, for the port Docker picked
 ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md)).

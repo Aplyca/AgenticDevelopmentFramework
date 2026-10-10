@@ -20,7 +20,7 @@ paths:
 
 | Environment | Purpose | Setup |
 |---|---|---|
-| Local | Development | `make up` (or `make native`), or equivalent |
+| Local | Development | `make up` in the checkout's mode — Docker, or the app on the host — or equivalent |
 | Test | Automated tests | Their own port, mock services |
 | Staging | Pre-production validation | Mirrors production config |
 | Production | Live | Full infrastructure |
@@ -31,6 +31,9 @@ paths:
 - With Docker: `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `shell`, `services`, `native`,
   `test`, `lint`, and `reset` — the only one that deletes data. `logs` shows the last lines and never
   follows.
+- The same tasks act on the local environment's mode, so nobody types a different command for it:
+  `DEV_MODE` in `.env` — `docker`, or `native` for the app on the host — and the project's default,
+  `DEFAULT_MODE`, in the `Makefile`. `make help` names the mode in force.
 
 ## Port assignments
 <!-- CUSTOMIZE: List the port variables your local environment publishes -->
@@ -63,7 +66,10 @@ paths:
 - No `container_name:` and no top-level `name:` — the checkout's folder names the Compose project.
 - Pin image versions. A service another one waits for has a healthcheck, and the one that waits uses
   `depends_on` with `condition: service_healthy`. Data lives in named volumes.
-- `make native` runs the app on the host against the backing services in Docker.
+- Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
+  backing services in Docker — except the ones a developer runs on the host, listed in
+  `HOST_SERVICES`. `make up` starts it in the background and waits until it answers; its process,
+  port, and log stay in `ops/.run/`, which git ignores. `make native` runs it in the foreground.
 - Volume-mount config files so changes persist without rebuilding.
 - Use multi-stage builds for production images, and keep secrets out of the build context
   (`<Dockerfile>.dockerignore` beside each Dockerfile).

@@ -5,10 +5,11 @@ import type { LocalEnvironment } from '../types'
 import { chooseUrl, markdownLink, parsePublishedPort, parseService, parseSettings, type Settings } from './local-url'
 
 // The local environment's URL above the prompt, and whether it answers, for the developer's local
-// check before the pull request. It reads three of the project's files, requests the URL, and — when
-// the env file pins no APP_PORT — asks Docker which port it picked for the app with one read-only
-// command, `docker compose port <service> <port>` (decision 0032). It never changes, approves, or
-// refuses a tool call or a prompt.
+// check before the pull request. It reads the project's files, requests the URL, and — when the env
+// file pins no APP_PORT — takes the port of the app running on the host (ops/.run/app.env, native
+// mode, decision 0034), or asks Docker which port it picked for the app with one read-only command,
+// `docker compose port <service> <port>` (decision 0032). It never changes, approves, or refuses a
+// tool call or a prompt.
 
 const environment = atom({ plugin: 'adf-dev', key: 'localEnvironment' } as const, null)
 const EVERY_MS = 15_000
@@ -86,9 +87,13 @@ async function refresh($: EngineInterface, isFresh = false): Promise<LocalEnviro
     const source = chooseUrl(config, worktree.values, values, worktree.file)
     return source ? { url: source.url, from: source.from + note, isUp: await answers($, source.url) } : null
   }
+  // The app on the host (DEV_MODE=native): ops/scripts/native.sh keeps its port there while it runs.
+  const host = env.APP_PORT ? {} : await settings($, `${root}/ops/.run/app.env`, ['APP_PORT'])
   let found: LocalEnvironment | null
   if (env.APP_PORT || !config.LOCAL_SERVICE) {
     found = await locate(env, '')
+  } else if (host.APP_PORT) {
+    found = await locate(host, ', the app on the host')
   } else {
     // No port pinned: the one Docker picked, which changes each time the service starts.
     const viaDocker = async (lookup: Lookup | null) =>
