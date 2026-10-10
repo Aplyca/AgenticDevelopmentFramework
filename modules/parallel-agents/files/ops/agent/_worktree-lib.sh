@@ -118,3 +118,22 @@ die() {
   echo "Error: $1" >&2
   exit 1
 }
+
+# fetch_origin <checkout> — fetch origin, bounded so an unattended run can't hang on a stuck
+# credential prompt or a dead network. 0 when it fetched (or there's no origin), 1 when it failed,
+# 2 when it timed out after 30 seconds.
+fetch_origin() {
+  local pid waited=0
+  git -C "$1" remote get-url origin >/dev/null 2>&1 || return 0
+  git -C "$1" fetch --quiet --tags origin &
+  pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 1
+    waited=$((waited + 1))
+    if [ "$waited" -ge 30 ]; then
+      kill -9 "$pid" 2>/dev/null || true
+      return 2
+    fi
+  done
+  wait "$pid" || return 1
+}

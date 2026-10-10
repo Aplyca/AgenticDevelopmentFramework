@@ -16,7 +16,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 `docs/CONSTITUTION.md` holds the non-negotiable principles and **overrides this file** on conflict. Day to day:
 
 - **Don't invent requirements.** When the task or spec leaves something open — a missing criterion, a field that doesn't exist, two requirements that conflict — stop and ask. If you must proceed, state the assumption and surface it in the pull request.
-- **Nothing leaves this machine unless a human asks** — except the draft pull request, which opens on its own once the developer approves the local check (§ Delivery rules). No other push, no pull request readied or merged, no tag or release, no tracker comment or chat message.
+- **Nothing leaves this machine unless a human asks** — except the draft pull request, which opens on its own once the developer approves the local check (§ Delivery rules), and its upkeep: pushing the work branch, keeping the description current, and commenting on it. No push to another branch, no pull request readied, merged, or reviewed, no tag or release, no tracker comment or chat message.
 - **Never bypass the gates** — git hooks (`--no-verify`), lint, typecheck, tests, secret scanning.
 - **Never commit secrets.** Every environment variable the code reads is declared, without its value, in [`.env.example`].
 - **No merge without human review**, AI-generated changes included. CI is a signal; the review is the gate.
@@ -89,7 +89,7 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 
 ## Delivery rules
 
-- **Branches:** `<type>/<slug>` from [`main`] — `<type>` is the commit type, `<slug>` matches the spec folder. Never commit directly to [`main`]. <!-- CUSTOMIZE: integration and release branches — CONTRIBUTING.md holds the full model -->
+- **Branches:** `<type>/<slug>` from [`main`], up to date with its remote (`git pull --ff-only` first) — `<type>` is the commit type, `<slug>` matches the spec folder. Never commit directly to [`main`]. After the merge, update [`main`] locally and delete the branch. <!-- CUSTOMIZE: integration and release branches — CONTRIBUTING.md holds the full model -->
 - **Commits:** one per green task; prefixes and phase order in `.claude/rules/git-workflow.md`. Don't amend or rewrite pushed history unless asked.
 - **Local check before the pull request:** when a change alters something a person can see or use, start it on the local environment (§ Quick reference), give the developer the local URL and what to try — the acceptance criteria, or the fast lane's "done when" — and wait. The developer tests it by hand and approves it — and that approval opens the **draft** pull request: push and run `/open-pr` without waiting to be asked. A fix found there goes in first, and the check repeats. Docs-only and CI-only work has nothing to run: the draft opens once the full gate and `/review` pass. Answer-only work has no pull request unless the task asks for one.
 - **Pull requests:** open as **drafts**, after the local check; name the spec folder (or the light `CR N`) and link the tracker task; state the lane and why, what you verified, and what you could not. Never mark a pull request ready on your own — a human QCs it (preview, manual check) and promotes it, or asks you to once they have. Ready means "a person has exercised this".

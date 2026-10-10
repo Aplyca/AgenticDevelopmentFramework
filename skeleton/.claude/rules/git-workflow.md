@@ -45,19 +45,26 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
 - A **change request** gets a fresh branch that starts with the feature's slug and names the change:
   `feat/newsletter-signup-topics`. Never reuse the feature's earlier branch — after a squash merge it
   can survive with pre-merge history, and new work on it starts from old code.
-- Branch from the base branch named in `CONTRIBUTING.md`; never commit directly to it or to any
-  other protected branch.
+- Branch from the base branch named in `CONTRIBUTING.md`, **up to date with its remote**
+  (`git switch <base> && git pull --ff-only` first); never commit directly to it or to any other
+  protected branch. The session context says when the base branch is behind (as of the last fetch).
 - Keep branches short-lived: one spec folder per branch, one branch per pull request.
-- Delete branches after merge.
+- **After the merge**, update the base branch locally (`git switch <base> && git pull --ff-only`),
+  then delete the merged branch — `git branch -d` checks the merge against the updated base; a
+  squash-merged branch needs `-D` once its work is upstream. With the parallel-agents module,
+  `adf-worktree-rm` does both for the task's worktree.
 
 ## Outward actions
 
 Pushing, opening a pull request, marking it ready, merging, tagging, releasing, and commenting
 on a pull request, issue, or tracker task all leave this machine. An agent does them **only when
-a human asks** — and each one is confirmed again when Claude Code's permissions prompt. One
-exception: once the developer approves the local check (`AGENTS.md` § Delivery rules) — or, with
-nothing to run, once the full gate and `/review` pass — the agent pushes the work branch and opens
-its **draft** pull request on its own; the git guard hook refuses a pull request that isn't a draft.
+a human asks**, and marking ready, merging, reviewing, issue writes, and releases are confirmed
+again when Claude Code's permissions prompt. One exception: once the developer approves the local
+check (`AGENTS.md` § Delivery rules) — or, with nothing to run, once the full gate and `/review`
+pass — the agent pushes the work branch and opens its **draft** pull request on its own, then
+keeps it current: later pushes to the work branch, edits to its description, and comments on it
+take no prompt. The git guard hook refuses a pull request that isn't a draft and any push to a
+protected branch.
 
 ## Pull requests
 

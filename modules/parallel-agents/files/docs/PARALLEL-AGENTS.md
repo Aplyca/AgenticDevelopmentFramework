@@ -22,7 +22,10 @@ to a worktree of its own like any other task.
 
 ## How a task gets its worktree
 
-Every task starts in the main checkout with `/dispatch`, and every task takes the same route:
+Every task starts in the main checkout with `/dispatch`. The session there dispatches a task as soon
+as it arrives — one the developer typed, or a command whose hub check stopped it — without asking
+first: the chip, or the command, is where the developer chooses whether it starts. Every task takes
+the same route:
 
 1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
    prompt: the task, the branch, and the first step.
@@ -75,7 +78,7 @@ a task can be picked up by an agent on any machine. Passing work on later in a t
 |---|---|
 | `ops/agent/worktree-new.sh <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
 | `ops/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
-| `ops/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, deletes the branch only if git sees it as merged |
+| `ops/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, fast-forwards the main checkout's base branch to origin's (only when it's on that branch with no uncommitted changes), and deletes the branch only if git sees it as merged |
 
 Settings live in `ops/agent/worktree.conf`, and the defaults assume nothing: no ports, no
 containers, no commands. **With the packaged install,** the scripts are the `adf` plugin's commands

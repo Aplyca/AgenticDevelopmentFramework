@@ -1,6 +1,6 @@
 # 0022: The developer approves a change on the local environment, and the approval opens its draft pull request
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0033](0033-pull-request-upkeep-without-prompts.md) (editing and commenting on the draft take no prompt, and the push and the draft are allowed outright)
 - **Date:** 2026-10-06
 - **Amends:** [0005](0005-outward-actions-and-draft-prs.md) — when a pull request opens, and who opens it; [0006](0006-guardrails-as-configuration.md) — what enforces the draft rule
 

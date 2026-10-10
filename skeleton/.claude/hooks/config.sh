@@ -47,8 +47,9 @@ SPECS_DIR="specs"
 # CUSTOMIZE: the local environment's URL — what the developer opens for the local check before the
 # pull request. Claude Code shows it above the prompt, and whether it answers, with the adf-dev
 # plugin's mod. ${APP_PORT} is the env file's when it pins one; otherwise, with LOCAL_SERVICE set, the
-# port Docker picked for that service, which the mod looks up with `docker compose port`. Empty: the
-# mod uses READY_URL from ops/agent/worktree.conf, or shows nothing.
+# port of the app on the host (native mode, ops/native/.run/app.env), or the port Docker picked for that
+# service, which the mod looks up with `docker compose port`. Empty: the mod uses READY_URL from
+# ops/agent/worktree.conf, or shows nothing.
 # E.g. 'http://localhost:${APP_PORT}', or "http://localhost:3000" for a fixed port.
 LOCAL_URL=""
 # CUSTOMIZE: the app's Compose service and the port it listens on inside its container, e.g.

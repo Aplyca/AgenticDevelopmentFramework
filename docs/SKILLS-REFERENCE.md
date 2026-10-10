@@ -97,4 +97,4 @@ Projects can add their own skills in `.claude/skills/` (project-owned; never tou
 Use hyphenated frontmatter keys — `argument-hint`, `disable-model-invocation`, `user-invocable` —
 because unknown keys are silently ignored. Give a skill that acts outside the machine as soon as it
 runs `disable-model-invocation: true`; one that only drafts until a person approves can start from
-a plain request, with the posting command behind `permissions.ask`. Document custom skills in the project's own docs.
+a plain request, if it posts only after the person's yes in chat — or with the posting command behind `permissions.ask`. Document custom skills in the project's own docs.

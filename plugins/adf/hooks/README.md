@@ -6,7 +6,7 @@ depending on what the model decides. They are wired in `../settings.json`.
 
 | Hook | Event | What it does |
 |---|---|---|
-| `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — whether this session is a dispatcher or a worker, how a dispatched session gets its worktree beside the main checkout, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup) |
+| `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — whether this session is a dispatcher or a worker, how a dispatched session gets its worktree beside the main checkout, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup); on the base branch, how many commits it is behind origin's, as of the last fetch |
 | `guard-git.sh` | PreToolUse · Bash | Blocks `--no-verify` (and `git commit -n`), commits on protected branches, and pushes, force-pushes, or deletes targeting protected branches |
 | `protect-paths.sh` | PreToolUse · Edit/Write | Blocks hand-edits to generated files (lockfiles, generated types) and modifications to existing files in append-only history (migrations) |
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |
@@ -14,8 +14,10 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `protect-hub.sh` | PreToolUse · Edit/Write | With the parallel-agents module installed, stops every file edit in the main checkout — the hub, where the dispatcher edits nothing — and lets edits in worktrees through. Without the module it does nothing. Empty `HUB_READONLY` turns it off. Writes made through Bash aren't seen |
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
-Pushing to a non-protected branch, opening or readying a pull request, and other outward actions
-aren't blocked here — `permissions.ask` in `../settings.json` makes a human confirm each one.
+Pushing a work branch, and opening, editing, or commenting on its draft pull request, run without a
+prompt (decision 0033). Readying, merging, or reviewing a pull request, issue writes, and releases
+aren't blocked here — `permissions.ask` in the project's `.claude/settings.json` makes a human
+confirm each one.
 
 ## Configure
 

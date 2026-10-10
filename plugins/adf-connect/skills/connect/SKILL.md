@@ -61,7 +61,9 @@ the one this skill writes, so keep one.
 
 1. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
    and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, this is the main checkout of
-   a hub, which takes no edits. Say so, point to `/adf:dispatch`, and stop.
+   a hub, which takes no edits. Say so in a line, read nothing more, and run `/adf:dispatch` now
+   with this command, as the developer typed it, as the task. Don't ask first: the chip it offers is
+   where the developer chooses.
 
 2. **Triage it.** Connecting a service changes what agents can reach. It's a configuration change
    in the careful lane (`/adf:triage`), done when "the server connects, its reads run without a

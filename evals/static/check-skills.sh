@@ -184,7 +184,7 @@ check_outward_skills_user_invoked() {
         if [ ! -f "$file" ]; then
             fail "draft-first skill '$name' exists"
         elif grep -q 'Show the full draft' "$file" && grep -q 'ask before posting' "$file"; then
-            pass "skill '$name': shows the draft, and asks before posting when nobody asked for it"
+            pass "skill '$name': shows the draft, and asks before posting"
         else
             fail "skill '$name': can start from a plain request but doesn't show the draft and ask before posting"
         fi
@@ -298,16 +298,20 @@ for event, entries in settings.get("hooks", {}).items():
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
 asks = " ".join(settings.get("permissions", {}).get("ask", []))
+allows = " ".join(settings.get("permissions", {}).get("allow", []))
 # The work branch's push and its draft pull request follow the developer's local check (decision
-# 0022); everything else that leaves the machine still asks.
-for outward in ("gh pr ready", "gh pr merge", "gh pr comment", "gh issue comment", "gh release"):
+# 0022), and keeping that draft current needs no prompt (0033); the rest that leaves the machine asks.
+for outward in ("gh pr ready", "gh pr merge", "gh pr review", "gh issue comment", "gh release"):
     if outward not in asks:
         problems.append(f"permissions.ask does not cover '{outward}'")
+for upkeep in ("git push", "gh pr create", "gh pr edit", "gh pr comment"):
+    if upkeep not in allows or upkeep in asks:
+        problems.append(f"'{upkeep}' should be in permissions.allow, not permissions.ask (0033)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask, its upkeep in permissions.allow"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -731,7 +735,9 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
-    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'No `env_file:`' || missing+=("/dev-env: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'No `env_file:`' || missing+=("dev-env's specification: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'one folder per target' || missing+=("dev-env's specification: ops/ has one folder per target (0034)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
@@ -1100,15 +1106,17 @@ tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
 def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
-files = ["compose.yaml", "Makefile", ".env.example", "ops/scripts/ports.sh", "ops/docker/web/Dockerfile",
+files = ["compose.yaml", "Makefile", "ops/docker/Makefile", "ops/native/Makefile", ".env.example",
+         "ops/docker/guard.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
 for f in missing:
     print(f"templates/{f} is missing")
 if missing:
     sys.exit()
-if not os.access(os.path.join(tpl, "ops/scripts/ports.sh"), os.X_OK):
-    print("templates/ops/scripts/ports.sh isn't executable")
+for script in ("ops/docker/guard.sh", "ops/native/native.sh"):
+    if not os.access(os.path.join(tpl, script), os.X_OK):
+        print(f"templates/{script} isn't executable")
 
 declared = {m.group(1): m.group(2) for m in re.finditer(r"^([A-Z_][A-Z0-9_]*)=(.*)$", read(".env.example"), re.M)}
 for name, value in declared.items():
@@ -1145,21 +1153,40 @@ for name, body in services.items():
             print(f"compose.yaml: {name} waits for {dep} without a healthcheck it waits on")
 
 make = read("Makefile")
-targets = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
-for target in "help env up down build ps logs urls shell services native test lint reset".split():
-    if target not in targets:
-        print(f"Makefile has no {target} target")
 if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
+if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
+    print("Makefile doesn't load the mode's file (ops/<mode>/Makefile, decision 0034)")
+# The templates are an example of the skill's specification: each mode's file, with the shared
+# tasks, defines every task its C3 table requires (decision 0034).
+spec_path = os.path.join(os.path.dirname(tpl), "SPECIFICATION.md")
+spec = open(spec_path, encoding="utf-8").read() if os.path.isfile(spec_path) else ""
+skill = open(os.path.join(os.path.dirname(tpl), "SKILL.md"), encoding="utf-8").read()
+if not spec:
+    print("dev-env has no SPECIFICATION.md")
+elif "SPECIFICATION.md" not in skill:
+    print("dev-env's SKILL.md doesn't send the agent to SPECIFICATION.md")
+c3 = spec.split("- **C3.**", 1)[1].split("- **C4.**", 1)[0] if "- **C3.**" in spec else ""
+required = re.findall(r"^\s*\| `([a-z][a-z-]*)` \|", c3, re.M)
+if len(required) < 9:
+    print("SPECIFICATION.md: C3 doesn't list the tasks every mode defines")
+shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
+for mode in ("docker", "native"):
+    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/Makefile"), re.M))
+    for target in ["help", "env"] + required:
+        if target not in targets:
+            print(f"ops/{mode}/Makefile: no {target} target, which SPECIFICATION.md C3 requires")
+make = "\n".join([make, read("ops/docker/Makefile"), read("ops/native/Makefile")])
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
-                 (r"^export\b", "export")):
+                 (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
+                 (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):
     if re.search(bad, make, re.M):
         print(f"Makefile uses {why}, which GNU make 3.81 lacks or which leaks .env")
 if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and "=" not in l.split(":")[0]), re.M):
     print("Makefile: a recipe line is indented with spaces, not a tab")
-logs = re.search(r"^logs:.*\n((?:\t.*\n)+)", make, re.M)
-if not logs or not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
-    print("Makefile: logs must show the last lines and never follow")
+for logs in re.finditer(r"^logs:.*\n((?:\t.*\n)+)", make, re.M):
+    if not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
+        print("Makefile: logs must show the last lines and never follow")
 
 bash4 = re.compile(r"declare -A|\bmapfile\b|\breadarray\b|\$\{\w+(,,|\^\^)|\|&|&>>|\bcoproc\b")
 scripts = glob.glob(os.path.join(root, "modules", "*", "files", "**", "*.sh"), recursive=True)
@@ -1171,7 +1198,7 @@ for script in sorted(scripts):
 PY
 )
     if [ -z "$problems" ]; then
-        pass "dev-env templates: compose.yaml, the Makefile, and .env.example keep the conventions (0032); shipped scripts run on bash 3.2"
+        pass "dev-env templates: an example of its SPECIFICATION.md — compose.yaml, the Makefile and both mode files, and .env.example (0032, 0034); shipped scripts run on bash 3.2"
     else
         fail "dev-env templates" "$(echo "$problems" | tr '\n' ';')"
     fi

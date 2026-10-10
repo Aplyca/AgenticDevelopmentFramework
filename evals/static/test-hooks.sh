@@ -201,6 +201,16 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
 check_ctx "dispatcher in the main checkout, which gives every task to /dispatch" "$T" "Give every task to /dispatch"
 check_ctx "the dispatcher's tasks get worktrees beside the main checkout, from the base branch" "$T" "worktree beside this checkout, on a new branch from main," "Route:"
 check_ctx "a dispatched session in the main checkout is told to create its worktree and move first" "$T" "first step is the worktree: ops/agent/worktree-new.sh <branch> --no-start, then move this session"
+# A base branch behind origin's, as the last fetch left it: told to pull before branching.
+B="$WORK/behind"; mkdir -p "$B" && git -C "$B" init -q -b main
+git -C "$B" -c user.email=t@e -c user.name=t commit -q --allow-empty -m one
+newer=$(git -C "$B" -c user.email=t@e -c user.name=t commit-tree -p HEAD -m two "$(git -C "$B" rev-parse 'HEAD^{tree}')")
+git -C "$B" update-ref refs/remotes/origin/main "$newer" && git -C "$B" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+check_ctx "on the base branch behind origin's: told to pull before branching" "$B" "main is 1 commit(s) behind origin/main (as of the last fetch): update it with git pull --ff-only"
+git -C "$B" switch -q -c feat/x
+check_ctx "on a work branch: no base-branch line" "$B" "feat/x" "behind origin/main"
+git -C "$B" switch -q main && git -C "$B" merge -q --ff-only origin/main
+check_ctx "on the base branch, up to date: no base-branch line" "$B" "branch main" "behind origin/main"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 check_ctx "worker in Claude Code's worktree, told to rename its generated branch" "$T/.claude/worktrees/eager-lamport" "branch name is generated (claude/eager-lamport)"
 check_ctx "worker in Claude Code's worktree, told the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here"

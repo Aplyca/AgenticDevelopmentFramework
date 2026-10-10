@@ -14,15 +14,18 @@
       "Bash(gh issue view *)",
       "Bash(gh issue list *)",
       "Bash(gh run list *)",
-      "Bash(gh run view *)"
+      "Bash(gh run view *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr comment *)"
     ],
     "ask": [
       "Bash(gh pr ready)",
       "Bash(gh pr ready *)",
       "Bash(gh pr merge)",
       "Bash(gh pr merge *)",
-      "Bash(gh pr edit *)",
-      "Bash(gh pr comment *)",
       "Bash(gh pr review *)",
       "Bash(gh issue create *)",
       "Bash(gh issue edit *)",

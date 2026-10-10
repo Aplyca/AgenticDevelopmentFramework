@@ -25,7 +25,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 ## Settings, hooks, instruction files
 
 - [ ] `settings.json` is valid JSON; `model` is an alias; every hook entry nests `{"type": "command", "command": …}` inside a `hooks` array; no `$CLAUDE_FILE_PATH`; every referenced `.claude/hooks/*.sh` exists and is executable
-- [ ] `permissions.ask` covers `git push`, `gh pr create`, `gh pr ready`, `gh pr merge`
+- [ ] `permissions.ask` covers `gh pr ready`, `gh pr merge`, `gh pr review`, issue writes, and releases; `permissions.allow` names `git push`, `gh pr create`, `gh pr edit`, and `gh pr comment` (decisions 0022, 0033)
 - [ ] No `CLAUDE.md`; `AGENTS.md`'s first line is the `Skeleton source:` stamp; `.claude/rules/claude-code.md` has no `paths:`
 - [ ] `AGENTS.md` covers triage, the approval gate, the change surface, docs first, "watch it fail", change requests, "don't invent requirements", and a Boundaries section — in ≤200 lines
 - [ ] `git-workflow.md` lists `spec:`, `test:`, `docs:`, `feat:`, `fix:`, `refactor:`, `chore:`, plus the draft and "only when asked" rules

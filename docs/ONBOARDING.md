@@ -111,10 +111,10 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
-| A person confirms marking a pull request ready, merges, comments, issue writes, releases, GitHub API writes | `permissions.ask` |
+| A person confirms marking a pull request ready, merges, reviews, issue writes, releases, GitHub API writes. Keeping the draft current — pushing, editing it, commenting on it — needs no prompt | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once you approve the local check | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/stakeholder-update` starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |
+| `/stakeholder-update` starts from a plain request ("update the client"), and posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
 | Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |

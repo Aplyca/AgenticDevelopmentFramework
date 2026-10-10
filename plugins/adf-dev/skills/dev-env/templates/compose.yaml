@@ -37,7 +37,7 @@ services:
   redis:
     image: redis:7.4-alpine
     ports:
-      # Published so the app can reach it from the host too (`make native`)
+      # Published so the app can reach it from the host too (native mode)
       - "127.0.0.1:${REDIS_PORT:-}:6379"
     volumes:
       - redis-data:/data
