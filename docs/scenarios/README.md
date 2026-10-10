@@ -59,7 +59,7 @@ In a repository that adopted the skeleton, these hold in Claude Code whatever th
 | No `--no-verify`; no commits or pushes on protected branches | `guard-git.sh` hook |
 | No hand-edits to lockfiles and other generated files, or to existing migrations | `protect-paths.sh` hook |
 | Every environment variable the code reads is declared in the env template | `check-env-declared.sh` hook |
-| Every push and pull request action is confirmed by a person | `permissions.ask` in `.claude/settings.json` |
+| Readying, merging, and reviewing a pull request, issue writes, and releases are confirmed by a person; the draft's push, edits, and comments aren't | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
 
 Other tools get the protected-branch check from the [git-hooks module](../../modules/git-hooks/MODULE.md)'s
 `pre-push` hook. And by instruction, in every tool: nothing leaves the machine unless a human asks; pull requests

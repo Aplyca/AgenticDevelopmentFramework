@@ -37,6 +37,37 @@ developer decides whether the task starts. Now the session dispatches straight a
   worktree. Your § Shared services stays.
 - **A packaged project:** nothing else to do. The plugin carries the rest with its pin.
 
+### An agent keeps its draft pull request current without a prompt
+
+([0033](docs/decisions/0033-pull-request-upkeep-without-prompts.md), amending [0005](docs/decisions/0005-outward-actions-and-draft-prs.md) and [0022](docs/decisions/0022-local-check-before-the-pull-request.md))
+
+Testing in an adopting project, every routine update to a draft pull request stopped for a prompt:
+the description after the local check, a summary after a fix, a note on CI. The developer approved
+them all without reading. And the push and the draft, which decision 0022 meant to run on their own,
+still prompted in the default permission mode, because no allow rule named them.
+
+- **`.claude/settings.json`** allows `git push`, `gh pr create`, `gh pr edit`, and `gh pr comment`.
+  `gh pr ready`, `gh pr merge`, `gh pr review`, issue writes, releases, and `gh api` writes still
+  ask. `guard-git.sh` still blocks a push to a protected branch and a pull request opened without
+  `--draft`.
+- **`/stakeholder-update`** posts its comment only after the developer approves the draft in chat,
+  since no prompt confirms it now.
+- **`AGENTS.md`**, **`git-workflow.md`**, and **`claude-code.md`** describe the draft's upkeep as
+  part of the exception to "nothing leaves this machine unless a human asks".
+
+**Upgrade impact:**
+
+- **Merge** `.claude/settings.json`: remove `Bash(gh pr edit *)` and `Bash(gh pr comment *)` from
+  `permissions.ask`, and add `Bash(git push)`, `Bash(git push *)`, `Bash(gh pr create *)`,
+  `Bash(gh pr edit *)`, and `Bash(gh pr comment *)` to `permissions.allow`. A team that wants these
+  to keep prompting leaves the file as it is.
+- **Merge** `AGENTS.md` (the "Nothing leaves this machine" line in § Ground rules),
+  `.claude/rules/git-workflow.md` (§ Outward actions), and `.claude/rules/claude-code.md` (the first
+  guardrail row and the `/stakeholder-update` sentence below the table).
+- **Overwrite** `.claude/skills/stakeholder-update/SKILL.md` and `.claude/hooks/README.md` in a
+  committed install: `scripts/build-committed.py` writes them. A packaged project gets them with
+  its pin.
+
 ## v2.0.0 — 2026-10-09 — The plugin is `adf`, and `AGENTS.md` is the one instruction file
 
 A major release: every project acts once. The framework's plugin `aplyca-adf` is now `adf`, a project

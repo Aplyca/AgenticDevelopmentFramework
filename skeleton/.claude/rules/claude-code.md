@@ -23,7 +23,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 
 | Guardrail | Enforced by |
 |---|---|
-| Outward actions past the draft pull request — PR ready / merge / edit / comment / review, releases, issue writes — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check | `permissions.ask` in `.claude/settings.json` |
+| Outward actions past the draft pull request — PR ready / merge / review, releases, issue writes — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check, and keeping that draft current — editing it, commenting on it — needs no prompt | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
 | Secret env files (`.env`, `.env.local`, `.env.*.local`) are never read into context — extend the list for your other secret files | `permissions.deny` in `.claude/settings.json` |
 | No `--no-verify`; no commits or pushes on protected branches; no force-push to them; pull requests open only as drafts | `.claude/hooks/guard-git.sh` (PreToolUse) |
 | Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |
@@ -33,7 +33,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 | With the parallel-agents module, the main checkout is the hub: file edits there are stopped, so each task's work happens in its own worktree | `.claude/hooks/protect-hub.sh` (PreToolUse) |
 
-Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
+Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts only after your yes in chat.
 
 ## Lanes — match ceremony to risk
 

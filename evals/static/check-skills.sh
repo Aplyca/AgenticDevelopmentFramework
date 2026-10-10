@@ -184,7 +184,7 @@ check_outward_skills_user_invoked() {
         if [ ! -f "$file" ]; then
             fail "draft-first skill '$name' exists"
         elif grep -q 'Show the full draft' "$file" && grep -q 'ask before posting' "$file"; then
-            pass "skill '$name': shows the draft, and asks before posting when nobody asked for it"
+            pass "skill '$name': shows the draft, and asks before posting"
         else
             fail "skill '$name': can start from a plain request but doesn't show the draft and ask before posting"
         fi
@@ -298,16 +298,20 @@ for event, entries in settings.get("hooks", {}).items():
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
 asks = " ".join(settings.get("permissions", {}).get("ask", []))
+allows = " ".join(settings.get("permissions", {}).get("allow", []))
 # The work branch's push and its draft pull request follow the developer's local check (decision
-# 0022); everything else that leaves the machine still asks.
-for outward in ("gh pr ready", "gh pr merge", "gh pr comment", "gh issue comment", "gh release"):
+# 0022), and keeping that draft current needs no prompt (0033); the rest that leaves the machine asks.
+for outward in ("gh pr ready", "gh pr merge", "gh pr review", "gh issue comment", "gh release"):
     if outward not in asks:
         problems.append(f"permissions.ask does not cover '{outward}'")
+for upkeep in ("git push", "gh pr create", "gh pr edit", "gh pr comment"):
+    if upkeep not in allows or upkeep in asks:
+        problems.append(f"'{upkeep}' should be in permissions.allow, not permissions.ask (0033)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask, its upkeep in permissions.allow"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi

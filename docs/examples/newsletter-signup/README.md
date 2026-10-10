@@ -725,10 +725,10 @@ by AC in `plan.md` § Test strategy.
 From the local Playwright run at 375 px and 1280 px: default, inline error, success.
 ```
 
-Claude Code asks Sam to confirm the push and `gh pr create --draft` — outward actions sit behind
-`permissions.ask`. The pull request opens as a **draft**: #142. The agent records it in `spec.md`
-and commits locally — `spec: link newsletter-signup pull request`, which goes up with the next push
-Sam asks for. It offers to post the PR link on MKT-412, showing the exact text; that's a write
+Sam approved the local check, so the agent pushes and runs `gh pr create --draft` without a
+prompt. The pull request opens as a **draft**: #142. The agent records it in `spec.md`
+and commits locally — `spec: link newsletter-signup pull request`, which goes up with the next
+push. It offers to post the PR link on MKT-412, showing the exact text; that's a write
 Dana would see, so it waits for a yes (Sam preferred to post it by hand). It ends with what to QC before
 the PR is marked ready: the Vercel variables, a real signup on the preview, and the VoiceOver pass.
 
@@ -787,8 +787,8 @@ planned), the draft entry in Contentful `master` — and shows the full draft in
 > Thanks!
 
 No code, no branch names, no pull request links — pages and the CMS entry Dana will use. Sam asked
-for it as a comment on the pull request (the default, for the team to relay), confirmed the
-`gh pr comment` prompt, and pasted it into the tracker by hand.
+for it as a comment on the pull request (the default, for the team to relay), approved the draft in
+chat, and pasted it into the tracker by hand.
 
 ---
 

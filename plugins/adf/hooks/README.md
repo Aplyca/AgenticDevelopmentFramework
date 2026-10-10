@@ -14,8 +14,10 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `protect-hub.sh` | PreToolUse · Edit/Write | With the parallel-agents module installed, stops every file edit in the main checkout — the hub, where the dispatcher edits nothing — and lets edits in worktrees through. Without the module it does nothing. Empty `HUB_READONLY` turns it off. Writes made through Bash aren't seen |
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
-Pushing to a non-protected branch, opening or readying a pull request, and other outward actions
-aren't blocked here — `permissions.ask` in `../settings.json` makes a human confirm each one.
+Pushing a work branch, and opening, editing, or commenting on its draft pull request, run without a
+prompt (decision 0033). Readying, merging, or reviewing a pull request, issue writes, and releases
+aren't blocked here — `permissions.ask` in the project's `.claude/settings.json` makes a human
+confirm each one.
 
 ## Configure
 

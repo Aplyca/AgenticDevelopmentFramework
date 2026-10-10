@@ -16,7 +16,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 `docs/CONSTITUTION.md` holds the non-negotiable principles and **overrides this file** on conflict. Day to day:
 
 - **Don't invent requirements.** When the task or spec leaves something open — a missing criterion, a field that doesn't exist, two requirements that conflict — stop and ask. If you must proceed, state the assumption and surface it in the pull request.
-- **Nothing leaves this machine unless a human asks** — except the draft pull request, which opens on its own once the developer approves the local check (§ Delivery rules). No other push, no pull request readied or merged, no tag or release, no tracker comment or chat message.
+- **Nothing leaves this machine unless a human asks** — except the draft pull request, which opens on its own once the developer approves the local check (§ Delivery rules), and its upkeep: pushing the work branch, keeping the description current, and commenting on it. No push to another branch, no pull request readied, merged, or reviewed, no tag or release, no tracker comment or chat message.
 - **Never bypass the gates** — git hooks (`--no-verify`), lint, typecheck, tests, secret scanning.
 - **Never commit secrets.** Every environment variable the code reads is declared, without its value, in [`.env.example`].
 - **No merge without human review**, AI-generated changes included. CI is a signal; the review is the gate.
