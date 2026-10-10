@@ -45,10 +45,14 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
 - A **change request** gets a fresh branch that starts with the feature's slug and names the change:
   `feat/newsletter-signup-topics`. Never reuse the feature's earlier branch — after a squash merge it
   can survive with pre-merge history, and new work on it starts from old code.
-- Branch from the base branch named in `CONTRIBUTING.md`; never commit directly to it or to any
-  other protected branch.
+- Branch from the base branch named in `CONTRIBUTING.md`, **up to date with its remote**
+  (`git switch <base> && git pull --ff-only` first); never commit directly to it or to any other
+  protected branch. The session context says when the base branch is behind (as of the last fetch).
 - Keep branches short-lived: one spec folder per branch, one branch per pull request.
-- Delete branches after merge.
+- **After the merge**, update the base branch locally (`git switch <base> && git pull --ff-only`),
+  then delete the merged branch — `git branch -d` checks the merge against the updated base; a
+  squash-merged branch needs `-D` once its work is upstream. With the parallel-agents module,
+  `adf-worktree-rm` does both for the task's worktree.
 
 ## Outward actions
 

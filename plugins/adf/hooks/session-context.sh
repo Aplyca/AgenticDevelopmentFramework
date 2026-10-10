@@ -123,6 +123,20 @@ if worktree_conf="$(worktree_settings "$root")"; then
   fi
 fi
 
+# On the base branch, and behind origin's (as of the last fetch: no network here), the next branch
+# would start from old code — and in a hub's main checkout, the dispatcher would list old specs/.
+base="${base_branch:-}"
+if [ -z "$base" ]; then
+  base="$(git -C "$root" symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null)"
+  base="${base#origin/}"
+fi
+if [ -n "$base" ] && [ "$branch" = "$base" ] && git -C "$root" show-ref --verify --quiet "refs/remotes/origin/$base"; then
+  behind="$(git -C "$root" rev-list --count "HEAD..origin/$base" 2>/dev/null || echo 0)"
+  if [ "$behind" -gt 0 ]; then
+    echo "- $base is $behind commit(s) behind origin/$base (as of the last fetch): update it with git pull --ff-only before creating a branch or reading specs/."
+  fi
+fi
+
 # A packaged project reads the framework's reference docs from the adf plugin, which links in
 # the project's files only point at on GitHub (decision 0019).
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -d "${CLAUDE_PLUGIN_ROOT}/docs" ] && [ ! -f "$root/docs/SPEC-MODEL.md" ]; then

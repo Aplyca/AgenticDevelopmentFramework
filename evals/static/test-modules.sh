@@ -157,8 +157,15 @@ out=$(ops/agent/worktree-rm.sh fix/other-thing 2>&1); code=$?
 check "worktree-rm: refuses uncommitted changes" "[ $code -ne 0 ] && [ -d '$W2' ]"
 out=$(ops/agent/worktree-rm.sh fix/other-thing --force 2>&1); code=$?
 check "worktree-rm: --force stops, removes, and keeps an unmerged branch" "[ $code -eq 0 ] && [ ! -d '$W2' ] && [ -f '$P/stopped-fix-other-thing.txt' ] && echo \"\$out\" | grep -q 'kept branch'"
+# Someone else's pull request merged upstream since the main checkout last pulled.
+U="$WORK/upstream-clone"; git clone -q "$WORK/origin.git" "$U" 2>/dev/null
+git -C "$U" checkout -q -B main origin/main
+echo merged > "$U/merged-elsewhere.txt" && git -C "$U" add merged-elsewhere.txt
+git -C "$U" -c user.email=t@e -c user.name=t commit -qm "merged elsewhere" && git -C "$U" push -q origin HEAD:main 2>/dev/null
 out=$(ops/agent/worktree-rm.sh chore-stale-lock 2>&1); code=$?
 check "worktree-rm: by slug, deletes a merged branch" "[ $code -eq 0 ] && ! git -C '$M' show-ref --verify --quiet refs/heads/chore/stale-lock"
+check "worktree-rm: fast-forwards the main checkout's base branch to origin's" \
+    "echo \"\$out\" | grep -q 'Updated main in the main checkout: 1 new commit' && [ -f '$M/merged-elsewhere.txt' ]"
 out=$(ops/agent/worktree-rm.sh main 2>&1); code=$?
 check "worktree-rm: refuses the main checkout" "[ $code -ne 0 ] && [ -d '$M' ]"
 

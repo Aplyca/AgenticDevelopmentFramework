@@ -68,6 +68,36 @@ still prompted in the default permission mode, because no allow rule named them.
   committed install: `scripts/build-committed.py` writes them. A packaged project gets them with
   its pin.
 
+### The base branch is updated locally after a merge, and a branch starts from an updated one
+
+Nothing in the process updated the local base branch after a pull request merged. A new branch
+created from a stale `main` started from old code. With parallel-agents the worktree scripts branch
+from `origin/<base>`, but the main checkout itself stayed behind. The dispatcher's `ls specs/` missed
+features merged since, every dispatched session read an old `AGENTS.md` before moving, and
+`git branch -d` checked merges against the stale `main`.
+
+- **`adf-worktree-rm`** (`worktree-rm.sh`) fast-forwards the main checkout's base branch to
+  origin's after removing a task's worktree, then deletes the branch. It does this only on the
+  base branch, with no uncommitted changes, and only as a fast-forward; otherwise it says why it
+  didn't. The bounded `git fetch` it shares with `worktree-new.sh` moves to `_worktree-lib.sh`.
+- **The session-context hook** says, on the base branch, how many commits it is behind origin's, as
+  of the last fetch. It runs no network call.
+- **`/dispatch`** runs `git pull --ff-only` when the session context says the base branch is behind,
+  so `specs/` lists what has merged. That's the one command a dispatcher runs.
+- **`git-workflow.md`, `AGENTS.md` § Delivery rules, and `CONTRIBUTING.md`:** branch from an
+  up-to-date base (`git pull --ff-only` first), and after the merge update the base locally, then
+  delete the branch.
+
+**Upgrade impact:**
+
+- **Merge** `.claude/rules/git-workflow.md` (§ Branches), `AGENTS.md` (the Branches line in
+  § Delivery rules), and `CONTRIBUTING.md` (the line after the branching models).
+- **Overwrite**, in a committed install, `.claude/hooks/session-context.sh`,
+  `.claude/skills/dispatch/SKILL.md`, and, with parallel-agents, `ops/agent/worktree-rm.sh`,
+  `worktree-new.sh`, and `_worktree-lib.sh` when the team never edited them. A packaged project gets
+  the hook, the skill, and `adf-worktree-rm` with its pin.
+- **Merge** `docs/PARALLEL-AGENTS.md`: the `worktree-rm.sh` row of the commands table.
+
 ### The local environment runs in Docker or natively, and `ops/` has one folder per target
 
 ([0034](docs/decisions/0034-local-environment-modes.md), amending [0032](docs/decisions/0032-local-environment-layout.md))
