@@ -91,7 +91,9 @@ a project misses. A project that departs from one on purpose records it, with th
 - **M1.** `DEV_MODE` picks the local mode. The first that's set wins: the command line
   (`make up DEV_MODE=native`), the shell's `DEV_MODE`, `DEV_MODE` in the checkout's `.env`, then
   `DEFAULT_MODE` in the `Makefile`, the project's default.
-- **M2.** The `Makefile` reads `DEV_MODE` from `.env` and nothing else from it.
+- **M2.** The make files read two settings from `.env` and nothing else from it: `DEV_MODE` and
+  `SERVICES` (M5). An empty value means the project's default; the command line and the shell win
+  over `.env`.
 - **M3.** A mode is a folder in `ops/` with a `Makefile`. `DEV_MODE` naming anything else — a typo,
   a deployment target, `ops/agent/` — stops `make` with a message that names the setting. A project
   adds a mode by adding a folder and its `Makefile`. A mode's `Makefile` is only ever loaded by the
@@ -100,11 +102,11 @@ a project misses. A project that departs from one on purpose records it, with th
 - **M4.** **Docker mode** (`ops/docker/`) runs the whole stack in Docker Compose. Its `up` waits until
   every service is healthy (`docker compose up -d --wait`).
 - **M5.** **Native mode** (`ops/native/`) runs the app on the host with the stack's own dev command,
-  `NATIVE_CMD`, which listens on `$APP_PORT`. `SERVICES` in `ops/native/Makefile` lists the backing
-  services that stay in Docker; an empty list means native mode needs no Docker at all. A developer
-  who runs one of them on the host leaves it out for their own runs — `SERVICES` is a `?=` setting,
-  so `make up SERVICES=…` or `SERVICES` in their shell overrides it — and pins its port in `.env`,
-  which the app reads.
+  `NATIVE_CMD`, which listens on `$APP_PORT`. `SERVICES` names the backing services that stay in
+  Docker, the same way `DEV_MODE` names the mode: the command line, then the shell, then the
+  checkout's `.env`, then `DEFAULT_SERVICES` in `ops/native/Makefile`, the project's list. A developer
+  who runs some on the host sets their own list in `.env` (`SERVICES=postgres`) and pins the others'
+  ports there, which the app reads; `SERVICES=none` means native mode needs no Docker at all.
 - **M6.** Native `up` starts the backing services in `SERVICES`, then the app **in the background**,
   in a process group of its own, with every port variable exported (P4). It waits until `APP_PORT`
   answers. If the app exits first, `up` fails and prints the end of the app's log. Native `down` stops

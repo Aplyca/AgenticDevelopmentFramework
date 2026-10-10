@@ -356,14 +356,25 @@ mkdir -p "$DS/site/ops/agent" && out=$(stack make help DEV_MODE=agent 2>&1); cod
 check "DEV_MODE: a target folder without a Makefile isn't a local mode" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"no ops/agent/Makefile\""
 out=$(cd "$DS/site/ops/docker" && make up 2>&1); code=$?
 check "a mode's Makefile run on its own stops, saying to run make from the root" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'run make from the repository root'"
+out=$(stack make -n services 2>&1)
+check "SERVICES: native mode starts the project's DEFAULT_SERVICES in Docker" "echo \"\$out\" | grep -q 'up -d --wait redis\$'"
+echo 'SERVICES="postgres redis" # mine' >> "$DS/site/.env"
+out=$(stack make -n services 2>&1)
+check "SERVICES in .env: this developer's list, spaces and comment allowed" "echo \"\$out\" | grep -q 'up -d --wait postgres redis\$'"
+out=$(stack make -n services SERVICES=redis 2>&1)
+check "SERVICES on the command line wins over .env" "echo \"\$out\" | grep -q 'up -d --wait redis\$'"
+echo 'SERVICES=none' >> "$DS/site/.env"
+out=$(stack make services 2>&1)
+check "SERVICES=none in .env: nothing in Docker" "echo \"\$out\" | grep -q 'No backing services in Docker'"
+sed -i.bak '/^SERVICES=/d' "$DS/site/.env" && rm -f "$DS/site/.env.bak"
 out=$(stack make -n reset 2>&1)
 check "make reset, native mode: stops the app on the host, then deletes the volumes" \
     "echo \"\$out\" | grep -q 'native.sh stop' && echo \"\$out\" | grep -q 'down -v'"
 # The app on the host, for real: a dev command that serves the folder, with nothing in Docker.
 NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
 git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n' > "$NS/.gitignore"
-sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' -e 's|^SERVICES ?= redis$|SERVICES ?=|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
-native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native); }
+sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
+native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native SERVICES=none); }
 out=$(native up 2>&1); code=$?
 port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
 check "native mode, make up: starts the app in the background and waits until it answers" \

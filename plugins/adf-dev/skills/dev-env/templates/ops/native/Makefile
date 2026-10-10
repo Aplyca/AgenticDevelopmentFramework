@@ -7,8 +7,14 @@ ifndef MODE_FILE
 $(error run make from the repository root: this file is the $(notdir $(CURDIR)) mode, which the root Makefile loads)
 endif
 
-# CUSTOMIZE: the backing services that run in Docker — empty when they all run on the host
-SERVICES ?= redis
+# CUSTOMIZE: the backing services that stay in Docker — the project's default. A developer who runs
+# some on the host sets their own list in .env (SERVICES=postgres), or SERVICES=none for all of them.
+DEFAULT_SERVICES = redis
+# Which ones run here: `make up SERVICES=…`, then the shell's SERVICES, then .env's, then the default.
+ifeq ($(origin SERVICES),undefined)
+SERVICES := $(call env_value,SERVICES)
+endif
+override SERVICES := $(filter-out none,$(or $(strip $(SERVICES)),$(DEFAULT_SERVICES)))
 # CUSTOMIZE: the app's dev command, listening on $APP_PORT — e.g. npm run dev -- --port "$$APP_PORT"
 NATIVE_CMD = echo "CUSTOMIZE: set NATIVE_CMD in ops/native/Makefile to the app's dev command" >&2; exit 1
 

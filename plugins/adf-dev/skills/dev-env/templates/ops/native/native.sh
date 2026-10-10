@@ -12,7 +12,7 @@
 # Each backing service in SERVICES runs in Docker, and the app gets its published port as
 # <SERVICE>_PORT (redis → REDIS_PORT), looked up with `docker compose ps`. The app's own port is
 # APP_PORT: the shell's, then the one .env pins, then a free one. A service the developer runs on the
-# host isn't in SERVICES: its port is pinned in .env, which the app reads itself.
+# host is left out of SERVICES in their .env: its port is pinned there, and the app reads it itself.
 #
 # ops/native/Makefile passes NATIVE_CMD, SERVICES, and COMPOSE. The app's state — its process,
 # its port, its log — is in ops/native/.run/, which git ignores: app.env holds PID and APP_PORT while
@@ -68,7 +68,7 @@ exports() {
   local service port
   for service in $SERVICES; do
     port="$(published "$service")"
-    [ -n "$port" ] || die "$service isn't running in Docker: start it (make services), or run it on the host and take it out of SERVICES"
+    [ -n "$port" ] || die "$service isn't running in Docker: start it (make services), or run it on the host and leave it out of SERVICES in .env"
     printf 'export %s_PORT=%s\n' "$(printf '%s' "$service" | tr 'a-z.-' 'A-Z__')" "$port"
   done
   printf 'export APP_PORT=%s\n' "$(app_port)"

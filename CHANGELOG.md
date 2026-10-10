@@ -105,9 +105,10 @@ of its own.
   exports each backing service's published port as `<SERVICE>_PORT`. The one job that needs a
   script stays, alone, as `ops/docker/guard.sh`: it keeps a worktree with a copied `.env` off the
   main checkout's stack.
-- **`SERVICES` in `ops/native/Makefile`** lists what stays in Docker; empty, native mode needs no
-  Docker. A developer who runs one on the host overrides it (`make up SERVICES=…`) and pins its port
-  in `.env`.
+- **`SERVICES` picks the backing services native mode runs in Docker,** the way `DEV_MODE` picks the
+  mode. The command line wins, then the shell, then the checkout's `.env`, then `DEFAULT_SERVICES` in
+  `ops/native/Makefile`. A developer who runs some on the host sets their own list in `.env`
+  (`SERVICES=postgres`) and pins those services' ports. `SERVICES=none` means no Docker at all.
 - **The band above the prompt** shows the native app's URL, read from `ops/native/.run/app.env`.
 - **A specification, with the templates as its example.** `dev-env`'s `SPECIFICATION.md` states
   each requirement with an ID: layout `L`, command surface `C`, modes `M`, ports `P`, Compose `D`,
@@ -128,7 +129,7 @@ of its own.
   - move the `Makefile`'s Docker tasks to `ops/docker/Makefile`, add `ops/native/Makefile` with the
     project's native commands, and keep the shared part and the mode block in the `Makefile`;
   - add `ops/native/native.sh` and make it executable;
-  - add `DEV_MODE=` to `.env.example`;
+  - add `DEV_MODE=` and `SERVICES=` to `.env.example`;
   - add `ops/native/.run/` to `.gitignore` and to `ops/docker/web/Dockerfile.dockerignore`;
   - update whatever names `ops/scripts/`: CI, docs, other scripts.
 

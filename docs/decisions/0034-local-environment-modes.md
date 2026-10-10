@@ -72,9 +72,10 @@ can only run the command the project gives it.
    exports it as `<SERVICE>_PORT` (`redis` → `REDIS_PORT`), with `APP_PORT` pinned or free. The one
    job that needs a script stays, alone: `ops/docker/guard.sh` keeps a worktree whose `.env` was
    copied from the main checkout's off that stack, so its `make reset` can't delete the main
-   checkout's volumes. `SERVICES` lists what stays in Docker; empty, native mode needs no Docker. A
-   developer who runs one of them on the host overrides it (`make up SERVICES=…`; it's a `?=`
-   setting) and pins its port in `.env`.
+   checkout's volumes. `SERVICES` names what stays in Docker, chosen the way `DEV_MODE` is: the
+   command line, the shell, the checkout's `.env`, then `DEFAULT_SERVICES` in `ops/native/Makefile`.
+   A developer who runs some on the host sets their own list in `.env` and pins those services'
+   ports there; `SERVICES=none` means native mode needs no Docker.
 8. **The band reads the native app's port** from `ops/native/.run/app.env` when `.env` pins none.
    That's a file read, which 0026 allows, and it comes before 0032's Docker lookup.
 9. **Worktrees** keep `START_CMD="make up"`, which loads the worktree's own mode. `/dev-env
@@ -103,7 +104,8 @@ can only run the command the project gives it.
 - **Negative / cost:**
   - **Two files keep the same task names.** The static check asserts that both define the full
     set.
-  - **The `Makefile` reads one name from `.env`:** `DEV_MODE`, and nothing else.
+  - **The make files read two settings from `.env`:** `DEV_MODE` and `SERVICES`, and nothing else.
+    An empty one means the project's default, so "no services" is spelled `none`.
   - **A background process outlives the terminal that started it.** `make down` stops it. A machine
     restart leaves a stale `ops/native/.run/app.env`, which the next command notices and removes.
   - **Native mode trusts the host:** the runtime and its version are each developer's.

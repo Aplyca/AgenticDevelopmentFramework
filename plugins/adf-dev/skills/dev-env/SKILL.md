@@ -77,13 +77,13 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      pinned, with a healthcheck the app's `depends_on` waits on;
    - every variable the code reads: by name in `.env.example`, and in container form in its
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
-   - in the `Makefile`: `APP` and `DEFAULT_MODE` (`docker` unless the team runs the app on
-     the host);
-   - in each mode's file, its own commands: `ops/docker/Makefile`'s `test` and `lint` in the app's container;
-     `ops/native/Makefile`'s `SERVICES` (the backing services that stay in Docker), `NATIVE_CMD` (the app's dev
-     command, listening on `$APP_PORT`), and its `build` (installing dependencies on the host),
-     `test`, and `lint`. Each from the project's package manifest, README, or docs — never a guess at
-     the stack. A project that never runs natively keeps `ops/native/Makefile` as the template wrote it.
+   - in the `Makefile`: `APP` and `DEFAULT_MODE` (`docker` unless the team runs the app on the host);
+   - in each mode's `Makefile`, its own commands: in `ops/docker/`, `test` and `lint` in the app's
+     container; in `ops/native/`, `DEFAULT_SERVICES` (the backing services that stay in Docker),
+     `NATIVE_CMD` (the app's dev command, listening on `$APP_PORT`), and its `build` (installing
+     dependencies on the host), `test`, and `lint`. Each from the project's package manifest,
+     README, or docs — never a guess at the stack. A project that never runs natively keeps
+     `ops/native/Makefile` as the template wrote it.
 
    Then `chmod +x ops/docker/guard.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
    and `ops/native/.run/`.
@@ -135,10 +135,10 @@ Needs the parallel-agents module (`ops/agent/worktree.conf`, or `scripts/agent/w
 before it moved); without it, say so and stop.
 
 1. **Audit isolation (W1–W3).** A stack that meets the specification already runs once per
-   worktree: the worktree's folder names its Compose project, and Docker picks its ports. What breaks that: a
-   top-level `name:`, a `container_name:`, a fixed host port in `compose.yaml` — set up's migration
-   fixes those — or a port or `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins, which every
-   worktree's copy repeats.
+   worktree: the worktree's folder names its Compose project, and Docker picks its ports. What
+   breaks that: a top-level `name:`, a `container_name:`, a fixed host port in `compose.yaml` —
+   set up's migration fixes those — or a port or `COMPOSE_PROJECT_NAME` the main checkout's `.env`
+   pins, which every worktree's copy repeats.
 2. **Propose the `worktree.conf` change** — an infrastructure change the developer approves:
    - `PORT_SLOTS=0` — the ports are Docker's, so the scripts reserve none;
    - `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, plus an empty `<NAME>_PORT=` line for each
@@ -162,8 +162,9 @@ before it moved); without it, say so and stop.
 ## Mode: native
 
 Where the app runs is a setting, not a different command. The root `Makefile` loads
-`ops/<DEV_MODE>/Makefile`: `ops/docker/Makefile` runs the whole stack in Docker; `ops/native/Makefile` runs the app on the
-host with the stack's own dev command, its backing services in Docker. Both define the same tasks.
+`ops/<DEV_MODE>/Makefile`: `ops/docker/Makefile` runs the whole stack in Docker;
+`ops/native/Makefile` runs the app on the host with the stack's own dev command, its backing
+services in Docker. Both define the same tasks.
 
 1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
    stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
@@ -173,9 +174,9 @@ host with the stack's own dev command, its backing services in Docker. Both defi
    - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
      Setting them is a change to the stack, through triage.
-   - `SERVICES` — the backing services that stay in Docker. A developer who runs one on the host
-     pins its `<NAME>_PORT` in `.env`; with nothing in Docker on that port, the app gets the pinned
-     one. Empty `SERVICES`: native mode needs no Docker at all.
+   - `DEFAULT_SERVICES` — the backing services that stay in Docker. A developer who runs some on the
+     host sets their own `SERVICES` in `.env` — `SERVICES=postgres`, or `none` — and pins the other
+     services' `<SERVICE>_PORT` there; it's their file, which they edit.
    - The stack's runtime on the host, at the version the project pins — a prerequisite row in
      `DEV-SETUP.md`.
    - The host-form variables in `.env` use the exported ports

@@ -77,8 +77,8 @@ paths:
 - Pin image versions. A service another one waits for has a healthcheck, and the one that waits uses
   `depends_on` with `condition: service_healthy`. Data lives in named volumes.
 - Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
-  backing services in Docker (`SERVICES` in `ops/native/Makefile`). A service a developer runs on the host
-  instead has its port pinned in `.env`. `make up` starts the app in the background and waits until
+  backing services in Docker (`DEFAULT_SERVICES` in `ops/native/Makefile`). A developer who runs some
+  on the host sets their own `SERVICES` in `.env` (or `none`) and pins those services' ports there. `make up` starts the app in the background and waits until
   it answers; its process, port, and log stay in `ops/native/.run/`, which git ignores.
 - Volume-mount config files so changes persist without rebuilding.
 - Use multi-stage builds for production images, and keep secrets out of the build context

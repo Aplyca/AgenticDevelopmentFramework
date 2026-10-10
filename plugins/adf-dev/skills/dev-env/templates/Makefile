@@ -2,7 +2,7 @@
 # The local environment's tasks: one command surface for people and agents. `make` lists them.
 # What both modes share is here. ops/ holds one folder per target, and each local mode's tasks are
 # in ops/<mode>/Makefile; the mode in force loads its file. Docker Compose reads .env itself; this
-# file reads only DEV_MODE from it, and never loads or exports the rest. Works with GNU make 3.81
+# file reads only DEV_MODE and SERVICES from it, and never loads or exports the rest. Works with GNU make 3.81
 # (macOS) and later.
 
 COMPOSE ?= docker compose
@@ -12,9 +12,13 @@ DEFAULT_MODE = docker
 # CUSTOMIZE: the app's Compose service
 APP ?= web
 
+# One setting from .env, unquoted and without a trailing comment; empty when it isn't there. A
+# setting given on the command line or in the shell wins over it.
+env_value = $(strip $(shell sed -n 's/^$(1)=\([^\#]*\).*/\1/p' .env 2>/dev/null | tail -n 1 | tr -d "\"'"))
+
 # The mode: `make up DEV_MODE=native`, then the shell's DEV_MODE, then .env's, then DEFAULT_MODE.
 ifeq ($(origin DEV_MODE),undefined)
-DEV_MODE := $(shell sed -n 's/^DEV_MODE=\([^\#]*\).*/\1/p' .env 2>/dev/null | tail -n 1 | tr -d "\"' ")
+DEV_MODE := $(call env_value,DEV_MODE)
 endif
 override DEV_MODE := $(or $(strip $(DEV_MODE)),$(DEFAULT_MODE))
 MODE_FILE = ops/$(DEV_MODE)/Makefile
