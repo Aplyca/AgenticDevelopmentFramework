@@ -235,7 +235,8 @@ Present the table before going further. Wrong facts here poison every file downs
   `adf-worktree-rm`), as `DEV-SETUP.md` has the skills' full names. For
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
   `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
-  stack from its templates, or proposes moving the existing one to the conventions, and fills
+  stack to the local environment specification it carries (its templates are an example of it), or
+  audits the existing one against it and proposes the move, and fills
   `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_SERVICE`, and `deployment.md`'s
   `paths:` from what it verifies.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.

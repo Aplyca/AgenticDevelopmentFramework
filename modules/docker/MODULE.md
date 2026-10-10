@@ -1,7 +1,8 @@
 # Module: docker
 
 For projects whose local environment runs on Docker Compose. Adds `/dev-env`, which writes the stack
-from its templates — or moves an existing one to the conventions below — runs the app natively when
+to the [local environment specification](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/plugins/adf-dev/skills/dev-env/SPECIFICATION.md) it carries — or audits an existing one against it and
+proposes the move — runs the app natively when
 the developer prefers, gives each worktree a stack of its own when the project runs agents in
 parallel, diagnoses a stack that won't start the way `/debug` diagnoses a bug, and resets one without
 touching anything else on the machine. Read-only docker commands run without a prompt; every command
@@ -9,7 +10,9 @@ that deletes containers, volumes, or images asks first.
 
 ## The conventions
 
-[Decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md):
+The [specification](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/plugins/adf-dev/skills/dev-env/SPECIFICATION.md) is the source, each requirement with an ID that an audit names; the
+skill's templates are an example that meets it. In short ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md),
+[0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)):
 
 - **Docker Compose, with `compose.yaml` at the root.** The root holds only it, the `Makefile`, `.env`
   (untracked), and `.env.example`.
@@ -35,14 +38,15 @@ that deletes containers, volumes, or images asks first.
 | File | Purpose |
 |---|---|
 | `.claude/settings.json` (merged) | `permissions.allow` for read-only commands (`docker compose ps`, `logs`, `port`, `ls`, `config --quiet`, `docker ps`, `volume ls`, `system df`, and exactly `make help`, `make ps`, `make urls`, `make logs`); `permissions.ask` for destructive ones (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, and any `make` command that names `reset`). An ask rule wins over any allow rule, so a broad `Bash(docker *)` the project already has can't skip the prompt |
-| `.claude/skills/dev-env/` | **Committed install only:** the skill and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
+| `.claude/skills/dev-env/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
-The module copies no files into the project. `/dev-env set up` writes the stack from the skill's
-templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
+The module copies no files into the project. `/dev-env set up` writes the stack to the
+specification, starting from the skill's templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
 `ops/docker/` (`docker.mk`; `ports.sh`, which looks up the ports Docker picked; and
 `web/Dockerfile` with its `.dockerignore`) and `ops/native/` (`native.mk`, and `native.sh`, which
-starts and stops the app on the host) — and fills in what it verifies about the project. No rule of its own: the conventions live in the skeleton's
-`.claude/rules/deployment.md` § Docker, which `/dev-env` keeps pointed at the project's files.
+starts and stops the app on the host) — and fills in what it verifies about the project. No rule of
+its own: the skeleton's `.claude/rules/deployment.md` § Docker is the project's copy of the
+conventions, and its § Conformance records each requirement the project departs from on purpose.
 
 ## Install
 

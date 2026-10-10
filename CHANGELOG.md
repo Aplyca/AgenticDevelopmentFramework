@@ -101,6 +101,13 @@ of its own.
 - **A service a developer runs on the host** needs only its port pinned in `.env`. `SERVICES` in
   `native.mk` lists what stays in Docker; empty, native mode needs no Docker.
 - **The band above the prompt** shows the native app's URL, read from `ops/native/.run/app.env`.
+- **A specification, with the templates as its example.** `dev-env`'s `SPECIFICATION.md` states
+  each requirement with an ID: layout `L`, command surface `C`, modes `M`, ports `P`, Compose `D`,
+  variables `V`, worktrees `W`, and deployment targets `T`. It also says where each fact lives and
+  the order an audit checks. `/dev-env` writes a stack to it and audits one against it, naming each
+  gap by ID. `/adf:adopt` and `/adf:upgrade` hand a project to `/dev-env` and never copy the
+  templates over its files. A project records a deliberate departure in `deployment.md`
+  § Conformance. The static check reads the required tasks from the specification.
 - **`/dev-env`** fills each mode's commands in set up, flags `ops/` folders by kind of file and a
   `Makefile` with its own native targets in an audit, and in worktrees mode proposes a `STOP_CMD`
   that also stops a native app.
@@ -117,12 +124,13 @@ of its own.
   - update whatever names `ops/scripts/`: CI, docs, other scripts.
 
   Running `/adf-dev:dev-env set up` audits the stack and proposes these changes.
-- **Merge** `.claude/rules/deployment.md` (§ Command surface and § Docker),
+- **Merge** `.claude/rules/deployment.md` (§ Command surface, § Docker, and the new § Conformance),
   `docs/getting-started/DEV-SETUP.md` (§ 6 and the command surface), and the `LOCAL_URL` comment in
   `.claude/hooks/config.sh`. Replace any `make native` the project's docs name with
   `DEV_MODE=native` and `make up`.
 - **Overwrite** `.claude/skills/dev-env/` in a committed install: `scripts/build-committed.py` writes
-  it, templates included. A packaged project gets it, and the band, with its pin.
+  it, `SPECIFICATION.md` and the templates included. A packaged project gets it, and the band, with
+  its pin.
 - With parallel-agents, change `STOP_CMD` in `ops/agent/worktree.conf` to
   `"ops/native/native.sh stop; docker compose down -v"` once `native.sh` is in.
 

@@ -234,7 +234,11 @@ out, and the plugin its `module.json` names, when that isn't `adf`, is turned on
 `MODULE.md` § Customize steps join the plan's
 checklist — for `parallel-agents`, `worktree.conf` (only `BASE_BRANCH` and `SETUP_CMD` unless worktrees
 run a server) and the dispatcher line in `AGENTS.md` § Delivery rules; for `docker`, `/dev-env set up`
-as a follow-up in a new session once the stamp names the module.
+as a follow-up in a new session once the stamp names the module. A project that already has `docker`
+gets the same follow-up whenever the release changed the local environment specification
+(`dev-env`'s `SPECIFICATION.md`; the CHANGELOG names it): `/dev-env set up` audits the stack against
+it and proposes each gap by requirement ID. Never copy the templates over the project's files — they
+are an example of the specification, not the project's stack.
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the

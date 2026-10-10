@@ -83,6 +83,12 @@ paths:
 - Use multi-stage builds for production images, and keep secrets out of the build context
   (`<Dockerfile>.dockerignore` beside each Dockerfile).
 
+## Conformance
+<!-- CUSTOMIZE: with the docker module, the local environment follows the specification `/dev-env`
+carries (SPECIFICATION.md, beside its skill). List here each requirement this project departs from
+on purpose, by ID, with the reason — an audit reports it as an exception, not a gap. -->
+- None.
+
 ## CI/CD (if applicable)
 - Tests pass before merge; a failure the reviewer accepts is explained in the pull request.
 - Use the same test configuration locally and in CI.

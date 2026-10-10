@@ -73,6 +73,17 @@ can only run the command the project gives it.
 9. **Worktrees** keep `START_CMD="make up"`, which loads the worktree's own mode. `/dev-env
    worktrees` proposes `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`.
 
+10. **A specification is the source, and the templates are an example of it.**
+    `plugins/adf-dev/skills/dev-env/SPECIFICATION.md` states every requirement above, and 0032's that
+    still hold, each with an ID (`L1`, `C3`, `M7`, …), a table of where each fact lives, and the order
+    an audit checks them in. It sits beside the skill, so it travels with it in both installs: a
+    packaged project reads it in the plugin, and a committed one gets it in `.claude/skills/dev-env/`.
+    `/dev-env` writes a stack to it and audits one against it, naming gaps by ID; `/adf:adopt` and
+    `/adf:upgrade` hand a project to `/dev-env` rather than copy the templates. A project records each
+    requirement it departs from on purpose, by ID and with the reason, in `deployment.md`
+    § Conformance. The static check reads the tasks every mode must define from the specification
+    and asserts the templates define them.
+
 ## Consequences
 
 - **Positive:**
@@ -93,6 +104,12 @@ can only run the command the project gives it.
 
 ## Alternatives considered
 
+- **The conventions in the skill's text and the templates only,** as 0032 had them. Replaced: an
+  adopting agent copied the templates' shape, the example's service names included, and an audit
+  had no way to say which rule a gap broke.
+- **The specification in the plugin's `docs/`,** like `adf`'s reference docs. Declined: a committed
+  install would write it into the project's own `docs/`, beside the project's setup guide, while
+  beside the skill it travels with the skill and its templates.
 - **`ops/` by kind of file** (`ops/scripts/`, `ops/make/`, `ops/docker/<service>/`), as 0032 had it.
   Replaced: one target's files sat in three folders, and a new target had nowhere of its own.
 - **Calling the layout Domain-Driven Design.** Declined as a name, kept as a principle: DDD models the

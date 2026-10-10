@@ -735,7 +735,9 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
-    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'No `env_file:`' || missing+=("/dev-env: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'No `env_file:`' || missing+=("dev-env's specification: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'one folder per target' || missing+=("dev-env's specification: ops/ has one folder per target (0034)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
@@ -1155,13 +1157,25 @@ if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
 if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
     print("Makefile doesn't load the mode's file (ops/<mode>/<mode>.mk, decision 0034)")
-# Each mode's file, with the shared tasks, gives the same command surface (decision 0034).
+# The templates are an example of the skill's specification: each mode's file, with the shared
+# tasks, defines every task its C3 table requires (decision 0034).
+spec_path = os.path.join(os.path.dirname(tpl), "SPECIFICATION.md")
+spec = open(spec_path, encoding="utf-8").read() if os.path.isfile(spec_path) else ""
+skill = open(os.path.join(os.path.dirname(tpl), "SKILL.md"), encoding="utf-8").read()
+if not spec:
+    print("dev-env has no SPECIFICATION.md")
+elif "SPECIFICATION.md" not in skill:
+    print("dev-env's SKILL.md doesn't send the agent to SPECIFICATION.md")
+c3 = spec.split("- **C3.**", 1)[1].split("- **C4.**", 1)[0] if "- **C3.**" in spec else ""
+required = re.findall(r"^\s*\| `([a-z][a-z-]*)` \|", c3, re.M)
+if len(required) < 9:
+    print("SPECIFICATION.md: C3 doesn't list the tasks every mode defines")
 shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
-for mode, extra in (("docker", "shell"), ("native", "services")):
+for mode in ("docker", "native"):
     targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/{mode}.mk"), re.M))
-    for target in f"help env up down build ps logs urls test lint reset {extra}".split():
+    for target in ["help", "env"] + required:
         if target not in targets:
-            print(f"ops/{mode}/{mode}.mk: no {target} target")
+            print(f"ops/{mode}/{mode}.mk: no {target} target, which SPECIFICATION.md C3 requires")
 make = "\n".join([make, read("ops/docker/docker.mk"), read("ops/native/native.mk")])
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
                  (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
@@ -1184,7 +1198,7 @@ for script in sorted(scripts):
 PY
 )
     if [ -z "$problems" ]; then
-        pass "dev-env templates: compose.yaml, the Makefile, and .env.example keep the conventions (0032); shipped scripts run on bash 3.2"
+        pass "dev-env templates: an example of its SPECIFICATION.md — compose.yaml, the Makefile and both mode files, and .env.example (0032, 0034); shipped scripts run on bash 3.2"
     else
         fail "dev-env templates" "$(echo "$problems" | tr '\n' ';')"
     fi
