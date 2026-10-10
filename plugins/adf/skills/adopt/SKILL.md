@@ -51,7 +51,8 @@ to install modules (steps 3–4 for the chosen modules only, then update the `mo
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
 checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
 (`adf-worktree-new chore/add-modules --no-start`, the plugin's command, which runs the committed
-script where the project has one).
+script where the project has one). Started in the main checkout, run `/adf:dispatch` with it as the
+task, without asking first.
 
 ### A new project
 

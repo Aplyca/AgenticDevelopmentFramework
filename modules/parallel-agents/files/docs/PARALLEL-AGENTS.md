@@ -22,7 +22,10 @@ to a worktree of its own like any other task.
 
 ## How a task gets its worktree
 
-Every task starts in the main checkout with `/dispatch`, and every task takes the same route:
+Every task starts in the main checkout with `/dispatch`. The session there dispatches a task as soon
+as it arrives — one the developer typed, or a command whose hub check stopped it — without asking
+first: the chip, or the command, is where the developer chooses whether it starts. Every task takes
+the same route:
 
 1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
    prompt: the task, the branch, and the first step.

@@ -19,7 +19,8 @@ blind sync.
   session in a worktree of its own — dispatch it like any task
   (`adf-worktree-new chore/skeleton-upgrade-<NEW_SHA> --no-start`, the plugin's command, which runs
   the committed script where the project has one) — and if you were started in the main checkout,
-  say so and stop.
+  say so and run `/adf:dispatch` with the upgrade as the task, without asking first: the chip it
+  offers is where the developer chooses.
 - **Plan before touching.** No file is modified until the user approves the per-file plan.
 - **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest

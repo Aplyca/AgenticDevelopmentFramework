@@ -93,7 +93,7 @@ if worktree_conf="$(worktree_settings "$root")"; then
     # Every task takes one route (decision 0021): /adf:dispatch hands it to a new session that opens here,
     # creates the task's worktree beside this checkout with the scripts, and moves into it. Hooks don't
     # run again after the move, so the worker's first step is spelled out here.
-    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /adf:dispatch: it hands the task to a new session, which creates the task's worktree beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves into it."
+    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /adf:dispatch, as soon as it arrives and without asking first — the chip it offers is where the developer chooses: it hands the task to a new session, which creates the task's worktree beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves into it."
     echo "- A session whose prompt hands it one task and its branch (from /adf:dispatch) is that task's worker, not the dispatcher. Its first step is the worktree: adf-worktree-new <branch> --no-start, then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd before anything else."
   else
     echo "- Role: WORKER. This worktree is yours for one task — start with triage (/adf:triage)."

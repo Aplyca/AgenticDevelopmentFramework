@@ -11,6 +11,32 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+### The main checkout dispatches without asking first
+
+With the parallel-agents module, a command started in the main checkout, such as `/adf-dev:dev-env
+set-up`, stopped at its hub check, told the developer to run `/adf:dispatch`, and asked whether to
+run it. That was two prompts for one choice: the task chip `/adf:dispatch` offers already is where the
+developer decides whether the task starts. Now the session dispatches straight away.
+
+- **`/dispatch`** says to dispatch without asking, whether the developer typed the task or a
+  command's hub check stopped it. A stopped command becomes the task as the developer typed it,
+  arguments included, so the worker runs it in the worktree.
+- **The hub checks** in `/dev-env`, `/connect`, `/upgrade`, and `/adopt` run `/adf:dispatch` with the
+  command as the task, instead of pointing at it and stopping. `/dev-env` and `/connect` read nothing
+  more in the main checkout.
+- **The session-context and protect-hub hooks** tell a main-checkout session to dispatch a task
+  without asking first.
+
+**Upgrade impact:**
+
+- **Overwrite**, in a committed install, `.claude/skills/dispatch/SKILL.md` (parallel-agents),
+  `.claude/skills/dev-env/SKILL.md` (docker), `.claude/hooks/session-context.sh`, and
+  `.claude/hooks/protect-hub.sh`: `scripts/build-committed.py` writes them. `/connect`, `/adopt`, and
+  `/upgrade` run from their plugins.
+- **Merge** `docs/PARALLEL-AGENTS.md` (parallel-agents): one paragraph in § How a task gets its
+  worktree. Your § Shared services stays.
+- **A packaged project:** nothing else to do. The plugin carries the rest with its pin.
+
 ## v2.0.0 — 2026-10-09 — The plugin is `adf`, and `AGENTS.md` is the one instruction file
 
 A major release: every project acts once. The framework's plugin `aplyca-adf` is now `adf`, a project
