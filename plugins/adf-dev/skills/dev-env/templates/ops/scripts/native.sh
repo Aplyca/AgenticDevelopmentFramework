@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # The app on the host, in the background, for DEV_MODE=native: `make up` starts it and waits until it
 # answers, `make down` stops it, `make logs` and `make ps` read what it left. It runs the stack's own
-# dev command (NATIVE_CMD in the Makefile), so it knows nothing about the stack.
+# dev command (NATIVE_CMD in ops/make/native.mk), so it knows nothing about the stack.
 #
 #   ops/scripts/native.sh start    start the app unless it runs, wait until its port answers
 #   ops/scripts/native.sh stop     stop it — its whole process group — if it runs
 #   ops/scripts/native.sh status   whether it runs, and where
 #   ops/scripts/native.sh logs     the last 100 lines of its log
 #
-# The Makefile passes NATIVE_CMD and the ports.sh settings. The app's state — its process, its port,
+# ops/make/native.mk passes NATIVE_CMD and the ports.sh settings. The app's state — its process, its port,
 # its log — is in ops/.run/, which git ignores: app.env holds PID and APP_PORT while it runs, and the
 # band above the prompt reads APP_PORT there. bash 3.2 or later.
 set -euo pipefail
@@ -39,7 +39,7 @@ running_pid() {
 }
 
 start() {
-  local pid port waited=0
+  local pid port exports waited=0
   [ -n "${NATIVE_CMD:-}" ] || die "NATIVE_CMD is empty: set it in the Makefile to the app's dev command"
   pid="$(running_pid)"
   if [ -n "$pid" ]; then
@@ -47,7 +47,8 @@ start() {
     return 0
   fi
   # Each backing service's port, and the app's own: pinned in .env, or a free one.
-  eval "$(ops/scripts/ports.sh env)"
+  exports="$(ops/scripts/ports.sh env)" || exit 1
+  eval "$exports"
   port="${APP_PORT:?ports.sh gave no APP_PORT: add APP_PORT=<service>:<port> to PORTS in the Makefile}"
   mkdir -p "$RUN"
   # A process group of its own (set -m), so stop ends the dev server and every process it started.

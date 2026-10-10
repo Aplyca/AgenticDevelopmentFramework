@@ -1104,15 +1104,17 @@ tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
 def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
-files = ["compose.yaml", "Makefile", ".env.example", "ops/scripts/ports.sh", "ops/docker/web/Dockerfile",
+files = ["compose.yaml", "Makefile", "ops/make/docker.mk", "ops/make/native.mk", ".env.example",
+         "ops/scripts/ports.sh", "ops/scripts/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
 for f in missing:
     print(f"templates/{f} is missing")
 if missing:
     sys.exit()
-if not os.access(os.path.join(tpl, "ops/scripts/ports.sh"), os.X_OK):
-    print("templates/ops/scripts/ports.sh isn't executable")
+for script in ("ops/scripts/ports.sh", "ops/scripts/native.sh"):
+    if not os.access(os.path.join(tpl, script), os.X_OK):
+        print(f"templates/{script} isn't executable")
 
 declared = {m.group(1): m.group(2) for m in re.finditer(r"^([A-Z_][A-Z0-9_]*)=(.*)$", read(".env.example"), re.M)}
 for name, value in declared.items():
@@ -1149,12 +1151,18 @@ for name, body in services.items():
             print(f"compose.yaml: {name} waits for {dep} without a healthcheck it waits on")
 
 make = read("Makefile")
-targets = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
-for target in "help env up down build ps logs urls shell services native test lint reset".split():
-    if target not in targets:
-        print(f"Makefile has no {target} target")
 if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
+if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
+    print("Makefile doesn't load the mode's file (ops/make/<mode>.mk, decision 0034)")
+# Each mode's file, with the shared tasks, gives the same command surface (decision 0034).
+shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
+for mode, extra in (("docker", "shell"), ("native", "services")):
+    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/make/{mode}.mk"), re.M))
+    for target in f"help env up down build ps logs urls test lint reset {extra}".split():
+        if target not in targets:
+            print(f"ops/make/{mode}.mk: no {target} target")
+make = "\n".join([make, read("ops/make/docker.mk"), read("ops/make/native.mk")])
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
                  (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
                  (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):
@@ -1162,10 +1170,9 @@ for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", 
         print(f"Makefile uses {why}, which GNU make 3.81 lacks or which leaks .env")
 if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and "=" not in l.split(":")[0]), re.M):
     print("Makefile: a recipe line is indented with spaces, not a tab")
-# The recipe, with the mode's conditionals (decision 0034) read as part of it.
-logs = re.search(r"^logs:.*\n((?:(?:\t|ifeq|else|endif).*\n)+)", make, re.M)
-if not logs or not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
-    print("Makefile: logs must show the last lines and never follow")
+for logs in re.finditer(r"^logs:.*\n((?:\t.*\n)+)", make, re.M):
+    if not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
+        print("Makefile: logs must show the last lines and never follow")
 
 bash4 = re.compile(r"declare -A|\bmapfile\b|\breadarray\b|\$\{\w+(,,|\^\^)|\|&|&>>|\bcoproc\b")
 scripts = glob.glob(os.path.join(root, "modules", "*", "files", "**", "*.sh"), recursive=True)

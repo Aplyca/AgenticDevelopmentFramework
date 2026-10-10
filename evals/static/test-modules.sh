@@ -301,8 +301,8 @@ echo 'MAILCHIMP_API_KEY=topsecret' >> "$DS/site/.env"
 out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
 out=$(stack make help 2>&1)
-check "make help: the default target lists every task" \
-    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell services native test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+check "make help: the default target lists every task of the mode" \
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
     "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'ports.sh guard'"
@@ -338,43 +338,47 @@ check "ports.sh guard: refuses in a worktree whose .env repeats the main checkou
 sed -i.bak 's/^APP_PORT=48765$/APP_PORT=/' "$DS/site-feat-copied/.env" && rm -f "$DS/site-feat-copied/.env.bak"
 check "ports.sh guard: passes there once the copied port is emptied" "(cd '$DS/site-feat-copied' && /bin/bash ops/scripts/ports.sh guard)"
 
-# The mode (decision 0034): DEFAULT_MODE in the Makefile, DEV_MODE in .env, or on the command line.
+# The mode (decision 0034): the root Makefile loads ops/make/<DEV_MODE>.mk — DEFAULT_MODE, .env, or the
+# command line.
 check "templates: native.sh is executable" "[ -x '$TPL/ops/scripts/native.sh' ]"
 out=$(stack make help 2>&1)
-check "make help: names the mode, docker by default" "echo \"\$out\" | head -1 | grep -q '^Mode: docker'"
+check "make help: names the mode and its file, docker by default" "echo \"\$out\" | head -1 | grep -q '^Mode: docker (ops/make/docker.mk)'"
 out=$(stack make -n up 2>&1)
 check "make up, docker mode: the whole stack in Docker" "echo \"\$out\" | grep -q 'compose up -d --wait\$' && ! echo \"\$out\" | grep -q 'native.sh start'"
 echo 'DEV_MODE=native # this checkout' >> "$DS/site/.env"
+out=$(stack make help 2>&1)
+check "make help, DEV_MODE=native in .env: native.mk's tasks" \
+    "echo \"\$out\" | head -1 | grep -q '^Mode: native (ops/make/native.mk)' && echo \"\$out\" | grep -q 'make services ' && ! echo \"\$out\" | grep -q 'make shell '"
 out=$(stack make -n up 2>&1)
-check "make up, DEV_MODE=native in .env: the backing services in Docker, the app on the host" \
-    "echo \"\$out\" | grep -q 'native.sh start' && ! echo \"\$out\" | grep -q 'compose up -d --wait\$'"
+check "make up, native mode: the backing services in Docker, the app on the host" \
+    "echo \"\$out\" | grep -q 'up -d --wait redis' && echo \"\$out\" | grep -q 'native.sh start'"
 out=$(stack make -n up DEV_MODE=docker 2>&1)
 check "make up DEV_MODE=docker: the command line wins over .env" "echo \"\$out\" | grep -q 'compose up -d --wait\$' && ! echo \"\$out\" | grep -q 'native.sh start'"
 out=$(stack make help DEV_MODE=podman 2>&1); code=$?
-check "DEV_MODE: anything but docker or native stops make, naming the setting" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"DEV_MODE is 'podman'\""
-out=$(stack make -n services HOST_SERVICES=redis 2>&1)
-check "make services: skips a backing service the developer runs on the host" "! echo \"\$out\" | grep -q 'up -d --wait redis'"
+check "DEV_MODE: a mode with no file stops make, naming the setting" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"DEV_MODE is 'podman'\""
 out=$(stack make -n reset 2>&1)
 check "make reset, native mode: stops the app on the host, then deletes the volumes" \
     "echo \"\$out\" | grep -q 'native.sh stop' && echo \"\$out\" | grep -q 'down -v'"
 # The app on the host, for real: a dev command that serves the folder, with nothing in Docker.
 NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
 git -C "$NS" init -q -b main && printf '.env\nops/.run/\n' > "$NS/.gitignore"
-sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = sh -c '"'"'exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1'"'"'|' "$NS/Makefile" && rm -f "$NS/Makefile.bak"
-native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native HOST_SERVICES=redis); }
+sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' -e 's|^SERVICES ?= redis$|SERVICES ?=|' "$NS/ops/make/native.mk" && rm -f "$NS/ops/make/native.mk.bak"
+native() { (cd "$NS" && PATH="$DS/bin:$PATH" REDIS_PORT=6399 make "$@" DEV_MODE=native); }
 out=$(native up 2>&1); code=$?
 port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/.run/app.env" 2>/dev/null)
 check "native mode, make up: starts the app in the background and waits until it answers" \
     "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"\$out\" | grep -q \"http://localhost:$port\""
 out=$(native urls 2>&1)
-check "native mode, make urls: the app on the host, and a service the developer runs there" \
-    "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (APP_PORT, on the host)\" && echo \"\$out\" | grep -q 'redis .*on the host'"
+check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (APP_PORT, on the host)\""
 out=$(native up 2>&1)
 check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
-sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/Makefile" && rm -f "$NS/Makefile.bak"
+out=$(cd "$NS" && PATH="$DS/bin:$PATH" make up DEV_MODE=native 2>&1); code=$?
+check "native mode, make up: a backing service neither in Docker nor pinned stops it, saying what to pin" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'pin REDIS_PORT in .env' && [ ! -f '$NS/ops/.run/app.env' ]"
+sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/make/native.mk" && rm -f "$NS/ops/make/native.mk.bak"
 out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q boom && [ ! -f '$NS/ops/.run/app.env' ]"

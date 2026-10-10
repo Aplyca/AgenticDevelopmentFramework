@@ -1,6 +1,6 @@
 # 0032: A project's local environment — `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks
 
-- **Status:** accepted; amended by [0034](0034-local-environment-modes.md) (the app runs in Docker or natively by a setting, `DEV_MODE`, and the same `make` tasks act on either)
+- **Status:** accepted; amended by [0034](0034-local-environment-modes.md) (the app runs in Docker or natively: `DEV_MODE` loads `ops/make/docker.mk` or `ops/make/native.mk`, which define the same tasks)
 - **Date:** 2026-10-09
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — worktree ports for a Docker
   stack; [0026](0026-display-only-mods.md) — one read-only lookup the band may run;

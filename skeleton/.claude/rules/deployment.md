@@ -28,12 +28,12 @@ paths:
 ## Command surface
 - A `Makefile` at the root holds the common tasks, for people and agents alike; `make help` lists
   them. A task the team runs often gets a target instead of a command copied around.
-- With Docker: `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `shell`, `services`, `native`,
-  `test`, `lint`, and `reset` — the only one that deletes data. `logs` shows the last lines and never
-  follows.
-- The same tasks act on the local environment's mode, so nobody types a different command for it:
-  `DEV_MODE` in `.env` — `docker`, or `native` for the app on the host — and the project's default,
-  `DEFAULT_MODE`, in the `Makefile`. `make help` names the mode in force.
+- With Docker: `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `test`, `lint`, and `reset` —
+  the only one that deletes data. `logs` shows the last lines and never follows.
+- One file per mode: the root `Makefile` loads `ops/make/<DEV_MODE>.mk` — `docker.mk`, or
+  `native.mk` for the app on the host — and both define the same tasks, so nobody types a different
+  command for the mode. `DEV_MODE` in `.env` picks it; `DEFAULT_MODE` in the `Makefile` is the
+  project's default. `make help` names the mode in force.
 
 ## Port assignments
 <!-- CUSTOMIZE: List the port variables your local environment publishes -->
@@ -67,9 +67,9 @@ paths:
 - Pin image versions. A service another one waits for has a healthcheck, and the one that waits uses
   `depends_on` with `condition: service_healthy`. Data lives in named volumes.
 - Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
-  backing services in Docker — except the ones a developer runs on the host, listed in
-  `HOST_SERVICES`. `make up` starts it in the background and waits until it answers; its process,
-  port, and log stay in `ops/.run/`, which git ignores. `make native` runs it in the foreground.
+  backing services in Docker (`SERVICES` in `native.mk`). A service a developer runs on the host
+  instead has its port pinned in `.env`. `make up` starts the app in the background and waits until
+  it answers; its process, port, and log stay in `ops/.run/`, which git ignores.
 - Volume-mount config files so changes persist without rebuilding.
 - Use multi-stage builds for production images, and keep secrets out of the build context
   (`<Dockerfile>.dockerignore` beside each Dockerfile).

@@ -70,13 +70,13 @@ fixed, set its `<NAME>_PORT` in `.env`, such as `APP_PORT=3000`.]
 
 ```bash
 [e.g., make up      # the app, in this checkout's mode, at the URL make urls shows]
-[e.g., make native  # or the app on your machine in the foreground; Ctrl-C stops it]
+[e.g., make logs    # its last lines]
 ```
 
 [e.g., `DEV_MODE` in `.env` sets where the app runs: `docker` (the default here), or `native` for the
 app on your machine against the services in Docker — which needs [runtime and version] installed, and
-`make build` once to install its dependencies. Services you run on your machine yourself go in
-`HOST_SERVICES`, with their ports pinned. `make help` names the mode in force.]
+`make build` once to install its dependencies. For a service you run on your machine yourself, pin
+its port in `.env` (`REDIS_PORT=6379`). `make help` names the mode in force.]
 
 The app will be available at [e.g., the URL `make up` and `make urls` print].
 
@@ -148,7 +148,7 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 | Install | `[command]` |
 | Run / stop | `[e.g., make up · make down]` |
 | Where it runs | `[e.g., make urls]` |
-| Run on the host | `[e.g., DEV_MODE=native in .env, then make up — or make native in the foreground]` |
+| Run on the host | `[e.g., DEV_MODE=native in .env, then make up]` |
 | Logs | `[e.g., make logs]` |
 | Test | `[e.g., make test]` |
 | Lint / typecheck | `[e.g., make lint]` |

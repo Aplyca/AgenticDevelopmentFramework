@@ -22,11 +22,11 @@ project's copy.
 |---|---|
 | Compose, at the root | `compose.yaml` is the one entry point, with any override as `compose.<name>.yaml` beside it. The root holds only it, the `Makefile`, `.env`, and `.env.example` |
 | Operational code in `ops/` | Dockerfiles and service config in `ops/docker/<service>/`, helper scripts in `ops/scripts/`, and the parallel-agents module in `ops/agent/` |
-| The `Makefile` is the command surface | `make help` lists the tasks — `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `shell`, `services`, `native`, `test`, `lint`, `reset` — and people and agents type the same ones |
+| The `Makefile` is the command surface | `make help` lists the tasks — `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `test`, `lint`, `reset`, plus `shell` in Docker mode and `services` in native mode — and people and agents type the same ones |
 | Three levels of variables | `.env` (untracked) is what Compose reads to fill each `${…}`, and what the app reads on the host. Each service's `environment:` in `compose.yaml` is what that container gets, in container form. `.env.example` (committed) names every variable, without a value. No `env_file:` |
 | Ports Docker picks | Every published port is `"127.0.0.1:${<NAME>_PORT:-}:<port>"`, and `.env.example` leaves `<NAME>_PORT` empty: Docker picks a free port each time the service starts, so any number of checkouts run side by side. `make urls` shows where each service is. A developer pins a port in `.env` when the app must know its own URL |
 | Side by side | No `container_name:`, no top-level `name:`, and an empty `COMPOSE_PROJECT_NAME`: the checkout's folder names the project |
-| Two modes, one command surface | `DEV_MODE` picks where the app runs: `docker`, the whole stack in Docker, or `native`, the app on the host with the stack's own dev command and its backing services in Docker. `DEFAULT_MODE` in the `Makefile` is the project's default, and each checkout's `.env` may set `DEV_MODE`. `make up`, `down`, `ps`, `logs`, `urls`, `build`, `test`, `lint`, and `reset` act on the mode, so people, agents, and worktrees type the same commands in either one. In native mode, `HOST_SERVICES` in `.env` names the backing services a developer runs on the host instead |
+| One file per mode | The root `Makefile` holds what both modes share and loads `ops/make/<DEV_MODE>.mk`: `docker.mk`, the whole stack in Docker, or `native.mk`, the app on the host with the stack's own dev command and its backing services in Docker. `DEFAULT_MODE` in the `Makefile` is the project's default, and each checkout's `.env` may set `DEV_MODE`. Both files define the same tasks, so people, agents, and worktrees type the same commands in either mode |
 
 Each fact has one home, and this skill writes only what a command it ran has shown:
 
@@ -37,7 +37,8 @@ Each fact has one home, and this skill writes only what a command it ran has sho
 | The tasks people and agents run | `Makefile` (`make help`) |
 | Every variable's name | `.env.example` |
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
-| Where the app runs: the project's default, and this checkout's choice | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` and `HOST_SERVICES` in `.env` — `make help` names the mode |
+| Where the app runs: the project's default, and this checkout's choice | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` in `.env` — `make help` names the mode |
+| Each mode's tasks and commands | `ops/make/docker.mk`, `ops/make/native.mk` |
 | The app on the host while it runs: its process, port, and log | `ops/.run/` (ignored by git), written by `ops/scripts/native.sh` |
 | Where the services are now | `make urls` |
 | How a person sets up and starts the stack, its services, problems met before | `docs/getting-started/DEV-SETUP.md` (§ 3–6, the command surface, § Troubleshooting) |
@@ -90,19 +91,22 @@ Each fact has one home, and this skill writes only what a command it ran has sho
 
 1. **No stack yet?** Writing one is an infrastructure change — `/adf:triage` it like any change (the
    careful lane at least). Copy the templates in `<this skill's base directory>/templates/` to the
-   same paths in the repository — `compose.yaml`, `Makefile`, `.env.example`, `ops/docker/web/`,
-   `ops/scripts/ports.sh`, `ops/scripts/native.sh` — never over a file that's there. Then fill every
+   same paths in the repository — `compose.yaml`, `Makefile`, `ops/make/`, `.env.example`,
+   `ops/docker/web/`, `ops/scripts/ports.sh`, `ops/scripts/native.sh` — never over a file that's
+   there. Then fill every
    `CUSTOMIZE` from facts you verified:
    - the app's service, its container port, its Dockerfile, and its dev command;
    - each backing service the code uses (its client library, the variable its URL comes from),
      pinned, with a healthcheck the app's `depends_on` waits on;
    - every variable the code reads: by name in `.env.example`, and in container form in its
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
-   - in the `Makefile`: `PORTS`, `SERVICES`, `DEFAULT_MODE` (`docker` unless the team runs the app
-     on the host), and the commands each mode runs — `NATIVE_CMD`, the app's dev command listening
-     on `$APP_PORT`; `NATIVE_INSTALL_CMD`, what installs its dependencies on the host; `TEST_CMD`
-     and `LINT_CMD`, which run in the app's container or on the host. Each from the project's
-     package manifest, README, or docs — never a guess at the stack.
+   - in the `Makefile`: `APP`, `PORTS`, and `DEFAULT_MODE` (`docker` unless the team runs the app on
+     the host);
+   - in each mode's file, its own commands: `docker.mk`'s `test` and `lint` in the app's container;
+     `native.mk`'s `SERVICES` (the backing services that stay in Docker), `NATIVE_CMD` (the app's dev
+     command, listening on `$APP_PORT`), and its `build` (installing dependencies on the host),
+     `test`, and `lint`. Each from the project's package manifest, README, or docs — never a guess at
+     the stack. A project that never runs natively keeps `native.mk` as the template wrote it.
 
    Then `chmod +x ops/scripts/ports.sh ops/scripts/native.sh`, and make sure `.gitignore` has `.env`
    and `ops/.run/`.
@@ -117,7 +121,7 @@ Each fact has one home, and this skill writes only what a command it ran has sho
    - `container_name:` or a top-level `name:`;
    - a service another one waits for without a healthcheck and `condition: service_healthy`;
    - no `DEV_MODE`: a `Makefile` with its own `native` or `dev` targets beside the Docker ones, which
-     the two modes replace.
+     the two mode files replace.
 
    The migration is an infrastructure change: propose it through `/adf:triage` (the careful lane),
    and move nothing before the developer approves. It moves files with `git mv`, adds the template's
@@ -177,33 +181,33 @@ before it moved); without it, say so and stop.
 
 ## Mode: native
 
-Where the app runs is a setting, not a different command: `DEV_MODE=native` runs it on the host with
-the stack's own dev command, its backing services in Docker; `DEV_MODE=docker` runs the whole stack in
-Docker. The same `make` tasks act on either.
+Where the app runs is a setting, not a different command. The root `Makefile` loads
+`ops/make/<DEV_MODE>.mk`: `docker.mk` runs the whole stack in Docker; `native.mk` runs the app on the
+host with the stack's own dev command, its backing services in Docker. Both define the same tasks.
 
 1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
    stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
    developer's file, which they edit; never read it into the conversation. A single command can
-   override both: `make up DEV_MODE=native`. `make help` names the mode in force.
-2. **What native mode needs:**
-   - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT`, from the package manifest, the
-     README, or the project's docs; `NATIVE_INSTALL_CMD`, which `make build` runs; `TEST_CMD` and
-     `LINT_CMD`, which run on the host. Setting them is a change to the stack, through triage.
+   override both: `make up DEV_MODE=native`. `make help` names the mode and the file in force.
+2. **What native mode needs,** in `native.mk`:
+   - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
+     `lint` commands on the host, from the package manifest, the README, or the project's docs.
+     Setting them is a change to the stack, through triage.
+   - `SERVICES` — the backing services that stay in Docker. A developer who runs one on the host
+     pins its `<NAME>_PORT` in `.env`; with nothing in Docker on that port, the app gets the pinned
+     one. Empty `SERVICES`: native mode needs no Docker at all.
    - The stack's runtime on the host, at the version the project pins — a prerequisite row in
      `DEV-SETUP.md`.
    - The host-form variables in `.env` use the exported ports
      (`REDIS_URL=redis://localhost:${REDIS_PORT}`). For a stack whose env loader doesn't expand
      `${…}`, `NATIVE_CMD` passes them itself.
-   - A developer who runs a backing service on the host lists it in `HOST_SERVICES` in `.env` and
-     pins its `<NAME>_PORT` there: Docker skips it. With every one listed, native mode needs no
-     Docker at all.
 3. **Start it:** `make up` starts the backing services in Docker, stops the app's container if it
    runs, and starts the app in the background (`ops/scripts/native.sh`), with each `<NAME>_PORT`
    exported — `APP_PORT` too: pinned in `.env`, or a free one. It waits until the app answers, and
    fails with the end of its log if the app exits first. `make down` stops the app and its process
-   group; `make logs s=<app>` shows its log. `make native` runs it in the foreground instead, for a
-   person who wants its output — Ctrl-C stops it.
-4. **Switching modes** needs no cleanup: `make up` in one mode stops the app the other one runs.
+   group; `make logs` shows its log.
+4. **Switching modes** needs no cleanup: `make up` in Docker mode stops an app running on the host,
+   and native `make up` stops the app's container.
 5. **Verify:** `make ps` shows the app on the host and only the backing services in Docker; the app
    answers on the URL `make urls` gives; the quickest test that needs the stack passes with
    `make test`. The band above the prompt reads the app's port from `ops/.run/app.env`.
@@ -265,7 +269,7 @@ reset in the main checkout of a hub.
 | "`docker system prune -af` will clear it up" | It removes every project's stopped containers, unused images, and networks — other worktrees' and other repositories' included. Reset this project, smallest step first. |
 | "Let me print `docker compose config` to see what's wrong" | It prints every resolved secret into the conversation. `--quiet` validates; `--services` lists. |
 | "I'll read `.env` to see which mode this checkout uses" | `.env` holds credentials. `make help` names the mode in force. |
-| "I'll add `make dev` for the native run" | A second set of targets per mode is what `DEV_MODE` replaces: the same tasks act on either mode, so agents and worktrees never need to know which one a developer chose. |
+| "I'll add `make dev` for the native run" | Each mode's file defines the same tasks, so agents and worktrees never need to know which mode a developer chose. A task only one mode has goes in that mode's file. |
 | "I'll read `.env` to find the port" | `.env` holds credentials, and a port Docker picked isn't in it at all. `make urls` looks it up. |
 | "I'll start the stack now so it's ready" | Whether the task needs an environment is triage's call. Reading code and docs needs none. |
 | "Port 3000 is taken — I'll kill whatever holds it" | It may be another worktree's stack or the developer's own process. Find the owner, report it, and ask. |
