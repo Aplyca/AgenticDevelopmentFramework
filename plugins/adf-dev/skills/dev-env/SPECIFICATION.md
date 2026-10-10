@@ -33,9 +33,9 @@ a project misses. A project that departs from one on purpose records it, with th
   (untracked), and `.env.example`.
 - **L2.** All other operational code lives in `ops/`, **one folder per target**. A target's folder
   holds everything that target needs and can move: its make file, scripts, images, and config.
-  - `ops/docker/` — `docker.mk`, `ports.sh`, and each service's image and config in
+  - `ops/docker/` — `Makefile`, `ports.sh`, and each service's image and config in
     `ops/docker/<service>/` (a Dockerfile, its `<Dockerfile>.dockerignore`, config files).
-  - `ops/native/` — `native.mk`, `native.sh`, and `.run/`.
+  - `ops/native/` — `Makefile`, `native.sh`, and `.run/`.
   - `ops/agent/` — the parallel-agents module, when installed.
   - `ops/<provider>/` — each deployment target the project adds (`ops/vercel/`, `ops/ecs/`).
 - **L3.** `ops/` is never organized by kind of file: no `ops/scripts/`, `ops/make/`, `ops/config/`,
@@ -57,8 +57,8 @@ a project misses. A project that departs from one on purpose records it, with th
   `make help`.
 - **C2.** The root `Makefile` holds only what every local mode shares: the settings (`COMPOSE`,
   `DEFAULT_MODE`, `APP`, `PORTS`), choosing the mode (M1–M3), and the tasks `help`, `env`, and `guard`.
-  It ends by loading the mode's file: `include ops/$(DEV_MODE)/$(DEV_MODE).mk`.
-- **C3.** Each local mode's file, `ops/<mode>/<mode>.mk`, defines these tasks, with the same
+  It ends by loading the mode's file: `include ops/$(DEV_MODE)/Makefile`.
+- **C3.** Each local mode's file, `ops/<mode>/Makefile`, defines these tasks, with the same
   meaning in every mode:
 
   | Task | Must |
@@ -92,13 +92,15 @@ a project misses. A project that departs from one on purpose records it, with th
   (`make up DEV_MODE=native`), the shell's `DEV_MODE`, `DEV_MODE` in the checkout's `.env`, then
   `DEFAULT_MODE` in the `Makefile`, the project's default.
 - **M2.** The `Makefile` reads `DEV_MODE` from `.env` and nothing else from it.
-- **M3.** A mode is a folder in `ops/` with a make file of its own name. `DEV_MODE` naming anything
-  else — a typo, a deployment target, `ops/agent/` — stops `make` with a message that names the
-  setting. A project adds a mode by adding a folder and its make file.
+- **M3.** A mode is a folder in `ops/` with a `Makefile`. `DEV_MODE` naming anything else — a typo,
+  a deployment target, `ops/agent/` — stops `make` with a message that names the setting. A project
+  adds a mode by adding a folder and its `Makefile`. A mode's `Makefile` is only ever loaded by the
+  root one: run on its own (`make` inside `ops/docker/`), it stops with a message to run `make` from
+  the repository root.
 - **M4.** **Docker mode** (`ops/docker/`) runs the whole stack in Docker Compose. Its `up` waits until
   every service is healthy (`docker compose up -d --wait`).
 - **M5.** **Native mode** (`ops/native/`) runs the app on the host with the stack's own dev command,
-  `NATIVE_CMD`, which listens on `$APP_PORT`. `SERVICES` in `native.mk` lists the backing services
+  `NATIVE_CMD`, which listens on `$APP_PORT`. `SERVICES` in `ops/native/Makefile` lists the backing services
   that stay in Docker; an empty list means native mode needs no Docker at all.
 - **M6.** Native `up` starts the backing services in `SERVICES`, then the app **in the background**,
   in a process group of its own, with every port variable exported (P3). It waits until `APP_PORT`
@@ -170,8 +172,8 @@ a project misses. A project that departs from one on purpose records it, with th
 
 ## Deployment targets — `T`
 
-- **T1.** A deployment target gets its own folder in `ops/` (L2) and no `<name>.mk` of its own name,
-  so `DEV_MODE` can't pick it (M3). Its tasks, when it has them, go in a file of another name
+- **T1.** A deployment target gets its own folder in `ops/` (L2) and no `Makefile`, so `DEV_MODE`
+  can't pick it (M3). Its tasks, when it has them, go in a file of another name
   (`ops/ecs/deploy.mk`), loaded the way the project chooses.
 - **T2.** The framework ships no provider's files. `.claude/rules/deployment.md` names each target
   the project has, and the fixed-place files it keeps outside its folder (L5).
@@ -183,7 +185,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | The services, their healthchecks, and what each container gets | `compose.yaml` |
 | Images and service config | `ops/docker/<service>/` |
 | The tasks people and agents run | the `Makefile` and the mode's file (`make help`) |
-| Each mode's commands | `ops/docker/docker.mk`, `ops/native/native.mk` |
+| Each mode's commands | `ops/docker/Makefile`, `ops/native/Makefile` |
 | The project's default mode; this checkout's | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` in `.env` |
 | Every variable's name | `.env.example` |
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |

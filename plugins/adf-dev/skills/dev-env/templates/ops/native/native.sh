@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # The app on the host, in the background, for DEV_MODE=native: `make up` starts it and waits until it
 # answers, `make down` stops it, `make logs` and `make ps` read what it left. It runs the stack's own
-# dev command (NATIVE_CMD in ops/native/native.mk), so it knows nothing about the stack.
+# dev command (NATIVE_CMD in ops/native/Makefile), so it knows nothing about the stack.
 #
 #   ops/native/native.sh start    start the app unless it runs, wait until its port answers
 #   ops/native/native.sh stop     stop it — its whole process group — if it runs
 #   ops/native/native.sh status   whether it runs, and where
 #   ops/native/native.sh logs     the last 100 lines of its log
 #
-# ops/native/native.mk passes NATIVE_CMD and the ports.sh settings. The app's state — its process,
+# ops/native/Makefile passes NATIVE_CMD and the ports.sh settings. The app's state — its process,
 # its port, its log — is in ops/native/.run/, which git ignores: app.env holds PID and APP_PORT while
 # it runs, and the band above the prompt reads APP_PORT there. bash 3.2 or later.
 set -euo pipefail

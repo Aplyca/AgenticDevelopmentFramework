@@ -2,10 +2,15 @@
 # services in Docker. The root Makefile loads this file in that mode; native.sh, beside it, runs the
 # app in the background, and .run/ (ignored by git) keeps its process, port, and log.
 
+# Loaded by the root Makefile, never run on its own: its settings and paths are the root's.
+ifndef MODE_FILE
+$(error run make from the repository root: this file is the $(notdir $(CURDIR)) mode, which the root Makefile loads)
+endif
+
 # CUSTOMIZE: the backing services that run in Docker — empty when they all run on the host
 SERVICES ?= redis
 # CUSTOMIZE: the app's dev command, listening on $APP_PORT — e.g. npm run dev -- --port "$$APP_PORT"
-NATIVE_CMD = echo "CUSTOMIZE: set NATIVE_CMD in ops/native/native.mk to the app's dev command" >&2; exit 1
+NATIVE_CMD = echo "CUSTOMIZE: set NATIVE_CMD in ops/native/Makefile to the app's dev command" >&2; exit 1
 
 export NATIVE_CMD
 NATIVE_SH = $(PORTS_SH:ops/docker/ports.sh=ops/native/native.sh)

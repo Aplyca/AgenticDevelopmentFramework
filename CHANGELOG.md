@@ -80,8 +80,8 @@ of its own.
 
 - **One folder per target in `ops/`.** Each target keeps its make file, scripts, images, and config
   together:
-  - `ops/docker/`: `docker.mk`, `ports.sh`, and each service's image in `ops/docker/<service>/`;
-  - `ops/native/`: `native.mk`, `native.sh`, and its git-ignored `.run/`;
+  - `ops/docker/`: `Makefile`, `ports.sh`, and each service's image in `ops/docker/<service>/`;
+  - `ops/native/`: `Makefile`, `native.sh`, and its git-ignored `.run/`;
   - `ops/agent/`: parallel-agents;
   - any deployment target the project adds, such as `ops/vercel/` or `ops/ecs/`. `deployment.md`
     holds the convention; the framework ships no provider's files.
@@ -89,17 +89,18 @@ of its own.
   A file a tool reads from a fixed place stays there: `compose.yaml`, `vercel.json`, `.github/`.
   `ops/scripts/` goes.
 - **One make file per local mode.** The root `Makefile` keeps what both modes share and loads
-  `ops/<DEV_MODE>/<DEV_MODE>.mk`. Each defines the same tasks: `up`, `down`, `build`, `ps`, `logs`,
+  `ops/<DEV_MODE>/Makefile`. Each defines the same tasks: `up`, `down`, `build`, `ps`, `logs`,
   `urls`, `test`, `lint`, and `reset`, plus `shell` in Docker mode and `services` in native mode. A
-  folder without a `.mk` of its name, such as `ops/agent/`, isn't a mode.
+  folder without a `Makefile`, such as `ops/agent/`, isn't a mode. A mode's `Makefile` run on its
+  own stops and says to run `make` from the root.
 - **`DEV_MODE` picks the mode.** Each checkout sets it in `.env`. The project's default is
   `DEFAULT_MODE` in the `Makefile`, and `make up DEV_MODE=native` overrides both for one command.
   `make help` names the mode in force.
 - **Native `make up` starts the app in the background** with `ops/native/native.sh`, running
-  `NATIVE_CMD` from `native.mk`. It waits until the app answers, or fails with the end of its log,
-  and `make down` stops it. `make native` goes: the mode replaces it.
+  `NATIVE_CMD` from `ops/native/Makefile`. It waits until the app answers, or fails with the end of
+  its log, and `make down` stops it. `make native` goes: the mode replaces it.
 - **A service a developer runs on the host** needs only its port pinned in `.env`. `SERVICES` in
-  `native.mk` lists what stays in Docker; empty, native mode needs no Docker.
+  `ops/native/Makefile` lists what stays in Docker; empty, native mode needs no Docker.
 - **The band above the prompt** shows the native app's URL, read from `ops/native/.run/app.env`.
 - **A specification, with the templates as its example.** `dev-env`'s `SPECIFICATION.md` states
   each requirement with an ID: layout `L`, command surface `C`, modes `M`, ports `P`, Compose `D`,
@@ -116,7 +117,7 @@ of its own.
 
 - **Merge**, in a project with the docker module, the stack `/dev-env` wrote:
   - `git mv ops/scripts/ports.sh ops/docker/ports.sh`;
-  - move the `Makefile`'s Docker tasks to `ops/docker/docker.mk`, add `ops/native/native.mk` with the
+  - move the `Makefile`'s Docker tasks to `ops/docker/Makefile`, add `ops/native/Makefile` with the
     project's native commands, and keep the shared part and the mode block in the `Makefile`;
   - add `ops/native/native.sh` and make it executable;
   - add `DEV_MODE=` to `.env.example`;

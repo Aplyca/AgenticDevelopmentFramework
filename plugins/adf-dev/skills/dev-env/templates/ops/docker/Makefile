@@ -2,6 +2,11 @@
 # folder holds everything the target needs — the images and service config (ops/docker/<service>/)
 # and ports.sh, which finds the ports Docker published.
 
+# Loaded by the root Makefile, never run on its own: its settings and paths are the root's.
+ifndef MODE_FILE
+$(error run make from the repository root: this file is the $(notdir $(CURDIR)) mode, which the root Makefile loads)
+endif
+
 .PHONY: up down build ps logs urls shell test lint reset
 
 up: env guard ## Start the stack, wait until it's healthy, and show where it is

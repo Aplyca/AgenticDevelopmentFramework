@@ -1,13 +1,13 @@
 
 # The local environment's tasks: one command surface for people and agents. `make` lists them.
 # What both modes share is here. ops/ holds one folder per target, and each local mode's tasks are
-# in ops/<mode>/<mode>.mk; the mode in force loads its file. Docker Compose reads .env itself; this
+# in ops/<mode>/Makefile; the mode in force loads its file. Docker Compose reads .env itself; this
 # file reads only DEV_MODE from it, and never loads or exports the rest. Works with GNU make 3.81
 # (macOS) and later.
 
 COMPOSE ?= docker compose
-# CUSTOMIZE: where the app runs unless a checkout's .env says otherwise — docker (ops/docker/docker.mk)
-# or native (ops/native/native.mk)
+# CUSTOMIZE: where the app runs unless a checkout's .env says otherwise — docker (ops/docker/Makefile)
+# or native (ops/native/Makefile)
 DEFAULT_MODE = docker
 # CUSTOMIZE: the app's service, and each published port, as <variable>=<service>:<container port>
 APP ?= web
@@ -18,7 +18,7 @@ ifeq ($(origin DEV_MODE),undefined)
 DEV_MODE := $(shell sed -n 's/^DEV_MODE=\([^\#]*\).*/\1/p' .env 2>/dev/null | tail -n 1 | tr -d "\"' ")
 endif
 override DEV_MODE := $(or $(strip $(DEV_MODE)),$(DEFAULT_MODE))
-MODE_FILE = ops/$(DEV_MODE)/$(DEV_MODE).mk
+MODE_FILE = ops/$(DEV_MODE)/Makefile
 ifeq ($(wildcard $(MODE_FILE)),)
 $(error DEV_MODE is '$(DEV_MODE)', and there's no $(MODE_FILE), so it isn't a local mode: set DEV_MODE in .env to docker or native)
 endif

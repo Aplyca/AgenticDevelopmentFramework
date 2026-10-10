@@ -32,9 +32,9 @@ can only run the command the project gives it.
 
 1. **`ops/` has one folder per target,** and each target keeps everything it needs there — its make
    file, scripts, images, and config:
-   - `ops/docker/`: `docker.mk`, `ports.sh`, and each service's image and config in
+   - `ops/docker/`: `Makefile`, `ports.sh`, and each service's image and config in
      `ops/docker/<service>/`;
-   - `ops/native/`: `native.mk`, `native.sh`, and `.run/`, which git ignores;
+   - `ops/native/`: `Makefile`, `native.sh`, and `.run/`, which git ignores;
    - `ops/agent/`: the parallel-agents module (0032, point 8);
    - any deployment target the project adds, such as `ops/vercel/` or `ops/ecs/`. The framework
      ships none: it stays provider-agnostic, and `deployment.md` holds the convention.
@@ -44,10 +44,11 @@ can only run the command the project gives it.
    Nothing goes in a shared `scripts/` or `make/` folder. A file a tool reads from a fixed place
    stays there: `compose.yaml` at the root (0032), `vercel.json`, `.github/`.
 2. **One make file per local mode.** The root `Makefile` holds what both modes share: the settings,
-   choosing the mode, `help`, `env`, and the worktree guard. It then loads `ops/<mode>/<mode>.mk`:
-   `ops/docker/docker.mk` runs the whole stack in Docker, and `ops/native/native.mk` runs the app on
-   the host against its backing services in Docker. A target folder with `<name>.mk` is a local mode;
-   a deployment target has none, so `DEV_MODE` can't pick it.
+   choosing the mode, `help`, `env`, and the worktree guard. It then loads `ops/<mode>/Makefile`:
+   `ops/docker/Makefile` runs the whole stack in Docker, and `ops/native/Makefile` runs the app on
+   the host against its backing services in Docker. The folder already names the mode, so the file
+   is a plain `Makefile`, which stops with a message when run on its own. A target folder with a
+   `Makefile` is a local mode; a deployment target has none, so `DEV_MODE` can't pick it.
 3. **A setting picks the file:** `DEV_MODE`. Whichever is set first wins: the command line
    (`make up DEV_MODE=native`), then the shell, then the checkout's `.env`, then `DEFAULT_MODE` in the
    `Makefile`. A mode with no file stops `make` with a message. A project can add a mode by adding a
@@ -56,7 +57,7 @@ can only run the command the project gives it.
    `reset`, plus `shell` in Docker mode and `services` in native mode. People, agents,
    `AGENTS.md` § Quick reference, and `worktree.conf` type the same commands in either mode. Each
    file holds its own commands inline: the tests in the app's container, or on the host.
-5. **Native `make up` runs the app in the background.** `NATIVE_CMD` in `native.mk` is the stack's
+5. **Native `make up` runs the app in the background.** `NATIVE_CMD` in `ops/native/Makefile` is the stack's
    own dev command, listening on `$APP_PORT`. `ops/native/native.sh` starts it in a process group
    of its own with every `<NAME>_PORT` exported, then waits until `APP_PORT` answers. If the app
    exits first, it fails and shows the end of the log. `make down` stops the whole group. The app's
@@ -64,7 +65,7 @@ can only run the command the project gives it.
    `make native` goes: the mode replaces it.
 6. **Switching modes needs no cleanup.** Docker-mode `make up` stops an app running on the host, and
    native `make up` stops the app's container.
-7. **A developer's own services need no setting.** `SERVICES` in `native.mk` lists the backing
+7. **A developer's own services need no setting.** `SERVICES` in `ops/native/Makefile` lists the backing
    services that stay in Docker; empty, native mode needs no Docker at all. A developer who runs one
    on the host pins its `<NAME>_PORT` in `.env`. When nothing in Docker publishes it, `ports.sh`
    gives the app that port, and `make urls` shows the service on the host.

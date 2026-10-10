@@ -1106,7 +1106,7 @@ tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
 def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
-files = ["compose.yaml", "Makefile", "ops/docker/docker.mk", "ops/native/native.mk", ".env.example",
+files = ["compose.yaml", "Makefile", "ops/docker/Makefile", "ops/native/Makefile", ".env.example",
          "ops/docker/ports.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
@@ -1156,7 +1156,7 @@ make = read("Makefile")
 if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
 if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
-    print("Makefile doesn't load the mode's file (ops/<mode>/<mode>.mk, decision 0034)")
+    print("Makefile doesn't load the mode's file (ops/<mode>/Makefile, decision 0034)")
 # The templates are an example of the skill's specification: each mode's file, with the shared
 # tasks, defines every task its C3 table requires (decision 0034).
 spec_path = os.path.join(os.path.dirname(tpl), "SPECIFICATION.md")
@@ -1172,11 +1172,11 @@ if len(required) < 9:
     print("SPECIFICATION.md: C3 doesn't list the tasks every mode defines")
 shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
 for mode in ("docker", "native"):
-    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/{mode}.mk"), re.M))
+    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/Makefile"), re.M))
     for target in ["help", "env"] + required:
         if target not in targets:
-            print(f"ops/{mode}/{mode}.mk: no {target} target, which SPECIFICATION.md C3 requires")
-make = "\n".join([make, read("ops/docker/docker.mk"), read("ops/native/native.mk")])
+            print(f"ops/{mode}/Makefile: no {target} target, which SPECIFICATION.md C3 requires")
+make = "\n".join([make, read("ops/docker/Makefile"), read("ops/native/Makefile")])
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
                  (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
                  (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):

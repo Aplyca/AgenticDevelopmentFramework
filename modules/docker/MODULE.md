@@ -22,7 +22,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
   adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
 - **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
   `logs`, `urls`, `test`, `lint`, `reset`.
-- **One file per mode:** the root `Makefile` loads `ops/docker/docker.mk` or `ops/native/native.mk` —
+- **One file per mode:** the root `Makefile` loads `ops/docker/Makefile` or `ops/native/Makefile` —
   the app in Docker, or on the host against the backing services in Docker — by `DEV_MODE` in `.env`
   or the project's `DEFAULT_MODE`. Both define the same tasks
   ([decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)).
@@ -42,8 +42,8 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the
 specification, starting from the skill's templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
-`ops/docker/` (`docker.mk`; `ports.sh`, which looks up the ports Docker picked; and
-`web/Dockerfile` with its `.dockerignore`) and `ops/native/` (`native.mk`, and `native.sh`, which
+`ops/docker/` (its `Makefile`; `ports.sh`, which looks up the ports Docker picked; and
+`web/Dockerfile` with its `.dockerignore`) and `ops/native/` (its `Makefile`, and `native.sh`, which
 starts and stops the app on the host) — and fills in what it verifies about the project. No rule of
 its own: the skeleton's `.claude/rules/deployment.md` § Docker is the project's copy of the
 conventions, and its § Conformance records each requirement the project departs from on purpose.

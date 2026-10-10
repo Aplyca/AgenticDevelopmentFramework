@@ -17,7 +17,7 @@ a task needs an environment — triage does (`AGENTS.md` § How work flows → E
 
 **`<this skill's base directory>/SPECIFICATION.md` is what a local environment must be** — its layout
 (one folder per target in `ops/`), the command surface (a root `Makefile` that loads
-`ops/<DEV_MODE>/<DEV_MODE>.mk`, and the tasks every mode defines), the local modes, ports, Compose,
+`ops/<DEV_MODE>/Makefile`, and the tasks every mode defines), the local modes, ports, Compose,
 variables, worktrees, and deployment targets — each requirement with an ID. Read it before any mode
 below. It also says where each fact lives; this skill writes only what a command it ran has shown.
 
@@ -79,11 +79,11 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
    - in the `Makefile`: `APP`, `PORTS`, and `DEFAULT_MODE` (`docker` unless the team runs the app on
      the host);
-   - in each mode's file, its own commands: `docker.mk`'s `test` and `lint` in the app's container;
-     `native.mk`'s `SERVICES` (the backing services that stay in Docker), `NATIVE_CMD` (the app's dev
+   - in each mode's file, its own commands: `ops/docker/Makefile`'s `test` and `lint` in the app's container;
+     `ops/native/Makefile`'s `SERVICES` (the backing services that stay in Docker), `NATIVE_CMD` (the app's dev
      command, listening on `$APP_PORT`), and its `build` (installing dependencies on the host),
      `test`, and `lint`. Each from the project's package manifest, README, or docs — never a guess at
-     the stack. A project that never runs natively keeps `native.mk` as the template wrote it.
+     the stack. A project that never runs natively keeps `ops/native/Makefile` as the template wrote it.
 
    Then `chmod +x ops/docker/ports.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
    and `ops/native/.run/`.
@@ -162,14 +162,14 @@ before it moved); without it, say so and stop.
 ## Mode: native
 
 Where the app runs is a setting, not a different command. The root `Makefile` loads
-`ops/<DEV_MODE>/<DEV_MODE>.mk`: `docker.mk` runs the whole stack in Docker; `native.mk` runs the app on the
+`ops/<DEV_MODE>/Makefile`: `ops/docker/Makefile` runs the whole stack in Docker; `ops/native/Makefile` runs the app on the
 host with the stack's own dev command, its backing services in Docker. Both define the same tasks.
 
 1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
    stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
    developer's file, which they edit; never read it into the conversation. A single command can
    override both: `make up DEV_MODE=native`. `make help` names the mode and the file in force.
-2. **What native mode needs,** in `native.mk`:
+2. **What native mode needs,** in `ops/native/Makefile`:
    - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
      Setting them is a change to the stack, through triage.
