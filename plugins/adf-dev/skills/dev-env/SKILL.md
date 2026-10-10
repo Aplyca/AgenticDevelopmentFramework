@@ -77,7 +77,7 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      pinned, with a healthcheck the app's `depends_on` waits on;
    - every variable the code reads: by name in `.env.example`, and in container form in its
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
-   - in the `Makefile`: `APP`, `PORTS`, and `DEFAULT_MODE` (`docker` unless the team runs the app on
+   - in the `Makefile`: `APP` and `DEFAULT_MODE` (`docker` unless the team runs the app on
      the host);
    - in each mode's file, its own commands: `ops/docker/Makefile`'s `test` and `lint` in the app's container;
      `ops/native/Makefile`'s `SERVICES` (the backing services that stay in Docker), `NATIVE_CMD` (the app's dev
@@ -85,7 +85,7 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      `test`, and `lint`. Each from the project's package manifest, README, or docs — never a guess at
      the stack. A project that never runs natively keeps `ops/native/Makefile` as the template wrote it.
 
-   Then `chmod +x ops/docker/ports.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
+   Then `chmod +x ops/docker/guard.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
    and `ops/native/.run/`.
 2. **A stack that doesn't meet the specification?** Audit it in the order its § Conformance gives,
    and show the gaps in one table — the requirement's ID, what the project has, the change. A

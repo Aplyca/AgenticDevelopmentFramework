@@ -7,8 +7,14 @@
 #   ops/native/native.sh stop     stop it — its whole process group — if it runs
 #   ops/native/native.sh status   whether it runs, and where
 #   ops/native/native.sh logs     the last 100 lines of its log
+#   ops/native/native.sh env      the `export` lines the app runs with (make test uses them)
 #
-# ops/native/Makefile passes NATIVE_CMD and the ports.sh settings. The app's state — its process,
+# Each backing service in SERVICES runs in Docker, and the app gets its published port as
+# <SERVICE>_PORT (redis → REDIS_PORT), looked up with `docker compose ps`. The app's own port is
+# APP_PORT: the shell's, then the one .env pins, then a free one. A service the developer runs on the
+# host isn't in SERVICES: its port is pinned in .env, which the app reads itself.
+#
+# ops/native/Makefile passes NATIVE_CMD, SERVICES, and COMPOSE. The app's state — its process,
 # its port, its log — is in ops/native/.run/, which git ignores: app.env holds PID and APP_PORT while
 # it runs, and the band above the prompt reads APP_PORT there. bash 3.2 or later.
 set -euo pipefail
@@ -18,6 +24,8 @@ RUN=ops/native/.run
 STATE="$RUN/app.env"
 LOG="$RUN/app.log"
 READY_SECONDS="${READY_SECONDS:-120}"
+COMPOSE="${COMPOSE:-docker compose}"
+SERVICES="${SERVICES:-}"
 
 die() {
   echo "native.sh: $*" >&2
@@ -26,6 +34,45 @@ die() {
 
 value() { [ -f "$STATE" ] && sed -n "s/^$1=//p" "$STATE" | tail -n 1; }
 listening() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+# The port Docker published for a service, or nothing while it's down.
+published() {
+  $COMPOSE ps "$1" --format '{{range .Publishers}}{{if .PublishedPort}}{{.PublishedPort}} {{end}}{{end}}' 2>/dev/null |
+    tr ' ' '\n' | sed -n '1p'
+}
+
+free_port() {
+  local port tries=0
+  # Below the range Linux hands out for outgoing connections (32768 and up).
+  while [ "$tries" -lt 100 ]; do
+    port=$((20000 + RANDOM % 12000))
+    listening "$port" || {
+      printf '%s\n' "$port"
+      return 0
+    }
+    tries=$((tries + 1))
+  done
+  die "no free port found"
+}
+
+# APP_PORT as Compose would take it — the shell's, then the line .env pins — else a free one. Of
+# .env, only that line is read.
+app_port() {
+  local port="${APP_PORT:-}"
+  [ -n "$port" ] || port="$( { grep -E '^APP_PORT=' .env 2>/dev/null || true; } | tail -n 1 | cut -d= -f2- | tr -d "\"' ")"
+  [ -n "$port" ] || port="$(free_port)"
+  printf '%s' "$port"
+}
+
+exports() {
+  local service port
+  for service in $SERVICES; do
+    port="$(published "$service")"
+    [ -n "$port" ] || die "$service isn't running in Docker: start it (make services), or run it on the host and take it out of SERVICES"
+    printf 'export %s_PORT=%s\n' "$(printf '%s' "$service" | tr 'a-z.-' 'A-Z__')" "$port"
+  done
+  printf 'export APP_PORT=%s\n' "$(app_port)"
+}
 
 # The app's process, when the one app.env names is still alive; else nothing, and stale state goes.
 running_pid() {
@@ -40,17 +87,15 @@ running_pid() {
 
 start() {
   local pid port exports waited=0
-  [ -n "${NATIVE_CMD:-}" ] || die "NATIVE_CMD is empty: set it in the Makefile to the app's dev command"
+  [ -n "${NATIVE_CMD:-}" ] || die "NATIVE_CMD is empty: set it in ops/native/Makefile to the app's dev command"
   pid="$(running_pid)"
   if [ -n "$pid" ]; then
     echo "==> The app already runs on the host: http://localhost:$(value APP_PORT)"
     return 0
   fi
-  # Each backing service's port, and the app's own: pinned in .env, or a free one.
-  # The backing services run in Docker, so their ports are the docker target's to find.
-  exports="$(ops/docker/ports.sh env)" || exit 1
+  exports="$(exports)" || exit 1
   eval "$exports"
-  port="${APP_PORT:?ports.sh gave no APP_PORT: add APP_PORT=<service>:<port> to PORTS in the Makefile}"
+  port="$APP_PORT"
   mkdir -p "$RUN"
   # A process group of its own (set -m), so stop ends the dev server and every process it started.
   set -m
@@ -111,5 +156,6 @@ case "${1:-}" in
   stop) stop ;;
   status) status ;;
   logs) logs ;;
-  *) die "usage: ops/native/native.sh start | stop | status | logs" ;;
+  env) exports ;;
+  *) die "usage: ops/native/native.sh start | stop | status | logs | env" ;;
 esac

@@ -33,7 +33,7 @@ a project misses. A project that departs from one on purpose records it, with th
   (untracked), and `.env.example`.
 - **L2.** All other operational code lives in `ops/`, **one folder per target**. A target's folder
   holds everything that target needs and can move: its make file, scripts, images, and config.
-  - `ops/docker/` — `Makefile`, `ports.sh`, and each service's image and config in
+  - `ops/docker/` — `Makefile`, `guard.sh`, and each service's image and config in
     `ops/docker/<service>/` (a Dockerfile, its `<Dockerfile>.dockerignore`, config files).
   - `ops/native/` — `Makefile`, `native.sh`, and `.run/`.
   - `ops/agent/` — the parallel-agents module, when installed.
@@ -41,8 +41,8 @@ a project misses. A project that departs from one on purpose records it, with th
 - **L3.** `ops/` is never organized by kind of file: no `ops/scripts/`, `ops/make/`, `ops/config/`,
   or another folder that several targets share.
 - **L4.** A target may use another target's files, where the dependency is real: native's backing
-  services run in Docker, so `native.sh` asks `ops/docker/ports.sh` for their ports; an ECS
-  deployment builds the image in `ops/docker/<service>/`. A file is never copied between targets.
+  services run in Docker, so native mode runs `ops/docker/guard.sh` too; an ECS deployment builds
+  the image in `ops/docker/<service>/`. A file is never copied between targets.
 - **L5.** A file a tool reads from a fixed place stays there, and the target's folder holds the rest:
   `compose.yaml` at the root (so `docker compose` needs no `-f`), `vercel.json` where Vercel reads it,
   `.github/`, a platform's own manifest. `.claude/rules/deployment.md` lists each one the project has.
@@ -56,7 +56,7 @@ a project misses. A project that departs from one on purpose records it, with th
   the team runs often gets a target instead of a command copied around. `make` with no target is
   `make help`.
 - **C2.** The root `Makefile` holds only what every local mode shares: the settings (`COMPOSE`,
-  `DEFAULT_MODE`, `APP`, `PORTS`), choosing the mode (M1–M3), and the tasks `help`, `env`, and `guard`.
+  `DEFAULT_MODE`, `APP`), choosing the mode (M1–M3), and the tasks `help`, `env`, and `guard`.
   It ends by loading the mode's file: `include ops/$(DEV_MODE)/Makefile`.
 - **C3.** Each local mode's file, `ops/<mode>/Makefile`, defines these tasks, with the same
   meaning in every mode:
@@ -79,7 +79,7 @@ a project misses. A project that departs from one on purpose records it, with th
   its one-line description (`<task>: … ## <description>`).
 - **C5.** `env` creates `.env` from `.env.example`, readable only by its owner, and leaves an
   existing `.env` alone.
-- **C6.** `up`, `down`, `services`, and `reset` run `guard` first (P5).
+- **C6.** `up`, `down`, `services`, and `reset` run `guard` first (P6).
 - **C7.** The make files run on GNU make 3.81, which macOS ships: no `.ONESHELL`, `!=`, or `$(file …)`.
   They never `include .env`, never use a bare `export` or `.EXPORT_ALL_VARIABLES`, and never export a
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
@@ -100,10 +100,13 @@ a project misses. A project that departs from one on purpose records it, with th
 - **M4.** **Docker mode** (`ops/docker/`) runs the whole stack in Docker Compose. Its `up` waits until
   every service is healthy (`docker compose up -d --wait`).
 - **M5.** **Native mode** (`ops/native/`) runs the app on the host with the stack's own dev command,
-  `NATIVE_CMD`, which listens on `$APP_PORT`. `SERVICES` in `ops/native/Makefile` lists the backing services
-  that stay in Docker; an empty list means native mode needs no Docker at all.
+  `NATIVE_CMD`, which listens on `$APP_PORT`. `SERVICES` in `ops/native/Makefile` lists the backing
+  services that stay in Docker; an empty list means native mode needs no Docker at all. A developer
+  who runs one of them on the host leaves it out for their own runs — `SERVICES` is a `?=` setting,
+  so `make up SERVICES=…` or `SERVICES` in their shell overrides it — and pins its port in `.env`,
+  which the app reads.
 - **M6.** Native `up` starts the backing services in `SERVICES`, then the app **in the background**,
-  in a process group of its own, with every port variable exported (P3). It waits until `APP_PORT`
+  in a process group of its own, with every port variable exported (P4). It waits until `APP_PORT`
   answers. If the app exits first, `up` fails and prints the end of the app's log. Native `down` stops
   the whole process group.
 - **M7.** While the app runs on the host, `ops/native/.run/app.env` holds exactly `PID=<pid>` and
@@ -122,20 +125,22 @@ a project misses. A project that departs from one on purpose records it, with th
   the service starts and any number of checkouts run side by side. A developer pins a port in their
   own `.env` when something must know it in advance: an OAuth callback, an app that builds its own
   URL, a backing service they run on the host themselves.
-- **P3.** `PORTS` in the `Makefile` lists each published port as `<NAME>=<service>:<container port>`.
-  `ops/docker/ports.sh` resolves them:
-  - `urls` — each service, where it is now, and whether it answers: the port Docker published, the
-    native app's port (M7), or, for a service not in Docker, the port `.env` pins;
-  - `env` — `export` lines for the app on the host: each backing service's port — Docker's, else
-    the one `.env` pins, else a failure that says to start it or pin it — and the app's own: pinned
-    in the shell or `.env`, else a free one;
-  - `guard` — P5.
-- **P4.** Ports are looked up, never written down: no file but `.env`, by a person, records a port.
-- **P5.** In a linked worktree, `guard` fails when the worktree's `.env` repeats a port or the
-  `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins — a copy, which would run or reset the main
-  checkout's stack.
-- **P6.** `ports.sh` reads only `COMPOSE_PROJECT_NAME` and the `*_PORT` variables from `.env`, and
-  prints no other value.
+- **P3.** Docker Compose is the one source of where a service is: nothing restates the ports
+  `compose.yaml` publishes. `make urls` shows Compose's own view — each service, its published ports,
+  and its health (`docker compose ps`) — plus the app's URL, and in native mode the app on the host
+  (M7).
+- **P4.** A service's port variable is `<SERVICE>_PORT`, its name in capitals with `-` and `.` as
+  `_` (`redis` → `REDIS_PORT`); the app's is `APP_PORT`. In native mode, `native.sh` exports each
+  `SERVICES` entry's published port under that name, looked up with `docker compose ps`, and
+  `APP_PORT`: the shell's, else the one `.env` pins, else a free one. A service in `SERVICES` that
+  isn't running stops `make up` with a message to start it.
+- **P5.** Ports are looked up, never written down: only `.env`, by a person, and native mode's run
+  state while the app runs (M7) record a port.
+- **P6.** In a linked worktree, `ops/docker/guard.sh` fails when the worktree's `.env` repeats a port
+  or the `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins — a copy, which would run the main
+  checkout's stack, or delete its volumes on `make reset`.
+- **P7.** `guard.sh` reads only `COMPOSE_PROJECT_NAME` and the `*_PORT` lines of either `.env`, and
+  `native.sh` only `APP_PORT`; neither prints a value but a port.
 
 ## Compose — `D`
 
@@ -206,7 +211,7 @@ each gap as the requirement's ID, what the project has, and the change:
 2. **Command surface:** C1–C8, and the mode files define every task in C3.
 3. **Modes:** M1–M3 read by `make help` and `make help DEV_MODE=<each mode>`; M4–M8 by running
    `make up`, `make urls`, `make ps`, and `make down` in each mode the project uses.
-4. **Ports, Compose, variables:** P1–P6, D1–D4, V1–V4.
+4. **Ports, Compose, variables:** P1–P7, D1–D4, V1–V4.
 5. **Worktrees,** with parallel-agents: W1–W3.
 6. **Deployment targets:** T1–T2.
 

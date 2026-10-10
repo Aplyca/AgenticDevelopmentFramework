@@ -272,26 +272,27 @@ check "docker rules: destructive commands ask, read-only ones run, secret-printi
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 
 # ─── docker: the stack /dev-env writes from its templates (decision 0032) ──
-# A stub docker answers `docker compose port` from STUB_PORTS, so this runs without Docker; the
-# helper runs under /bin/bash, which is 3.2 on macOS.
+# A stub docker answers `docker compose ps <service> --format …` from STUB_PORTS (service=port), so
+# this runs without Docker; the scripts run under /bin/bash, which is 3.2 on macOS.
 TPL="$REPO_ROOT/plugins/adf-dev/skills/dev-env/templates"
 DS="$WORK/docker-stack"; mkdir -p "$DS/site" "$DS/bin"
 cp -R "$TPL/." "$DS/site/"
 cat > "$DS/bin/docker" <<'STUB'
 #!/bin/sh
-[ "$1 $2" = "compose port" ] || exit 2
+[ "$1 $2" = "compose ps" ] || exit 2
 for entry in $STUB_PORTS; do
-  [ "${entry%%=*}" = "$3:$4" ] && { echo "127.0.0.1:${entry#*=}"; exit 0; }
+  [ "${entry%%=*}" = "$3" ] && { echo "${entry#*=} "; exit 0; }
 done
-echo "service \"$3\" is not running" >&2; exit 1
+exit 0
 STUB
 chmod +x "$DS/bin/docker"
 git -C "$DS/site" init -q -b main && printf '.env\n' > "$DS/site/.gitignore"
 git -C "$DS/site" add -A && git -C "$DS/site" -c user.email=t@e -c user.name=t commit -qm init
 stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" "$@"); }
-ports() { stack env PORTS='APP_PORT=web:3000 REDIS_PORT=redis:6379' /bin/bash ops/docker/ports.sh "$@"; }
+ports() { stack env SERVICES=redis /bin/bash ops/native/native.sh env; }
 
-check "templates: ports.sh is executable" "[ -x '$TPL/ops/docker/ports.sh' ]"
+check "templates: guard.sh and native.sh are executable" "[ -x '$TPL/ops/docker/guard.sh' ] && [ -x '$TPL/ops/native/native.sh' ]"
+check "templates: no ports.sh and no PORTS — Docker Compose knows the ports" "[ ! -e '$TPL/ops/docker/ports.sh' ] && ! grep -q '^PORTS' '$TPL/Makefile'"
 out=$(stack make env 2>&1)
 # GNU stat first: its -f means "file system" and takes %Lp for a file name, so BSD's form tried first
 # prints more than the mode on Linux.
@@ -305,38 +306,33 @@ check "make help: the default target lists every task of the mode" \
     "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
-    "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'ports.sh guard'"
+    "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'guard.sh'"
 out=$(stack make -n logs 2>&1)
 check "make logs: the last lines, never followed" \
     "echo \"\$out\" | grep -q -- '--tail 100 --no-color' && ! echo \"\$out\" | grep -qE -- ' -f( |\$)|--follow'"
-out=$(STUB_PORTS='web:3000=51000 redis:6379=51001' ports urls 2>&1); code=$?
-check "ports.sh urls: where Docker published each service, the app as a URL" \
-    "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'web .*http://localhost:51000  (APP_PORT)' && echo \"\$out\" | grep -q 'redis .*localhost:51001  (REDIS_PORT)'"
-out=$(STUB_PORTS='redis:6379=51001' ports urls 2>&1)
-check "ports.sh urls: a service that's down says so" "echo \"\$out\" | grep -q 'web .*not running'"
-out=$(STUB_PORTS='redis:6379=51001' ports env 2>&1); code=$?
-check "ports.sh env: each backing service's port, and a free port for the app on the host" \
+out=$(stack make -n urls 2>&1)
+check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
+    "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
+out=$(STUB_PORTS='redis=51001' ports 2>&1); code=$?
+check "native.sh env: each backing service's published port as <SERVICE>_PORT, and a free port for the app" \
     "[ $code -eq 0 ] && echo \"\$out\" | grep -q '^export REDIS_PORT=51001$' && echo \"\$out\" | grep -qE '^export APP_PORT=[0-9]+$'"
 sed -i.bak 's/^APP_PORT=$/APP_PORT=48765/' "$DS/site/.env" && rm -f "$DS/site/.env.bak"
-out=$(STUB_PORTS='redis:6379=51001' ports env 2>&1)
-check "ports.sh env: the app keeps a port pinned in .env" "echo \"\$out\" | grep -q '^export APP_PORT=48765$'"
-out=$(STUB_PORTS='redis:6379=51001' APP_PORT=47000 ports env 2>&1)
-check "ports.sh env: a value in the shell wins, as it does for Compose" "echo \"\$out\" | grep -q '^export APP_PORT=47000$'"
-out=$(ports env 2>&1); code=$?
-check "ports.sh env: refuses while the backing services are down" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'make services'"
-out=$(ports free); code=$?
-check "ports.sh free: a port nothing listens on" \
-    "[ $code -eq 0 ] && [ \"\$out\" -ge 20000 ] && [ \"\$out\" -lt 32000 ] && ! (exec 3<>/dev/tcp/127.0.0.1/\$out) 2>/dev/null"
-out=$({ STUB_PORTS='web:3000=51000 redis:6379=51001' ports urls; STUB_PORTS='redis:6379=51001' ports env; ports guard; } 2>&1)
-check "ports.sh: never prints a value from .env but the ports" "! echo \"\$out\" | grep -q topsecret"
-check "ports.sh guard: passes in the main checkout" "ports guard"
+out=$(STUB_PORTS='redis=51001' ports 2>&1)
+check "native.sh env: the app keeps a port pinned in .env" "echo \"\$out\" | grep -q '^export APP_PORT=48765$'"
+out=$(STUB_PORTS='redis=51001' APP_PORT=47000 ports 2>&1)
+check "native.sh env: a value in the shell wins, as it does for Compose" "echo \"\$out\" | grep -q '^export APP_PORT=47000$'"
+out=$(ports 2>&1); code=$?
+check "native.sh env: refuses while a backing service is down, saying how to fix it" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'make services'"
+out=$({ STUB_PORTS='redis=51001' ports; stack /bin/bash ops/docker/guard.sh; } 2>&1)
+check "native.sh and guard.sh: never print a value from .env but the ports" "! echo \"\$out\" | grep -q topsecret"
+check "guard.sh: passes in the main checkout" "stack /bin/bash ops/docker/guard.sh"
 git -C "$DS/site" worktree add -q -b feat/copied "$DS/site-feat-copied" && cp "$DS/site/.env" "$DS/site-feat-copied/.env"
-out=$(cd "$DS/site-feat-copied" && /bin/bash ops/docker/ports.sh guard 2>&1); code=$?
+out=$(cd "$DS/site-feat-copied" && /bin/bash ops/docker/guard.sh 2>&1); code=$?
 reset_out=$(cd "$DS/site-feat-copied" && PATH="$DS/bin:$PATH" make reset 2>&1)
-check "ports.sh guard: refuses in a worktree whose .env repeats the main checkout's pinned port, and so does make reset" \
+check "guard.sh: refuses in a worktree whose .env repeats the main checkout's pinned port, and so does make reset" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'APP_PORT' && echo \"\$reset_out\" | grep -q 'repeats the main checkout' && ! echo \"\$reset_out\" | grep -q 'down -v'"
 sed -i.bak 's/^APP_PORT=48765$/APP_PORT=/' "$DS/site-feat-copied/.env" && rm -f "$DS/site-feat-copied/.env.bak"
-check "ports.sh guard: passes there once the copied port is emptied" "(cd '$DS/site-feat-copied' && /bin/bash ops/docker/ports.sh guard)"
+check "guard.sh: passes there once the copied port is emptied" "(cd '$DS/site-feat-copied' && /bin/bash ops/docker/guard.sh)"
 
 # The mode (decision 0034): the root Makefile loads ops/<DEV_MODE>/Makefile — DEFAULT_MODE, .env, or the
 # command line.
@@ -367,21 +363,18 @@ check "make reset, native mode: stops the app on the host, then deletes the volu
 NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
 git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n' > "$NS/.gitignore"
 sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' -e 's|^SERVICES ?= redis$|SERVICES ?=|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
-native() { (cd "$NS" && PATH="$DS/bin:$PATH" REDIS_PORT=6399 make "$@" DEV_MODE=native); }
+native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native); }
 out=$(native up 2>&1); code=$?
 port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
 check "native mode, make up: starts the app in the background and waits until it answers" \
     "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"\$out\" | grep -q \"http://localhost:$port\""
 out=$(native urls 2>&1)
-check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (APP_PORT, on the host)\""
+check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
 out=$(native up 2>&1)
 check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
-out=$(cd "$NS" && PATH="$DS/bin:$PATH" make up DEV_MODE=native 2>&1); code=$?
-check "native mode, make up: a backing service neither in Docker nor pinned stops it, saying what to pin" \
-    "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'pin REDIS_PORT in .env' && [ ! -f '$NS/ops/native/.run/app.env' ]"
 sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
 out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \

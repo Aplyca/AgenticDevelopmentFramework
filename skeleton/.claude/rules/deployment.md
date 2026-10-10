@@ -62,7 +62,7 @@ paths:
   `compose.<name>.yaml`.
 - Operational code lives in `ops/`, **one folder per target**, and the app's code doesn't. A target
   keeps everything it needs in its folder — its make file, scripts, images, and config:
-  - `ops/docker/` — the stack in Docker: `Makefile`, `ports.sh`, and each service's image and
+  - `ops/docker/` — the stack in Docker: `Makefile`, `guard.sh`, and each service's image and
     config in `ops/docker/<service>/`;
   - `ops/native/` — the app on the host: `Makefile`, `native.sh`, and `.run/` (ignored by git);
   - `ops/agent/` — the parallel-agents module, when installed;

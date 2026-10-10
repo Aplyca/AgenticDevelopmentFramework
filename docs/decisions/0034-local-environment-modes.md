@@ -32,7 +32,7 @@ can only run the command the project gives it.
 
 1. **`ops/` has one folder per target,** and each target keeps everything it needs there — its make
    file, scripts, images, and config:
-   - `ops/docker/`: `Makefile`, `ports.sh`, and each service's image and config in
+   - `ops/docker/`: `Makefile`, `guard.sh`, and each service's image and config in
      `ops/docker/<service>/`;
    - `ops/native/`: `Makefile`, `native.sh`, and `.run/`, which git ignores;
    - `ops/agent/`: the parallel-agents module (0032, point 8);
@@ -40,7 +40,7 @@ can only run the command the project gives it.
      ships none: it stays provider-agnostic, and `deployment.md` holds the convention.
 
    Targets may use each other's files: native's backing services run in Docker, so `native.sh` asks
-   `ops/docker/ports.sh` for their ports, and an ECS deployment builds the image in `ops/docker/web/`.
+   `ops/docker/guard.sh` too, and an ECS deployment builds the image in `ops/docker/web/`.
    Nothing goes in a shared `scripts/` or `make/` folder. A file a tool reads from a fixed place
    stays there: `compose.yaml` at the root (0032), `vercel.json`, `.github/`.
 2. **One make file per local mode.** The root `Makefile` holds what both modes share: the settings,
@@ -65,10 +65,16 @@ can only run the command the project gives it.
    `make native` goes: the mode replaces it.
 6. **Switching modes needs no cleanup.** Docker-mode `make up` stops an app running on the host, and
    native `make up` stops the app's container.
-7. **A developer's own services need no setting.** `SERVICES` in `ops/native/Makefile` lists the backing
-   services that stay in Docker; empty, native mode needs no Docker at all. A developer who runs one
-   on the host pins its `<NAME>_PORT` in `.env`. When nothing in Docker publishes it, `ports.sh`
-   gives the app that port, and `make urls` shows the service on the host.
+7. **Docker Compose is the one source of where a service is.** 0032's `ports.sh` and the `PORTS`
+   setting that restated `compose.yaml`'s ports go. Docker mode's `make urls` prints
+   `docker compose ps` — each service, its published ports, its health — and the app's URL. Native
+   mode's `native.sh` looks up each `SERVICES` entry's published port with `docker compose ps` and
+   exports it as `<SERVICE>_PORT` (`redis` → `REDIS_PORT`), with `APP_PORT` pinned or free. The one
+   job that needs a script stays, alone: `ops/docker/guard.sh` keeps a worktree whose `.env` was
+   copied from the main checkout's off that stack, so its `make reset` can't delete the main
+   checkout's volumes. `SERVICES` lists what stays in Docker; empty, native mode needs no Docker. A
+   developer who runs one of them on the host overrides it (`make up SERVICES=…`; it's a `?=`
+   setting) and pins its port in `.env`.
 8. **The band reads the native app's port** from `ops/native/.run/app.env` when `.env` pins none.
    That's a file read, which 0026 allows, and it comes before 0032's Docker lookup.
 9. **Worktrees** keep `START_CMD="make up"`, which loads the worktree's own mode. `/dev-env
@@ -113,6 +119,9 @@ can only run the command the project gives it.
   beside the skill it travels with the skill and its templates.
 - **`ops/` by kind of file** (`ops/scripts/`, `ops/make/`, `ops/docker/<service>/`), as 0032 had it.
   Replaced: one target's files sat in three folders, and a new target had nowhere of its own.
+- **A script that resolves every port** (0032's `ports.sh`, driven by a `PORTS` list in the
+  `Makefile`). Replaced: Compose already knows each published port and reports it with
+  `docker compose ps`; the list restated `compose.yaml` and could drift from it.
 - **Calling the layout Domain-Driven Design.** Declined as a name, kept as a principle: DDD models the
   business domain, in the app's code (`architecture.md`); infrastructure targets aren't domains. The
   idea borrowed is cohesion by context rather than by layer.

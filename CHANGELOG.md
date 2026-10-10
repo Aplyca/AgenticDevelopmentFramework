@@ -80,7 +80,7 @@ of its own.
 
 - **One folder per target in `ops/`.** Each target keeps its make file, scripts, images, and config
   together:
-  - `ops/docker/`: `Makefile`, `ports.sh`, and each service's image in `ops/docker/<service>/`;
+  - `ops/docker/`: `Makefile`, `guard.sh`, and each service's image in `ops/docker/<service>/`;
   - `ops/native/`: `Makefile`, `native.sh`, and its git-ignored `.run/`;
   - `ops/agent/`: parallel-agents;
   - any deployment target the project adds, such as `ops/vercel/` or `ops/ecs/`. `deployment.md`
@@ -99,8 +99,15 @@ of its own.
 - **Native `make up` starts the app in the background** with `ops/native/native.sh`, running
   `NATIVE_CMD` from `ops/native/Makefile`. It waits until the app answers, or fails with the end of
   its log, and `make down` stops it. `make native` goes: the mode replaces it.
-- **A service a developer runs on the host** needs only its port pinned in `.env`. `SERVICES` in
-  `ops/native/Makefile` lists what stays in Docker; empty, native mode needs no Docker.
+- **Docker Compose is the one source of where a service is.** `ops/scripts/ports.sh` and the
+  `PORTS` setting go, since they restated `compose.yaml`. `make urls` prints `docker compose ps`:
+  each service, its published ports, and its health, plus the app's URL. Native mode's `native.sh`
+  exports each backing service's published port as `<SERVICE>_PORT`. The one job that needs a
+  script stays, alone, as `ops/docker/guard.sh`: it keeps a worktree with a copied `.env` off the
+  main checkout's stack.
+- **`SERVICES` in `ops/native/Makefile`** lists what stays in Docker; empty, native mode needs no
+  Docker. A developer who runs one on the host overrides it (`make up SERVICES=…`) and pins its port
+  in `.env`.
 - **The band above the prompt** shows the native app's URL, read from `ops/native/.run/app.env`.
 - **A specification, with the templates as its example.** `dev-env`'s `SPECIFICATION.md` states
   each requirement with an ID: layout `L`, command surface `C`, modes `M`, ports `P`, Compose `D`,
@@ -116,7 +123,8 @@ of its own.
 **Upgrade impact:**
 
 - **Merge**, in a project with the docker module, the stack `/dev-env` wrote:
-  - `git mv ops/scripts/ports.sh ops/docker/ports.sh`;
+  - replace `ops/scripts/ports.sh` with `ops/docker/guard.sh`, executable, and drop `PORTS` from the
+    `Makefile`;
   - move the `Makefile`'s Docker tasks to `ops/docker/Makefile`, add `ops/native/Makefile` with the
     project's native commands, and keep the shared part and the mode block in the `Makefile`;
   - add `ops/native/native.sh` and make it executable;

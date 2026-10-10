@@ -1107,14 +1107,14 @@ def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
 files = ["compose.yaml", "Makefile", "ops/docker/Makefile", "ops/native/Makefile", ".env.example",
-         "ops/docker/ports.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
+         "ops/docker/guard.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
 for f in missing:
     print(f"templates/{f} is missing")
 if missing:
     sys.exit()
-for script in ("ops/docker/ports.sh", "ops/native/native.sh"):
+for script in ("ops/docker/guard.sh", "ops/native/native.sh"):
     if not os.access(os.path.join(tpl, script), os.X_OK):
         print(f"templates/{script} isn't executable")
 

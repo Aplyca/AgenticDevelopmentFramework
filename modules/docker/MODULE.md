@@ -16,7 +16,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 - **Docker Compose, with `compose.yaml` at the root.** The root holds only it, the `Makefile`, `.env`
   (untracked), and `.env.example`.
-- **Operational code in `ops/`, one folder per target:** `ops/docker/` (its make file, `ports.sh`,
+- **Operational code in `ops/`, one folder per target:** `ops/docker/` (its make file, `guard.sh`,
   and each service's image and config in `ops/docker/<service>/`), `ops/native/` (its make file and
   `native.sh`), the parallel-agents module in `ops/agent/`, and any deployment target the project
   adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
@@ -42,7 +42,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the
 specification, starting from the skill's templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
-`ops/docker/` (its `Makefile`; `ports.sh`, which looks up the ports Docker picked; and
+`ops/docker/` (its `Makefile`; `guard.sh`, which keeps a worktree off the main checkout's stack; and
 `web/Dockerfile` with its `.dockerignore`) and `ops/native/` (its `Makefile`, and `native.sh`, which
 starts and stops the app on the host) — and fills in what it verifies about the project. No rule of
 its own: the skeleton's `.claude/rules/deployment.md` § Docker is the project's copy of the

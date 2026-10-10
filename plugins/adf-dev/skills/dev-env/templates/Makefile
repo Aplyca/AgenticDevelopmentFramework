@@ -9,9 +9,8 @@ COMPOSE ?= docker compose
 # CUSTOMIZE: where the app runs unless a checkout's .env says otherwise — docker (ops/docker/Makefile)
 # or native (ops/native/Makefile)
 DEFAULT_MODE = docker
-# CUSTOMIZE: the app's service, and each published port, as <variable>=<service>:<container port>
+# CUSTOMIZE: the app's Compose service
 APP ?= web
-PORTS ?= APP_PORT=web:3000 REDIS_PORT=redis:6379
 
 # The mode: `make up DEV_MODE=native`, then the shell's DEV_MODE, then .env's, then DEFAULT_MODE.
 ifeq ($(origin DEV_MODE),undefined)
@@ -22,8 +21,6 @@ MODE_FILE = ops/$(DEV_MODE)/Makefile
 ifeq ($(wildcard $(MODE_FILE)),)
 $(error DEV_MODE is '$(DEV_MODE)', and there's no $(MODE_FILE), so it isn't a local mode: set DEV_MODE in .env to docker or native)
 endif
-
-PORTS_SH = PORTS='$(PORTS)' APP='$(APP)' COMPOSE='$(COMPOSE)' DEV_MODE='$(DEV_MODE)' ops/docker/ports.sh
 
 .DEFAULT_GOAL := help
 .PHONY: help env guard
@@ -37,6 +34,6 @@ env: ## Create .env from .env.example, if it's missing
 	else cp .env.example .env && chmod 600 .env && echo "Created .env from .env.example: fill in the credentials it names"; fi
 
 guard:
-	@$(PORTS_SH) guard
+	@ops/docker/guard.sh
 
 include $(MODE_FILE)

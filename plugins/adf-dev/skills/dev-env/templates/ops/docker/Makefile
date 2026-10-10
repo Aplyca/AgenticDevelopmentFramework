@@ -1,6 +1,6 @@
 # DEV_MODE=docker: the whole stack in Docker. The root Makefile loads this file in that mode; this
 # folder holds everything the target needs — the images and service config (ops/docker/<service>/)
-# and ports.sh, which finds the ports Docker published.
+# and guard.sh, which keeps a worktree off the main checkout's stack.
 
 # Loaded by the root Makefile, never run on its own: its settings and paths are the root's.
 ifndef MODE_FILE
@@ -12,7 +12,7 @@ endif
 up: env guard ## Start the stack, wait until it's healthy, and show where it is
 	@ops/native/native.sh stop
 	$(COMPOSE) up -d --wait
-	@$(PORTS_SH) urls
+	@$(MAKE) --no-print-directory urls
 
 down: guard ## Stop the stack; its data stays
 	$(COMPOSE) down
@@ -26,8 +26,10 @@ ps: ## The services, their state, and their health
 logs: ## The last 100 lines of every service's log, or one service's: make logs s=web
 	$(COMPOSE) logs --tail 100 --no-color $(s)
 
-urls: ## Where each published service is now — Docker picks the ports it isn't given
-	@$(PORTS_SH) urls
+urls: ## Where each service is now, and its health — Docker picks the ports .env doesn't pin
+	@$(COMPOSE) ps --format 'table {{.Service}}\t{{.Ports}}\t{{.Status}}'
+	@$(COMPOSE) ps $(APP) --format '{{range .Publishers}}{{if .PublishedPort}}The app: http://localhost:{{.PublishedPort}} {{end}}{{end}}'
+
 
 shell: ## A shell in the app's container, for people
 	$(COMPOSE) exec $(APP) sh
