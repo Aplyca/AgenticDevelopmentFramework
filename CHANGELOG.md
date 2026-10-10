@@ -11,6 +11,45 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.1.0 — 2026-10-10 — Docker or native by a setting, one folder per target in `ops/`, and fewer prompts
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. The changes come from testing the framework in an adopting project.
+
+- **The local environment runs in Docker or natively** (0034). `DEV_MODE` picks
+  `ops/docker/Makefile` or `ops/native/Makefile`, which define the same tasks. `ops/` has one folder
+  per target. `dev-env`'s `SPECIFICATION.md` states every requirement with an ID, and its templates
+  are an example of it.
+- **Fewer prompts.** The main checkout hands a task to `/dispatch` without asking first. An agent
+  pushes, opens, edits, and comments on its draft pull request without a prompt (0033).
+- **The base branch stays current.** `adf-worktree-rm` fast-forwards the main checkout after a merge,
+  and the session context says when the base branch is behind origin's.
+
+**Upgrading from v2.0.0:**
+
+1. **Run `/adf:upgrade`.** It moves the pin to `v2.1.0` and, in one draft pull request, merges the
+   project's layer as each entry below says:
+   - `.claude/settings.json`'s pull-request permissions;
+   - `AGENTS.md`'s first ground rule and its Branches line;
+   - the rules `git-workflow.md`, `claude-code.md`, and `deployment.md`, which gains § Conformance;
+   - `CONTRIBUTING.md`, `DEV-SETUP.md`, and, with parallel-agents, `PARALLEL-AGENTS.md`.
+
+   A committed install also gets the release's machinery, written by `scripts/build-committed.py`.
+2. **With the `docker` module,** once that pull request merges, run `/adf-dev:dev-env set up` in a new
+   session, in a worktree in a hub (`/dev-env set up` in a committed install). It audits the stack
+   against the specification and proposes the move, each gap by requirement ID, as a careful-lane
+   change:
+   - `ops/scripts/ports.sh` becomes `ops/docker/guard.sh`;
+   - the `Makefile` splits into the shared part and `ops/docker/Makefile`, and native mode is added;
+   - `.env.example` gains `DEV_MODE=` and `SERVICES=`.
+
+   It never copies the templates over the project's files. Until it runs, the v2.0.0 stack keeps
+   working.
+3. **With `docker` and `parallel-agents`,** `/adf-dev:dev-env worktrees` proposes the new
+   `STOP_CMD`, which also stops an app running on the host.
+
+Each entry below lists its own **Upgrade impact**.
+
 ### The main checkout dispatches without asking first
 
 With the parallel-agents module, a command started in the main checkout, such as `/adf-dev:dev-env

@@ -1,7 +1,7 @@
 {
   "name": "adf-dev",
   "description": "The Agentic Development Framework's development plugin: skills, agents, and a mod for building, running, and checking the code. Its mod shows the local environment's URL above the prompt, and whether it answers. /adf-dev:dev-env sets up, diagnoses, and safely resets a Docker Compose local environment (the docker module); like every module skill, it acts only in a packaged project that installed its module.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
