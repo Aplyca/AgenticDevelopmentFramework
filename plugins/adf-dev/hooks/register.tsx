@@ -6,7 +6,7 @@ import { chooseUrl, markdownLink, parsePublishedPort, parseService, parseSetting
 
 // The local environment's URL above the prompt, and whether it answers, for the developer's local
 // check before the pull request. It reads the project's files, requests the URL, and — when the env
-// file pins no APP_PORT — takes the port of the app running on the host (ops/.run/app.env, native
+// file pins no APP_PORT — takes the port of the app running on the host (ops/native/.run/app.env, native
 // mode, decision 0034), or asks Docker which port it picked for the app with one read-only command,
 // `docker compose port <service> <port>` (decision 0032). It never changes, approves, or refuses a
 // tool call or a prompt.
@@ -87,8 +87,8 @@ async function refresh($: EngineInterface, isFresh = false): Promise<LocalEnviro
     const source = chooseUrl(config, worktree.values, values, worktree.file)
     return source ? { url: source.url, from: source.from + note, isUp: await answers($, source.url) } : null
   }
-  // The app on the host (DEV_MODE=native): ops/scripts/native.sh keeps its port there while it runs.
-  const host = env.APP_PORT ? {} : await settings($, `${root}/ops/.run/app.env`, ['APP_PORT'])
+  // The app on the host (DEV_MODE=native): ops/native/native.sh keeps its port there while it runs.
+  const host = env.APP_PORT ? {} : await settings($, `${root}/ops/native/.run/app.env`, ['APP_PORT'])
   let found: LocalEnvironment | null
   if (env.APP_PORT || !config.LOCAL_SERVICE) {
     found = await locate(env, '')

@@ -1,9 +1,11 @@
-# DEV_MODE=docker: the whole stack in Docker. The root Makefile loads this file in that mode.
+# DEV_MODE=docker: the whole stack in Docker. The root Makefile loads this file in that mode; this
+# folder holds everything the target needs — the images and service config (ops/docker/<service>/)
+# and ports.sh, which finds the ports Docker published.
 
 .PHONY: up down build ps logs urls shell test lint reset
 
 up: env guard ## Start the stack, wait until it's healthy, and show where it is
-	@ops/scripts/native.sh stop
+	@ops/native/native.sh stop
 	$(COMPOSE) up -d --wait
 	@$(PORTS_SH) urls
 

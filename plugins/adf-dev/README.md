@@ -14,9 +14,9 @@ interface ([decision 0026](https://github.com/aplyca/AgenticDevelopmentFramework
 
 | Mod | What it shows |
 |---|---|
-| Local environment | A line above the prompt: the local environment's URL, and whether it answers (● or ○), refreshed every 15 seconds and after each turn. `/local-url` says the same in places that don't draw. The URL is `LOCAL_URL` in `.claude/hooks/config.sh`, or, with the parallel-agents module, the worktree's `READY_URL`. Its `${APP_PORT}` is the env file's when it pins one; otherwise, with `LOCAL_SERVICE` set (`web:3000`), the port of the app on the host in native mode (`ops/.run/app.env`), or the port Docker picked, which it looks up |
+| Local environment | A line above the prompt: the local environment's URL, and whether it answers (● or ○), refreshed every 15 seconds and after each turn. `/local-url` says the same in places that don't draw. The URL is `LOCAL_URL` in `.claude/hooks/config.sh`, or, with the parallel-agents module, the worktree's `READY_URL`. Its `${APP_PORT}` is the env file's when it pins one; otherwise, with `LOCAL_SERVICE` set (`web:3000`), the port of the app on the host in native mode (`ops/native/.run/app.env`), or the port Docker picked, which it looks up |
 
-It's display-only: it reads those files — only `APP_PORT` from the env file and from `ops/.run/app.env` — and requests the URL; it
+It's display-only: it reads those files — only `APP_PORT` from the env file and from `ops/native/.run/app.env` — and requests the URL; it
 never acts on a tool call or a prompt. It runs one command, read-only: `docker compose port <service>
 <port>` in the checkout, for the port Docker picked
 ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md)).

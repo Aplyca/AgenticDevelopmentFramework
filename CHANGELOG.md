@@ -68,38 +68,55 @@ still prompted in the default permission mode, because no allow rule named them.
   committed install: `scripts/build-committed.py` writes them. A packaged project gets them with
   its pin.
 
-### The local environment runs in Docker or natively, one Makefile per mode
+### The local environment runs in Docker or natively, and `ops/` has one folder per target
 
 ([0034](docs/decisions/0034-local-environment-modes.md), amending [0032](docs/decisions/0032-local-environment-layout.md))
 
 `make native` ran the app on the host in the foreground, and every other task assumed Docker. A
 developer who worked natively typed different commands. An agent or a worktree couldn't start the
-native app at all, because `make native` never returned.
+native app at all, because `make native` never returned. And `ops/` was organized by kind of file
+(`ops/scripts/`), so one target's files sat in several folders, and a deployment target had no place
+of its own.
 
-- **One file per mode.** The root `Makefile` keeps what both modes share and loads
-  `ops/make/docker.mk` or `ops/make/native.mk`. Each file defines the same tasks: `up`, `down`,
-  `build`, `ps`, `logs`, `urls`, `test`, `lint`, and `reset`, plus `shell` in Docker mode and
-  `services` in native mode.
-- **`DEV_MODE` picks the file.** Each checkout sets it in `.env`. The project's default is
+- **One folder per target in `ops/`.** Each target keeps its make file, scripts, images, and config
+  together:
+  - `ops/docker/`: `docker.mk`, `ports.sh`, and each service's image in `ops/docker/<service>/`;
+  - `ops/native/`: `native.mk`, `native.sh`, and its git-ignored `.run/`;
+  - `ops/agent/`: parallel-agents;
+  - any deployment target the project adds, such as `ops/vercel/` or `ops/ecs/`. `deployment.md`
+    holds the convention; the framework ships no provider's files.
+
+  A file a tool reads from a fixed place stays there: `compose.yaml`, `vercel.json`, `.github/`.
+  `ops/scripts/` goes.
+- **One make file per local mode.** The root `Makefile` keeps what both modes share and loads
+  `ops/<DEV_MODE>/<DEV_MODE>.mk`. Each defines the same tasks: `up`, `down`, `build`, `ps`, `logs`,
+  `urls`, `test`, `lint`, and `reset`, plus `shell` in Docker mode and `services` in native mode. A
+  folder without a `.mk` of its name, such as `ops/agent/`, isn't a mode.
+- **`DEV_MODE` picks the mode.** Each checkout sets it in `.env`. The project's default is
   `DEFAULT_MODE` in the `Makefile`, and `make up DEV_MODE=native` overrides both for one command.
   `make help` names the mode in force.
-- **Native `make up` starts the app in the background** with `ops/scripts/native.sh`, a new
-  template, running `NATIVE_CMD` from `native.mk`. It waits until the app answers, or fails with the
-  end of its log, and `make down` stops it. `make native` goes: the mode replaces it.
+- **Native `make up` starts the app in the background** with `ops/native/native.sh`, running
+  `NATIVE_CMD` from `native.mk`. It waits until the app answers, or fails with the end of its log,
+  and `make down` stops it. `make native` goes: the mode replaces it.
 - **A service a developer runs on the host** needs only its port pinned in `.env`. `SERVICES` in
   `native.mk` lists what stays in Docker; empty, native mode needs no Docker.
-- **The band above the prompt** shows the native app's URL, read from `ops/.run/app.env`.
-- **`/dev-env`** fills each mode's commands in set up, flags a `Makefile` with its own native targets
-  in an audit, and in worktrees mode proposes a `STOP_CMD` that also stops a native app.
+- **The band above the prompt** shows the native app's URL, read from `ops/native/.run/app.env`.
+- **`/dev-env`** fills each mode's commands in set up, flags `ops/` folders by kind of file and a
+  `Makefile` with its own native targets in an audit, and in worktrees mode proposes a `STOP_CMD`
+  that also stops a native app.
 
 **Upgrade impact:**
 
-- **Merge**, in a project with the docker module, the stack `/dev-env` wrote. Move the `Makefile`'s
-  Docker tasks to `ops/make/docker.mk`, add `ops/make/native.mk` with the project's native commands,
-  and keep the shared part and the mode block in the `Makefile`. Update `ops/scripts/ports.sh`, add
-  `DEV_MODE=` to `.env.example`, add `ops/scripts/native.sh` and make it executable, and add
-  `ops/.run/` to `.gitignore` and to `ops/docker/web/Dockerfile.dockerignore`. Running
-  `/adf-dev:dev-env set up` audits the stack and proposes these changes.
+- **Merge**, in a project with the docker module, the stack `/dev-env` wrote:
+  - `git mv ops/scripts/ports.sh ops/docker/ports.sh`;
+  - move the `Makefile`'s Docker tasks to `ops/docker/docker.mk`, add `ops/native/native.mk` with the
+    project's native commands, and keep the shared part and the mode block in the `Makefile`;
+  - add `ops/native/native.sh` and make it executable;
+  - add `DEV_MODE=` to `.env.example`;
+  - add `ops/native/.run/` to `.gitignore` and to `ops/docker/web/Dockerfile.dockerignore`;
+  - update whatever names `ops/scripts/`: CI, docs, other scripts.
+
+  Running `/adf-dev:dev-env set up` audits the stack and proposes these changes.
 - **Merge** `.claude/rules/deployment.md` (§ Command surface and § Docker),
   `docs/getting-started/DEV-SETUP.md` (§ 6 and the command surface), and the `LOCAL_URL` comment in
   `.claude/hooks/config.sh`. Replace any `make native` the project's docs name with
@@ -107,7 +124,7 @@ native app at all, because `make native` never returned.
 - **Overwrite** `.claude/skills/dev-env/` in a committed install: `scripts/build-committed.py` writes
   it, templates included. A packaged project gets it, and the band, with its pin.
 - With parallel-agents, change `STOP_CMD` in `ops/agent/worktree.conf` to
-  `"ops/scripts/native.sh stop; docker compose down -v"` once `native.sh` is in.
+  `"ops/native/native.sh stop; docker compose down -v"` once `native.sh` is in.
 
 ## v2.0.0 — 2026-10-09 — The plugin is `adf`, and `AGENTS.md` is the one instruction file
 

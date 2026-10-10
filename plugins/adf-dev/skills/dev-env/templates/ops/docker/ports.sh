@@ -3,14 +3,14 @@
 # <NAME>_PORT is empty in .env, and a new one each time the service starts, so ports are looked up
 # when they're needed and never written down.
 #
-#   ops/scripts/ports.sh urls    each service, where it is now, and whether it answers — in native
+#   ops/docker/ports.sh urls    each service, where it is now, and whether it answers — in native
 #                                mode the app on the host, and a service not in Docker on the port
 #                                .env pins for it
-#   ops/scripts/ports.sh env     `export` lines for the app on the host (DEV_MODE=native):
+#   ops/docker/ports.sh env     `export` lines for the app on the host (DEV_MODE=native):
 #                                each backing service's port — Docker's, or the one .env pins when
 #                                it isn't in Docker — and the app's own: pinned in .env, or a free one
-#   ops/scripts/ports.sh free    a free local port
-#   ops/scripts/ports.sh guard   fails in a worktree whose .env pins the main checkout's ports or
+#   ops/docker/ports.sh free    a free local port
+#   ops/docker/ports.sh guard   fails in a worktree whose .env pins the main checkout's ports or
 #                                Compose project — a copy of it — so that stack is never this one's
 #
 # The Makefile passes PORTS, each published port as <variable>=<service>:<container port>
@@ -78,7 +78,7 @@ urls() {
     name="${entry%%=*}" service="${entry#*=}"
     port="${service#*:}" service="${service%%:*}"
     if [ "$service" = "$APP" ] && [ "$DEV_MODE" = native ]; then
-      host="$(file_value ops/.run/app.env APP_PORT)"
+      host="$(file_value ops/native/.run/app.env APP_PORT)"
       if [ -z "$host" ]; then
         printf '  ○ %-10s not running on the host  (%s)\n' "$service" "$name"
         continue
@@ -156,5 +156,5 @@ case "${1:-}" in
   env) native_env ;;
   free) free_port ;;
   guard) guard ;;
-  *) die "usage: ops/scripts/ports.sh urls | env | free | guard" ;;
+  *) die "usage: ops/docker/ports.sh urls | env | free | guard" ;;
 esac

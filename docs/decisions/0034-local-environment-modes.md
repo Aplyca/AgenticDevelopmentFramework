@@ -1,9 +1,9 @@
-# 0034: The local environment runs in Docker or natively, one Makefile per mode
+# 0034: The local environment runs in Docker or natively, and `ops/` has one folder per target
 
 - **Status:** accepted
 - **Date:** 2026-10-10
-- **Amends:** [0032](0032-local-environment-layout.md) — point 3, the command surface; point 6, the
-  native path; and point 7, where the band finds the app's port
+- **Amends:** [0032](0032-local-environment-layout.md) — point 2, how `ops/` is organized; point 3,
+  the command surface; point 6, the native path; and point 7, where the band finds the app's port
 
 ## Context
 
@@ -20,40 +20,58 @@ nothing else knew about it:
 A first version put both modes in one `Makefile`, with a conditional in every task. It worked, but
 each task read as two, and a project couldn't see one mode's commands without the other's.
 
+Decision 0032 also organized `ops/` by kind of file: images in `ops/docker/<service>/`, scripts in
+`ops/scripts/`, and, in the first version here, make files in `ops/make/`. The native mode was spread
+over three folders, and a project adding a deployment target such as Vercel or ECS had no place for
+it that kept its files together.
+
 The framework is stack-agnostic, so the native run can't know how to start any particular app. It
 can only run the command the project gives it.
 
 ## Decision
 
-1. **One file per mode.** The root `Makefile` holds what both modes share: the settings, choosing
-   the mode, `help`, `env`, and the worktree guard. It then loads `ops/make/<mode>.mk`:
-   `ops/make/docker.mk` runs the whole stack in Docker, and `ops/make/native.mk` runs the app on the
-   host against its backing services in Docker. They sit in `ops/` because the root keeps only
-   `compose.yaml`, the `Makefile`, `.env`, and `.env.example` (0032).
-2. **A setting picks the file:** `DEV_MODE`. Whichever is set first wins: the command line
+1. **`ops/` has one folder per target,** and each target keeps everything it needs there — its make
+   file, scripts, images, and config:
+   - `ops/docker/`: `docker.mk`, `ports.sh`, and each service's image and config in
+     `ops/docker/<service>/`;
+   - `ops/native/`: `native.mk`, `native.sh`, and `.run/`, which git ignores;
+   - `ops/agent/`: the parallel-agents module (0032, point 8);
+   - any deployment target the project adds, such as `ops/vercel/` or `ops/ecs/`. The framework
+     ships none: it stays provider-agnostic, and `deployment.md` holds the convention.
+
+   Targets may use each other's files: native's backing services run in Docker, so `native.sh` asks
+   `ops/docker/ports.sh` for their ports, and an ECS deployment builds the image in `ops/docker/web/`.
+   Nothing goes in a shared `scripts/` or `make/` folder. A file a tool reads from a fixed place
+   stays there: `compose.yaml` at the root (0032), `vercel.json`, `.github/`.
+2. **One make file per local mode.** The root `Makefile` holds what both modes share: the settings,
+   choosing the mode, `help`, `env`, and the worktree guard. It then loads `ops/<mode>/<mode>.mk`:
+   `ops/docker/docker.mk` runs the whole stack in Docker, and `ops/native/native.mk` runs the app on
+   the host against its backing services in Docker. A target folder with `<name>.mk` is a local mode;
+   a deployment target has none, so `DEV_MODE` can't pick it.
+3. **A setting picks the file:** `DEV_MODE`. Whichever is set first wins: the command line
    (`make up DEV_MODE=native`), then the shell, then the checkout's `.env`, then `DEFAULT_MODE` in the
    `Makefile`. A mode with no file stops `make` with a message. A project can add a mode by adding a
    file. `make help` names the mode and its file, and lists that file's tasks.
-3. **The same tasks in each file:** `up`, `down`, `build`, `ps`, `logs`, `urls`, `test`, `lint`, and
+4. **The same tasks in each file:** `up`, `down`, `build`, `ps`, `logs`, `urls`, `test`, `lint`, and
    `reset`, plus `shell` in Docker mode and `services` in native mode. People, agents,
    `AGENTS.md` § Quick reference, and `worktree.conf` type the same commands in either mode. Each
    file holds its own commands inline: the tests in the app's container, or on the host.
-4. **Native `make up` runs the app in the background.** `NATIVE_CMD` in `native.mk` is the stack's
-   own dev command, listening on `$APP_PORT`. `ops/scripts/native.sh` starts it in a process group
+5. **Native `make up` runs the app in the background.** `NATIVE_CMD` in `native.mk` is the stack's
+   own dev command, listening on `$APP_PORT`. `ops/native/native.sh` starts it in a process group
    of its own with every `<NAME>_PORT` exported, then waits until `APP_PORT` answers. If the app
    exits first, it fails and shows the end of the log. `make down` stops the whole group. The app's
-   process, port, and log stay in `ops/.run/`, which git and the Docker build ignore. `make native`
-   goes: the mode replaces it.
-5. **Switching modes needs no cleanup.** Docker-mode `make up` stops an app running on the host, and
+   process, port, and log stay in `ops/native/.run/`, which git and the Docker build ignore.
+   `make native` goes: the mode replaces it.
+6. **Switching modes needs no cleanup.** Docker-mode `make up` stops an app running on the host, and
    native `make up` stops the app's container.
-6. **A developer's own services need no setting.** `SERVICES` in `native.mk` lists the backing
+7. **A developer's own services need no setting.** `SERVICES` in `native.mk` lists the backing
    services that stay in Docker; empty, native mode needs no Docker at all. A developer who runs one
    on the host pins its `<NAME>_PORT` in `.env`. When nothing in Docker publishes it, `ports.sh`
    gives the app that port, and `make urls` shows the service on the host.
-7. **The band reads the native app's port** from `ops/.run/app.env` when `.env` pins none. That's a
-   file read, which 0026 allows, and it comes before 0032's Docker lookup.
-8. **Worktrees** keep `START_CMD="make up"`, which loads the worktree's own mode. `/dev-env
-   worktrees` proposes `STOP_CMD="ops/scripts/native.sh stop; docker compose down -v"`.
+8. **The band reads the native app's port** from `ops/native/.run/app.env` when `.env` pins none.
+   That's a file read, which 0026 allows, and it comes before 0032's Docker lookup.
+9. **Worktrees** keep `START_CMD="make up"`, which loads the worktree's own mode. `/dev-env
+   worktrees` proposes `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`.
 
 ## Consequences
 
@@ -61,17 +79,25 @@ can only run the command the project gives it.
   - A developer or a whole team works natively with the commands everyone else types, and an agent
     never needs to know which mode a checkout uses.
   - Each mode reads as plain make: one recipe per task, no conditionals.
+  - Adding or dropping a target is adding or deleting one folder, and a reader finds all of a
+    target's files in one place.
   - A worktree can run natively with its own port, since `make up` returns once the app answers.
 - **Negative / cost:**
   - **Two files keep the same task names.** The static check asserts that both define the full
     set.
   - **The `Makefile` reads one name from `.env`:** `DEV_MODE`, and nothing else.
   - **A background process outlives the terminal that started it.** `make down` stops it. A machine
-    restart leaves a stale `ops/.run/app.env`, which the next command notices and removes.
+    restart leaves a stale `ops/native/.run/app.env`, which the next command notices and removes.
   - **Native mode trusts the host:** the runtime and its version are each developer's.
     `DEV-SETUP.md` names them.
 
 ## Alternatives considered
+
+- **`ops/` by kind of file** (`ops/scripts/`, `ops/make/`, `ops/docker/<service>/`), as 0032 had it.
+  Replaced: one target's files sat in three folders, and a new target had nowhere of its own.
+- **Calling the layout Domain-Driven Design.** Declined as a name, kept as a principle: DDD models the
+  business domain, in the app's code (`architecture.md`); infrastructure targets aren't domains. The
+  idea borrowed is cohesion by context rather than by layer.
 
 - **One `Makefile` with a conditional per task.** Built first, then replaced at review: every task
   read as two.

@@ -30,7 +30,7 @@ paths:
   them. A task the team runs often gets a target instead of a command copied around.
 - With Docker: `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `test`, `lint`, and `reset` —
   the only one that deletes data. `logs` shows the last lines and never follows.
-- One file per mode: the root `Makefile` loads `ops/make/<DEV_MODE>.mk` — `docker.mk`, or
+- One file per mode: the root `Makefile` loads `ops/<DEV_MODE>/<DEV_MODE>.mk` — `docker.mk`, or
   `native.mk` for the app on the host — and both define the same tasks, so nobody types a different
   command for the mode. `DEV_MODE` in `.env` picks it; `DEFAULT_MODE` in the `Makefile` is the
   project's default. `make help` names the mode in force.
@@ -60,8 +60,17 @@ paths:
 ## Docker (if applicable)
 - `compose.yaml` at the root defines the full local stack; overrides go beside it as
   `compose.<name>.yaml`.
-- Operational code lives in `ops/`: Dockerfiles and service configuration in `ops/docker/<service>/`,
-  helper scripts in `ops/scripts/`. The app's code doesn't.
+- Operational code lives in `ops/`, **one folder per target**, and the app's code doesn't. A target
+  keeps everything it needs in its folder — its make file, scripts, images, and config:
+  - `ops/docker/` — the stack in Docker: `docker.mk`, `ports.sh`, and each service's image and
+    config in `ops/docker/<service>/`;
+  - `ops/native/` — the app on the host: `native.mk`, `native.sh`, and `.run/` (ignored by git);
+  - `ops/agent/` — the parallel-agents module, when installed;
+  - <!-- CUSTOMIZE: each deployment target the project adds, e.g. `ops/vercel/`, `ops/ecs/` -->
+  A folder with `<name>.mk` is a local mode `DEV_MODE` can pick; a deployment target has none.
+  Targets may use each other's files (native's backing services are Docker's; ECS deploys the image
+  `ops/docker/web/` builds), but nothing goes in a shared `scripts/` or `make/` folder. A file a tool
+  reads from a fixed place stays there: `compose.yaml` at the root, `vercel.json`, `.github/`.
 - Published ports bind to `127.0.0.1` from a port variable: `"127.0.0.1:${APP_PORT:-}:3000"`.
 - No `container_name:` and no top-level `name:` — the checkout's folder names the Compose project.
 - Pin image versions. A service another one waits for has a healthcheck, and the one that waits uses
@@ -69,7 +78,7 @@ paths:
 - Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
   backing services in Docker (`SERVICES` in `native.mk`). A service a developer runs on the host
   instead has its port pinned in `.env`. `make up` starts the app in the background and waits until
-  it answers; its process, port, and log stay in `ops/.run/`, which git ignores.
+  it answers; its process, port, and log stay in `ops/native/.run/`, which git ignores.
 - Volume-mount config files so changes persist without rebuilding.
 - Use multi-stage builds for production images, and keep secrets out of the build context
   (`<Dockerfile>.dockerignore` beside each Dockerfile).

@@ -5,5 +5,5 @@
 .env.*
 !.env.example
 .claude/
-ops/.run/
+ops/native/.run/
 # CUSTOMIZE: dependency and build folders the image makes for itself

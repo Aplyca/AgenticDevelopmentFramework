@@ -1104,15 +1104,15 @@ tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
 def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
-files = ["compose.yaml", "Makefile", "ops/make/docker.mk", "ops/make/native.mk", ".env.example",
-         "ops/scripts/ports.sh", "ops/scripts/native.sh", "ops/docker/web/Dockerfile",
+files = ["compose.yaml", "Makefile", "ops/docker/docker.mk", "ops/native/native.mk", ".env.example",
+         "ops/docker/ports.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
 for f in missing:
     print(f"templates/{f} is missing")
 if missing:
     sys.exit()
-for script in ("ops/scripts/ports.sh", "ops/scripts/native.sh"):
+for script in ("ops/docker/ports.sh", "ops/native/native.sh"):
     if not os.access(os.path.join(tpl, script), os.X_OK):
         print(f"templates/{script} isn't executable")
 
@@ -1154,15 +1154,15 @@ make = read("Makefile")
 if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
 if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
-    print("Makefile doesn't load the mode's file (ops/make/<mode>.mk, decision 0034)")
+    print("Makefile doesn't load the mode's file (ops/<mode>/<mode>.mk, decision 0034)")
 # Each mode's file, with the shared tasks, gives the same command surface (decision 0034).
 shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
 for mode, extra in (("docker", "shell"), ("native", "services")):
-    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/make/{mode}.mk"), re.M))
+    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/{mode}.mk"), re.M))
     for target in f"help env up down build ps logs urls test lint reset {extra}".split():
         if target not in targets:
-            print(f"ops/make/{mode}.mk: no {target} target")
-make = "\n".join([make, read("ops/make/docker.mk"), read("ops/make/native.mk")])
+            print(f"ops/{mode}/{mode}.mk: no {target} target")
+make = "\n".join([make, read("ops/docker/docker.mk"), read("ops/native/native.mk")])
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
                  (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
                  (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):

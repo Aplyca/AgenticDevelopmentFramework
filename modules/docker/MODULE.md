@@ -13,11 +13,13 @@ that deletes containers, volumes, or images asks first.
 
 - **Docker Compose, with `compose.yaml` at the root.** The root holds only it, the `Makefile`, `.env`
   (untracked), and `.env.example`.
-- **Operational code in `ops/`:** Dockerfiles and service config in `ops/docker/<service>/`, helper
-  scripts in `ops/scripts/` — and the parallel-agents module in `ops/agent/`.
+- **Operational code in `ops/`, one folder per target:** `ops/docker/` (its make file, `ports.sh`,
+  and each service's image and config in `ops/docker/<service>/`), `ops/native/` (its make file and
+  `native.sh`), the parallel-agents module in `ops/agent/`, and any deployment target the project
+  adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
 - **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
   `logs`, `urls`, `test`, `lint`, `reset`.
-- **One file per mode:** the root `Makefile` loads `ops/make/docker.mk` or `ops/make/native.mk` —
+- **One file per mode:** the root `Makefile` loads `ops/docker/docker.mk` or `ops/native/native.mk` —
   the app in Docker, or on the host against the backing services in Docker — by `DEV_MODE` in `.env`
   or the project's `DEFAULT_MODE`. Both define the same tasks
   ([decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)).
@@ -36,10 +38,10 @@ that deletes containers, volumes, or images asks first.
 | `.claude/skills/dev-env/` | **Committed install only:** the skill and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/dev-env set up` writes the stack from the skill's
-templates — `compose.yaml`, `Makefile`, `ops/make/docker.mk` and `native.mk`, `.env.example`, `ops/docker/web/Dockerfile` (with its
-`.dockerignore`), `ops/scripts/ports.sh`, which looks up the ports Docker picked, and
-`ops/scripts/native.sh`, which starts and stops the app on the host in native mode — and fills in
-what it verifies about the project. No rule of its own: the conventions live in the skeleton's
+templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
+`ops/docker/` (`docker.mk`; `ports.sh`, which looks up the ports Docker picked; and
+`web/Dockerfile` with its `.dockerignore`) and `ops/native/` (`native.mk`, and `native.sh`, which
+starts and stops the app on the host) — and fills in what it verifies about the project. No rule of its own: the conventions live in the skeleton's
 `.claude/rules/deployment.md` § Docker, which `/dev-env` keeps pointed at the project's files.
 
 ## Install
