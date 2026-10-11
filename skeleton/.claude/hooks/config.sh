@@ -31,6 +31,11 @@ TRIAGE_FIRST="1"
 # module it has no effect. Empty disables.
 HUB_READONLY="1"
 
+# A dispatched session moves from the main checkout into its task's worktree with the desktop app's
+# change_directory. "1" approves that move without a prompt when the folder is a worktree of this
+# repository; any other folder still prompts. Empty disables.
+APPROVE_WORKTREE_MOVE="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""

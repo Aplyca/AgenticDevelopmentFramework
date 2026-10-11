@@ -32,6 +32,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
 | The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 | With the parallel-agents module, the main checkout is the hub: file edits there are stopped, so each task's work happens in its own worktree | `.claude/hooks/protect-hub.sh` (PreToolUse) |
+| A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `.claude/hooks/approve-worktree-move.sh` (PreToolUse) |
 
 Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts only after your yes in chat.
 

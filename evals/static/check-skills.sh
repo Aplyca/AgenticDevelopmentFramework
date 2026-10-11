@@ -705,6 +705,8 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
+    grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")

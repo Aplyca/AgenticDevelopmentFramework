@@ -111,6 +111,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
+| A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `approve-worktree-move.sh` hook |
 | A person confirms marking a pull request ready, merges, reviews, issue writes, releases, GitHub API writes. Keeping the draft current — pushing, editing it, commenting on it — needs no prompt | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once you approve the local check | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |

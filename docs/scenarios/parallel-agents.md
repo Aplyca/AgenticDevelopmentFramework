@@ -70,8 +70,9 @@ session handed one task and its branch is that task's worker. Before anything el
    name. No port is reserved: the newsletter site's stack runs in Docker, which picks each worktree's
    ports when it starts. `--no-start` because whether the task needs anything running is triage's
    call.
-2. **Moves into it** — `change_directory` to the path the script printed, in the desktop app (you
-   approve the folder once, and the session carries on there by itself), or `EnterWorktree` in a
+2. **Moves into it** — `change_directory` to the path the script printed, in the desktop app (a hook
+   approves a worktree of this repository, so no prompt asks, and the session carries on there by
+   itself), or `EnterWorktree` in a
    terminal. `pwd` confirms it. If the move is refused, the session gives you the worktree's path and
    stops: open a session on that folder and paste the prompt.
 
