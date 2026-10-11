@@ -11,6 +11,25 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **`/wrap-up` closes up a task after its pull request merges**
+  ([decision 0036](docs/decisions/0036-wrap-up-after-the-merge.md)).
+  - **When:** the developer says the pull request merged, the app reports it, or the developer asks to
+    close up.
+  - **The check:** nothing is left — no uncommitted or unpushed work, no stash, nothing open in
+    `tasks.md`, no promised follow-up. Anything it finds is listed, and nothing is removed.
+  - **The close-up, with one yes:** it stops what the task started, deletes the branch on the host,
+    removes the worktree and the local branch, updates the base branch in the main checkout, and
+    archives the session.
+
+  **Upgrade impact:**
+  - **Packaged install:** none for the skill, which the `adf` plugin carries.
+  - **Committed install:** additive for `.claude/skills/wrap-up/`, written by
+    `scripts/build-committed.py`.
+  - **Both:** merge for `AGENTS.md`'s Branches line and `.claude/rules/git-workflow.md`'s "After the
+    merge" line, which name `/wrap-up`.
+  - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` § How a task gets its worktree,
+    which gains its closing paragraph.
+
 - **A dispatched session moves into its task's worktree without a prompt**
   ([decision 0035](docs/decisions/0035-move-into-the-worktree-without-a-prompt.md)). In the desktop
   app, the new `approve-worktree-move.sh` hook approves `change_directory` when the folder is a

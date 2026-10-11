@@ -54,6 +54,12 @@ the same route:
 Until the move, the session is in the shared main checkout: it runs the script and nothing else, and
 the protect-hub hook stops any edit there.
 
+**When the task's pull request merges,** its session wraps up with `/wrap-up`. It checks that
+nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then, with
+one yes from the developer, it stops what the task started, removes the worktree and its branch,
+updates the base branch here, and archives the session. If anything is left, it lists it and
+removes nothing.
+
 Whether a task will run the app is its triage's question, after the hand-off. The worktree can,
 because the scripts gave it the env file and its port; the worker starts the environment only when a
 step needs it.

@@ -51,8 +51,9 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
 - Keep branches short-lived: one spec folder per branch, one branch per pull request.
 - **After the merge**, update the base branch locally (`git switch <base> && git pull --ff-only`),
   then delete the merged branch — `git branch -d` checks the merge against the updated base; a
-  squash-merged branch needs `-D` once its work is upstream. With the parallel-agents module,
-  `adf-worktree-rm` does both for the task's worktree.
+  squash-merged branch needs `-D` once its work is upstream. `/wrap-up` does both once it finds
+  nothing left in the task, and with one yes also stops what the task started, removes its worktree,
+  and archives the session.
 
 ## Outward actions
 

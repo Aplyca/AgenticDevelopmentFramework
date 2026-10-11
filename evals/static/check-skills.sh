@@ -81,7 +81,7 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env wrap-up"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
 # Skills that may start from a plain request but post only after showing the draft.
@@ -683,6 +683,9 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'Declined before' || missing+=("/triage: declined-before check")
     file_contains "$COMMITTED/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^4\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
