@@ -24,6 +24,7 @@ ENV_CHECK_EXCLUDE=""
 CAREFUL_GLOBS=""
 TRIAGE_FIRST=""
 HUB_READONLY=""
+APPROVE_WORKTREE_MOVE="1"
 SPECS_DIR="specs"
 # in_words <word> <space-separated list> — exact membership.
 in_words() {
@@ -69,7 +70,7 @@ worktree_settings() {
 for config in "${CLAUDE_PLUGIN_ROOT}/hooks/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
   if [ -n "$config" ] && [ -f "$config" ]; then
     read_settings "$config" PROTECTED_BRANCHES APPEND_ONLY_GLOBS GENERATED_GLOBS CAREFUL_GLOBS TRIAGE_FIRST \
-      HUB_READONLY ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
+      HUB_READONLY APPROVE_WORKTREE_MOVE ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
     break
   fi
 done

@@ -26,7 +26,9 @@ installed, the core session-context hook announces each session's role — dispa
 checkout, where a session handed one task is told to create its worktree and move, and worker in any
 worktree — and, in a worktree the scripts didn't set up, what it lacks: a task branch name, the env
 file, or the scripts' setup. The core `protect-hub.sh`
-hook stops file edits in the main checkout once the module is there. The core `/handoff` skill
+hook stops file edits in the main checkout once the module is there, and the core
+`approve-worktree-move.sh` hook lets a session move into a worktree of the repository without a
+prompt in the desktop app. The core `/handoff` skill
 covers passing work in progress on.
 
 ## Install

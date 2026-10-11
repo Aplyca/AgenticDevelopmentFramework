@@ -41,9 +41,9 @@ the same route:
    branch from `BASE_BRANCH`, with the env file seeded from the main checkout's and, when worktrees run
    a server, a port reserved. Nothing starts.
 3. **The session moves into it.**
-   - **Desktop app:** `change_directory` to the path the script printed. The developer approves the
-     folder once, and the session carries on there by itself; the app then shows the session in that
-     folder.
+   - **Desktop app:** `change_directory` to the path the script printed. The approve-worktree-move
+     hook approves a worktree of this repository, so no prompt asks for it. The session carries on
+     there by itself, and the app then shows the session in that folder.
    - **Terminal:** `EnterWorktree` with that path.
 
    `pwd` confirms the move. Session-start hooks don't run again after it, so the worker reads its

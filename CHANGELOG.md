@@ -11,6 +11,23 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A dispatched session moves into its task's worktree without a prompt**
+  ([decision 0035](docs/decisions/0035-move-into-the-worktree-without-a-prompt.md)). In the desktop
+  app, the new `approve-worktree-move.sh` hook approves `change_directory` when the folder is a
+  linked worktree of the session's own repository. Every other folder still prompts. Empty
+  `APPROVE_WORKTREE_MOVE` in `.claude/hooks/config.sh` turns it off.
+
+  **Upgrade impact:**
+  - **Packaged install:** none. The `adf` plugin carries the hook, on by default.
+  - **Committed install:** additive for `.claude/hooks/approve-worktree-move.sh`, written by
+    `scripts/build-committed.py`. Merge for `.claude/settings.json`, which wires it under
+    `PreToolUse`, and for `.claude/hooks/config.sh`, whose new `APPROVE_WORKTREE_MOVE` line is
+    optional.
+  - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` § How a task gets its worktree,
+    step 3.
+  - **Both:** merge for `.claude/rules/claude-code.md`, whose enforced-guardrails table gains the
+    hook's row.
+
 ## v2.1.0 — 2026-10-10 — Docker or native by a setting, one folder per target in `ops/`, and fewer prompts
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

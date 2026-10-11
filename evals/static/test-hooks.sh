@@ -267,6 +267,31 @@ run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")"
 run protect-hub.sh 0 "$(edit_event "$WORK/no-module/src/app.ts")" "does nothing in a repository without the module"
 echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
 run protect-hub.sh 0 "$(edit_event "$T/src/app.ts")" "does nothing when HUB_READONLY is empty"
+
+# approve-worktree-move — a dispatched session's move into its task's worktree needs no prompt (0035)
+move_event() { printf '{"tool_name":"mcp__ccd_directory__change_directory","cwd":"%s","tool_input":{"path":"%s"}}' "${2:-$T}" "$1"; }
+moves() { # moves <allow|silent> <event-json> <description> — "allow" prints the allow decision; "silent" prints nothing, so the app prompts
+    local out code
+    out=$(printf '%s' "$2" | "$H/approve-worktree-move.sh" 2>&1)
+    code=$?
+    if [ "$code" = 0 ] && { { [ "$1" = allow ] && echo "$out" | grep -q '"permissionDecision":"allow"'; } || { [ "$1" = silent ] && [ -z "$out" ]; }; }; then
+        PASS=$((PASS+1)); echo "✓ approve-worktree-move.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ approve-worktree-move.sh: $3 (exit $code, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+mkdir -p "$WORK/plain-folder"
+moves allow "$(move_event "$WORK/feat-hub-check")" "approves a move from the main checkout into a task worktree beside it"
+moves allow "$(move_event "$T/.claude/worktrees/calm-hopper")" "approves a move into Claude Code's own worktree"
+moves allow "$(move_event "$WORK/feat-hub-check" "$T/.claude/worktrees/calm-hopper")" "approves a move from one worktree to another of the same repository"
+moves silent "$(move_event "$T")" "leaves a move into the main checkout to the prompt"
+moves silent "$(move_event "$WORK/feat-hub-check/src")" "leaves a folder inside a worktree to the prompt"
+moves silent "$(move_event "$WORK/no-module")" "leaves another repository to the prompt"
+moves silent "$(move_event "$WORK/plain-folder")" "leaves a folder outside any repository to the prompt"
+moves silent "$(move_event "$WORK/missing")" "leaves a folder that doesn't exist to the prompt"
+moves silent "$(move_event "feat-hub-check")" "leaves a relative path to the prompt"
+echo 'APPROVE_WORKTREE_MOVE=""' >> "$T/.claude/hooks/config.sh"
+moves silent "$(move_event "$WORK/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
 git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
 
 # Packaged install (decision 0016): the plugin's generated scripts, with no config.sh of their own,
