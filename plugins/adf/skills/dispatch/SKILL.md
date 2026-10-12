@@ -70,8 +70,8 @@ whether the task starts.
 
    The new session starts here, so its first lines say `Role: DISPATCHER` — and that a session handed
    one task and its branch is that task's worker. It runs the script, then moves into the worktree
-   (`docs/PARALLEL-AGENTS.md` § How a task gets its worktree). In the desktop app the developer
-   approves the new folder once, and the session carries on there by itself.
+   (`docs/PARALLEL-AGENTS.md` § How a task gets its worktree). In the desktop app the
+   approve-worktree-move hook approves the move, and the session carries on there by itself.
 
 The hand-off ends the task's time here. The next task needs nothing from this conversation, so
 clearing it (`/clear`) between dispatches keeps the hub's session cheap.

@@ -23,7 +23,7 @@ Most of what's here was proven in real client projects first — some built on t
 - **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist and the developer's yes), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
 - **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](plugins/adf/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
 - **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
-- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, and `/e2e` with `e2e`. ([Catalog](docs/SKILLS-REFERENCE.md))
+- **21 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, wrap-up after the merge, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, and `/e2e` with `e2e`. ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents**, each on the model its work needs — reviewers on `sonnet`; `@spec-analyzer` (which adversarially checks a spec folder before the gate) and `@architect` on `opus`. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
 - **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks give each session its branch and spec folder, remind the agent once to state the triage before its first edit, stop a fast-lane edit in a sensitive area, keep the main checkout edit-free when it's the hub (parallel-agents), block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Marking a pull request ready, merging, reviewing, issue writes, and releases need a human to confirm them; keeping the draft current doesn't. `.env` files are never read.
@@ -397,9 +397,9 @@ skeleton/                 Portable project skeleton — what an adopting reposit
 ├── AGENTS.md · README.md · CONTRIBUTING.md · .claudeignore
 ├── .claude/
 │   ├── agents/           8 agents, each with its model alias
-│   ├── skills/           20 skills
+│   ├── skills/           21 skills
 │   ├── workflows/        4 dynamic workflows
-│   ├── hooks/            6 guardrail hooks + config.sh (protected branches, sensitive areas, …)
+│   ├── hooks/            8 guardrail hooks + config.sh (protected branches, sensitive areas, …)
 │   ├── rules/            9 engineering standards
 │   └── settings.json     model alias, permissions (allow / ask / deny), hook wiring
 ├── .cursor/rules/        Cursor rules

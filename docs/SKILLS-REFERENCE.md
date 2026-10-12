@@ -1,6 +1,6 @@
 # Skills and workflows reference
 
-The Agentic Development Framework ships **twenty skills**, three more for modules, and **four dynamic
+The Agentic Development Framework ships **twenty-one skills**, three more for modules, and **four dynamic
 workflows**. Their source is the plugins — `plugins/adf/skills/`, `plugins/adf/workflows/`, and
 `plugins/adf-dev/skills/` ([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged
 project loads them from there, as `/adf:skill-name`; a committed one keeps copies in `.claude/`, which
@@ -28,6 +28,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/commit` | One clean commit: the spec folder, a doc, one task (test and code together), or a fast- or careful-lane change with its test (and its light `CR N` entry on delivered work). Stages by name, never bypasses hooks, never pushes. |
 | `/open-pr` | **On the developer's local-check approval** (or, with nothing to run, once the gate and review pass), or when asked. Push and open a **draft** pull request naming the spec folder and tracker task, with what was and wasn't verified and its merge danger (does a revert undo it, what it affects if wrong). Never marks it ready. |
 | `/stakeholder-update` | **Starts from a plain request** ("update the client", "reply on the task") or by name. Draft the client-facing update for a tracker task (why, what, status in the project's words, verified findings, direct questions), show it, and post it on the pull request for the team to relay; the tracker only when the developer asks. Project settings — links, CMS entries, task statuses — live in `docs/TRACKER-INTEGRATION.md`. |
+| `/wrap-up` | After the pull request merges: check that nothing is left — uncommitted or unpushed work, a stash, an open task, a promised follow-up — and list it if there is. Otherwise ask once to close up: stop what the task started, remove its worktree and branch, update the base branch, and archive the session. |
 | `/handoff` | Hand work in progress to someone who wasn't here — a teammate, another machine, a fresh session — as a short message of pointers: task, branch and commit, spec folder, pull request, what's done, what's next, open questions. Puts the state in the record first; never copies the spec or the process; shown to the developer, posted nowhere unasked. |
 
 ## Reference and setup skills
