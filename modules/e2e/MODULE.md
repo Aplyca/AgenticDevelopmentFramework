@@ -11,8 +11,8 @@ first, like every test, with `/write-tests` and `/implement`, following the proj
 ## The conventions
 
 The [specification](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/plugins/adf-dev/skills/e2e/SPECIFICATION.md)
-is the source, each requirement with an ID that an audit names; the skill's templates are an example
-that meets it. In short:
+is the source, each requirement with an ID that an audit names. It ships no templates: the project
+writes its own suite to it, and its runs prove it. In short:
 
 - **Playwright Test, in TypeScript, with Chromium,** in its own `e2e/` folder with its own
   `package.json`, so the suite is the same whatever the app's stack is. The engine is pinned exactly.
@@ -35,13 +35,13 @@ that meets it. In short:
 | File | Purpose |
 |---|---|
 | `.claude/settings.json` (merged) | `permissions.allow` for running the suite: `make e2e`, `make smoke`, and `npm --prefix e2e test`, so a test-first loop reruns a test without a prompt |
-| `.claude/skills/e2e/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:e2e` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
+| `.claude/skills/e2e/` | **Committed install only:** the skill and its `SPECIFICATION.md`. A packaged project gets `/adf-dev:e2e` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
-The module copies no files into the project. `/e2e set up` writes the suite from the skill's
-templates — `e2e/` (the configuration, the fixtures, a README of the critical flows, and the smoke
-tests) and, with the `docker` module, the `e2e` service in `compose.yaml`, its image in
-`ops/docker/e2e/`, and the `e2e` and `smoke` tasks in each mode's `Makefile` — and fills in what it
-verifies about the project. The skeleton's `.claude/rules/testing.md` § End-to-end is the project's
+The module copies no files into the project. `/e2e set up` writes the suite to the specification —
+`e2e/` (the configuration, the fixtures, a README of the critical flows, and the smoke tests) and,
+with the `docker` module, the `e2e` service in `compose.yaml`, its image in `ops/docker/e2e/`, and
+the `e2e` and `smoke` tasks in each mode's `Makefile` — and runs it until `make smoke` passes in each
+mode. The skeleton's `.claude/rules/testing.md` § End-to-end is the project's
 copy of how a test is written.
 
 ## Install
@@ -49,7 +49,7 @@ copy of how a test is written.
 `/adopt` and `/upgrade` install it when you choose the module. By hand:
 
 - **Committed install:** `scripts/build-committed.py /path/to/your-repo --modules e2e`, which writes
-  `/e2e` and its templates from the `adf-dev` plugin, then `modules/e2e/install.sh /path/to/your-repo`.
+  `/e2e` and its specification from the `adf-dev` plugin, then `modules/e2e/install.sh /path/to/your-repo`.
 - **Packaged install:** run `modules/e2e/install.sh /path/to/your-repo`, and turn the plugin on in
   `.claude/settings.json` beside `adf` — `"adf-dev@aplyca": true` in `enabledPlugins`, and
   `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.

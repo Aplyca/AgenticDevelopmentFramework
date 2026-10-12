@@ -27,8 +27,8 @@ existed (a pull request template, for example). The `clickup` module is the exce
 files every repository already has (`.mcp.json`, `.claude/settings.json`), so it installs with
 `modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module has no
 files to copy: `modules/docker/install.sh <repo>` merges its permission rules, and `/dev-env set up`
-writes the stack from the skill's templates; `e2e` likewise, with `modules/e2e/install.sh <repo>` and
-`/e2e set up`. Then follow the module's customization steps and
+writes the stack from the skill's templates; `e2e` likewise, with `modules/e2e/install.sh <repo>`, and
+`/e2e set up` writes the suite to its specification. Then follow the module's customization steps and
 record the module in the `Skeleton source` line at the top of `AGENTS.md`
 (`· modules: github, clickup`) so `/upgrade` knows to update it.
 

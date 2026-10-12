@@ -25,15 +25,10 @@ its layout in `e2e/`, how it runs (`make e2e`, `make smoke`, in each local mode)
 (data, third parties, sign-in), how tests are written, the smoke suite, and the test-first flow —
 each requirement with an ID. Read it before any mode below. It also says where each fact lives.
 
-**The `templates/` beside it are an example** that meets the specification, for the newsletter site:
-- `e2e/` — the suite: its config, its fixtures, and two test files;
-- `compose.yaml` — the `e2e` service to add to the project's own;
-- `ops/docker/e2e/` — the service's image;
-- `ops/docker/Makefile` and `ops/native/Makefile` — the two tasks to add to each mode's file.
-
-Make the project's suite fit the project: its flows, its sign-in, its local environment. Where a
-template and the specification disagree, the specification wins. Name the requirement's ID whenever
-you report a gap or propose a change.
+**There are no templates.** Write the project's suite to the specification, fitted to the project:
+its flows, its sign-in, its local environment. For Playwright's own API, its documentation
+(playwright.dev) is the reference. A suite is done when its runs prove it, not when its files look
+right. Name the requirement's ID whenever you report a gap or propose a change.
 
 ## Safety (always)
 
@@ -80,23 +75,21 @@ you report a gap or propose a change.
 2. **Agree on the critical flows.** From what step 3 read, propose three to seven flows whose
    breaking stops people from using the app — the home page, signing in, the main thing people come
    to do — each in one line, with your recommendation. The developer decides (K1). Wait.
-3. **Write the suite from the templates.** Copy `<this skill's base directory>/templates/e2e/` to
-   `e2e/`, never over a file that's there. Then fill every `CUSTOMIZE` from facts you verified:
-   - **The engine's version:** the newest `@playwright/test` released at least two weeks ago
-     (`npm view @playwright/test time --json`), exact in `e2e/package.json`. Check that Playwright's
-     image has the same tag (`mcr.microsoft.com/playwright:v<version>-noble`).
+3. **Write the suite (S1–S5, B1–B4).** In `e2e/`, never over a file that's there:
+   - **`package.json`** with `@playwright/test` at the newest version released at least two weeks
+     ago (`npm view @playwright/test time --json`), exactly. Check that Playwright's image has the
+     same tag (`docker manifest inspect mcr.microsoft.com/playwright:v<version>-noble`).
    - **The lockfile:** `npm install --prefix e2e --no-audit --no-fund`. Without Node on the host,
      `docker run --rm -v "$PWD/e2e:/suite" -w /suite node:<lts> npm install --no-audit --no-fund`.
-   - **The fixtures:** a stub for each third party the browser calls (B2), and, with sign-in, the
-     setup project and its `.env.example` variables (B4, R5).
+   - **`playwright.config.ts`** to S3, and **`fixtures.ts`** to S4: a unique id per test (B1), a stub
+     for each third party the browser calls (B2), and, with sign-in, the setup project and its
+     `.env.example` variables (B4, R5).
    - **`.gitignore`:** the S5 entries.
 4. **Wire the commands (R1–R4).**
-   - **With the `docker` module:**
-     - `compose.yaml` gets the `e2e` service from `templates/compose.yaml`, with the app's service
-       and container port in `E2E_BASE_URL`;
-     - `ops/docker/e2e/` gets the `Dockerfile`, at the engine's version, and its `.dockerignore`;
-     - each mode's `Makefile` gets the `e2e` and `smoke` tasks from `templates/ops/<mode>/Makefile`,
-       and native `build` gets the suite's install line.
+   - **With the `docker` module:** the image, its `.dockerignore`, the `e2e` service, and the `e2e`
+     and `smoke` tasks in `ops/docker/Makefile`, each as R3 states; the tasks in
+     `ops/native/Makefile`, and the suite's install line in its `build`, as R4 states. Add both tasks
+     to each file's `.PHONY` with a `##` description, so `make help` lists them.
    - **Without it:** `npm --prefix e2e test`, and `-- --grep @smoke` for the smoke suite, are the
      commands, with `E2E_BASE_URL` set to the local environment's URL.
 5. **Write one smoke test per critical flow (K2).**
@@ -107,8 +100,11 @@ you report a gap or propose a change.
      roles and names as Playwright sees them.
    - **Prove each test can fail (K5):** break its assertion, run it, see it fail for that reason,
      and restore it.
-6. **Run it.** `make smoke`, then `make e2e`, in each local mode the project uses. Both pass, and the
-   smoke suite takes about a minute (K3).
+6. **Run it — this is what proves the suite.** In each local mode the project uses:
+   - `make smoke`, then `make e2e`: both pass, and the smoke suite takes about a minute (K3);
+   - a missing `E2E_BASE_URL` (run Playwright in `e2e/` without it) stops with S3's message;
+   - in Docker mode, a failure's `error-context.md` and trace appear in `e2e/test-results/` on the
+     host, and an edited test is what runs next.
 7. **Write down what you verified** — docs go through triage too:
    - `e2e/README.md`: the critical flows, each with its smoke test and what it proves (K1);
    - `.claude/rules/testing.md` § End-to-end: the project's commands, and any departure from the

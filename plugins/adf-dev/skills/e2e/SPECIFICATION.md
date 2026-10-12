@@ -7,11 +7,13 @@ The tests for a change are written the way every test is — test first, with `/
 `/adf:implement` — following the project's `.claude/rules/testing.md` § End-to-end, which carries
 the A and F requirements below into every session.
 
-**This file is the specification. The `templates/` beside it are an example** that meets every
-requirement, for the newsletter site: a home page, and a signup form whose confirmation is a
-critical flow. A project's own suite differs wherever the project differs — its flows, its sign-in,
-its stack — and still conforms, as long as each requirement below holds. When a template and this
-file disagree, this file wins.
+**This file is the specification, and there are no templates.** A project writes its own suite to
+it: its configuration, its fixtures, its tests, and the wiring into its local environment. The suite
+is mostly configuration and the project's own tests, so a copied example would be rewritten anyway,
+and a second source would drift from this one. A suite is done when every requirement below holds
+and its runs prove it: `make smoke` passes in each local mode, and each smoke test was seen failing.
+Examples here use the newsletter site: a home page, and a signup form whose confirmation is a
+critical flow.
 
 Each requirement has an ID (`S1`, `F3`, …) so an audit, a pull request, or a review can name the one
 a suite misses. A project that departs from one on purpose records it, with the reason, in
@@ -85,20 +87,33 @@ departure (§ Conformance), recorded with its reason.
   first with `make up`, which returns once the app answers and changes nothing when it already runs.
   The suite never starts a second stack or a server of its own. Each checkout and each worktree runs
   its own stack on its own ports, so suites run side by side.
-- **R3.** **Docker mode** runs the suite in Docker. `compose.yaml` has an `e2e` service:
-  - built from `ops/docker/e2e/Dockerfile`, on Playwright's official image at the **same version** as
-    `@playwright/test` in `e2e/package.json` — a different version can't find its browser;
-  - with the suite's dependencies installed from its lockfile in the image, and the suite itself
-    copied in, so `docker compose run --build` runs the tests as they are now;
-  - under `profiles: [e2e]`, so `make up` never starts it;
-  - reaching the app by its service name and container port (`E2E_BASE_URL: http://web:3000`), with
-    no published port;
-  - with `e2e/test-results/` mounted, so a failure's trace is on the host.
-
-  The host needs no Node.
+- **R3.** **Docker mode** runs the suite in Docker, so the host needs no Node.
+  - **The image:** `ops/docker/e2e/Dockerfile`, `FROM mcr.microsoft.com/playwright:v<version>-noble`,
+    where `<version>` is exactly `@playwright/test`'s in `e2e/package.json`: another version can't
+    find its browser. It copies `e2e/package.json` and the lockfile, runs `npm ci`, then copies the
+    rest of `e2e/`, and its entry point is `npx --no-install playwright test`. Dependencies installed
+    in the image and the suite copied in, rather than a bind mount of `e2e/`, mean the host's own
+    `node_modules` never hides the image's.
+  - **Its build context** is the repository's root, and `ops/docker/e2e/Dockerfile.dockerignore`
+    sends only the suite: `*`, then `!e2e/`, then `e2e/node_modules/`, `e2e/test-results/`,
+    `e2e/playwright-report/`, `e2e/blob-report/`, `e2e/.auth/`. No `.git`, `.env`, or app code.
+  - **The `e2e` service** in `compose.yaml`: built from that Dockerfile; `profiles: [e2e]`, so
+    `make up` never starts it; `E2E_BASE_URL` in its `environment:`, the app's service name and
+    container port (`http://web:3000`), with no published port of its own; `e2e/test-results/` and
+    `e2e/playwright-report/` mounted from the host, so a failure's trace and CI's report are there;
+    `ipc: host` (Chromium needs more shared memory than a container gets) and `init: true`.
+  - **The tasks** in `ops/docker/Makefile` run it with
+    `$(COMPOSE) --progress quiet run --rm --build e2e …`: `--build` copies the suite as it is now,
+    a second or so once the dependencies' layer is cached. They create `e2e/test-results/` and
+    `e2e/playwright-report/` first, so the host owns them, and pass `CI` through (`-e CI`) when it's
+    set. `make e2e` passes `t` as the file filter and `g` as `--grep`; `make smoke` passes
+    `--grep @smoke`.
 - **R4.** **Native mode** runs the suite on the host, against `http://localhost:$APP_PORT`, the port
-  the app runs on (`ops/native/native.sh env`). Native `build` also installs the suite's
-  dependencies and its browser (`npm ci --prefix e2e`, then `npx playwright install chromium` there).
+  the app runs on: the tasks in `ops/native/Makefile` read it from `ops/native/native.sh env`, after
+  `make up`. They run `npx --no-install playwright test`, which never downloads a package, and stop
+  with a message to run `make build` when `e2e/node_modules/` is missing. Native `build` also
+  installs the suite's dependencies and its browser: `npm ci --prefix e2e`, then
+  `npx --no-install playwright install chromium` in `e2e/`.
 - **R5.** Test accounts' credentials, when the app has sign-in, are variables in `.env`, declared by
   name in `.env.example` (`E2E_USER_EMAIL`, `E2E_USER_PASSWORD`), for an account that exists only in
   local and test data. In Docker mode, the `e2e` service's `environment:` passes each one through.

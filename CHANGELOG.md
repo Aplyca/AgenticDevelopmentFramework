@@ -14,7 +14,8 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - **End-to-end tests to a specification: the new `e2e` module**
   ([decision 0037](docs/decisions/0037-end-to-end-tests.md)).
   - **`/adf-dev:e2e`** sets up, audits, or extends a project's suite. It carries a
-    `SPECIFICATION.md`, each requirement with an ID, and templates that are an example of it.
+    `SPECIFICATION.md`, each requirement with an ID, and no templates: the project writes its suite
+    to it, and `make smoke` passing in each local mode proves it.
   - **The engine:** Playwright Test, in TypeScript, with Chromium, in `e2e/` with its own
     `package.json`, pinned exactly.
   - **The commands:** `make e2e` (`t=<file>`, `g=<title>`) and `make smoke`, against the checkout's
@@ -39,7 +40,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `docker`.
   - **Committed install:** additive for `.claude/skills/e2e/`, written by
     `scripts/build-committed.py --modules e2e`.
-  - **With `docker`, any project that copied the templates:** merge two fixes.
+  - **With `docker`, any project that copied `dev-env`'s templates:** merge two fixes.
     - In `ops/native/native.sh`, `app_port` reads the running app's port first.
     - In the `Makefile`, `help`'s pattern is `/^[a-z][a-z0-9-]*:.*## /`.
 

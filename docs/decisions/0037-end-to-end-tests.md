@@ -23,8 +23,14 @@ The `docker` module already gives every checkout its own stack, with ports of it
 
 - **A new `e2e` module,** carried by `adf-dev` like `docker` (decision 0023). Its skill,
   `/adf-dev:e2e`, sets up, audits, and extends a suite. It carries a `SPECIFICATION.md`, each
-  requirement with an ID, and templates that are an example of it. It works without the `docker`
-  module, and with it, it adds tasks to each local mode.
+  requirement with an ID. It works without the `docker` module, and with it, it adds tasks to each
+  local mode.
+- **No templates.** The project writes its suite to the specification, and its runs prove it:
+  `make smoke` passes in each local mode, and each smoke test was seen failing. The suite is
+  configuration and the project's own tests, with no script of real logic — unlike `dev-env`'s
+  `native.sh` and `guard.sh`, which stay templates. The details that are easy to get wrong — the
+  image at the engine's exact version, the dependencies installed in the image, the build context
+  that sends only the suite — are requirements in the specification, not files.
 - **The engine is Playwright Test, in TypeScript, with Chromium:**
   - it waits for the page by itself, so tests need no sleeps;
   - it keeps a failure's trace, screenshot, and the page as a person reads it, which an agent can
@@ -81,5 +87,8 @@ The `docker` module already gives every checkout its own stack, with ports of it
 - **Cypress.** Declined. It runs inside the browser, is heavier, and needs a paid service to run in
   parallel. **Puppeteer** has no test runner. **WebdriverIO** and **Selenium** take more setup for
   the same result.
+- **Templates of the suite, the image, the service, and the tasks.** Tried first, and declined. Most
+  of it is project-specific — the tests, the flows, the fixtures — so a project rewrites it anyway.
+  A second source drifts from the specification, and every engine upgrade would touch both.
 - **Playwright in the app's own `package.json`.** Declined as the default. It ties the engine to the
   app's dependency upgrades, and to Node. A JavaScript project may record it as a departure.

@@ -400,7 +400,7 @@ out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q boom && [ ! -f '$NS/ops/native/.run/app.env' ]"
 
-# ─── e2e: its rules, and the tasks /e2e adds to each mode (decision 0037) ──
+# ─── e2e: its rules (decision 0037) ──
 EF="$WORK/e2e-fresh"; mkdir -p "$EF"
 EALLOWS=$(jsonq "$MODULES/e2e/settings-fragment.json" 'len(d["permissions"]["allow"])')
 "$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1; c=$?
@@ -431,26 +431,14 @@ PY
 )
 check "e2e rules: the suite runs without a prompt; nothing else does, and reset still asks" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
-# The stack the docker module's templates write, with the tasks /e2e adds to each mode's file.
-E2E_TPL="$REPO_ROOT/plugins/adf-dev/skills/e2e/templates"
-ES="$WORK/e2e-stack"; mkdir -p "$ES" && cp -R "$TPL/." "$ES/" && cp -R "$E2E_TPL/e2e" "$ES/"
-for mode in docker native; do cat "$E2E_TPL/ops/$mode/Makefile" >> "$ES/ops/$mode/Makefile"; done
-estack() { (cd "$ES" && PATH="$DS/bin:$PATH" make -n "$@" 2>&1); }
-out=$(estack e2e t=signup g="valid signup")
-check "make e2e, Docker mode: starts the stack, then runs the suite in its service, filtered" \
-    "echo \"\$out\" | grep -q 'up -d --wait' && echo \"\$out\" | grep -qF 'run --rm --build  e2e signup --grep \"valid signup\"'"
-out=$(estack smoke)
-check "make smoke, Docker mode: the @smoke tests" "echo \"\$out\" | grep -qF 'e2e --grep @smoke'"
-out=$(estack smoke DEV_MODE=native SERVICES=none)
-check "make smoke, native mode: on the host, against the app's port" \
-    "echo \"\$out\" | grep -q 'native.sh start' && echo \"\$out\" | grep -qF 'E2E_BASE_URL=\"http://localhost:\$APP_PORT\" npx --no-install playwright test --grep @smoke'"
-out=$(cd "$ES" && make help DEV_MODE=native 2>&1; make help 2>&1)
-check "make help: e2e and smoke in both modes" "[ \$(echo \"\$out\" | grep -cE 'make (e2e|smoke) ') -eq 4 ]"
+# The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
+HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"
+printf '\ne2e: ## Run the end-to-end tests\n\t@true\n' >> "$HD/ops/docker/Makefile"
+out=$(cd "$HD" && make help 2>&1)
+check "make help: lists a task whose name has a digit (e2e)" "echo \"\$out\" | grep -q 'make e2e .*Run the end-to-end tests'"
 if docker compose version >/dev/null 2>&1; then
     check "compose.yaml: valid, with an empty .env and with pinned ports" \
         "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
-    check "compose.yaml with the e2e service: valid, and make up doesn't start it" \
-        "(cd '$ES' && docker compose -f compose.yaml -f '$E2E_TPL/compose.yaml' config --quiet) && ! (cd '$ES' && docker compose -f compose.yaml -f '$E2E_TPL/compose.yaml' config --services) | grep -qx e2e"
 fi
 
 
