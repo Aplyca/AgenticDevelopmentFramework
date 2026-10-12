@@ -29,7 +29,9 @@ test that never failed proves nothing: it may test something that already exists
    For a bug: the reproduction steps and the expected behavior.
 
 2. **Read the test conventions** — `.claude/rules/testing.md` (framework, ports, mocking,
-   organization) — and the existing tests in the area. Don't duplicate; extend.
+   organization, and § End-to-end for a test that needs the whole stack) — and the existing tests
+   in the area. Don't duplicate; extend. With the `e2e` module, an end-to-end test goes in `e2e/`,
+   uses its fixtures, and runs with `make e2e t=<file>`.
 
 3. **Present the test plan** — requirement → test, grouped by source section:
    ```

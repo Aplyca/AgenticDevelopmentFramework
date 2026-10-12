@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make e2e)",
+      "Bash(make e2e *)",
+      "Bash(make smoke)",
+      "Bash(make smoke *)",
+      "Bash(npm --prefix e2e test)",
+      "Bash(npm --prefix e2e test *)"
+    ]
+  }
+}

@@ -390,6 +390,8 @@ out=$(native urls 2>&1)
 check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
 out=$(native up 2>&1)
 check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
+out=$(cd "$NS" && SERVICES= /bin/bash ops/native/native.sh env 2>&1)
+check "native.sh env: while the app runs, its port — what make test and make e2e reach" "echo \"\$out\" | grep -q '^export APP_PORT=$port\$'"
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
@@ -397,6 +399,43 @@ sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/native/
 out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q boom && [ ! -f '$NS/ops/native/.run/app.env' ]"
+
+# ─── e2e: its rules (decision 0037) ──
+EF="$WORK/e2e-fresh"; mkdir -p "$EF"
+EALLOWS=$(jsonq "$MODULES/e2e/settings-fragment.json" 'len(d["permissions"]["allow"])')
+"$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1; c=$?
+"$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1
+check "e2e install: allows the suite's commands, and a second run adds nothing" \
+    "[ $c -eq 0 ] && [ \"\$(jsonq '$EF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$EALLOWS' ]"
+verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" "$MODULES/e2e/settings-fragment.json" <<'PY'
+import json, re, sys
+docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
+allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
+def matches(rules, command):
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+def verdict(command):
+    parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
+    if any(matches(ask, p) for p in parts):
+        return "ask"
+    return "allow" if all(matches(allow, p) for p in parts) else "prompt"
+cases = {
+    "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
+    "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
+    "make up": "prompt", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
+}
+for command, expected in cases.items():
+    if verdict(command) != expected:
+        print(f"'{command}': {verdict(command)}, expected {expected}")
+PY
+)
+check "e2e rules: the suite runs without a prompt; nothing else does, and reset still asks" "[ -z \"\$verdicts\" ]"
+[ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
+# The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
+HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"
+printf '\ne2e: ## Run the end-to-end tests\n\t@true\n' >> "$HD/ops/docker/Makefile"
+out=$(cd "$HD" && make help 2>&1)
+check "make help: lists a task whose name has a digit (e2e)" "echo \"\$out\" | grep -q 'make e2e .*Run the end-to-end tests'"
 if docker compose version >/dev/null 2>&1; then
     check "compose.yaml: valid, with an empty .env and with pinned ports" \
         "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
