@@ -31,7 +31,7 @@ endif
 
 help: ## List the tasks
 	@echo "Mode: $(DEV_MODE) ($(MODE_FILE)) — DEV_MODE in .env sets it; the default is $(DEFAULT_MODE)"
-	@awk 'BEGIN { FS = ":.*## " } /^[a-z][a-z-]*:.*## / { printf "  make %-9s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@awk 'BEGIN { FS = ":.*## " } /^[a-z][a-z0-9-]*:.*## / { printf "  make %-9s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 env: ## Create .env from .env.example, if it's missing
 	@if [ -f .env ]; then echo ".env is there; left as it is"; \

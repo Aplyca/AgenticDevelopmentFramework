@@ -8,6 +8,7 @@ stops.
 | Skill | Module | What it does |
 |---|---|---|
 | `/adf-dev:dev-env` | [`docker`](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/modules/docker/MODULE.md) | Writes a local environment to the [specification](skills/dev-env/SPECIFICATION.md) it carries — its templates are an example — or audits one against it, by requirement ID: `compose.yaml` and a `Makefile` at the root, one folder per target in `ops/`, ports Docker picks ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md)) — runs the app in Docker or natively on the host, by a setting ([decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)), or per worktree, diagnoses it, and safely resets it |
+| `/adf-dev:e2e` | [`e2e`](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/modules/e2e/MODULE.md) | Sets up end-to-end tests to the [specification](skills/e2e/SPECIFICATION.md) it carries — its templates are an example — or audits a suite against it, by requirement ID: Playwright in its own `e2e/` folder, `make e2e` and `make smoke` against the checkout's own stack, in Docker or on the host, and one `@smoke` test per critical flow ([decision 0037](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0037-end-to-end-tests.md)). Diagnoses a failing or flaky test from what it kept |
 
 It also carries a **mod**, written here by hand: code that runs inside Claude Code and draws in its
 interface ([decision 0026](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0026-display-only-mods.md)).
@@ -38,6 +39,6 @@ it off.
 
 Everything here is written by hand ([decision 0028](../../docs/decisions/0028-plugins-are-the-source.md)):
 `skills/` holds the source of each development module's skill, in the form a packaged project loads it
-— a Step 0 that names its module, and `/adf-dev:dev-env` — and the module's `module.json` names it.
+— a Step 0 that names its module, and `/adf-dev:dev-env`, `/adf-dev:e2e` — and the module's `module.json` names it.
 The mod — `hooks/`, `types/`, `tests/` — is written here too. `scripts/build-plugins.sh` only keeps the
 version equal to `adf`'s.

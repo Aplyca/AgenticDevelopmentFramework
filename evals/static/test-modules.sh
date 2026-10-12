@@ -390,6 +390,8 @@ out=$(native urls 2>&1)
 check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
 out=$(native up 2>&1)
 check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
+out=$(cd "$NS" && SERVICES= /bin/bash ops/native/native.sh env 2>&1)
+check "native.sh env: while the app runs, its port — what make test and make e2e reach" "echo \"\$out\" | grep -q '^export APP_PORT=$port\$'"
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
@@ -397,9 +399,58 @@ sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/native/
 out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q boom && [ ! -f '$NS/ops/native/.run/app.env' ]"
+
+# ─── e2e: its rules, and the tasks /e2e adds to each mode (decision 0037) ──
+EF="$WORK/e2e-fresh"; mkdir -p "$EF"
+EALLOWS=$(jsonq "$MODULES/e2e/settings-fragment.json" 'len(d["permissions"]["allow"])')
+"$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1; c=$?
+"$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1
+check "e2e install: allows the suite's commands, and a second run adds nothing" \
+    "[ $c -eq 0 ] && [ \"\$(jsonq '$EF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$EALLOWS' ]"
+verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" "$MODULES/e2e/settings-fragment.json" <<'PY'
+import json, re, sys
+docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
+allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
+def matches(rules, command):
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+def verdict(command):
+    parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
+    if any(matches(ask, p) for p in parts):
+        return "ask"
+    return "allow" if all(matches(allow, p) for p in parts) else "prompt"
+cases = {
+    "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
+    "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
+    "make up": "prompt", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
+}
+for command, expected in cases.items():
+    if verdict(command) != expected:
+        print(f"'{command}': {verdict(command)}, expected {expected}")
+PY
+)
+check "e2e rules: the suite runs without a prompt; nothing else does, and reset still asks" "[ -z \"\$verdicts\" ]"
+[ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
+# The stack the docker module's templates write, with the tasks /e2e adds to each mode's file.
+E2E_TPL="$REPO_ROOT/plugins/adf-dev/skills/e2e/templates"
+ES="$WORK/e2e-stack"; mkdir -p "$ES" && cp -R "$TPL/." "$ES/" && cp -R "$E2E_TPL/e2e" "$ES/"
+for mode in docker native; do cat "$E2E_TPL/ops/$mode/Makefile" >> "$ES/ops/$mode/Makefile"; done
+estack() { (cd "$ES" && PATH="$DS/bin:$PATH" make -n "$@" 2>&1); }
+out=$(estack e2e t=signup g="valid signup")
+check "make e2e, Docker mode: starts the stack, then runs the suite in its service, filtered" \
+    "echo \"\$out\" | grep -q 'up -d --wait' && echo \"\$out\" | grep -qF 'run --rm --build  e2e signup --grep \"valid signup\"'"
+out=$(estack smoke)
+check "make smoke, Docker mode: the @smoke tests" "echo \"\$out\" | grep -qF 'e2e --grep @smoke'"
+out=$(estack smoke DEV_MODE=native SERVICES=none)
+check "make smoke, native mode: on the host, against the app's port" \
+    "echo \"\$out\" | grep -q 'native.sh start' && echo \"\$out\" | grep -qF 'E2E_BASE_URL=\"http://localhost:\$APP_PORT\" npx --no-install playwright test --grep @smoke'"
+out=$(cd "$ES" && make help DEV_MODE=native 2>&1; make help 2>&1)
+check "make help: e2e and smoke in both modes" "[ \$(echo \"\$out\" | grep -cE 'make (e2e|smoke) ') -eq 4 ]"
 if docker compose version >/dev/null 2>&1; then
     check "compose.yaml: valid, with an empty .env and with pinned ports" \
         "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
+    check "compose.yaml with the e2e service: valid, and make up doesn't start it" \
+        "(cd '$ES' && docker compose -f compose.yaml -f '$E2E_TPL/compose.yaml' config --quiet) && ! (cd '$ES' && docker compose -f compose.yaml -f '$E2E_TPL/compose.yaml' config --services) | grep -qx e2e"
 fi
 
 

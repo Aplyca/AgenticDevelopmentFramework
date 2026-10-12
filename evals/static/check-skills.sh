@@ -81,7 +81,7 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
 # Skills that may start from a plain request but post only after showing the draft.
@@ -742,6 +742,15 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'this is the main checkout' || missing+=("/e2e: stops in the hub")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'Prove each test can fail' || missing+=("/e2e: each smoke test is seen failing before it's committed (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" "checkout's own stack" || missing+=("e2e's specification: the suite runs against the checkout's own stack (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'Tests own their data' || missing+=("e2e's specification: tests own their data (0037)")
+    file_contains "$SKELETON/.claude/rules/testing.md" '^## End-to-end' || missing+=("testing rule: § End-to-end, which every session follows (0037)")
+    file_contains "$SKILLS_DIR/write-tests/SKILL.md" '§ End-to-end' || missing+=("/write-tests: an end-to-end test follows testing.md § End-to-end (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
     file_contains "$SKELETON/.claude/rules/deployment.md" '^  - "compose.yaml"$' || missing+=("deployment.md: its paths name compose.yaml (0032)")
     file_contains "$SKELETON/.claude/rules/deployment.md" 'env_file:' || missing+=("deployment.md: the three levels of variables, no env_file: (0032)")
@@ -1206,6 +1215,96 @@ PY
     fi
 }
 
+check_e2e_templates() {
+    # Decision 0037: the suite /e2e writes from its templates is an example of its specification.
+    local problems
+    problems=$(python3 - "$REPO_ROOT" <<'PY'
+import json, os, re, sys
+root = sys.argv[1]
+skill = os.path.join(root, "plugins", "adf-dev", "skills", "e2e")
+tpl = os.path.join(skill, "templates")
+def read(rel, base=tpl):
+    with open(os.path.join(base, rel), encoding="utf-8") as f:
+        return f.read()
+files = ["e2e/package.json", "e2e/playwright.config.ts", "e2e/fixtures.ts", "e2e/README.md",
+         "compose.yaml", "ops/docker/e2e/Dockerfile", "ops/docker/e2e/Dockerfile.dockerignore",
+         "ops/docker/Makefile", "ops/native/Makefile"]
+missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
+for f in missing:
+    print(f"templates/{f} is missing")
+if missing or not os.path.isfile(os.path.join(skill, "SPECIFICATION.md")):
+    sys.exit(print("e2e has no SPECIFICATION.md") if not missing else None)
+if "SPECIFICATION.md" not in read("SKILL.md", skill):
+    print("e2e's SKILL.md doesn't send the agent to SPECIFICATION.md")
+
+# S1 and R3: the engine pinned exactly, and the image at the same version.
+version = json.loads(read("e2e/package.json")).get("devDependencies", {}).get("@playwright/test", "")
+if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+    print(f"e2e/package.json: @playwright/test is '{version}', not an exact version (S1)")
+image = re.search(r"^FROM mcr[.]microsoft[.]com/playwright:v(\S+?)-\w+$", read("ops/docker/e2e/Dockerfile"), re.M)
+if not image or image.group(1) != version:
+    print(f"ops/docker/e2e/Dockerfile: the image's version isn't @playwright/test's, {version} (R3)")
+# R3: the image's context sends the suite and nothing else.
+ignore = [l for l in read("ops/docker/e2e/Dockerfile.dockerignore").split("\n") if l and not l.startswith("#")]
+if ignore[:2] != ["*", "!e2e/"] or "e2e/node_modules/" not in ignore:
+    print("ops/docker/e2e/Dockerfile.dockerignore must exclude everything but e2e/, and its node_modules/")
+
+# S3: the base URL from E2E_BASE_URL, no server of its own, no retries locally, traces kept.
+config = read("e2e/playwright.config.ts")
+for needed, why in (("process.env.E2E_BASE_URL", "reads the base URL from E2E_BASE_URL"), ("fullyParallel: true", "runs tests in parallel"),
+                    ("retain-on-failure", "keeps a failure's trace"), ("forbidOnly", "forbids test.only in CI")):
+    if needed not in config:
+        print(f"e2e/playwright.config.ts: doesn't show it {why} (S3)")
+if "webServer" in config:
+    print("e2e/playwright.config.ts: a webServer would start a second app (S3, R2)")
+
+# S4, A1, A2, A5, K2: the tests.
+specs = sorted(f for f in os.listdir(os.path.join(tpl, "e2e")) if f.endswith(".spec.ts"))
+if not specs:
+    print("templates/e2e has no test")
+smoke = set()
+for name in specs:
+    text = read(f"e2e/{name}")
+    if "from './fixtures'" not in text or "@playwright/test" in text:
+        print(f"e2e/{name}: imports test and expect from @playwright/test, not ./fixtures (S4)")
+    for bad, why in ((r"waitForTimeout|setTimeout", "a sleep (A2)"), (r"[.]only[(]", "test.only (A5)"),
+                     (r"locator[(]['\"][.#/]|xpath=", "a CSS or XPath locator (A1)")):
+        if re.search(bad, text):
+            print(f"e2e/{name} uses {why}")
+    if "tag: '@smoke'" in text:
+        smoke.add(name)
+# K1: every critical flow README names has its @smoke test.
+listed = set(re.findall(r"^\| [^|]+ \| `([\w.-]+[.]spec[.]ts)`", read("e2e/README.md"), re.M))
+if not listed:
+    print("e2e/README.md lists no critical flow (K1)")
+for name in sorted(listed - smoke):
+    print(f"e2e/README.md lists {name} as a smoke test, but it has no @smoke test (K1)")
+
+# R1, R3: the e2e service, and both tasks in each mode.
+compose = read("compose.yaml")
+for needed in ("profiles: [e2e]", "dockerfile: ops/docker/e2e/Dockerfile", "E2E_BASE_URL:"):
+    if needed not in compose:
+        print(f"compose.yaml's e2e service lacks {needed} (R3)")
+if re.search(r"^\s+ports:", compose, re.M):
+    print("compose.yaml: the e2e service publishes a port; it reaches the app on the stack's network (R3)")
+for mode in ("docker", "native"):
+    make = read(f"ops/{mode}/Makefile")
+    for task in ("e2e", "smoke"):
+        if not re.search(rf"^{task}: up ## ", make, re.M):
+            print(f"ops/{mode}/Makefile: no {task} task that starts the stack first, with a description (R1, R2)")
+    if "--grep @smoke" not in make:
+        print(f"ops/{mode}/Makefile: smoke doesn't run the @smoke tests (K2)")
+    if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and not l.startswith("E2E_RUN")), re.M):
+        print(f"ops/{mode}/Makefile: a recipe line is indented with spaces, not a tab")
+PY
+)
+    if [ -z "$problems" ]; then
+        pass "e2e templates: an example of its SPECIFICATION.md — the engine and its image at one exact version, no server of its own, tests through the fixtures with no sleeps or CSS locators, a @smoke test per critical flow, and e2e and smoke in each mode (0037)"
+    else
+        fail "e2e templates" "$(echo "$problems" | tr '\n' ';')"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -1331,6 +1430,7 @@ check_practices
 check_plugin
 check_mods
 check_dev_env_templates
+check_e2e_templates
 check_no_tracked_junk
 check_english
 check_directory_rules

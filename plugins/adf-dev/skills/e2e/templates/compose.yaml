@@ -1,0 +1,23 @@
+# The e2e service: add it under `services:` in the project's compose.yaml. `make e2e` and
+# `make smoke` run it; its profile keeps `make up` from starting it. It reaches the app by its
+# service name on the stack's network, so it needs no published port.
+
+services:
+  e2e:
+    build:
+      context: .
+      dockerfile: ops/docker/e2e/Dockerfile
+    profiles: [e2e]
+    environment:
+      # CUSTOMIZE: the app's service and the port it listens on inside its container
+      E2E_BASE_URL: http://web:3000
+      # A test account's credentials pass through from .env, declared in .env.example, e.g.
+      # E2E_USER_EMAIL: ${E2E_USER_EMAIL:-}
+      # E2E_USER_PASSWORD: ${E2E_USER_PASSWORD:-}
+    volumes:
+      # A failure's trace and screenshot, and CI's report, on the host
+      - ./e2e/test-results:/suite/test-results
+      - ./e2e/playwright-report:/suite/playwright-report
+    # Chromium needs more shared memory than a container gets by default (Playwright's Docker docs)
+    ipc: host
+    init: true
