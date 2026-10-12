@@ -87,6 +87,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
 | `parallel-agents` | Several agent sessions work at once, each needing a running app |
 | `docker` | The local stack runs on Docker Compose — `/dev-env` writes it from its templates or moves it to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks — [decision 0032](decisions/0032-local-environment-layout.md)), runs it natively or per worktree, and diagnoses or resets it; destructive docker commands ask first (run `modules/docker/install.sh .`, which merges its permission rules; it copies no files) |
+| `e2e` | People use the app in a browser — `/e2e` sets up Playwright end-to-end tests in `e2e/` to its specification, run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per critical flow ([decision 0037](decisions/0037-end-to-end-tests.md)) (run `modules/e2e/install.sh .`, which merges its permission rules; it copies no files) |
 
 ```bash
 cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
@@ -94,7 +95,7 @@ python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py . --modu
 ```
 
 The second line adds the module's skills, which its plugin carries — `parallel-agents`' `/dispatch`,
-`docker`'s `/dev-env` — and does nothing for a module without any. Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
+`docker`'s `/dev-env`, `e2e`'s `/e2e` — and does nothing for a module without any. Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
 
 **Connecting a tracker or a service** — Jira, Linear, GitLab, Supabase, Vercel, Contentful — is a job
 for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca": true` in
@@ -203,7 +204,7 @@ repository: 21 skills, 8 agents, 4 workflows, the hook scripts, the framework's 
 ([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), and the `parallel-agents`
 module's `/dispatch` ([decision 0020](decisions/0020-every-task-through-dispatch.md)) come from the
 `adf` plugin, pinned to a release tag. A development module's skills come the same way from
-`adf-dev` — `docker`'s `/dev-env` ([decision 0023](decisions/0023-plugins-by-concern.md)). The repository commits its own
+`adf-dev` — `docker`'s `/dev-env`, `e2e`'s `/e2e` ([decision 0023](decisions/0023-plugins-by-concern.md)). The repository commits its own
 layer as above, and every module's other files.
 Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
 `AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.

@@ -1,6 +1,6 @@
 # Skills and workflows reference
 
-The Agentic Development Framework ships **twenty-one skills**, two more for modules, and **four dynamic
+The Agentic Development Framework ships **twenty-one skills**, three more for modules, and **four dynamic
 workflows**. Their source is the plugins — `plugins/adf/skills/`, `plugins/adf/workflows/`, and
 `plugins/adf-dev/skills/` ([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged
 project loads them from there, as `/adf:skill-name`; a committed one keeps copies in `.claude/`, which
@@ -54,12 +54,13 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 
 A module's skill is copied with the module in a committed install. In a packaged install it comes
 from the plugin the module's `module.json` names: `/dispatch` from `adf`, the process, and
-`/dev-env` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
+`/dev-env` and `/e2e` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
 | Skill | Module | Purpose |
 |---|---|---|
 | `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session with a three-line prompt — a task chip in the desktop app, a `claude "<prompt>"` command in a terminal. The new session's first step creates the task's worktree beside the main checkout (`worktree-new.sh <type>/<slug> --no-start`) and moves into it. Reads only; runs nothing, analyzes nothing, edits nothing. A packaged install gets it from the plugin, as `/adf:dispatch`, and the worker runs the plugin's `adf-worktree-new` (decision 0027). |
 | `/dev-env` | `docker` | Set up, migrate, run natively, diagnose, or safely reset the project's Docker Compose local environment by the conventions of [decision 0032](decisions/0032-local-environment-layout.md): `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, variables from `.env` and each service's `environment:`, ports Docker picks. It writes a missing stack from its templates and proposes moving an existing one; verified commands go to `DEV-SETUP.md` and the Quick reference, one stack per worktree with `parallel-agents`, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without a yes. A packaged install gets it from `adf-dev`, as `/adf-dev:dev-env`. |
+| `/e2e` | `e2e` | Set up, audit, or extend the project's end-to-end tests to the specification it carries ([decision 0037](decisions/0037-end-to-end-tests.md)): Playwright in its own `e2e/` folder, run with `make e2e` and `make smoke` against the checkout's own stack — in Docker, in Playwright's image, or on the host — one `@smoke` test per critical flow the developer names, each seen failing before it's committed; tests that find elements by role, wait with assertions, own their data, and never reach a real third party. Diagnoses a failing or flaky test from what it kept (`error-context.md`, the trace). A change's own tests are written test first with `/write-tests`, following `testing.md` § End-to-end. A packaged install gets it from `adf-dev`, as `/adf-dev:e2e`. |
 
 ## Dynamic workflows
 
@@ -84,7 +85,7 @@ repository: `/adf:adopt`, `/adf:upgrade`, and `/adf:cost-report` — what agent
 sessions on a project cost, from Claude Code's local transcripts, with the expensive patterns
 flagged. In a packaged project, every skill above also comes from the plugin, typed
 `/adf:<name>` — except a development module's, typed by `adf-dev`'s name
-(`/adf-dev:dev-env`). See the [plugin README](../plugins/adf/README.md).
+(`/adf-dev:dev-env`, `/adf-dev:e2e`). See the [plugin README](../plugins/adf/README.md).
 
 The `adf-connect` plugin adds `/adf-connect:connect`: connect the project to its tracker or a stack
 service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP

@@ -10,7 +10,8 @@ paths:
 # Testing Rules
 
 ## Environment isolation
-- Tests run on a **dedicated port**, separate from the development server. Define the test port in your test configuration and never change it to match the dev port.
+- Tests that start a server of their own run it on a **dedicated port**, separate from the development server. Define the test port in your test configuration and never change it to match the dev port.
+- End-to-end tests run against **this checkout's own local environment**, which has ports of its own — never a shared environment, a preview, or production (§ End-to-end).
 - Test environments use mock/stub configurations so tests never depend on external services being up.
 
 ## External service mocking
@@ -70,6 +71,22 @@ lanes.
   prints stays in the conversation and is paid for on every later call.
 - **End-to-end and browser checks** run when the change touches that flow or the developer asks; the
   human QC on the preview remains the real check of how it looks and feels.
+
+## End-to-end
+End-to-end tests drive the app the way a person does — a browser, the pages, the server behind them.
+They're the slowest tests, so there are few of them.
+- **Only where the whole stack is needed:** a flow across pages, the browser and the server together, a critical flow. A rule — a validation, a calculation — is tested at the unit level, and shown once in the flow. `plan.md` § Test strategy names which criteria get end-to-end tests.
+- **Red first, for the right reason:** the missing behavior — a heading not shown, a URL not reached — not a server that doesn't answer or a mistyped locator.
+- **Find elements the way a person does:** by role and accessible name, label, or text; a test ID only where nothing a person perceives tells elements apart. Never a CSS class, an XPath, or the DOM's structure.
+- **Wait with assertions** on what a person sees, never with sleeps or fixed timeouts.
+- **Each test owns its data,** with values no other test uses, and runs alone, in any order, in parallel. It never relies on what another test or a person left.
+- **No real third party:** stub what the browser calls; point the server at a stub or a sandbox. A flow that can't be kept local goes to the human check.
+- **Flaky is broken:** fix it, or mark it skipped with the reason and a tracker link — never rerun it until it passes, and never add a retry or a sleep to hide it.
+- **Smoke tests:** one per critical flow, along its happy path, tagged so they run on their own — before the local check and in CI.
+- **A failure is diagnosed from what it kept** — the error, the page's state, the screenshot, the trace — not by rerunning.
+
+With the `e2e` module, the suite follows its specification (`/e2e`); `e2e/README.md` lists the critical flows and their smoke tests. This project's commands, and anything it does differently from the specification, with why:
+<!-- e.g. `make e2e` (t=<file>, g=<title>) and `make smoke`, against the stack `make up` starts -->
 
 ## Evidence, not claims
 - Green tests are necessary, not sufficient — verify the behavior, not just the pass.

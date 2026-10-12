@@ -7,7 +7,7 @@
 #   ops/native/native.sh stop     stop it — its whole process group — if it runs
 #   ops/native/native.sh status   whether it runs, and where
 #   ops/native/native.sh logs     the last 100 lines of its log
-#   ops/native/native.sh env      the `export` lines the app runs with (make test uses them)
+#   ops/native/native.sh env      the `export` lines the app runs with (make test and make e2e use them)
 #
 # Each backing service in SERVICES runs in Docker, and the app gets its published port as
 # <SERVICE>_PORT (redis → REDIS_PORT), looked up with `docker compose ps`. The app's own port is
@@ -55,10 +55,12 @@ free_port() {
   die "no free port found"
 }
 
-# APP_PORT as Compose would take it — the shell's, then the line .env pins — else a free one. Of
-# .env, only that line is read.
+# APP_PORT: the running app's, so `make test` and `make e2e` reach it; else as Compose would take it
+# — the shell's, then the line .env pins — else a free one. Of .env, only that line is read.
 app_port() {
-  local port="${APP_PORT:-}"
+  local port=""
+  [ -z "$(running_pid)" ] || port="$(value APP_PORT)"
+  [ -n "$port" ] || port="${APP_PORT:-}"
   [ -n "$port" ] || port="$( { grep -E '^APP_PORT=' .env 2>/dev/null || true; } | tail -n 1 | cut -d= -f2- | tr -d "\"' ")"
   [ -n "$port" ] || port="$(free_port)"
   printf '%s' "$port"

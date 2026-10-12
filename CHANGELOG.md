@@ -30,6 +30,40 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` § How a task gets its worktree,
     which gains its closing paragraph.
 
+- **End-to-end tests to a specification: the new `e2e` module**
+  ([decision 0037](docs/decisions/0037-end-to-end-tests.md)).
+  - **`/adf-dev:e2e`** sets up, audits, or extends a project's suite. It carries a
+    `SPECIFICATION.md`, each requirement with an ID, and no templates: the project writes its suite
+    to it, and `make smoke` passing in each local mode proves it.
+  - **The engine:** Playwright Test, in TypeScript, with Chromium, in `e2e/` with its own
+    `package.json`, pinned exactly.
+  - **The commands:** `make e2e` (`t=<file>`, `g=<title>`) and `make smoke`, against the checkout's
+    own stack. In Docker mode the suite runs in Playwright's image, in an `e2e` Compose service; in
+    native mode, on the host.
+  - **The smoke suite:** one `@smoke` test per critical flow, which the developer names in
+    `e2e/README.md`, each seen failing before it's committed.
+  - **The groundwork for a change's tests:** `.claude/rules/testing.md` gains § End-to-end, and
+    `/write-tests` follows it. Tests find elements by role, wait with assertions, own their data, and
+    never reach a real third party. A failure is diagnosed from what it kept, and flaky is broken.
+  - **Fixes in `dev-env`'s templates:**
+    - `ops/native/native.sh env` reports the running app's port, where it used to make up a free one
+      when `.env` pinned none, so `make test` and `make e2e` reach the app;
+    - the root `Makefile`'s `help` lists task names with digits (`e2e`).
+
+  **Upgrade impact:**
+  - **Every project:** merge for `.claude/rules/testing.md`. It gains § End-to-end, and its
+    dedicated-port line now covers only tests that start a server of their own.
+  - **Choosing `e2e`:** `/adf:upgrade` offers it. Run `modules/e2e/install.sh <repo>`, which merges
+    its allow rules, add `e2e` to the stamp's `modules:`, and turn on `adf-dev` in a packaged
+    install. Then run `/adf-dev:e2e set up` in a new session, after `/adf-dev:dev-env set up` with
+    `docker`.
+  - **Committed install:** additive for `.claude/skills/e2e/`, written by
+    `scripts/build-committed.py --modules e2e`.
+  - **With `docker`, any project that copied `dev-env`'s templates:** merge two fixes.
+    - In `ops/native/native.sh`, `app_port` reads the running app's port first.
+    - In the `Makefile`, `help`'s pattern is `/^[a-z][a-z0-9-]*:.*## /`.
+
+
 - **A dispatched session moves into its task's worktree without a prompt**
   ([decision 0035](docs/decisions/0035-move-into-the-worktree-without-a-prompt.md)). In the desktop
   app, the new `approve-worktree-move.sh` hook approves `change_directory` when the folder is a

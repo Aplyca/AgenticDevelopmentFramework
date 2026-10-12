@@ -33,12 +33,13 @@ project adopted before v2.0.0 (decision 0024):
 `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<date>) · modules: <list> -->`. OLD_SHA is the commit; stamps
 from before v1.0.0 have no version (and older ones no `modules:` part —
 treat it as `none`, and check for module files on disk: `.github/pull_request_template.md`,
-`.githooks/pre-push`, `ops/agent/` or `scripts/agent/`, a `clickup` server in `.mcp.json`, the docker rules in
-`.claude/settings.json`).
+`.githooks/pre-push`, `ops/agent/` or `scripts/agent/`, a `clickup` server in `.mcp.json`, the docker or
+e2e rules in `.claude/settings.json`).
 
 For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
-`docker`, rerun `modules/docker/install.sh <repo>` the same way, besides its file changes.
+`docker` and `e2e`, rerun `modules/docker/install.sh <repo>` and `modules/e2e/install.sh <repo>` the
+same way, besides their file changes.
 
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.
@@ -82,6 +83,10 @@ repository's facts, by the same rules as `/adopt` Step 3:
   conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), runs the app
   natively, gives each worktree its own stack, and diagnoses or resets it; destructive docker
   commands ask first
+- `e2e` — people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in `e2e/`,
+  run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per
+  critical flow (decision 0037). An existing suite (`playwright.config.*`, `cypress/`) is good
+  evidence
 
 Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
 release with `adf-connect` (decision 0023), offer it the same way when the project works with a
@@ -226,7 +231,8 @@ and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, 
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
 (merge a collision such as an existing PR template), except `clickup`, which installs with
-`modules/clickup/install.sh <repo>`; `docker` has no files to copy: run `modules/docker/install.sh <repo>`.
+`modules/clickup/install.sh <repo>`; `docker` and `e2e` have no files to copy: run
+`modules/docker/install.sh <repo>` or `modules/e2e/install.sh <repo>`.
 In a packaged project, a module whose skills the release's plugins carry leaves its `.claude/skills/`
 out, and the plugin its `module.json` names, when that isn't `adf`, is turned on:
 `"<plugin>@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in
@@ -238,7 +244,9 @@ as a follow-up in a new session once the stamp names the module. A project that 
 gets the same follow-up whenever the release changed the local environment specification
 (`dev-env`'s `SPECIFICATION.md`; the CHANGELOG names it): `/dev-env set up` audits the stack against
 it and proposes each gap by requirement ID. Never copy the templates over the project's files — they
-are an example of the specification, not the project's stack.
+are an example of the specification, not the project's stack. For `e2e`, the follow-up is
+`/e2e set up`, after `/dev-env set up` when the project has `docker`; a project that already has
+`e2e` gets `/e2e audit` when the release changed `e2e`'s `SPECIFICATION.md`.
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the
@@ -320,7 +328,8 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
    gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
    exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
-   `.claude/settings.json` parses and its `ask` list holds the docker rules (`docker`). Packaged, for
+   `.claude/settings.json` parses and its `ask` list holds the docker rules (`docker`), and its `allow`
+   list holds `make e2e` and `make smoke` (`e2e`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
