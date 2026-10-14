@@ -11,6 +11,34 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.2.0 — 2026-10-14 — Worktree moves without a prompt, `/wrap-up` after a merge, and end-to-end tests to a specification
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. The changes come from testing the framework in an adopting project.
+
+- **A dispatched session moves into its worktree without a prompt** (0035). In the desktop app, the
+  move that the session makes after the worktree script creates it no longer asks you to approve the
+  folder, when that folder is a worktree of the same repository.
+- **`/wrap-up` closes up a task after its pull request merges** (0036). It checks that nothing is
+  left, then asks once before it stops what the task started, removes its worktree and branch,
+  updates the base branch, and archives the session.
+- **End-to-end tests to a specification** (0037). The new `e2e` module, with `/adf-dev:e2e`, sets up
+  Playwright tests in `e2e/`, run with `make e2e` and `make smoke` against the checkout's own stack,
+  with one smoke test per critical flow.
+
+**Upgrading from v2.1.0:**
+
+1. **Run `/adf:upgrade`.** It moves the pin to `v2.2.0` and, in one draft pull request, merges the
+   project's layer as each entry below says. A committed install also gets the release's machinery,
+   written by `scripts/build-committed.py`.
+2. **With `e2e`,** choose the module during the upgrade, or add it later with
+   `modules/e2e/install.sh <repo>`. Then, in a new session, run `/adf-dev:e2e set up` (`/e2e set up`
+   in a committed install). It writes the suite to the specification and runs it until `make smoke`
+   passes in each local mode.
+3. **Nothing else is required.** A project on v2.1.0 keeps working until it upgrades.
+
+Each entry below lists its own **Upgrade impact**.
+
 - **`/wrap-up` closes up a task after its pull request merges**
   ([decision 0036](docs/decisions/0036-wrap-up-after-the-merge.md)).
   - **When:** the developer says the pull request merged, the app reports it, or the developer asks to

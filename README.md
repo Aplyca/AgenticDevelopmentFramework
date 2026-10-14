@@ -146,18 +146,21 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.1.0** (2026-10-10), is a minor release. The local environment runs in Docker or
-natively by a setting, `ops/` has one folder per target, and the `docker` module's rules are a
-specification with IDs that `/dev-env` audits a stack against. The main checkout dispatches without
-asking first, and an agent keeps its draft pull request current without prompts. **v2.0.0**
-(2026-10-09), a major release, renamed the plugin `adf`, with `adf-dev` and `adf-connect` beside it. A
-project keeps no `CLAUDE.md` or `GEMINI.md`, and the `parallel-agents` module moves to `ops/agent/`.
-Its changelog section opens with the order to upgrade in, and `/aplyca-adf:upgrade` carries it out. **v1.4.0** added the local check, **v1.3.0** took every
-task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction files, and
-**v1.2.0** moved the framework's reference docs out of packaged projects and into the plugin.
-**v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade in. A
-baseline older than `7383422` takes that release's order first, and one older than `3eb7777` takes its
-three fixes before that — they affect every adopted repository.
+The latest, **v2.2.0** (2026-10-14), is a minor release. A dispatched session moves into its
+worktree without a prompt, `/wrap-up` closes up a task once its pull request merges, and the `e2e`
+module sets up end-to-end tests to a specification. **v2.1.0** (2026-10-10), also a minor release,
+runs the local environment in Docker or natively by a setting, `ops/` has one folder per target, and
+the `docker` module's rules are a specification with IDs that `/dev-env` audits a stack against. The
+main checkout dispatches without asking first, and an agent keeps its draft pull request current
+without prompts. **v2.0.0** (2026-10-09), a major release, renamed the plugin `adf`, with `adf-dev`
+and `adf-connect` beside it. A project keeps no `CLAUDE.md` or `GEMINI.md`, and the
+`parallel-agents` module moves to `ops/agent/`. Its changelog section opens with the order to
+upgrade in, and `/aplyca-adf:upgrade` carries it out. **v1.4.0** added the local check, **v1.3.0**
+took every task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction
+files, and **v1.2.0** moved the framework's reference docs out of packaged projects and into the
+plugin. **v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade
+in. A baseline older than `7383422` takes that release's order first, and one older than `3eb7777`
+takes its three fixes before that — they affect every adopted repository.
 
 1. **Get the plugin into the project.** Adopted before v1.0.0 — a stamp with no `v` version? Paste
    the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
