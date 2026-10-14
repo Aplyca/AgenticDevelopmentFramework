@@ -163,7 +163,7 @@ the plugin by a relative path. A machine where nobody trusts the folder â€” CI â
 {
   "extraKnownMarketplaces": {
     "aplyca": {
-      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.1.0" }
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.2.0" }
     }
   },
   "enabledPlugins": { "adf@aplyca": true }
