@@ -96,7 +96,7 @@ if worktree_conf="$(worktree_settings "$root")"; then
     echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /adf:dispatch, as soon as it arrives and without asking first — the chip it offers is where the developer chooses: it hands the task to a new session, which creates the task's worktree beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves into it."
     echo "- A session whose prompt hands it one task and its branch (from /adf:dispatch) is that task's worker, not the dispatcher. Its first step is the worktree: adf-worktree-new <branch> --no-start, then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd before anything else."
   else
-    echo "- Role: WORKER. This worktree is yours for one task — start with triage (/adf:triage)."
+    echo "- Role: WORKER. One task, in its own worktree — start with triage (/adf:triage)."
     # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.
     folder="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_-' '-')"
     while [[ $folder == -* ]]; do folder="${folder#-}"; done
@@ -106,18 +106,21 @@ if worktree_conf="$(worktree_settings "$root")"; then
       if [ "$branch" != "detached HEAD" ]; then
         if [[ $branch =~ $generated_name ]] || [ "${branch#*/}" = "$branch" ]; then generated=1; fi
       fi
-      if [ "$branch" = "detached HEAD" ]; then
-        echo "- Detached HEAD: after triage, create the task's branch with git switch -c <type>/<slug>"
-      elif [ -n "$generated" ]; then
-        echo "- The branch name is generated ($branch): after triage, rename it — git branch -m <type>/<slug> — so it joins its spec folder and /adf:open-pr takes it."
-      fi
-      if [ -n "$env_file" ] && [ -f "$main/$env_file" ] && [ ! -e "$root/$env_file" ]; then
-        echo "- No $env_file here. Claude Code copies it into the worktrees it creates when .worktreeinclude lists it."
-      fi
-      if [ -n "$other_base" ]; then
-        echo "- Claude Code started this worktree from $default_branch, but tasks here start from $base_branch: ask the developer to /adf:dispatch the task before the first commit."
-      elif [ -n "$needs" ]; then
-        echo "- Not set up by adf-worktree-new, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /adf:dispatch the task."
+      if [ "$branch" = "detached HEAD" ] || [ -n "$generated" ]; then
+        # Claude Code's own worktree, not yet a task's: the desktop app gives every chip's session one, so
+        # a dispatched worker starts here and moves to the task's worktree beside the main checkout
+        # (decision 0040). Renaming this branch would keep the task nested in the main checkout.
+        if [ -n "$generated" ]; then on="a generated branch ($branch)"; else on="a detached HEAD"; fi
+        echo "- This session started in Claude Code's own worktree, on $on. A task's worktree sits beside the main checkout: first create it — adf-worktree-new <branch> --no-start, with the branch your prompt names (or, without one, the one triage names) — then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd. Edit and commit nothing here, and don't rename this branch: this worktree goes when the session is archived."
+      else
+        if [ -n "$env_file" ] && [ -f "$main/$env_file" ] && [ ! -e "$root/$env_file" ]; then
+          echo "- No $env_file here. Claude Code copies it into the worktrees it creates when .worktreeinclude lists it."
+        fi
+        if [ -n "$other_base" ]; then
+          echo "- Claude Code started this worktree from $default_branch, but tasks here start from $base_branch: ask the developer to /adf:dispatch the task before the first commit."
+        elif [ -n "$needs" ]; then
+          echo "- Not set up by adf-worktree-new, so it lacks $needs: fine for work that doesn't run the app. To run it, ask the developer to /adf:dispatch the task."
+        fi
       fi
     fi
   fi

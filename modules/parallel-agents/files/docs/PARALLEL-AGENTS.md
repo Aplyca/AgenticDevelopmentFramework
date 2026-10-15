@@ -29,14 +29,15 @@ the same route:
 
 1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
    prompt: the task, the branch, and the first step.
-   - **Desktop app:** a task chip for the main checkout, started in that folder — not in a new
-     worktree — with one click. Its title is the task's title (`Show the chosen topics after
-     signup`), without the branch: once the session moves in (step 3), the app shows the worktree as
-     its folder, and the folder is named after the branch.
+   - **Desktop app:** a task chip for the main checkout, started with one click. Its title is the
+     task's title (`Show the chosen topics after signup`), without the branch: once the session
+     moves in (step 3), the app shows the worktree as its folder, and the folder is named after the
+     branch.
    - **Terminal:** `claude "<prompt>"`, run in the main checkout.
-2. **The new session creates the worktree.** It opens in the main checkout, so its first lines say
-   `Role: DISPATCHER` — and that a session handed one task and its branch is that task's worker. Its
-   first step is `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
+2. **The new session creates the worktree.** In the desktop app, a chip's session opens in a
+   worktree the app creates for it, at the app's worktree location (`.claude/worktrees/` by default),
+   on a generated branch. From a terminal it opens in the main checkout. Either way, its first lines
+   say this isn't the task's worktree yet, and its first step is `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
    checkout named after the branch (`feat/newsletter-signup` → `../feat-newsletter-signup`), on a new
    branch from `BASE_BRANCH`, with the env file seeded from the main checkout's and, when worktrees run
    a server, a port reserved. Nothing starts.
@@ -51,8 +52,9 @@ the same route:
    the developer the worktree's path and stops; the developer opens a session on that folder and
    pastes the prompt.
 
-Until the move, the session is in the shared main checkout: it runs the script and nothing else, and
-the protect-hub hook stops any edit there.
+Until the move, the session runs the script and nothing else. In the main checkout, the protect-hub
+hook stops any edit. In the app's worktree, the worker edits and commits nothing, and never renames
+the generated branch: the app removes that worktree when the session is archived.
 
 **When the task's pull request merges,** its session wraps up with `/wrap-up`. It checks that
 nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then, with
@@ -64,10 +66,11 @@ Whether a task will run the app is its triage's question, after the hand-off. Th
 because the scripts gave it the env file and its port; the worker starts the environment only when a
 step needs it.
 
-**Claude Code's own worktrees** — a session started with the desktop app's worktree option, a chip
-started in a new worktree, or `claude --worktree` — are workers too, but they sit under
-`.claude/worktrees/`, inside the main checkout, on a generated branch, with no port or setup. The
-session-context hook names what such a worktree lacks. `.worktreeinclude` copies the env file into
+**Claude Code's own worktrees** — every chip's session in the desktop app, a session started with
+its worktree option, or `claude --worktree` — sit at the app's worktree location (inside the main
+checkout by default), on a generated branch, with no port or setup. A session that starts in one
+moves to the task's worktree beside the main checkout before its work (decision 0040). One already
+on a task branch, from before, stays a worker, and the session-context hook names what it lacks. `.worktreeinclude` copies the env file into
 them; keep it in step with `ENV_FILE`. The desktop app removes its own worktrees when a session is
 archived — or once the pull request merges, with auto-archive on; `worktree-rm.sh` removes the
 scripts'.

@@ -24,9 +24,9 @@ repository (or `scripts/agent/worktree.conf`, where it was before the module mov
 isn't installed and stop.
 
 Every task takes the same route. The dispatcher names the task and hands it over. The
-new session opens here, in the main checkout, and its first step is the task's worktree: the scripts
-create it beside the main checkout, on a new branch from the base branch, and the session moves into
-it before anything else. Whether the task will run the app is its triage's question, after that; the
+new session's first step is the task's worktree: the scripts create it beside the main checkout, on a
+new branch from the base branch, and the session moves into it before anything else — from the main
+checkout, or from the worktree the desktop app gives a chip's session (decision 0040). Whether the task will run the app is its triage's question, after that; the
 worktree can, because the scripts give it the env file and, where the project uses them, a port.
 
 **Dispatch without asking.** A task that arrives in the main checkout comes straight here — one the
@@ -62,15 +62,18 @@ whether the task starts.
    - **Desktop app:** offer the task as a task chip for this main checkout, with the worker prompt.
      Title it with the task's title alone — `Show the chosen topics after signup` — not the branch:
      once the session moves into the worktree, the app shows that folder as the session's, and the
-     folder is named after the branch. Tell the developer to start it in this folder, not in a new worktree: the card's worktree option makes
-     the app's own worktree under `.claude/worktrees/`, on a generated branch, without the env file,
-     port, or setup.
+     folder is named after the branch. The app starts the chip's session in a worktree of its own,
+     at its worktree location (`.claude/worktrees/` by default), on a generated branch. That's only
+     where the session starts: its first step moves it to the task's worktree beside the main
+     checkout.
    - **Terminal:** give the developer one command to run in a new terminal, in this main checkout:
      `claude "<worker prompt>"`.
 
-   The new session starts here, so its first lines say `Role: DISPATCHER` — and that a session handed
-   one task and its branch is that task's worker. It runs the script, then moves into the worktree
-   (`docs/PARALLEL-AGENTS.md` § How a task gets its worktree). In the desktop app the
+   The new session's first lines say how: in the main checkout, `Role: DISPATCHER`, and that a session
+   handed one task and its branch is that task's worker; in the app's worktree, that this worktree
+   isn't the task's. Either way it runs the script, then moves into the task's worktree
+   (`docs/PARALLEL-AGENTS.md` § How a task gets its worktree), and never renames the app's generated
+   branch. In the desktop app the
    approve-worktree-move hook approves the move, and the session carries on there by itself.
 
 The hand-off ends the task's time here. The next task needs nothing from this conversation, so
@@ -84,7 +87,7 @@ clearing it (`/clear`) between dispatches keeps the hub's session cheap.
 | "I'll read the task properly first so the worker gets a head start" | The worker redoes the reading where it can verify it. Analysis here is unverified, burns the hub's context, and drifts in the handoff. |
 | "It's a one-line fix — I'll just do it here" | The main checkout is shared. A stray edit or a running server here collides with every other session. |
 | "I'll create the worktree here and point the chip at it" | Creating it is the new session's first step: it runs the script and moves in, so the app shows that session in the worktree's folder. The dispatcher runs nothing. |
-| "The chip can make the worktree itself" | The card's worktree option makes the app's own worktree under `.claude/worktrees/`, inside the main checkout, on a generated branch, without the env file, port, or setup. The prompt has the session make the task's worktree with the scripts. |
+| "The chip already gave the session a worktree, so it can work there" | The app's worktree sits at its worktree location — inside the main checkout by default — on a generated branch, without the env file's overrides, the setup, or a name after the branch. Nested in the main checkout, tools that walk up find its configuration. The prompt has the session make the task's worktree beside the main checkout with the scripts, and move. |
 | "I'll put the branch in the chip's title so the developer can see it" | The session's folder shows it. Once the session moves in, the app shows the worktree's folder, named after the branch (`../feat-newsletter-signup-topics`). The title is the task's. |
 | "I'll start the environment so it's ready" | The worker may not need one (an answer-only task). It decides after triage. |
 | "I'll open a placeholder issue or take the next spec number for the branch" | That's an outward-facing write, and numbers collide between parallel dispatchers. The slug is the join. |

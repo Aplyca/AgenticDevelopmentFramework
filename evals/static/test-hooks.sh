@@ -212,11 +212,13 @@ check_ctx "on a work branch: no base-branch line" "$B" "feat/x" "behind origin/m
 git -C "$B" switch -q main && git -C "$B" merge -q --ff-only origin/main
 check_ctx "on the base branch, up to date: no base-branch line" "$B" "branch main" "behind origin/main"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
-check_ctx "worker in Claude Code's worktree, told to rename its generated branch" "$T/.claude/worktrees/eager-lamport" "branch name is generated (claude/eager-lamport)"
-check_ctx "worker in Claude Code's worktree, told the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here"
-check_ctx "worker on a detached HEAD, told to create the task's branch" "$T/.claude/worktrees/calm-turing" "Detached HEAD"
+# The desktop app gives every chip's session a worktree of its own (decision 0040): a worker that starts
+# there creates the task's worktree beside the main checkout and moves, and never renames the branch.
+check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree beside the main checkout and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task's worktree sits beside the main checkout: first create it — ops/agent/worktree-new.sh <branch> --no-start" "git branch -m"
+check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task's worktree sits beside the main checkout" "git switch -c"
 check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somewhere-else" "Role: WORKER" "generated\|No .env\|Not set up"
 git -C "$T/.claude/worktrees/eager-lamport" branch -q -m feat/renamed
+check_ctx "an app worktree already on a task branch keeps its notes: the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here" "sits beside the main checkout"
 cp "$T/.env" "$T/.claude/worktrees/eager-lamport/.env"
 check_ctx "a renamed branch with its env file needs nothing more" "$T/.claude/worktrees/eager-lamport" "Role: WORKER" "generated\|No .env\|Not set up"
 printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf"

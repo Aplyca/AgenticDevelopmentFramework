@@ -54,15 +54,16 @@ nothing:
 
    The workflow isn't restated: a copy in a handoff is one more thing that drifts from `AGENTS.md`.
 3. **Hands it over** — in the desktop app, a task chip for the main checkout, titled with the task's
-   title (`Show the chosen topics after signup`). You start it in that folder, not in a new worktree,
-   with one click. Once the session moves into its worktree, the app shows that folder —
-   `feat-newsletter-signup-topics` — as the session's. In a terminal: `claude "<prompt>"` in the main
-   checkout.
+   title (`Show the chosen topics after signup`), which you start with one click. Once the session
+   moves into its worktree, the app shows that folder — `feat-newsletter-signup-topics` — as the
+   session's. In a terminal: `claude "<prompt>"` in the main checkout.
 
 ### In the new session — the worktree first
 
-The new session opens in the main checkout, so its first lines say `Role: DISPATCHER` — and that a
-session handed one task and its branch is that task's worker. Before anything else it:
+In the desktop app, the chip's session opens in a worktree the app creates for it, at its worktree
+location (`.claude/worktrees/` by default), on a generated branch; from a terminal, in the main
+checkout. Either way its first lines say this isn't the task's worktree yet, and before anything
+else it:
 
 1. **Creates the worktree** — `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
    directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
@@ -117,12 +118,15 @@ worktree's env file.
 
 ### Claude Code's own worktrees
 
-A session started with Claude Code's worktree option — the desktop app's toggle, a chip started in a
-new worktree, or `claude --worktree` — is a worker too
-([0015](../decisions/0015-tool-worktrees-are-workers.md)). Its worktree sits under
-`.claude/worktrees/`, inside the main checkout, on a generated branch, without the start command.
-`.worktreeinclude` copies the env file; the session renames the branch to `<type>/<slug>` after
-triage; and the session-context hook names what's missing — here, the start command. `worktree-ls.sh` flags the ones left on a generated branch. `.claude/worktrees/` stays in
+Every chip's session in the desktop app starts in one of Claude Code's own worktrees, and so does a
+session started with its worktree option, or `claude --worktree`. Each sits at the app's worktree
+location — `.claude/worktrees/`, inside the main checkout, by default — on a generated branch,
+without the start command. That's where the session starts, not where it works: its first step
+creates the task's worktree beside the main checkout and moves there
+([0040](../decisions/0040-workers-move-out-of-the-apps-worktree.md)). It never renames the generated
+branch, and the app removes that worktree when the session is archived. A worktree from before, already
+on a task branch, stays a worker ([0015](../decisions/0015-tool-worktrees-are-workers.md)), and the
+session-context hook names what it lacks. `worktree-ls.sh` flags the ones left on a generated branch. `.claude/worktrees/` stays in
 `.gitignore` and `.claudeignore`.
 
 ### Cleanup

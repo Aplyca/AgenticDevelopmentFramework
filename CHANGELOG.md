@@ -11,6 +11,28 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A worker that starts in the desktop app's worktree moves to the task's worktree beside the main
+  checkout** ([decision 0040](docs/decisions/0040-workers-move-out-of-the-apps-worktree.md)).
+  - **Why:** in an adopting project, every task worktree ended up nested in `main/.claude/worktrees/`
+    under a generated name. The desktop app gives every chip's session a worktree of its own, at its
+    worktree location (inside the project by default). The session-context hook then told the worker
+    "this worktree is yours… rename the generated branch".
+  - **Now, with parallel-agents:** a session in Claude Code's own worktree on a generated branch or a
+    detached HEAD creates the task's worktree beside the main checkout (`adf-worktree-new <branch>
+    --no-start`) and moves there. It edits and commits nothing in the app's worktree, which goes when
+    the session is archived, and never renames its branch.
+  - **Where:** the session-context hook's worker lines, `/dispatch`, `docs/PARALLEL-AGENTS.md`, and
+    the parallel-agents scenario. Without the module, nothing changes.
+
+  **Upgrade impact:**
+  - **Packaged install:** none for the hook and `/dispatch`, which the `adf` plugin carries.
+  - **Committed install:** overwrite for `.claude/hooks/session-context.sh` and
+    `.claude/skills/dispatch/`, written by `scripts/build-committed.py`.
+  - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` § How a task gets its worktree.
+  - **Existing task worktrees** under `.claude/worktrees/`, already on a task branch, keep working
+    where they are. Remove them when their task is done (`/wrap-up`).
+
+
 - **Fewer prompts: allow make, docker, git, and gh broadly, and ask by name**
   ([decision 0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). From an adopting
   project's transcripts: most prompts came from commands no rule could read, from `make run` doing
