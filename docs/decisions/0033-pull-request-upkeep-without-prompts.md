@@ -1,6 +1,6 @@
 # 0033: An agent pushes, opens, edits, and comments on its draft pull request without a prompt
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0038](0038-fewer-prompts-for-tasks-and-local-git.md) (`git` and `gh` are allowed broadly, and what must still prompt is asked by name)
 - **Date:** 2026-10-09
 - **Amends:** [0005](0005-outward-actions-and-draft-prs.md) — which outward actions a permission prompt confirms; [0022](0022-local-check-before-the-pull-request.md) — "everything past the draft still asks"
 

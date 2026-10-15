@@ -20,6 +20,8 @@ The base branch, integration branches, and release process are project-specific:
 - Stage files by name — never `git add .` or `git add -A`.
 - Never bypass hooks (`--no-verify`, `git commit -n`); fix what the hook reports.
 - Don't amend or rewrite commits that have been pushed unless the developer asks.
+- Never discard work — uncommitted changes, a stash, an unmerged branch (`git reset --hard`, `clean`,
+  `restore`, `stash drop`, `branch -D`) — unless the developer asks: no permission prompt stops it.
 
 ## Commit prefixes and phase order
 
@@ -59,8 +61,8 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
 
 Pushing, opening a pull request, marking it ready, merging, tagging, releasing, and commenting
 on a pull request, issue, or tracker task all leave this machine. An agent does them **only when
-a human asks**, and marking ready, merging, reviewing, issue writes, and releases are confirmed
-again when Claude Code's permissions prompt. One exception: once the developer approves the local
+a human asks**, and marking ready, merging, reviewing, and releases are confirmed again when
+Claude Code's permissions prompt. One exception: once the developer approves the local
 check (`AGENTS.md` § Delivery rules) — or, with nothing to run, once the full gate and `/review`
 pass — the agent pushes the work branch and opens its **draft** pull request on its own, then
 keeps it current: later pushes to the work branch, edits to its description, and comments on it

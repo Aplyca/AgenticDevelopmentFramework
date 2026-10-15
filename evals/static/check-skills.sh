@@ -297,21 +297,46 @@ for event, entries in settings.get("hooks", {}).items():
                     problems.append(f"{event}: {match.group(0)} does not exist")
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
-asks = " ".join(settings.get("permissions", {}).get("ask", []))
-allows = " ".join(settings.get("permissions", {}).get("allow", []))
-# The work branch's push and its draft pull request follow the developer's local check (decision
-# 0022), and keeping that draft current needs no prompt (0033); the rest that leaves the machine asks.
-for outward in ("gh pr ready", "gh pr merge", "gh pr review", "gh issue comment", "gh release"):
-    if outward not in asks:
-        problems.append(f"permissions.ask does not cover '{outward}'")
-for upkeep in ("git push", "gh pr create", "gh pr edit", "gh pr comment"):
-    if upkeep not in allows or upkeep in asks:
-        problems.append(f"'{upkeep}' should be in permissions.allow, not permissions.ask (0033)")
+# Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
+# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
+# still prompt is asked by name (decisions 0022, 0033, 0038).
+allow_rules = settings.get("permissions", {}).get("allow", [])
+ask_rules = settings.get("permissions", {}).get("ask", [])
+def matches(rules, command):
+    return any(r.startswith("Bash(") and (re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3])) for r in rules)
+def verdict(command):
+    return "ask" if matches(ask_rules, command) else "allow" if matches(allow_rules, command) else "prompt"
+expected = {
+    # The draft pull request and its upkeep, and local git work, run (0022, 0033, 0038).
+    "git push": "allow", "git push -u origin feat/newsletter-signup": "allow",
+    "gh pr create --draft --title x": "allow", "gh pr edit 12 --body-file b.md": "allow",
+    "gh pr comment 12 --body x": "allow", "gh pr view 12": "allow", "gh run view 99": "allow",
+    "git add src/a.ts": "allow", "git add -A": "allow", "git commit -m x": "allow",
+    "git commit --amend --no-edit": "allow", "git switch -c feat/x": "allow", "git rebase main": "allow",
+    "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
+    # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
+    "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
+    "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
+    "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
+    "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Rare and recoverable: they run (the shorter list the developer chose).
+    "gh pr close 12": "allow", "gh workflow run ci.yml": "allow", "gh label create bug": "allow",
+    "gh run cancel 99": "allow", "git stash clear": "allow",
+    # Discarding local work and issue writes run (the developer's choice); hooks switched off and
+    # tags leaving the machine ask.
+    "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
+    "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
+    "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+}
+for command, want in expected.items():
+    if verdict(command) != want:
+        problems.append(f"'{command}': {verdict(command)}, expected {want} (0038)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask, its upkeep in permissions.allow"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -597,15 +622,24 @@ PY
         [ -f "$fragment" ] || continue
         name=$(basename "$(dirname "$fragment")")
         # A module may pre-approve MCP tools and commands only if they read: a write must always
-        # prompt, and so must a command that prints secrets.
-        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" <<'PY'
+        # prompt, and so must a command that prints secrets. The one exception is decided: the docker
+        # module allows its tasks and its containers' commands broadly and asks by name before
+        # what deletes data or runs any command it's given (decision 0038) — those asks must be there.
+        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" "$name" <<'PY'
 import json, re, sys
-fragment, mcp = sys.argv[1], sys.argv[2]
+fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
+decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
+decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
+                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)",
+                           "Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)"}}
 try:
-    allow = json.load(open(fragment)).get("permissions", {}).get("allow", [])
+    permissions = json.load(open(fragment)).get("permissions", {})
+    allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
+for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
+    out.append(f"allows broadly, so must ask before {ask} (0038)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
 changes = re.compile(r"\b(down|rm|rmi|prune|kill|stop|restart|start|exec|run|up|build|pull|push|cp|create|inspect|login|delete|remove)\b")
 for rule in allow:
@@ -632,7 +666,7 @@ print("; ".join(out))
 PY
 )
         if [ -z "$problems" ]; then
-            pass "module '$name': pre-approves read-only MCP tools and commands only; no credentials in .mcp.json"
+            pass "module '$name': pre-approves read-only MCP tools and commands only, or what decision 0038 names with its asks; no credentials in .mcp.json"
         else
             fail "module '$name': $problems"
         fi
@@ -748,6 +782,15 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs but the ones that delete data or run a command, which ask (C9, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: proposes an ask rule for a project task that deletes data (C9)")
+    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and {"Bash(make *reset*)","Bash(make run *)","Bash(docker inspect *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks by name (C9, C10, 0038)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")

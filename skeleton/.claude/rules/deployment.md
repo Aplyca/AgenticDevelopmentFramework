@@ -76,6 +76,8 @@ paths:
 - No `container_name:` and no top-level `name:` — the checkout's folder names the Compose project.
 - Pin image versions. A service another one waits for has a healthcheck, and the one that waits uses
   `depends_on` with `condition: service_healthy`. Data lives in named volumes.
+- Which mode a checkout runs in is the developer's: `DEV_MODE` in their `.env`, or the project's
+  `DEFAULT_MODE`. An agent runs every task in it, and never overrides it unasked.
 - Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
   backing services in Docker (`DEFAULT_SERVICES` in `ops/native/Makefile`). A developer who runs some
   on the host sets their own `SERVICES` in `.env` (or `none`) and pins those services' ports there. `make up` starts the app in the background and waits until

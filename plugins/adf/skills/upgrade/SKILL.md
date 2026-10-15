@@ -39,7 +39,11 @@ e2e rules in `.claude/settings.json`).
 For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
 `docker` and `e2e`, rerun `modules/docker/install.sh <repo>` and `modules/e2e/install.sh <repo>` the
-same way, besides their file changes.
+same way, besides their file changes. From v2.3.0 the docker installer adds `Bash(make *)`, so every
+task runs without a prompt but the ones its ask rules name (`reset`, `run`). Before it does, read
+the project's `Makefile` and mode files for a task that deletes data under another name, or that
+follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan:
+the plan adds its ask rule, `Bash(make <task>*)`, in the same change, or fixes the task.
 
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.
@@ -328,8 +332,8 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
    gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
    exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
-   `.claude/settings.json` parses and its `ask` list holds the docker rules (`docker`), and its `allow`
-   list holds `make e2e` and `make smoke` (`e2e`). Packaged, for
+   `.claude/settings.json` parses, and its `ask` list holds the docker rules and one for each
+   project task that deletes data (`docker`), and its `allow` list holds `make e2e` and `make smoke` (`e2e`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.

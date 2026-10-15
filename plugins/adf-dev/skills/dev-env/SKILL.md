@@ -78,10 +78,12 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - every variable the code reads: by name in `.env.example`, and in container form in its
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
    - in the `Makefile`: `APP` and `DEFAULT_MODE` (`docker` unless the team runs the app on the host);
-   - in each mode's `Makefile`, its own commands: in `ops/docker/`, `test` and `lint` in the app's
-     container; in `ops/native/`, `DEFAULT_SERVICES` (the backing services that stay in Docker),
-     `NATIVE_CMD` (the app's dev command, listening on `$APP_PORT`), and its `build` (installing
-     dependencies on the host), `test`, and `lint`. Each from the project's package manifest,
+   - in each mode's `Makefile`, its own commands: in `ops/docker/`, `test`, `lint`, `format`, and
+     `typecheck` in the app's container; in `ops/native/`, `DEFAULT_SERVICES` (the backing services
+     that stay in Docker), `NATIVE_CMD` (the app's dev command, listening on `$APP_PORT`), and its
+     `build` (installing dependencies on the host), `test`, `lint`, `format`, and `typecheck`. `test`
+     passes `t` to the test runner as its filter, and `lint` and `format` pass `f` as the files
+     (C3), so an agent runs the one test or file it changed through the task. Each from the project's package manifest,
      README, or docs — never a guess at the stack. A project that never runs natively keeps
      `ops/native/Makefile` as the template wrote it.
 
@@ -101,7 +103,14 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - `container_name:` or a top-level `name:`;
    - a service another one waits for without a healthcheck and `condition: service_healthy`;
    - no `DEV_MODE`: a `Makefile` with its own `native` or `dev` targets beside the Docker ones, which
-     the two mode files replace.
+     the two mode files replace;
+   - a `test` without `t=`, or a `lint` without `f=`, so agents reach for a command of their own;
+   - a task that runs a command it's given (`make run cmd="…"`) without an ask rule, or one agents
+     use for something a named task should do (C10) — each such use becomes a task;
+   - a task that deletes data under a name other than `reset` (`db-drop`, a `clean` that removes
+     volumes) with no ask rule, while `Bash(make *)` allows it (C9);
+   - a task that waits for input or never returns, such as a `logs` that follows (C9): an agent that
+     runs it waits until its timeout.
 
    The migration is an infrastructure change: propose it through `/adf:triage` (the careful lane),
    and move nothing before the developer approves. It moves files with `git mv`, adds the template's
@@ -113,7 +122,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    healthy where it has a check. After a Dockerfile change, `make build` first.
 4. **Verify it works:** `curl -fsS` on the app's URL from `make urls` (its health route or home page),
    and the project's quickest test that needs the stack passes against it. With a dev command for the
-   host, Mode: native too, in the mode the project doesn't default to.
+   host, Mode: native too, in the mode the project doesn't default to — set up is the developer's
+   request to check every mode, and each run in the other mode prompts (M10).
 5. **Write down what you verified** — a docs change, so it goes through triage too:
    - `DEV-SETUP.md`: the Docker row of Prerequisites, § 3 `make env`, § 4 `make up` and `make urls`
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
@@ -123,7 +133,11 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      app's service and container port, `web:3000` — so the band above the prompt looks up the port
      Docker picked;
    - `deployment.md`: `paths:` naming `compose.yaml`, `Makefile`, `ops/**`, and `.env.example`, and in
-     § Docker any convention the project adds.
+     § Docker any convention the project adds;
+   - `.claude/settings.json`: in `permissions.ask`, `Bash(make <task>*)` for each project task that
+     deletes data under a name other than `reset`, or runs a command it's given under a name other
+     than `run` (C9, C10). The docker module already allows `Bash(make *)` and asks before `reset`
+     and `run`. It's a permission change: name it in the change the developer approves.
 
    § Troubleshooting gets only problems you actually met. For example, the newsletter site: `web`
    (the Next.js app, on container port 3000) and `redis` (the signup rate limiter), started with
@@ -169,7 +183,9 @@ services in Docker. Both define the same tasks.
 1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
    stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
    developer's file, which they edit; never read it into the conversation. A single command can
-   override both: `make up DEV_MODE=native`. `make help` names the mode and the file in force.
+   override both — `make up DEV_MODE=native` — and that override is for people: an agent runs every
+   task in the configured mode, unless the developer asks for another in this task (M10). `make help`
+   names the mode and the file in force.
 2. **What native mode needs,** in `ops/native/Makefile`:
    - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
@@ -257,6 +273,9 @@ reset in the main checkout of a hub.
 | "`3000:3000` is simpler — everyone knows the port" | Only one stack can hold it, so a second worktree's fails to start. Docker picks a free port and `make urls` shows it; a developer who wants a fixed one pins it in their `.env`. |
 | "A fixed `container_name` makes it predictable" | It makes a second worktree's stack fail to start. The checkout's folder names the project. |
 | "`env_file: .env` passes everything at once" | Every container gets every variable, credentials included, and nothing says which service needs what. Each service's `environment:` names what it gets. |
+| "`make *` is allowed, so any task is safe to run" | The allow trusts the project's Makefile; only the ask rules stop a task. A task that deletes data under another name, or a `logs` that follows, needs fixing or its own ask rule (C9). Check the task (`make -n <task>`) before you run one you haven't read. |
+| "`make run cmd=\"yarn test src/x.test.ts\"` is the quickest way to run one test" | It's a command of your own through the developer's escape hatch, so it asks every time. `make test t=src/x.test.ts` runs the same thing through the task. When no task does what you need, that's a gap to add (C10). |
+| "It's quicker to run the tests with `DEV_MODE=native`" | The mode is the developer's choice (M10). Run every task in the configured mode; if one can't run there, say what it needs and ask. |
 | "`make reset` will fix the migration error" | It's `docker compose down -v`: it deletes the data. It's the last step, not the first; find the cause, and reset only as far as it needs. |
 | "It started on the second try, so it's fixed" | A retry that works hides a race — usually a missing healthcheck or `depends_on` condition. Find why the first one failed. |
 
@@ -266,6 +285,7 @@ reset in the main checkout of a hub.
 - A command names no project but would touch every project
 - You're following logs, or about to read `.env` or a resolved config
 - You're about to publish a fixed host port, or one on every interface
+- You're about to set `DEV_MODE` or `SERVICES` the developer didn't ask for
 - You're editing `compose.yaml`, the `Makefile`, or `ops/` before triage
 - The fix you're about to run deletes something, and the developer hasn't said yes
 
@@ -277,6 +297,8 @@ reset in the main checkout of a hub.
 - [ ] No secret was printed: no unfiltered `config`, no `inspect` of the environment, no `.env`
 - [ ] Every destructive step was scoped to this project, named what it removed, and had the developer's yes
 - [ ] `make urls` shows each published service, answering
+- [ ] Every task that deletes data or runs a command it's given has an ask rule, and no task waits for input or follows (C9, C10)
+- [ ] `make test t=<file>` and `make lint f=<file>` run just that file
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
 - [ ] With a dev command for the host: in native mode `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it
 - [ ] After a fix or a reset, the failing signal passes

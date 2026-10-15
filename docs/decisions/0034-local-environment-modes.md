@@ -1,6 +1,6 @@
 # 0034: The local environment runs in Docker or natively, and `ops/` has one folder per target
 
-- **Status:** accepted
+- **Status:** accepted; amended 2026-10-15 (an agent runs every task in the configured mode, and overriding it asks)
 - **Date:** 2026-10-10
 - **Amends:** [0032](0032-local-environment-layout.md) — point 2, how `ops/` is organized; point 3,
   the command surface; point 6, the native path; and point 7, where the band finds the app's port
@@ -91,6 +91,13 @@ can only run the command the project gives it.
     requirement it departs from on purpose, by ID and with the reason, in `deployment.md`
     § Conformance. The static check reads the tasks every mode must define from the specification
     and asserts the templates define them.
+
+*Amended 2026-10-15:* the mode is the developer's choice, and agents follow it. Testing in an
+adopting project whose developer runs only Docker, agents ran `make test`, `make build`, and
+`make e2e` with `DEV_MODE=native`, because the framework showed that override as an example. The
+specification gains M10: an agent runs every task in the configured mode, and sets `DEV_MODE` or
+`SERVICES` only when the developer asks for that mode in the task. The docker module asks before any
+`make` command that sets either one, so a requested override is approved and any other is seen.
 
 ## Consequences
 
