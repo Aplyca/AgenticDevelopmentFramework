@@ -39,10 +39,9 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
 - **Allow broadly, and name only what must ask (C9).** An ask rule wins over any allow rule, so
   the docker module allows `Bash(docker *)` and `Bash(make *)`, and lists the exceptions:
   - what deletes data: `compose down -v` or `--rmi`, `rm`, `rmi`, `prune`, and `make reset`;
-  - what reaches past this project: `docker stop` and `kill`, which can stop other projects'
-    containers, and `docker run`, whose mounts reach the host's files (agents use
+  - what reaches the host: `docker run`, whose mounts reach the host's files (agents use
     `docker compose run`);
-  - what leaves the machine: `docker push` and `login`;
+  - what leaves the machine: `docker push`;
   - what prints secrets: `docker inspect`, a bare `docker compose config`, and an `exec` or
     `compose run` that names `env`;
   - `make run`, which runs a command it's given.
@@ -51,15 +50,18 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   `/dev-env set up` proposes and `/adf:upgrade` lists. No task waits for input or follows a log.
 - **`git` and `gh` the same way.** The skeleton allows `Bash(git *)` and `Bash(gh *)`, and asks by
   name before:
-  - what loses uncommitted work or rewrites history: `git reset --hard`, `clean`, `checkout --` and
-    `checkout .`, `restore`, `stash drop` and `clear`, `branch -D`, `filter-branch`;
+  - what loses uncommitted work git can't bring back: `git reset --hard`, `clean`, `checkout --`
+    and `checkout .`, `restore`, `stash drop`, `branch -D`;
   - `git config`, which could switch off the git hooks (`core.hooksPath`);
   - `git push --tags`: a tag is a release;
-  - what changes a pull request's state or speaks for someone: `gh pr ready`, `merge`, `review`,
-    `close`, `reopen`, and issue writes;
-  - what reaches past the pull request: releases, repository settings, secrets and variables,
-    `gh auth` (`gh auth token` prints one), workflow runs, gists, extensions, labels, and `gh api`
-    writes.
+  - what changes a pull request's state or speaks for someone: `gh pr ready`, `merge`, `review`, and
+    issue writes;
+  - what can't be undone or exposes a credential: releases, `gh repo delete`, `gh secret`, `gh auth`
+    (`gh auth token` prints one), and `gh api` writes.
+
+  The list is short on purpose. A rare command that's easy to undo — closing or reopening a pull
+  request, a label, a workflow run, `docker stop` — runs; the list names only what's irreversible,
+  what speaks for someone, and what reaches past the project.
 
   Staging everything and `git commit --amend` run: the git-workflow rule still says stage by name, and
   an amend that's been pushed needs a force-push, which decision 0033 already let a work branch take.
@@ -91,10 +93,11 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   - **A secret can still reach the conversation** through a form the ask rules don't name, such as
     `docker compose config --format json`. `/dev-env`'s safety rules and the specification (V4) say
     never to print one; the rules catch the usual forms.
-  - **`git` and `gh` run without a prompt but for the named exceptions.** A read or a local commit
-    is easy to undo, and the hooks still hold the line on protected branches, skipped checks, and
-    draft pull requests. A write `gh` adds later runs until the skeleton names it, so upgrades
-    review the ask list.
+  - **`git`, `gh`, and `docker` run without a prompt but for the named exceptions.** That includes
+    rare commands that change shared state and can be undone: closing a pull request, a label, a
+    workflow run, stopping another project's container. The hooks still hold the line on protected
+    branches, skipped checks, and draft pull requests. A write `gh` adds later runs until the
+    skeleton names it, so upgrades review the ask list.
   - **The command-writing rules are instructions, not enforcement.** An agent can still write a
     command no rule reads. It then prompts, which is the safe failure.
 

@@ -6,8 +6,7 @@ proposes the move — runs the app natively when
 the developer prefers, gives each worktree a stack of its own when the project runs agents in
 parallel, diagnoses a stack that won't start the way `/debug` diagnoses a bug, and resets one without
 touching anything else on the machine. Docker and `make` commands run without a prompt; a command
-that deletes data, reaches other projects' containers or the host, leaves the machine, or prints
-secrets asks first.
+that deletes data, reaches the host, leaves the machine, or prints secrets asks first.
 
 ## The conventions
 
@@ -38,7 +37,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt. `permissions.ask` for what must always prompt: what deletes data (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, any `make` command that names `reset`); what reaches other projects' containers or the host (`docker stop`, `kill`, `docker run`, whose mounts reach the host's files — agents use `docker compose run`); what leaves the machine (`docker push`, `login`); what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec` or `compose run` that names `env`); and `make run`, which runs a command it's given (`SPECIFICATION.md` C9, C10). An ask rule wins over any allow rule. `/dev-env set up` adds an ask rule for each project task that deletes data under another name |
+| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt. `permissions.ask` for what must always prompt: what deletes data (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, any `make` command that names `reset`); what reaches the host (`docker run`, whose mounts reach the host's files — agents use `docker compose run`); what leaves the machine (`docker push`); what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec` or `compose run` that names `env`); and `make run`, which runs a command it's given (`SPECIFICATION.md` C9, C10). An ask rule wins over any allow rule. `/dev-env set up` adds an ask rule for each project task that deletes data under another name |
 | `.claude/skills/dev-env/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the

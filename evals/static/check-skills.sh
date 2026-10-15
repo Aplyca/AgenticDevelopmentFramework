@@ -317,9 +317,12 @@ expected = {
     "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
     # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
     "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
-    "gh pr close 12": "ask", "gh issue comment 3 --body x": "ask", "gh issue create --title x": "ask",
+    "gh issue comment 3 --body x": "ask", "gh issue create --title x": "ask",
     "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
-    "gh auth token": "ask", "gh workflow run ci.yml": "ask", "gh api repos/x/y -X DELETE": "ask",
+    "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Rare and recoverable: they run (the shorter list the developer chose).
+    "gh pr close 12": "allow", "gh workflow run ci.yml": "allow", "gh label create bug": "allow",
+    "gh run cancel 99": "allow", "git stash clear": "allow",
     # Work that's lost, history rewritten, hooks switched off, tags leaving the machine.
     "git reset --hard HEAD~1": "ask", "git clean -fd": "ask", "git checkout -- src/a.ts": "ask",
     "git restore src/a.ts": "ask", "git stash drop": "ask", "git branch -D feat/x": "ask",

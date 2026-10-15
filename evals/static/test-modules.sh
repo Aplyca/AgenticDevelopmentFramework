@@ -270,8 +270,8 @@ cases = {
     "docker compose stop web": "allow", "docker compose restart web": "allow", "docker compose pull": "allow",
     "docker images": "allow", "docker stats --no-stream": "allow", "docker version": "allow",
     "docker compose config": "ask", "docker inspect web": "ask", "docker run --rm alpine true": "ask",
-    "docker run --privileged -v /:/host alpine sh": "ask", "docker stop $(docker ps -q)": "ask",
-    "docker kill web": "ask", "docker push registry.example.com/site:1": "ask", "docker login": "ask",
+    "docker run --privileged -v /:/host alpine sh": "ask", "docker push registry.example.com/site:1": "ask",
+    "docker stop web": "allow", "docker kill web": "allow", "docker login": "allow",
     "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
     "docker compose run --rm web env": "ask",
     # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the

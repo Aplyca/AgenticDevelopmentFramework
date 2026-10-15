@@ -22,16 +22,15 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       they're given, each of which has an ask rule. No task waits for input or follows a log.
     - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
   - **The docker module** allows `docker *` and `make *`, and asks by name before what must still
-    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker stop`, `kill`,
-    and `run`, `docker push` and `login`, what prints secrets (`docker inspect`, a bare
-    `docker compose config`, an `exec` that names `env`), and `make run`. An ask rule wins over any
+    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker run`,
+    `docker push`, what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec`
+    that names `env`), and `make run`. An ask rule wins over any
     allow rule.
   - **The skeleton:**
-    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name before what loses work or
-      rewrites history (`reset --hard`, `clean`, `restore`, `branch -D`), `git config`, pushing tags,
-      and what speaks for someone or reaches past the pull request (readying, merging, reviewing, or
-      closing it, issue writes, releases, repository settings, secrets, `gh auth`, workflow runs,
-      `gh api` writes). The narrower git and gh allows it replaces go;
+    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name before what loses work
+      (`reset --hard`, `clean`, `restore`, `branch -D`), `git config`, pushing tags, readying,
+      merging, or reviewing a pull request, issue writes, releases, `gh repo delete`, secrets,
+      `gh auth`, and `gh api` writes. The narrower git and gh allows it replaces go;
     - `.claude/rules/claude-code.md` gains § Commands that run without a prompt: use the tasks, write
       paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
       shorten output with a pipe.
