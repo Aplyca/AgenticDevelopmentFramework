@@ -1,6 +1,6 @@
 # 0015: Worktrees that Claude Code creates are workers too (parallel-agents module)
 
-- **Status:** accepted; amended by [0020](0020-every-task-through-dispatch.md) (every task goes through `/dispatch`, and the project picks its route)
+- **Status:** accepted; amended by [0020](0020-every-task-through-dispatch.md) (every task goes through `/dispatch`, and the project picks its route); amended by [0040](0040-workers-move-out-of-the-apps-worktree.md) (with the parallel-agents module, a session that starts in the app's worktree moves to the task's worktree beside the main checkout)
 - **Date:** 2026-10-02
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — how a task gets its worktree
 
