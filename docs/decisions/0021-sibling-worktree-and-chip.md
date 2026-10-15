@@ -1,6 +1,6 @@
 # 0021: `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module)
 
-- **Status:** accepted; amended 2026-10-07 (the chip's title is the task's title, without the branch)
+- **Status:** accepted; amended 2026-10-07 (the chip's title is the task's title, without the branch); amended by [0035](0035-move-into-the-worktree-without-a-prompt.md) (the move into the worktree takes no prompt)
 - **Date:** 2026-10-06
 - **Amends:** [0020](0020-every-task-through-dispatch.md) — how a task gets its worktree and its session
 
@@ -85,7 +85,8 @@ below no longer holds: the folder carries it.
     where the project uses one, its port.
 - **Negative / cost:**
   - **The worker starts in the shared main checkout.** It runs the script and moves before anything
-    else. The protect-hub hook stops an edit there, and the move takes one approval of the new folder.
+    else. The protect-hub hook stops an edit there, and the move takes one approval of the new folder. *(Amended by 0035: a hook approves the move into a
+    worktree of the same repository.)*
   - **The worker's first lines are the dispatcher's.** Session-start hooks don't run after the move,
     so the hook's main-checkout lines name the worker's first step, and triage finds the spec folder.
   - **The app doesn't label the branch.** The chip's title carries it.

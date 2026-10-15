@@ -28,10 +28,10 @@ cd [project-name]
 ### Run locally
 
 ```bash
-[dev command, e.g., make dev]
+[dev command, e.g., make up]
 ```
 
-The app will be available at `http://localhost:[port]`.
+The app will be available at [where, e.g., the URL `make urls` prints].
 
 ### Run tests
 
@@ -79,7 +79,7 @@ How it works in detail: [AGENTS.md](AGENTS.md), [specs/README.md](specs/README.m
 |---|---|
 | `[VAR_NAME]` | [Description] |
 
-Copy `.env.example` to `.env.local` and fill in the values.
+Copy `.env.example` to `.env` ([e.g., `make env`]) and fill in the values.
 
 ## Deployment
 

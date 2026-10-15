@@ -19,17 +19,17 @@ Most of what's here was proven in real client projects first — some built on t
 
 ## What's included
 
-- **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](skeleton/docs/SPEC-MODEL.md))
+- **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](plugins/adf/docs/SPEC-MODEL.md))
 - **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist and the developer's yes), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
-- **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](skeleton/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
+- **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](plugins/adf/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
 - **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
-- **20 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module and `/dev-env` with `docker`. ([Catalog](docs/SKILLS-REFERENCE.md))
+- **21 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, wrap-up after the merge, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, and `/e2e` with `e2e`. ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents**, each on the model its work needs — reviewers on `sonnet`; `@spec-analyzer` (which adversarially checks a spec folder before the gate) and `@architect` on `opus`. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
-- **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks give each session its branch and spec folder, remind the agent once to state the triage before its first edit, stop a fast-lane edit in a sensitive area, keep the main checkout edit-free when it's the hub (parallel-agents), block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Each push and pull-request action needs a human to confirm it, and `.env` files are never read.
+- **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks give each session its branch and spec folder, remind the agent once to state the triage before its first edit, stop a fast-lane edit in a sensitive area, keep the main checkout edit-free when it's the hub (parallel-agents), block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Marking a pull request ready, merging, reviewing, and releases need a human to confirm them; keeping the draft current doesn't. `.env` files are never read.
 - **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
-- **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` sets up, diagnoses, and safely resets a Docker Compose local environment, one stack per worktree; destructive docker commands ask first). ([Modules](modules/README.md))
+- **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` writes or migrates a Docker Compose local environment — `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks — runs it natively or one stack per worktree, diagnoses it, and safely resets it; destructive docker commands ask first), `e2e` (`/e2e` sets up Playwright end-to-end tests to a specification — `make e2e` and `make smoke` against the checkout's own stack, one smoke test per critical flow, written test first). ([Modules](modules/README.md))
 - **The `adf` plugin** — `/adf:adopt` and `/adf:upgrade` for Claude Code, plus `/adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release. Beside it, `adf-dev` carries the development skills of the modules a project installs — `/adf-dev:dev-env` with `docker` — and a mod that shows the local environment's URL above the prompt, and whether it answers; and `adf-connect` connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, with read-only, non-production defaults and only its read tools pre-approved ([why](docs/decisions/0023-plugins-by-concern.md)).
 - **Evals** — structural checks plus functional tests of the hooks, module scripts, and plugin, run in CI on every pull request at zero token cost; routing evals that run `/triage` in real Claude Code sessions on Sonnet and Opus, with graded reports. ([Evals](evals/README.md) · [latest report](evals/dynamic/reports/2026-10-01-triage-routing.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
@@ -66,9 +66,9 @@ any code exists. Step by step:
       to start a new session here and accept the prompt to trust the folder, which turns the plugin
       on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
       stop.
-   2. If scripts/agent/worktree-new.sh exists and this is the main checkout (git rev-parse --git-dir
-      equals git rev-parse --git-common-dir), stop: the hub takes no edits. Tell me to run this from a
-      worktree.
+   2. If ops/agent/worktree.conf or scripts/agent/worktree.conf exists and this is the main checkout
+      (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the hub takes no edits.
+      Tell me to run this from a worktree.
    3. From this folder, run:
       claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
       claude plugin marketplace update aplyca
@@ -133,7 +133,8 @@ git clone https://github.com/aplyca/AgenticDevelopmentFramework.git
 cp -Rn AgenticDevelopmentFramework/skeleton/. your-project/                 # never overwrites your files
 cp -Rn AgenticDevelopmentFramework/modules/github/files/. your-project/     # each optional module you want
 AgenticDevelopmentFramework/modules/clickup/install.sh your-project          # clickup merges instead of copying
-AgenticDevelopmentFramework/modules/docker/install.sh your-project           # docker copies, then merges its permissions
+AgenticDevelopmentFramework/modules/docker/install.sh your-project           # docker merges its permissions; /dev-env writes the stack
+AgenticDevelopmentFramework/modules/e2e/install.sh your-project              # e2e merges its permissions; /e2e writes the suite
 ```
 
 Then follow [docs/SETUP.md](docs/SETUP.md): fill `AGENTS.md` and the constitution, configure the
@@ -145,20 +146,28 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v1.4.0** (2026-10-06), adds the local check: the developer approves a change on the
-local environment, and that approval opens its draft pull request. With the `parallel-agents` module,
-a dispatched session now creates its own worktree beside the main checkout. **v1.3.0** took every
-task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction files, and
-**v1.2.0** moved the framework's reference docs out of packaged projects and into the plugin.
-**v1.0.0** (2026-10-02) renamed the plugin `adf` and opens with the order to upgrade in. A
-baseline older than `7383422` takes that release's order first, and one older than `3eb7777` takes its
-three fixes before that — they affect every adopted repository.
+The latest, **v2.2.0** (2026-10-14), is a minor release. A dispatched session moves into its
+worktree without a prompt, `/wrap-up` closes up a task once its pull request merges, and the `e2e`
+module sets up end-to-end tests to a specification. **v2.1.0** (2026-10-10), also a minor release,
+runs the local environment in Docker or natively by a setting, `ops/` has one folder per target, and
+the `docker` module's rules are a specification with IDs that `/dev-env` audits a stack against. The
+main checkout dispatches without asking first, and an agent keeps its draft pull request current
+without prompts. **v2.0.0** (2026-10-09), a major release, renamed the plugin `adf`, with `adf-dev`
+and `adf-connect` beside it. A project keeps no `CLAUDE.md` or `GEMINI.md`, and the
+`parallel-agents` module moves to `ops/agent/`. Its changelog section opens with the order to
+upgrade in, and `/aplyca-adf:upgrade` carries it out. **v1.4.0** added the local check, **v1.3.0**
+took every task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction
+files, and **v1.2.0** moved the framework's reference docs out of packaged projects and into the
+plugin. **v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade
+in. A baseline older than `7383422` takes that release's order first, and one older than `3eb7777`
+takes its three fixes before that — they affect every adopted repository.
 
 1. **Get the plugin into the project.** Adopted before v1.0.0 — a stamp with no `v` version? Paste
    the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
    project; it installs `adf`. Then start a new session. A project already pinned to a release
    needs nothing here: the pinned plugin runs the upgrade.
-2. **Run `/adf:upgrade`** in the adopted project. It reads the baseline stamp
+2. **Run `/adf:upgrade`** in the adopted project (`/aplyca-adf:upgrade` in a project still on v1).
+   It reads the baseline stamp
    (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    release to the newest. It sorts every changed file into overwrite, merge, or additive, applies the
    CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
@@ -349,7 +358,7 @@ flowchart TD
 fix": raising the lane is always honored; lowering it keeps a risk area's checklist unless the
 developer explicitly accepts the risk. More effort has other dials too — questions before any code,
 `/evaluate` to compare designs, a higher effort level or model, `/deep-review` — each with its cost in
-[`COST-MODEL.md` § Effort](skeleton/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
+[`COST-MODEL.md` § Effort](plugins/adf/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
 Teams list their **sensitive areas** once (`AGENTS.md`, mirrored in `CAREFUL_GLOBS`), and a hook stops
 a fast-lane edit there.
 
@@ -367,7 +376,7 @@ per session, short tool output, and the model:
 - **Check the picker.** The project sets `"model": "sonnet"`, but the desktop app's model picker and
   `/model` decide per session — and Claude Code's own default is Opus.
 
-[`COST-MODEL.md`](skeleton/docs/COST-MODEL.md) has the measured numbers, and the plugin's
+[`COST-MODEL.md`](plugins/adf/docs/COST-MODEL.md) has the measured numbers, and the plugin's
 `/cost-report` shows what your own sessions cost. In the routing evals, Sonnet triaged as accurately
 as Opus at about half the cost.
 
@@ -391,9 +400,9 @@ skeleton/                 Portable project skeleton — what an adopting reposit
 ├── AGENTS.md · README.md · CONTRIBUTING.md · .claudeignore
 ├── .claude/
 │   ├── agents/           8 agents, each with its model alias
-│   ├── skills/           20 skills
+│   ├── skills/           21 skills
 │   ├── workflows/        4 dynamic workflows
-│   ├── hooks/            6 guardrail hooks + config.sh (protected branches, sensitive areas, …)
+│   ├── hooks/            8 guardrail hooks + config.sh (protected branches, sensitive areas, …)
 │   ├── rules/            9 engineering standards
 │   └── settings.json     model alias, permissions (allow / ask / deny), hook wiring
 ├── .cursor/rules/        Cursor rules
@@ -403,11 +412,11 @@ skeleton/                 Portable project skeleton — what an adopting reposit
                           architecture/decisions/ (ADRs), reference/, security/, infrastructure/,
                           getting-started/
 
-modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/, docker/
+modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/, docker/, e2e/
 plugins/adf/              The Claude Code plugin: /adf:adopt, :upgrade, :cost-report — and, for
                           packaged projects, the skills, agents, workflows, hooks, and reference
                           docs (generated)
-plugins/adf-dev/          The development plugin: the skills of development modules such as docker
+plugins/adf-dev/          The development plugin: the skills of development modules: docker, e2e
 plugins/adf-connect/      The connections plugin: /adf-connect:connect, for trackers and services
 docs/                     Framework docs: SETUP, UPGRADING, ONBOARDING, references, examples,
                           scenarios, decisions

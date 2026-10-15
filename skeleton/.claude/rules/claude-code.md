@@ -6,7 +6,7 @@
 
 - **Skills** (`.claude/skills/`, invoke with `/`) — the workflow playbooks: `/triage`, `/write-spec`, `/write-plan`, `/write-docs`, `/implement`, `/review`, `/commit`, `/open-pr`, and more. They run in this conversation, which already has the rules loaded — the cheapest option.
 - **Agents** (`.claude/agents/`, invoke with `@`) — isolated specialists for an independent second opinion, restricted tools (reviewers can't edit), or work that runs alongside yours. `@spec-analyzer` checks a spec folder adversarially before the approval gate.
-- **The local environment's URL** — `LOCAL_URL` in `.claude/hooks/config.sh`, or a worktree's `READY_URL` with its `APP_PORT` (parallel-agents). With the `adf-dev` plugin on, a band above the prompt shows it and whether it answers; `/local-url` says the same. Give the developer that URL in the local check.
+- **The local environment's URL** — `LOCAL_URL` in `.claude/hooks/config.sh`, or a worktree's `READY_URL` with its `APP_PORT` (parallel-agents); when Docker picks the port (the docker module), `make urls` says where it is. With the `adf-dev` plugin on, a band above the prompt shows it and whether it answers; `/local-url` says the same. Give the developer that URL in the local check.
 - **Workflows** (`.claude/workflows/`, invoke with `/deep-…`) — deterministic multi-agent fan-outs with adversarial verification: `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`. Several times the cost of the skill they extend — use them for high-stakes changes and broad sweeps.
 
 | Situation | Use |
@@ -23,7 +23,8 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 
 | Guardrail | Enforced by |
 |---|---|
-| Outward actions past the draft pull request — PR ready / merge / edit / comment / review, releases, issue writes — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check | `permissions.ask` in `.claude/settings.json` |
+| Outward actions past the draft pull request — PR ready / merge / review, releases — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check, and keeping that draft current — editing it, commenting on it — needs no prompt. An issue write needs no prompt either; an agent still posts only when you ask | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
+| `git` and `gh` run without a prompt, except `git config` (it could switch off the hooks) and `push --tags`, and readying, merging, or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. Those ask | `permissions.allow` (`git *`, `gh *`) and `permissions.ask` in `.claude/settings.json` |
 | Secret env files (`.env`, `.env.local`, `.env.*.local`) are never read into context — extend the list for your other secret files | `permissions.deny` in `.claude/settings.json` |
 | No `--no-verify`; no commits or pushes on protected branches; no force-push to them; pull requests open only as drafts | `.claude/hooks/guard-git.sh` (PreToolUse) |
 | Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |
@@ -32,8 +33,30 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
 | The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 | With the parallel-agents module, the main checkout is the hub: file edits there are stopped, so each task's work happens in its own worktree | `.claude/hooks/protect-hub.sh` (PreToolUse) |
+| A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `.claude/hooks/approve-worktree-move.sh` (PreToolUse) |
 
-Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posting asks for confirmation.
+Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts only after your yes in chat.
+
+## Commands that run without a prompt
+
+An allow rule matches a command as written, so write each command the way a rule can read it.
+Claude Code asks about anything it can't check, even when the command itself is allowed.
+- **Use the project's tasks:** `make test t=<file>`, `make lint f=<file>`, `make logs s=web` — a
+  variable goes after the task, never as a leading `VAR=value`.
+- **Run them in the configured mode.** With the docker module, never set `DEV_MODE` or `SERVICES`
+  on a command, or change them in `.env` or the `Makefile`, unless the developer asks for that mode:
+  choosing it is theirs. A task that can't run in it is a question for them.
+- **Write paths out.** No `S=/path; … $S/…`: an allow rule doesn't match past an assignment, and a
+  path in a variable can't be checked.
+- **Stay in this checkout:** run `git` from the session's folder, not `git -C <path>`, and `cd` only
+  inside the project.
+- **Read and edit with the tools, not the shell:** no `for` loops, and no `python3 - <<EOF` or
+  `node -e` scripts for what Read, Grep, or Edit do.
+- **Keep output in the conversation short with a pipe** (`2>&1 | tail -n 40`), rather than a
+  redirect into a file outside the project, which asks.
+
+When a command still prompts every time and only reads, it's a gap in `.claude/settings.json`:
+name it to the developer rather than working around it.
 
 ## Lanes — match ceremony to risk
 

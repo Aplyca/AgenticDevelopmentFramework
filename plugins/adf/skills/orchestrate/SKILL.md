@@ -29,7 +29,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
 - **Not a "build the whole feature" command.** Each workflow phase has its own gate for a reason. Orchestration is for analytical/review work, not auto-progression.
 - **Not a replacement for `/adf:review`.** `/adf:review` is a single-context multi-perspective review (lighter, faster). `/adf:orchestrate review` dispatches separate agents (heavier, more thorough). Pick based on diff size and stakes.
-- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows in `.claude/workflows/` are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
+- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
 
 ## Built-in task types
 
@@ -53,7 +53,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
    Rule of thumb: review agents (code, security, UX) examining the SAME diff are independent → parallel. An agent whose input is another agent's output is dependent → sequential. Most review work is parallel.
 
-4. **Determine model tiering** — each agent's `agent.md` frontmatter sets its model alias; don't override it without a specific reason. The reviewers, `@adf:spec-writer`, `@adf:test-runner`, and `@adf:debugger` run on `sonnet`; `@adf:spec-analyzer` and `@adf:architect` on `opus`. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the per-agent reasons and trade-offs.
+4. **Determine model tiering** — each agent's `model:` frontmatter sets its alias. Keep it, unless the project's rules record an override for that agent: then pass that model when you spawn it. The reviewers, `@adf:spec-writer`, `@adf:test-runner`, and `@adf:debugger` run on `sonnet`; `@adf:spec-analyzer` and `@adf:architect` on `opus`. See `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` for the per-agent reasons and trade-offs.
 
 5. **Present the orchestration plan**:
    ```

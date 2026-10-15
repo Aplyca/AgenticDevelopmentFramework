@@ -31,7 +31,7 @@ change request, or a hotfix.
    paraphrased; steps to reproduce; expected versus actual; when it started (which deploy, which
    content edit); where (local, CI, preview, production); how reliably.
 
-3. **Diagnose** — `/debug` in this conversation, or the [`@debugger`](../../skeleton/.claude/agents/debugger/agent.md)
+3. **Diagnose** — `/debug` in this conversation, or the [`@debugger`](../../plugins/adf/agents/debugger.md)
    agent for an isolated, read-only investigation (it can't edit, so it can't "just fix it"). Either
    way it starts with a **signal** — one command that fails on this bug, every time, in seconds —
    then ranks three to five hypotheses, shows them to you, and tests them one at a time. You often
@@ -144,6 +144,6 @@ undefined; catches an error without knowing which one to expect; raises a timeou
 why it times out; adds a retry without naming the failure; or reorders two lines and you can't say why
 that helps.
 
-**Reference:** [`/debug`](../../skeleton/.claude/skills/debug/SKILL.md) ·
+**Reference:** [`/debug`](../../plugins/adf/skills/debug/SKILL.md) ·
 [testing rules — red, then green](../../skeleton/.claude/rules/testing.md) ·
 [`specs/README.md` § Lanes](../../skeleton/specs/README.md#lanes--how-much-process-a-change-gets)

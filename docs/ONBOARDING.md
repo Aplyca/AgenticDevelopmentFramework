@@ -111,10 +111,12 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
-| A person confirms marking a pull request ready, merges, comments, issue writes, releases, GitHub API writes | `permissions.ask` |
+| A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `approve-worktree-move.sh` hook |
+| `git` and `gh` run without a prompt, except `git config`, pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. With `docker`, Docker and make commands run without a prompt; deleting data, `docker push`, commands that print secrets, and `make run` ask | `permissions.allow` · `permissions.ask` |
+| A person confirms marking a pull request ready, merges, reviews, releases, GitHub API writes. Keeping the draft current — pushing, editing it, commenting on it — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once you approve the local check | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/stakeholder-update` starts from a plain request ("update the client"), and posting still asks you first | `disable-model-invocation` · `permissions.ask` |
+| `/stakeholder-update` starts from a plain request ("update the client"), and posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
 | Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
@@ -157,15 +159,15 @@ release, and the originals are linked below:
    the most damage. (5 min)
 3. `specs/README.md` and `docs/SPEC-MODEL.md` — when a spec folder is needed, the flow, change
    requests; a spec's required, conditional, and optional sections. The most important concept here.
-   ([original](../skeleton/docs/SPEC-MODEL.md); 20 min)
+   ([original](../plugins/adf/docs/SPEC-MODEL.md); 20 min)
 4. `CONTRIBUTING.md` and your tool's layer — `.claude/rules/claude-code.md` or `.cursor/rules/`. (10 min)
-5. The [`triage`](../skeleton/.claude/skills/triage/SKILL.md),
-   [`write-plan`](../skeleton/.claude/skills/write-plan/SKILL.md), and
-   [`implement`](../skeleton/.claude/skills/implement/SKILL.md) skills — above all their
+5. The [`triage`](../plugins/adf/skills/triage/SKILL.md),
+   [`write-plan`](../plugins/adf/skills/write-plan/SKILL.md), and
+   [`implement`](../plugins/adf/skills/implement/SKILL.md) skills — above all their
    *Rationalizations* tables, the excuses agents (and people) make for skipping a step. (20 min)
 6. `docs/COST-MODEL.md` and `docs/MEMORY-STRATEGY.md` — when to escalate a model, where a fact
-   belongs (originals: [cost model](../skeleton/docs/COST-MODEL.md),
-   [memory strategy](../skeleton/docs/MEMORY-STRATEGY.md)). `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
+   belongs (originals: [cost model](../plugins/adf/docs/COST-MODEL.md),
+   [memory strategy](../plugins/adf/docs/MEMORY-STRATEGY.md)). `docs/TRACKER-INTEGRATION.md` if requirements arrive through a tracker. (15 min)
 7. The worked example: [examples/newsletter-signup/](examples/newsletter-signup/). (20 min)
 
 | Tool | Reads | Skills and agents | Rules | Hooks, permissions |
@@ -331,7 +333,7 @@ the worker re-reads everything where it can verify it.
 
 **Exercise (module installed):** dispatch the typo and the topics estimate. The main checkout's
 `git status` stays clean, each worker's session context says WORKER, and
-`scripts/agent/worktree-ls.sh` lists both. ([scenario](scenarios/parallel-agents.md))
+`ops/agent/worktree-ls.sh` lists both. ([scenario](scenarios/parallel-agents.md))
 
 ### High stakes and upkeep
 

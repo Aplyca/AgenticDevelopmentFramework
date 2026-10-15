@@ -31,8 +31,9 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    listed as *not verified*, with the reason.
 
    Then the **local check** (`AGENTS.md` § Delivery rules). When the change alters something a person
-   can see or use, the developer must have tested it by hand on the local environment and approved it.
-   If they haven't, stop before pushing and offer it: start the environment, give the local URL and
+   can see or use, check it yourself first — the changed flow, on this checkout's own environment —
+   and then the developer must have tested it by hand there and approved it. If they haven't, stop
+   before pushing and offer it: start the environment, give the local URL and
    what to try — the acceptance criteria, or the fast lane's "done when" — and continue only after
    their OK. Docs-only and CI-only work has nothing to run: the full gate and a clean `/adf:review` stand
    in for the approval.
@@ -65,8 +66,9 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
    ## Verified / not verified
    - Verified: <commands run, counts — from tasks.md § Gate results>
-   - Local check: <what the developer tried on the local environment, and their OK — or "nothing to run">
-   - Not verified: <what you could not check, and why — e.g. "UI on the preview deployment">
+   - Local check: <what you and the developer tried on the local environment, and their OK — or "nothing to run">
+   - Preview: <the flow you walked on the preview, and what you saw — or "pending: deploying", "no preview", "nothing a person sees">
+   - Not verified: <what you could not check, and why>
 
    ## Merge danger
    **Reversible:** yes — reverting the merge undoes it | no — <what a revert leaves changed>
@@ -92,22 +94,39 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    pull request URL to `pull-requests:` in `spec.md` (`· CR N` for a change request) and commit it
    (`spec: link <slug> pull request`), and push it to the same branch.
 
-7. **Offer — don't do — the tracker link-back.** Adding the pull request link to the tracker task is
+7. **Check the preview** when the project has previews (`AGENTS.md` § Quick reference) and the change
+   alters something a person sees or uses. Wait for its deploy in the background — the host's check
+   for it, `gh pr checks <n> --watch`, run as a background command, never a polling loop — then walk
+   the same flow you checked locally, on the preview's URL:
+   - **Read-only.** The preview is shared and may reach real services: don't submit what reaches a
+     person or shared data unless the developer asks. Use a browser, not the end-to-end suite, which
+     creates data and runs only against the local stack.
+   - **Record it** in the body's *Preview* line (`gh pr edit <n> --body-file <file>`).
+   - **A difference from local** — it works here, not there — goes to the developer with what
+     differs: configuration, data, the platform. It's not fixed by retrying the deploy.
+
+   The developer's QC on the preview still decides ready; yours is evidence for it.
+
+8. **Offer — don't do — the tracker link-back.** Adding the pull request link to the tracker task is
    a write the requester can see: show the exact text and post it only on the developer's yes.
 
-8. **Report:** the pull request URL, that it is a **draft**, what you verified, what you could not,
-   and what the developer should QC before marking it ready (`gh pr ready`). If, after their QC, they
-   ask you to promote it, run `gh pr ready` then — never before, and never on your own initiative.
+9. **Report:** the pull request URL, that it is a **draft**, what you verified — locally, and on the
+   preview once it deployed — and what you could not. Don't ask or remind the developer to review it,
+   mark it ready, or merge it, and don't offer to: when those happen is theirs. Never request
+   reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
+   and never on your own initiative.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
+| "I'll end with 'review it and mark it ready when you're happy'" | The developer knows their process. A reminder at the end of every task is noise, and an offer to promote is a question they didn't ask. Report what you verified; ready, review, and merge are theirs. |
 | "CI is green, so I'll mark it ready" | CI is a signal, not the gate. Ready means a person exercised the change; green tests aren't that. |
 | "I'll open it ready so the reviewer saves a click" | A ready pull request asks for attention now. Reviewers would spend it on a first QC pass the author should have done. |
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
 | "The tests pass, so I'll push now" | The push waits for the developer's approval in the local check — or, with nothing to run, for the full gate and a clean `/adf:review`. |
+| "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "The tests pass, and the preview will show it" | The developer approves the change on the local environment before the pull request exists. The preview check comes later, before ready. |
 | "I'll post the link on the tracker task while I'm here" | That's a write the requester sees. Confirm the exact text first, every time. |
 
@@ -124,6 +143,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 - [ ] The push followed the developer's local-check approval — or, with nothing to run, a passing full gate and a clean `/adf:review` — or the developer's ask
 - [ ] The developer approved the change after testing it by hand on the local environment — or it has nothing to run
 - [ ] Opened as a **draft**; not marked ready
+- [ ] The report doesn't ask, remind, or offer to review, ready, or merge it, and no reviewer was requested
+- [ ] The change was checked locally before the push, and on the preview once it deployed — read-only — or the body says why not
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
 - [ ] The description matches the diff — no phantom or missing changes

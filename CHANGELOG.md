@@ -11,11 +11,721 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-**Upgrading from v1:** this is a major release. The framework's plugin is renamed, and `CLAUDE.md` and
-`GEMINI.md` go away, and every project acts once. Run `/aplyca-adf:upgrade`, which carries out the
-migrations below.
-Then each developer installs `adf@aplyca` once, and every machine and CI job runs Claude Code v2.1.281
-or later.
+- **Fewer prompts: allow make, docker, git, and gh broadly, and ask by name**
+  ([decision 0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). From an adopting
+  project's transcripts: most prompts came from commands no rule could read, from `make run` doing
+  what no task did, and from every commit.
+  - **`dev-env`'s specification:**
+    - **C3:** `test` takes `t=<filter>` and `lint` takes `f=<files>`, and each mode adds `format` and
+      `typecheck`.
+    - **C9:** every task runs without a prompt but the ones that delete data or run a command
+      they're given, each of which has an ask rule. No task waits for input or follows a log.
+    - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
+  - **The docker module** allows `docker *` and `make *`, and asks by name before what must still
+    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker push`, what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec`
+    that names `env`), and `make run`. An ask rule wins over any
+    allow rule.
+  - **The skeleton:**
+    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name only before `git config`,
+      pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`,
+      secrets, `gh auth`, and `gh api` writes. Issue writes and discarding local work no longer ask.
+      The narrower git and gh allows it replaces go;
+    - `.claude/rules/claude-code.md` gains § Commands that run without a prompt: use the tasks, write
+      paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
+      shorten output with a pipe.
+
+  - **The mode is the developer's** (decision 0034, amended; `dev-env`'s M10). An agent runs every
+    task in the mode the checkout is configured for, and never sets `DEV_MODE` or `SERVICES` on a
+    command, or changes them in `.env` or the `Makefile`, unless the developer asks. The docker
+    module asks before any `make` command that sets either one. `claude-code.md` and
+    `deployment.md` say so, and the `DEV_MODE=native` example agents copied is gone.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `.claude/settings.json` — the git and gh rules: keep the project's
+    own rules, and drop the old narrow git and gh allows `git *` and `gh *` now cover — and for
+    `.claude/rules/claude-code.md` (the new section and a guardrails row).
+  - **With `docker`:**
+    - Merge for `.claude/rules/deployment.md`, whose § Docker gains the line on the mode.
+    - `/adf:upgrade` reruns `modules/docker/install.sh`, which merges the new allows and the
+      `make run` ask rule. Before it does, it lists any project task that deletes data under another
+      name, or follows a log, and adds an ask rule for it or fixes it in the same change.
+    - Then `/adf-dev:dev-env set up` audits the Makefile and adds `t=`, `f=`, `format`, and
+      `typecheck`.
+  - **Templates:** merge for `dev-env`'s `ops/docker/Makefile` and `ops/native/Makefile` — the
+    filters, and the `format` and `typecheck` tasks.
+
+- **An agent checks a change locally first, then on the pull request's preview**
+  ([decision 0039](docs/decisions/0039-check-locally-then-on-the-preview.md)).
+  - **Locally first:** before the developer's local check and before any push, the agent walks the
+    changed flow on its checkout's own environment.
+  - **Then the preview:** when the project has previews and the change is something a person sees or
+    uses, it waits for the draft's preview in the background and walks the same flow there,
+    read-only, in a browser — never the end-to-end suite. It records what it saw in the pull
+    request's *Preview* line, and brings any difference from local to the developer.
+  - **Not the QC:** the developer's check on the preview still decides ready.
+  - **No nudges:** an agent doesn't ask or remind the developer to review, ready, or merge a pull
+    request, doesn't offer to, and doesn't request reviewers (`AGENTS.md`, `git-workflow.md`,
+    `/open-pr`'s report).
+  - **Where:** `AGENTS.md` § Delivery rules and § Quick reference (a *Preview* line), `/open-pr`
+    (a step 7, and the body's *Preview* line), and the testing and git-workflow rules. With
+    `github`, the pull request template gains *Local check* and *Preview* lines.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `AGENTS.md` — the new delivery rule, the browser-checks line under
+    § Working economically, and § Quick reference's *Preview* line, which the team fills in (or
+    "none") — and for `.claude/rules/testing.md` and `.claude/rules/git-workflow.md`.
+  - **With `github`:** merge for `.github/pull_request_template.md`.
+  - **Committed install:** overwrite for `.claude/skills/open-pr/`, written by
+    `scripts/build-committed.py`.
+
+
+## v2.2.0 — 2026-10-14 — Worktree moves without a prompt, `/wrap-up` after a merge, and end-to-end tests to a specification
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. The changes come from testing the framework in an adopting project.
+
+- **A dispatched session moves into its worktree without a prompt** (0035). In the desktop app, the
+  move that the session makes after the worktree script creates it no longer asks you to approve the
+  folder, when that folder is a worktree of the same repository.
+- **`/wrap-up` closes up a task after its pull request merges** (0036). It checks that nothing is
+  left, then asks once before it stops what the task started, removes its worktree and branch,
+  updates the base branch, and archives the session.
+- **End-to-end tests to a specification** (0037). The new `e2e` module, with `/adf-dev:e2e`, sets up
+  Playwright tests in `e2e/`, run with `make e2e` and `make smoke` against the checkout's own stack,
+  with one smoke test per critical flow.
+
+**Upgrading from v2.1.0:**
+
+1. **Run `/adf:upgrade`.** It moves the pin to `v2.2.0` and, in one draft pull request, merges the
+   project's layer as each entry below says. A committed install also gets the release's machinery,
+   written by `scripts/build-committed.py`.
+2. **With `e2e`,** choose the module during the upgrade, or add it later with
+   `modules/e2e/install.sh <repo>`. Then, in a new session, run `/adf-dev:e2e set up` (`/e2e set up`
+   in a committed install). It writes the suite to the specification and runs it until `make smoke`
+   passes in each local mode.
+3. **Nothing else is required.** A project on v2.1.0 keeps working until it upgrades.
+
+Each entry below lists its own **Upgrade impact**.
+
+- **`/wrap-up` closes up a task after its pull request merges**
+  ([decision 0036](docs/decisions/0036-wrap-up-after-the-merge.md)).
+  - **When:** the developer says the pull request merged, the app reports it, or the developer asks to
+    close up.
+  - **The check:** nothing is left — no uncommitted or unpushed work, no stash, nothing open in
+    `tasks.md`, no promised follow-up. Anything it finds is listed, and nothing is removed.
+  - **The close-up, with one yes:** it stops what the task started, deletes the branch on the host,
+    removes the worktree and the local branch, updates the base branch in the main checkout, and
+    archives the session.
+
+  **Upgrade impact:**
+  - **Packaged install:** none for the skill, which the `adf` plugin carries.
+  - **Committed install:** additive for `.claude/skills/wrap-up/`, written by
+    `scripts/build-committed.py`.
+  - **Both:** merge for `AGENTS.md`'s Branches line and `.claude/rules/git-workflow.md`'s "After the
+    merge" line, which name `/wrap-up`.
+  - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` § How a task gets its worktree,
+    which gains its closing paragraph.
+
+- **End-to-end tests to a specification: the new `e2e` module**
+  ([decision 0037](docs/decisions/0037-end-to-end-tests.md)).
+  - **`/adf-dev:e2e`** sets up, audits, or extends a project's suite. It carries a
+    `SPECIFICATION.md`, each requirement with an ID, and no templates: the project writes its suite
+    to it, and `make smoke` passing in each local mode proves it.
+  - **The engine:** Playwright Test, in TypeScript, with Chromium, in `e2e/` with its own
+    `package.json`, pinned exactly.
+  - **The commands:** `make e2e` (`t=<file>`, `g=<title>`) and `make smoke`, against the checkout's
+    own stack. In Docker mode the suite runs in Playwright's image, in an `e2e` Compose service; in
+    native mode, on the host.
+  - **The smoke suite:** one `@smoke` test per critical flow, which the developer names in
+    `e2e/README.md`, each seen failing before it's committed.
+  - **The groundwork for a change's tests:** `.claude/rules/testing.md` gains § End-to-end, and
+    `/write-tests` follows it. Tests find elements by role, wait with assertions, own their data, and
+    never reach a real third party. A failure is diagnosed from what it kept, and flaky is broken.
+  - **Fixes in `dev-env`'s templates:**
+    - `ops/native/native.sh env` reports the running app's port, where it used to make up a free one
+      when `.env` pinned none, so `make test` and `make e2e` reach the app;
+    - the root `Makefile`'s `help` lists task names with digits (`e2e`).
+
+  **Upgrade impact:**
+  - **Every project:** merge for `.claude/rules/testing.md`. It gains § End-to-end, and its
+    dedicated-port line now covers only tests that start a server of their own.
+  - **Choosing `e2e`:** `/adf:upgrade` offers it. Run `modules/e2e/install.sh <repo>`, which merges
+    its allow rules, add `e2e` to the stamp's `modules:`, and turn on `adf-dev` in a packaged
+    install. Then run `/adf-dev:e2e set up` in a new session, after `/adf-dev:dev-env set up` with
+    `docker`.
+  - **Committed install:** additive for `.claude/skills/e2e/`, written by
+    `scripts/build-committed.py --modules e2e`.
+  - **With `docker`, any project that copied `dev-env`'s templates:** merge two fixes.
+    - In `ops/native/native.sh`, `app_port` reads the running app's port first.
+    - In the `Makefile`, `help`'s pattern is `/^[a-z][a-z0-9-]*:.*## /`.
+
+
+- **A dispatched session moves into its task's worktree without a prompt**
+  ([decision 0035](docs/decisions/0035-move-into-the-worktree-without-a-prompt.md)). In the desktop
+  app, the new `approve-worktree-move.sh` hook approves `change_directory` when the folder is a
+  linked worktree of the session's own repository. Every other folder still prompts. Empty
+  `APPROVE_WORKTREE_MOVE` in `.claude/hooks/config.sh` turns it off.
+
+  **Upgrade impact:**
+  - **Packaged install:** none. The `adf` plugin carries the hook, on by default.
+  - **Committed install:** additive for `.claude/hooks/approve-worktree-move.sh`, written by
+    `scripts/build-committed.py`. Merge for `.claude/settings.json`, which wires it under
+    `PreToolUse`, and for `.claude/hooks/config.sh`, whose new `APPROVE_WORKTREE_MOVE` line is
+    optional.
+  - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` § How a task gets its worktree,
+    step 3.
+  - **Both:** merge for `.claude/rules/claude-code.md`, whose enforced-guardrails table gains the
+    hook's row.
+
+## v2.1.0 — 2026-10-10 — Docker or native by a setting, one folder per target in `ops/`, and fewer prompts
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. The changes come from testing the framework in an adopting project.
+
+- **The local environment runs in Docker or natively** (0034). `DEV_MODE` picks
+  `ops/docker/Makefile` or `ops/native/Makefile`, which define the same tasks. `ops/` has one folder
+  per target. `dev-env`'s `SPECIFICATION.md` states every requirement with an ID, and its templates
+  are an example of it.
+- **Fewer prompts.** The main checkout hands a task to `/dispatch` without asking first. An agent
+  pushes, opens, edits, and comments on its draft pull request without a prompt (0033).
+- **The base branch stays current.** `adf-worktree-rm` fast-forwards the main checkout after a merge,
+  and the session context says when the base branch is behind origin's.
+
+**Upgrading from v2.0.0:**
+
+1. **Run `/adf:upgrade`.** It moves the pin to `v2.1.0` and, in one draft pull request, merges the
+   project's layer as each entry below says:
+   - `.claude/settings.json`'s pull-request permissions;
+   - `AGENTS.md`'s first ground rule and its Branches line;
+   - the rules `git-workflow.md`, `claude-code.md`, and `deployment.md`, which gains § Conformance;
+   - `CONTRIBUTING.md`, `DEV-SETUP.md`, and, with parallel-agents, `PARALLEL-AGENTS.md`.
+
+   A committed install also gets the release's machinery, written by `scripts/build-committed.py`.
+2. **With the `docker` module,** once that pull request merges, run `/adf-dev:dev-env set up` in a new
+   session, in a worktree in a hub (`/dev-env set up` in a committed install). It audits the stack
+   against the specification and proposes the move, each gap by requirement ID, as a careful-lane
+   change:
+   - `ops/scripts/ports.sh` becomes `ops/docker/guard.sh`;
+   - the `Makefile` splits into the shared part and `ops/docker/Makefile`, and native mode is added;
+   - `.env.example` gains `DEV_MODE=` and `SERVICES=`.
+
+   It never copies the templates over the project's files. Until it runs, the v2.0.0 stack keeps
+   working.
+3. **With `docker` and `parallel-agents`,** `/adf-dev:dev-env worktrees` proposes the new
+   `STOP_CMD`, which also stops an app running on the host.
+
+Each entry below lists its own **Upgrade impact**.
+
+### The main checkout dispatches without asking first
+
+With the parallel-agents module, a command started in the main checkout, such as `/adf-dev:dev-env
+set-up`, stopped at its hub check, told the developer to run `/adf:dispatch`, and asked whether to
+run it. That was two prompts for one choice: the task chip `/adf:dispatch` offers already is where the
+developer decides whether the task starts. Now the session dispatches straight away.
+
+- **`/dispatch`** says to dispatch without asking, whether the developer typed the task or a
+  command's hub check stopped it. A stopped command becomes the task as the developer typed it,
+  arguments included, so the worker runs it in the worktree.
+- **The hub checks** in `/dev-env`, `/connect`, `/upgrade`, and `/adopt` run `/adf:dispatch` with the
+  command as the task, instead of pointing at it and stopping. `/dev-env` and `/connect` read nothing
+  more in the main checkout.
+- **The session-context and protect-hub hooks** tell a main-checkout session to dispatch a task
+  without asking first.
+
+**Upgrade impact:**
+
+- **Overwrite**, in a committed install, `.claude/skills/dispatch/SKILL.md` (parallel-agents),
+  `.claude/skills/dev-env/SKILL.md` (docker), `.claude/hooks/session-context.sh`, and
+  `.claude/hooks/protect-hub.sh`: `scripts/build-committed.py` writes them. `/connect`, `/adopt`, and
+  `/upgrade` run from their plugins.
+- **Merge** `docs/PARALLEL-AGENTS.md` (parallel-agents): one paragraph in § How a task gets its
+  worktree. Your § Shared services stays.
+- **A packaged project:** nothing else to do. The plugin carries the rest with its pin.
+
+### An agent keeps its draft pull request current without a prompt
+
+([0033](docs/decisions/0033-pull-request-upkeep-without-prompts.md), amending [0005](docs/decisions/0005-outward-actions-and-draft-prs.md) and [0022](docs/decisions/0022-local-check-before-the-pull-request.md))
+
+Testing in an adopting project, every routine update to a draft pull request stopped for a prompt:
+the description after the local check, a summary after a fix, a note on CI. The developer approved
+them all without reading. And the push and the draft, which decision 0022 meant to run on their own,
+still prompted in the default permission mode, because no allow rule named them.
+
+- **`.claude/settings.json`** allows `git push`, `gh pr create`, `gh pr edit`, and `gh pr comment`.
+  `gh pr ready`, `gh pr merge`, `gh pr review`, issue writes, releases, and `gh api` writes still
+  ask. `guard-git.sh` still blocks a push to a protected branch and a pull request opened without
+  `--draft`.
+- **`/stakeholder-update`** posts its comment only after the developer approves the draft in chat,
+  since no prompt confirms it now.
+- **`AGENTS.md`**, **`git-workflow.md`**, and **`claude-code.md`** describe the draft's upkeep as
+  part of the exception to "nothing leaves this machine unless a human asks".
+
+**Upgrade impact:**
+
+- **Merge** `.claude/settings.json`: remove `Bash(gh pr edit *)` and `Bash(gh pr comment *)` from
+  `permissions.ask`, and add `Bash(git push)`, `Bash(git push *)`, `Bash(gh pr create *)`,
+  `Bash(gh pr edit *)`, and `Bash(gh pr comment *)` to `permissions.allow`. A team that wants these
+  to keep prompting leaves the file as it is.
+- **Merge** `AGENTS.md` (the "Nothing leaves this machine" line in § Ground rules),
+  `.claude/rules/git-workflow.md` (§ Outward actions), and `.claude/rules/claude-code.md` (the first
+  guardrail row and the `/stakeholder-update` sentence below the table).
+- **Overwrite** `.claude/skills/stakeholder-update/SKILL.md` and `.claude/hooks/README.md` in a
+  committed install: `scripts/build-committed.py` writes them. A packaged project gets them with
+  its pin.
+
+### The base branch is updated locally after a merge, and a branch starts from an updated one
+
+Nothing in the process updated the local base branch after a pull request merged. A new branch
+created from a stale `main` started from old code. With parallel-agents the worktree scripts branch
+from `origin/<base>`, but the main checkout itself stayed behind. The dispatcher's `ls specs/` missed
+features merged since, every dispatched session read an old `AGENTS.md` before moving, and
+`git branch -d` checked merges against the stale `main`.
+
+- **`adf-worktree-rm`** (`worktree-rm.sh`) fast-forwards the main checkout's base branch to
+  origin's after removing a task's worktree, then deletes the branch. It does this only on the
+  base branch, with no uncommitted changes, and only as a fast-forward; otherwise it says why it
+  didn't. The bounded `git fetch` it shares with `worktree-new.sh` moves to `_worktree-lib.sh`.
+- **The session-context hook** says, on the base branch, how many commits it is behind origin's, as
+  of the last fetch. It runs no network call.
+- **`/dispatch`** runs `git pull --ff-only` when the session context says the base branch is behind,
+  so `specs/` lists what has merged. That's the one command a dispatcher runs.
+- **`git-workflow.md`, `AGENTS.md` § Delivery rules, and `CONTRIBUTING.md`:** branch from an
+  up-to-date base (`git pull --ff-only` first), and after the merge update the base locally, then
+  delete the branch.
+
+**Upgrade impact:**
+
+- **Merge** `.claude/rules/git-workflow.md` (§ Branches), `AGENTS.md` (the Branches line in
+  § Delivery rules), and `CONTRIBUTING.md` (the line after the branching models).
+- **Overwrite**, in a committed install, `.claude/hooks/session-context.sh`,
+  `.claude/skills/dispatch/SKILL.md`, and, with parallel-agents, `ops/agent/worktree-rm.sh`,
+  `worktree-new.sh`, and `_worktree-lib.sh` when the team never edited them. A packaged project gets
+  the hook, the skill, and `adf-worktree-rm` with its pin.
+- **Merge** `docs/PARALLEL-AGENTS.md`: the `worktree-rm.sh` row of the commands table.
+
+### The local environment runs in Docker or natively, and `ops/` has one folder per target
+
+([0034](docs/decisions/0034-local-environment-modes.md), amending [0032](docs/decisions/0032-local-environment-layout.md))
+
+`make native` ran the app on the host in the foreground, and every other task assumed Docker. A
+developer who worked natively typed different commands. An agent or a worktree couldn't start the
+native app at all, because `make native` never returned. And `ops/` was organized by kind of file
+(`ops/scripts/`), so one target's files sat in several folders, and a deployment target had no place
+of its own.
+
+- **One folder per target in `ops/`.** Each target keeps its make file, scripts, images, and config
+  together:
+  - `ops/docker/`: `Makefile`, `guard.sh`, and each service's image in `ops/docker/<service>/`;
+  - `ops/native/`: `Makefile`, `native.sh`, and its git-ignored `.run/`;
+  - `ops/agent/`: parallel-agents;
+  - any deployment target the project adds, such as `ops/vercel/` or `ops/ecs/`. `deployment.md`
+    holds the convention; the framework ships no provider's files.
+
+  A file a tool reads from a fixed place stays there: `compose.yaml`, `vercel.json`, `.github/`.
+  `ops/scripts/` goes.
+- **One make file per local mode.** The root `Makefile` keeps what both modes share and loads
+  `ops/<DEV_MODE>/Makefile`. Each defines the same tasks: `up`, `down`, `build`, `ps`, `logs`,
+  `urls`, `test`, `lint`, and `reset`, plus `shell` in Docker mode and `services` in native mode. A
+  folder without a `Makefile`, such as `ops/agent/`, isn't a mode. A mode's `Makefile` run on its
+  own stops and says to run `make` from the root.
+- **`DEV_MODE` picks the mode.** Each checkout sets it in `.env`. The project's default is
+  `DEFAULT_MODE` in the `Makefile`, and `make up DEV_MODE=native` overrides both for one command.
+  `make help` names the mode in force.
+- **Native `make up` starts the app in the background** with `ops/native/native.sh`, running
+  `NATIVE_CMD` from `ops/native/Makefile`. It waits until the app answers, or fails with the end of
+  its log, and `make down` stops it. `make native` goes: the mode replaces it.
+- **Docker Compose is the one source of where a service is.** `ops/scripts/ports.sh` and the
+  `PORTS` setting go, since they restated `compose.yaml`. `make urls` prints `docker compose ps`:
+  each service, its published ports, and its health, plus the app's URL. Native mode's `native.sh`
+  exports each backing service's published port as `<SERVICE>_PORT`. The one job that needs a
+  script stays, alone, as `ops/docker/guard.sh`: it keeps a worktree with a copied `.env` off the
+  main checkout's stack.
+- **`SERVICES` picks the backing services native mode runs in Docker,** the way `DEV_MODE` picks the
+  mode. The command line wins, then the shell, then the checkout's `.env`, then `DEFAULT_SERVICES` in
+  `ops/native/Makefile`. A developer who runs some on the host sets their own list in `.env`
+  (`SERVICES=postgres`) and pins those services' ports. `SERVICES=none` means no Docker at all.
+- **The band above the prompt** shows the native app's URL, read from `ops/native/.run/app.env`.
+- **A specification, with the templates as its example.** `dev-env`'s `SPECIFICATION.md` states
+  each requirement with an ID: layout `L`, command surface `C`, modes `M`, ports `P`, Compose `D`,
+  variables `V`, worktrees `W`, and deployment targets `T`. It also says where each fact lives and
+  the order an audit checks. `/dev-env` writes a stack to it and audits one against it, naming each
+  gap by ID. `/adf:adopt` and `/adf:upgrade` hand a project to `/dev-env` and never copy the
+  templates over its files. A project records a deliberate departure in `deployment.md`
+  § Conformance. The static check reads the required tasks from the specification.
+- **`/dev-env`** fills each mode's commands in set up, flags `ops/` folders by kind of file and a
+  `Makefile` with its own native targets in an audit, and in worktrees mode proposes a `STOP_CMD`
+  that also stops a native app.
+
+**Upgrade impact:**
+
+- **Merge**, in a project with the docker module, the stack `/dev-env` wrote:
+  - replace `ops/scripts/ports.sh` with `ops/docker/guard.sh`, executable, and drop `PORTS` from the
+    `Makefile`;
+  - move the `Makefile`'s Docker tasks to `ops/docker/Makefile`, add `ops/native/Makefile` with the
+    project's native commands, and keep the shared part and the mode block in the `Makefile`;
+  - add `ops/native/native.sh` and make it executable;
+  - add `DEV_MODE=` and `SERVICES=` to `.env.example`;
+  - add `ops/native/.run/` to `.gitignore` and to `ops/docker/web/Dockerfile.dockerignore`;
+  - update whatever names `ops/scripts/`: CI, docs, other scripts.
+
+  Running `/adf-dev:dev-env set up` audits the stack and proposes these changes.
+- **Merge** `.claude/rules/deployment.md` (§ Command surface, § Docker, and the new § Conformance),
+  `docs/getting-started/DEV-SETUP.md` (§ 6 and the command surface), and the `LOCAL_URL` comment in
+  `.claude/hooks/config.sh`. Replace any `make native` the project's docs name with
+  `DEV_MODE=native` and `make up`.
+- **Overwrite** `.claude/skills/dev-env/` in a committed install: `scripts/build-committed.py` writes
+  it, `SPECIFICATION.md` and the templates included. A packaged project gets it, and the band, with
+  its pin.
+- With parallel-agents, change `STOP_CMD` in `ops/agent/worktree.conf` to
+  `"ops/native/native.sh stop; docker compose down -v"` once `native.sh` is in.
+
+## v2.0.0 — 2026-10-09 — The plugin is `adf`, and `AGENTS.md` is the one instruction file
+
+A major release: every project acts once. The framework's plugin `aplyca-adf` is now `adf`, a project
+keeps no `CLAUDE.md` or `GEMINI.md`, and the parallel-agents module moves to `ops/agent/`.
+
+- **One plugin per concern** (0023): `adf` for the process, `adf-dev` for development (the docker
+  module's `/dev-env`, and the local environment's URL above the prompt, 0026), and `adf-connect` for
+  trackers and services (`/connect`).
+- **`AGENTS.md` is the one instruction file** (0024, 0025). Claude Code's own layer is the rule
+  `.claude/rules/claude-code.md`, and Gemini CLI is pointed at `AGENTS.md`.
+- **The local environment's conventions** (0032): `compose.yaml` and a `Makefile` at the root,
+  operational code in `ops/`, and ports Docker picks.
+- **The plugins are the machinery's source** (0028). `scripts/build-committed.py` writes a committed
+  install from them. The parallel-agents scripts are `adf`'s commands (0027), and the `/deep-*`
+  workflows carry the checklists and steps their agents follow (0029, 0030).
+- **A project changes an agent's model in its own rule** (0031). The release also carries fixes from
+  a prompt audit and from a sweep for paths only a committed install has.
+
+**Upgrading from v1.x**, in this order:
+
+1. **Update Claude Code** to v2.1.281 or later on every machine and CI job (`claude update`). With no
+   `CLAUDE.md`, a project relies on Claude Code reading `AGENTS.md` natively.
+2. **Run `/aplyca-adf:upgrade`,** the plugin's v1 name, which the project still has. It moves the pin
+   to `v2.0.0` and, in one draft pull request:
+   1. **renames the plugin:** `aplyca-adf@aplyca` becomes `adf@aplyca` in `enabledPlugins`, and in a
+      packaged project's read rule; every `/aplyca-adf:` and `@aplyca-adf:` the project names becomes
+      `/adf:` and `@adf:`;
+   2. **moves `CLAUDE.md`:** the stamp goes to `AGENTS.md`'s first line, and the Claude Code layer and
+      the names note go to `.claude/rules/claude-code.md`. The team's other additions go to `AGENTS.md`,
+      and then `CLAUDE.md` is deleted;
+   3. **deletes `GEMINI.md`,** moving any content the team added first, and adds
+      `.gemini/settings.json` for a team on Gemini CLI;
+   4. **with the parallel-agents module:** a packaged project deletes the worktree scripts it never
+      edited, which `adf`'s `adf-worktree-*` commands replace. Then either install runs
+      `git mv scripts/agent ops/agent` and fixes the paths that name the folder;
+   5. **in a committed project,** writes the release's machinery with `scripts/build-committed.py`. An
+      agent whose `model:` the team changed first gets a row in `.claude/rules/claude-code.md`
+      § Agent model overrides;
+   6. **merges the project's layer** as each entry below says: `AGENTS.md`, the rules, `config.sh`
+      (`LOCAL_URL`, `LOCAL_SERVICE`), `DEV-SETUP.md`, and `README.md`.
+3. **After the merge, each developer:**
+   - runs `/plugin install adf@aplyca` once, then
+     `claude plugin uninstall aplyca-adf@aplyca --scope project`;
+   - removes any `CLAUDE.md` above the repository and any `CLAUDE.local.md` in it, or sets
+     **Project instructions** to `claude-md-and-agents-md` in `/config`. The session-context hook warns
+     about either file.
+4. **Optional:**
+   - `"adf-dev@aplyca": true` adds the URL band, which needs Claude Code v2.1.287 in a terminal, or the
+     desktop app from v2.1.286. With the docker module, it also brings `/adf-dev:dev-env`; its
+     `set up` mode audits the stack against the new conventions.
+   - `"adf-connect@aplyca": true` adds `/adf-connect:connect`.
+
+Each entry below lists its own **Upgrade impact**.
+
+### The local environment: `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks
+
+([0032](docs/decisions/0032-local-environment-layout.md))
+
+The docker module's `/dev-env` drafted a Compose stack from loose conventions, with a fixed default
+port. The skeleton's files listed fixed ports and said to copy `.env.example` to `.env.local`, which
+Compose never reads. No convention said where operational code goes, how containers get their
+variables, or which commands people and agents share, and nothing ran the app outside Docker.
+
+- **The conventions,** which `/dev-env` and the skeleton's `deployment.md` now state:
+  - `compose.yaml` at the root, the one Compose entry point. The root holds only it, the `Makefile`,
+    `.env`, and `.env.example`.
+  - Operational code in `ops/`: `ops/docker/<service>/` for Dockerfiles and service config,
+    `ops/scripts/` for helpers, `ops/agent/` for the parallel-agents module.
+  - A `Makefile` as the command surface: `help`, `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`,
+    `shell`, `services`, `native`, `test`, `lint`, `reset`.
+  - Three levels of variables: `.env`, which Compose reads; each service's `environment:`, in container
+    form; and `.env.example`. No `env_file:`.
+  - Ports Docker picks: `"127.0.0.1:${<NAME>_PORT:-}:<port>"`, empty in `.env.example`, so any number of
+    checkouts and worktrees run side by side. `make urls` shows where each service is; a developer pins
+    a port in `.env` when the app must know its own URL.
+  - A native option: `make native` runs the app on the host against the backing services in Docker.
+- **`/dev-env` carries templates** (`templates/`): `compose.yaml`, `Makefile`, `.env.example`,
+  `ops/docker/web/Dockerfile` with its `.dockerignore`, and `ops/scripts/ports.sh`, which looks up the
+  ports Docker picked, hands the backing services' ports to the app on the host, and stops a worktree
+  from running the main checkout's stack through a copied `.env`. **Set up** writes a missing stack from
+  them, or audits an existing one and proposes the move as a careful-lane change. A new **native** mode
+  runs the app on the host. **Worktrees** need no port slots: `PORT_SLOTS=0`,
+  `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, `START_CMD="make up"`, `ENV_INFO_CMD="make urls"`.
+- **The band looks up the port Docker picked.** With `LOCAL_SERVICE` set in `.claude/hooks/config.sh`
+  (`web:3000`) and no `APP_PORT` pinned, `adf-dev`'s mod runs one read-only command,
+  `docker compose port <service> <port>` — the one exception to 0026's "mods run no process", which the
+  static check holds to that argument vector.
+- **The docker module's permissions** allow exactly `make help`, `make ps`, `make urls`, and
+  `make logs`, and ask before any `make` command that names `reset`.
+- **The parallel-agents module moves from `scripts/agent/` to `ops/agent/`.** `module.json` names the old
+  folder in a new `moved_from` key. The `adf-worktree-*` commands, the session-context and protect-hub
+  hooks, `/adf:dispatch`, `/adf-connect:connect`, `/adf-dev:dev-env`, and the band read `ops/agent/`
+  first and `scripts/agent/` after it, until the next major release.
+- **Fixed:** `/adopt`, `/upgrade`, `README.md`, and `modules/README.md` said the docker module copies
+  files; it has none. The skeleton's `DEV-SETUP.md` and `README.md` say `.env`, not `.env.local`, and
+  no longer show fixed ports.
+
+**Upgrade impact:**
+
+- **Migration (parallel-agents), in either install:** `/adf:upgrade` runs `git mv scripts/agent ops/agent`,
+  fixes any `*_CMD` or `ENV_INFO_CMD` in `worktree.conf` and the comment in `.worktreeinclude` that name
+  `scripts/agent/`, renames the scripts in `AGENTS.md` § Quick reference for a committed install, and
+  updates the other mentions `git grep scripts/agent` finds. A packaged project keeps working before the
+  move: the commands and hooks read either folder.
+- **Overwrite** in a committed install: `.claude/skills/dev-env/` (now with `templates/`),
+  `.claude/skills/dispatch/SKILL.md`, `.claude/hooks/_lib.sh`, `session-context.sh`, `protect-hub.sh`,
+  and the module's scripts, at `ops/agent/`.
+- **Merge:** `.claude/rules/deployment.md` (its `paths:` and sections), `.claude/rules/claude-code.md`,
+  `docs/getting-started/DEV-SETUP.md`, `README.md`, `AGENTS.md` (the Quick reference and the
+  constitution example), `.claude/hooks/config.sh` (the new `LOCAL_SERVICE`), `docs/infrastructure/OVERVIEW.md`,
+  `ops/agent/worktree.conf` (comments and examples), `.worktreeinclude`, and `docs/PARALLEL-AGENTS.md`.
+  Rerun `modules/docker/install.sh` for the `make` rules.
+- **Optional (docker):** in a new session, `/adf-dev:dev-env set up` (committed: `/dev-env set up`)
+  audits the stack and proposes moving it to the conventions; with parallel-agents,
+  `/dev-env worktrees` proposes the new `worktree.conf` values.
+
+### The drift sweep's auditors return the schema, and carried sections end where their heading's section ends
+
+Follow-ups to 0029 and 0030, which carry an agent's checklist or a skill's steps into a plugin workflow.
+
+- **Each `deep-drift-sweep` auditor returns its findings in the response schema.** The steps it follows end
+  with a written drift report, which the workflow didn't use. The auditor's prompt now says to return
+  the same findings through the schema instead, in both installs.
+- **A carried section ends at the next real heading.** The build took a section up to the first line
+  starting with `## `, including one inside a code block, such as a sample report. That cut the section
+  short with no error. Now a heading inside a fenced block doesn't count, and a fence that never closes
+  fails the build.
+- **Only a line whose value is a carried section's is treated as one.** Any `const <NAME>_STEPS` or
+  `const <NAME>_CHECKLIST` line counted. A workflow's own constant with one of those names, such as
+  `MAX_STEPS`, failed the build.
+- **A static check finds a committed install's paths in the plugins' text.** The skills a committed
+  install carries, the agents, the reference docs, and the hooks may name `.claude/agents/`,
+  `.claude/workflows/`, `.claude/skills/`, `agent.md`, or a hook script in `.claude/hooks/` only in the
+  Step 0 or where the text says it's about a committed install. A packaged project has none of them.
+  The check fails on the nine mentions that the last four changes fixed by hand.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/workflows/deep-drift-sweep.js` in a committed install: one line added to the
+  auditor's prompt.
+- **A packaged project:** nothing to do.
+
+### The hooks name themselves, not a committed install's folder
+
+Two of the hooks' messages placed the script in `.claude/hooks/`, a folder that, in a packaged project
+(the default install), holds only `config.sh`: the hooks run from the `adf` plugin's `hooks/`.
+
+- **A blocked call** reads `Blocked by the guard-git hook: …`, not
+  `Blocked by .claude/hooks/guard-git.sh: …`. The same goes for every hook that blocks.
+- **The session's context** opens with `Session context (the session-context hook):`, not
+  `Session context (.claude/hooks/session-context.sh):`.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/hooks/_lib.sh` and `.claude/hooks/session-context.sh` in a committed install:
+  two labels, no behavior changed.
+- **A packaged project:** nothing to do.
+
+### A project changes an agent's model in its own rule, in either install
+
+([0031](docs/decisions/0031-agent-model-overrides-in-the-project-rule.md))
+
+The docs said to change an agent's tier by editing its `agent.md`. A packaged project, the default
+install, has no such file: its agents are the `adf` plugin's, and an update replaces them.
+`docs/UPGRADING.md` also said to record the override in `CLAUDE.md`, which no project has since v2.0.0.
+
+- **An override is a row in `.claude/rules/claude-code.md`,** under "Agent model overrides": the
+  agent, its model, and why. The session passes that model when it spawns the agent, and Claude Code
+  ranks a model passed at spawn time above the agent's `model:`. Upgrades merge the rule rather than
+  overwrite it. `docs/COST-MODEL.md` § Per-agent recommendations gives the format. A committed project
+  can still edit `agent.md` too, but an upgrade overwrites that file.
+- **`docs/COST-MODEL.md` names what doesn't change one agent's tier:**
+  - `CLAUDE_CODE_SUBAGENT_MODEL`, which yields to every framework agent's `model:`; with
+    `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` it moves all of them;
+  - the `ANTHROPIC_DEFAULT_*_MODEL` alias variables, which affect the whole session;
+  - a project agent with a plugin agent's name, which sits beside the plugin's.
+
+  Its "Agent frontmatter" line no longer suggests running `@adf:code-reviewer` and
+  `@adf:security-reviewer` on `haiku`; the framework runs them on `sonnet`.
+- **`/adf:orchestrate`** keeps each agent's tier unless the project's rules record an override for it.
+- **`/adf:upgrade`,** switching a committed project to packaged, removes an agent whose only edit is
+  its `model:`, and moves that model into the rule.
+- **`docs/AGENTS-REFERENCE.md` and `docs/UPGRADING.md`** give the same procedure. `UPGRADING.md` no
+  longer names `CLAUDE.md`.
+
+**Upgrade impact:**
+
+- **Overwrite** `docs/COST-MODEL.md` and `.claude/skills/orchestrate/SKILL.md` in a committed install.
+- **Migration** (committed install, only if the team changed an agent's `model:`): before overwriting
+  `.claude/agents/`, add a row for it to `.claude/rules/claude-code.md` § Agent model overrides, with
+  the reason. The format is in `docs/COST-MODEL.md` § Per-agent recommendations.
+- **A packaged project:** nothing to do. To change an agent's tier, add the row.
+
+### `/orchestrate` names the `/deep-*` workflows without their folder
+
+`/orchestrate`'s "Not a dynamic workflow" note placed the `/deep-*` workflows "in `.claude/workflows/`",
+a folder a packaged project doesn't have: in the default install, the workflows are the `adf` plugin's.
+The note already names each one (`/adf:deep-review`, `/adf:deep-spec-analysis`,
+`/adf:deep-context-audit`, `/adf:deep-drift-sweep`), so it now drops the folder.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/skills/orchestrate/SKILL.md` in a committed install: one line, no guidance
+  changed.
+- **A packaged project:** nothing to do.
+
+### The cost model names agents, workflows, and skills, not the folders a committed install keeps them in
+
+`docs/COST-MODEL.md` pointed at three folders a packaged project doesn't have: the agents' defaults were
+"in `.claude/agents/`", the `/deep-*` workflows "in `.claude/workflows/`", and a loaded skill was
+`.claude/skills/<name>/SKILL.md` in the prompt-caching table. In the default install, the agents are
+the `adf` plugin's, the workflows too, and a skill's `SKILL.md` is the plugin's copy.
+
+- **Per-agent recommendations** introduces its table as the current defaults by agent. The table already
+  names each one: `@adf:code-reviewer` and the rest, which a committed project's copy reads as
+  `@code-reviewer`.
+- **Dynamic workflows** names the `/deep-*` workflows without their folder.
+- **The prompt-caching table** lists a loaded skill as "its `SKILL.md`".
+
+**Upgrade impact:**
+
+- **Overwrite** `docs/COST-MODEL.md` in a committed install, a framework reference doc: three lines,
+  none of them guidance that changed.
+- **A packaged project:** nothing to do.
+
+### `deep-drift-sweep` carries the steps its auditors follow
+
+([0030](docs/decisions/0030-workflows-carry-skill-steps.md))
+
+Each auditor was told to follow the method in `.claude/skills/spec-drift/SKILL.md`. A packaged project
+has no such file, and a workflow can't reach the plugin's skills. So in the default install, the
+auditors worked from the prompt's one-paragraph summary.
+
+- **The plugin's `deep-drift-sweep` carries the skill's steps:** `const SPEC_DRIFT_STEPS` holds the
+  `## Steps` section of `spec-drift`'s `SKILL.md`, and each auditor's prompt ends with it.
+- **A committed project's copy points at its own skill,** so a team that edits its `/spec-drift` still
+  gets the edit in its sweeps.
+- **`scripts/build-plugins.sh` keeps the text equal to the skill's,** as it does for the agents'
+  checklists (0029). A `const <SKILL>_STEPS` line carries the `## Steps` section of one of `adf`'s
+  own skills.
+- **The static check covers `.claude/skills/` paths too.** It fails when a plugin workflow names a
+  `.claude/agents/` or `.claude/skills/` path that a packaged project lacks.
+- **The spec model names the playbooks by skill.** Its "Related" list named
+  `.claude/skills/write-spec/`, `write-plan/`, and `implement/`. It now names `/adf:write-spec`,
+  `/adf:write-plan`, and `/adf:implement`, which a committed project's copy reads as `/write-spec`,
+  `/write-plan`, and `/implement`.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/workflows/deep-drift-sweep.js` in a committed install: each auditor's prompt
+  ends with "Follow the steps in `.claude/skills/spec-drift/SKILL.md`."
+- **Overwrite** `docs/SPEC-MODEL.md` in a committed install, a framework reference doc: one line in
+  "Related".
+- **A packaged project:** nothing to do. The plugin's `deep-drift-sweep` now gives its auditors the
+  steps.
+
+### `deep-review` carries the checklists its security and UX lenses follow
+
+([0029](docs/decisions/0029-workflows-carry-agent-checklists.md))
+
+The security and UX lenses sent their reviewers to `.claude/agents/security-reviewer/agent.md` and
+`.claude/agents/ux-reviewer/agent.md`. A packaged project has neither file, and a workflow can't reach
+the plugin's agents. So in the default install, these two lenses ran without their checklists.
+
+- **The plugin's `deep-review` carries each checklist's text:** `const SECURITY_REVIEWER_CHECKLIST`
+  and `const UX_REVIEWER_CHECKLIST` hold the agent's `## … checklist` section, and the lens's prompt
+  ends with it.
+- **A committed project's copy points at its own agents,** so a team that edits a checklist still
+  gets the edit in its deep reviews.
+- **`scripts/build-plugins.sh` keeps the text equal to the agent's,** as it does for the spec model.
+  The round trip fails on a stale line.
+- **A static check** fails when a plugin workflow names a `.claude/agents/` path that a packaged
+  project lacks.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/workflows/deep-review.js` in a committed install: each of the two lenses
+  ends with "Follow the checklist in `.claude/agents/<name>/agent.md`."
+- **A packaged project:** nothing to do. The plugin's `deep-review` now gives these lenses the
+  checklists.
+
+### The plugins are the machinery's source; a committed install is written from them
+
+([0028](docs/decisions/0028-plugins-are-the-source.md))
+
+The repository kept every skill, agent, workflow, hook script, and reference doc twice: in
+`skeleton/`, and generated into the plugins. Now the plugins are the only copy:
+
+- **`plugins/adf/` and `plugins/adf-dev/` are edited by hand,** in the form a packaged project loads:
+  `/adf:triage`, `@adf:code-reviewer`, `${CLAUDE_PLUGIN_ROOT}/docs/…`, a Step 0 per skill and agent.
+- **`skeleton/` is the project's layer:** `AGENTS.md`, the rules, the settings, `config.sh`, the docs
+  templates, `specs/`. A module's `files/` holds only what a project commits, and its `module.json`
+  lists the skills its plugin carries.
+- **`scripts/build-committed.py` writes a committed install:** the machinery, with the given modules'
+  skills, never overwriting a file. `/adopt`, `/upgrade`, and `docs/SETUP.md` run it.
+- **A round trip keeps the forms together.** Every carried file must come back unchanged from its
+  committed form; `build-committed.py --check` shows what a file should read.
+- **`scripts/build-plugins.sh` generates only** the module commands in `bin/`, the spec model in
+  `adf`'s workflows, and the plugins' versions.
+- **`link-reference-docs.py`** links the reference docs in `plugins/adf/docs/` at a pin from v2.0.0
+  on, and moves an older pin's `skeleton/docs/` links there.
+- **The evals** test the committed copy the script writes: the hooks run, and the skills, agents, and
+  workflows are checked as a committed project keeps them.
+
+**Upgrade impact:**
+
+- **A committed project gets the same files.** The one change is **Overwrite**
+  `.claude/skills/dispatch/SKILL.md`: its checklist names the worktree script by its path.
+- **A packaged project:** nothing.
+- **Upgrading a committed project by hand** writes the new release's machinery with
+  `build-committed.py` into an empty folder and copies it over (`docs/UPGRADING.md` § 4);
+  `/adf:upgrade` does it.
+
+### The worktree scripts are the plugin's commands: `adf-worktree-new`, `-ls`, `-rm`
+
+([0027](docs/decisions/0027-worktree-scripts-as-plugin-commands.md))
+
+The parallel-agents scripts are machinery no project edits, so a packaged project stops committing
+them:
+
+- **`adf` carries them as commands** in its `bin/`, which Claude Code puts on the Bash tool's PATH:
+  `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`, with the scripts' arguments. Each one
+  carries the scripts' helper and reads the project's `scripts/agent/worktree.conf`, which stays.
+- **They act only where they should.** Without `scripts/agent/`, a command says the project doesn't
+  use the module and stops. Where a committed install keeps its script, the command runs that one.
+- **The module's settings show it's installed.** The hooks, `/dispatch`, `/dev-env`, `/connect`, and
+  the install prompt check for `scripts/agent/worktree.conf`, not the script, in either install.
+- **The plugin's copies name the commands.** A packaged session's worker creates its worktree with
+  `adf-worktree-new <branch> --no-start`.
+- **The build learns module commands:** a module's `module.json` lists them under `commands`, and
+  `scripts/build-plugins.sh` generates them.
+- **A developer's own terminal doesn't have them** in a packaged project: go through `/adf:dispatch`,
+  or ask Claude to list or remove a worktree.
+
+**Upgrade impact:**
+
+- **Overwrite** `.claude/hooks/protect-hub.sh` and `.claude/hooks/session-context.sh`, and, in a
+  committed install, the `dispatch` and `dev-env` skills.
+- **Merge** `docs/PARALLEL-AGENTS.md` (one paragraph under § The scripts).
+- **Migration**, a packaged project with the parallel-agents module (`/adf:upgrade` does it):
+  1. Delete `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from
+     `scripts/agent/` when none changed since the old release; keep `worktree.conf`. If the team
+     edited one, the four stay together, and the commands run them.
+  2. Name the commands where the project names the scripts: `AGENTS.md` § Quick reference and any
+     other doc of the project's.
+  3. Add the commands' sentence of `docs/SETUP.md`'s names note to `.claude/rules/claude-code.md`.
+- A committed project keeps its scripts and needs nothing else.
 
 ### Instruction text checked against the current models
 

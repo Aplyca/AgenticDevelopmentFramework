@@ -9,12 +9,12 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 
 | File | Purpose |
 |---|---|
-| `scripts/agent/worktree-new.sh` | A worktree per task: branch `<type>/<slug>`, the env file seeded from the main checkout (when the project has one), optional setup and start commands, and — for projects that run a server — a port reserved under a lock. Idempotent; `--no-start`, `--setup-only`, `--refresh-env`, `--from <ref>` |
-| `scripts/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
-| `scripts/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
-| `scripts/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
-| `scripts/agent/_worktree-lib.sh` | Shared helpers |
-| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts |
+| `ops/agent/worktree-new.sh` | A worktree per task: branch `<type>/<slug>`, the env file seeded from the main checkout (when the project has one), optional setup and start commands, and — for projects that run a server — a port reserved under a lock. Idempotent; `--no-start`, `--setup-only`, `--refresh-env`, `--from <ref>` |
+| `ops/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
+| `ops/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, bring the main checkout's base branch up to date, and safely delete the branch |
+| `ops/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
+| `ops/agent/_worktree-lib.sh` | Shared helpers |
+| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
 | `docs/PARALLEL-AGENTS.md` | The dispatcher/worker process, the scripts, shared vs isolated services |
 
@@ -26,31 +26,45 @@ installed, the core session-context hook announces each session's role — dispa
 checkout, where a session handed one task is told to create its worktree and move, and worker in any
 worktree — and, in a worktree the scripts didn't set up, what it lacks: a task branch name, the env
 file, or the scripts' setup. The core `protect-hub.sh`
-hook stops file edits in the main checkout once the module is there. The core `/handoff` skill
+hook stops file edits in the main checkout once the module is there, and the core
+`approve-worktree-move.sh` hook lets a session move into a worktree of the repository without a
+prompt in the desktop app. The core `/handoff` skill
 covers passing work in progress on.
 
 ## Install
 
 ```bash
 cp -R modules/parallel-agents/files/. /path/to/your-repo/
-chmod +x scripts/agent/*.sh
+chmod +x ops/agent/*.sh
+python3 scripts/build-committed.py /path/to/your-repo --modules parallel-agents   # committed install: /dispatch
 ```
 
 A repository that already has a `.worktreeinclude` keeps it: add the env file's line to it.
 
-With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020): remove the
-copied `.claude/skills/dispatch/` and type `/adf:dispatch`. The skill stops in a project
-without the module, so the plugin can carry it for everyone.
+With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020): skip the last line
+and type `/adf:dispatch`. The skill stops in a project without the module, so the plugin can carry it
+for everyone.
+
+It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0027):
+remove the copied `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh`, keep
+`ops/agent/worktree.conf`, and run `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`.
+They read the project's `worktree.conf`, stop in a project without `ops/agent/`, and run the
+committed script instead where a project keeps one. A developer's own terminal doesn't have them.
+
+**Moved from `scripts/agent/`** (decision 0032): the module's folder was `scripts/agent/` before
+operational code moved to `ops/`. The commands and the hooks still read `scripts/agent/` in a project
+that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops/agent`.
 
 ## Customize
 
-1. **`scripts/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
+1. **`ops/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
    project has an env file; `SETUP_CMD` for what the git hooks and tests need. Only if each worktree
    runs a server: `PORT_SLOTS`, `ENV_OVERRIDES`, `START_CMD`, `READY_URL`, `STOP_CMD` — and make the
    app read its port from the env file.
 2. **`AGENTS.md` § Delivery rules** — replace the "Parallel sessions" line with: *"In the main
    checkout you dispatch; you never work — see `docs/PARALLEL-AGENTS.md`."* Add the three scripts to
-   the Quick reference.
+   the Quick reference — packaged, by the commands' names: `adf-worktree-new`, `adf-worktree-ls`,
+   `adf-worktree-rm`.
 3. **`docs/PARALLEL-AGENTS.md`** — record what worktrees share and what a task may copy (§ Shared
    services); optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
    use each environment.

@@ -32,10 +32,12 @@ cd [project-name]
 ### 3. Set up environment variables
 
 ```bash
-cp .env.example .env.local
+[e.g., make env  # creates .env from .env.example]
 ```
 
-Edit `.env.local` and fill in the required values:
+Edit `.env` and fill in the required values. It stays out of git; `.env.example` names every
+variable. [e.g., It's the one env file: Docker Compose reads it, and so does the app when it runs on
+the host.]
 
 | Variable | Description | Where to get it |
 |---|---|---|
@@ -45,12 +47,17 @@ Edit `.env.local` and fill in the required values:
 ### 4. Set up local services
 
 ```bash
-[e.g., docker compose up -d]
+[e.g., make up    # starts the stack and waits until it's healthy]
+[e.g., make urls  # where each service is]
 ```
 
 This starts:
-- [e.g., PostgreSQL on port 5432]
-- [e.g., Redis on port 6379]
+- [e.g., the app, `web`]
+- [e.g., PostgreSQL, `db`]
+
+[e.g., Docker picks each service's host port when it starts, so this checkout's stack runs beside
+any other — another worktree's included — and `make urls` says where each one is. To keep a port
+fixed, set its `<NAME>_PORT` in `.env`, such as `APP_PORT=3000`.]
 
 ### 5. Initialize the database
 
@@ -62,10 +69,16 @@ This starts:
 ### 6. Start the development server
 
 ```bash
-[e.g., npm run dev]
+[e.g., make up      # the app, in this checkout's mode, at the URL make urls shows]
+[e.g., make logs    # its last lines]
 ```
 
-The app will be available at `http://localhost:[port]`.
+[e.g., `DEV_MODE` in `.env` sets where the app runs: `docker` (the default here), or `native` for the
+app on your machine against the services in Docker — which needs [runtime and version] installed, and
+`make build` once to install its dependencies. For a service you run on your machine yourself, pin
+its port in `.env` (`REDIS_PORT=6379`). `make help` names the mode in force.]
+
+The app will be available at [e.g., the URL `make up` and `make urls` print].
 
 ### 7. Verify everything works
 
@@ -124,30 +137,39 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 
 ## Command surface for humans and agents
 
-<!-- CUSTOMIZE: one documented way to install, run, test, and lint — make targets, package scripts,
-     just recipes — used identically by developers and agents. Agents can only run what is written
-     down; every manual step an agent can't discover is a step it will guess. -->
+<!-- CUSTOMIZE: one documented way to install, run, test, and lint — a Makefile at the root (`make
+     help` lists its tasks), or the stack's own scripts — used identically by developers and agents.
+     Agents can only run what is written down; every manual step an agent can't discover is a step it
+     will guess. -->
 
 | Task | Command |
 |---|---|
+| List the tasks | `[e.g., make help]` |
 | Install | `[command]` |
-| Run | `[command]` |
-| Test | `[command]` |
-| Lint / typecheck | `[command]` |
+| Run / stop | `[e.g., make up · make down]` |
+| Where it runs | `[e.g., make urls]` |
+| Run on the host | `[e.g., DEV_MODE=native in .env, then make up]` |
+| Logs | `[e.g., make logs]` |
+| Test | `[e.g., make test]` |
+| Lint / typecheck | `[e.g., make lint]` |
 
 ## Troubleshooting
 
 ### [Common issue 1: e.g., Port already in use]
 
+[e.g., With Docker, only a port pinned in `.env` can be taken; Docker picks free ones for the rest.]
+
 ```bash
-[e.g., lsof -i :3000  # Find what's using the port]
-[e.g., kill -9 <PID>  # Stop the process]
+[e.g., docker ps --filter publish=3000  # another stack holding it, a worktree's perhaps]
+[e.g., lsof -iTCP:3000 -sTCP:LISTEN     # or a process of yours]
 ```
+
+[e.g., Stop it only if it's yours, or empty the port in `.env` and let Docker pick one.]
 
 ### [Common issue 2: e.g., Database connection refused]
 
 [e.g., Make sure Docker is running: `docker ps`]
-[e.g., Restart services: `docker compose restart`]
+[e.g., Restart services: `make down`, then `make up`]
 
 ### [Common issue 3: e.g., Dependencies fail to install]
 

@@ -125,6 +125,6 @@ $ git log --oneline main..docs/email-provider-impact
 | An estimate without assumptions | A number that turns into a commitment | State inclusions, exclusions, and confidence |
 | Copying the analysis into the later spec | Two versions drift | Link it |
 
-**Reference:** [`/triage`](../../skeleton/.claude/skills/triage/SKILL.md) ·
-[`/evaluate`](../../skeleton/.claude/skills/evaluate/SKILL.md) ·
+**Reference:** [`/triage`](../../plugins/adf/skills/triage/SKILL.md) ·
+[`/evaluate`](../../plugins/adf/skills/evaluate/SKILL.md) ·
 [tracker rules for agents](../../skeleton/docs/TRACKER-INTEGRATION.md)

@@ -212,4 +212,4 @@ references:
 - `specs/README.md` — the process: the lanes, the flow, the approval gate, change requests
 - `specs/_templates/` — the files to copy (`spec.md`, `plan.md`, `tasks.md`)
 - `docs/CONSTITUTION.md` — the gate every spec and plan is checked against
-- `.claude/skills/write-spec/`, `write-plan/`, `implement/` — the playbooks
+- `/adf:write-spec`, `/adf:write-plan`, `/adf:implement` — the playbooks

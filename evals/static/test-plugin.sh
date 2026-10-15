@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
 # Functional tests for the plugin's scripts: /cost-report's session_cost.py against synthetic Claude
-# Code transcripts in a throwaway projects directory, and the reference-doc links /adopt and /upgrade
-# rewrite with scripts/link-reference-docs.py, on a copy of the skeleton. No AI invocation, no
-# network. Needs bash and python3. Exit 0 on all-pass.
+# Code transcripts in a throwaway projects directory, the reference-doc links /adopt and /upgrade
+# rewrite with scripts/link-reference-docs.py, on a copy of the skeleton, and the commands in the
+# plugin's bin/ in throwaway repositories. No AI invocation, no network. Needs bash, git ≥ 2.31, and
+# python3. Exit 0 on all-pass.
 #
 set -uo pipefail
 
@@ -99,18 +100,119 @@ plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
 check "link-reference-docs: the plugin carries the four reference docs (got: $plugin_docs)" \
     "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md SPEC-MODEL.md ' ]"
 first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
-check "link-reference-docs: --packaged links every skeleton file at the release" \
-    "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/skeleton/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
+check "link-reference-docs: --packaged links every skeleton file at the release, in the plugin" \
+    "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/plugins/adf/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
 again=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
 check "link-reference-docs: a second run changes nothing" "echo \"\$again\" | grep -q 'in 0 file(s)'"
 python3 "$LINKS" "$SITE" --packaged v9.9.10 >/dev/null
 check "link-reference-docs: a new pin moves every link" \
-    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/skeleton/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
+    "! grep -rq 'blob/v9.9.9/' \"\$SITE\" && grep -q 'blob/v9.9.10/plugins/adf/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
+python3 "$LINKS" "$SITE" --packaged v1.4.0 >/dev/null
+old_pin=$(grep -c 'blob/v1.4.0/skeleton/docs/COST-MODEL.md' "$SITE/.claude/rules/claude-code.md")
+python3 "$LINKS" "$SITE" --packaged v2.0.0 >/dev/null
+check "link-reference-docs: a pin before v2.0.0 links skeleton/docs, where the docs were, and moves to the plugin's (decision 0028)" \
+    "[ '$old_pin' -ge 1 ] && ! grep -rq 'skeleton/docs/' \"\$SITE\" && grep -q 'blob/v2.0.0/plugins/adf/docs/COST-MODEL.md' \"\$SITE/.claude/rules/claude-code.md\""
 python3 "$LINKS" "$SITE" --committed >/dev/null
 check "link-reference-docs: --committed restores the skeleton's files exactly" "diff -r \"\$REPO_ROOT/skeleton\" \"\$SITE\" >/dev/null"
 bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
 check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
 check "link-reference-docs: the files it rewrote are the skeleton's, its committed rules included" "echo \"\$first\" | grep -q 'AGENTS.md, CONTRIBUTING.md' && echo \"\$first\" | grep -q '\.claude/rules/claude-code.md'"
+
+# build-committed.py (decision 0028): a committed project's machinery, written from the plugins.
+BC="$REPO_ROOT/scripts/build-committed.py"
+CP="$WORK/committed-project"
+mkdir -p "$CP/.claude/skills/review" && echo '# our own review' > "$CP/.claude/skills/review/SKILL.md"
+out=$(python3 "$BC" "$CP" --modules parallel-agents 2>&1); code=$?
+check "build-committed: writes the core skills, agents, workflows, hooks, and reference docs" \
+    "[ $code -eq 0 ] && [ -f '$CP/.claude/skills/triage/SKILL.md' ] && [ -f '$CP/.claude/agents/code-reviewer/agent.md' ] && [ -f '$CP/.claude/workflows/deep-review.js' ] && [ -x '$CP/.claude/hooks/guard-git.sh' ] && [ ! -x '$CP/.claude/hooks/_lib.sh' ] && [ -f '$CP/docs/SPEC-MODEL.md' ]"
+check "build-committed: the committed form — bare names, local docs, no Step 0, the module's script" \
+    "grep -q '/write-spec' '$CP/.claude/skills/triage/SKILL.md' && ! grep -rqE '/adf:(triage|write-spec|dispatch)|@adf:|CLAUDE_PLUGIN_ROOT|Step 0 — which copy|adf-worktree-new' '$CP/.claude/skills' '$CP/.claude/agents' && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/.claude/skills/dispatch/SKILL.md' && grep -q \"const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'\" '$CP/.claude/workflows/deep-spec-analysis.js'"
+check "build-committed: takes only the modules it's given, and never the installer's skills" \
+    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
+check "build-committed: keeps a file the project already has, and says so" \
+    "[ \"\$(cat '$CP/.claude/skills/review/SKILL.md')\" = '# our own review' ] && echo \"\$out\" | grep -q 'Kept 1 .*\.claude/skills/review/SKILL.md'"
+out=$(python3 "$BC" "$WORK/elsewhere-project" --modules no-such-module 2>&1); code=$?
+check "build-committed: refuses a module that doesn't exist" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'no such module'"
+
+# The plugin's commands (decision 0027): the parallel-agents scripts, on the Bash tool's PATH — last,
+# as Claude Code puts the plugin's bin/ — in a packaged project, which commits only worktree.conf.
+BIN="$REPO_ROOT/plugins/adf/bin"
+COMMANDS="adf-worktree-new adf-worktree-ls adf-worktree-rm"
+check "commands: adf carries $COMMANDS, executable" "for c in $COMMANDS; do [ -x \"\$BIN/\$c\" ] || exit 1; done"
+check "commands: each is one file — none loads a helper or looks beside itself" \
+    "! grep -l -e 'dirname \"\$0\"' -e BASH_SOURCE -e '_worktree-lib.sh\"' \"\$BIN\"/* | grep -q ."
+check "commands: the plugins' copies name the commands, not the module's scripts" \
+    "! grep -rnE '(^|[^/\$A-Za-z0-9_-])((ops|scripts)/agent/)?worktree-(new|ls|rm)\.sh' \"\$REPO_ROOT/plugins/adf/skills/dispatch\" \"\$REPO_ROOT/plugins/adf/hooks\" \"\$REPO_ROOT/plugins/adf-dev/skills\" \"\$BIN\" | grep -v -e 'ADF_MODULE_DIR/' -e \"plugin's copy of the\" | grep -q ."
+on_path() { PATH="$PATH:$BIN" "$@"; }
+WT="$WORK/worktrees"
+mkdir -p "$WT" && git init -q --bare "$WT/origin.git" && git clone -q "$WT/origin.git" "$WT/site" 2>/dev/null
+S="$WT/site"
+git -C "$S" config user.email test@example.com && git -C "$S" config user.name test && git -C "$S" symbolic-ref HEAD refs/heads/main
+mkdir -p "$S/ops/agent" "$S/docs"
+cp "$REPO_ROOT/modules/parallel-agents/files/ops/agent/worktree.conf" "$S/ops/agent/"
+python3 - "$S/ops/agent/worktree.conf" <<'CONF'
+import sys
+path = sys.argv[1]
+text = open(path).read()
+for old, new in (('PORT_SLOTS=0', 'PORT_SLOTS=180'), ("ENV_OVERRIDES=''", "ENV_OVERRIDES='SITE_URL=http://localhost:${APP_PORT}'")):
+    assert old in text, old
+    text = text.replace(old, new, 1)
+open(path, "w").write(text)
+CONF
+printf 'SECRET=\nAPP_PORT=\n' > "$S/.env.example" && printf '.env\n' > "$S/.gitignore" && echo '# Site' > "$S/docs/README.md"
+git -C "$S" add -A && git -C "$S" commit -qm init && git -C "$S" push -q -u origin main 2>/dev/null
+printf 'SECRET=abc\n' > "$S/.env"
+out=$(cd "$S" && on_path adf-worktree-new feat/newsletter-signup --no-start 2>&1); code=$?
+W1="$WT/feat-newsletter-signup"
+check "adf-worktree-new: creates a sibling worktree in a project that commits only worktree.conf" \
+    "[ $code -eq 0 ] && [ -f '$W1/.git' ] && [ -f \"\$(git -C '$W1' rev-parse --absolute-git-dir)/agent-worktree\" ]"
+check "adf-worktree-new: reads the project's worktree.conf — a port, and the overrides with it" \
+    "grep -q '^SECRET=abc$' '$W1/.env' && grep -qE '^SITE_URL=http://localhost:[0-9]+$' '$W1/.env'"
+echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
+out=$(cd "$W1" && on_path adf-worktree-new fix/other-thing --no-start 2>&1); code=$?
+W2="$WT/fix-other-thing"
+check "adf-worktree-new: from inside a worktree, makes a sibling of the main checkout, seeded from it" \
+    "[ $code -eq 0 ] && [ -f '$W2/.git' ] && grep -q '^SECRET=abc$' '$W2/.env' && ! grep -q LOCAL_EXPERIMENT '$W2/.env'"
+out=$(cd "$S/docs" && on_path adf-worktree-new chore/from-docs --no-start 2>&1); code=$?
+check "adf-worktree-new: works from a subdirectory of the checkout" "[ $code -eq 0 ] && [ -f '$WT/chore-from-docs/.git' ]"
+out=$(cd "$S" && on_path adf-worktree-ls 2>&1)
+check "adf-worktree-ls: lists every worktree and marks the main checkout" \
+    "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
+out=$(cd "$S" && on_path adf-worktree-rm fix/other-thing 2>&1); code=$?
+check "adf-worktree-rm: removes the worktree and its merged branch" \
+    "[ $code -eq 0 ] && [ ! -d '$W2' ] && ! git -C '$S' show-ref --verify --quiet refs/heads/fix/other-thing"
+out=$(cd "$WT" && on_path adf-worktree-new feat/nowhere --no-start 2>&1); code=$?
+check "adf-worktree-new: outside a repository, stops and says so" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'not inside a git repository'"
+mkdir -p "$WT/plain" && git -C "$WT/plain" init -q -b main && git -C "$WT/plain" -c user.email=t@e -c user.name=t commit -q --allow-empty -m init
+out=$(cd "$WT/plain" && on_path adf-worktree-new feat/nothing --no-start 2>&1); code=$?
+check "adf-worktree-new: in a project without the module, stops and creates nothing" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/feat-nothing' ]"
+printf '#!/bin/sh\necho "$@" > "%s/handed-over"\n' "$WT" > "$S/ops/agent/worktree-new.sh" && chmod +x "$S/ops/agent/worktree-new.sh"
+out=$(cd "$S" && on_path adf-worktree-new feat/committed --no-start 2>&1); code=$?
+check "adf-worktree-new: in a committed install, runs the project's own script with the same arguments" \
+    "[ $code -eq 0 ] && [ \"\$(cat '$WT/handed-over' 2>/dev/null)\" = 'feat/committed --no-start' ] && [ ! -e '$WT/feat-committed' ]"
+
+# A project that hasn't moved the module to ops/agent/ yet (decision 0032): the commands read scripts/agent/.
+LW="$WORK/legacy"
+mkdir -p "$LW" && git init -q --bare "$LW/origin.git" && git clone -q "$LW/origin.git" "$LW/site" 2>/dev/null
+L="$LW/site"
+git -C "$L" config user.email test@example.com && git -C "$L" config user.name test && git -C "$L" symbolic-ref HEAD refs/heads/main
+mkdir -p "$L/scripts/agent"
+sed -e 's/^PORT_SLOTS=0/PORT_SLOTS=180/' -e "s|^ENV_OVERRIDES=''|ENV_OVERRIDES='FROM=scripts'|" \
+    "$REPO_ROOT/modules/parallel-agents/files/ops/agent/worktree.conf" > "$L/scripts/agent/worktree.conf"
+printf 'APP_PORT=\n' > "$L/.env.example" && printf '.env\n' > "$L/.gitignore"
+git -C "$L" add -A && git -C "$L" commit -qm init && git -C "$L" push -q -u origin main 2>/dev/null
+out=$(cd "$L" && on_path adf-worktree-new feat/legacy --no-start 2>&1); code=$?
+check "adf-worktree-new: in a project that still keeps scripts/agent/, reads its settings there" \
+    "[ $code -eq 0 ] && grep -q '^FROM=scripts$' '$LW/feat-legacy/.env' && grep -qE '^APP_PORT=[0-9]+$' '$LW/feat-legacy/.env'"
+mkdir -p "$L/ops/agent" && sed 's/FROM=scripts/FROM=ops/' "$L/scripts/agent/worktree.conf" > "$L/ops/agent/worktree.conf"
+out=$(cd "$L" && on_path adf-worktree-new feat/both --no-start 2>&1); code=$?
+check "adf-worktree-new: with both folders, ops/agent/ wins" "[ $code -eq 0 ] && grep -q '^FROM=ops$' '$LW/feat-both/.env'"
+rm -rf "$L/ops"
+printf '#!/bin/sh\necho "$@" > "%s/legacy-handed-over"\n' "$LW" > "$L/scripts/agent/worktree-new.sh" && chmod +x "$L/scripts/agent/worktree-new.sh"
+out=$(cd "$L" && on_path adf-worktree-new feat/old-committed --no-start 2>&1); code=$?
+check "adf-worktree-new: runs a committed script still in scripts/agent/" \
+    "[ $code -eq 0 ] && [ \"\$(cat '$LW/legacy-handed-over' 2>/dev/null)\" = 'feat/old-committed --no-start' ]"
 
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"

@@ -53,6 +53,11 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 
 ### Safe to overwrite
 
+The machinery in this bucket — skills, agents, workflows, hook scripts, and the reference docs — has
+its source in the framework's plugins from v2.0.0
+([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged project has none of it; a
+committed one takes the new release's copies from `scripts/build-committed.py` (§ 4).
+
 | Path | Notes |
 |---|---|
 | `.claude/skills/*` | All skill SKILL.md files. Skills are framework playbooks; rewrite by replacement. |
@@ -70,7 +75,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `docs/process/0000-pdr-template.md` | The PDR template |
 | `.cursor/rules/*.mdc` | Cursor mirrors of the rules |
 | `specs/_templates/*` | The spec-folder templates (`spec.md`, `plan.md`, `tasks.md`) — merge instead if your team customized them. Your filled-in specs are project-owned |
-| Module scripts | `scripts/agent/*.sh`, `.github/workflows/secret-scan.yml` |
+| Module scripts | `ops/agent/*.sh` (`scripts/agent/` before decision 0032: move the folder with `git mv`, then copy), `.github/workflows/secret-scan.yml` — a packaged project has no worktree scripts once its release's plugin carries them as commands (`adf-worktree-new`, decision 0027); `worktree.conf` stays, under Merge |
 
 ### Merge required
 
@@ -87,7 +92,7 @@ Every file the skeleton introduces falls into one of three buckets. Your upgrade
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `scripts/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges) |
+| Module configuration | `ops/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |
@@ -136,17 +141,21 @@ git checkout -b chore/skeleton-upgrade-<NEW_SHA>
 
 ### 4. Bucket-by-bucket execution
 
-**Bucket 1 — overwrite**: copy each file from the new skeleton over your project's copy. Don't think hard about these.
+**Bucket 1 — overwrite**: copy each file from the new release over your project's copy. Don't think hard about these.
+
+A committed install writes the new release's machinery into an empty folder first, with the modules you
+have, then copies it over; the universal rules come from the skeleton:
 
 ```bash
-FW=/path/to/AgenticDevelopmentFramework/skeleton
-cp -R $FW/.claude/skills/* .claude/skills/
-cp -R $FW/.claude/agents/* .claude/agents/
-mkdir -p .claude/workflows && cp $FW/.claude/workflows/*.js .claude/workflows/
-cp $FW/.claude/hooks/*.sh $FW/.claude/hooks/*.jq $FW/.claude/hooks/*.py $FW/.claude/hooks/README.md .claude/hooks/   # not config.sh — that one merges
-cp $FW/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
-cp $FW/docs/{SPEC-MODEL,COST-MODEL,MEMORY-STRATEGY,MCP-INTEGRATION}.md docs/   # committed install only
+FW=/path/to/AgenticDevelopmentFramework
+python3 $FW/scripts/build-committed.py /tmp/adf-new --modules <your modules, comma-separated>   # committed install only
+cp -R /tmp/adf-new/. .                     # skills, agents, workflows, hook scripts, reference docs
+cp $FW/skeleton/.claude/rules/{code-quality,testing,security,git-workflow}.md .claude/rules/
 ```
+
+To see what changed in the machinery between your baseline and the new release, write the old one too —
+from a checkout of the framework at your baseline, the same command; a release before v2.0.0 keeps it
+in `skeleton/.claude/` and `skeleton/docs/` instead — and `diff -rq` the two folders.
 
 Inspect the diff for surprise (removed files, renamed files). Adjust if the framework has restructured anything.
 
@@ -321,7 +330,7 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
 - **Turn on the plugin that carries an installed module's skills** when it isn't `adf`
-  ([decision 0023](decisions/0023-plugins-by-concern.md)) — `adf-dev` for `docker`: `"adf-dev@aplyca": true` in
+  ([decision 0023](decisions/0023-plugins-by-concern.md)) — `adf-dev` for `docker` and `e2e`: `"adf-dev@aplyca": true` in
   `enabledPlugins`, its read rule, and no committed copy of the module's skills. The same pin covers
   it.
 
@@ -336,7 +345,7 @@ Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade`
 you don't have and recommends the ones your repository's facts support — `parallel-agents` when
 several agent sessions may work at once (each task gets its own worktree, branch, pull request, and
 session; the main checkout only dispatches), `clickup` when requirements arrive as ClickUp tasks,
-`docker` when the local stack runs on Docker Compose, `github` on GitHub, `git-hooks` for local
+`docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `github` on GitHub, `git-hooks` for local
 gates. The ones you choose join the same upgrade pull
 request, with their customize steps. Choosing `parallel-agents` moves the upgrade itself into a
 worktree, so the main checkout starts as a clean hub. By hand: `cp -R modules/<name>/files/.` (no
@@ -344,10 +353,12 @@ overwrite) and follow its `MODULE.md`.
 
 ### "I just want one new skill" (e.g. `/triage`)
 
-You don't need a full upgrade. Cherry-pick the skill directory:
+You don't need a full upgrade. Write the committed machinery into a scratch folder and take the skill
+directory from there:
 
 ```bash
-cp -R /path/to/AgenticDevelopmentFramework/skeleton/.claude/skills/triage .claude/skills/
+python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py /tmp/adf-new
+cp -R /tmp/adf-new/.claude/skills/triage .claude/skills/
 ```
 
 Skills appear in Claude Code's `/` menu automatically. Check that the skill doesn't depend on
@@ -379,7 +390,7 @@ If the same heading was edited in both (yours and the framework's), read both an
 
 ### "An agent's model changed (Sonnet → Haiku)"
 
-Agents are safe-to-overwrite — accept the new model. The framework's per-agent recommendations are documented in `docs/COST-MODEL.md`. If you previously overrode the model for project-specific reasons, document why in your project's `CLAUDE.md` and re-apply the override after copying.
+Agents are safe-to-overwrite — accept the new model. The framework's per-agent recommendations are documented in `docs/COST-MODEL.md`. A project's own override is a row in its `.claude/rules/claude-code.md`, which the upgrade merges rather than overwrites; check that its reason still holds against the new default. An override made by editing the agent's `agent.md` (committed install) is lost on copying: move it into the rule (`docs/COST-MODEL.md` § Per-agent recommendations), or re-apply it after copying.
 
 ### "A skill was renamed or removed"
 
@@ -395,6 +406,6 @@ Treat as a deliberate framework decision. Read the commit message. If a skill wa
 ## See also
 
 - [`SETUP.md`](./SETUP.md) — initial skeleton adoption (the upgrade is the long-tail follow-up to this)
-- [`../skeleton/docs/COST-MODEL.md`](../skeleton/docs/COST-MODEL.md) — model recommendations that affect agent frontmatter
-- [`../skeleton/docs/MEMORY-STRATEGY.md`](../skeleton/docs/MEMORY-STRATEGY.md) — memory survives upgrades; rules and `AGENTS.md` may not
+- [`../plugins/adf/docs/COST-MODEL.md`](../plugins/adf/docs/COST-MODEL.md) — model recommendations that affect agent frontmatter
+- [`../plugins/adf/docs/MEMORY-STRATEGY.md`](../plugins/adf/docs/MEMORY-STRATEGY.md) — memory survives upgrades; rules and `AGENTS.md` may not
 - [`../skeleton/evals/README.md`](../skeleton/evals/README.md) — regression-checking pattern for after an upgrade

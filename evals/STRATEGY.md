@@ -25,7 +25,7 @@ Bad static eval:
 > "The skill produces good specs."
 
 Good static eval:
-> "`skeleton/.claude/skills/write-spec/SKILL.md` contains the literal string `mandatory section enforcement` somewhere in its body."
+> "`plugins/adf/skills/write-spec/SKILL.md` contains the literal string `mandatory section enforcement` somewhere in its body."
 
 ## What good dynamic evals look like
 
@@ -127,4 +127,4 @@ Dynamic evals cost real tokens. A single `/write-spec` invocation typically cons
 - **Cache the system prompt.** When evaluating a skill, the SKILL.md is the same across all fixtures — keep it as the cacheable prefix and vary only the user-message input.
 - **Don't graduate flaky evals to CI gates.** A non-deterministic eval that fails 1-in-20 will become noise the team learns to ignore. Stabilize the eval first (use invariants not exact matches), then gate on it.
 
-See [skeleton/docs/COST-MODEL.md](../skeleton/docs/COST-MODEL.md) for the broader cost discipline (model tiering, prompt caching, attribution).
+See [plugins/adf/docs/COST-MODEL.md](../plugins/adf/docs/COST-MODEL.md) for the broader cost discipline (model tiering, prompt caching, attribution).

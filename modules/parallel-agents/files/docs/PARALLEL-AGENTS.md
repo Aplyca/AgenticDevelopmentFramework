@@ -22,7 +22,10 @@ to a worktree of its own like any other task.
 
 ## How a task gets its worktree
 
-Every task starts in the main checkout with `/dispatch`, and every task takes the same route:
+Every task starts in the main checkout with `/dispatch`. The session there dispatches a task as soon
+as it arrives — one the developer typed, or a command whose hub check stopped it — without asking
+first: the chip, or the command, is where the developer chooses whether it starts. Every task takes
+the same route:
 
 1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
    prompt: the task, the branch, and the first step.
@@ -33,14 +36,14 @@ Every task starts in the main checkout with `/dispatch`, and every task takes th
    - **Terminal:** `claude "<prompt>"`, run in the main checkout.
 2. **The new session creates the worktree.** It opens in the main checkout, so its first lines say
    `Role: DISPATCHER` — and that a session handed one task and its branch is that task's worker. Its
-   first step is `scripts/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
+   first step is `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
    checkout named after the branch (`feat/newsletter-signup` → `../feat-newsletter-signup`), on a new
    branch from `BASE_BRANCH`, with the env file seeded from the main checkout's and, when worktrees run
    a server, a port reserved. Nothing starts.
 3. **The session moves into it.**
-   - **Desktop app:** `change_directory` to the path the script printed. The developer approves the
-     folder once, and the session carries on there by itself; the app then shows the session in that
-     folder.
+   - **Desktop app:** `change_directory` to the path the script printed. The approve-worktree-move
+     hook approves a worktree of this repository, so no prompt asks for it. The session carries on
+     there by itself, and the app then shows the session in that folder.
    - **Terminal:** `EnterWorktree` with that path.
 
    `pwd` confirms the move. Session-start hooks don't run again after it, so the worker reads its
@@ -50,6 +53,12 @@ Every task starts in the main checkout with `/dispatch`, and every task takes th
 
 Until the move, the session is in the shared main checkout: it runs the script and nothing else, and
 the protect-hub hook stops any edit there.
+
+**When the task's pull request merges,** its session wraps up with `/wrap-up`. It checks that
+nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then, with
+one yes from the developer, it stops what the task started, removes the worktree and its branch,
+updates the base branch here, and archives the session. If anything is left, it lists it and
+removes nothing.
 
 Whether a task will run the app is its triage's question, after the hand-off. The worktree can,
 because the scripts gave it the env file and its port; the worker starts the environment only when a
@@ -73,12 +82,15 @@ a task can be picked up by an agent on any machine. Passing work on later in a t
 
 | Command | Does |
 |---|---|
-| `scripts/agent/worktree-new.sh <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
-| `scripts/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
-| `scripts/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, deletes the branch only if git sees it as merged |
+| `ops/agent/worktree-new.sh <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
+| `ops/agent/worktree-ls.sh [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
+| `ops/agent/worktree-rm.sh <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, fast-forwards the main checkout's base branch to origin's (only when it's on that branch with no uncommitted changes), and deletes the branch only if git sees it as merged |
 
-Settings live in `scripts/agent/worktree.conf`, and the defaults assume nothing: no ports, no
-containers, no commands. Never create or remove the scripts' worktrees with raw `git worktree add` —
+Settings live in `ops/agent/worktree.conf`, and the defaults assume nothing: no ports, no
+containers, no commands. **With the packaged install,** the scripts are the `adf` plugin's commands
+and `ops/agent/` holds only `worktree.conf`: run `adf-worktree-new`, `adf-worktree-ls`, and
+`adf-worktree-rm`, with the same arguments. Claude Code's sessions have them; your own terminal
+doesn't, so go through `/adf:dispatch`, or ask Claude to list or remove a worktree. Never create or remove the scripts' worktrees with raw `git worktree add` —
 the scripts keep branches, env files, and ports consistent.
 
 **Match the environment to the lane.** Most tasks need only what the git hooks and the tests use
@@ -102,8 +114,18 @@ triage; a dispatched session always creates its worktree with `--no-start`.
 ## When each worktree runs a server
 
 Only for projects where a worktree runs something that listens — a web app, an API. Two copies can't
-listen on one port, so set `PORT_SLOTS` in `worktree.conf` and make the app read its port from the
-env file:
+listen on one port.
+
+**A Docker Compose stack needs nothing reserved** (the docker module's conventions): each published
+port is `"127.0.0.1:${<NAME>_PORT:-}:<port>"`, empty in the env file, so Docker picks a free one each
+time a service starts, and the worktree's folder — or `COMPOSE_PROJECT_NAME=${PROJECT}` in
+`ENV_OVERRIDES` — names its Compose project. Keep `PORT_SLOTS=0`, start it with `START_CMD="make up"`,
+and set `ENV_INFO_CMD="make urls"` so `--info` shows where each worktree's services are. Don't pin a
+port in the main checkout's env file: every worktree's copy would repeat it. If the main checkout needs
+one, blank it for worktrees in `ENV_OVERRIDES` (`APP_PORT=`).
+
+**A server on the host** takes a port the scripts reserve: set `PORT_SLOTS` in `worktree.conf` and make
+the app read its port from the env file:
 
 - **Ports derive from the branch name** (stable across restarts) and are **reserved under a lock**.
   "Taken" means listening now *or* reserved in a sibling's env file whose app isn't up yet — checking
@@ -126,7 +148,7 @@ costs.
 
 ## Seeing your environments
 
-`scripts/agent/worktree-ls.sh` lists every worktree at once. `--info` runs `ENV_INFO_CMD` in each
+`ops/agent/worktree-ls.sh` lists every worktree at once. `--info` runs `ENV_INFO_CMD` in each
 one — the place for whatever someone needs to use that environment: its URLs, the accounts to sign
 in with. Derive these every time: environments come and go, so a table committed to the repository
 would be wrong by the time anyone read it.

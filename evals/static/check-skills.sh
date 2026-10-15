@@ -10,20 +10,29 @@ set -uo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # This script lives at evals/static/ in the framework repo; the files under evaluation live under
-# skeleton/ and modules/.
+# plugins/ (the machinery's source, decision 0028), skeleton/, and modules/.
 REPO_ROOT="${REPO_ROOT:-$( cd "$SCRIPT_DIR/../.." && pwd )}"
 SKELETON="$REPO_ROOT/skeleton"
 
-if [ ! -d "$SKELETON/.claude/skills" ]; then
-    echo "ERROR: cannot locate skeleton/.claude/skills under $REPO_ROOT" >&2
+if [ ! -d "$REPO_ROOT/plugins/adf/skills" ] || [ ! -d "$SKELETON" ]; then
+    echo "ERROR: cannot locate plugins/adf/skills and skeleton/ under $REPO_ROOT" >&2
     echo "       This script must be run from inside the framework repo." >&2
     exit 2
 fi
 
-SKILLS_DIR="$SKELETON/.claude/skills"
-AGENTS_DIR="$SKELETON/.claude/agents"
-WORKFLOWS_DIR="$SKELETON/.claude/workflows"
-HOOKS_DIR="$SKELETON/.claude/hooks"
+# Most checks read the machinery the way a committed project keeps it: scripts/build-committed.py
+# writes that copy from the plugins, with every module's skills, and the skeleton's config.sh joins it.
+COMMITTED="$(mktemp -d)"
+trap 'rm -rf "$COMMITTED"' EXIT
+if ! python3 "$REPO_ROOT/scripts/build-committed.py" "$COMMITTED" --modules all >/dev/null; then
+    echo "ERROR: scripts/build-committed.py couldn't write the committed install" >&2
+    exit 2
+fi
+cp "$SKELETON/.claude/hooks/config.sh" "$COMMITTED/.claude/hooks/"
+SKILLS_DIR="$COMMITTED/.claude/skills"
+AGENTS_DIR="$COMMITTED/.claude/agents"
+WORKFLOWS_DIR="$COMMITTED/.claude/workflows"
+HOOKS_DIR="$COMMITTED/.claude/hooks"
 SETTINGS="$SKELETON/.claude/settings.json"
 TEMPLATES="$SKELETON/specs/_templates"
 AGENTS_MD="$SKELETON/AGENTS.md"
@@ -72,7 +81,7 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
 # Skills that may start from a plain request but post only after showing the draft.
@@ -175,7 +184,7 @@ check_outward_skills_user_invoked() {
         if [ ! -f "$file" ]; then
             fail "draft-first skill '$name' exists"
         elif grep -q 'Show the full draft' "$file" && grep -q 'ask before posting' "$file"; then
-            pass "skill '$name': shows the draft, and asks before posting when nobody asked for it"
+            pass "skill '$name': shows the draft, and asks before posting"
         else
             fail "skill '$name': can start from a plain request but doesn't show the draft and ask before posting"
         fi
@@ -258,7 +267,7 @@ check_settings() {
         return
     fi
     local report
-    report=$(python3 - "$SETTINGS" "$SKELETON" <<'PY'
+    report=$(python3 - "$SETTINGS" "$COMMITTED" <<'PY'
 import json, os, re, sys
 path, skeleton = sys.argv[1], sys.argv[2]
 problems = []
@@ -288,17 +297,46 @@ for event, entries in settings.get("hooks", {}).items():
                     problems.append(f"{event}: {match.group(0)} does not exist")
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
-asks = " ".join(settings.get("permissions", {}).get("ask", []))
-# The work branch's push and its draft pull request follow the developer's local check (decision
-# 0022); everything else that leaves the machine still asks.
-for outward in ("gh pr ready", "gh pr merge", "gh pr comment", "gh issue comment", "gh release"):
-    if outward not in asks:
-        problems.append(f"permissions.ask does not cover '{outward}'")
+# Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
+# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
+# still prompt is asked by name (decisions 0022, 0033, 0038).
+allow_rules = settings.get("permissions", {}).get("allow", [])
+ask_rules = settings.get("permissions", {}).get("ask", [])
+def matches(rules, command):
+    return any(r.startswith("Bash(") and (re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3])) for r in rules)
+def verdict(command):
+    return "ask" if matches(ask_rules, command) else "allow" if matches(allow_rules, command) else "prompt"
+expected = {
+    # The draft pull request and its upkeep, and local git work, run (0022, 0033, 0038).
+    "git push": "allow", "git push -u origin feat/newsletter-signup": "allow",
+    "gh pr create --draft --title x": "allow", "gh pr edit 12 --body-file b.md": "allow",
+    "gh pr comment 12 --body x": "allow", "gh pr view 12": "allow", "gh run view 99": "allow",
+    "git add src/a.ts": "allow", "git add -A": "allow", "git commit -m x": "allow",
+    "git commit --amend --no-edit": "allow", "git switch -c feat/x": "allow", "git rebase main": "allow",
+    "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
+    # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
+    "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
+    "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
+    "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
+    "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Rare and recoverable: they run (the shorter list the developer chose).
+    "gh pr close 12": "allow", "gh workflow run ci.yml": "allow", "gh label create bug": "allow",
+    "gh run cancel 99": "allow", "git stash clear": "allow",
+    # Discarding local work and issue writes run (the developer's choice); hooks switched off and
+    # tags leaving the machine ask.
+    "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
+    "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
+    "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+}
+for command, want in expected.items():
+    if verdict(command) != want:
+        problems.append(f"'{command}': {verdict(command)}, expected {want} (0038)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -468,12 +506,13 @@ check_spec_templates() {
 # ─── Links ─────────────────────────────────────────────────────────────────
 
 check_links() {
-    # Relative markdown links inside the skeleton must resolve inside the skeleton — an adopting repo
-    # has no framework docs next to it. Module files may also point at skeleton files.
+    # Relative markdown links inside the skeleton must resolve inside the adopted repo — it has no
+    # framework docs next to it. That repo is the skeleton plus, in a committed install, the machinery
+    # build-committed.py writes (the reference docs among it); module files may point at either.
     local report
-    report=$(python3 - "$SKELETON" "$MODULES_DIR" <<'PY'
+    report=$(python3 - "$SKELETON" "$MODULES_DIR" "$COMMITTED" <<'PY'
 import os, re, sys
-skeleton, modules = sys.argv[1], sys.argv[2]
+skeleton, modules, committed = sys.argv[1], sys.argv[2], sys.argv[3]
 link = re.compile(r'\]\(([^)\s#]+)(#[^)]*)?\)')
 fence = re.compile(r'^\s*(```|~~~)')
 broken = []
@@ -499,18 +538,20 @@ def scan(root, fallbacks):
                     relative_dir = os.path.relpath(directory, root)
                     candidates += [os.path.normpath(os.path.join(base, relative_dir, target)) for base in fallbacks]
                     if not any(os.path.exists(candidate) for candidate in candidates):
-                        broken.append(f"{os.path.relpath(path, os.path.dirname(skeleton))}:{number} -> {target}")
-scan(skeleton, [])
+                        where = os.path.relpath(path, committed) if path.startswith(committed) else os.path.relpath(path, os.path.dirname(skeleton))
+                        broken.append(f"{where}:{number} -> {target}")
+scan(skeleton, [committed])
+scan(committed, [skeleton])
 if os.path.isdir(modules):
     for module in os.listdir(modules):
         files = os.path.join(modules, module, "files")
         if os.path.isdir(files):
-            scan(files, [skeleton])
+            scan(files, [skeleton, committed])
 print("\n".join(broken) if broken else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "links: every relative link in skeleton/ and modules/*/files resolves inside the adopted repo"
+        pass "links: every relative link in skeleton/, the committed machinery, and modules/*/files resolves inside the adopted repo"
     else
         fail "links: broken relative links (framework-only targets don't exist in adopting repos)" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -523,10 +564,11 @@ check_modules() {
     local module name
     for module in "$MODULES_DIR"/*/; do
         name=$(basename "$module")
-        if [ -f "$module/MODULE.md" ] && [ -d "$module/files" ]; then
-            pass "module '$name': has MODULE.md and files/"
+        # A module whose plugin carries all it adds (a skill, decision 0028) has no files/ of its own.
+        if [ -f "$module/MODULE.md" ] && { [ -d "$module/files" ] || [ -f "$module/module.json" ]; }; then
+            pass "module '$name': has MODULE.md, and files/ or a module.json"
         else
-            fail "module '$name': needs MODULE.md and a files/ tree"
+            fail "module '$name': needs MODULE.md, and a files/ tree or a module.json"
         fi
         if [ -f "$module/files/README.md" ]; then
             fail "module '$name': files/README.md would overwrite the adopting repo's README"
@@ -538,28 +580,41 @@ check_modules() {
 import json, os, sys
 module, name, plugins = sys.argv[1], sys.argv[2], sys.argv[3]
 claude = os.path.join(module, "files", ".claude")
-carries = any(os.path.isdir(os.path.join(claude, k)) and os.listdir(os.path.join(claude, k)) for k in ("skills", "agents"))
+# A module's skills and agents are its plugin's, never files the module copies (decision 0028).
+for kind in ("skills", "agents", "workflows", "hooks"):
+    if os.path.isdir(os.path.join(claude, kind)):
+        print(f"ships files/.claude/{kind}/: its plugin carries a module's skills, and a committed install takes them from there")
 manifest = os.path.join(module, "module.json")
 if not os.path.exists(manifest):
-    if carries:
-        print("ships skills or agents but no module.json names the plugin that carries them")
     sys.exit()
 try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
     print(f"module.json is not valid JSON: {e}"); sys.exit()
-if set(data) != {"plugin"}:
-    print(f"module.json takes one key, plugin — it has {sorted(data)}")
+if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands", "moved_from"}:
+    print(f"module.json takes plugin and, optionally, skills, commands, and moved_from — it has {sorted(data)}")
 elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
     print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
-if not carries:
-    print("has a module.json but no skills or agents for a plugin to carry")
+for skill in data.get("skills", []):
+    if not os.path.isfile(os.path.join(plugins, str(data.get("plugin")), "skills", skill, "SKILL.md")):
+        print(f"module.json names the skill {skill}, which plugins/{data.get('plugin')} doesn't carry")
+# Decision 0027: the scripts a plugin carries as commands, each named after the plugin.
+commands = data.get("commands", {})
+for command, rel in commands.items():
+    if not command.startswith(f"{data.get('plugin')}-") or not os.path.isfile(os.path.join(module, "files", rel)):
+        print(f"module.json: command {command} must be named {data.get('plugin')}-<name> and come from a script in files/")
+if not data.get("skills") and not commands:
+    print("has a module.json but no skills or commands for a plugin to carry")
+# Decision 0032: the folder the commands' scripts lived in before, which the commands still read.
+folders = {os.path.dirname(rel) for rel in commands.values()}
+if "moved_from" in data and (len(folders) != 1 or not isinstance(data["moved_from"], str) or data["moved_from"] in folders):
+    print("module.json: moved_from is the one folder all its commands' scripts lived in before, not the one they're in")
 PY
 )
         if [ -n "$problem" ]; then
             fail "module '$name': $problem"
         elif [ -f "$module/module.json" ]; then
-            pass "module '$name': module.json names the plugin that carries its skills"
+            pass "module '$name': module.json names the plugin that carries its skills and commands"
         fi
     done
     local fragment problems
@@ -567,15 +622,24 @@ PY
         [ -f "$fragment" ] || continue
         name=$(basename "$(dirname "$fragment")")
         # A module may pre-approve MCP tools and commands only if they read: a write must always
-        # prompt, and so must a command that prints secrets.
-        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" <<'PY'
+        # prompt, and so must a command that prints secrets. The one exception is decided: the docker
+        # module allows its tasks and its containers' commands broadly and asks by name before
+        # what deletes data or runs any command it's given (decision 0038) — those asks must be there.
+        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" "$name" <<'PY'
 import json, re, sys
-fragment, mcp = sys.argv[1], sys.argv[2]
+fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
+decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
+decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
+                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)",
+                           "Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)"}}
 try:
-    allow = json.load(open(fragment)).get("permissions", {}).get("allow", [])
+    permissions = json.load(open(fragment)).get("permissions", {})
+    allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
+for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
+    out.append(f"allows broadly, so must ask before {ask} (0038)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
 changes = re.compile(r"\b(down|rm|rmi|prune|kill|stop|restart|start|exec|run|up|build|pull|push|cp|create|inspect|login|delete|remove)\b")
 for rule in allow:
@@ -602,17 +666,10 @@ print("; ".join(out))
 PY
 )
         if [ -z "$problems" ]; then
-            pass "module '$name': pre-approves read-only MCP tools and commands only; no credentials in .mcp.json"
+            pass "module '$name': pre-approves read-only MCP tools and commands only, or what decision 0038 names with its asks; no credentials in .mcp.json"
         else
             fail "module '$name': $problems"
         fi
-    done
-    local skill
-    for skill in "$MODULES_DIR"/*/files/.claude/skills/*/; do
-        [ -d "$skill" ] || continue
-        check_skill_frontmatter "$skill"
-        check_skill_has_steps_or_phases "$skill"
-        check_skill_discipline "$skill"
     done
 }
 
@@ -658,28 +715,40 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/testing.md" 'Expected values come from outside the code' || missing+=("testing rule: independent expected values")
     file_contains "$SKILLS_DIR/record-decision/SKILL.md" 'hard to reverse' || missing+=("/record-decision: threshold")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'Declined before' || missing+=("/triage: declined-before check")
-    file_contains "$SKELETON/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
+    file_contains "$COMMITTED/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^4\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
+    file_contains "$AGENTS_MD" 'Check locally first, then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
+    file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Don't ask or remind the developer" || missing+=("/open-pr: the report doesn't nudge the developer to review, ready, or merge (0039)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, readying, and merging are the developer' || missing+=("git-workflow rule: no nudges to review, ready, or merge (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" 'branch name is generated' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")
     [ -f "$MODULES_DIR/parallel-agents/files/.worktreeinclude" ] || missing+=("parallel-agents: .worktreeinclude")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: the worker's prompt has it create the task's worktree with the scripts (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'move this session into it' || missing+=("/dispatch: the worker's prompt has it move into the worktree (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task chip for this main checkout' || missing+=("/dispatch: the chip opens in the main checkout (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'It runs no scripts' || missing+=("/dispatch: the dispatcher runs nothing (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: the worker's prompt has it create the task's worktree with the scripts (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'move this session into it' || missing+=("/dispatch: the worker's prompt has it move into the worktree (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task chip for this main checkout' || missing+=("/dispatch: the chip opens in the main checkout (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'It runs no scripts' || missing+=("/dispatch: the dispatcher runs nothing (0021)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title alone' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'is that task.s worker, not the dispatcher' || missing+=("session-context.sh: a dispatched session in the main checkout is told it's the worker and its first step (0021)")
-    file_contains "$MODULES_DIR/parallel-agents/files/.claude/skills/dispatch/SKILL.md" 'worktree-new.sh` in this' || missing+=("/dispatch: stops without the module, since the plugin carries it (0020)")
-    file_contains "$REPO_ROOT/plugins/adf/.generated" '^skills/dispatch$' || missing+=("the plugin carries /dispatch (0020)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree.conf` in this' || missing+=("/dispatch: stops without the module's settings, since the plugin carries it (0020, 0027)")
+    file_contains_literal "$HOOKS_DIR/protect-hub.sh" 'worktree_settings "$root" >/dev/null || exit 0' || missing+=("protect-hub.sh: the module's settings show it's installed, in either install (0027)")
+    file_contains "$REPO_ROOT/plugins/adf/.generated" '^bin$' || missing+=("the plugin carries the worktree scripts as commands (0027)")
+    [ -f "$REPO_ROOT/plugins/adf/skills/dispatch/SKILL.md" ] || missing+=("the plugin carries /dispatch (0020)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Give every task to /dispatch' || missing+=("session-context.sh: the dispatcher gives every task to /dispatch (0020)")
-    file_contains "$MODULES_DIR/parallel-agents/files/scripts/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
+    file_contains "$MODULES_DIR/parallel-agents/files/ops/agent/worktree.conf" '^PORT_SLOTS=0 ' || missing+=("worktree.conf: ports off by default")
     file_contains "$AGENTS_MD" 'write or update the test that asserts the new behavior and watch it fail' || missing+=("AGENTS.md: the fast lane is test-first")
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
+    grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
@@ -707,9 +776,39 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
-    file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
-    file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
-    file_contains "$MODULES_DIR/docker/files/.claude/skills/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'No `env_file:`' || missing+=("dev-env's specification: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'one folder per target' || missing+=("dev-env's specification: ops/ has one folder per target (0034)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs but the ones that delete data or run a command, which ask (C9, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: proposes an ask rule for a project task that deletes data (C9)")
+    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and {"Bash(make *reset*)","Bash(make run *)","Bash(docker inspect *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks by name (C9, C10, 0038)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'this is the main checkout' || missing+=("/e2e: stops in the hub")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'Prove each test can fail' || missing+=("/e2e: each smoke test is seen failing before it's committed (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" "checkout's own stack" || missing+=("e2e's specification: the suite runs against the checkout's own stack (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'Tests own their data' || missing+=("e2e's specification: tests own their data (0037)")
+    [ ! -e "$REPO_ROOT/plugins/adf-dev/skills/e2e/templates" ] && file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'there are no templates' || missing+=("e2e: no templates; the project writes its suite to the specification (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" "exactly .@playwright/test.'s" || missing+=("e2e's specification: the image at the engine's exact version (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'npx --no-install playwright' || missing+=("e2e's specification: npx never downloads a package (0037)")
+    file_contains "$SKELETON/.claude/rules/testing.md" '^## End-to-end' || missing+=("testing rule: § End-to-end, which every session follows (0037)")
+    file_contains "$SKILLS_DIR/write-tests/SKILL.md" '§ End-to-end' || missing+=("/write-tests: an end-to-end test follows testing.md § End-to-end (0037)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
+    file_contains "$SKELETON/.claude/rules/deployment.md" '^  - "compose.yaml"$' || missing+=("deployment.md: its paths name compose.yaml (0032)")
+    file_contains "$SKELETON/.claude/rules/deployment.md" 'env_file:' || missing+=("deployment.md: the three levels of variables, no env_file: (0032)")
+    ! grep -rqF '.env.example .env.local' "$SKELETON" || missing+=("skeleton: copies .env.example to .env, which Compose reads, not .env.local (0032)")
     ! file_contains "$REPO_ROOT/CONTRIBUTING.md" 'Bump the plugin version' || missing+=("CONTRIBUTING.md: the plugin's version changes only in a release (0017)")
     file_contains "$REPO_ROOT/docs/SETUP.md" '## Packaged install' || missing+=("SETUP.md: the packaged install")
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
@@ -719,7 +818,7 @@ check_practices() {
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install, the local environment's conventions (0032)"
     else
         fail "practices: missing" "${missing[*]}"
     fi
@@ -768,18 +867,26 @@ PY
 }
 
 check_packaged_plugin() {
-    # The machinery in plugins/ is generated: adf's from skeleton/.claude (decision 0016), and
-    # each plugin's module skills from the modules that name it (decision 0023). A source change that
-    # wasn't rebuilt would ship the old machinery to every packaged project.
+    # The plugins are the machinery's source (decision 0028); build-plugins.sh generates the parts that
+    # can't be kept by hand — the module commands in bin/; the spec model, the agents' checklists, and
+    # the skills' steps in adf's workflows; and the version. A source change that wasn't rebuilt would
+    # ship the old ones to every packaged project.
     local tmp report
     tmp="$(mktemp -d)"
     cp -R "$REPO_ROOT/plugins" "$tmp/plugins"
     if ! "$REPO_ROOT/scripts/build-plugins.sh" "$tmp" >/dev/null 2>&1; then
         fail "plugins: scripts/build-plugins.sh failed" "$("$REPO_ROOT/scripts/build-plugins.sh" "$tmp" 2>&1 | tail -1)"
     elif diff -r "$tmp/plugins" "$REPO_ROOT/plugins" >/dev/null 2>&1; then
-        pass "plugins/ matches skeleton/.claude and the modules"
+        pass "plugins/: the generated parts match the modules' scripts, the spec model, the agents' checklists, the skills' steps, and adf's version"
     else
-        fail "plugins/ is out of date with skeleton/.claude or a module — run scripts/build-plugins.sh"
+        fail "plugins/ is out of date with a module's scripts, the spec model, an agent's checklist, a skill's steps, or adf's version — run scripts/build-plugins.sh"
+    fi
+    # Every file a committed install carries comes back unchanged from its committed form, so the two
+    # forms can't drift apart: a bare /triage, a local docs/ path, or a stale Step 0 fails here.
+    if report=$(python3 "$REPO_ROOT/scripts/build-committed.py" --check 2>&1); then
+        pass "plugins: every carried file survives the round trip to the committed form and back"
+    else
+        fail "plugins: the committed form doesn't round-trip" "$(printf '%s' "$report" | head -12 | tr '\n' ' ')"
     fi
     rm -rf "$tmp"
     report=$(python3 - "$REPO_ROOT" <<'PY'
@@ -818,40 +925,113 @@ PY
     fi
 }
 
-check_module_plugins() {
-    # Each plugin carries the skills of the modules that name it in module.json, and only those
-    # (decision 0023): a project lists the skills of the plugins it turned on.
+check_plugin_workflow_paths() {
+    # A packaged project keeps no copy of the agents or the skills, and a workflow script can't reach the
+    # plugin's (decision 0019): a plugin workflow that names .claude/agents/ or .claude/skills/ sends its
+    # agents to a file that isn't there. It carries the agent's checklist or the skill's steps it needs
+    # instead (decisions 0029 and 0030).
     local report
     report=$(python3 - "$REPO_ROOT" <<'PY'
-import json, os, re, sys
+import glob, os, re, sys
 root = sys.argv[1]
-generated = {}
-for plugin in os.listdir(os.path.join(root, "plugins")):
-    listing = os.path.join(root, "plugins", plugin, ".generated")
-    generated[plugin] = open(listing, encoding="utf-8").read().split() if os.path.exists(listing) else []
-for module in sorted(os.listdir(os.path.join(root, "modules"))):
-    manifest = os.path.join(root, "modules", module, "module.json")
-    if not os.path.exists(manifest):
-        continue
-    plugin = json.load(open(manifest, encoding="utf-8")).get("plugin")
-    folder = os.path.join(root, "modules", module, "files", ".claude", "skills")
-    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
-        holders = sorted(p for p, listed in generated.items() if f"skills/{name}" in listed)
-        if holders != [plugin]:
-            print(f"{module}'s /{name} is in {holders or 'no plugin'}, its module.json names {plugin} — run scripts/build-plugins.sh")
+# What a packaged project has: the skeleton, and the files its modules copy.
+bases = [os.path.join(root, "skeleton")] + glob.glob(os.path.join(root, "modules", "*", "files"))
+for workflow in sorted(glob.glob(os.path.join(root, "plugins", "*", "workflows", "*.js"))):
+    for number, line in enumerate(open(workflow, encoding="utf-8"), 1):
+        if line.lstrip().startswith("//"):
             continue
-        if plugin == "adf":
+        # A path to an agent or a skill; a glob over the project's own (.claude/skills/*/SKILL.md) names none.
+        for path in re.findall(r"\.claude/(?:agents|skills)/[\w-][\w./-]*", line):
+            path = path.rstrip(".")
+            if not any(os.path.exists(os.path.join(base, path)) for base in bases):
+                print(f"{os.path.relpath(workflow, root)}:{number} names {path}")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "plugin workflows: no .claude/agents/ or .claude/skills/ path a packaged project lacks — each carries the checklists and steps it names"
+    else
+        fail "plugin workflows name an agent or skill file a packaged project lacks — carry the agent's checklist (const <AGENT>_CHECKLIST, decision 0029) or the skill's steps (const <SKILL>_STEPS, decision 0030)" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
+check_plugin_committed_paths() {
+    # The skills, agents, reference docs, and hooks a packaged project runs are the plugin's: it has no
+    # .claude/agents/, .claude/workflows/, or .claude/skills/ of the framework's, no agent.md, and no hook
+    # script in .claude/hooks/ but config.sh. Text that names one sends a packaged project to a file that
+    # isn't there, unless its paragraph says it's about a committed install. The Step 0 names the committed
+    # copy on purpose, a glob names the project's own, and the installer's skills (no Step 0) cover both
+    # installs.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+sys.path.insert(0, os.path.join(root, "scripts"))
+from forms import STEP0, Machinery
+machinery = Machinery(root)
+files = glob.glob(os.path.join(root, "plugins", "*", "agents", "*.md"))
+files += glob.glob(os.path.join(root, "plugins", "*", "docs", "*.md"))
+files += [f for f in glob.glob(os.path.join(root, "plugins", "*", "hooks", "*"))
+          if os.path.basename(f) not in ("hooks.json", "README.md")]
+for name, plugin in machinery.skills.items():
+    files += glob.glob(os.path.join(root, "plugins", plugin, "skills", name, "**", "*.md"), recursive=True)
+committed_only = re.compile(r"\.claude/(?:agents|workflows|skills)(?:/[\w<>{}*./-]*)?"
+                            r"|(?<![\w/-])agent\.md\b|\.claude/hooks/(?!config\.sh)[\w$][^\s\x60\x27\x22):]*")
+for path in sorted(files):
+    text = open(path, encoding="utf-8").read()
+    step0 = STEP0.match(text)
+    # The context that can say "a committed install": a paragraph of prose; one line of a script, where
+    # a comment elsewhere in the block doesn't cover a message the hook prints.
+    gap = "\n\n" if path.endswith(".md") else "\n"
+    for m in committed_only.finditer(text):
+        if "*" in m.group(0) or (step0 and len(step0.group(1)) <= m.start() < step0.end()):
             continue
+        start = text.rfind(gap, 0, m.start())
+        end = text.find(gap, m.end())
+        if "committed" in text[start + 1:end if end != -1 else len(text)].lower():
+            continue
+        print(f"{os.path.relpath(path, root)}:{text.count(chr(10), 0, m.start()) + 1} names {m.group(0)}")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "plugin skills, agents, docs, and hooks: no committed install's path (.claude/agents/, workflows/, skills/, agent.md, a hook script) outside a paragraph about a committed install"
+    else
+        fail "plugin text names a path only a committed install has — name the skill, agent, or workflow instead (/adf:review, @adf:code-reviewer), or say the paragraph is about a committed install" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
+check_module_plugins() {
+    # Each plugin carries the skills of the modules that name it in module.json (decision 0023), and a
+    # committed install carries every skill with a Step 0 (decision 0028). The ones without run only from
+    # their plugin: adf's installer, and adf-connect's /connect. A Step 0 dropped by mistake would take a
+    # skill out of every committed project.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import os, re, sys
+root = sys.argv[1]
+sys.path.insert(0, os.path.join(root, "scripts"))
+from forms import CORE, Machinery
+try:
+    machinery = Machinery(root)
+except AssertionError as error:
+    print(error); sys.exit()
+plugin_only = {"adf": {"adopt", "upgrade", "cost-report"}, "adf-connect": {"connect"}}
+for plugin in machinery.plugins:
+    folder = os.path.join(root, "plugins", plugin, "skills")
+    names = set(os.listdir(folder)) if os.path.isdir(folder) else set()
+    only = names - {n for n, p in machinery.skills.items() if p == plugin}
+    if only != plugin_only.get(plugin, set()):
+        print(f"{plugin}'s skills without a Step 0 are {sorted(only)} — expected {sorted(plugin_only.get(plugin, set()))}")
+for module, skills in machinery.module_skills.items():
+    plugin = machinery.module_plugin[module]
+    for name in skills:
         text = open(os.path.join(root, "plugins", plugin, "skills", name, "SKILL.md"), encoding="utf-8").read()
-        if f"from the `{module}` module, carried by `{plugin}`" not in text:
-            print(f"{plugin}:{name} lacks its module's Step 0")
         for bare in re.findall(rf"/{re.escape(plugin)}:([\w-]+)", text):
             if not os.path.isdir(os.path.join(root, "plugins", plugin, "skills", bare)):
                 print(f"{plugin}:{name} names /{plugin}:{bare}, which the plugin doesn't carry")
 PY
 )
     if [ -z "$report" ]; then
-        pass "plugins by concern: each carries exactly the skills of the modules that name it, with their Step 0"
+        pass "plugins by concern: each carries the skills its modules name; every skill but the installer's goes to a committed install"
     else
         fail "plugins by concern: $report"
     fi
@@ -941,7 +1121,9 @@ check_mods() {
     # The framework's mods are display-only (decision 0026): they read, draw, and add commands. They
     # never approve, refuse, or rewrite a tool call or a prompt, start a turn, run a process, write a
     # file, call a model, or change settings — each of those is the process's, through skills, hooks,
-    # and permissions every install shares. Each mod carries tests (`claude plugin test`).
+    # and permissions every install shares. One exception (decision 0032): adf-dev's band may run
+    # `docker compose port <service> <port>`, read-only, for the port Docker picked — that call,
+    # with that argument vector, in that file, and no other. Each mod carries tests (`claude plugin test`).
     local report
     report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
 import glob, json, os, re, sys
@@ -949,6 +1131,7 @@ plugins = sys.argv[1]
 display = {"session.start", "session.end", "turn.complete", "command.run", "command.describe",
            "ui.render", "ui.press", "ui.input", "ui.select", "ui.close", "ui.focus", "ui.scroll"}
 banned = re.compile(r"\$\.(prompt\.submit|tool\.|process\.|model\.|agent\.|fs\.write|config\.set|env\.set|session\.(?:send|append|compact))")
+lookup = re.compile(r"\$\.process\.run\(\['docker', 'compose', 'port', target\.service, target\.port\], \{")
 for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json"))):
     if not json.load(open(wiring)).get("modules"):
         continue
@@ -960,16 +1143,129 @@ for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json")
         for event in re.findall(r"\bon\(\s*['\"]([\w.]+)['\"]", text):
             if event not in display:
                 print(f"{name}/hooks/{os.path.basename(path)} hooks {event}, which a display-only mod doesn't")
-        for call in banned.findall(text):
+        calls = banned.findall(text)
+        if (name, os.path.basename(path)) == ("adf-dev", "register.tsx") and calls.count("process.") == 1 \
+                and len(lookup.findall(text)) == 1 and "const target = parseService(service)" in text:
+            calls.remove("process.")
+        for call in calls:
             print(f"{name}/hooks/{os.path.basename(path)} calls $.{call}, which a display-only mod doesn't")
     if not glob.glob(os.path.join(plugin, "**", "*.test.ts*"), recursive=True):
         print(f"{name}: a mod with no *.test.ts")
 PY
 )
     if [ -z "$report" ]; then
-        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt; each has tests"
+        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt, and run no process but the band's docker compose port lookup (0032); each has tests"
     else
         fail "mods: $report"
+    fi
+}
+
+check_dev_env_templates() {
+    # Decision 0032: the stack /dev-env writes from its templates keeps the local-environment
+    # conventions — and the scripts any module or skill ships run on macOS's bash 3.2.
+    local problems
+    problems=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
+def read(rel):
+    with open(os.path.join(tpl, rel), encoding="utf-8") as f:
+        return f.read()
+files = ["compose.yaml", "Makefile", "ops/docker/Makefile", "ops/native/Makefile", ".env.example",
+         "ops/docker/guard.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
+         "ops/docker/web/Dockerfile.dockerignore"]
+missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
+for f in missing:
+    print(f"templates/{f} is missing")
+if missing:
+    sys.exit()
+for script in ("ops/docker/guard.sh", "ops/native/native.sh"):
+    if not os.access(os.path.join(tpl, script), os.X_OK):
+        print(f"templates/{script} isn't executable")
+
+declared = {m.group(1): m.group(2) for m in re.finditer(r"^([A-Z_][A-Z0-9_]*)=(.*)$", read(".env.example"), re.M)}
+for name, value in declared.items():
+    if (name.endswith("_PORT") or name == "COMPOSE_PROJECT_NAME") and value:
+        print(f".env.example: {name} has a value — empty lets Docker pick the port and the folder name the project")
+
+compose = [l for l in read("compose.yaml").split("\n") if not l.lstrip().startswith("#")]
+text = "\n".join(compose)
+for key in ("env_file:", "container_name:"):
+    if key in text:
+        print(f"compose.yaml uses {key}")
+if re.search(r"^name:", text, re.M):
+    print("compose.yaml has a top-level name:")
+for var in sorted(set(re.findall(r"[$][{]([A-Z_][A-Z0-9_]*)", text)) - set(declared)):
+    print(f"compose.yaml uses the variable {var}, which .env.example doesn't declare")
+for image in re.findall(r"^\s*image:\s*(\S+)", text, re.M):
+    if ":" not in image or image.endswith(":latest"):
+        print(f"compose.yaml: image {image} isn't pinned")
+services, current, in_ports = {}, None, False
+for line in compose:
+    if re.match(r"^  [a-z][\w-]*:\s*$", line):
+        current = line.strip()[:-1]
+        services[current] = ""
+    elif current and line.startswith("    "):
+        services[current] += line + "\n"
+    elif line and not line.startswith(" "):
+        current = None
+for name, body in services.items():
+    for port in re.findall(r"^      - (.+)$", body.split("    ports:\n", 1)[1].split("\n    ", 1)[0], re.M) if "    ports:\n" in body else []:
+        if not re.fullmatch(r'"127[.]0[.]0[.]1:[$][{][A-Z_][A-Z0-9_]*_PORT:-[}]:[0-9]+"', port.strip()):
+            print(f"compose.yaml: {name} publishes {port.strip()}, not on 127.0.0.1 from an empty <NAME>_PORT")
+    for dep, condition in re.findall(r"^      ([\w-]+):\n        condition: (\S+)", body, re.M):
+        if condition != "service_healthy" or "healthcheck:" not in services.get(dep, ""):
+            print(f"compose.yaml: {name} waits for {dep} without a healthcheck it waits on")
+
+make = read("Makefile")
+if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
+    print("Makefile: help isn't the default target")
+if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
+    print("Makefile doesn't load the mode's file (ops/<mode>/Makefile, decision 0034)")
+# The templates are an example of the skill's specification: each mode's file, with the shared
+# tasks, defines every task its C3 table requires (decision 0034).
+spec_path = os.path.join(os.path.dirname(tpl), "SPECIFICATION.md")
+spec = open(spec_path, encoding="utf-8").read() if os.path.isfile(spec_path) else ""
+skill = open(os.path.join(os.path.dirname(tpl), "SKILL.md"), encoding="utf-8").read()
+if not spec:
+    print("dev-env has no SPECIFICATION.md")
+elif "SPECIFICATION.md" not in skill:
+    print("dev-env's SKILL.md doesn't send the agent to SPECIFICATION.md")
+c3 = spec.split("- **C3.**", 1)[1].split("- **C4.**", 1)[0] if "- **C3.**" in spec else ""
+required = re.findall(r"^\s*\| `([a-z][a-z-]*)` \|", c3, re.M)
+if len(required) < 9:
+    print("SPECIFICATION.md: C3 doesn't list the tasks every mode defines")
+shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
+for mode in ("docker", "native"):
+    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/Makefile"), re.M))
+    for target in ["help", "env"] + required:
+        if target not in targets:
+            print(f"ops/{mode}/Makefile: no {target} target, which SPECIFICATION.md C3 requires")
+make = "\n".join([make, read("ops/docker/Makefile"), read("ops/native/Makefile")])
+for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
+                 (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
+                 (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):
+    if re.search(bad, make, re.M):
+        print(f"Makefile uses {why}, which GNU make 3.81 lacks or which leaks .env")
+if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and "=" not in l.split(":")[0]), re.M):
+    print("Makefile: a recipe line is indented with spaces, not a tab")
+for logs in re.finditer(r"^logs:.*\n((?:\t.*\n)+)", make, re.M):
+    if not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
+        print("Makefile: logs must show the last lines and never follow")
+
+bash4 = re.compile(r"declare -A|\bmapfile\b|\breadarray\b|\$\{\w+(,,|\^\^)|\|&|&>>|\bcoproc\b")
+scripts = glob.glob(os.path.join(root, "modules", "*", "files", "**", "*.sh"), recursive=True)
+scripts += glob.glob(os.path.join(root, "plugins", "*", "skills", "**", "*.sh"), recursive=True)
+for script in sorted(scripts):
+    for n, line in enumerate(open(script, encoding="utf-8"), 1):
+        if not line.lstrip().startswith("#") and bash4.search(line):
+            print(f"{os.path.relpath(script, root)}:{n} needs bash 4, and macOS has 3.2")
+PY
+)
+    if [ -z "$problems" ]; then
+        pass "dev-env templates: an example of its SPECIFICATION.md — compose.yaml, the Makefile and both mode files, and .env.example (0032, 0034); shipped scripts run on bash 3.2"
+    else
+        fail "dev-env templates" "$(echo "$problems" | tr '\n' ';')"
     fi
 }
 
@@ -1088,6 +1384,8 @@ check_links
 check_modules
 check_marketplace_snippets
 check_packaged_plugin
+check_plugin_workflow_paths
+check_plugin_committed_paths
 check_module_plugins
 check_install_scope
 check_install_prompt
@@ -1095,6 +1393,7 @@ check_lanes
 check_practices
 check_plugin
 check_mods
+check_dev_env_templates
 check_no_tracked_junk
 check_english
 check_directory_rules

@@ -33,7 +33,7 @@ if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf/docs" 2>/dev/n
   check "no reference docs in \`docs/\` — the plugin carries them" \
     "! ls docs 2>/dev/null | grep -qE '^($names)\.md\$'"
   check "the project's files link the reference docs at $release, none locally" \
-    "grep -q 'blob/$release/skeleton/docs/SPEC-MODEL.md' AGENTS.md && ! grep -qE '(^|[^/.A-Za-z0-9_-])docs/($names)\.md' AGENTS.md .claude/rules/claude-code.md CONTRIBUTING.md README.md specs/README.md specs/_templates/spec.md 2>/dev/null"
+    "grep -qE 'blob/$release/(skeleton|plugins/adf)/docs/SPEC-MODEL.md' AGENTS.md && ! grep -qE '(^|[^/.A-Za-z0-9_-])docs/($names)\.md' AGENTS.md .claude/rules/claude-code.md CONTRIBUTING.md README.md specs/README.md specs/_templates/spec.md 2>/dev/null"
   check "the settings let Claude read the plugin's folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if \"Read(~/.claude/plugins/cache/aplyca/adf/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
 fi
 if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf/skills/dispatch/SKILL.md" 2>/dev/null; then
@@ -48,7 +48,10 @@ for m in $modules; do
   p=$(git -C "$fw" show "$release:modules/$m/module.json" 2>/dev/null | python3 -c 'import json, sys; print(json.load(sys.stdin)["plugin"])' 2>/dev/null)
   [ -n "$p" ] && [ "$p" != adf ] || continue
   check "the settings turn on \`$p\` and let Claude read its folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if s.get(\"enabledPlugins\", {}).get(\"$p@aplyca\") is True and \"Read(~/.claude/plugins/cache/aplyca/$p/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
-  for skill in $(git -C "$fw" ls-tree --name-only "$release:modules/$m/files/.claude/skills" 2>/dev/null); do
+  # From v2.0.0 module.json lists the skills (decision 0028); before, they were in the module's files/.
+  skills=$(git -C "$fw" show "$release:modules/$m/module.json" 2>/dev/null | python3 -c 'import json, sys; print(" ".join(json.load(sys.stdin).get("skills", [])))' 2>/dev/null)
+  [ -n "$skills" ] || skills=$(git -C "$fw" ls-tree --name-only "$release:modules/$m/files/.claude/skills" 2>/dev/null)
+  for skill in $skills; do
     check "no committed \`/$skill\` — \`$p\` carries it (decision 0023)" "[ ! -e .claude/skills/$skill ]"
     check "\`DEV-SETUP.md\` names \`/$p:$skill\`" "grep -q '/$p:$skill' docs/getting-started/DEV-SETUP.md"
   done

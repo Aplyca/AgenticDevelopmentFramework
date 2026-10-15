@@ -24,6 +24,7 @@ ENV_CHECK_EXCLUDE=""
 CAREFUL_GLOBS=""
 TRIAGE_FIRST=""
 HUB_READONLY=""
+APPROVE_WORKTREE_MOVE="1"
 SPECS_DIR="specs"
 # in_words <word> <space-separated list> — exact membership.
 in_words() {
@@ -50,13 +51,26 @@ read_settings() {
     printf -v "$setting" '%s' "$value"
   done < <(cat "$file")
 }
+# worktree_settings <root> — print the parallel-agents module's settings file in <root>: ops/agent/,
+# or scripts/agent/ in a project that hasn't moved it there yet (decision 0032). Fails with neither.
+worktree_settings() {
+  local dir
+  for dir in ops/agent scripts/agent; do
+    if [ -f "$1/$dir/worktree.conf" ]; then
+      printf '%s\n' "$1/$dir/worktree.conf"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # The settings sit next to the scripts in a committed install. In the packaged install (the
 # adf plugin, decision 0016) the scripts come from the plugin and the settings stay the
 # project's: .claude/hooks/config.sh under CLAUDE_PROJECT_DIR.
 for config in "${CLAUDE_PLUGIN_ROOT}/hooks/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
   if [ -n "$config" ] && [ -f "$config" ]; then
     read_settings "$config" PROTECTED_BRANCHES APPEND_ONLY_GLOBS GENERATED_GLOBS CAREFUL_GLOBS TRIAGE_FIRST \
-      HUB_READONLY ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
+      HUB_READONLY APPROVE_WORKTREE_MOVE ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
     break
   fi
 done
@@ -119,7 +133,9 @@ repo_root_for() {
   git -C "$dir" rev-parse --show-toplevel 2>/dev/null
 }
 
+# block <reason> — stop the call. The hook is named, not its path: the scripts run from .claude/hooks/
+# in a committed install and from the adf plugin in a packaged one.
 block() {
-  echo "Blocked by .claude/hooks/$(basename "$0"): $1" >&2
+  echo "Blocked by the $(basename "$0" .sh) hook: $1" >&2
   exit 2
 }

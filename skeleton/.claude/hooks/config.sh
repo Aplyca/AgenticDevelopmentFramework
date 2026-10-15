@@ -31,6 +31,11 @@ TRIAGE_FIRST="1"
 # module it has no effect. Empty disables.
 HUB_READONLY="1"
 
+# A dispatched session moves from the main checkout into its task's worktree with the desktop app's
+# change_directory. "1" approves that move without a prompt when the folder is a worktree of this
+# repository; any other folder still prompts. Empty disables.
+APPROVE_WORKTREE_MOVE="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""
@@ -46,7 +51,12 @@ SPECS_DIR="specs"
 
 # CUSTOMIZE: the local environment's URL — what the developer opens for the local check before the
 # pull request. Claude Code shows it above the prompt, and whether it answers, with the adf-dev
-# plugin's mod. ${APP_PORT} is filled from the env file, for worktrees with a port each
-# (parallel-agents). Empty: the mod uses READY_URL from scripts/agent/worktree.conf, or shows nothing.
-# E.g. "http://localhost:3000".
+# plugin's mod. ${APP_PORT} is the env file's when it pins one; otherwise, with LOCAL_SERVICE set, the
+# port of the app on the host (native mode, ops/native/.run/app.env), or the port Docker picked for that
+# service, which the mod looks up with `docker compose port`. Empty: the mod uses READY_URL from
+# ops/agent/worktree.conf, or shows nothing.
+# E.g. 'http://localhost:${APP_PORT}', or "http://localhost:3000" for a fixed port.
 LOCAL_URL=""
+# CUSTOMIZE: the app's Compose service and the port it listens on inside its container, e.g.
+# "web:3000" — for a local environment whose host port Docker picks (the docker module).
+LOCAL_SERVICE=""

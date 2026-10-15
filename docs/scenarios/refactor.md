@@ -130,6 +130,6 @@ a0b1c2d refactor: add the content service over the shared client
 | Treating a structural decision as mechanical | Nobody checks the change surface; the next feature ignores the new boundary | Something to decide → spec folder, gate, maybe an ADR |
 | Hand-editing the lockfile when swapping a library | The hook blocks it, or the lockfile drifts from the manifest | Let the package manager regenerate it |
 
-**Reference:** [`/refactor`](../../skeleton/.claude/skills/refactor/SKILL.md) ·
-[`/record-decision`](../../skeleton/.claude/skills/record-decision/SKILL.md) ·
+**Reference:** [`/refactor`](../../plugins/adf/skills/refactor/SKILL.md) ·
+[`/record-decision`](../../plugins/adf/skills/record-decision/SKILL.md) ·
 [commit prefixes and phase order](../../skeleton/.claude/rules/git-workflow.md)

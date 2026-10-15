@@ -1,3 +1,6 @@
 {
-  "plugin": "adf-dev"
+  "plugin": "adf-dev",
+  "skills": [
+    "dev-env"
+  ]
 }

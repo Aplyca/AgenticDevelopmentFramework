@@ -49,7 +49,7 @@ echo '```'
 echo "### Settings and modules"
 echo '```'
 python3 -m json.tool .claude/settings.json > /dev/null 2>&1 && echo ".claude/settings.json: valid JSON" || echo ".claude/settings.json: missing or invalid"
-for f in GEMINI.md .gemini .agents .cursor evals .github/pull_request_template.md .githooks scripts/agent .mcp.json; do
+for f in GEMINI.md .gemini .agents .cursor evals .github/pull_request_template.md .githooks ops/agent scripts/agent .mcp.json; do
   [ -e "$f" ] && echo "present: $f" || echo "absent:  $f"
 done
 echo '```'

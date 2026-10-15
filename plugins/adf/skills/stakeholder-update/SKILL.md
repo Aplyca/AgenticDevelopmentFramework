@@ -48,10 +48,10 @@ Read these before writing; they hold what this skill doesn't hardcode:
    before a tool call can reach the developer only as a summary, and a question dialog's preview
    may not display.
 
-5. **Post it on the pull request** as a single comment, with the team note from the template on top
-   (Claude Code asks you to confirm `gh pr comment`). If the developer didn't ask for the update —
-   you started this yourself, say at the end of a delivery — ask before posting. For revisions, edit that same comment instead
-   of adding new ones:
+5. **Post it on the pull request** as a single comment, with the team note from the template on top,
+   once the developer approves the draft in chat. No permission prompt confirms `gh pr comment`, so
+   ask before posting, even when they asked for the update. For revisions,
+   edit that same comment instead of adding new ones:
    `gh api -X PATCH repos/<owner>/<repo>/issues/comments/<id> -F body=@<file>`.
    With no pull request — an answer-only task — the draft in chat is the deliverable.
 
