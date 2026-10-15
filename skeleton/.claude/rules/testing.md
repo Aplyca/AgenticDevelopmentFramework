@@ -69,8 +69,10 @@ lanes.
   whole suite on every step. **Run the full gate once**, before delivery.
 - **Keep output short:** a quiet or dot reporter, failures only, `| tail -n 40`. Everything a command
   prints stays in the conversation and is paid for on every later call.
-- **End-to-end and browser checks** run when the change touches that flow or the developer asks; the
-  human QC on the preview remains the real check of how it looks and feels.
+- **End-to-end and browser checks** run when the change touches that flow or the developer asks —
+  locally first, then, for a browser check, on the pull request's preview once it deploys
+  (`AGENTS.md` § Delivery rules). The end-to-end suite runs only locally. The human QC on the preview
+  remains the real check of how it looks and feels.
 
 ## End-to-end
 End-to-end tests drive the app the way a person does — a browser, the pages, the server behind them.

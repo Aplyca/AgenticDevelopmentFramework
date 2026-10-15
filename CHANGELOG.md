@@ -54,6 +54,27 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Templates:** merge for `dev-env`'s `ops/docker/Makefile` and `ops/native/Makefile` — the
     filters, and the `format` and `typecheck` tasks.
 
+- **An agent checks a change locally first, then on the pull request's preview**
+  ([decision 0039](docs/decisions/0039-check-locally-then-on-the-preview.md)).
+  - **Locally first:** before the developer's local check and before any push, the agent walks the
+    changed flow on its checkout's own environment.
+  - **Then the preview:** when the project has previews and the change is something a person sees or
+    uses, it waits for the draft's preview in the background and walks the same flow there,
+    read-only, in a browser — never the end-to-end suite. It records what it saw in the pull
+    request's *Preview* line, and brings any difference from local to the developer.
+  - **Not the QC:** the developer's check on the preview still decides ready.
+  - **Where:** `AGENTS.md` § Delivery rules and § Quick reference (a *Preview* line), `/open-pr`
+    (a step 7, and the body's *Preview* line), and the testing and git-workflow rules. With
+    `github`, the pull request template gains *Local check* and *Preview* lines.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `AGENTS.md` — the new delivery rule, the browser-checks line under
+    § Working economically, and § Quick reference's *Preview* line, which the team fills in (or
+    "none") — and for `.claude/rules/testing.md` and `.claude/rules/git-workflow.md`.
+  - **With `github`:** merge for `.github/pull_request_template.md`.
+  - **Committed install:** overwrite for `.claude/skills/open-pr/`, written by
+    `scripts/build-committed.py`.
+
 
 ## v2.2.0 — 2026-10-14 — Worktree moves without a prompt, `/wrap-up` after a merge, and end-to-end tests to a specification
 

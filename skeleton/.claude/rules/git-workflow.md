@@ -75,7 +75,10 @@ protected branch.
   developer tests it by hand on the local environment and approves it before the pull request
   opens (`AGENTS.md` § Delivery rules).
 - **Open as a draft.** Promote to ready only after a human has exercised the change (preview,
-  manual QC). An agent never marks a pull request ready on its own initiative — it hasn't seen the
+  manual QC).
+- **Check it on the preview too.** Once the draft's preview deploys, the agent walks the changed flow
+  there, read-only, after its local check, and adds what it saw to the description
+  (`AGENTS.md` § Delivery rules). An agent never marks a pull request ready on its own initiative — it hasn't seen the
   result; it runs `gh pr ready` only when the developer, having QC'd the change, asks it to.
 - **Title:** a commit-style subject under 70 characters.
 - **Body:** the spec folder path and the tracker task link; what changed and why; how to verify;
