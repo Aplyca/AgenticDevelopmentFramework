@@ -122,7 +122,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    healthy where it has a check. After a Dockerfile change, `make build` first.
 4. **Verify it works:** `curl -fsS` on the app's URL from `make urls` (its health route or home page),
    and the project's quickest test that needs the stack passes against it. With a dev command for the
-   host, Mode: native too, in the mode the project doesn't default to.
+   host, Mode: native too, in the mode the project doesn't default to — set up is the developer's
+   request to check every mode, and each run in the other mode prompts (M10).
 5. **Write down what you verified** — a docs change, so it goes through triage too:
    - `DEV-SETUP.md`: the Docker row of Prerequisites, § 3 `make env`, § 4 `make up` and `make urls`
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
@@ -182,7 +183,9 @@ services in Docker. Both define the same tasks.
 1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
    stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
    developer's file, which they edit; never read it into the conversation. A single command can
-   override both: `make up DEV_MODE=native`. `make help` names the mode and the file in force.
+   override both — `make up DEV_MODE=native` — and that override is for people: an agent runs every
+   task in the configured mode, unless the developer asks for another in this task (M10). `make help`
+   names the mode and the file in force.
 2. **What native mode needs,** in `ops/native/Makefile`:
    - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
@@ -272,6 +275,7 @@ reset in the main checkout of a hub.
 | "`env_file: .env` passes everything at once" | Every container gets every variable, credentials included, and nothing says which service needs what. Each service's `environment:` names what it gets. |
 | "`make *` is allowed, so any task is safe to run" | The allow trusts the project's Makefile; only the ask rules stop a task. A task that deletes data under another name, or a `logs` that follows, needs fixing or its own ask rule (C9). Check the task (`make -n <task>`) before you run one you haven't read. |
 | "`make run cmd=\"yarn test src/x.test.ts\"` is the quickest way to run one test" | It's a command of your own through the developer's escape hatch, so it asks every time. `make test t=src/x.test.ts` runs the same thing through the task. When no task does what you need, that's a gap to add (C10). |
+| "It's quicker to run the tests with `DEV_MODE=native`" | The mode is the developer's choice (M10). Run every task in the configured mode; if one can't run there, say what it needs and ask. |
 | "`make reset` will fix the migration error" | It's `docker compose down -v`: it deletes the data. It's the last step, not the first; find the cause, and reset only as far as it needs. |
 | "It started on the second try, so it's fixed" | A retry that works hides a race — usually a missing healthcheck or `depends_on` condition. Find why the first one failed. |
 
@@ -281,6 +285,7 @@ reset in the main checkout of a hub.
 - A command names no project but would touch every project
 - You're following logs, or about to read `.env` or a resolved config
 - You're about to publish a fixed host port, or one on every interface
+- You're about to set `DEV_MODE` or `SERVICES` the developer didn't ask for
 - You're editing `compose.yaml`, the `Makefile`, or `ops/` before triage
 - The fix you're about to run deletes something, and the developer hasn't said yes
 

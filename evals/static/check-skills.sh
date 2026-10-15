@@ -631,7 +631,8 @@ fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
 decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
 decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
-                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)"}}
+                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)",
+                           "Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)"}}
 try:
     permissions = json.load(open(fragment)).get("permissions", {})
     allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
@@ -784,6 +785,9 @@ check_practices() {
     python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and {"Bash(make *reset*)","Bash(make run *)","Bash(docker inspect *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks by name (C9, C10, 0038)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")

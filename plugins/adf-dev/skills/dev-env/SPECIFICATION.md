@@ -131,6 +131,13 @@ a project misses. A project that departs from one on purpose records it, with th
   app — Docker's `up` stops a native app; native `up` stops the app's container.
 - **M9.** The same task names in every mode (C3) mean an agent, a worktree's `START_CMD`, and
   `AGENTS.md` § Quick reference never need to know which mode a developer chose.
+- **M10.** **An agent runs every task in the mode this checkout is configured for.** It never sets
+  `DEV_MODE` or `SERVICES` on the command line or in the shell, and never changes them in `.env` or
+  `DEFAULT_MODE` in the `Makefile`, unless the developer asks for that mode in this task. Choosing
+  the mode is the developer's (M1, M5). A task that can't run in the configured mode is reported,
+  with what it needs, and the developer decides. The docker module asks before any `make` command
+  that sets either one (`Bash(make *DEV_MODE=*)`, `Bash(make *SERVICES=*)`), so an override the
+  developer asked for is approved, and any other is seen.
 
 ## Ports — `P`
 
@@ -225,7 +232,9 @@ each gap as the requirement's ID, what the project has, and the change:
 1. **Layout:** L1–L7.
 2. **Command surface:** C1–C10, and the mode files define every task in C3.
 3. **Modes:** M1–M3 read by `make help` and `make help DEV_MODE=<each mode>`; M4–M8 by running
-   `make up`, `make urls`, `make ps`, and `make down` in each mode the project uses.
+   `make up`, `make urls`, `make ps`, and `make down` in each mode the project uses; M10 by the
+   ask rules. The audit's runs in a mode other than the configured one are the developer's request
+   (they asked for the audit), and each one prompts.
 4. **Ports, Compose, variables:** P1–P7, D1–D4, V1–V4.
 5. **Worktrees,** with parallel-agents: W1–W3.
 6. **Deployment targets:** T1–T2.

@@ -280,7 +280,10 @@ cases = {
     "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
     "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
-    "make lint f=src/a.ts": "allow", "make up DEV_MODE=native": "allow",
+    "make lint f=src/a.ts": "allow",
+    # The mode is the developer's (SPECIFICATION.md M10): overriding it on a command asks.
+    "make up DEV_MODE=native": "ask", "make e2e DEV_MODE=native": "ask", "make test DEV_MODE=docker": "ask",
+    "make up SERVICES=none": "ask",
     "docker compose run --rm web yarn test": "allow", "docker compose exec -T web sh": "allow",
     "DEV_MODE=native make up": "prompt",
 }

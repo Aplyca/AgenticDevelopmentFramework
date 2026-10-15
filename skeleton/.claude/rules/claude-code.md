@@ -41,8 +41,11 @@ Project-specific values (protected branches, append-only paths, the env template
 
 An allow rule matches a command as written, so write each command the way a rule can read it.
 Claude Code asks about anything it can't check, even when the command itself is allowed.
-- **Use the project's tasks:** `make test t=<file>`, `make lint f=<file>`, `make up DEV_MODE=native`
-  — a variable goes after the task, never as a leading `VAR=value`.
+- **Use the project's tasks:** `make test t=<file>`, `make lint f=<file>`, `make logs s=web` — a
+  variable goes after the task, never as a leading `VAR=value`.
+- **Run them in the configured mode.** With the docker module, never set `DEV_MODE` or `SERVICES`
+  on a command, or change them in `.env` or the `Makefile`, unless the developer asks for that mode:
+  choosing it is theirs. A task that can't run in it is a question for them.
 - **Write paths out.** No `S=/path; … $S/…`: an allow rule doesn't match past an assignment, and a
   path in a variable can't be checked.
 - **Stay in this checkout:** run `git` from the session's folder, not `git -C <path>`, and `cd` only

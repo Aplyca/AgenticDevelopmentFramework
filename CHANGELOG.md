@@ -34,11 +34,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
       shorten output with a pipe.
 
+  - **The mode is the developer's** (decision 0034, amended; `dev-env`'s M10). An agent runs every
+    task in the mode the checkout is configured for, and never sets `DEV_MODE` or `SERVICES` on a
+    command, or changes them in `.env` or the `Makefile`, unless the developer asks. The docker
+    module asks before any `make` command that sets either one. `claude-code.md` and
+    `deployment.md` say so, and the `DEV_MODE=native` example agents copied is gone.
+
   **Upgrade impact:**
   - **Every project:** merge for `.claude/settings.json` — the git and gh rules: keep the project's
     own rules, and drop the old narrow git and gh allows `git *` and `gh *` now cover — and for
     `.claude/rules/claude-code.md` (the new section and a guardrails row).
   - **With `docker`:**
+    - Merge for `.claude/rules/deployment.md`, whose § Docker gains the line on the mode.
     - `/adf:upgrade` reruns `modules/docker/install.sh`, which merges the new allows and the
       `make run` ask rule. Before it does, it lists any project task that deletes data under another
       name, or follows a log, and adds an ask rule for it or fixes it in the same change.

@@ -23,7 +23,9 @@
       "Bash(docker *exec *env*)",
       "Bash(docker compose run *env*)",
       "Bash(make *reset*)",
-      "Bash(make run *)"
+      "Bash(make run *)",
+      "Bash(make *DEV_MODE=*)",
+      "Bash(make *SERVICES=*)"
     ]
   }
 }

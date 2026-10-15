@@ -44,7 +44,7 @@ projects.
 | [0031](0031-agent-model-overrides-in-the-project-rule.md) | A project changes an agent's model in its own rule, which the session passes when it spawns the agent | accepted |
 | [0032](0032-local-environment-layout.md) | A project's local environment: `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks | accepted; amended by 0034, 0038 |
 | [0033](0033-pull-request-upkeep-without-prompts.md) | An agent pushes, opens, edits, and comments on its draft pull request without a prompt | accepted; amended by 0038 |
-| [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted |
+| [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted; amended 2026-10-15 |
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted |
