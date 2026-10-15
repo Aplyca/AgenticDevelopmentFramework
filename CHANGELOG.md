@@ -20,6 +20,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     read-only, in a browser — never the end-to-end suite. It records what it saw in the pull
     request's *Preview* line, and brings any difference from local to the developer.
   - **Not the QC:** the developer's check on the preview still decides ready.
+  - **No nudges:** an agent doesn't ask or remind the developer to review, ready, or merge a pull
+    request, doesn't offer to, and doesn't request reviewers (`AGENTS.md`, `git-workflow.md`,
+    `/open-pr`'s report).
   - **Where:** `AGENTS.md` § Delivery rules and § Quick reference (a *Preview* line), `/open-pr`
     (a step 7, and the body's *Preview* line), and the testing and git-workflow rules. With
     `github`, the pull request template gains *Local check* and *Preview* lines.

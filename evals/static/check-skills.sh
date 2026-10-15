@@ -690,6 +690,8 @@ check_practices() {
     file_contains "$AGENTS_MD" 'Check locally first, then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
     file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Don't ask or remind the developer" || missing+=("/open-pr: the report doesn't nudge the developer to review, ready, or merge (0039)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, readying, and merging are the developer' || missing+=("git-workflow rule: no nudges to review, ready, or merge (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
