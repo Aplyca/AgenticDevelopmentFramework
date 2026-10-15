@@ -34,6 +34,10 @@ there cost a deploy round-trip. The preview is shared, and it can reach real ser
   step off.
 - **Evidence, not the QC.** The developer's check on the preview still decides ready, and the agent
   never marks a pull request ready (0005).
+- **No nudges.** An agent doesn't ask or remind the developer to review, ready, or merge a pull
+  request, doesn't offer to, and doesn't request reviewers. In the adopting project, agents ended
+  task after task with "review it, mark it ready", or "mark it ready yourself, or ask me to".
+  When those happen is the developer's.
 
 ## Consequences
 
