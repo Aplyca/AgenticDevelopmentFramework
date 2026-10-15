@@ -22,8 +22,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       they're given, each of which has an ask rule. No task waits for input or follows a log.
     - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
   - **The docker module** allows `docker *` and `make *`, and asks by name before what must still
-    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker run`,
-    `docker push`, what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec`
+    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker push`, what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec`
     that names `env`), and `make run`. An ask rule wins over any
     allow rule.
   - **The skeleton:**

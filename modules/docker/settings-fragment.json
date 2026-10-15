@@ -17,7 +17,6 @@
       "Bash(docker * rm *)",
       "Bash(docker * prune)",
       "Bash(docker * prune *)",
-      "Bash(docker run *)",
       "Bash(docker push *)",
       "Bash(docker inspect *)",
       "Bash(docker compose config)",

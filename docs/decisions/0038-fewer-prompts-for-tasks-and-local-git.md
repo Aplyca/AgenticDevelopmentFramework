@@ -39,8 +39,6 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
 - **Allow broadly, and name only what must ask (C9).** An ask rule wins over any allow rule, so
   the docker module allows `Bash(docker *)` and `Bash(make *)`, and lists the exceptions:
   - what deletes data: `compose down -v` or `--rmi`, `rm`, `rmi`, `prune`, and `make reset`;
-  - what reaches the host: `docker run`, whose mounts reach the host's files (agents use
-    `docker compose run`);
   - what leaves the machine: `docker push`;
   - what prints secrets: `docker inspect`, a bare `docker compose config`, and an `exec` or
     `compose run` that names `env`;
@@ -91,6 +89,9 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   - **A secret can still reach the conversation** through a form the ask rules don't name, such as
     `docker compose config --format json`. `/dev-env`'s safety rules and the specification (V4) say
     never to print one; the rules catch the usual forms.
+  - **`docker run` runs without a prompt** (the developer's choice). With a mount (`-v /:/host`) or
+    `--privileged`, a container reaches the host's files: Docker access is root-equivalent on
+    Linux. `/dev-env` and agents use `docker compose run` for the project's containers.
   - **An agent can discard uncommitted work, or post on an issue, without a prompt.** The rules say
     it does neither unasked, and a mistake there is the cost of this choice.
   - **`git`, `gh`, and `docker` run without a prompt but for the named exceptions.** That includes
