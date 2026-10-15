@@ -266,13 +266,15 @@ cases = {
     "docker system df": "allow",
     "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
     "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
-    # The Makefile's targets: reset deletes the stack's volumes, and a task that runs a command it's
-    # given asks (C10). The module allows no make task: what one runs is the project's own, so
-    # /dev-env set up allows each task once it has checked it (SPECIFICATION.md C9, decision 0038).
+    # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
+    # containers' commands, but reset deletes the stack's volumes and run runs any command it's given.
     "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
     "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
-    "make help": "prompt", "make ps": "prompt", "make urls": "prompt", "make logs": "prompt",
-    "make ps down": "prompt", "make up": "prompt", "make down": "prompt", "make native": "prompt",
+    "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
+    "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
+    "make lint f=src/a.ts": "allow", "make up DEV_MODE=native": "allow",
+    "docker compose run --rm web yarn test": "allow", "docker compose exec -T web sh": "allow",
+    "DEV_MODE=native make up": "prompt",
 }
 for command, expected in cases.items():
     if verdict(command) != expected:
@@ -321,7 +323,8 @@ check "make reset: deletes the volumes, after the worktree guard" \
 out=$(stack make -n logs 2>&1)
 check "make logs: the last lines, never followed" \
     "echo \"\$out\" | grep -q -- '--tail 100 --no-color' && ! echo \"\$out\" | grep -qE -- ' -f( |\$)|--follow'"
-# C9: every task /dev-env may allow exists in both modes and deletes nothing; logs never follows.
+# C9: Bash(make *) allows every task, so the templates' tasks but reset exist in both modes, delete
+# nothing, and never follow a log.
 c9=""
 for mode in docker native; do
     for task in help env up down build ps logs urls test lint format typecheck $( [ "$mode" = native ] && echo services ); do
@@ -334,7 +337,7 @@ for mode in docker native; do
         done <<< "$out"
     done
 done
-check "C9: the templates' tasks that may be allowed exist in both modes and delete nothing; logs never follows" "[ -z \"$c9\" ]"
+check "C9: the templates' tasks but reset exist in both modes, delete nothing, and never follow a log" "[ -z \"$c9\" ]"
 [ -z "$c9" ] || echo "    $c9"
 out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
 check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
@@ -444,7 +447,7 @@ def verdict(command):
 cases = {
     "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
     "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
-    "make up": "prompt", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
     "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
 }
 for command, expected in cases.items():
@@ -452,7 +455,7 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "e2e rules: the suite runs without a prompt; nothing else does, and reset still asks" "[ -z \"\$verdicts\" ]"
+check "e2e rules: the suite runs without a prompt, beside the docker module's, and reset still asks" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 # The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
 HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"

@@ -606,15 +606,22 @@ PY
         [ -f "$fragment" ] || continue
         name=$(basename "$(dirname "$fragment")")
         # A module may pre-approve MCP tools and commands only if they read: a write must always
-        # prompt, and so must a command that prints secrets.
-        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" <<'PY'
+        # prompt, and so must a command that prints secrets. The one exception is decided: the docker
+        # module allows its tasks and its containers' commands broadly and asks by name before
+        # what deletes data or runs any command it's given (decision 0038) — those asks must be there.
+        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" "$name" <<'PY'
 import json, re, sys
-fragment, mcp = sys.argv[1], sys.argv[2]
+fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
+decided = {"docker": {"Bash(make *)", "Bash(docker compose run *)", "Bash(docker compose exec *)"}}
+decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)"}}
 try:
-    allow = json.load(open(fragment)).get("permissions", {}).get("allow", [])
+    permissions = json.load(open(fragment)).get("permissions", {})
+    allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
+for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
+    out.append(f"allows broadly, so must ask before {ask} (0038)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
 changes = re.compile(r"\b(down|rm|rmi|prune|kill|stop|restart|start|exec|run|up|build|pull|push|cp|create|inspect|login|delete|remove)\b")
 for rule in allow:
@@ -641,7 +648,7 @@ print("; ".join(out))
 PY
 )
         if [ -z "$problems" ]; then
-            pass "module '$name': pre-approves read-only MCP tools and commands only; no credentials in .mcp.json"
+            pass "module '$name': pre-approves read-only MCP tools and commands only, or what decision 0038 names with its asks; no credentials in .mcp.json"
         else
             fail "module '$name': $problems"
         fi
@@ -754,10 +761,10 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
-    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: a make task is allowed only once its project's task passes the check (C9, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs but the ones that delete data or run a command, which ask (C9, 0038)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
-    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'only after its task passes C9' || missing+=("/dev-env: adds the make allows only after checking the tasks (C9)")
-    ! grep -q '"Bash(make ' <(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["permissions"]["allow"])' "$MODULES_DIR/docker/settings-fragment.json") || missing+=("docker module: allows no make task — what one runs is the project's own (C9)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: proposes an ask rule for a project task that deletes data (C9)")
+    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if "Bash(make *)" in p["allow"] and {"Bash(make *reset*)","Bash(make run *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make *, and asks before reset and run (C9, C10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")

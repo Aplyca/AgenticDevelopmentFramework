@@ -107,9 +107,10 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - a `test` without `t=`, or a `lint` without `f=`, so agents reach for a command of their own;
    - a task that runs a command it's given (`make run cmd="…"`) without an ask rule, or one agents
      use for something a named task should do (C10) — each such use becomes a task;
-   - a `make` task allowed in `.claude/settings.json` that fails C9 — a `logs` that follows, a task
-     that's missing in a mode. Take the rule out in this same change, until the task passes: an agent
-     that runs a following `logs` waits until its timeout.
+   - a task that deletes data under a name other than `reset` (`db-drop`, a `clean` that removes
+     volumes) with no ask rule, while `Bash(make *)` allows it (C9);
+   - a task that waits for input or never returns, such as a `logs` that follows (C9): an agent that
+     runs it waits until its timeout.
 
    The migration is an infrastructure change: propose it through `/adf:triage` (the careful lane),
    and move nothing before the developer approves. It moves files with `git mv`, adds the template's
@@ -132,12 +133,10 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      Docker picked;
    - `deployment.md`: `paths:` naming `compose.yaml`, `Makefile`, `ops/**`, and `.env.example`, and in
      § Docker any convention the project adds;
-   - `.claude/settings.json`: in `permissions.allow`, `Bash(make <task>)` and `Bash(make <task> *)`
-     for each task that passes C9 — every C3 task but `reset`, and `help`, `env`, and `services` —
-     only after its task passes C9 in every mode the project uses (`make -n <task>`, then
-     `make -n <task> DEV_MODE=native`), so agents run them without a prompt; and in
-     `permissions.ask`, a rule for any task that runs a command it's given (C10). It's a permission
-     change: name it in the change the developer approves.
+   - `.claude/settings.json`: in `permissions.ask`, `Bash(make <task>*)` for each project task that
+     deletes data under a name other than `reset`, or runs a command it's given under a name other
+     than `run` (C9, C10). The docker module already allows `Bash(make *)` and asks before `reset`
+     and `run`. It's a permission change: name it in the change the developer approves.
 
    § Troubleshooting gets only problems you actually met. For example, the newsletter site: `web`
    (the Next.js app, on container port 3000) and `redis` (the signup rate limiter), started with
@@ -271,7 +270,7 @@ reset in the main checkout of a hub.
 | "`3000:3000` is simpler — everyone knows the port" | Only one stack can hold it, so a second worktree's fails to start. Docker picks a free port and `make urls` shows it; a developer who wants a fixed one pins it in their `.env`. |
 | "A fixed `container_name` makes it predictable" | It makes a second worktree's stack fail to start. The checkout's folder names the project. |
 | "`env_file: .env` passes everything at once" | Every container gets every variable, credentials included, and nothing says which service needs what. Each service's `environment:` names what it gets. |
-| "`make logs` is allowed, so it's safe to run" | The rule trusts the project's task. One that follows never returns, and an agent waits until its timeout. C9 checks it with `make -n logs` before the rule goes in. |
+| "`make *` is allowed, so any task is safe to run" | The allow trusts the project's Makefile; only the ask rules stop a task. A task that deletes data under another name, or a `logs` that follows, needs fixing or its own ask rule (C9). Check the task (`make -n <task>`) before you run one you haven't read. |
 | "`make run cmd=\"yarn test src/x.test.ts\"` is the quickest way to run one test" | It's a command of your own through the developer's escape hatch, so it asks every time. `make test t=src/x.test.ts` runs the same thing through the task. When no task does what you need, that's a gap to add (C10). |
 | "`make reset` will fix the migration error" | It's `docker compose down -v`: it deletes the data. It's the last step, not the first; find the cause, and reset only as far as it needs. |
 | "It started on the second try, so it's fixed" | A retry that works hides a race — usually a missing healthcheck or `depends_on` condition. Find why the first one failed. |
@@ -293,7 +292,7 @@ reset in the main checkout of a hub.
 - [ ] No secret was printed: no unfiltered `config`, no `inspect` of the environment, no `.env`
 - [ ] Every destructive step was scoped to this project, named what it removed, and had the developer's yes
 - [ ] `make urls` shows each published service, answering
-- [ ] Each `make` task `.claude/settings.json` allows passes C9 in every mode — it exists, deletes nothing, and `logs` never follows
+- [ ] Every task that deletes data or runs a command it's given has an ask rule, and no task waits for input or follows (C9, C10)
 - [ ] `make test t=<file>` and `make lint f=<file>` run just that file
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
 - [ ] With a dev command for the host: in native mode `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it

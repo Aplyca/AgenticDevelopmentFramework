@@ -88,14 +88,13 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** `.claude/settings.json` pre-approves a task — `Bash(make <task>)` and `Bash(make <task> *)`
-  — only once this project's task passes a check, in every mode the project uses: it exists, and
-  `make -n <task>` (with `DEV_MODE=<mode>` for each) shows it does what C3 says and deletes nothing
-  — no `down -v`, `rm -rf`, or `prune`, and `logs` with `--tail` and no `-f` or `--follow`, which
-  would never return. The tasks that can pass are every C3 task but `reset`, and `help`, `env`, and
-  native mode's `services`. A task that fails the check has no rule, so it prompts, and a change to
-  an allowed task gets the check again. The docker module allows no `make` task itself; it asks
-  before any `make` command that names `reset`.
+- **C9.** Every task runs without a prompt except the ones that delete data or run a command
+  they're given. `.claude/settings.json` allows `Bash(make *)` and asks before each exception — an
+  ask rule wins over any allow rule. The docker module adds the allow and the asks for `reset`
+  (`Bash(make *reset*)`) and `run` (`Bash(make run *)`, C10). A project task that deletes data under
+  another name (`db-drop`, a `clean` that removes volumes) gets an ask rule of its own,
+  `Bash(make <task>*)`. No task waits for input or never returns — `logs` with `--tail`, never `-f`
+  or `--follow` — so an agent that runs one is never left waiting.
 - **C10.** A task that runs a command it's given — `make run cmd="…"`, `make exec` — is for people.
   `.claude/settings.json` asks before it (`Bash(make run *)`), and agents use the named tasks. A
   command agents keep needing that no task covers is a gap: it becomes a task of its own.

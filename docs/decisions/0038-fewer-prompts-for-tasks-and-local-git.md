@@ -1,4 +1,4 @@
-# 0038: A project's make tasks and local git work run without a prompt, once they're checked
+# 0038: Allow broadly, ask by name: make tasks and local git work run without a prompt
 
 - **Status:** accepted
 - **Date:** 2026-10-15
@@ -36,15 +36,14 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   - C10: a task that runs a command it's given, such as `make run cmd="…"`, is for people. It asks
     (`Bash(make run *)`, which the docker module adds), and a command agents keep needing becomes a
     task of its own.
-- **A make task runs without a prompt once it's checked (C9).** The docker module allows no `make`
-  task itself. `/dev-env set up` adds `Bash(make <task>)` and `Bash(make <task> *)` for each task
-  that passes the check, in every mode the project uses:
-  - it exists;
-  - `make -n` shows it does what C3 says, and deletes nothing;
-  - `logs` never follows.
+- **Allow broadly, and name only what must ask (C9).** An ask rule wins over any allow rule, so
+  the docker module allows every task and the containers' commands, and lists the exceptions:
+  - allowed: `Bash(make *)`, `Bash(docker compose run *)`, `Bash(docker compose exec *)`, and the
+    read-only Docker commands it allowed before;
+  - asked: `make reset`, `make run`, and the destructive Docker commands, as before.
 
-  The tasks that can pass are every C3 task but `reset`, plus `help`, `env`, and native mode's
-  `services`. `reset` always asks. `/adf:upgrade` removes an old rule whose task fails the check.
+  A project task that deletes data under another name gets an ask rule of its own, which
+  `/dev-env set up` proposes and `/adf:upgrade` lists. No task waits for input or follows a log.
 - **Local git work runs without a prompt.** The skeleton allows:
   - `git add`, `git commit`, and `git switch`;
   - `git fetch`, and `git pull --ff-only`.
@@ -67,24 +66,25 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
     prompts left mean something.
   - An agent runs the one test or file it changed through the project's task, as
     `.claude/rules/testing.md` § Verification budget asks.
-  - A task that would hang an agent never gets a rule.
+  - The settings say plainly what still asks: a short list of names.
 - **Negative / cost:**
-  - **An allow rule trusts the project's Makefile.** A rule matches the command, not what it runs: an
-    allowed `make test` runs whatever the task says. The check runs when the rule goes in, and again
-    when the task changes. A reviewer reading a Makefile change reads it as code that runs without a
-    prompt.
+  - **`Bash(make *)` trusts the project's Makefile.** A rule matches the command, not what it runs:
+    `make test` runs whatever the task says. A task that deletes data under a new name runs without a
+    prompt until its ask rule goes in, so a reviewer reads a Makefile change as code that runs
+    without one.
+  - **`docker compose run` and `exec` run any command in the project's containers** without a
+    prompt. The containers hold the project's code and data, not the host's.
   - **`git commit` runs without a prompt.** A commit is local and easy to undo, and the hooks still
     hold the line on protected branches and skipped checks.
-  - **Until `/dev-env set up` runs, a project with the docker module prompts for every make task.**
-    Before, four were allowed in every project. The upgrade names the step.
   - **The command-writing rules are instructions, not enforcement.** An agent can still write a
     command no rule reads. It then prompts, which is the safe failure.
 
 ## Alternatives considered
 
-- **Allow `make *` in the module.** Declined. It would pre-approve a task that deletes data, a
-  following `logs`, and `make run`'s arbitrary commands. Ask rules cover `reset` and `run`, but not
-  a project's own destructive task under another name.
+- **Allow each task by name, after a check** (`make -n` shows it exists in every mode and deletes
+  nothing). Tried first in this change, and declined. It needs a rule per task and a step that adds
+  them, and every new task prompts until that step runs again. Naming the few exceptions is
+  simpler, and the ask rule beats the allow either way.
 - **Allow the package manager** (`npm *`, `yarn *`). Declined. It would pre-approve installs and
   arbitrary scripts, and the framework names no stack. The tasks cover the commands agents need.
 - **Allow the shell forms** (`python3 -`, `for`). Declined. They run anything. The tools do the same

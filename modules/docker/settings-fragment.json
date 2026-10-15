@@ -16,7 +16,10 @@
       "Bash(docker ps *)",
       "Bash(docker volume ls)",
       "Bash(docker volume ls *)",
-      "Bash(docker system df)"
+      "Bash(docker system df)",
+      "Bash(make *)",
+      "Bash(docker compose run *)",
+      "Bash(docker compose exec *)"
     ],
     "ask": [
       "Bash(docker compose down *-v*)",

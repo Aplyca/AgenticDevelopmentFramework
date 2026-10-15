@@ -18,11 +18,12 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **`dev-env`'s specification:**
     - **C3:** `test` takes `t=<filter>` and `lint` takes `f=<files>`, and each mode adds `format` and
       `typecheck`.
-    - **C9:** a `make` task gets an allow rule only once this project's task passes a check in every
-      mode: it exists, deletes nothing, and `logs` never follows. `/dev-env set up` adds the rules;
-      every task but `reset` can pass.
+    - **C9:** every task runs without a prompt but the ones that delete data or run a command
+      they're given, each of which has an ask rule. No task waits for input or follows a log.
     - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
-  - **The docker module** allows no `make` task itself, and asks before `make run`.
+  - **The docker module** allows `make *`, `docker compose run`, and `docker compose exec`, and asks
+    before `make reset`, `make run`, and the destructive Docker commands, as before. An ask rule wins
+    over any allow rule.
   - **The skeleton:**
     - `.claude/settings.json` allows `git add`, `git commit`, `git switch`, `git fetch`, and
       `git pull --ff-only`, and asks before `git add .`, `git add -A`, and `git commit --amend`;
@@ -34,12 +35,11 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Every project:** merge for `.claude/settings.json` (the git rules) and for
     `.claude/rules/claude-code.md` (the new section and a guardrails row).
   - **With `docker`:**
-    - `/adf:upgrade` checks the `make help`, `ps`, `urls`, and `logs` allows the module merged before.
-      It removes any whose task fails C9, and reruns `modules/docker/install.sh` for the `make run`
-      ask rule.
-    - Then `/adf-dev:dev-env set up` audits the Makefile: it adds `t=`, `f=`, `format`, and
-      `typecheck`, and the allow rules for each task that passes C9.
-    - Until it runs, make tasks the project hasn't allowed itself prompt.
+    - `/adf:upgrade` reruns `modules/docker/install.sh`, which merges the new allows and the
+      `make run` ask rule. Before it does, it lists any project task that deletes data under another
+      name, or follows a log, and adds an ask rule for it or fixes it in the same change.
+    - Then `/adf-dev:dev-env set up` audits the Makefile and adds `t=`, `f=`, `format`, and
+      `typecheck`.
   - **Templates:** merge for `dev-env`'s `ops/docker/Makefile` and `ops/native/Makefile` — the
     filters, and the `format` and `typecheck` tasks.
 
