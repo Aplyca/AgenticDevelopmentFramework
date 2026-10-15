@@ -146,9 +146,13 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.2.0** (2026-10-14), is a minor release. A dispatched session moves into its
-worktree without a prompt, `/wrap-up` closes up a task once its pull request merges, and the `e2e`
-module sets up end-to-end tests to a specification. **v2.1.0** (2026-10-10), also a minor release,
+The latest, **v2.3.0** (2026-10-15), is a minor release. Agents prompt less — make, docker, git,
+and gh run broadly, and only named commands ask — and they stay in the configured local mode. An
+agent checks a change locally, then on the preview, and never nudges you to review, ready, or merge.
+A dispatched worker's worktree sits beside the main checkout. **v2.2.0** (2026-10-14), also a minor
+release, moves a dispatched session into its worktree without a prompt, closes up a task with
+`/wrap-up` once its pull request merges, and adds the `e2e` module for end-to-end tests to a
+specification. **v2.1.0** (2026-10-10), also a minor release,
 runs the local environment in Docker or natively by a setting, `ops/` has one folder per target, and
 the `docker` module's rules are a specification with IDs that `/dev-env` audits a stack against. The
 main checkout dispatches without asking first, and an agent keeps its draft pull request current

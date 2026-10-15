@@ -11,6 +11,36 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.3.0 — 2026-10-15 — Fewer prompts, local then preview checks, and worktrees beside the main checkout
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. The changes come from testing the framework in an adopting project.
+
+- **Fewer prompts** (0038). `make`, `docker`, `git`, and `gh` run without a prompt, and only named
+  commands ask: what deletes data, pushes, prints secrets, readies or merges a pull request, or
+  releases. Agents run every task in the configured local mode and never switch it themselves
+  (0034, amended).
+- **Locally first, then on the preview** (0039). An agent walks the changed flow on its own checkout
+  before the local check, then, once the draft's preview deploys, walks it there read-only and
+  records what it saw. It never asks or reminds you to review, ready, or merge.
+- **Worktrees beside the main checkout** (0040). With `parallel-agents`, a worker that starts in the
+  desktop app's own worktree creates the task's worktree beside the main checkout and moves there,
+  instead of working nested inside the project.
+
+**Upgrading from v2.2.0:**
+
+1. **Run `/adf:upgrade`.** It moves the pin to `v2.3.0` and, in one draft pull request, merges the
+   project's layer as each entry below says: `.claude/settings.json`, `AGENTS.md`, and the rules.
+   With `docker`, it reruns the module's installer for the new permission rules. A committed install
+   also gets the release's machinery, written by `scripts/build-committed.py`.
+2. **Fill in `AGENTS.md` § Quick reference's *Preview* line** with where previews deploy, or "none".
+3. **With `docker`,** in a new session, run `/adf-dev:dev-env set up` (`/dev-env set up` in a
+   committed install). It audits the Makefile and adds the `t=` and `f=` filters and the `format`
+   and `typecheck` tasks.
+4. **Nothing else is required.** A project on v2.2.0 keeps working until it upgrades.
+
+Each entry below lists its own **Upgrade impact**.
+
 - **A worker that starts in the desktop app's worktree moves to the task's worktree beside the main
   checkout** ([decision 0040](docs/decisions/0040-workers-move-out-of-the-apps-worktree.md)).
   - **Why:** in an adopting project, every task worktree ended up nested in `main/.claude/worktrees/`
@@ -32,7 +62,6 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Existing task worktrees** under `.claude/worktrees/`, already on a task branch, keep working
     where they are. Remove them when their task is done (`/wrap-up`).
 
-
 - **Fewer prompts: allow make, docker, git, and gh broadly, and ask by name**
   ([decision 0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). From an adopting
   project's transcripts: most prompts came from commands no rule could read, from `make run` doing
@@ -44,9 +73,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       they're given, each of which has an ask rule. No task waits for input or follows a log.
     - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
   - **The docker module** allows `docker *` and `make *`, and asks by name before what must still
-    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker push`, what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec`
-    that names `env`), and `make run`. An ask rule wins over any
-    allow rule.
+    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker push`, what
+    prints secrets (`docker inspect`, a bare `docker compose config`, an `exec` that names `env`),
+    and `make run`. An ask rule wins over any allow rule.
   - **The skeleton:**
     - `.claude/settings.json` allows `git *` and `gh *`, and asks by name only before `git config`,
       pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`,
@@ -99,7 +128,6 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **With `github`:** merge for `.github/pull_request_template.md`.
   - **Committed install:** overwrite for `.claude/skills/open-pr/`, written by
     `scripts/build-committed.py`.
-
 
 ## v2.2.0 — 2026-10-14 — Worktree moves without a prompt, `/wrap-up` after a merge, and end-to-end tests to a specification
 
