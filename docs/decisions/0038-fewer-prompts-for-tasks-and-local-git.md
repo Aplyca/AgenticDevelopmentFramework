@@ -37,10 +37,15 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
     (`Bash(make run *)`, which the docker module adds), and a command agents keep needing becomes a
     task of its own.
 - **Allow broadly, and name only what must ask (C9).** An ask rule wins over any allow rule, so
-  the docker module allows every task and the containers' commands, and lists the exceptions:
-  - allowed: `Bash(make *)`, `Bash(docker compose run *)`, `Bash(docker compose exec *)`, and the
-    read-only Docker commands it allowed before;
-  - asked: `make reset`, `make run`, and the destructive Docker commands, as before.
+  the docker module allows `Bash(docker *)` and `Bash(make *)`, and lists the exceptions:
+  - what deletes data: `compose down -v` or `--rmi`, `rm`, `rmi`, `prune`, and `make reset`;
+  - what reaches past this project: `docker stop` and `kill`, which can stop other projects'
+    containers, and `docker run`, whose mounts reach the host's files (agents use
+    `docker compose run`);
+  - what leaves the machine: `docker push` and `login`;
+  - what prints secrets: `docker inspect`, a bare `docker compose config`, and an `exec` or
+    `compose run` that names `env`;
+  - `make run`, which runs a command it's given.
 
   A project task that deletes data under another name gets an ask rule of its own, which
   `/dev-env set up` proposes and `/adf:upgrade` lists. No task waits for input or follows a log.
@@ -74,6 +79,9 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
     without one.
   - **`docker compose run` and `exec` run any command in the project's containers** without a
     prompt. The containers hold the project's code and data, not the host's.
+  - **A secret can still reach the conversation** through a form the ask rules don't name, such as
+    `docker compose config --format json`. `/dev-env`'s safety rules and the specification (V4) say
+    never to print one; the rules catch the usual forms.
   - **`git commit` runs without a prompt.** A commit is local and easy to undo, and the hooks still
     hold the line on protected branches and skipped checks.
   - **The command-writing rules are instructions, not enforcement.** An agent can still write a

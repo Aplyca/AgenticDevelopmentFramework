@@ -1,6 +1,6 @@
 # 0032: A project's local environment — `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks
 
-- **Status:** accepted; amended by [0038](0038-fewer-prompts-for-tasks-and-local-git.md) (the docker module allows every `make` task and asks before `reset`, `run`, and a project task that deletes data), and by [0034](0034-local-environment-modes.md) (`ops/` has one folder per target, and the app runs in Docker or natively: `DEV_MODE` loads `ops/docker/docker.mk` or `ops/native/native.mk`, which define the same tasks)
+- **Status:** accepted; amended by [0038](0038-fewer-prompts-for-tasks-and-local-git.md) (the docker module allows `docker *` and `make *`, and asks by name before the exceptions), and by [0034](0034-local-environment-modes.md) (`ops/` has one folder per target, and the app runs in Docker or natively: `DEV_MODE` loads `ops/docker/docker.mk` or `ops/native/native.mk`, which define the same tasks)
 - **Date:** 2026-10-09
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — worktree ports for a Docker
   stack; [0026](0026-display-only-mods.md) — one read-only lookup the band may run;
@@ -85,8 +85,9 @@ project):
     `.worktreeinclude` makes. Otherwise `make reset` there would delete the main checkout's volumes.
 11. **Permissions:** the docker module allows `make help`, `make ps`, `make urls`, and `make logs`
     exactly, and asks before any `make` command that names `reset`. *(Amended by 0038: the module
-    allows `make *`, `docker compose run`, and `docker compose exec`, and also asks before `make run`;
-    a project task that deletes data gets its own ask rule.)*
+    allows `docker *` and `make *`, and asks by name before what deletes data, reaches past the
+    project, leaves the machine, or prints secrets, and before `make run`; a project task that
+    deletes data gets its own ask rule.)*
 
 `/dev-env set up` writes a missing stack from templates the skill carries, and audits an existing one
 against these conventions, proposing the move as a careful-lane change. The docker module copies no

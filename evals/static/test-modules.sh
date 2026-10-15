@@ -262,10 +262,18 @@ cases = {
     "docker system prune -af": "ask", "docker volume prune": "ask", "docker image prune -a": "ask",
     "docker rm -f web": "ask", "docker rmi redis:7": "ask", "docker compose rm -f web": "ask",
     "docker compose ps": "allow", "docker compose logs --tail 100 --no-color web": "allow",
-    "docker compose config --quiet": "allow", "docker compose port web 3000": "allow",
-    "docker system df": "allow",
-    "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
-    "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
+    "docker compose config --quiet": "allow", "docker compose config --services": "allow",
+    "docker compose port web 3000": "allow", "docker system df": "allow",
+    # Docker broadly too (decision 0038): what this project's stack does runs; what deletes, reaches
+    # other projects' containers or the host, leaves the machine, or prints secrets asks.
+    "docker compose up -d --wait": "allow", "docker compose down": "allow", "docker compose build": "allow",
+    "docker compose stop web": "allow", "docker compose restart web": "allow", "docker compose pull": "allow",
+    "docker images": "allow", "docker stats --no-stream": "allow", "docker version": "allow",
+    "docker compose config": "ask", "docker inspect web": "ask", "docker run --rm alpine true": "ask",
+    "docker run --privileged -v /:/host alpine sh": "ask", "docker stop $(docker ps -q)": "ask",
+    "docker kill web": "ask", "docker push registry.example.com/site:1": "ask", "docker login": "ask",
+    "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
+    "docker compose run --rm web env": "ask",
     # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
     # containers' commands, but reset deletes the stack's volumes and run runs any command it's given.
     "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",

@@ -613,8 +613,9 @@ PY
 import json, re, sys
 fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
-decided = {"docker": {"Bash(make *)", "Bash(docker compose run *)", "Bash(docker compose exec *)"}}
-decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)"}}
+decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
+decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
+                           "Bash(docker run *)", "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)"}}
 try:
     permissions = json.load(open(fragment)).get("permissions", {})
     allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
@@ -764,7 +765,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs but the ones that delete data or run a command, which ask (C9, 0038)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: proposes an ask rule for a project task that deletes data (C9)")
-    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if "Bash(make *)" in p["allow"] and {"Bash(make *reset*)","Bash(make run *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make *, and asks before reset and run (C9, C10)")
+    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and {"Bash(make *reset*)","Bash(make run *)","Bash(docker run *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks by name (C9, C10, 0038)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
