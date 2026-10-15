@@ -1,4 +1,4 @@
-# 0038: Allow broadly, ask by name: make tasks and local git work run without a prompt
+# 0038: Allow broadly, ask by name: make, docker, git, and gh
 
 - **Status:** accepted
 - **Date:** 2026-10-15
@@ -49,13 +49,22 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
 
   A project task that deletes data under another name gets an ask rule of its own, which
   `/dev-env set up` proposes and `/adf:upgrade` lists. No task waits for input or follows a log.
-- **Local git work runs without a prompt.** The skeleton allows:
-  - `git add`, `git commit`, and `git switch`;
-  - `git fetch`, and `git pull --ff-only`.
+- **`git` and `gh` the same way.** The skeleton allows `Bash(git *)` and `Bash(gh *)`, and asks by
+  name before:
+  - what loses uncommitted work or rewrites history: `git reset --hard`, `clean`, `checkout --` and
+    `checkout .`, `restore`, `stash drop` and `clear`, `branch -D`, `filter-branch`;
+  - `git config`, which could switch off the git hooks (`core.hooksPath`);
+  - `git push --tags`: a tag is a release;
+  - what changes a pull request's state or speaks for someone: `gh pr ready`, `merge`, `review`,
+    `close`, `reopen`, and issue writes;
+  - what reaches past the pull request: releases, repository settings, secrets and variables,
+    `gh auth` (`gh auth token` prints one), workflow runs, gists, extensions, labels, and `gh api`
+    writes.
 
-  `git add .`, `git add -A`, and `git commit --amend` ask: the git-workflow rule says stage by name,
-  and an amend rewrites history. The guard-git hook still blocks `--no-verify`, commits on a
-  protected branch, and pushes to one.
+  Staging everything and `git commit --amend` run: the git-workflow rule still says stage by name, and
+  an amend that's been pushed needs a force-push, which decision 0033 already let a work branch take.
+  The guard-git hook still blocks `--no-verify`, commits on a protected branch, pushes to one, and a
+  pull request that isn't a draft.
 - **Agents write commands a rule can read.** The skeleton's `claude-code.md` gains § Commands that
   run without a prompt:
   - use the tasks, with a variable after the task (`make up DEV_MODE=native`);
@@ -82,8 +91,10 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   - **A secret can still reach the conversation** through a form the ask rules don't name, such as
     `docker compose config --format json`. `/dev-env`'s safety rules and the specification (V4) say
     never to print one; the rules catch the usual forms.
-  - **`git commit` runs without a prompt.** A commit is local and easy to undo, and the hooks still
-    hold the line on protected branches and skipped checks.
+  - **`git` and `gh` run without a prompt but for the named exceptions.** A read or a local commit
+    is easy to undo, and the hooks still hold the line on protected branches, skipped checks, and
+    draft pull requests. A write `gh` adds later runs until the skeleton names it, so upgrades
+    review the ask list.
   - **The command-writing rules are instructions, not enforcement.** An agent can still write a
     command no rule reads. It then prompts, which is the safe failure.
 

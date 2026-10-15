@@ -297,30 +297,42 @@ for event, entries in settings.get("hooks", {}).items():
                     problems.append(f"{event}: {match.group(0)} does not exist")
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
-asks = " ".join(settings.get("permissions", {}).get("ask", []))
-allows = " ".join(settings.get("permissions", {}).get("allow", []))
-# The work branch's push and its draft pull request follow the developer's local check (decision
-# 0022), and keeping that draft current needs no prompt (0033); the rest that leaves the machine asks.
-for outward in ("gh pr ready", "gh pr merge", "gh pr review", "gh issue comment", "gh release"):
-    if outward not in asks:
-        problems.append(f"permissions.ask does not cover '{outward}'")
-for upkeep in ("git push", "gh pr create", "gh pr edit", "gh pr comment"):
-    if upkeep not in allows or upkeep in asks:
-        problems.append(f"'{upkeep}' should be in permissions.allow, not permissions.ask (0033)")
-# Local git work needs no prompt; staging everything and rewriting a commit ask (0038).
+# Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
+# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
+# still prompt is asked by name (decisions 0022, 0033, 0038).
 allow_rules = settings.get("permissions", {}).get("allow", [])
 ask_rules = settings.get("permissions", {}).get("ask", [])
-for local in ("Bash(git add *)", "Bash(git commit *)", "Bash(git switch *)", "Bash(git pull --ff-only)"):
-    if local not in allow_rules:
-        problems.append(f"permissions.allow lacks {local} (0038)")
-for careful in ("Bash(git add .)", "Bash(git add -A*)", "Bash(git commit *--amend*)"):
-    if careful not in ask_rules:
-        problems.append(f"permissions.ask lacks {careful} (0038)")
+def matches(rules, command):
+    return any(r.startswith("Bash(") and (re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3])) for r in rules)
+def verdict(command):
+    return "ask" if matches(ask_rules, command) else "allow" if matches(allow_rules, command) else "prompt"
+expected = {
+    # The draft pull request and its upkeep, and local git work, run (0022, 0033, 0038).
+    "git push": "allow", "git push -u origin feat/newsletter-signup": "allow",
+    "gh pr create --draft --title x": "allow", "gh pr edit 12 --body-file b.md": "allow",
+    "gh pr comment 12 --body x": "allow", "gh pr view 12": "allow", "gh run view 99": "allow",
+    "git add src/a.ts": "allow", "git add -A": "allow", "git commit -m x": "allow",
+    "git commit --amend --no-edit": "allow", "git switch -c feat/x": "allow", "git rebase main": "allow",
+    "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
+    # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
+    "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
+    "gh pr close 12": "ask", "gh issue comment 3 --body x": "ask", "gh issue create --title x": "ask",
+    "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
+    "gh auth token": "ask", "gh workflow run ci.yml": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Work that's lost, history rewritten, hooks switched off, tags leaving the machine.
+    "git reset --hard HEAD~1": "ask", "git clean -fd": "ask", "git checkout -- src/a.ts": "ask",
+    "git restore src/a.ts": "ask", "git stash drop": "ask", "git branch -D feat/x": "ask",
+    "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+}
+for command, want in expected.items():
+    if verdict(command) != want:
+        problems.append(f"'{command}': {verdict(command)}, expected {want} (0038)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask, its upkeep and local git work in permissions.allow, staging everything and amending in permissions.ask"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi

@@ -11,7 +11,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-- **Fewer prompts for make tasks and local git work**
+- **Fewer prompts: allow make, docker, git, and gh broadly, and ask by name**
   ([decision 0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). From an adopting
   project's transcripts: most prompts came from commands no rule could read, from `make run` doing
   what no task did, and from every commit.
@@ -27,14 +27,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `docker compose config`, an `exec` that names `env`), and `make run`. An ask rule wins over any
     allow rule.
   - **The skeleton:**
-    - `.claude/settings.json` allows `git add`, `git commit`, `git switch`, `git fetch`, and
-      `git pull --ff-only`, and asks before `git add .`, `git add -A`, and `git commit --amend`;
+    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name before what loses work or
+      rewrites history (`reset --hard`, `clean`, `restore`, `branch -D`), `git config`, pushing tags,
+      and what speaks for someone or reaches past the pull request (readying, merging, reviewing, or
+      closing it, issue writes, releases, repository settings, secrets, `gh auth`, workflow runs,
+      `gh api` writes). The narrower git and gh allows it replaces go;
     - `.claude/rules/claude-code.md` gains § Commands that run without a prompt: use the tasks, write
       paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
       shorten output with a pipe.
 
   **Upgrade impact:**
-  - **Every project:** merge for `.claude/settings.json` (the git rules) and for
+  - **Every project:** merge for `.claude/settings.json` — the git and gh rules: keep the project's
+    own rules, and drop the old narrow git and gh allows `git *` and `gh *` now cover — and for
     `.claude/rules/claude-code.md` (the new section and a guardrails row).
   - **With `docker`:**
     - `/adf:upgrade` reruns `modules/docker/install.sh`, which merges the new allows and the

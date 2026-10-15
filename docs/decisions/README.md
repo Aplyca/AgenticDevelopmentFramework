@@ -48,7 +48,7 @@ projects.
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted |
-| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make tasks and local git work run without a prompt | accepted |
+| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
