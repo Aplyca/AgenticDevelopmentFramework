@@ -201,6 +201,16 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
 check_ctx "dispatcher in the main checkout, which gives every task to /dispatch" "$T" "Give every task to /dispatch"
 check_ctx "the dispatcher's tasks get worktrees beside the main checkout, from the base branch" "$T" "worktree beside this checkout, on a new branch from main," "Route:"
 check_ctx "a dispatched session in the main checkout is told to create its worktree and move first" "$T" "first step is the worktree: ops/agent/worktree-new.sh <branch> --no-start, then move this session"
+# A base branch behind origin's, as the last fetch left it: told to pull before branching.
+B="$WORK/behind"; mkdir -p "$B" && git -C "$B" init -q -b main
+git -C "$B" -c user.email=t@e -c user.name=t commit -q --allow-empty -m one
+newer=$(git -C "$B" -c user.email=t@e -c user.name=t commit-tree -p HEAD -m two "$(git -C "$B" rev-parse 'HEAD^{tree}')")
+git -C "$B" update-ref refs/remotes/origin/main "$newer" && git -C "$B" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+check_ctx "on the base branch behind origin's: told to pull before branching" "$B" "main is 1 commit(s) behind origin/main (as of the last fetch): update it with git pull --ff-only"
+git -C "$B" switch -q -c feat/x
+check_ctx "on a work branch: no base-branch line" "$B" "feat/x" "behind origin/main"
+git -C "$B" switch -q main && git -C "$B" merge -q --ff-only origin/main
+check_ctx "on the base branch, up to date: no base-branch line" "$B" "branch main" "behind origin/main"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 check_ctx "worker in Claude Code's worktree, told to rename its generated branch" "$T/.claude/worktrees/eager-lamport" "branch name is generated (claude/eager-lamport)"
 check_ctx "worker in Claude Code's worktree, told the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here"
@@ -257,6 +267,31 @@ run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")"
 run protect-hub.sh 0 "$(edit_event "$WORK/no-module/src/app.ts")" "does nothing in a repository without the module"
 echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
 run protect-hub.sh 0 "$(edit_event "$T/src/app.ts")" "does nothing when HUB_READONLY is empty"
+
+# approve-worktree-move — a dispatched session's move into its task's worktree needs no prompt (0035)
+move_event() { printf '{"tool_name":"mcp__ccd_directory__change_directory","cwd":"%s","tool_input":{"path":"%s"}}' "${2:-$T}" "$1"; }
+moves() { # moves <allow|silent> <event-json> <description> — "allow" prints the allow decision; "silent" prints nothing, so the app prompts
+    local out code
+    out=$(printf '%s' "$2" | "$H/approve-worktree-move.sh" 2>&1)
+    code=$?
+    if [ "$code" = 0 ] && { { [ "$1" = allow ] && echo "$out" | grep -q '"permissionDecision":"allow"'; } || { [ "$1" = silent ] && [ -z "$out" ]; }; }; then
+        PASS=$((PASS+1)); echo "✓ approve-worktree-move.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ approve-worktree-move.sh: $3 (exit $code, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+mkdir -p "$WORK/plain-folder"
+moves allow "$(move_event "$WORK/feat-hub-check")" "approves a move from the main checkout into a task worktree beside it"
+moves allow "$(move_event "$T/.claude/worktrees/calm-hopper")" "approves a move into Claude Code's own worktree"
+moves allow "$(move_event "$WORK/feat-hub-check" "$T/.claude/worktrees/calm-hopper")" "approves a move from one worktree to another of the same repository"
+moves silent "$(move_event "$T")" "leaves a move into the main checkout to the prompt"
+moves silent "$(move_event "$WORK/feat-hub-check/src")" "leaves a folder inside a worktree to the prompt"
+moves silent "$(move_event "$WORK/no-module")" "leaves another repository to the prompt"
+moves silent "$(move_event "$WORK/plain-folder")" "leaves a folder outside any repository to the prompt"
+moves silent "$(move_event "$WORK/missing")" "leaves a folder that doesn't exist to the prompt"
+moves silent "$(move_event "feat-hub-check")" "leaves a relative path to the prompt"
+echo 'APPROVE_WORKTREE_MOVE=""' >> "$T/.claude/hooks/config.sh"
+moves silent "$(move_event "$WORK/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
 git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
 
 # Packaged install (decision 0016): the plugin's generated scripts, with no config.sh of their own,

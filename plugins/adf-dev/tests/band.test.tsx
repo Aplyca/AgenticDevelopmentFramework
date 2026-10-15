@@ -127,6 +127,17 @@ test('a port pinned in the env file wins, and nothing runs', async ($, on) => {
   expect(calls).toEqual([])
 })
 
+test('native mode: the port of the app on the host, and nothing runs', async ($, on) => {
+  mock.clock(on)
+  project(on, { ...DOCKER_PICKS, '/docker-picks/ops/native/.run/app.env': 'PID=4242\nAPP_PORT=21705\n' }, true, '/docker-picks')
+  const calls = docker(on, '127.0.0.1:50916\n')
+  const answer = await $.command.run({ command: 'local-url' })
+  expect(answer).toEqual({
+    text: 'http://localhost:21705 is answering (from .claude/hooks/config.sh, the app on the host).',
+  })
+  expect(calls).toEqual([])
+})
+
 test("the stack is down: Docker reports no port, and the band shows the engine's own", async ($, on) => {
   mock.clock(on)
   project(

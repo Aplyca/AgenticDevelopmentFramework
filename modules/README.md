@@ -11,6 +11,7 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | [`clickup/`](clickup/MODULE.md) | ClickUp's official MCP server in `.mcp.json` and a read-only permission allowlist, so agents read tasks freely and every write prompts | Requirements arrive as ClickUp tasks |
 | [`parallel-agents/`](parallel-agents/MODULE.md) | Worktree scripts (`worktree-new`, `-rm`, `-ls`) that give every task its own worktree, branch, env file, and port; the `/dispatch` skill; the dispatcher/worker process doc | Several agent sessions work on the same repository at once, and each needs a running app |
 | [`docker/`](docker/MODULE.md) | The `/dev-env` skill — write or migrate a Docker Compose local environment to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), run it natively or per worktree, diagnose it, and safely reset it — and permission rules that let read-only docker commands run and make destructive ones ask. Packaged, the skill comes from the development plugin, `adf-dev` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
+| [`e2e/`](e2e/MODULE.md) | The `/e2e` skill — set up Playwright end-to-end tests in `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the checkout's own stack (in Docker or on the host), with one smoke test per critical flow; audit a suite, and diagnose a failing or flaky test — and permission rules that let the suite run without a prompt. Packaged, the skill comes from `adf-dev` | People use the app in a browser, and its critical flows should be checked end to end |
 
 ## Installing a module
 
@@ -26,7 +27,8 @@ existed (a pull request template, for example). The `clickup` module is the exce
 files every repository already has (`.mcp.json`, `.claude/settings.json`), so it installs with
 `modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module has no
 files to copy: `modules/docker/install.sh <repo>` merges its permission rules, and `/dev-env set up`
-writes the stack from the skill's templates. Then follow the module's customization steps and
+writes the stack from the skill's templates; `e2e` likewise, with `modules/e2e/install.sh <repo>`, and
+`/e2e set up` writes the suite to its specification. Then follow the module's customization steps and
 record the module in the `Skeleton source` line at the top of `AGENTS.md`
 (`· modules: github, clickup`) so `/upgrade` knows to update it.
 
@@ -42,7 +44,7 @@ Code loads: the framework's machinery, one plugin per concern
 | Plugin | Concern | Carries the skills and commands of |
 |---|---|---|
 | `adf` | The process | `parallel-agents` (`/dispatch`; the worktree scripts as `adf-worktree-new`, `-ls`, `-rm`) |
-| `adf-dev` | Development | `docker` (`/dev-env`) |
+| `adf-dev` | Development | `docker` (`/dev-env`), `e2e` (`/e2e`) |
 | `adf-connect` | Trackers and services | — (its `/connect` writes a project's MCP configuration itself) |
 
 A module's skills are machinery no project edits, so their source is the plugin its `module.json`

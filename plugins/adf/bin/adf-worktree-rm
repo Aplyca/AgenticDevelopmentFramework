@@ -22,7 +22,8 @@ if [ -x "$ADF_MODULE_DIR/worktree-rm.sh" ]; then
 fi
 
 # Tear down a worktree created by adf-worktree-new: stop its environment (STOP_CMD), remove the
-# worktree, and delete its branch only if git sees it as merged.
+# worktree, bring the main checkout's base branch up to date with origin, and delete the worktree's
+# branch only if git sees it as merged.
 #
 # Usage: adf-worktree-rm <type>/<slug | slug> [--force]
 #   --force   remove even with uncommitted changes (they are lost)
@@ -146,6 +147,25 @@ die() {
   echo "Error: $1" >&2
   exit 1
 }
+
+# fetch_origin <checkout> — fetch origin, bounded so an unattended run can't hang on a stuck
+# credential prompt or a dead network. 0 when it fetched (or there's no origin), 1 when it failed,
+# 2 when it timed out after 30 seconds.
+fetch_origin() {
+  local pid waited=0
+  git -C "$1" remote get-url origin >/dev/null 2>&1 || return 0
+  git -C "$1" fetch --quiet --tags origin &
+  pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 1
+    waited=$((waited + 1))
+    if [ "$waited" -ge 30 ]; then
+      kill -9 "$pid" 2>/dev/null || true
+      return 2
+    fi
+  done
+  wait "$pid" || return 1
+}
 # ── end of _worktree-lib.sh ──
 
 INPUT="${1:-}"
@@ -179,6 +199,40 @@ fi
 
 echo "==> Removing worktree $WORKTREE_DIR"
 git -C "$MAIN_CHECKOUT" worktree remove $FORCE "$WORKTREE_DIR"
+
+# A worktree goes once its work has merged, so the main checkout's base branch is behind: bring it up
+# to date. The next task's branch starts from it, the dispatcher lists its specs/, every session
+# reads its AGENTS.md first, and `git branch -d` below checks the merge against it. Only a
+# fast-forward, only on the base branch, and never over uncommitted changes.
+update_base() {
+  local current behind fetched=0
+  git -C "$MAIN_CHECKOUT" remote get-url origin >/dev/null 2>&1 || return 0
+  echo "==> Fetching origin"
+  fetch_origin "$MAIN_CHECKOUT" || fetched=$?
+  if [ "$fetched" -ne 0 ]; then
+    echo "Note: couldn't fetch origin, so $BASE_BRANCH in the main checkout wasn't updated." >&2
+    return 0
+  fi
+  git -C "$MAIN_CHECKOUT" show-ref --verify --quiet "refs/remotes/origin/$BASE_BRANCH" || return 0
+  current="$(git -C "$MAIN_CHECKOUT" branch --show-current)"
+  if [ "$current" != "$BASE_BRANCH" ]; then
+    echo "Note: the main checkout is on '${current:-a detached HEAD}', not $BASE_BRANCH, so it wasn't updated."
+    return 0
+  fi
+  if [ -n "$(git -C "$MAIN_CHECKOUT" status --porcelain --untracked-files=no)" ]; then
+    echo "Note: the main checkout has uncommitted changes, so $BASE_BRANCH wasn't updated. Once they're gone: git pull --ff-only"
+    return 0
+  fi
+  behind="$(git -C "$MAIN_CHECKOUT" rev-list --count "HEAD..origin/$BASE_BRANCH")"
+  if [ "$behind" -eq 0 ]; then
+    echo "==> $BASE_BRANCH in the main checkout is up to date"
+  elif git -C "$MAIN_CHECKOUT" merge --ff-only --quiet "origin/$BASE_BRANCH" >/dev/null 2>&1; then
+    echo "==> Updated $BASE_BRANCH in the main checkout: $behind new commit(s) from origin"
+  else
+    echo "Note: $BASE_BRANCH in the main checkout has commits origin doesn't, so it wasn't updated."
+  fi
+}
+update_base
 
 if [ -n "$BRANCH" ]; then
   if git -C "$MAIN_CHECKOUT" branch -d "$BRANCH" >/dev/null 2>&1; then

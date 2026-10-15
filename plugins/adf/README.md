@@ -5,7 +5,7 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
 - **Install and maintain the framework** in a repository: `/adf:adopt`,
   `/adf:upgrade`, and `/adf:cost-report`, in every project that uses the framework.
 - **Carry the framework's machinery for a packaged install** ([decision 0016](../../docs/decisions/0016-packaged-install.md)):
-  20 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
+  21 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
   `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md))
   and worktree scripts, as the commands `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`
   ([decision 0027](../../docs/decisions/0027-worktree-scripts-as-plugin-commands.md)), pinned to a release. Typed as
@@ -34,7 +34,7 @@ tool's PATH while the plugin is on; they act only where `ops/agent/` exists (or 
 where it was before decision 0032), and run the committed script instead where a project keeps one.
 
 It carries the process. The `aplyca` marketplace also lists `adf-dev`, the development plugin —
-the `docker` module's `/dev-env` — at this plugin's version
+the `docker` module's `/dev-env` and the `e2e` module's `/e2e` — at this plugin's version
 ([decision 0023](../../docs/decisions/0023-plugins-by-concern.md)). `/adf:adopt` and `/adf:upgrade` turn it on
 in a packaged project that installs one of its modules.
 
@@ -163,7 +163,7 @@ the plugin by a relative path. A machine where nobody trusts the folder — CI �
 {
   "extraKnownMarketplaces": {
     "aplyca": {
-      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.0.0" }
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.2.0" }
     }
   },
   "enabledPlugins": { "adf@aplyca": true }

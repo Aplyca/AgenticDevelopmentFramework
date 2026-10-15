@@ -1,6 +1,6 @@
 # Skills and workflows reference
 
-The Agentic Development Framework ships **twenty skills**, two more for modules, and **four dynamic
+The Agentic Development Framework ships **twenty-one skills**, three more for modules, and **four dynamic
 workflows**. Their source is the plugins — `plugins/adf/skills/`, `plugins/adf/workflows/`, and
 `plugins/adf-dev/skills/` ([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged
 project loads them from there, as `/adf:skill-name`; a committed one keeps copies in `.claude/`, which
@@ -28,6 +28,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/commit` | One clean commit: the spec folder, a doc, one task (test and code together), or a fast- or careful-lane change with its test (and its light `CR N` entry on delivered work). Stages by name, never bypasses hooks, never pushes. |
 | `/open-pr` | **On the developer's local-check approval** (or, with nothing to run, once the gate and review pass), or when asked. Push and open a **draft** pull request naming the spec folder and tracker task, with what was and wasn't verified and its merge danger (does a revert undo it, what it affects if wrong). Never marks it ready. |
 | `/stakeholder-update` | **Starts from a plain request** ("update the client", "reply on the task") or by name. Draft the client-facing update for a tracker task (why, what, status in the project's words, verified findings, direct questions), show it, and post it on the pull request for the team to relay; the tracker only when the developer asks. Project settings — links, CMS entries, task statuses — live in `docs/TRACKER-INTEGRATION.md`. |
+| `/wrap-up` | After the pull request merges: check that nothing is left — uncommitted or unpushed work, a stash, an open task, a promised follow-up — and list it if there is. Otherwise ask once to close up: stop what the task started, remove its worktree and branch, update the base branch, and archive the session. |
 | `/handoff` | Hand work in progress to someone who wasn't here — a teammate, another machine, a fresh session — as a short message of pointers: task, branch and commit, spec folder, pull request, what's done, what's next, open questions. Puts the state in the record first; never copies the spec or the process; shown to the developer, posted nowhere unasked. |
 
 ## Reference and setup skills
@@ -53,12 +54,13 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 
 A module's skill is copied with the module in a committed install. In a packaged install it comes
 from the plugin the module's `module.json` names: `/dispatch` from `adf`, the process, and
-`/dev-env` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
+`/dev-env` and `/e2e` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
 | Skill | Module | Purpose |
 |---|---|---|
 | `/dispatch` | `parallel-agents` | In the main checkout, every task: name it and hand it to a new session with a three-line prompt — a task chip in the desktop app, a `claude "<prompt>"` command in a terminal. The new session's first step creates the task's worktree beside the main checkout (`worktree-new.sh <type>/<slug> --no-start`) and moves into it. Reads only; runs nothing, analyzes nothing, edits nothing. A packaged install gets it from the plugin, as `/adf:dispatch`, and the worker runs the plugin's `adf-worktree-new` (decision 0027). |
 | `/dev-env` | `docker` | Set up, migrate, run natively, diagnose, or safely reset the project's Docker Compose local environment by the conventions of [decision 0032](decisions/0032-local-environment-layout.md): `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, variables from `.env` and each service's `environment:`, ports Docker picks. It writes a missing stack from its templates and proposes moving an existing one; verified commands go to `DEV-SETUP.md` and the Quick reference, one stack per worktree with `parallel-agents`, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without a yes. A packaged install gets it from `adf-dev`, as `/adf-dev:dev-env`. |
+| `/e2e` | `e2e` | Set up, audit, or extend the project's end-to-end tests to the specification it carries ([decision 0037](decisions/0037-end-to-end-tests.md)): Playwright in its own `e2e/` folder, run with `make e2e` and `make smoke` against the checkout's own stack — in Docker, in Playwright's image, or on the host — one `@smoke` test per critical flow the developer names, each seen failing before it's committed; tests that find elements by role, wait with assertions, own their data, and never reach a real third party. Diagnoses a failing or flaky test from what it kept (`error-context.md`, the trace). A change's own tests are written test first with `/write-tests`, following `testing.md` § End-to-end. A packaged install gets it from `adf-dev`, as `/adf-dev:e2e`. |
 
 ## Dynamic workflows
 
@@ -83,7 +85,7 @@ repository: `/adf:adopt`, `/adf:upgrade`, and `/adf:cost-report` — what agent
 sessions on a project cost, from Claude Code's local transcripts, with the expensive patterns
 flagged. In a packaged project, every skill above also comes from the plugin, typed
 `/adf:<name>` — except a development module's, typed by `adf-dev`'s name
-(`/adf-dev:dev-env`). See the [plugin README](../plugins/adf/README.md).
+(`/adf-dev:dev-env`, `/adf-dev:e2e`). See the [plugin README](../plugins/adf/README.md).
 
 The `adf-connect` plugin adds `/adf-connect:connect`: connect the project to its tracker or a stack
 service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP
@@ -97,4 +99,4 @@ Projects can add their own skills in `.claude/skills/` (project-owned; never tou
 Use hyphenated frontmatter keys — `argument-hint`, `disable-model-invocation`, `user-invocable` —
 because unknown keys are silently ignored. Give a skill that acts outside the machine as soon as it
 runs `disable-model-invocation: true`; one that only drafts until a person approves can start from
-a plain request, with the posting command behind `permissions.ask`. Document custom skills in the project's own docs.
+a plain request, if it posts only after the person's yes in chat — or with the posting command behind `permissions.ask`. Document custom skills in the project's own docs.

@@ -6,16 +6,19 @@ depending on what the model decides. They are wired in `../settings.json`.
 
 | Hook | Event | What it does |
 |---|---|---|
-| `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — whether this session is a dispatcher or a worker, how a dispatched session gets its worktree beside the main checkout, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup) |
+| `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — whether this session is a dispatcher or a worker, how a dispatched session gets its worktree beside the main checkout, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup); on the base branch, how many commits it is behind origin's, as of the last fetch |
 | `guard-git.sh` | PreToolUse · Bash | Blocks `--no-verify` (and `git commit -n`), commits on protected branches, and pushes, force-pushes, or deletes targeting protected branches |
 | `protect-paths.sh` | PreToolUse · Edit/Write | Blocks hand-edits to generated files (lockfiles, generated types) and modifications to existing files in append-only history (migrations) |
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |
 | `triage-first.sh` | PreToolUse · Edit/Write, Bash | A nudge: if the session's reply text states no lane yet, the first file edit or new branch (`git switch -c`, `git checkout -b`, `git branch <name>`, `git worktree add`) is stopped once with a reminder to write the triage where the developer can read it (`AGENTS.md` § Triage first). Subagents are exempt. Empty `TRIAGE_FIRST` turns it off |
 | `protect-hub.sh` | PreToolUse · Edit/Write | With the parallel-agents module installed, stops every file edit in the main checkout — the hub, where the dispatcher edits nothing — and lets edits in worktrees through. Without the module it does nothing. Empty `HUB_READONLY` turns it off. Writes made through Bash aren't seen |
+| `approve-worktree-move.sh` | PreToolUse · the desktop app's `change_directory` | Approves a session's move into a linked worktree of the same repository — a dispatched session's move from the main checkout into its task's worktree — so the app doesn't ask. Any other folder still prompts. Empty `APPROVE_WORKTREE_MOVE` turns it off |
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
-Pushing to a non-protected branch, opening or readying a pull request, and other outward actions
-aren't blocked here — `permissions.ask` in `../settings.json` makes a human confirm each one.
+Pushing a work branch, and opening, editing, or commenting on its draft pull request, run without a
+prompt (decision 0033), and so do issue writes (0038). Readying, merging, or reviewing a pull request,
+and releases, aren't blocked here — `permissions.ask` in the project's `.claude/settings.json` makes a human
+confirm each one.
 
 ## Configure
 

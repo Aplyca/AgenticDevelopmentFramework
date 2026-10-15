@@ -81,7 +81,7 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
 # Skills that may start from a plain request but post only after showing the draft.
@@ -184,7 +184,7 @@ check_outward_skills_user_invoked() {
         if [ ! -f "$file" ]; then
             fail "draft-first skill '$name' exists"
         elif grep -q 'Show the full draft' "$file" && grep -q 'ask before posting' "$file"; then
-            pass "skill '$name': shows the draft, and asks before posting when nobody asked for it"
+            pass "skill '$name': shows the draft, and asks before posting"
         else
             fail "skill '$name': can start from a plain request but doesn't show the draft and ask before posting"
         fi
@@ -297,17 +297,46 @@ for event, entries in settings.get("hooks", {}).items():
                     problems.append(f"{event}: {match.group(0)} does not exist")
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
-asks = " ".join(settings.get("permissions", {}).get("ask", []))
-# The work branch's push and its draft pull request follow the developer's local check (decision
-# 0022); everything else that leaves the machine still asks.
-for outward in ("gh pr ready", "gh pr merge", "gh pr comment", "gh issue comment", "gh release"):
-    if outward not in asks:
-        problems.append(f"permissions.ask does not cover '{outward}'")
+# Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
+# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
+# still prompt is asked by name (decisions 0022, 0033, 0038).
+allow_rules = settings.get("permissions", {}).get("allow", [])
+ask_rules = settings.get("permissions", {}).get("ask", [])
+def matches(rules, command):
+    return any(r.startswith("Bash(") and (re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3])) for r in rules)
+def verdict(command):
+    return "ask" if matches(ask_rules, command) else "allow" if matches(allow_rules, command) else "prompt"
+expected = {
+    # The draft pull request and its upkeep, and local git work, run (0022, 0033, 0038).
+    "git push": "allow", "git push -u origin feat/newsletter-signup": "allow",
+    "gh pr create --draft --title x": "allow", "gh pr edit 12 --body-file b.md": "allow",
+    "gh pr comment 12 --body x": "allow", "gh pr view 12": "allow", "gh run view 99": "allow",
+    "git add src/a.ts": "allow", "git add -A": "allow", "git commit -m x": "allow",
+    "git commit --amend --no-edit": "allow", "git switch -c feat/x": "allow", "git rebase main": "allow",
+    "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
+    # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
+    "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
+    "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
+    "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
+    "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Rare and recoverable: they run (the shorter list the developer chose).
+    "gh pr close 12": "allow", "gh workflow run ci.yml": "allow", "gh label create bug": "allow",
+    "gh run cancel 99": "allow", "git stash clear": "allow",
+    # Discarding local work and issue writes run (the developer's choice); hooks switched off and
+    # tags leaving the machine ask.
+    "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
+    "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
+    "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+}
+for command, want in expected.items():
+    if verdict(command) != want:
+        problems.append(f"'{command}': {verdict(command)}, expected {want} (0038)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -593,15 +622,24 @@ PY
         [ -f "$fragment" ] || continue
         name=$(basename "$(dirname "$fragment")")
         # A module may pre-approve MCP tools and commands only if they read: a write must always
-        # prompt, and so must a command that prints secrets.
-        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" <<'PY'
+        # prompt, and so must a command that prints secrets. The one exception is decided: the docker
+        # module allows its tasks and its containers' commands broadly and asks by name before
+        # what deletes data or runs any command it's given (decision 0038) — those asks must be there.
+        problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" "$name" <<'PY'
 import json, re, sys
-fragment, mcp = sys.argv[1], sys.argv[2]
+fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
+decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
+decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
+                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)",
+                           "Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)"}}
 try:
-    allow = json.load(open(fragment)).get("permissions", {}).get("allow", [])
+    permissions = json.load(open(fragment)).get("permissions", {})
+    allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
+for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
+    out.append(f"allows broadly, so must ask before {ask} (0038)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
 changes = re.compile(r"\b(down|rm|rmi|prune|kill|stop|restart|start|exec|run|up|build|pull|push|cp|create|inspect|login|delete|remove)\b")
 for rule in allow:
@@ -628,7 +666,7 @@ print("; ".join(out))
 PY
 )
         if [ -z "$problems" ]; then
-            pass "module '$name': pre-approves read-only MCP tools and commands only; no credentials in .mcp.json"
+            pass "module '$name': pre-approves read-only MCP tools and commands only, or what decision 0038 names with its asks; no credentials in .mcp.json"
         else
             fail "module '$name': $problems"
         fi
@@ -679,7 +717,15 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'Declined before' || missing+=("/triage: declined-before check")
     file_contains "$COMMITTED/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^4\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
+    file_contains "$AGENTS_MD" 'Check locally first, then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
+    file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Don't ask or remind the developer" || missing+=("/open-pr: the report doesn't nudge the developer to review, ready, or merge (0039)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, readying, and merging are the developer' || missing+=("git-workflow rule: no nudges to review, ready, or merge (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
@@ -701,6 +747,8 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/testing.md" '^## Red, then green — every change, in every lane' || missing+=("testing rule: red then green in every lane")
     grep -q 'protect-hub.sh' "$SETTINGS" || missing+=("settings.json: protect-hub hook")
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
+    grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
@@ -731,9 +779,32 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout of a hub' || missing+=("/dev-env: stops in the hub")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
-    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'No `env_file:`' || missing+=("/dev-env: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'No `env_file:`' || missing+=("dev-env's specification: services get their variables from environment:, never env_file: (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'one folder per target' || missing+=("dev-env's specification: ops/ has one folder per target (0034)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs but the ones that delete data or run a command, which ask (C9, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: proposes an ask rule for a project task that deletes data (C9)")
+    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and {"Bash(make *reset*)","Bash(make run *)","Bash(docker inspect *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks by name (C9, C10, 0038)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'this is the main checkout' || missing+=("/e2e: stops in the hub")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" 'Prove each test can fail' || missing+=("/e2e: each smoke test is seen failing before it's committed (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" "checkout's own stack" || missing+=("e2e's specification: the suite runs against the checkout's own stack (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'Tests own their data' || missing+=("e2e's specification: tests own their data (0037)")
+    [ ! -e "$REPO_ROOT/plugins/adf-dev/skills/e2e/templates" ] && file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'there are no templates' || missing+=("e2e: no templates; the project writes its suite to the specification (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" "exactly .@playwright/test.'s" || missing+=("e2e's specification: the image at the engine's exact version (0037)")
+    file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'npx --no-install playwright' || missing+=("e2e's specification: npx never downloads a package (0037)")
+    file_contains "$SKELETON/.claude/rules/testing.md" '^## End-to-end' || missing+=("testing rule: § End-to-end, which every session follows (0037)")
+    file_contains "$SKILLS_DIR/write-tests/SKILL.md" '§ End-to-end' || missing+=("/write-tests: an end-to-end test follows testing.md § End-to-end (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
     file_contains "$SKELETON/.claude/rules/deployment.md" '^  - "compose.yaml"$' || missing+=("deployment.md: its paths name compose.yaml (0032)")
     file_contains "$SKELETON/.claude/rules/deployment.md" 'env_file:' || missing+=("deployment.md: the three levels of variables, no env_file: (0032)")
@@ -1100,15 +1171,17 @@ tpl = os.path.join(root, "plugins", "adf-dev", "skills", "dev-env", "templates")
 def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
-files = ["compose.yaml", "Makefile", ".env.example", "ops/scripts/ports.sh", "ops/docker/web/Dockerfile",
+files = ["compose.yaml", "Makefile", "ops/docker/Makefile", "ops/native/Makefile", ".env.example",
+         "ops/docker/guard.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
 for f in missing:
     print(f"templates/{f} is missing")
 if missing:
     sys.exit()
-if not os.access(os.path.join(tpl, "ops/scripts/ports.sh"), os.X_OK):
-    print("templates/ops/scripts/ports.sh isn't executable")
+for script in ("ops/docker/guard.sh", "ops/native/native.sh"):
+    if not os.access(os.path.join(tpl, script), os.X_OK):
+        print(f"templates/{script} isn't executable")
 
 declared = {m.group(1): m.group(2) for m in re.finditer(r"^([A-Z_][A-Z0-9_]*)=(.*)$", read(".env.example"), re.M)}
 for name, value in declared.items():
@@ -1145,21 +1218,40 @@ for name, body in services.items():
             print(f"compose.yaml: {name} waits for {dep} without a healthcheck it waits on")
 
 make = read("Makefile")
-targets = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
-for target in "help env up down build ps logs urls shell services native test lint reset".split():
-    if target not in targets:
-        print(f"Makefile has no {target} target")
 if not re.search(r"^\.DEFAULT_GOAL := help$", make, re.M):
     print("Makefile: help isn't the default target")
+if not re.search(r"^include \$\(MODE_FILE\)$", make, re.M):
+    print("Makefile doesn't load the mode's file (ops/<mode>/Makefile, decision 0034)")
+# The templates are an example of the skill's specification: each mode's file, with the shared
+# tasks, defines every task its C3 table requires (decision 0034).
+spec_path = os.path.join(os.path.dirname(tpl), "SPECIFICATION.md")
+spec = open(spec_path, encoding="utf-8").read() if os.path.isfile(spec_path) else ""
+skill = open(os.path.join(os.path.dirname(tpl), "SKILL.md"), encoding="utf-8").read()
+if not spec:
+    print("dev-env has no SPECIFICATION.md")
+elif "SPECIFICATION.md" not in skill:
+    print("dev-env's SKILL.md doesn't send the agent to SPECIFICATION.md")
+c3 = spec.split("- **C3.**", 1)[1].split("- **C4.**", 1)[0] if "- **C3.**" in spec else ""
+required = re.findall(r"^\s*\| `([a-z][a-z-]*)` \|", c3, re.M)
+if len(required) < 9:
+    print("SPECIFICATION.md: C3 doesn't list the tasks every mode defines")
+shared = set(re.findall(r"^([a-z][a-z-]*):", make, re.M))
+for mode in ("docker", "native"):
+    targets = shared | set(re.findall(r"^([a-z][a-z-]*):", read(f"ops/{mode}/Makefile"), re.M))
+    for target in ["help", "env"] + required:
+        if target not in targets:
+            print(f"ops/{mode}/Makefile: no {target} target, which SPECIFICATION.md C3 requires")
+make = "\n".join([make, read("ops/docker/Makefile"), read("ops/native/Makefile")])
 for bad, why in ((r"^\.ONESHELL", ".ONESHELL"), (r"!=", "!="), (r"[$][(]file ", "the file function"), (r"^\s*-?include\s+\.env", "include .env"),
-                 (r"^export\b", "export")):
+                 (r"^export\s*$", "a bare export"), (r"^\.EXPORT_ALL_VARIABLES", ".EXPORT_ALL_VARIABLES"),
+                 (r"^export\s+[A-Z_]*(PORT|KEY|SECRET|TOKEN|PASSWORD)", "an export of a value from .env")):
     if re.search(bad, make, re.M):
         print(f"Makefile uses {why}, which GNU make 3.81 lacks or which leaks .env")
 if re.search(r"^ +\S", "\n".join(l for l in make.split("\n") if not l.startswith("#") and "=" not in l.split(":")[0]), re.M):
     print("Makefile: a recipe line is indented with spaces, not a tab")
-logs = re.search(r"^logs:.*\n((?:\t.*\n)+)", make, re.M)
-if not logs or not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
-    print("Makefile: logs must show the last lines and never follow")
+for logs in re.finditer(r"^logs:.*\n((?:\t.*\n)+)", make, re.M):
+    if not re.search(r"--tail \d+", logs.group(1)) or re.search(r"(^|\s)(-f|--follow)(\s|$)", logs.group(1)):
+        print("Makefile: logs must show the last lines and never follow")
 
 bash4 = re.compile(r"declare -A|\bmapfile\b|\breadarray\b|\$\{\w+(,,|\^\^)|\|&|&>>|\bcoproc\b")
 scripts = glob.glob(os.path.join(root, "modules", "*", "files", "**", "*.sh"), recursive=True)
@@ -1171,7 +1263,7 @@ for script in sorted(scripts):
 PY
 )
     if [ -z "$problems" ]; then
-        pass "dev-env templates: compose.yaml, the Makefile, and .env.example keep the conventions (0032); shipped scripts run on bash 3.2"
+        pass "dev-env templates: an example of its SPECIFICATION.md — compose.yaml, the Makefile and both mode files, and .env.example (0032, 0034); shipped scripts run on bash 3.2"
     else
         fail "dev-env templates" "$(echo "$problems" | tr '\n' ';')"
     fi

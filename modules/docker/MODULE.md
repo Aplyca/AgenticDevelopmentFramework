@@ -1,23 +1,31 @@
 # Module: docker
 
 For projects whose local environment runs on Docker Compose. Adds `/dev-env`, which writes the stack
-from its templates — or moves an existing one to the conventions below — runs the app natively when
+to the [local environment specification](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/plugins/adf-dev/skills/dev-env/SPECIFICATION.md) it carries — or audits an existing one against it and
+proposes the move — runs the app natively when
 the developer prefers, gives each worktree a stack of its own when the project runs agents in
 parallel, diagnoses a stack that won't start the way `/debug` diagnoses a bug, and resets one without
-touching anything else on the machine. Read-only docker commands run without a prompt; every command
-that deletes containers, volumes, or images asks first.
+touching anything else on the machine. Docker and `make` commands run without a prompt; a command
+that deletes data, leaves the machine, or prints secrets asks first.
 
 ## The conventions
 
-[Decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md):
+The [specification](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/plugins/adf-dev/skills/dev-env/SPECIFICATION.md) is the source, each requirement with an ID that an audit names; the
+skill's templates are an example that meets it. In short ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md),
+[0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)):
 
 - **Docker Compose, with `compose.yaml` at the root.** The root holds only it, the `Makefile`, `.env`
   (untracked), and `.env.example`.
-- **Operational code in `ops/`:** Dockerfiles and service config in `ops/docker/<service>/`, helper
-  scripts in `ops/scripts/` — and the parallel-agents module in `ops/agent/`.
+- **Operational code in `ops/`, one folder per target:** `ops/docker/` (its make file, `guard.sh`,
+  and each service's image and config in `ops/docker/<service>/`), `ops/native/` (its make file and
+  `native.sh`), the parallel-agents module in `ops/agent/`, and any deployment target the project
+  adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
 - **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
-  `logs`, `urls`, `shell`, `services`, `native`, `test`, `lint`, `reset`.
-- **A native option:** `make native` runs the app on the host against the backing services in Docker.
+  `logs`, `urls`, `test`, `lint`, `reset`.
+- **One file per mode:** the root `Makefile` loads `ops/docker/Makefile` or `ops/native/Makefile` —
+  the app in Docker, or on the host against the backing services in Docker — by `DEV_MODE` in `.env`
+  or the project's `DEFAULT_MODE`. Both define the same tasks
+  ([decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)).
 - **Three levels of variables:** `.env` at the root, which Compose reads to fill each `${…}`; each
   service's `environment:` in `compose.yaml`, in container form; and `.env.example`, committed, naming
   them all. No `env_file:`.
@@ -29,14 +37,16 @@ that deletes containers, volumes, or images asks first.
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for read-only commands (`docker compose ps`, `logs`, `port`, `ls`, `config --quiet`, `docker ps`, `volume ls`, `system df`, and exactly `make help`, `make ps`, `make urls`, `make logs`); `permissions.ask` for destructive ones (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, and any `make` command that names `reset`). An ask rule wins over any allow rule, so a broad `Bash(docker *)` the project already has can't skip the prompt |
-| `.claude/skills/dev-env/` | **Committed install only:** the skill and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
+| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt. `permissions.ask` for what must always prompt: what deletes data (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, any `make` command that names `reset`); what leaves the machine (`docker push`); what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec` or `compose run` that names `env`); a `make` command that sets `DEV_MODE` or `SERVICES`, since the mode is the developer's (M10); and `make run`, which runs a command it's given (`SPECIFICATION.md` C9, C10). An ask rule wins over any allow rule. `/dev-env set up` adds an ask rule for each project task that deletes data under another name |
+| `.claude/skills/dev-env/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
-The module copies no files into the project. `/dev-env set up` writes the stack from the skill's
-templates — `compose.yaml`, `Makefile`, `.env.example`, `ops/docker/web/Dockerfile` (with its
-`.dockerignore`), and `ops/scripts/ports.sh`, which looks up the ports Docker picked — and fills in
-what it verifies about the project. No rule of its own: the conventions live in the skeleton's
-`.claude/rules/deployment.md` § Docker, which `/dev-env` keeps pointed at the project's files.
+The module copies no files into the project. `/dev-env set up` writes the stack to the
+specification, starting from the skill's templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
+`ops/docker/` (its `Makefile`; `guard.sh`, which keeps a worktree off the main checkout's stack; and
+`web/Dockerfile` with its `.dockerignore`) and `ops/native/` (its `Makefile`, and `native.sh`, which
+starts and stops the app on the host) — and fills in what it verifies about the project. No rule of
+its own: the skeleton's `.claude/rules/deployment.md` § Docker is the project's copy of the
+conventions, and its § Conformance records each requirement the project departs from on purpose.
 
 ## Install
 
@@ -61,7 +71,7 @@ or proposes moving the existing one to the conventions — a careful-lane change
 fills these from what it verifies, for you to review:
 
 1. **`docs/getting-started/DEV-SETUP.md`** — the Docker prerequisite, § 3 `make env`, § 4 `make up` and
-   `make urls` with the services, § 6 `make native`, the command surface, and § Troubleshooting for
+   `make urls` with the services, § 6 the two modes, the command surface, and § Troubleshooting for
    problems actually met. Packaged: `/adf-dev:dev-env` joins the key commands under § AI-assisted
    development.
 2. **`AGENTS.md` § Quick reference** — `make up`, `make down`, and `make urls`; the local check before
@@ -84,8 +94,9 @@ fills these from what it verifies, for you to review:
   other than `reset`, a `package.json` script, or `STOP_CMD` when `adf-worktree-rm` runs it — isn't
   seen, and an unusual form (`docker --context x volume rm`) can slip past a pattern. The rules catch
   the commands an agent usually writes; they aren't a security boundary. `/dev-env` also asks in chat
-  before anything destructive. The allows trust `help`, `ps`, `urls`, and `logs` to stay read-only:
-  keep them that way.
+  before anything destructive. `Bash(make *)` trusts the project's Makefile: a task that deletes data
+  under a new name needs its own ask rule (C9), so review a Makefile change as code that runs without
+  a prompt.
 - **In `dontAsk` mode an ask rule denies instead of prompting;** in every other mode, auto and
   bypass included, it prompts.
 - **Two commands print secrets:** `docker compose config` without `--quiet` or `--services`, and
@@ -96,9 +107,9 @@ fills these from what it verifies, for you to review:
 ## Verify
 
 - `python3 -m json.tool .claude/settings.json` parses, and its `ask` list holds the docker rules.
-- In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps` and
-  `make urls` run without a prompt; asking the agent to remove the stack's volumes, or to run
-  `make reset`, prompts.
+- In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps`,
+  `make up`, and `make test` run without a prompt; asking the agent to remove the stack's volumes, or
+  to run `make reset` or `make run`, prompts.
 
 ## Requirements
 

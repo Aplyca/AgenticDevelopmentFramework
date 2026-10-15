@@ -44,6 +44,15 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/triage-first.sh\""
           }
         ]
+      },
+      {
+        "matcher": "mcp__ccd_directory__change_directory",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/approve-worktree-move.sh\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

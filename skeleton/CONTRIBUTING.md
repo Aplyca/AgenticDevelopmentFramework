@@ -59,7 +59,8 @@ adjustment, a full one when there's something to decide.
    back-merge `main` into `[staging]` immediately. Hotfixes are code-only — migrations go through
    `[staging]`.
 
-Both models: **never commit directly to a protected branch**, delete branches after merge, and keep
+Both models: **never commit directly to a protected branch**, branch from an up-to-date base
+(`git pull --ff-only` first), update the base locally and delete the branch after the merge, and keep
 database migrations additive and backward-compatible (you can roll the app back; you can't roll a
 schema back).
 

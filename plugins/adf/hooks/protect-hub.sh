@@ -20,4 +20,4 @@ worktree_settings "$root" >/dev/null || exit 0
 
 [ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 
-block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task to /adf:dispatch, which hands it to a new session in a worktree of its own, and make this change from that session. If this session is a dispatched task's worker, create its worktree first (adf-worktree-new <branch> --no-start) and move this session there."
+block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task to /adf:dispatch now, without asking first, which hands it to a new session in a worktree of its own, and make this change from that session. If this session is a dispatched task's worker, create its worktree first (adf-worktree-new <branch> --no-start) and move this session there."

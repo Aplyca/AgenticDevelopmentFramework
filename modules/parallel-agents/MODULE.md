@@ -11,7 +11,7 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 |---|---|
 | `ops/agent/worktree-new.sh` | A worktree per task: branch `<type>/<slug>`, the env file seeded from the main checkout (when the project has one), optional setup and start commands, and — for projects that run a server — a port reserved under a lock. Idempotent; `--no-start`, `--setup-only`, `--refresh-env`, `--from <ref>` |
 | `ops/agent/worktree-ls.sh` | Every worktree's branch and uncommitted changes (and port and state, when worktrees run a server); flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
-| `ops/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, and safely delete the branch |
+| `ops/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, bring the main checkout's base branch up to date, and safely delete the branch |
 | `ops/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
 | `ops/agent/_worktree-lib.sh` | Shared helpers |
 | `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
@@ -26,7 +26,9 @@ installed, the core session-context hook announces each session's role — dispa
 checkout, where a session handed one task is told to create its worktree and move, and worker in any
 worktree — and, in a worktree the scripts didn't set up, what it lacks: a task branch name, the env
 file, or the scripts' setup. The core `protect-hub.sh`
-hook stops file edits in the main checkout once the module is there. The core `/handoff` skill
+hook stops file edits in the main checkout once the module is there, and the core
+`approve-worktree-move.sh` hook lets a session move into a worktree of the repository without a
+prompt in the desktop app. The core `/handoff` skill
 covers passing work in progress on.
 
 ## Install

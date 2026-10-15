@@ -20,6 +20,8 @@ The base branch, integration branches, and release process are project-specific:
 - Stage files by name — never `git add .` or `git add -A`.
 - Never bypass hooks (`--no-verify`, `git commit -n`); fix what the hook reports.
 - Don't amend or rewrite commits that have been pushed unless the developer asks.
+- Never discard work — uncommitted changes, a stash, an unmerged branch (`git reset --hard`, `clean`,
+  `restore`, `stash drop`, `branch -D`) — unless the developer asks: no permission prompt stops it.
 
 ## Commit prefixes and phase order
 
@@ -45,19 +47,27 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
 - A **change request** gets a fresh branch that starts with the feature's slug and names the change:
   `feat/newsletter-signup-topics`. Never reuse the feature's earlier branch — after a squash merge it
   can survive with pre-merge history, and new work on it starts from old code.
-- Branch from the base branch named in `CONTRIBUTING.md`; never commit directly to it or to any
-  other protected branch.
+- Branch from the base branch named in `CONTRIBUTING.md`, **up to date with its remote**
+  (`git switch <base> && git pull --ff-only` first); never commit directly to it or to any other
+  protected branch. The session context says when the base branch is behind (as of the last fetch).
 - Keep branches short-lived: one spec folder per branch, one branch per pull request.
-- Delete branches after merge.
+- **After the merge**, update the base branch locally (`git switch <base> && git pull --ff-only`),
+  then delete the merged branch — `git branch -d` checks the merge against the updated base; a
+  squash-merged branch needs `-D` once its work is upstream. `/wrap-up` does both once it finds
+  nothing left in the task, and with one yes also stops what the task started, removes its worktree,
+  and archives the session.
 
 ## Outward actions
 
 Pushing, opening a pull request, marking it ready, merging, tagging, releasing, and commenting
 on a pull request, issue, or tracker task all leave this machine. An agent does them **only when
-a human asks** — and each one is confirmed again when Claude Code's permissions prompt. One
-exception: once the developer approves the local check (`AGENTS.md` § Delivery rules) — or, with
-nothing to run, once the full gate and `/review` pass — the agent pushes the work branch and opens
-its **draft** pull request on its own; the git guard hook refuses a pull request that isn't a draft.
+a human asks**, and marking ready, merging, reviewing, and releases are confirmed again when
+Claude Code's permissions prompt. One exception: once the developer approves the local
+check (`AGENTS.md` § Delivery rules) — or, with nothing to run, once the full gate and `/review`
+pass — the agent pushes the work branch and opens its **draft** pull request on its own, then
+keeps it current: later pushes to the work branch, edits to its description, and comments on it
+take no prompt. The git guard hook refuses a pull request that isn't a draft and any push to a
+protected branch.
 
 ## Pull requests
 
@@ -67,6 +77,11 @@ its **draft** pull request on its own; the git guard hook refuses a pull request
 - **Open as a draft.** Promote to ready only after a human has exercised the change (preview,
   manual QC). An agent never marks a pull request ready on its own initiative — it hasn't seen the
   result; it runs `gh pr ready` only when the developer, having QC'd the change, asks it to.
+- **Reviewing, readying, and merging are the developer's, on their schedule.** An agent doesn't ask
+  or remind them to do any of it, doesn't offer to, and doesn't request reviewers or a review.
+- **Check it on the preview too.** Once the draft's preview deploys, the agent walks the changed flow
+  there, read-only, after its local check, and adds what it saw to the description
+  (`AGENTS.md` § Delivery rules).
 - **Title:** a commit-style subject under 70 characters.
 - **Body:** the spec folder path and the tracker task link; what changed and why; how to verify;
   what the author verified and what they could not; screenshots for UI changes. Follow the

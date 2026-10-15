@@ -73,19 +73,10 @@ else
 
   if git -C "$MAIN_CHECKOUT" remote get-url origin >/dev/null 2>&1; then
     echo "==> Fetching origin"
-    # Bounded, so an unattended run can't hang on a stuck credential prompt or a dead network.
-    git -C "$MAIN_CHECKOUT" fetch --quiet --tags origin &
-    fetch_pid=$!
-    waited=0
-    while kill -0 "$fetch_pid" 2>/dev/null; do
-      sleep 1
-      waited=$((waited + 1))
-      if [ "$waited" -ge 30 ]; then
-        kill -9 "$fetch_pid" 2>/dev/null || true
-        die "'git fetch origin' timed out after 30s (check credentials and network)."
-      fi
-    done
-    wait "$fetch_pid" || die "'git fetch origin' failed."
+    fetched=0
+    fetch_origin "$MAIN_CHECKOUT" || fetched=$?
+    [ "$fetched" -ne 2 ] || die "'git fetch origin' timed out after 30s (check credentials and network)."
+    [ "$fetched" -eq 0 ] || die "'git fetch origin' failed."
   fi
 
   if git -C "$MAIN_CHECKOUT" show-ref --verify --quiet "refs/remotes/origin/$BASE_BRANCH"; then

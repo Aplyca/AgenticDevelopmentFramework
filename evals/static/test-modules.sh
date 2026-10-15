@@ -157,8 +157,15 @@ out=$(ops/agent/worktree-rm.sh fix/other-thing 2>&1); code=$?
 check "worktree-rm: refuses uncommitted changes" "[ $code -ne 0 ] && [ -d '$W2' ]"
 out=$(ops/agent/worktree-rm.sh fix/other-thing --force 2>&1); code=$?
 check "worktree-rm: --force stops, removes, and keeps an unmerged branch" "[ $code -eq 0 ] && [ ! -d '$W2' ] && [ -f '$P/stopped-fix-other-thing.txt' ] && echo \"\$out\" | grep -q 'kept branch'"
+# Someone else's pull request merged upstream since the main checkout last pulled.
+U="$WORK/upstream-clone"; git clone -q "$WORK/origin.git" "$U" 2>/dev/null
+git -C "$U" checkout -q -B main origin/main
+echo merged > "$U/merged-elsewhere.txt" && git -C "$U" add merged-elsewhere.txt
+git -C "$U" -c user.email=t@e -c user.name=t commit -qm "merged elsewhere" && git -C "$U" push -q origin HEAD:main 2>/dev/null
 out=$(ops/agent/worktree-rm.sh chore-stale-lock 2>&1); code=$?
 check "worktree-rm: by slug, deletes a merged branch" "[ $code -eq 0 ] && ! git -C '$M' show-ref --verify --quiet refs/heads/chore/stale-lock"
+check "worktree-rm: fast-forwards the main checkout's base branch to origin's" \
+    "echo \"\$out\" | grep -q 'Updated main in the main checkout: 1 new commit' && [ -f '$M/merged-elsewhere.txt' ]"
 out=$(ops/agent/worktree-rm.sh main 2>&1); code=$?
 check "worktree-rm: refuses the main checkout" "[ $code -ne 0 ] && [ -d '$M' ]"
 
@@ -240,7 +247,9 @@ verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" <<'PY'
 import json, re, sys
 perms = json.load(open(sys.argv[1]))["permissions"]
 def matches(rules, command):
-    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+    # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
 def verdict(command):
     parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
     if any(matches(perms["ask"], p) for p in parts):
@@ -253,15 +262,30 @@ cases = {
     "docker system prune -af": "ask", "docker volume prune": "ask", "docker image prune -a": "ask",
     "docker rm -f web": "ask", "docker rmi redis:7": "ask", "docker compose rm -f web": "ask",
     "docker compose ps": "allow", "docker compose logs --tail 100 --no-color web": "allow",
-    "docker compose config --quiet": "allow", "docker compose port web 3000": "allow",
-    "docker system df": "allow",
-    "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
-    "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
-    # The Makefile's targets (decision 0032): reset deletes the stack's volumes; four read-only ones run.
+    "docker compose config --quiet": "allow", "docker compose config --services": "allow",
+    "docker compose port web 3000": "allow", "docker system df": "allow",
+    # Docker broadly too (decision 0038): what this project's stack does runs; what deletes, reaches
+    # other projects' containers or the host, leaves the machine, or prints secrets asks.
+    "docker compose up -d --wait": "allow", "docker compose down": "allow", "docker compose build": "allow",
+    "docker compose stop web": "allow", "docker compose restart web": "allow", "docker compose pull": "allow",
+    "docker images": "allow", "docker stats --no-stream": "allow", "docker version": "allow",
+    "docker compose config": "ask", "docker inspect web": "ask", "docker run --rm alpine true": "allow",
+    "docker run --rm -v \"$PWD/e2e:/suite\" node:22 npm install": "allow", "docker push registry.example.com/site:1": "ask",
+    "docker stop web": "allow", "docker kill web": "allow", "docker login": "allow",
+    "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
+    "docker compose run --rm web env": "ask",
+    # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
+    # containers' commands, but reset deletes the stack's volumes and run runs any command it's given.
     "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
-    "make urls && make reset": "ask",
+    "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
-    "make ps down": "prompt", "make up": "prompt", "make down": "prompt", "make native": "prompt",
+    "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
+    "make lint f=src/a.ts": "allow",
+    # The mode is the developer's (SPECIFICATION.md M10): overriding it on a command asks.
+    "make up DEV_MODE=native": "ask", "make e2e DEV_MODE=native": "ask", "make test DEV_MODE=docker": "ask",
+    "make up SERVICES=none": "ask",
+    "docker compose run --rm web yarn test": "allow", "docker compose exec -T web sh": "allow",
+    "DEV_MODE=native make up": "prompt",
 }
 for command, expected in cases.items():
     if verdict(command) != expected:
@@ -272,26 +296,27 @@ check "docker rules: destructive commands ask, read-only ones run, secret-printi
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 
 # ─── docker: the stack /dev-env writes from its templates (decision 0032) ──
-# A stub docker answers `docker compose port` from STUB_PORTS, so this runs without Docker; the
-# helper runs under /bin/bash, which is 3.2 on macOS.
+# A stub docker answers `docker compose ps <service> --format …` from STUB_PORTS (service=port), so
+# this runs without Docker; the scripts run under /bin/bash, which is 3.2 on macOS.
 TPL="$REPO_ROOT/plugins/adf-dev/skills/dev-env/templates"
 DS="$WORK/docker-stack"; mkdir -p "$DS/site" "$DS/bin"
 cp -R "$TPL/." "$DS/site/"
 cat > "$DS/bin/docker" <<'STUB'
 #!/bin/sh
-[ "$1 $2" = "compose port" ] || exit 2
+[ "$1 $2" = "compose ps" ] || exit 2
 for entry in $STUB_PORTS; do
-  [ "${entry%%=*}" = "$3:$4" ] && { echo "127.0.0.1:${entry#*=}"; exit 0; }
+  [ "${entry%%=*}" = "$3" ] && { echo "${entry#*=} "; exit 0; }
 done
-echo "service \"$3\" is not running" >&2; exit 1
+exit 0
 STUB
 chmod +x "$DS/bin/docker"
 git -C "$DS/site" init -q -b main && printf '.env\n' > "$DS/site/.gitignore"
 git -C "$DS/site" add -A && git -C "$DS/site" -c user.email=t@e -c user.name=t commit -qm init
 stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" "$@"); }
-ports() { stack env PORTS='APP_PORT=web:3000 REDIS_PORT=redis:6379' /bin/bash ops/scripts/ports.sh "$@"; }
+ports() { stack env SERVICES=redis /bin/bash ops/native/native.sh env; }
 
-check "templates: ports.sh is executable" "[ -x '$TPL/ops/scripts/ports.sh' ]"
+check "templates: guard.sh and native.sh are executable" "[ -x '$TPL/ops/docker/guard.sh' ] && [ -x '$TPL/ops/native/native.sh' ]"
+check "templates: no ports.sh and no PORTS — Docker Compose knows the ports" "[ ! -e '$TPL/ops/docker/ports.sh' ] && ! grep -q '^PORTS' '$TPL/Makefile'"
 out=$(stack make env 2>&1)
 # GNU stat first: its -f means "file system" and takes %Lp for a file name, so BSD's form tried first
 # prints more than the mode on Linux.
@@ -301,42 +326,153 @@ echo 'MAILCHIMP_API_KEY=topsecret' >> "$DS/site/.env"
 out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
 out=$(stack make help 2>&1)
-check "make help: the default target lists every task" \
-    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell services native test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+check "make help: the default target lists every task of the mode" \
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
-    "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'ports.sh guard'"
+    "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'guard.sh'"
 out=$(stack make -n logs 2>&1)
 check "make logs: the last lines, never followed" \
     "echo \"\$out\" | grep -q -- '--tail 100 --no-color' && ! echo \"\$out\" | grep -qE -- ' -f( |\$)|--follow'"
-out=$(STUB_PORTS='web:3000=51000 redis:6379=51001' ports urls 2>&1); code=$?
-check "ports.sh urls: where Docker published each service, the app as a URL" \
-    "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'web .*http://localhost:51000  (APP_PORT)' && echo \"\$out\" | grep -q 'redis .*localhost:51001  (REDIS_PORT)'"
-out=$(STUB_PORTS='redis:6379=51001' ports urls 2>&1)
-check "ports.sh urls: a service that's down says so" "echo \"\$out\" | grep -q 'web .*not running'"
-out=$(STUB_PORTS='redis:6379=51001' ports env 2>&1); code=$?
-check "ports.sh env: each backing service's port, and a free port for the app on the host" \
+# C9: Bash(make *) allows every task, so the templates' tasks but reset exist in both modes, delete
+# nothing, and never follow a log.
+c9=""
+for mode in docker native; do
+    for task in help env up down build ps logs urls test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+        out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
+        while IFS= read -r line; do
+            case "$line" in
+                *"down -v"*|*"rm -rf"*|*prune*|*--remove-orphans*) c9="$c9 [$mode $task deletes: $line]" ;;
+                *" -f"|*" -f "*|*--follow*) [ "$task" = logs ] && c9="$c9 [$mode $task follows: $line]" ;;
+            esac
+        done <<< "$out"
+    done
+done
+check "C9: the templates' tasks but reset exist in both modes, delete nothing, and never follow a log" "[ -z \"$c9\" ]"
+[ -z "$c9" ] || echo "    $c9"
+out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
+check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
+out=$(stack make -n urls 2>&1)
+check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
+    "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
+out=$(STUB_PORTS='redis=51001' ports 2>&1); code=$?
+check "native.sh env: each backing service's published port as <SERVICE>_PORT, and a free port for the app" \
     "[ $code -eq 0 ] && echo \"\$out\" | grep -q '^export REDIS_PORT=51001$' && echo \"\$out\" | grep -qE '^export APP_PORT=[0-9]+$'"
 sed -i.bak 's/^APP_PORT=$/APP_PORT=48765/' "$DS/site/.env" && rm -f "$DS/site/.env.bak"
-out=$(STUB_PORTS='redis:6379=51001' ports env 2>&1)
-check "ports.sh env: the app keeps a port pinned in .env" "echo \"\$out\" | grep -q '^export APP_PORT=48765$'"
-out=$(STUB_PORTS='redis:6379=51001' APP_PORT=47000 ports env 2>&1)
-check "ports.sh env: a value in the shell wins, as it does for Compose" "echo \"\$out\" | grep -q '^export APP_PORT=47000$'"
-out=$(ports env 2>&1); code=$?
-check "ports.sh env: refuses while the backing services are down" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'make services'"
-out=$(ports free); code=$?
-check "ports.sh free: a port nothing listens on" \
-    "[ $code -eq 0 ] && [ \"\$out\" -ge 20000 ] && [ \"\$out\" -lt 32000 ] && ! (exec 3<>/dev/tcp/127.0.0.1/\$out) 2>/dev/null"
-out=$({ STUB_PORTS='web:3000=51000 redis:6379=51001' ports urls; STUB_PORTS='redis:6379=51001' ports env; ports guard; } 2>&1)
-check "ports.sh: never prints a value from .env but the ports" "! echo \"\$out\" | grep -q topsecret"
-check "ports.sh guard: passes in the main checkout" "ports guard"
+out=$(STUB_PORTS='redis=51001' ports 2>&1)
+check "native.sh env: the app keeps a port pinned in .env" "echo \"\$out\" | grep -q '^export APP_PORT=48765$'"
+out=$(STUB_PORTS='redis=51001' APP_PORT=47000 ports 2>&1)
+check "native.sh env: a value in the shell wins, as it does for Compose" "echo \"\$out\" | grep -q '^export APP_PORT=47000$'"
+out=$(ports 2>&1); code=$?
+check "native.sh env: refuses while a backing service is down, saying how to fix it" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'make services'"
+out=$({ STUB_PORTS='redis=51001' ports; stack /bin/bash ops/docker/guard.sh; } 2>&1)
+check "native.sh and guard.sh: never print a value from .env but the ports" "! echo \"\$out\" | grep -q topsecret"
+check "guard.sh: passes in the main checkout" "stack /bin/bash ops/docker/guard.sh"
 git -C "$DS/site" worktree add -q -b feat/copied "$DS/site-feat-copied" && cp "$DS/site/.env" "$DS/site-feat-copied/.env"
-out=$(cd "$DS/site-feat-copied" && /bin/bash ops/scripts/ports.sh guard 2>&1); code=$?
+out=$(cd "$DS/site-feat-copied" && /bin/bash ops/docker/guard.sh 2>&1); code=$?
 reset_out=$(cd "$DS/site-feat-copied" && PATH="$DS/bin:$PATH" make reset 2>&1)
-check "ports.sh guard: refuses in a worktree whose .env repeats the main checkout's pinned port, and so does make reset" \
+check "guard.sh: refuses in a worktree whose .env repeats the main checkout's pinned port, and so does make reset" \
     "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'APP_PORT' && echo \"\$reset_out\" | grep -q 'repeats the main checkout' && ! echo \"\$reset_out\" | grep -q 'down -v'"
 sed -i.bak 's/^APP_PORT=48765$/APP_PORT=/' "$DS/site-feat-copied/.env" && rm -f "$DS/site-feat-copied/.env.bak"
-check "ports.sh guard: passes there once the copied port is emptied" "(cd '$DS/site-feat-copied' && /bin/bash ops/scripts/ports.sh guard)"
+check "guard.sh: passes there once the copied port is emptied" "(cd '$DS/site-feat-copied' && /bin/bash ops/docker/guard.sh)"
+
+# The mode (decision 0034): the root Makefile loads ops/<DEV_MODE>/Makefile — DEFAULT_MODE, .env, or the
+# command line.
+check "templates: native.sh is executable" "[ -x '$TPL/ops/native/native.sh' ]"
+out=$(stack make help 2>&1)
+check "make help: names the mode and its file, docker by default" "echo \"\$out\" | head -1 | grep -q '^Mode: docker (ops/docker/Makefile)'"
+out=$(stack make -n up 2>&1)
+check "make up, docker mode: the whole stack in Docker" "echo \"\$out\" | grep -q 'compose up -d --wait\$' && ! echo \"\$out\" | grep -q 'native.sh start'"
+echo 'DEV_MODE=native # this checkout' >> "$DS/site/.env"
+out=$(stack make help 2>&1)
+check "make help, DEV_MODE=native in .env: ops/native/Makefile's tasks" \
+    "echo \"\$out\" | head -1 | grep -q '^Mode: native (ops/native/Makefile)' && echo \"\$out\" | grep -q 'make services ' && ! echo \"\$out\" | grep -q 'make shell '"
+out=$(stack make -n up 2>&1)
+check "make up, native mode: the backing services in Docker, the app on the host" \
+    "echo \"\$out\" | grep -q 'up -d --wait redis' && echo \"\$out\" | grep -q 'native.sh start'"
+out=$(stack make -n up DEV_MODE=docker 2>&1)
+check "make up DEV_MODE=docker: the command line wins over .env" "echo \"\$out\" | grep -q 'compose up -d --wait\$' && ! echo \"\$out\" | grep -q 'native.sh start'"
+out=$(stack make help DEV_MODE=podman 2>&1); code=$?
+check "DEV_MODE: a mode with no file stops make, naming the setting" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"DEV_MODE is 'podman'\""
+mkdir -p "$DS/site/ops/agent" && out=$(stack make help DEV_MODE=agent 2>&1); code=$?
+check "DEV_MODE: a target folder without a Makefile isn't a local mode" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"no ops/agent/Makefile\""
+out=$(cd "$DS/site/ops/docker" && make up 2>&1); code=$?
+check "a mode's Makefile run on its own stops, saying to run make from the root" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'run make from the repository root'"
+out=$(stack make -n services 2>&1)
+check "SERVICES: native mode starts the project's DEFAULT_SERVICES in Docker" "echo \"\$out\" | grep -q 'up -d --wait redis\$'"
+echo 'SERVICES="postgres redis" # mine' >> "$DS/site/.env"
+out=$(stack make -n services 2>&1)
+check "SERVICES in .env: this developer's list, spaces and comment allowed" "echo \"\$out\" | grep -q 'up -d --wait postgres redis\$'"
+out=$(stack make -n services SERVICES=redis 2>&1)
+check "SERVICES on the command line wins over .env" "echo \"\$out\" | grep -q 'up -d --wait redis\$'"
+echo 'SERVICES=none' >> "$DS/site/.env"
+out=$(stack make services 2>&1)
+check "SERVICES=none in .env: nothing in Docker" "echo \"\$out\" | grep -q 'No backing services in Docker'"
+sed -i.bak '/^SERVICES=/d' "$DS/site/.env" && rm -f "$DS/site/.env.bak"
+out=$(stack make -n reset 2>&1)
+check "make reset, native mode: stops the app on the host, then deletes the volumes" \
+    "echo \"\$out\" | grep -q 'native.sh stop' && echo \"\$out\" | grep -q 'down -v'"
+# The app on the host, for real: a dev command that serves the folder, with nothing in Docker.
+NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
+git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n' > "$NS/.gitignore"
+sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
+native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native SERVICES=none); }
+out=$(native up 2>&1); code=$?
+port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
+check "native mode, make up: starts the app in the background and waits until it answers" \
+    "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"\$out\" | grep -q \"http://localhost:$port\""
+out=$(native urls 2>&1)
+check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
+out=$(native up 2>&1)
+check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
+out=$(cd "$NS" && SERVICES= /bin/bash ops/native/native.sh env 2>&1)
+check "native.sh env: while the app runs, its port — what make test and make e2e reach" "echo \"\$out\" | grep -q '^export APP_PORT=$port\$'"
+out=$(native down 2>&1); code=$?
+check "native mode, make down: stops the app and its process group" \
+    "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
+sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
+out=$(native up 2>&1); code=$?
+check "native mode, make up: a dev command that exits fails, and shows its log" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q boom && [ ! -f '$NS/ops/native/.run/app.env' ]"
+
+# ─── e2e: its rules (decision 0037) ──
+EF="$WORK/e2e-fresh"; mkdir -p "$EF"
+EALLOWS=$(jsonq "$MODULES/e2e/settings-fragment.json" 'len(d["permissions"]["allow"])')
+"$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1; c=$?
+"$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1
+check "e2e install: allows the suite's commands, and a second run adds nothing" \
+    "[ $c -eq 0 ] && [ \"\$(jsonq '$EF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$EALLOWS' ]"
+verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" "$MODULES/e2e/settings-fragment.json" <<'PY'
+import json, re, sys
+docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
+allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
+def matches(rules, command):
+    # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
+def verdict(command):
+    parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
+    if any(matches(ask, p) for p in parts):
+        return "ask"
+    return "allow" if all(matches(allow, p) for p in parts) else "prompt"
+cases = {
+    "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
+    "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
+    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
+}
+for command, expected in cases.items():
+    if verdict(command) != expected:
+        print(f"'{command}': {verdict(command)}, expected {expected}")
+PY
+)
+check "e2e rules: the suite runs without a prompt, beside the docker module's, and reset still asks" "[ -z \"\$verdicts\" ]"
+[ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
+# The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
+HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"
+printf '\ne2e: ## Run the end-to-end tests\n\t@true\n' >> "$HD/ops/docker/Makefile"
+out=$(cd "$HD" && make help 2>&1)
+check "make help: lists a task whose name has a digit (e2e)" "echo \"\$out\" | grep -q 'make e2e .*Run the end-to-end tests'"
 if docker compose version >/dev/null 2>&1; then
     check "compose.yaml: valid, with an empty .env and with pinned ports" \
         "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
