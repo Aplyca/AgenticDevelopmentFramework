@@ -23,8 +23,8 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 
 | Guardrail | Enforced by |
 |---|---|
-| Outward actions past the draft pull request — PR ready / merge / review, releases, issue writes — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check, and keeping that draft current — editing it, commenting on it — needs no prompt | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
-| `git` and `gh` run without a prompt, except what loses work git can't bring back — `git reset --hard`, `clean`, `checkout --`, `restore`, `stash drop`, `branch -D` — `git config` and `push --tags`, and readying, merging, or reviewing a pull request, issue writes, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. Those ask | `permissions.allow` (`git *`, `gh *`) and `permissions.ask` in `.claude/settings.json` |
+| Outward actions past the draft pull request — PR ready / merge / review, releases — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check, and keeping that draft current — editing it, commenting on it — needs no prompt. An issue write needs no prompt either; an agent still posts only when you ask | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
+| `git` and `gh` run without a prompt, except `git config` (it could switch off the hooks) and `push --tags`, and readying, merging, or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. Those ask | `permissions.allow` (`git *`, `gh *`) and `permissions.ask` in `.claude/settings.json` |
 | Secret env files (`.env`, `.env.local`, `.env.*.local`) are never read into context — extend the list for your other secret files | `permissions.deny` in `.claude/settings.json` |
 | No `--no-verify`; no commits or pushes on protected branches; no force-push to them; pull requests open only as drafts | `.claude/hooks/guard-git.sh` (PreToolUse) |
 | Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |

@@ -50,18 +50,16 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   `/dev-env set up` proposes and `/adf:upgrade` lists. No task waits for input or follows a log.
 - **`git` and `gh` the same way.** The skeleton allows `Bash(git *)` and `Bash(gh *)`, and asks by
   name before:
-  - what loses uncommitted work git can't bring back: `git reset --hard`, `clean`, `checkout --`
-    and `checkout .`, `restore`, `stash drop`, `branch -D`;
   - `git config`, which could switch off the git hooks (`core.hooksPath`);
   - `git push --tags`: a tag is a release;
-  - what changes a pull request's state or speaks for someone: `gh pr ready`, `merge`, `review`, and
-    issue writes;
+  - what changes a pull request's state or speaks for a reviewer: `gh pr ready`, `merge`, `review`;
   - what can't be undone or exposes a credential: releases, `gh repo delete`, `gh secret`, `gh auth`
     (`gh auth token` prints one), and `gh api` writes.
 
-  The list is short on purpose. A rare command that's easy to undo — closing or reopening a pull
-  request, a label, a workflow run, `docker stop` — runs; the list names only what's irreversible,
-  what speaks for someone, and what reaches past the project.
+  The list is short on purpose, and the developer chose it. Discarding local work (`git reset --hard`,
+  `clean`, `restore`, `branch -D`) and issue writes run without a prompt: the git-workflow rule and
+  `AGENTS.md` still say an agent discards work or posts on an issue only when asked. A rare command
+  that's easy to undo — closing a pull request, a label, a workflow run, `docker stop` — runs too.
 
   Staging everything and `git commit --amend` run: the git-workflow rule still says stage by name, and
   an amend that's been pushed needs a force-push, which decision 0033 already let a work branch take.
@@ -93,6 +91,8 @@ followed. The docker module allowed `make logs`, so an agent that ran it waited 
   - **A secret can still reach the conversation** through a form the ask rules don't name, such as
     `docker compose config --format json`. `/dev-env`'s safety rules and the specification (V4) say
     never to print one; the rules catch the usual forms.
+  - **An agent can discard uncommitted work, or post on an issue, without a prompt.** The rules say
+    it does neither unasked, and a mistake there is the cost of this choice.
   - **`git`, `gh`, and `docker` run without a prompt but for the named exceptions.** That includes
     rare commands that change shared state and can be undone: closing a pull request, a label, a
     workflow run, stopping another project's container. The hooks still hold the line on protected

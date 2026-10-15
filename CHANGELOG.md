@@ -27,10 +27,10 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     that names `env`), and `make run`. An ask rule wins over any
     allow rule.
   - **The skeleton:**
-    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name before what loses work
-      (`reset --hard`, `clean`, `restore`, `branch -D`), `git config`, pushing tags, readying,
-      merging, or reviewing a pull request, issue writes, releases, `gh repo delete`, secrets,
-      `gh auth`, and `gh api` writes. The narrower git and gh allows it replaces go;
+    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name only before `git config`,
+      pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`,
+      secrets, `gh auth`, and `gh api` writes. Issue writes and discarding local work no longer ask.
+      The narrower git and gh allows it replaces go;
     - `.claude/rules/claude-code.md` gains § Commands that run without a prompt: use the tasks, write
       paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
       shorten output with a pipe.
