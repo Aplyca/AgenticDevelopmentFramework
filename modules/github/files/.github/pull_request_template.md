@@ -26,9 +26,12 @@
 ## Verified / not verified
 
 <!-- From the spec folder's tasks.md § Gate results: what ran (commands, counts) and what could not
-     be checked here, and why — e.g. "UI on the preview deployment". -->
+     be checked, and why. Preview: the flow walked on this pull request's preview once it deployed,
+     after the local check — or "pending", "no preview", "nothing a person sees". -->
 
 - Verified:
+- Local check:
+- Preview:
 - Not verified:
 
 ## Merge danger

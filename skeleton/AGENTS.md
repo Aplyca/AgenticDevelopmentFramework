@@ -92,6 +92,7 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 - **Branches:** `<type>/<slug>` from [`main`], up to date with its remote (`git pull --ff-only` first) — `<type>` is the commit type, `<slug>` matches the spec folder. Never commit directly to [`main`]. After the merge, `/wrap-up`: once nothing is left, one yes updates [`main`] locally, deletes the branch, and closes up the task. <!-- CUSTOMIZE: integration and release branches — CONTRIBUTING.md holds the full model -->
 - **Commits:** one per green task; prefixes and phase order in `.claude/rules/git-workflow.md`. Don't amend or rewrite pushed history unless asked.
 - **Local check before the pull request:** when a change alters something a person can see or use, start it on the local environment (§ Quick reference), give the developer the local URL and what to try — the acceptance criteria, or the fast lane's "done when" — and wait. The developer tests it by hand and approves it — and that approval opens the **draft** pull request: push and run `/open-pr` without waiting to be asked. A fix found there goes in first, and the check repeats. Docs-only and CI-only work has nothing to run: the draft opens once the full gate and `/review` pass. Answer-only work has no pull request unless the task asks for one.
+- **Check locally first, then on the preview.** Before the local check, and before any push, run the change on this checkout's own environment and walk the changed flow yourself. Then, when the project has previews and the change alters something a person sees or uses, walk the same flow on the draft's preview once it deploys — read-only, in a browser, never the end-to-end suite — and add what you saw to the pull request's *Verified*. It's evidence, not the QC: the developer's check on the preview still decides ready.
 - **Pull requests:** open as **drafts**, after the local check; name the spec folder (or the light `CR N`) and link the tracker task; state the lane and why, what you verified, and what you could not. Never mark a pull request ready on your own — a human QCs it (preview, manual check) and promotes it, or asks you to once they have. Ready means "a person has exercised this".
 - **Parallel sessions:** when several agent sessions work at once, each gets its own git worktree; never edit in a checkout another session is using. <!-- CUSTOMIZE: with the parallel-agents module installed, replace with: "In the main checkout you dispatch; you never work — see docs/PARALLEL-AGENTS.md." -->
 
@@ -112,7 +113,7 @@ Every call re-reads the whole conversation, so cost and time grow with how long 
 - **One task per session** — `/clear` before the next one. Between phases of one task, continue while the next phase needs this conversation as it happened; otherwise clear, hand off, or compact (`docs/COST-MODEL.md` § Between phases).
 - **Keep output small** — quiet test reporters, `| tail -n 40`, read the lines you need; whatever a command prints stays in context.
 - **Targeted tests while iterating; the full gate once**, before delivery.
-- **Browser checks only when asked or for a visual change** — the human QC on the preview is the real check.
+- **Browser checks for a change a person sees or uses** — locally first, then on the preview (§ Delivery rules); the developer's QC on the preview is still the gate.
 - **Ask questions in rounds.** A round holds every question that doesn't depend on another open answer, numbered, each with your recommended answer and why — so the developer can reply "as recommended" or correct one. Look facts up yourself (code, docs, the tracker) instead of asking. Ask about *what* is wanted; state minor implementation choices as assumptions in the pull request instead of waiting.
 
 ## AI interaction rules
@@ -185,3 +186,4 @@ docs/                Documentation
 - Tests: `[command]` (on their own port)
 - Lint: `[command]` · Typecheck: `[command]`
 - Full gate before a PR: `[command]`
+- Preview: `[where each pull request's preview deploys, e.g. the host's comment on the PR — or "none"]`
