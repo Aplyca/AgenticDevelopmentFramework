@@ -21,7 +21,7 @@ NATIVE_CMD = echo "CUSTOMIZE: set NATIVE_CMD in ops/native/Makefile to the app's
 export NATIVE_CMD
 NATIVE_SH = SERVICES='$(SERVICES)' COMPOSE='$(COMPOSE)' APP='$(APP)' ops/native/native.sh
 
-.PHONY: up down build ps logs urls services test lint reset
+.PHONY: up down build ps logs urls services test lint format typecheck reset
 
 up: env guard services ## Start the app on the host, wait until it answers, and show where it is
 	@$(COMPOSE) stop $(APP) >/dev/null 2>&1 || true
@@ -50,11 +50,17 @@ urls: ## Where the app and each backing service are now
 services: env guard ## Start only the backing services in Docker
 	$(if $(SERVICES),$(COMPOSE) up -d --wait $(SERVICES),@echo "No backing services in Docker")
 
-test: services ## Run the tests on the host, with the services' ports exported
-	@eval "$$($(NATIVE_SH) env)" && echo "CUSTOMIZE: the test command after the exports, e.g. npm test" >&2 && exit 1
+test: services ## Run the tests on the host, with the services' ports exported; t=<filter> runs only the matching ones
+	@eval "$$($(NATIVE_SH) env)" && echo "CUSTOMIZE: the test command after the exports, with t as its filter, e.g. npm test -- $(t)" >&2 && exit 1
 
-lint: ## Run the linters on the host
-	@echo "CUSTOMIZE: the lint command, e.g. npm run lint" >&2; exit 1
+lint: ## Run the linters on the host; f=<files> lints only those
+	@echo "CUSTOMIZE: the lint command, with f as its files, e.g. npx eslint $(or $(f),.)" >&2; exit 1
+
+format: ## Rewrite files to the project's formatting, on the host; f=<files> formats only those
+	@echo "CUSTOMIZE: the format command, e.g. npx prettier --write $(or $(f),.) — or say the stack has no formatter" >&2; exit 1
+
+typecheck: ## Run the type checker on the host
+	@echo "CUSTOMIZE: the type checker, e.g. npx tsc --noEmit — or say the stack has none" >&2; exit 1
 
 reset: env guard ## DESTRUCTIVE: delete the services' containers and volumes, then start again
 	@ops/native/native.sh stop

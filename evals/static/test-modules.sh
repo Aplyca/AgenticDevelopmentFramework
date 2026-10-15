@@ -247,7 +247,9 @@ verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" <<'PY'
 import json, re, sys
 perms = json.load(open(sys.argv[1]))["permissions"]
 def matches(rules, command):
-    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+    # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
 def verdict(command):
     parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
     if any(matches(perms["ask"], p) for p in parts):
@@ -260,15 +262,30 @@ cases = {
     "docker system prune -af": "ask", "docker volume prune": "ask", "docker image prune -a": "ask",
     "docker rm -f web": "ask", "docker rmi redis:7": "ask", "docker compose rm -f web": "ask",
     "docker compose ps": "allow", "docker compose logs --tail 100 --no-color web": "allow",
-    "docker compose config --quiet": "allow", "docker compose port web 3000": "allow",
-    "docker system df": "allow",
-    "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
-    "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
-    # The Makefile's targets (decision 0032): reset deletes the stack's volumes; four read-only ones run.
+    "docker compose config --quiet": "allow", "docker compose config --services": "allow",
+    "docker compose port web 3000": "allow", "docker system df": "allow",
+    # Docker broadly too (decision 0038): what this project's stack does runs; what deletes, reaches
+    # other projects' containers or the host, leaves the machine, or prints secrets asks.
+    "docker compose up -d --wait": "allow", "docker compose down": "allow", "docker compose build": "allow",
+    "docker compose stop web": "allow", "docker compose restart web": "allow", "docker compose pull": "allow",
+    "docker images": "allow", "docker stats --no-stream": "allow", "docker version": "allow",
+    "docker compose config": "ask", "docker inspect web": "ask", "docker run --rm alpine true": "allow",
+    "docker run --rm -v \"$PWD/e2e:/suite\" node:22 npm install": "allow", "docker push registry.example.com/site:1": "ask",
+    "docker stop web": "allow", "docker kill web": "allow", "docker login": "allow",
+    "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
+    "docker compose run --rm web env": "ask",
+    # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
+    # containers' commands, but reset deletes the stack's volumes and run runs any command it's given.
     "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
-    "make urls && make reset": "ask",
+    "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
-    "make ps down": "prompt", "make up": "prompt", "make down": "prompt", "make native": "prompt",
+    "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
+    "make lint f=src/a.ts": "allow",
+    # The mode is the developer's (SPECIFICATION.md M10): overriding it on a command asks.
+    "make up DEV_MODE=native": "ask", "make e2e DEV_MODE=native": "ask", "make test DEV_MODE=docker": "ask",
+    "make up SERVICES=none": "ask",
+    "docker compose run --rm web yarn test": "allow", "docker compose exec -T web sh": "allow",
+    "DEV_MODE=native make up": "prompt",
 }
 for command, expected in cases.items():
     if verdict(command) != expected:
@@ -317,6 +334,24 @@ check "make reset: deletes the volumes, after the worktree guard" \
 out=$(stack make -n logs 2>&1)
 check "make logs: the last lines, never followed" \
     "echo \"\$out\" | grep -q -- '--tail 100 --no-color' && ! echo \"\$out\" | grep -qE -- ' -f( |\$)|--follow'"
+# C9: Bash(make *) allows every task, so the templates' tasks but reset exist in both modes, delete
+# nothing, and never follow a log.
+c9=""
+for mode in docker native; do
+    for task in help env up down build ps logs urls test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+        out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
+        while IFS= read -r line; do
+            case "$line" in
+                *"down -v"*|*"rm -rf"*|*prune*|*--remove-orphans*) c9="$c9 [$mode $task deletes: $line]" ;;
+                *" -f"|*" -f "*|*--follow*) [ "$task" = logs ] && c9="$c9 [$mode $task follows: $line]" ;;
+            esac
+        done <<< "$out"
+    done
+done
+check "C9: the templates' tasks but reset exist in both modes, delete nothing, and never follow a log" "[ -z \"$c9\" ]"
+[ -z "$c9" ] || echo "    $c9"
+out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
+check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
 out=$(stack make -n urls 2>&1)
 check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
     "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
@@ -412,7 +447,9 @@ import json, re, sys
 docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
 allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
 def matches(rules, command):
-    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+    # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
 def verdict(command):
     parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
     if any(matches(ask, p) for p in parts):
@@ -421,7 +458,7 @@ def verdict(command):
 cases = {
     "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
     "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
-    "make up": "prompt", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
     "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
 }
 for command, expected in cases.items():
@@ -429,7 +466,7 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "e2e rules: the suite runs without a prompt; nothing else does, and reset still asks" "[ -z \"\$verdicts\" ]"
+check "e2e rules: the suite runs without a prompt, beside the docker module's, and reset still asks" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 # The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
 HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"

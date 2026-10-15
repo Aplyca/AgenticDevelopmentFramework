@@ -16,8 +16,8 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
 Pushing a work branch, and opening, editing, or commenting on its draft pull request, run without a
-prompt (decision 0033). Readying, merging, or reviewing a pull request, issue writes, and releases
-aren't blocked here — `permissions.ask` in the project's `.claude/settings.json` makes a human
+prompt (decision 0033), and so do issue writes (0038). Readying, merging, or reviewing a pull request,
+and releases, aren't blocked here — `permissions.ask` in the project's `.claude/settings.json` makes a human
 confirm each one.
 
 ## Configure

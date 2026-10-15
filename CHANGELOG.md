@@ -11,6 +11,49 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Fewer prompts: allow make, docker, git, and gh broadly, and ask by name**
+  ([decision 0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). From an adopting
+  project's transcripts: most prompts came from commands no rule could read, from `make run` doing
+  what no task did, and from every commit.
+  - **`dev-env`'s specification:**
+    - **C3:** `test` takes `t=<filter>` and `lint` takes `f=<files>`, and each mode adds `format` and
+      `typecheck`.
+    - **C9:** every task runs without a prompt but the ones that delete data or run a command
+      they're given, each of which has an ask rule. No task waits for input or follows a log.
+    - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
+  - **The docker module** allows `docker *` and `make *`, and asks by name before what must still
+    prompt: what deletes data (`down -v`, `rm`, `rmi`, `prune`, `make reset`), `docker push`, what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec`
+    that names `env`), and `make run`. An ask rule wins over any
+    allow rule.
+  - **The skeleton:**
+    - `.claude/settings.json` allows `git *` and `gh *`, and asks by name only before `git config`,
+      pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`,
+      secrets, `gh auth`, and `gh api` writes. Issue writes and discarding local work no longer ask.
+      The narrower git and gh allows it replaces go;
+    - `.claude/rules/claude-code.md` gains § Commands that run without a prompt: use the tasks, write
+      paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
+      shorten output with a pipe.
+
+  - **The mode is the developer's** (decision 0034, amended; `dev-env`'s M10). An agent runs every
+    task in the mode the checkout is configured for, and never sets `DEV_MODE` or `SERVICES` on a
+    command, or changes them in `.env` or the `Makefile`, unless the developer asks. The docker
+    module asks before any `make` command that sets either one. `claude-code.md` and
+    `deployment.md` say so, and the `DEV_MODE=native` example agents copied is gone.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `.claude/settings.json` — the git and gh rules: keep the project's
+    own rules, and drop the old narrow git and gh allows `git *` and `gh *` now cover — and for
+    `.claude/rules/claude-code.md` (the new section and a guardrails row).
+  - **With `docker`:**
+    - Merge for `.claude/rules/deployment.md`, whose § Docker gains the line on the mode.
+    - `/adf:upgrade` reruns `modules/docker/install.sh`, which merges the new allows and the
+      `make run` ask rule. Before it does, it lists any project task that deletes data under another
+      name, or follows a log, and adds an ask rule for it or fixes it in the same change.
+    - Then `/adf-dev:dev-env set up` audits the Makefile and adds `t=`, `f=`, `format`, and
+      `typecheck`.
+  - **Templates:** merge for `dev-env`'s `ops/docker/Makefile` and `ops/native/Makefile` — the
+    filters, and the `format` and `typecheck` tasks.
+
 - **An agent checks a change locally first, then on the pull request's preview**
   ([decision 0039](docs/decisions/0039-check-locally-then-on-the-preview.md)).
   - **Locally first:** before the developer's local check and before any push, the agent walks the
