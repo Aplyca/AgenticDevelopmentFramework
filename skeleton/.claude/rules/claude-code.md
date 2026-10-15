@@ -24,6 +24,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Guardrail | Enforced by |
 |---|---|
 | Outward actions past the draft pull request — PR ready / merge / review, releases, issue writes — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check, and keeping that draft current — editing it, commenting on it — needs no prompt | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
+| Staging by name, committing, switching branches, and fetching or fast-forwarding run without a prompt. `git add .`, `git add -A`, and `git commit --amend` ask | `permissions.allow` and `permissions.ask` in `.claude/settings.json` |
 | Secret env files (`.env`, `.env.local`, `.env.*.local`) are never read into context — extend the list for your other secret files | `permissions.deny` in `.claude/settings.json` |
 | No `--no-verify`; no commits or pushes on protected branches; no force-push to them; pull requests open only as drafts | `.claude/hooks/guard-git.sh` (PreToolUse) |
 | Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |
@@ -35,6 +36,24 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `.claude/hooks/approve-worktree-move.sh` (PreToolUse) |
 
 Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts only after your yes in chat.
+
+## Commands that run without a prompt
+
+An allow rule matches a command as written, so write each command the way a rule can read it.
+Claude Code asks about anything it can't check, even when the command itself is allowed.
+- **Use the project's tasks:** `make test t=<file>`, `make lint f=<file>`, `make up DEV_MODE=native`
+  — a variable goes after the task, never as a leading `VAR=value`.
+- **Write paths out.** No `S=/path; … $S/…`: an allow rule doesn't match past an assignment, and a
+  path in a variable can't be checked.
+- **Stay in this checkout:** run `git` from the session's folder, not `git -C <path>`, and `cd` only
+  inside the project.
+- **Read and edit with the tools, not the shell:** no `for` loops, and no `python3 - <<EOF` or
+  `node -e` scripts for what Read, Grep, or Edit do.
+- **Keep output in the conversation short with a pipe** (`2>&1 | tail -n 40`), rather than a
+  redirect into a file outside the project, which asks.
+
+When a command still prompts every time and only reads, it's a gap in `.claude/settings.json`:
+name it to the developer rather than working around it.
 
 ## Lanes — match ceremony to risk
 

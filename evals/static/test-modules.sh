@@ -247,7 +247,9 @@ verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" <<'PY'
 import json, re, sys
 perms = json.load(open(sys.argv[1]))["permissions"]
 def matches(rules, command):
-    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+    # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
 def verdict(command):
     parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
     if any(matches(perms["ask"], p) for p in parts):
@@ -264,10 +266,12 @@ cases = {
     "docker system df": "allow",
     "docker compose config": "prompt", "docker inspect web": "prompt", "docker compose down": "prompt",
     "docker run --rm alpine true": "prompt", "docker compose up -d --wait": "prompt",
-    # The Makefile's targets (decision 0032): reset deletes the stack's volumes; four read-only ones run.
+    # The Makefile's targets: reset deletes the stack's volumes, and a task that runs a command it's
+    # given asks (C10). The module allows no make task: what one runs is the project's own, so
+    # /dev-env set up allows each task once it has checked it (SPECIFICATION.md C9, decision 0038).
     "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
-    "make urls && make reset": "ask",
-    "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
+    "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
+    "make help": "prompt", "make ps": "prompt", "make urls": "prompt", "make logs": "prompt",
     "make ps down": "prompt", "make up": "prompt", "make down": "prompt", "make native": "prompt",
 }
 for command, expected in cases.items():
@@ -317,6 +321,23 @@ check "make reset: deletes the volumes, after the worktree guard" \
 out=$(stack make -n logs 2>&1)
 check "make logs: the last lines, never followed" \
     "echo \"\$out\" | grep -q -- '--tail 100 --no-color' && ! echo \"\$out\" | grep -qE -- ' -f( |\$)|--follow'"
+# C9: every task /dev-env may allow exists in both modes and deletes nothing; logs never follows.
+c9=""
+for mode in docker native; do
+    for task in help env up down build ps logs urls test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+        out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
+        while IFS= read -r line; do
+            case "$line" in
+                *"down -v"*|*"rm -rf"*|*prune*|*--remove-orphans*) c9="$c9 [$mode $task deletes: $line]" ;;
+                *" -f"|*" -f "*|*--follow*) [ "$task" = logs ] && c9="$c9 [$mode $task follows: $line]" ;;
+            esac
+        done <<< "$out"
+    done
+done
+check "C9: the templates' tasks that may be allowed exist in both modes and delete nothing; logs never follows" "[ -z \"$c9\" ]"
+[ -z "$c9" ] || echo "    $c9"
+out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
+check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
 out=$(stack make -n urls 2>&1)
 check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
     "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
@@ -412,7 +433,9 @@ import json, re, sys
 docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
 allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
 def matches(rules, command):
-    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command) for r in rules)
+    # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
+    return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
+               or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
 def verdict(command):
     parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
     if any(matches(ask, p) for p in parts):

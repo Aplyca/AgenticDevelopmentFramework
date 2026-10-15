@@ -307,11 +307,20 @@ for outward in ("gh pr ready", "gh pr merge", "gh pr review", "gh issue comment"
 for upkeep in ("git push", "gh pr create", "gh pr edit", "gh pr comment"):
     if upkeep not in allows or upkeep in asks:
         problems.append(f"'{upkeep}' should be in permissions.allow, not permissions.ask (0033)")
+# Local git work needs no prompt; staging everything and rewriting a commit ask (0038).
+allow_rules = settings.get("permissions", {}).get("allow", [])
+ask_rules = settings.get("permissions", {}).get("ask", [])
+for local in ("Bash(git add *)", "Bash(git commit *)", "Bash(git switch *)", "Bash(git pull --ff-only)"):
+    if local not in allow_rules:
+        problems.append(f"permissions.allow lacks {local} (0038)")
+for careful in ("Bash(git add .)", "Bash(git add -A*)", "Bash(git commit *--amend*)"):
+    if careful not in ask_rules:
+        problems.append(f"permissions.ask lacks {careful} (0038)")
 print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask, its upkeep in permissions.allow"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, outward actions past the draft pull request in permissions.ask, its upkeep and local git work in permissions.allow, staging everything and amending in permissions.ask"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -745,6 +754,12 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: a make task is allowed only once its project's task passes the check (C9, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'only after its task passes C9' || missing+=("/dev-env: adds the make allows only after checking the tasks (C9)")
+    ! grep -q '"Bash(make ' <(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["permissions"]["allow"])' "$MODULES_DIR/docker/settings-fragment.json") || missing+=("docker module: allows no make task — what one runs is the project's own (C9)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")

@@ -1,6 +1,6 @@
 # 0032: A project's local environment — `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks
 
-- **Status:** accepted; amended by [0034](0034-local-environment-modes.md) (`ops/` has one folder per target, and the app runs in Docker or natively: `DEV_MODE` loads `ops/docker/docker.mk` or `ops/native/native.mk`, which define the same tasks)
+- **Status:** accepted; amended by [0038](0038-fewer-prompts-for-tasks-and-local-git.md) (the docker module allows no `make` task; `/dev-env set up` allows each one once this project's task passes the check), and by [0034](0034-local-environment-modes.md) (`ops/` has one folder per target, and the app runs in Docker or natively: `DEV_MODE` loads `ops/docker/docker.mk` or `ops/native/native.mk`, which define the same tasks)
 - **Date:** 2026-10-09
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — worktree ports for a Docker
   stack; [0026](0026-display-only-mods.md) — one read-only lookup the band may run;
@@ -84,7 +84,9 @@ project):
     linked worktree whose `.env` pins a port or project name equal to the main checkout's — the copy
     `.worktreeinclude` makes. Otherwise `make reset` there would delete the main checkout's volumes.
 11. **Permissions:** the docker module allows `make help`, `make ps`, `make urls`, and `make logs`
-    exactly, and asks before any `make` command that names `reset`.
+    exactly, and asks before any `make` command that names `reset`. *(Amended by 0038: the module
+    allows no `make` task; `/dev-env set up` allows each one once this project's task passes C9, and
+    the module also asks before `make run`.)*
 
 `/dev-env set up` writes a missing stack from templates the skill carries, and audits an existing one
 against these conventions, proposing the move as a careful-lane change. The docker module copies no

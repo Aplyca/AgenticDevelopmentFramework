@@ -11,6 +11,39 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Fewer prompts for make tasks and local git work**
+  ([decision 0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). From an adopting
+  project's transcripts: most prompts came from commands no rule could read, from `make run` doing
+  what no task did, and from every commit.
+  - **`dev-env`'s specification:**
+    - **C3:** `test` takes `t=<filter>` and `lint` takes `f=<files>`, and each mode adds `format` and
+      `typecheck`.
+    - **C9:** a `make` task gets an allow rule only once this project's task passes a check in every
+      mode: it exists, deletes nothing, and `logs` never follows. `/dev-env set up` adds the rules;
+      every task but `reset` can pass.
+    - **C10:** a task that runs a command it's given (`make run cmd="…"`) is for people, and asks.
+  - **The docker module** allows no `make` task itself, and asks before `make run`.
+  - **The skeleton:**
+    - `.claude/settings.json` allows `git add`, `git commit`, `git switch`, `git fetch`, and
+      `git pull --ff-only`, and asks before `git add .`, `git add -A`, and `git commit --amend`;
+    - `.claude/rules/claude-code.md` gains § Commands that run without a prompt: use the tasks, write
+      paths out, run `git` from the session's folder, use the tools rather than shell scripts, and
+      shorten output with a pipe.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `.claude/settings.json` (the git rules) and for
+    `.claude/rules/claude-code.md` (the new section and a guardrails row).
+  - **With `docker`:**
+    - `/adf:upgrade` checks the `make help`, `ps`, `urls`, and `logs` allows the module merged before.
+      It removes any whose task fails C9, and reruns `modules/docker/install.sh` for the `make run`
+      ask rule.
+    - Then `/adf-dev:dev-env set up` audits the Makefile: it adds `t=`, `f=`, `format`, and
+      `typecheck`, and the allow rules for each task that passes C9.
+    - Until it runs, make tasks the project hasn't allowed itself prompt.
+  - **Templates:** merge for `dev-env`'s `ops/docker/Makefile` and `ops/native/Makefile` — the
+    filters, and the `format` and `typecheck` tasks.
+
+
 ## v2.2.0 — 2026-10-14 — Worktree moves without a prompt, `/wrap-up` after a merge, and end-to-end tests to a specification
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

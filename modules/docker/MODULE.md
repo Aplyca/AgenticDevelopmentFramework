@@ -37,7 +37,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for read-only commands (`docker compose ps`, `logs`, `port`, `ls`, `config --quiet`, `docker ps`, `volume ls`, `system df`, and exactly `make help`, `make ps`, `make urls`, `make logs`); `permissions.ask` for destructive ones (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, and any `make` command that names `reset`). An ask rule wins over any allow rule, so a broad `Bash(docker *)` the project already has can't skip the prompt |
+| `.claude/settings.json` (merged) | `permissions.allow` for read-only commands (`docker compose ps`, `logs`, `port`, `ls`, `config --quiet`, `docker ps`, `volume ls`, `system df`); `permissions.ask` for destructive ones (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, any `make` command that names `reset`) and for `make run`, a task that runs a command it's given (`SPECIFICATION.md` C10). An ask rule wins over any allow rule, so a broad `Bash(docker *)` or `Bash(make *)` the project already has can't skip the prompt. No `make` task is allowed here: what a task runs is the project's own, so `/dev-env set up` allows each one only once it has checked this project's task (`SPECIFICATION.md` C9) |
 | `.claude/skills/dev-env/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the
@@ -94,8 +94,8 @@ fills these from what it verifies, for you to review:
   other than `reset`, a `package.json` script, or `STOP_CMD` when `adf-worktree-rm` runs it — isn't
   seen, and an unusual form (`docker --context x volume rm`) can slip past a pattern. The rules catch
   the commands an agent usually writes; they aren't a security boundary. `/dev-env` also asks in chat
-  before anything destructive. The allows trust `help`, `ps`, `urls`, and `logs` to stay read-only:
-  keep them that way.
+  before anything destructive. The `make` allows `/dev-env` adds trust each task to keep deleting
+  nothing: a change to an allowed task gets the same check again (C9), or loses its rule.
 - **In `dontAsk` mode an ask rule denies instead of prompting;** in every other mode, auto and
   bypass included, it prompts.
 - **Two commands print secrets:** `docker compose config` without `--quiet` or `--services`, and
@@ -106,8 +106,9 @@ fills these from what it verifies, for you to review:
 ## Verify
 
 - `python3 -m json.tool .claude/settings.json` parses, and its `ask` list holds the docker rules.
-- In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps` and
-  `make urls` run without a prompt; asking the agent to remove the stack's volumes, or to run
+- In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps` runs
+  without a prompt — and, once `/dev-env set up` has checked the tasks, `make up`, `make test`, and
+  the other allowed tasks too; asking the agent to remove the stack's volumes, or to run
   `make reset`, prompts.
 
 ## Requirements

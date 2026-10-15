@@ -16,11 +16,7 @@
       "Bash(docker ps *)",
       "Bash(docker volume ls)",
       "Bash(docker volume ls *)",
-      "Bash(docker system df)",
-      "Bash(make help)",
-      "Bash(make ps)",
-      "Bash(make urls)",
-      "Bash(make logs)"
+      "Bash(docker system df)"
     ],
     "ask": [
       "Bash(docker compose down *-v*)",
@@ -35,7 +31,8 @@
       "Bash(docker * rm *)",
       "Bash(docker * prune)",
       "Bash(docker * prune *)",
-      "Bash(make *reset*)"
+      "Bash(make *reset*)",
+      "Bash(make run *)"
     ]
   }
 }

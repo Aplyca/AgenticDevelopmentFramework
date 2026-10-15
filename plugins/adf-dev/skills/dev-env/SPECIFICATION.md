@@ -69,12 +69,15 @@ a project misses. A project that departs from one on purpose records it, with th
   | `ps` | Show what runs, its state, and its health |
   | `logs` | Print the last lines — 100 — of every log, or of one service's (`s=<service>`). **Never follow** |
   | `urls` | Print where each service is now, and whether it answers |
-  | `test` | Run the tests, where the mode runs the app |
-  | `lint` | Run the linters, where the mode runs the app |
+  | `test` | Run the tests, where the mode runs the app. `t=<filter>` runs only the matching ones — a file, or what the test runner takes to select tests |
+  | `lint` | Run the linters, where the mode runs the app. `f=<files>` lints only those |
+  | `format` | Rewrite files to the project's formatting, where the mode runs the app; `f=<files>` formats only those. A stack with no formatter keeps the task, saying so |
+  | `typecheck` | Run the type checker, where the mode runs the app. A stack with none keeps the task, saying so |
   | `reset` | **The only task that deletes data:** remove this checkout's containers and volumes, then `up` |
 
   A mode may add tasks of its own — Docker mode's `shell`, native mode's `services` — and `help`
-  lists whatever the loaded file defines.
+  lists whatever the loaded file defines. The filters mean an agent runs the one test or file it
+  changed through a task, never through a command of its own (C10).
 - **C4.** `help` names the mode in force and its file on its first line, then lists each task with
   its one-line description (`<task>: … ## <description>`).
 - **C5.** `env` creates `.env` from `.env.example`, readable only by its owner, and leaves an
@@ -85,6 +88,17 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
+- **C9.** `.claude/settings.json` pre-approves a task — `Bash(make <task>)` and `Bash(make <task> *)`
+  — only once this project's task passes a check, in every mode the project uses: it exists, and
+  `make -n <task>` (with `DEV_MODE=<mode>` for each) shows it does what C3 says and deletes nothing
+  — no `down -v`, `rm -rf`, or `prune`, and `logs` with `--tail` and no `-f` or `--follow`, which
+  would never return. The tasks that can pass are every C3 task but `reset`, and `help`, `env`, and
+  native mode's `services`. A task that fails the check has no rule, so it prompts, and a change to
+  an allowed task gets the check again. The docker module allows no `make` task itself; it asks
+  before any `make` command that names `reset`.
+- **C10.** A task that runs a command it's given — `make run cmd="…"`, `make exec` — is for people.
+  `.claude/settings.json` asks before it (`Bash(make run *)`), and agents use the named tasks. A
+  command agents keep needing that no task covers is a gap: it becomes a task of its own.
 
 ## Local modes — `M`
 
@@ -210,7 +224,7 @@ A stack conforms when every requirement holds. `/adf-dev:dev-env` checks a stack
 each gap as the requirement's ID, what the project has, and the change:
 
 1. **Layout:** L1–L7.
-2. **Command surface:** C1–C8, and the mode files define every task in C3.
+2. **Command surface:** C1–C10, and the mode files define every task in C3.
 3. **Modes:** M1–M3 read by `make help` and `make help DEV_MODE=<each mode>`; M4–M8 by running
    `make up`, `make urls`, `make ps`, and `make down` in each mode the project uses.
 4. **Ports, Compose, variables:** P1–P7, D1–D4, V1–V4.
