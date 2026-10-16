@@ -15,7 +15,7 @@ paths:
 - Test environments use mock/stub configurations so tests never depend on external services being up.
 
 ## External service mocking
-- Mock ALL external API responses. Use your framework's mocking approach (route interception, MSW, test doubles, dependency injection, etc.).
+- Mock every external API response. Use your framework's mocking approach (route interception, MSW, test doubles, dependency injection, etc.).
 - Never rely on real external services (databases, APIs, email servers) during tests.
 - Mock responses must return realistic data structures matching actual API contracts.
 - **Mock only at the system boundary** — external services, the clock, randomness. Your own modules run for real: a test that mocks internal collaborators breaks on every refactor and proves only the wiring.
