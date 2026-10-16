@@ -290,7 +290,8 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   names note and the stamp, and its PDR.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
 - Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
-  if the project has none). In a packaged project that one line upgrades the plugin's skills, agents,
+  if the project has none), and add `"autoUpdate": true` to the same `aplyca` entry if it lacks it:
+  once the change merges, every teammate's installed plugins move to the pin in their next session. In a packaged project that one line upgrades the plugin's skills, agents,
   workflows, hooks, and reference docs; in a committed one it keeps the plugin's copies at the same
   release as the committed files.
 - Packaged, on a release that carries the reference docs: run
@@ -341,3 +342,16 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
    user-scope copy), an install switch and its PDR, anything needing human judgment.
 4. Push and open the PR **as a draft, only after the user approves**.
+5. **Give the developer the commands for each machine,** in the report and the PR body. The commit
+   changes settings, not the machines: a plugin this upgrade turned on (`adf-dev`, `adf-connect`)
+   may not be installed anywhere yet, and the session that ran the upgrade still runs the old
+   release. `autoUpdate` catches up the installed plugins after the merge, a few minutes into a
+   session; these do it at once, from the project's folder, after the merge:
+
+   ```bash
+   claude plugin marketplace update aplyca
+   claude plugin install <plugin>@aplyca --scope project   # each plugin this upgrade turned on
+   claude plugin update <plugin>@aplyca                    # each plugin already on: adf, and adf-dev or adf-connect
+   ```
+
+   Then `/reload-plugins` in an open session, or a new session.

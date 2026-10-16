@@ -230,7 +230,8 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    {
      "extraKnownMarketplaces": {
        "aplyca": {
-         "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>" }
+         "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>" },
+         "autoUpdate": true
        }
      },
      "enabledPlugins": { "adf@aplyca": true },
@@ -241,6 +242,10 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    With a module whose skills `adf-dev` carries, turn that on beside `adf`, with its own read
    rule: `"adf-dev@aplyca": true` in `enabledPlugins` and
    `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
+
+   `"autoUpdate": true` lets the pin move every teammate: once a change to `"ref"` merges, Claude
+   Code updates the plugins installed from `aplyca` in each session, a few minutes after its first
+   message, and says `Run /reload-plugins to apply`. It never goes past the pin.
 
    The hooks read `.claude/hooks/config.sh` from the project, so step 5's settings apply unchanged.
    The read rule lets the plugin's skills and agents open its reference docs: Claude Code asks before
@@ -304,14 +309,22 @@ claude plugin install adf-dev@aplyca --scope project
 
 ## Updating
 
-Update the plugin from the adopted repository's folder, restart Claude Code, then run `/upgrade` there —
-it plans the update from the baseline stamp, keeps your customizations, and prepares a draft pull
-request:
+Update the plugins from the adopted repository's folder, restart Claude Code, then run `/upgrade`
+there — it plans the update from the baseline stamp, keeps your customizations, and prepares a draft
+pull request. Update every plugin the project turns on, not only `adf`: each one updates on its own.
 
 ```bash
 claude plugin marketplace update aplyca
 claude plugin update adf@aplyca
+claude plugin update adf-dev@aplyca      # when the project turns it on
+claude plugin update adf-connect@aplyca  # when the project turns it on
 ```
+
+After the upgrade merges, the marketplace's `"autoUpdate": true` updates each teammate's installed
+plugins in their next session. A plugin the upgrade turned on may not be on their machine yet —
+`/plugin` lists it under Errors as enabled but not installed. `/adf:upgrade`'s report gives the
+commands that do both at once — `claude plugin install <plugin>@aplyca --scope project` for a plugin
+it turned on, `claude plugin update` for the rest — then `/reload-plugins`.
 
 By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's
 **Upgrade impact** in the [CHANGELOG](../CHANGELOG.md) first.
