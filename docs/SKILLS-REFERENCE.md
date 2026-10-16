@@ -21,7 +21,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/triage` | First step on every task: read it in full, look for prior work in proportion to the task (for new behavior: is it already built, or was it declined before?), and state the deliverable (answer or change), kind, **lane** (fast, careful, or full — from the escalation triggers, the sensitive areas, and the developer's call), environment need, and open questions (one round, each with a recommended answer) — before setting anything up. One line for a small, precise change. Accepts a lane: `/triage <task> careful`. |
 | `/write-spec` | Write `specs/NNN-<slug>/spec.md` with the multi-perspective model, clarify per role, ask in rounds with recommended answers, use the glossary's terms, enforce required sections — or amend a delivered feature with a change request (`CR N`, Delivered → Change table, `(CR N)` acceptance criteria). |
 | `/write-plan` | Write `plan.md` (constitution check, change surface built from the code, test strategy, documentation plan, assumptions) and `tasks.md` (one task per commit, each naming its test), check consistency (`@spec-analyzer` for non-trivial work), then **stop at the approval gate**. On sign-off: `status: approved`, an `approvals:` line, and the `spec:` commit. |
-| `/write-docs` | Docs first: write the pre-implementable docs the plan lists, before implementation; update mode for later revisions. Skips cleanly when there are none. |
+| `/write-docs` | Docs first: write the pre-implementable docs the plan lists, before implementation; update mode for later revisions. Skips cleanly when there are none. External mode writes or updates a guide outside the repository — the tracker's docs, a shared document — from verified facts, in the destination's voice, and returns it for review. Every mode ends with a pass that strips machine-written filler. |
 | `/write-tests` | Write tests that fail first. Task mode (inside `/implement`), acceptance mode (contract-first tests committed red), or standalone (coverage, bug reproduction). |
 | `/implement` | Work through `tasks.md`: per task, test red for the right reason → code → green → one commit → tick. Stops if the change surface grows; reconciles docs; records gate results. Refuses without an approved spec. |
 | `/review` | Review in proportion to the lane — first checking the diff fits it (a fast-lane diff that touched a migration is a critical finding) — then against the spec folder or the request: acceptance criteria and every filled section, change-surface compliance, constitution, conventions (including the comments rule), security, UX, test evidence, doc accuracy, PR description vs diff. |
@@ -83,7 +83,9 @@ project has no `.claude/skills/` and a workflow can't reach the plugin's skills
 The `adf` plugin adds installer and measurement skills on the machine, not in the
 repository: `/adf:adopt`, `/adf:upgrade`, and `/adf:cost-report` — what agent
 sessions on a project cost, from Claude Code's local transcripts, with the expensive patterns
-flagged. In a packaged project, every skill above also comes from the plugin, typed
+flagged. `/adf:time-report` proposes the time to log for a delivered task, a day, or a week, from
+the same transcripts and the git log; it logs nothing on its own. `/adf:new-skill` turns a task the
+project repeats into a project skill in `.claude/skills/`, from the commits where it was done before. In a packaged project, every skill above also comes from the plugin, typed
 `/adf:<name>` — except a development module's, typed by `adf-dev`'s name
 (`/adf-dev:dev-env`, `/adf-dev:e2e`). See the [plugin README](../plugins/adf/README.md).
 

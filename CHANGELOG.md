@@ -11,6 +11,30 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Time per task, docs outside the repository, and project skills**
+  ([decision 0042](docs/decisions/0042-time-external-docs-and-project-skills.md)).
+  - **Why:** teams that log time rebuilt it by hand; editor and client guides outside the
+    repository had no sourcing rules and read machine-written; a project's recurring tasks stayed in
+    people's heads, or became ad hoc skills that restated the framework.
+  - **`/adf:time-report`** (new, plugin-only): proposes the time to log for a delivered task, a day,
+    or a week — session time per day and branch from the transcripts, overlapping sessions sharing
+    their time, the developer's commits, and labeled estimates for work outside the sessions. It
+    logs nothing without the developer's yes.
+  - **`/adf:new-skill`** (new, plugin-only): turns a task the project repeats into a project skill
+    in `.claude/skills/`, from two or more past occurrences, with its lane, its check, and a check
+    script only for an invariant a script can decide. It never shadows a framework skill.
+  - **`/adf:write-docs`** gains an external mode — a brief, the destination read and its voice
+    copied, every fact sourced, the full page returned for review — and a slop pass in every mode.
+  - **`docs/TRACKER-INTEGRATION.md`** gains an optional § Time reports: rounding, allowances, and
+    fallback tasks for `/adf:time-report`.
+
+  **Upgrade impact:**
+  - **Packaged install:** none; the plugin carries the two new skills and `write-docs`.
+  - **Committed install:** overwrite for `.claude/skills/write-docs/`, written by
+    `scripts/build-committed.py`.
+  - **Every project:** merge for `docs/TRACKER-INTEGRATION.md` — add § Time reports if the team logs
+    time, or leave it out.
+
 - **Everything runs in the configured local mode, and only the developer changes it**
   ([decision 0034](docs/decisions/0034-local-environment-modes.md) and
   [decision 0037](docs/decisions/0037-end-to-end-tests.md), amended).

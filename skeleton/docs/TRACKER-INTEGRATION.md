@@ -106,6 +106,19 @@ asks. It uses the status words in `CONTRIBUTING.md` and these project settings:
 - **Task statuses:** [how to list a task's valid statuses with the tracker's tools — e.g. the
   get-task tool with statuses expanded]
 
+## Time reports
+
+`/adf:time-report` proposes the time to log for a delivered task, or for a day or a week, from the
+agent sessions and commits on the developer's machine. It logs nothing without the developer's yes.
+Without these settings it reports minutes and uses its default allowances.
+
+<!-- CUSTOMIZE: fill these in if the team logs time; delete the section if it doesn't. -->
+
+- **Rounding:** [e.g. whole hours, rounded up, once per task per day]
+- **Allowances:** [minutes for work outside the sessions — manual checks, staging checks, client
+  updates — by change size, or "the defaults"]
+- **Fallback tasks:** [where meetings, planning, and work without a task are logged]
+
 ## Optional: a usage guide on the task
 
 For requester-facing features, a short **usage guide** in the task description — how the requester

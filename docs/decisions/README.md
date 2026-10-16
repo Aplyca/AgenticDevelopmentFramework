@@ -52,6 +52,7 @@ projects.
 | [0039](0039-check-locally-then-on-the-preview.md) | An agent checks a change locally first, then on the pull request's preview | accepted |
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted |
 | [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted |
+| [0042](0042-time-external-docs-and-project-skills.md) | The plugin reports time per task, writes docs outside the repository, and turns recurring tasks into project skills | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
