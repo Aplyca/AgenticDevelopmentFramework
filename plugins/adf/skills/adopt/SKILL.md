@@ -271,7 +271,9 @@ Present the table before going further. Wrong facts here poison every file downs
   install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
   skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
   project then gets the plugin's copies at the same release as its own files, and a packaged one gets
-  its machinery from that release. With no release yet, leave the entry unpinned.
+  its machinery from that release. With no release yet, leave the entry unpinned. Add
+  `"autoUpdate": true` to the same entry, so a pin that later moves updates every teammate's plugins
+  on its own.
 
 ## Step 6 — Verify
 
