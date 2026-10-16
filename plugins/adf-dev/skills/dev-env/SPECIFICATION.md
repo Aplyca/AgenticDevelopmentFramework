@@ -103,7 +103,7 @@ a project misses. A project that departs from one on purpose records it, with th
 
 - **M1.** `DEV_MODE` picks the local mode. The first that's set wins: the command line
   (`make up DEV_MODE=native`), the shell's `DEV_MODE`, `DEV_MODE` in the checkout's `.env`, then
-  `DEFAULT_MODE` in the `Makefile`, the project's default.
+  `DEFAULT_MODE` in the `Makefile`, the project's default. The first two are for people (M10).
 - **M2.** The make files read two settings from `.env` and nothing else from it: `DEV_MODE` and
   `SERVICES` (M5). An empty value means the project's default; the command line and the shell win
   over `.env`.
@@ -131,13 +131,14 @@ a project misses. A project that departs from one on purpose records it, with th
   app — Docker's `up` stops a native app; native `up` stops the app's container.
 - **M9.** The same task names in every mode (C3) mean an agent, a worktree's `START_CMD`, and
   `AGENTS.md` § Quick reference never need to know which mode a developer chose.
-- **M10.** **An agent runs every task in the mode this checkout is configured for.** It never sets
-  `DEV_MODE` or `SERVICES` on the command line or in the shell, and never changes them in `.env` or
-  `DEFAULT_MODE` in the `Makefile`, unless the developer asks for that mode in this task. Choosing
-  the mode is the developer's (M1, M5). A task that can't run in the configured mode is reported,
-  with what it needs, and the developer decides. The docker module asks before any `make` command
-  that sets either one (`Bash(make *DEV_MODE=*)`, `Bash(make *SERVICES=*)`), so an override the
-  developer asked for is approved, and any other is seen.
+- **M10.** **An agent runs and checks everything in the mode this checkout is configured for, and
+  only the developer changes it** (M1, M5). An agent never sets `DEV_MODE` or `SERVICES` on a
+  command or in the shell, and never changes them in `.env` or `DEFAULT_MODE` in the `Makefile` —
+  not even when asked. Asked for another mode, or given a task that can't run in this one, it says
+  what the task needs and which setting to change, and stops; the developer changes it, and the
+  next run is in the new mode. The other mode's files are checked by reading them, never by running
+  them. The docker module denies what would change the mode: a `make` command or a leading
+  assignment that sets either one, an `export` of it, and an edit to `.env`.
 
 ## Ports — `P`
 
@@ -231,10 +232,9 @@ each gap as the requirement's ID, what the project has, and the change:
 
 1. **Layout:** L1–L7.
 2. **Command surface:** C1–C10, and the mode files define every task in C3.
-3. **Modes:** M1–M3 read by `make help` and `make help DEV_MODE=<each mode>`; M4–M8 by running
-   `make up`, `make urls`, `make ps`, and `make down` in each mode the project uses; M10 by the
-   ask rules. The audit's runs in a mode other than the configured one are the developer's request
-   (they asked for the audit), and each one prompts.
+3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, and `make down` in
+   the configured mode, and by reading the other mode's file against them — never by running it
+   (M10); M10 by the deny rules.
 4. **Ports, Compose, variables:** P1–P7, D1–D4, V1–V4.
 5. **Worktrees,** with parallel-agents: W1–W3.
 6. **Deployment targets:** T1–T2.

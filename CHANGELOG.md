@@ -11,6 +11,38 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Everything runs in the configured local mode, and only the developer changes it**
+  ([decision 0034](docs/decisions/0034-local-environment-modes.md) and
+  [decision 0037](docs/decisions/0037-end-to-end-tests.md), amended).
+  - **Why:** in an adopting project, `/e2e set up` proved the suite in each local mode, switching
+    `DEV_MODE` to do it, and `/dev-env`'s set up and audit ran the other mode as "the developer's
+    request". M10 let an agent switch whenever the developer asked, and the docker module only asked
+    before an override.
+  - **`dev-env`'s M10:** an agent runs and checks everything in the configured mode, and never sets
+    `DEV_MODE` or `SERVICES` or edits `.env` or `DEFAULT_MODE` — not even when asked. It names the
+    setting to change, and the developer changes it. The other mode's files are checked by reading
+    them, never by running them.
+  - **`/dev-env`:** set up verifies the configured mode and reads native mode's file; Mode: native
+    starts and verifies the app only in a checkout configured for it; the audit (§ Conformance)
+    checks M1–M8 in the configured mode and reads the other.
+  - **`/e2e`:** set up and the audit run `make smoke` and `make e2e` in the configured mode only.
+    With `docker`, set up still writes the `e2e` and `smoke` tasks in both modes' files, reads the
+    other mode's against R3 or R4, and reports it as not run.
+  - **The docker module denies** what would change the mode: `make *DEV_MODE=*`, `make *SERVICES=*`,
+    a leading `DEV_MODE=` or `SERVICES=`, an `export` of either, and `Edit(.env)` and `Write(.env)`.
+    They were ask rules; `install.sh` now merges `permissions.deny` and drops the old asks. The
+    skeleton's `claude-code.md` and `deployment.md` say the same, with a guardrails row.
+
+  **Upgrade impact:**
+  - **Packaged install:** none for `/dev-env` and `/e2e`, which the `adf-dev` plugin carries.
+  - **Committed install:** overwrite for `.claude/skills/dev-env/` and `.claude/skills/e2e/`,
+    written by `scripts/build-committed.py`.
+  - **With `docker`:** `/adf:upgrade` reruns `modules/docker/install.sh`, which adds the deny rules
+    to `.claude/settings.json` and removes the two ask rules they replace. Merge for
+    `.claude/rules/claude-code.md` (§ Commands that run without a prompt, and a guardrails row) and
+    `.claude/rules/deployment.md` (§ Docker).
+  - **Developers** change the mode themselves: `DEV_MODE` in their `.env`, or a command they type.
+
 ## v2.3.0 — 2026-10-15 — Fewer prompts, local then preview checks, and worktrees beside the main checkout
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

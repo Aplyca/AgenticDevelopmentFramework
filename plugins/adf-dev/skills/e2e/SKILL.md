@@ -21,7 +21,7 @@ those come first, from the spec, with `/adf:write-tests` and `/adf:implement`, a
 ## The specification
 
 **`<this skill's base directory>/SPECIFICATION.md` is what an end-to-end suite must be** — the engine,
-its layout in `e2e/`, how it runs (`make e2e`, `make smoke`, in each local mode), its boundaries
+its layout in `e2e/`, how it runs (`make e2e`, `make smoke`, defined in each local mode), its boundaries
 (data, third parties, sign-in), how tests are written, the smoke suite, and the test-first flow —
 each requirement with an ID. Read it before any mode below. It also says where each fact lives.
 
@@ -70,8 +70,8 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
 ## Mode: set up
 
 1. **Triage it.** A new suite adds a test folder, a Compose service, and make tasks: `/adf:triage`
-   it, the careful lane at least, done when "`make smoke` passes in each mode the project uses, and
-   each smoke test was seen failing".
+   it, the careful lane at least, done when "`make smoke` passes in the configured mode, and each
+   smoke test was seen failing".
 2. **Agree on the critical flows.** From what step 3 read, propose three to seven flows whose
    breaking stops people from using the app — the home page, signing in, the main thing people come
    to do — each in one line, with your recommendation. The developer decides (K1). Wait.
@@ -89,7 +89,8 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
    - **With the `docker` module:** the image, its `.dockerignore`, the `e2e` service, and the `e2e`
      and `smoke` tasks in `ops/docker/Makefile`, each as R3 states; the tasks in
      `ops/native/Makefile`, and the suite's install line in its `build`, as R4 states. Add both tasks
-     to each file's `.PHONY` with a `##` description, so `make help` lists them.
+     to each file's `.PHONY` with a `##` description, so `make help` lists them. Write both files,
+     whichever mode this checkout runs in: the other mode's tasks are read, not run (step 6).
    - **Without it:** `npm --prefix e2e test`, and `-- --grep @smoke` for the smoke suite, are the
      commands, with `E2E_BASE_URL` set to the local environment's URL.
 5. **Write one smoke test per critical flow (K2).**
@@ -100,11 +101,15 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
      roles and names as Playwright sees them.
    - **Prove each test can fail (K5):** break its assertion, run it, see it fail for that reason,
      and restore it.
-6. **Run it — this is what proves the suite.** In each local mode the project uses:
+6. **Run it — this is what proves the suite** — in the mode this checkout is configured for, the
+   one `make help` names, and only that one. Never set `DEV_MODE` or `SERVICES`, or edit `.env`,
+   to try the other mode (`dev-env`'s M10): the developer runs it there when they work in that mode.
    - `make smoke`, then `make e2e`: both pass, and the smoke suite takes about a minute (K3);
    - a missing `E2E_BASE_URL` (run Playwright in `e2e/` without it) stops with S3's message;
-   - in Docker mode, a failure's `error-context.md` and trace appear in `e2e/test-results/` on the
-     host, and an edited test is what runs next.
+   - when that mode is Docker, a failure's `error-context.md` and trace appear in `e2e/test-results/`
+     on the host, and an edited test is what runs next;
+   - the other mode's tasks, with the `docker` module: read against R3 or R4, and listed as not run
+     in the pull request's *Verified / not verified*.
 7. **Write down what you verified** — docs go through triage too:
    - `e2e/README.md`: the critical flows, each with its smoke test and what it proves (K1);
    - `.claude/rules/testing.md` § End-to-end: the project's commands, and any departure from the
@@ -195,7 +200,8 @@ A delivered feature that created a critical flow, or a change to the list (K4):
 - [ ] The suite meets the specification, or its gaps — each by requirement ID — went to the developer as a careful-lane change
 - [ ] The developer chose the critical flows, and `e2e/README.md` lists each with its smoke test
 - [ ] Each smoke test was seen failing for its assertion before it was committed green
-- [ ] `make smoke` and `make e2e` pass in each local mode the project uses, and the smoke suite takes about a minute
+- [ ] `make smoke` and `make e2e` pass in the configured mode, and the smoke suite takes about a minute
+- [ ] No run switched modes: the other mode's tasks were read against R3 or R4, and reported as not run
 - [ ] No test reaches a real third party or a shared environment, and no secret was read
 - [ ] `.claude/rules/testing.md` § End-to-end and `AGENTS.md` § Quick reference name the commands
 

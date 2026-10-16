@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 #
 # Merges the docker module's permissions into a repository's .claude/settings.json — never
-# overwrites: existing rules keep their order, and only missing ones are added. Read-only docker
-# commands run without a prompt; commands that delete containers, volumes, or images always ask.
+# overwrites: existing rules keep their order, and only missing ones are added. Docker commands and
+# the project's tasks run without a prompt; commands that delete containers, volumes, or images
+# always ask; and nothing an agent runs changes the local mode, which only the developer sets.
 # Safe to run again (an upgrade picks up new rules the same way).
 #
 # Usage: modules/docker/install.sh [path/to/repository]    (default: the current directory)
@@ -54,7 +55,10 @@ settings = load(settings_path)
 permissions = settings.setdefault("permissions", {})
 allowed = append_missing(permissions.setdefault("allow", []), fragment["allow"])
 asked = append_missing(permissions.setdefault("ask", []), fragment["ask"])
+denied = append_missing(permissions.setdefault("deny", []), fragment.get("deny", []))
+# A rule the module once asked about and now denies (the mode overrides, M10) leaves the ask list.
+permissions["ask"] = [r for r in permissions["ask"] if r not in fragment.get("deny", [])]
 save(settings_path, settings)
-print(f".claude/settings.json: {len(allowed)} read-only docker command(s) allowed, "
-      f"{len(asked)} destructive one(s) set to ask")
+print(f".claude/settings.json: {len(allowed)} docker command(s) allowed, "
+      f"{len(asked)} destructive one(s) set to ask, {len(denied)} mode change(s) denied")
 PY

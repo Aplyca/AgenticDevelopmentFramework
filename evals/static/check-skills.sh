@@ -631,8 +631,10 @@ fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
 decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
 decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
-                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)",
-                           "Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)"}}
+                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)"}}
+# Only the developer changes the local mode (dev-env's M10): what would change it is denied.
+decided_denies = {"docker": {"Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)", "Bash(DEV_MODE=*)", "Bash(SERVICES=*)",
+                             "Bash(export DEV_MODE*)", "Bash(export SERVICES*)", "Edit(.env)", "Write(.env)"}}
 try:
     permissions = json.load(open(fragment)).get("permissions", {})
     allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
@@ -640,6 +642,8 @@ except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
 for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
     out.append(f"allows broadly, so must ask before {ask} (0038)")
+for deny in sorted(decided_denies.get(module, set()) - set(permissions.get("deny", []))):
+    out.append(f"must deny {deny}: only the developer changes the local mode (M10)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
 changes = re.compile(r"\b(down|rm|rmi|prune|kill|stop|restart|start|exec|run|up|build|pull|push|cp|create|inspect|login|delete|remove)\b")
 for rule in allow:
@@ -805,6 +809,13 @@ check_practices() {
     [ ! -e "$REPO_ROOT/plugins/adf-dev/skills/e2e/templates" ] && file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'there are no templates' || missing+=("e2e: no templates; the project writes its suite to the specification (0037)")
     file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" "exactly .@playwright/test.'s" || missing+=("e2e's specification: the image at the engine's exact version (0037)")
     file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'npx --no-install playwright' || missing+=("e2e's specification: npx never downloads a package (0037)")
+    file_contains "$SKILLS_DIR/e2e/SKILL.md" "dev-env.'s M10" && file_contains "$SKILLS_DIR/e2e/SPECIFICATION.md" 'never switches modes' \
+        || missing+=("e2e: the suite is proved in the configured mode, never by switching modes (0037, amended)")
+    ! grep -qE 'DEV_MODE=<each mode>|in each mode the project uses|request to check every mode' "$SKILLS_DIR/dev-env/SKILL.md" "$SKILLS_DIR/dev-env/SPECIFICATION.md" \
+        && file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" 'only the developer changes it' \
+        || missing+=("dev-env: everything runs in the configured mode, and only the developer changes it (M10, 0034 amended)")
+    ! grep -qE 'passes in each (local )?mode|in each (local )?mode the project uses' "$SKILLS_DIR/e2e/SKILL.md" "$SKILLS_DIR/e2e/SPECIFICATION.md" "$MODULES_DIR/e2e/MODULE.md" \
+        || missing+=("e2e: no run in each local mode — only the configured one (0037, amended)")
     file_contains "$SKELETON/.claude/rules/testing.md" '^## End-to-end' || missing+=("testing rule: § End-to-end, which every session follows (0037)")
     file_contains "$SKILLS_DIR/write-tests/SKILL.md" '§ End-to-end' || missing+=("/write-tests: an end-to-end test follows testing.md § End-to-end (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")

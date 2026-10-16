@@ -33,6 +33,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
 | The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 | With the parallel-agents module, the main checkout is the hub: file edits there are stopped, so each task's work happens in its own worktree | `.claude/hooks/protect-hub.sh` (PreToolUse) |
+| With the docker module, nothing an agent runs changes the local mode — a `make` command or an assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, an edit to `.env` — so only the developer changes it | `permissions.deny` in `.claude/settings.json` (the docker module) |
 | A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `.claude/hooks/approve-worktree-move.sh` (PreToolUse) |
 
 Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once you approve the local check. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts only after your yes in chat.
@@ -43,9 +44,10 @@ An allow rule matches a command as written, so write each command the way a rule
 Claude Code asks about anything it can't check, even when the command itself is allowed.
 - **Use the project's tasks:** `make test t=<file>`, `make lint f=<file>`, `make logs s=web` — a
   variable goes after the task, never as a leading `VAR=value`.
-- **Run them in the configured mode.** With the docker module, never set `DEV_MODE` or `SERVICES`
-  on a command, or change them in `.env` or the `Makefile`, unless the developer asks for that mode:
-  choosing it is theirs. A task that can't run in it is a question for them.
+- **Run them in the configured mode.** With the docker module, everything runs in the mode the
+  checkout is configured for, and only the developer changes it. Never set `DEV_MODE` or `SERVICES`
+  on a command, or change them in `.env` or the `Makefile`, even when asked: say which setting to
+  change, and let the developer change it. A task that can't run in this mode is a question for them.
 - **Write paths out.** No `S=/path; … $S/…`: an allow rule doesn't match past an assignment, and a
   path in a variable can't be checked.
 - **Stay in this checkout:** run `git` from the session's folder, not `git -C <path>`, and `cd` only

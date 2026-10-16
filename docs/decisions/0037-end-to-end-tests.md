@@ -1,6 +1,6 @@
 # 0037: End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack
 
-- **Status:** accepted
+- **Status:** accepted; amended 2026-10-16 (the suite is proved in the mode the checkout is configured for, never by switching modes)
 - **Date:** 2026-10-12
 
 ## Context
@@ -53,6 +53,13 @@ The `docker` module already gives every checkout its own stack, with ports of it
   end-to-end test only when the whole stack is needed to show it.
 - **The module's rules allow running the suite** (`make e2e`, `make smoke`, `npm --prefix e2e test`)
   without a prompt, so a test-first loop reruns a test as often as it needs.
+
+*Amended 2026-10-16:* "`make smoke` passes in each local mode" becomes "in the mode the checkout is
+configured for". In an adopting project, `/e2e set up` switched modes to prove the suite in each one,
+against `dev-env`'s M10: the mode is the developer's (decision 0034). Set up and the audit run the
+suite in the configured mode only. With the `docker` module, they still write the `e2e` and `smoke`
+tasks in both modes' files, read the other mode's against R3 or R4, and report it as not run; a
+developer who works in that mode runs it there.
 
 ## Consequences
 

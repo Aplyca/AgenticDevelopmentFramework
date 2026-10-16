@@ -23,9 +23,17 @@
       "Bash(docker *exec *env*)",
       "Bash(docker compose run *env*)",
       "Bash(make *reset*)",
-      "Bash(make run *)",
+      "Bash(make run *)"
+    ],
+    "deny": [
       "Bash(make *DEV_MODE=*)",
-      "Bash(make *SERVICES=*)"
+      "Bash(make *SERVICES=*)",
+      "Bash(DEV_MODE=*)",
+      "Bash(SERVICES=*)",
+      "Bash(export DEV_MODE*)",
+      "Bash(export SERVICES*)",
+      "Edit(.env)",
+      "Write(.env)"
     ]
   }
 }

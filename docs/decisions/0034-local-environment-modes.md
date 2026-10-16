@@ -1,6 +1,6 @@
 # 0034: The local environment runs in Docker or natively, and `ops/` has one folder per target
 
-- **Status:** accepted; amended 2026-10-15 (an agent runs every task in the configured mode, and overriding it asks)
+- **Status:** accepted; amended 2026-10-15 (an agent runs every task in the configured mode, and overriding it asks); amended 2026-10-16 (only the developer changes the mode, and what would change it is denied)
 - **Date:** 2026-10-10
 - **Amends:** [0032](0032-local-environment-layout.md) — point 2, how `ops/` is organized; point 3,
   the command surface; point 6, the native path; and point 7, where the band finds the app's port
@@ -98,6 +98,16 @@ adopting project whose developer runs only Docker, agents ran `make test`, `make
 specification gains M10: an agent runs every task in the configured mode, and sets `DEV_MODE` or
 `SERVICES` only when the developer asks for that mode in the task. The docker module asks before any
 `make` command that sets either one, so a requested override is approved and any other is seen.
+
+*Amended 2026-10-16:* only the developer changes the mode. An agent still switched modes when it
+judged a check needed both — `/e2e set up` proved the suite in each mode, and `/dev-env`'s set up and
+audit ran the other mode as "the developer's request". M10 now says an agent runs and checks
+everything in the configured mode, and never changes `DEV_MODE` or `SERVICES`, even when asked: it
+names the setting, and the developer changes it. The other mode's files are checked by reading them.
+The docker module turns the two ask rules into deny rules, and denies a leading assignment, an
+`export` of either setting, and an edit to `.env`; its installer drops the old ask rules. A rule
+that asks only slows an agent down, and the developer approving a prompt mid-task isn't the same as
+them choosing the mode.
 
 ## Consequences
 
