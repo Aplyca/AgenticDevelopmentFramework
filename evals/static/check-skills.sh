@@ -1027,7 +1027,7 @@ try:
     machinery = Machinery(root)
 except AssertionError as error:
     print(error); sys.exit()
-plugin_only = {"adf": {"adopt", "upgrade", "cost-report"}, "adf-connect": {"connect"}}
+plugin_only = {"adf": {"adopt", "upgrade", "cost-report", "time-report", "new-skill"}, "adf-connect": {"connect"}}
 for plugin in machinery.plugins:
     folder = os.path.join(root, "plugins", plugin, "skills")
     names = set(os.listdir(folder)) if os.path.isdir(folder) else set()

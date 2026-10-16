@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Functional tests for the plugin's scripts: /cost-report's session_cost.py against synthetic Claude
-# Code transcripts in a throwaway projects directory, the reference-doc links /adopt and /upgrade
-# rewrite with scripts/link-reference-docs.py, on a copy of the skeleton, and the commands in the
-# plugin's bin/ in throwaway repositories. No AI invocation, no network. Needs bash, git ≥ 2.31, and
-# python3. Exit 0 on all-pass.
+# Functional tests for the plugin's scripts: /cost-report's session_cost.py and /time-report's
+# time_report.py against synthetic Claude Code transcripts in a throwaway projects directory, the
+# reference-doc links /adopt and /upgrade rewrite with scripts/link-reference-docs.py, on a copy of
+# the skeleton, and the commands in the plugin's bin/ in throwaway repositories. No AI invocation,
+# no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
 #
 set -uo pipefail
 
@@ -88,6 +88,59 @@ check "cost-report: re-prices an Opus session at Sonnet's prices (\$0.18; a Sonn
 check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals it" "echo \"\$out\" | grep 'Quick fix' | grep -q '≈0.18' && echo \"\$out\" | grep 'Spec heavy' | grep -q ' - ' && echo \"\$out\" | grep -q '^Model: 3 sessions ran above Sonnet'"
 missing=$(python3 "$REPORT" "$WORK/elsewhere" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "cost-report: a project without transcripts says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$missing\" | grep -q 'No Claude Code transcripts'"
+
+# time_report.py: a git project with one worktree. Session A runs 09:00–10:00 and 11:00–11:20, and
+# its subagent until 11:30; session B overlaps it 09:30–10:00; session C runs in the worktree.
+TIME_REPORT="$REPO_ROOT/plugins/adf/skills/time-report/time_report.py"
+HOURS="$WORK/code/hours"
+mkdir -p "$HOURS"
+git -C "$HOURS" init -q -b main
+git -C "$HOURS" config user.email dev@example.com
+git -C "$HOURS" config user.name Dev
+GIT_AUTHOR_DATE=2026-09-01T10:30:00Z GIT_COMMITTER_DATE=2026-09-01T10:30:00Z \
+    git -C "$HOURS" commit -q --allow-empty -m "feat: add the signup form"
+git -C "$HOURS" worktree add -q -b fix/footer "$WORK/code/hours-footer" 2>/dev/null
+HA="$WORK/projects/$(slug "$HOURS")"
+HW="$WORK/projects/$(slug "$WORK/code/hours-footer")"
+mkdir -p "$HA/aaaa1111/subagents" "$HW"
+python3 - "$HA" "$HW" <<'PY'
+import json, sys, datetime
+main, worktree = sys.argv[1:3]
+def events(path, branch, ranges, prompt=None):
+    lines = []
+    for first, last in ranges:
+        t = datetime.datetime.fromisoformat(f"2026-09-01T{first}:00")
+        end = datetime.datetime.fromisoformat(f"2026-09-01T{last}:00")
+        while t <= end:
+            lines.append({"type": "assistant", "timestamp": t.isoformat() + "Z", "gitBranch": branch})
+            t += datetime.timedelta(minutes=5)
+    if prompt:
+        lines.insert(0, {"type": "user", "timestamp": lines[0]["timestamp"], "gitBranch": branch,
+                         "message": {"role": "user", "content": prompt}})
+    with open(path, "w") as f:
+        f.write("\n".join(json.dumps(l) for l in lines) + "\n")
+events(f"{main}/aaaa1111.jsonl", "feat/newsletter-signup", [("09:00", "10:00"), ("11:00", "11:20")],
+       "Work on TASK-12, the token=abc123 is in the vault")
+events(f"{main}/aaaa1111/subagents/agent-1.jsonl", "feat/newsletter-signup", [("11:20", "11:30")])
+events(f"{main}/bbbb2222.jsonl", "feat/newsletter-signup", [("09:30", "10:00")], "Review the copy")
+events(f"{worktree}/cccc3333.jsonl", "fix/footer", [("13:00", "13:10")], "Fix the footer")
+PY
+hours() { TZ=UTC python3 "$TIME_REPORT" "$HOURS" --projects-dir "$WORK/projects" --from 2026-09-01 "$@" 2>&1; }
+
+out=$(hours)
+check "time-report: totals the day, with overlapping sessions sharing their time (90 min)" "echo \"\$out\" | grep -q '^Tue 2026-09-01  90 min'"
+check "time-report: splits the overlap evenly and counts the subagent with its session (75 + 15)" \
+    "echo \"\$out\" | grep -q 'aaaa1111  75 min' && echo \"\$out\" | grep -q 'bbbb2222  15 min'"
+check "time-report: shows each block with its first prompt, secrets redacted" \
+    "echo \"\$out\" | grep -q '09:00-10:00  \"Work on TASK-12, the \[secret\]' && ! echo \"\$out\" | grep -q abc123"
+check "time-report: lists the developer's commits in the window" "echo \"\$out\" | grep -q '10:30 feat: add the signup form'"
+check "time-report: leaves the worktree out by default" "! echo \"\$out\" | grep -q fix/footer"
+out=$(hours --worktrees)
+check "time-report: --worktrees adds the worktrees git lists" "echo \"\$out\" | grep -q '^Tue 2026-09-01  100 min' && echo \"\$out\" | grep -q '10 min  fix/footer'"
+out=$(hours --task task-12)
+check "time-report: --task keeps the sessions that mention it, with nothing left to share" "echo \"\$out\" | grep -q '^Tue 2026-09-01  90 min' && ! echo \"\$out\" | grep -q bbbb2222"
+out=$(hours --from 2026-09-02); code=$?
+check "time-report: a window with no activity says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'No session activity'"
 
 # link-reference-docs.py (decision 0019), on a copy of the skeleton: a packaged project links the
 # reference docs at the release it pins; a committed one, in its own docs/.
