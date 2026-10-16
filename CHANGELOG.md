@@ -11,6 +11,21 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The skeleton's instructions match the specification and the pull request template** — from a
+  prompt audit of the instruction files against current models.
+  - **`deployment.md` § Command surface** lists every task the mode files define in every mode, now
+    with `format`, `typecheck`, and the `t=` and `f=` filters (`dev-env`'s C3), not only Docker's.
+  - **`AGENTS.md` § Delivery rules:** what the agent saw on the preview goes in the pull request's
+    *Preview* line, as `/open-pr` and the template write it.
+  - **`AGENTS.md` § AI interaction rules:** "ask rather than guess" gives way to the ground rule it
+    shortened — an open requirement is a question, a minor implementation choice an assumption you
+    state — so the two no longer disagree.
+  - **`testing.md`:** "Mock every external API response", without the capitals.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `AGENTS.md` (two lines) and `.claude/rules/testing.md` (one line).
+  - **With `docker`:** merge for `.claude/rules/deployment.md` § Command surface.
+
 ## v2.3.0 — 2026-10-15 — Fewer prompts, local then preview checks, and worktrees beside the main checkout
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
