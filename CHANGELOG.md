@@ -43,6 +43,31 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/rules/deployment.md` (§ Docker).
   - **Developers** change the mode themselves: `DEV_MODE` in their `.env`, or a command they type.
 
+- **The pinned marketplace auto-updates, and an upgrade names the commands for each machine**
+  ([decision 0041](docs/decisions/0041-the-pin-updates-every-machine.md)).
+  - **Why:** in an adopting project, an upgrade merged and nothing changed on the machines. Moving
+    the pin updates no installed plugin unless its marketplace auto-updates, which a third-party one
+    doesn't by default; `docs/SETUP.md` § Updating updated only `adf`; and a plugin the upgrade
+    turned on (`adf-dev`) was never installed.
+  - **Now:**
+    - The `aplyca` marketplace entry carries `"autoUpdate": true` beside its `"ref"`.
+      `/adf:adopt` writes it and `/adf:upgrade` adds it. Once a pin change merges, each teammate's
+      installed plugins move to it in their next session, never past it.
+    - `/adf:upgrade` ends with the commands for each machine: refresh the marketplace, install each
+      plugin it turned on, update the rest, then `/reload-plugins`. It still installs nothing itself.
+    - `docs/SETUP.md` § Updating updates every plugin the project turns on.
+
+  **Upgrade impact:**
+  - **Every project:** merge for `.claude/settings.json` — `"autoUpdate": true` on the `aplyca`
+    entry in `extraKnownMarketplaces`. `/adf:upgrade` adds it.
+  - **Packaged install:** none for `/adf:adopt` and `/adf:upgrade`, which the `adf` plugin carries.
+  - **Committed install:** overwrite for `.claude/skills/adopt/` and `.claude/skills/upgrade/`,
+    written by `scripts/build-committed.py`.
+  - **Until it merges,** run the commands by hand after an upgrade: from the project's folder,
+    `claude plugin marketplace update aplyca`, then `claude plugin update <plugin>@aplyca` for each
+    plugin the project turns on (`claude plugin install <plugin>@aplyca --scope project` for one not
+    yet installed), then `/reload-plugins`.
+
 ## v2.3.0 — 2026-10-15 — Fewer prompts, local then preview checks, and worktrees beside the main checkout
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
