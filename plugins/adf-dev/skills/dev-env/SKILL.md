@@ -121,9 +121,9 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    every service is healthy and prints where each one is. `make ps`: every service is running, and
    healthy where it has a check. After a Dockerfile change, `make build` first.
 4. **Verify it works:** `curl -fsS` on the app's URL from `make urls` (its health route or home page),
-   and the project's quickest test that needs the stack passes against it. With a dev command for the
-   host, Mode: native too, in the mode the project doesn't default to — set up is the developer's
-   request to check every mode, and each run in the other mode prompts (M10).
+   and the project's quickest test that needs the stack passes against it — in the configured mode
+   only (M10). With a dev command for the host, write native mode's file too (Mode: native), read it
+   against M4–M8, and report it as not run: the developer runs it once they switch.
 5. **Write down what you verified** — a docs change, so it goes through triage too:
    - `DEV-SETUP.md`: the Docker row of Prerequisites, § 3 `make env`, § 4 `make up` and `make urls`
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
@@ -183,9 +183,9 @@ services in Docker. Both define the same tasks.
 1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
    stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
    developer's file, which they edit; never read it into the conversation. A single command can
-   override both — `make up DEV_MODE=native` — and that override is for people: an agent runs every
-   task in the configured mode, unless the developer asks for another in this task (M10). `make help`
-   names the mode and the file in force.
+   override both — `make up DEV_MODE=native` — and that override is for people. Only the developer
+   changes the mode: an agent runs every task in the configured mode, and when asked for another, it
+   names the setting to change and stops (M10). `make help` names the mode and the file in force.
 2. **What native mode needs,** in `ops/native/Makefile`:
    - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
@@ -198,12 +198,15 @@ services in Docker. Both define the same tasks.
    - The host-form variables in `.env` use the exported ports
      (`REDIS_URL=redis://localhost:${REDIS_PORT}`). For a stack whose env loader doesn't expand
      `${…}`, `NATIVE_CMD` passes them itself.
-3. **Start it:** `make up` starts the backing services in Docker, stops the app's container if it
+3. **Start it — when this checkout is configured for native mode.** When it isn't, don't switch it:
+   read `ops/native/Makefile` against M4–M8, and give the developer the setting to change
+   (`DEV_MODE=native` in their `.env`) and steps 3 and 5 to run, or to ask for once they've switched.
+   `make up` starts the backing services in Docker, stops the app's container if it
    runs, and starts the app in the background (`ops/native/native.sh`), with each `<NAME>_PORT`
    exported — `APP_PORT` too: pinned in `.env`, or a free one. It waits until the app answers, and
    fails with the end of its log if the app exits first. `make down` stops the app and its process
    group; `make logs` shows its log.
-4. **Switching modes** needs no cleanup: `make up` in Docker mode stops an app running on the host,
+4. **Switching modes** is the developer's, and needs no cleanup: `make up` in Docker mode stops an app running on the host,
    and native `make up` stops the app's container.
 5. **Verify:** `make ps` shows the app on the host and only the backing services in Docker; the app
    answers on the URL `make urls` gives; the quickest test that needs the stack passes with

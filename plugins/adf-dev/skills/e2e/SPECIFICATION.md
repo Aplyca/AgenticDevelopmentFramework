@@ -11,7 +11,10 @@ the A and F requirements below into every session.
 it: its configuration, its fixtures, its tests, and the wiring into its local environment. The suite
 is mostly configuration and the project's own tests, so a copied example would be rewritten anyway,
 and a second source would drift from this one. A suite is done when every requirement below holds
-and its runs prove it: `make smoke` passes in each local mode, and each smoke test was seen failing.
+and its runs prove it: `make smoke` passes in the mode the checkout is configured for, and each
+smoke test was seen failing. An agent never switches modes to run it (`dev-env`'s M10); with the
+`docker` module, the other mode's tasks are read against R3 or R4, and run when a developer works in
+that mode.
 Examples here use the newsletter site: a home page, and a signup form whose confirmation is a
 critical flow.
 
@@ -218,8 +221,8 @@ A suite conforms when every requirement holds. `/adf-dev:e2e` checks one in this
 each gap as the requirement's ID, what the project has, and the change:
 
 1. **Layout:** S1–S5.
-2. **Running:** R1–R5 — `make help` names `e2e` and `smoke` in each mode the project uses, and
-   `make smoke` passes in each.
+2. **Running:** R1–R5 — `make help` names `e2e` and `smoke`, and `make smoke` passes, in the
+   configured mode. The other mode's file is read against R3 or R4, never run by switching modes.
 3. **Boundaries:** B1–B4, read from the fixtures and the tests.
 4. **Authoring:** A1–A6, read from the tests: locators, waits, `only`, `serial`, `skip`.
 5. **Smoke:** K1–K5 — every critical flow in `e2e/README.md` has its `@smoke` test.

@@ -226,8 +226,9 @@ check "clickup install: refuses invalid JSON and leaves the file alone" "[ $c -n
 DF="$WORK/docker-fresh"; mkdir -p "$DF"
 ALLOWS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["allow"])')
 ASKS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["ask"])')
+DENIES=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["deny"])')
 "$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1; c=$?
-check "docker install: creates .claude/settings.json with the read-only allows and the destructive asks" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"])')\" = \"($ALLOWS, $ASKS)\" ]"
+check "docker install: creates .claude/settings.json with the allows, the destructive asks, and the mode denies" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"]), len(d[\"permissions\"][\"deny\"])')\" = \"($ALLOWS, $ASKS, $DENIES)\" ]"
 check "docker install: no MCP server and nothing enabled" "[ ! -e '$DF/.mcp.json' ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'sorted(d)')\" = \"['permissions']\" ]"
 "$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1
 check "docker install: a second run adds nothing" "[ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"])')\" = \"($ALLOWS, $ASKS)\" ]"
@@ -235,14 +236,20 @@ check "docker install: a second run adds nothing" "[ \"\$(jsonq '$DF/.claude/set
 DE="$WORK/docker-existing"; mkdir -p "$DE/.claude"
 printf '{"$schema":"x","model":"sonnet","permissions":{"allow":["Bash(git status)"],"ask":["Bash(git push)"],"deny":["Read(.env)"]}}\n' > "$DE/.claude/settings.json"
 "$MODULES/docker/install.sh" "$DE" >/dev/null 2>&1
-check "docker install: keeps existing settings and permission order" "[ \"\$(jsonq '$DE/.claude/settings.json' 'list(d)[:2] == [chr(36) + \"schema\", \"model\"] and d[\"permissions\"][\"allow\"][0] == \"Bash(git status)\" and d[\"permissions\"][\"ask\"][0] == \"Bash(git push)\" and d[\"permissions\"][\"deny\"] == [\"Read(.env)\"]')\" = True ]"
+check "docker install: keeps existing settings and permission order" "[ \"\$(jsonq '$DE/.claude/settings.json' 'list(d)[:2] == [chr(36) + \"schema\", \"model\"] and d[\"permissions\"][\"allow\"][0] == \"Bash(git status)\" and d[\"permissions\"][\"ask\"][0] == \"Bash(git push)\" and d[\"permissions\"][\"deny\"][0] == \"Read(.env)\"')\" = True ]"
+
+DO="$WORK/docker-old"; mkdir -p "$DO/.claude"
+printf '{"permissions":{"ask":["Bash(make reset)","Bash(make *DEV_MODE=*)","Bash(make *SERVICES=*)"]}}\n' > "$DO/.claude/settings.json"
+"$MODULES/docker/install.sh" "$DO" >/dev/null 2>&1
+check "docker install: a mode override it used to ask about is denied, and leaves the ask list" "[ \"\$(jsonq '$DO/.claude/settings.json' '\"Bash(make *DEV_MODE=*)\" in d[\"permissions\"][\"deny\"] and not any(\"MODE=\" in r or \"SERVICES=\" in r for r in d[\"permissions\"][\"ask\"]) and d[\"permissions\"][\"ask\"][0] == \"Bash(make reset)\"')\" = True ]"
 
 DB="$WORK/docker-broken"; mkdir -p "$DB/.claude"; printf '{ not json' > "$DB/.claude/settings.json"
 "$MODULES/docker/install.sh" "$DB" >/dev/null 2>&1; c=$?
 check "docker install: refuses invalid JSON and leaves the file alone" "[ $c -ne 0 ] && [ \"\$(cat '$DB/.claude/settings.json')\" = '{ not json' ]"
 
 # Claude Code's matching, as documented: a * matches any text, spaces included; every subcommand
-# is matched on its own; deny, then ask, then allow — an ask rule wins over any allow rule.
+# is matched on its own; deny, then ask, then allow — a deny rule wins over everything, an ask rule
+# over any allow rule.
 verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" <<'PY'
 import json, re, sys
 perms = json.load(open(sys.argv[1]))["permissions"]
@@ -252,6 +259,8 @@ def matches(rules, command):
                or (r[5:-1].endswith(" *") and command == r[5:-3]) for r in rules)
 def verdict(command):
     parts = [p.strip() for p in re.split(r"&&|\|\||;|\|", command)]
+    if any(matches([r for r in perms["deny"] if r.startswith("Bash(")], p) for p in parts):
+        return "deny"
     if any(matches(perms["ask"], p) for p in parts):
         return "ask"
     return "allow" if all(matches(perms["allow"], p) for p in parts) else "prompt"
@@ -281,11 +290,12 @@ cases = {
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
     "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
     "make lint f=src/a.ts": "allow",
-    # The mode is the developer's (SPECIFICATION.md M10): overriding it on a command asks.
-    "make up DEV_MODE=native": "ask", "make e2e DEV_MODE=native": "ask", "make test DEV_MODE=docker": "ask",
-    "make up SERVICES=none": "ask",
+    # Only the developer changes the mode (SPECIFICATION.md M10): nothing an agent runs overrides it.
+    "make up DEV_MODE=native": "deny", "make e2e DEV_MODE=native": "deny", "make test DEV_MODE=docker": "deny",
+    "make up SERVICES=none": "deny", "make help && make up DEV_MODE=native": "deny",
+    "DEV_MODE=native make up": "deny", "SERVICES=none make up": "deny",
+    "export DEV_MODE=native": "deny", "export SERVICES=redis": "deny",
     "docker compose run --rm web yarn test": "allow", "docker compose exec -T web sh": "allow",
-    "DEV_MODE=native make up": "prompt",
 }
 for command, expected in cases.items():
     if verdict(command) != expected:

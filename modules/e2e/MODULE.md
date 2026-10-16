@@ -40,8 +40,9 @@ writes its own suite to it, and its runs prove it. In short:
 The module copies no files into the project. `/e2e set up` writes the suite to the specification —
 `e2e/` (the configuration, the fixtures, a README of the critical flows, and the smoke tests) and,
 with the `docker` module, the `e2e` service in `compose.yaml`, its image in `ops/docker/e2e/`, and
-the `e2e` and `smoke` tasks in each mode's `Makefile` — and runs it until `make smoke` passes in each
-mode. The skeleton's `.claude/rules/testing.md` § End-to-end is the project's
+the `e2e` and `smoke` tasks in each mode's `Makefile` — and runs it until `make smoke` passes in the
+mode the checkout is configured for. It never switches modes to run it; the other mode's tasks are
+read against the specification, and run when a developer works in that mode. The skeleton's `.claude/rules/testing.md` § End-to-end is the project's
 copy of how a test is written.
 
 ## Install
