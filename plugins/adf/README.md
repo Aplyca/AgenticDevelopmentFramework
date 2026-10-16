@@ -163,7 +163,8 @@ the plugin by a relative path. A machine where nobody trusts the folder â€” CI â
 {
   "extraKnownMarketplaces": {
     "aplyca": {
-      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.3.0" }
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.3.0" },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": { "adf@aplyca": true }
@@ -181,7 +182,11 @@ it.
 Every project pins its release with `"ref"`, and `/adf:adopt` and `/adf:upgrade` keep
 it equal to the release in the project's stamp. In a packaged project the pin chooses the
 machinery; in a committed one it keeps the plugin's copies at the same release as the committed
-files, so a skill listed twice never runs a different version.
+files, so a skill listed twice never runs a different version. `"autoUpdate": true` carries a new
+pin to every teammate: once it merges, Claude Code updates the plugins installed from `aplyca` in
+their next session, never past the pin. A plugin a release turns on for the first time may still
+need `claude plugin install <plugin>@aplyca --scope project` on each machine; `/adf:upgrade`'s
+report lists the commands.
 
 ## Updating the plugin
 

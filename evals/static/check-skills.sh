@@ -1052,6 +1052,25 @@ check_marketplace_snippets() {
     fi
 }
 
+check_marketplace_auto_update() {
+    # A pin that moves updates no installed plugin unless the marketplace auto-updates, which a
+    # third-party one doesn't by default; and a plugin an upgrade turns on needs installing
+    # (decision 0041).
+    local missing=()
+    grep -qE '^[[:space:]]+"autoUpdate": true$' "$REPO_ROOT/docs/SETUP.md" || missing+=("SETUP.md's settings snippet")
+    grep -qE '^[[:space:]]+"autoUpdate": true$' "$REPO_ROOT/plugins/adf/README.md" || missing+=("adf README's team snippet")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '"autoUpdate": true' || missing+=("/adopt's plugin setting")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '"autoUpdate": true' || missing+=("/upgrade's pin step")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'claude plugin install <plugin>@aplyca --scope project' \
+        || missing+=("/upgrade's commands for each machine")
+    file_contains "$REPO_ROOT/docs/SETUP.md" 'claude plugin update adf-dev@aplyca' || missing+=("SETUP.md § Updating updates adf-dev")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine"
+    else
+        fail "marketplace auto-update (decision 0041) missing in: ${missing[*]}"
+    fi
+}
+
 check_install_scope() {
     # Without --scope, `claude plugin marketplace add` and `claude plugin install` default to user
     # scope, which turns the plugin on in every project on the machine. Installs are per project.
@@ -1385,6 +1404,7 @@ echo ""
 check_links
 check_modules
 check_marketplace_snippets
+check_marketplace_auto_update
 check_packaged_plugin
 check_plugin_workflow_paths
 check_plugin_committed_paths
