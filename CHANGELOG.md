@@ -11,6 +11,40 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Each task's session moves to its own worktree; the main checkout hands nothing out**
+  ([decision 0042](docs/decisions/0042-each-session-moves-to-its-task-worktree.md), parallel-agents).
+  - **Why:** the dispatcher hub was a root session the others were created from, and every task
+    cost two sessions. Developers already start a new session for each task.
+  - **Now:** a developer starts a session per task, in the main checkout or wherever the app opens
+    it. It triages there, and the triage names the branch. Then `/adf:dispatch` creates the task's
+    worktree beside the main checkout (`adf-worktree-new <type>/<slug> --no-start`) and moves this
+    session into it — `change_directory` in the desktop app, `EnterWorktree` with `path` in a
+    terminal — where the task goes on.
+  - **What moves:** a change, in any lane, and an answer that runs the app, the tests, or the
+    database. An answer that only reads stays in the main checkout and changes nothing.
+  - **Another task, another session:** a session that has a task offers another one a new session —
+    a task chip, or `claude "<prompt>"` — whose two-line prompt is the task and "follow
+    `AGENTS.md`, starting with triage". That session triages and moves the same way.
+  - **Unchanged:** the main checkout takes no edits (protect-hub), the move takes no prompt in the
+    desktop app (approve-worktree-move), and a session in Claude Code's own worktree never renames
+    its generated branch.
+  - **Where:** `/adf:dispatch`, `/adf:triage` § Routing, the session-context and protect-hub hooks'
+    lines, `docs/PARALLEL-AGENTS.md`, the module's `MODULE.md`, the skills whose hub check hands a
+    command to `/adf:dispatch` (`/adf:adopt`, `/adf:upgrade`, `/adf-dev:dev-env`, `/adf-dev:e2e`,
+    `/adf-connect:connect`), `/adf:spec-workflow`, `/adf:handoff`, `/adf:wrap-up`, and the docs.
+
+  **Upgrade impact:**
+  - **Packaged install:** none for the skills and hooks, which the `adf`, `adf-dev`, and
+    `adf-connect` plugins carry.
+  - **Committed install:** overwrite for `.claude/skills/dispatch/`, `.claude/skills/triage/`, the
+    other skills above, and `.claude/hooks/session-context.sh`, `protect-hub.sh`, and
+    `approve-worktree-move.sh`, written by `scripts/build-committed.py`.
+  - **With parallel-agents:** merge for `docs/PARALLEL-AGENTS.md` (§ Where a session works, § How a
+    task gets its worktree) and `AGENTS.md` § Delivery rules, whose "Parallel sessions" line becomes
+    the one in the module's `MODULE.md` § Customize; merge for `.claude/rules/claude-code.md` (the
+    protect-hub row) and the comments in `.claude/hooks/config.sh`.
+  - **Teams:** close the dispatcher session; start a session per task instead.
+
 - **Everything runs in the configured local mode, and only the developer changes it**
   ([decision 0034](docs/decisions/0034-local-environment-modes.md) and
   [decision 0037](docs/decisions/0037-end-to-end-tests.md), amended).

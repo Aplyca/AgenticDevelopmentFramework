@@ -2,8 +2,8 @@
 
 For teams that run several agent sessions on one repository at once, each on its own task. Any kind
 of project: the defaults give each task a worktree, a branch, and a session; ports, containers, and
-start commands are there for projects that run a server, and stay off until configured. Proven in a
-project where the main checkout dispatched tasks and workers in sibling worktrees did all the work.
+start commands are there for projects that run a server, and stay off until configured. Each task
+gets its own session, worktree, folder, branch, and pull request.
 
 ## What it adds
 
@@ -14,17 +14,18 @@ project where the main checkout dispatched tasks and workers in sibling worktree
 | `ops/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, bring the main checkout's base branch up to date, and safely delete the branch |
 | `ops/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
 | `ops/agent/_worktree-lib.sh` | Shared helpers |
-| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: takes every task in the main checkout and hands it to a new session, whose first step creates the task's worktree beside it with the scripts. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
+| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: after triage, creates the task's worktree beside the main checkout with the scripts and moves this session there; offers another task a new session. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
-| `docs/PARALLEL-AGENTS.md` | The dispatcher/worker process, the scripts, shared vs isolated services |
+| `docs/PARALLEL-AGENTS.md` | One task per session and worktree, the scripts, shared vs isolated services |
 
-Every task goes through `/dispatch` in the main checkout (decisions 0020, 0021). It names the task
-and hands it to a new session — a task chip in the desktop app, a `claude "<prompt>"` command in a
-terminal — whose first step creates the task's worktree beside the main checkout with
-`worktree-new.sh --no-start`, on a new branch, and moves the session into it. With the module
-installed, the core session-context hook announces each session's role — dispatcher in the main
-checkout, where a session handed one task is told to create its worktree and move, and worker in any
-worktree — and, in a worktree the scripts didn't set up, what it lacks: a task branch name, the env
+A developer starts a new session for each task, and that session takes it (decision 0042). After
+triage, a change — or an answer that runs the app, the tests, or the database — goes to `/dispatch`,
+which creates the task's worktree beside the main checkout with `worktree-new.sh --no-start`, on a
+new branch, and moves the session into it; an answer that only reads stays in the main checkout.
+Another task, in a session that already has one, gets a new session: a task chip in the desktop app,
+a `claude "<prompt>"` command in a terminal. With the module installed, the core session-context
+hook tells each session where it is and what comes next — in the main checkout, triage and then the
+move — and, in a worktree the scripts didn't set up, what it lacks: a task branch name, the env
 file, or the scripts' setup. The core `protect-hub.sh`
 hook stops file edits in the main checkout once the module is there, and the core
 `approve-worktree-move.sh` hook lets a session move into a worktree of the repository without a
@@ -61,8 +62,10 @@ that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops
    project has an env file; `SETUP_CMD` for what the git hooks and tests need. Only if each worktree
    runs a server: `PORT_SLOTS`, `ENV_OVERRIDES`, `START_CMD`, `READY_URL`, `STOP_CMD` — and make the
    app read its port from the env file.
-2. **`AGENTS.md` § Delivery rules** — replace the "Parallel sessions" line with: *"In the main
-   checkout you dispatch; you never work — see `docs/PARALLEL-AGENTS.md`."* Add the three scripts to
+2. **`AGENTS.md` § Delivery rules** — replace the "Parallel sessions" line with: *"Each task gets
+   its own session, worktree, branch, and pull request: after triage, a change — or an answer that
+   runs the app — moves this session to the task's worktree with `/dispatch`; the main checkout takes
+   no edits, and another task goes to a new session — see `docs/PARALLEL-AGENTS.md`."* Add the three scripts to
    the Quick reference — packaged, by the commands' names: `adf-worktree-new`, `adf-worktree-ls`,
    `adf-worktree-rm`.
 3. **`docs/PARALLEL-AGENTS.md`** — record what worktrees share and what a task may copy (§ Shared

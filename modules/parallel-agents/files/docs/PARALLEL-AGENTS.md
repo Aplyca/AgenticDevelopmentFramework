@@ -1,60 +1,59 @@
-# Parallel Agents — the main checkout dispatches, worktrees do the work
+# Parallel Agents — one task, one session, one worktree
 
 <!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: running several agent sessions on this repository at once -->
 
 Several agent sessions (and people) can work on this repository at the same time without colliding,
-because every task gets its own **git worktree**: its own directory, branch, and session — and, when
-the project needs them, its own copy of the env file and a port of its own.
+because every task gets its own **session, git worktree, folder, branch, and pull request** — and,
+when the project needs them, its own copy of the env file and a port of its own.
 
-## Two roles
+## Where a session works
 
-| | Main checkout — **dispatcher** | A worktree — **worker** |
+| | Main checkout | A task's worktree |
 |---|---|---|
-| Where | The clone itself | Any linked worktree — normally a sibling the scripts create (`../feat-newsletter-signup`) |
-| Does | Takes every task with `/dispatch`: names it and hands it to a new session, which creates the task's worktree and moves into it (§ How a task gets its worktree) | Everything else: triage, spec folder, plan, approval gate, TDD, commits |
-| Never | Reads code, analyzes, edits, starts anything | Goes back to the hub to work |
-| Network | Reads only (the task) | Whatever the workflow allows — outward actions only when asked |
+| Where | The clone itself | A sibling the scripts create, named after the branch (`../feat-newsletter-signup`) |
+| A session here | Starts here, triages its task, and answers from here when the answer only reads. Moves to the task's worktree before any change (§ How a task gets its worktree) | Does the task: spec folder, plan, approval gate, TDD, commits, the draft pull request |
+| Never | Edits, commits, or branches | Takes a second, unrelated task |
 
-The session-context hook tells each session which role it has when it starts, and the protect-hub
-hook holds the dispatcher to it: a file edit in the main checkout is stopped (`HUB_READONLY` in
-`.claude/hooks/config.sh`). The same goes for maintenance such as a framework upgrade — dispatch it
-to a worktree of its own like any other task.
+The session-context hook tells each session where it is and what comes next, and the protect-hub
+hook stops every file edit in the main checkout (`HUB_READONLY` in `.claude/hooks/config.sh`). The
+same goes for maintenance such as a framework upgrade: it moves to a worktree of its own like any
+other task.
 
 ## How a task gets its worktree
 
-Every task starts in the main checkout with `/dispatch`. The session there dispatches a task as soon
-as it arrives — one the developer typed, or a command whose hub check stopped it — without asking
-first: the chip, or the command, is where the developer chooses whether it starts. Every task takes
-the same route:
+**Each new task starts a new session.** The developer opens it in the main checkout, or wherever the
+desktop app opens it, and gives it the task. That session becomes the task's:
 
-1. **The dispatcher hands the task over.** It names the task (`<type>/<slug>`) and offers a three-line
-   prompt: the task, the branch, and the first step.
-   - **Desktop app:** a task chip for the main checkout, started with one click. Its title is the
-     task's title (`Show the chosen topics after signup`), without the branch: once the session
-     moves in (step 3), the app shows the worktree as its folder, and the folder is named after the
-     branch.
-   - **Terminal:** `claude "<prompt>"`, run in the main checkout.
-2. **The new session creates the worktree.** In the desktop app, a chip's session opens in a
-   worktree the app creates for it, at the app's worktree location (`.claude/worktrees/` by default),
-   on a generated branch. From a terminal it opens in the main checkout. Either way, its first lines
-   say this isn't the task's worktree yet, and its first step is `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling of the main
-   checkout named after the branch (`feat/newsletter-signup` → `../feat-newsletter-signup`), on a new
-   branch from `BASE_BRANCH`, with the env file seeded from the main checkout's and, when worktrees run
-   a server, a port reserved. Nothing starts.
-3. **The session moves into it.**
+1. **It triages the task,** reading from where it is. The triage says whether the task is a change
+   or an answer, whether it runs the app, and names the branch (`<type>/<slug>`).
+2. **It moves, when the task needs a worktree:** a change, in any lane, or an answer that runs the
+   app, the tests, or the database. An answer that only reads stays where it is, and changes nothing.
+   `/dispatch` creates the worktree with `ops/agent/worktree-new.sh <type>/<slug> --no-start` — a
+   sibling of the main checkout named after the branch (`feat/newsletter-signup` →
+   `../feat-newsletter-signup`), on a new branch from `BASE_BRANCH`, with the env file seeded from
+   the main checkout's and, when worktrees run a server, a port reserved. Nothing starts. Then it
+   moves the session there:
    - **Desktop app:** `change_directory` to the path the script printed. The approve-worktree-move
-     hook approves a worktree of this repository, so no prompt asks for it. The session carries on
-     there by itself, and the app then shows the session in that folder.
+     hook approves a worktree of this repository, so no prompt asks for it, and the app then shows
+     the session in that folder.
    - **Terminal:** `EnterWorktree` with that path.
 
-   `pwd` confirms the move. Session-start hooks don't run again after it, so the worker reads its
-   spec folder at triage rather than from the first lines. If the move is refused, the worker gives
-   the developer the worktree's path and stops; the developer opens a session on that folder and
-   pastes the prompt.
+   `pwd` confirms the move. If it's refused, the session gives the developer the worktree's path and
+   stops; the developer opens a session on that folder.
+3. **It carries on with the task there,** from where the triage left it. Session-start hooks don't
+   run again after the move, so it reads its spec folder itself.
 
-Until the move, the session runs the script and nothing else. In the main checkout, the protect-hub
-hook stops any edit. In the app's worktree, the worker edits and commits nothing, and never renames
-the generated branch: the app removes that worktree when the session is archived.
+**Another task goes to another session.** When a session that has a task is handed an unrelated
+one, or finds one along the way, `/dispatch` offers it a new session — a task chip in the desktop
+app, titled with the task (`Show the chosen topics after signup`), or `claude "<prompt>"` to run in
+the main checkout — whose prompt is the task and "follow `AGENTS.md`, starting with triage". That
+session triages it and moves to its own worktree the same way.
+
+**Claude Code's own worktree is only where a session may start.** The desktop app can start a
+session — a chip's always — in a worktree of its own, at its worktree location (`.claude/worktrees/`
+by default), on a generated branch. The session triages there and moves to the task's worktree the
+same way. Until it moves, it edits and commits nothing and never renames the generated branch: the
+app removes that worktree when the session is archived.
 
 **When the task's pull request merges,** its session wraps up with `/wrap-up`. It checks that
 nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then, with
@@ -62,24 +61,23 @@ one yes from the developer, it stops what the task started, removes the worktree
 updates the base branch here, and archives the session. If anything is left, it lists it and
 removes nothing.
 
-Whether a task will run the app is its triage's question, after the hand-off. The worktree can,
-because the scripts gave it the env file and its port; the worker starts the environment only when a
-step needs it.
+The worktree can run the app, because the scripts gave it the env file and its port; the session
+starts the environment only when a step needs it.
 
 **Claude Code's own worktrees** — every chip's session in the desktop app, a session started with
 its worktree option, or `claude --worktree` — sit at the app's worktree location (inside the main
 checkout by default), on a generated branch, with no port or setup. A session that starts in one
-moves to the task's worktree beside the main checkout before its work (decision 0040). One already
+moves to the task's worktree beside the main checkout before its work. One already
 on a task branch, from before, stays a worker, and the session-context hook names what it lacks. `.worktreeinclude` copies the env file into
 them; keep it in step with `ENV_FILE`. The desktop app removes its own worktrees when a session is
 archived — or once the pull request merges, with auto-archive on; `worktree-rm.sh` removes the
 scripts'.
 
-**Why split them.** The main checkout is shared: an edit, a running process, or a half-finished
-change there gets in the way of everyone who starts next. And analysis done in the hub is thrown
-away — the dispatcher can't run the tests, so its conclusions are unverified, and the worker re-reads
-everything where it can check it. The dispatcher's context stays cheap; the handoff is explicit, so
-a task can be picked up by an agent on any machine. Passing work on later in a task is `/handoff`.
+**Why one task, one session.** The main checkout is shared: an edit, a running process, or a
+half-finished change there gets in the way of everyone who starts next, and its base branch takes no
+commits. A session reused for an unrelated task mixes two tasks' context, and its branch and pull
+request with them. No session sits in the main checkout handing tasks out: the one that takes a task
+moves with it. Passing work on later in a task is `/handoff`.
 
 ## The scripts
 

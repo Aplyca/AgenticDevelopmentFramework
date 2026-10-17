@@ -67,8 +67,8 @@ any code exists. Step by step:
       on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
       stop.
    2. If ops/agent/worktree.conf or scripts/agent/worktree.conf exists and this is the main checkout
-      (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the hub takes no edits.
-      Tell me to run this from a worktree.
+      (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the main checkout takes no
+      edits. Tell me to run this from a worktree.
    3. From this folder, run:
       claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
       claude plugin marketplace update aplyca
@@ -175,7 +175,7 @@ takes its three fixes before that — they affect every adopted repository.
    (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
    release to the newest. It sorts every changed file into overwrite, merge, or additive, applies the
    CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
-   dispatcher hub (`parallel-agents`) among them — and the other install, committed or packaged. It
+   one task per session and worktree (`parallel-agents`) among them — and the other install, committed or packaged. It
    shows you the plan before changing anything. Then it updates the files — your project-specific
    content stays — installs the modules you chose, moves the release pin, re-stamps, and prepares a
    draft pull request.
@@ -353,7 +353,7 @@ flowchart TD
 | The requester needs an update on a task | `/stakeholder-update` ("update the client") — in the client's terms, shown in chat, posted on the pull request for the team to relay; on the tracker only on your yes to the exact text | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | `sonnet` | — |
-| Several tasks at once | Each task in its own worktree (`parallel-agents` module): `/dispatch` in the main checkout hands every task to a new session — a one-click task chip in the desktop app — that creates the task's worktree beside the main checkout and moves into it | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
+| Several tasks at once | Each task in its own session and worktree (`parallel-agents` module): a new session per task, which triages it and moves to the task's worktree beside the main checkout with `/dispatch`; another task gets a new session, a one-click task chip in the desktop app | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
 | High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | each agent its own | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 
 ### Effort, model, and cost

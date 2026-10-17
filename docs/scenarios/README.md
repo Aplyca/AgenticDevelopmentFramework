@@ -47,7 +47,7 @@ the task. The approval gate comes later, before implementation code.
 - **[Debugging](debugging.md)** — something misbehaves and nobody knows why: diagnosis first, then decide whether it's a fix, a change request, or a hotfix.
 - **[Refactor](refactor.md)** — the structure changes, the behavior doesn't: tests green throughout; a spec folder (and maybe an ADR) only when there's a structural decision to make.
 - **[Answer-only task](answer-only-task.md)** — investigation, impact analysis, estimate: no spec folder, no environment unless a step must run something; deliver the answer where the task asks.
-- **[Parallel agents](parallel-agents.md)** — several sessions on one repository: one worktree per task; with the parallel-agents module, the main checkout dispatches and worktrees do the work.
+- **[Parallel agents](parallel-agents.md)** — several sessions on one repository: one worktree per task; with the parallel-agents module, each task's session moves to its own worktree, and the main checkout takes no edits.
 
 ## Guardrails you'll meet in every scenario
 

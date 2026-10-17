@@ -26,12 +26,12 @@ CAREFUL_GLOBS=""
 # edit or new branch once, as a reminder, when its reply text states no lane yet. Empty disables.
 TRIAGE_FIRST="1"
 
-# With the parallel-agents module installed, the main checkout is the hub: the dispatcher edits
-# nothing there. "1" stops every file edit in the main checkout (worktrees are unaffected). Without the
+# With the parallel-agents module installed, each task moves to its own worktree before its first
+# edit. "1" stops every file edit in the main checkout (worktrees are unaffected). Without the
 # module it has no effect. Empty disables.
 HUB_READONLY="1"
 
-# A dispatched session moves from the main checkout into its task's worktree with the desktop app's
+# A session moves from the main checkout into its task's worktree (/dispatch) with the desktop app's
 # change_directory. "1" approves that move without a prompt when the folder is a worktree of this
 # repository; any other folder still prompts. Empty disables.
 APPROVE_WORKTREE_MOVE="1"

@@ -1,6 +1,6 @@
 # 0040: A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0042](0042-each-session-moves-to-its-task-worktree.md) (the branch is the one triage names, and `/adf:dispatch` makes the move)
 - **Date:** 2026-10-15
 - **Amends:** [0021](0021-sibling-worktree-and-chip.md) — where a chip's session opens;
   [0015](0015-tool-worktrees-are-workers.md) — a worker in Claude Code's own worktree renames its
