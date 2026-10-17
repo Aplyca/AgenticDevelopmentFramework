@@ -22,7 +22,7 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
    spec folder already carries everything — point at it). Work that stays here needs no handoff:
    continue, or `/compact` with what the next phase needs (`${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Between phases).
    A side task found mid-work isn't a handoff either: note it for the developer — or, with the
-   parallel-agents module, `/adf:dispatch` it to its own worktree.
+   parallel-agents module, `/adf:dispatch` offers it a new session of its own.
 
 2. **Put the state in the record first.** Commit finished tasks (`/adf:commit`) and tick them in
    `tasks.md`. Write decisions taken in this session where they last: the spec's Clarifications or

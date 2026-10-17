@@ -1,6 +1,6 @@
 # 0020: Every task goes through `/dispatch` in the main checkout (parallel-agents module)
 
-- **Status:** accepted; amended by [0021](0021-sibling-worktree-and-chip.md) (one route: a chip or a command hands every task to a new session, whose first step creates the task's worktree beside the main checkout with the scripts and moves into it) and [0023](0023-plugins-by-concern.md) (a module's skills go to the plugin of its concern — `/dispatch`, the process, stays in `aplyca-adf`)
+- **Status:** accepted; amended by [0021](0021-sibling-worktree-and-chip.md) (one route: a chip or a command hands every task to a new session, whose first step creates the task's worktree beside the main checkout with the scripts and moves into it) [0023](0023-plugins-by-concern.md) (a module's skills go to the plugin of its concern — `/dispatch`, the process, stays in `aplyca-adf`), and [0042](0042-each-session-moves-to-its-task-worktree.md) (each task's session triages where it starts and moves to its own worktree; the main checkout hands nothing out)
 - **Date:** 2026-10-06
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — what the dispatcher takes; [0015](0015-tool-worktrees-are-workers.md) — who picks a task's route; [0016](0016-packaged-install.md) — a module's skill comes from the plugin
 

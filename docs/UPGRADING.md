@@ -255,7 +255,7 @@ moves into a folder the next time it changes.
 Start with the plugin: install it in the project with `--scope project` (the README's install prompt
 does it and reports a user-scope copy to remove), then run `/upgrade` in a new session. It applies
 the release's parts newest first and offers the modules you don't have. If the project uses the
-dispatcher hub, run it from a worktree: from this release on, the hub's main checkout takes no edits.
+parallel-agents module, run it from a worktree: from this release on, the main checkout takes no edits.
 
 ### "Our project has a `CLAUDE.md`" — moving to v2.0.0
 
@@ -344,7 +344,7 @@ under a name of its own, or goes upstream as a change to the framework.
 Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade` lists the modules
 you don't have and recommends the ones your repository's facts support — `parallel-agents` when
 several agent sessions may work at once (each task gets its own worktree, branch, pull request, and
-session; the main checkout only dispatches), `clickup` when requirements arrive as ClickUp tasks,
+session; the main checkout takes no edits), `clickup` when requirements arrive as ClickUp tasks,
 `docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `github` on GitHub, `git-hooks` for local
 gates. The ones you choose join the same upgrade pull
 request, with their customize steps. Choosing `parallel-agents` moves the upgrade itself into a

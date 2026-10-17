@@ -54,8 +54,8 @@ at user scope.
    on, then to run /adf:upgrade — /aplyca-adf:upgrade under the old name, which renames it — and
    stop.
 2. If ops/agent/worktree.conf or scripts/agent/worktree.conf exists and this is the main checkout
-   (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the hub takes no edits.
-   Tell me to run this from a worktree.
+   (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the main checkout takes no
+   edits. Tell me to run this from a worktree.
 3. From this folder, run:
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
    claude plugin marketplace update aplyca
@@ -89,7 +89,7 @@ framework.
 | `--scope project` (use this) | The project's committed `.claude/settings.json` | Everyone on the project — teammates get it once they trust the folder |
 | `--scope local` | The project's git-ignored `.claude/settings.local.json` | You, in this repository only — to try it before the team sees it |
 
-In a project that uses the dispatcher hub (the parallel-agents module), use `project`: the committed
+In a project with the parallel-agents module, use `project`: the committed
 setting reaches every task's worktree on every platform, and every teammate. A local install reaches
 the worktrees only on macOS and Linux with Claude Code 2.1.211 or later, which keeps
 `.claude/settings.local.json` at the main checkout; on Windows it stays in the checkout where you ran

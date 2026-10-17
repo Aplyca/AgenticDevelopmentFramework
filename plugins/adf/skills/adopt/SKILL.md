@@ -49,10 +49,9 @@ use the default branch's head and say so.
 adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
 stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
-checkout is the hub and its hook stops edits there: do this from a session in a worktree of its own
-(`adf-worktree-new chore/add-modules --no-start`, the plugin's command, which runs the committed
-script where the project has one). Started in the main checkout, run `/adf:dispatch` with it as the
-task, without asking first.
+checkout takes no edits: started there, run `/adf:dispatch` with `chore/add-modules` as the branch,
+without asking first. It creates the task's worktree beside the main checkout and moves this session
+there, where you go on.
 
 ### A new project
 

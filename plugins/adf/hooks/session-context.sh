@@ -90,13 +90,12 @@ if worktree_conf="$(worktree_settings "$root")"; then
   main="$(dirname "$common_dir")" # a linked worktree's common dir is absolute: <main checkout>/.git
 
   if [ "$checkout" = "main checkout" ]; then
-    # Every task takes one route (decision 0021): /adf:dispatch hands it to a new session that opens here,
-    # creates the task's worktree beside this checkout with the scripts, and moves into it. Hooks don't
-    # run again after the move, so the worker's first step is spelled out here.
-    echo "- Role: DISPATCHER. This is the shared main checkout — never edit here. Give every task to /adf:dispatch, as soon as it arrives and without asking first — the chip it offers is where the developer chooses: it hands the task to a new session, which creates the task's worktree beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves into it."
-    echo "- A session whose prompt hands it one task and its branch (from /adf:dispatch) is that task's worker, not the dispatcher. Its first step is the worktree: adf-worktree-new <branch> --no-start, then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd before anything else."
+    # Each task takes the session it starts in (decision 0042): after triage, /adf:dispatch creates the
+    # task's worktree beside this checkout with the scripts and moves this session there. Hooks don't
+    # run again after the move, so the route is spelled out here.
+    echo "- Main checkout: sessions start here, and edits are stopped here. Triage the task first. A change, or an answer that runs the app, the tests, or the database, then gets its own worktree: /adf:dispatch creates it beside this checkout${base_branch:+, on a new branch from $base_branch,} and moves this session there. An answer that only reads stays here. Once this session has a task, another one goes to a new session — /adf:dispatch offers it."
   else
-    echo "- Role: WORKER. One task, in its own worktree — start with triage (/adf:triage)."
+    echo "- Role: WORKER. One task, in its own worktree — start with triage (/adf:triage). Another task goes to a new session: /adf:dispatch offers it."
     # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.
     folder="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_-' '-')"
     while [[ $folder == -* ]]; do folder="${folder#-}"; done
@@ -111,7 +110,7 @@ if worktree_conf="$(worktree_settings "$root")"; then
         # a dispatched worker starts here and moves to the task's worktree beside the main checkout
         # (decision 0040). Renaming this branch would keep the task nested in the main checkout.
         if [ -n "$generated" ]; then on="a generated branch ($branch)"; else on="a detached HEAD"; fi
-        echo "- This session started in Claude Code's own worktree, on $on. A task's worktree sits beside the main checkout: first create it — adf-worktree-new <branch> --no-start, with the branch your prompt names (or, without one, the one triage names) — then move this session to the path it prints — change_directory in the desktop app, EnterWorktree in a terminal — and confirm with pwd. Edit and commit nothing here, and don't rename this branch: this worktree goes when the session is archived."
+        echo "- This session started in Claude Code's own worktree, on $on. A task's worktree sits beside the main checkout: triage the task, then /adf:dispatch creates it on the branch triage names and moves this session there. Edit and commit nothing here, and don't rename this branch: this worktree goes when the session is archived."
       else
         if [ -n "$env_file" ] && [ -f "$main/$env_file" ] && [ ! -e "$root/$env_file" ]; then
           echo "- No $env_file here. Claude Code copies it into the worktrees it creates when .worktreeinclude lists it."

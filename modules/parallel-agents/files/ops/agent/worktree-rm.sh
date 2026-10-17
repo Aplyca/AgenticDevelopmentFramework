@@ -41,7 +41,7 @@ echo "==> Removing worktree $WORKTREE_DIR"
 git -C "$MAIN_CHECKOUT" worktree remove $FORCE "$WORKTREE_DIR"
 
 # A worktree goes once its work has merged, so the main checkout's base branch is behind: bring it up
-# to date. The next task's branch starts from it, the dispatcher lists its specs/, every session
+# to date. The next task's branch starts from it, triage reads its specs/, every session
 # reads its AGENTS.md first, and `git branch -d` below checks the merge against it. Only a
 # fast-forward, only on the base branch, and never over uncommitted changes.
 update_base() {

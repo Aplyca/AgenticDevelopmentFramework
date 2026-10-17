@@ -1,118 +1,119 @@
 ---
 name: dispatch
-description: In the main checkout, hand every task to a new session — name the task and offer a task chip (or a command) whose short prompt has the new session create the task's worktree beside the main checkout, on a new branch, move into it, and follow the process. Runs nothing, analyzes nothing, edits nothing. Use for every task that arrives in the main checkout of a project with the parallel-agents module.
-argument-hint: "[tracker link or task description]"
+description: Give a task its own worktree, branch, and folder beside the main checkout, and move this session into it — after triage, when the task changes the repository or runs the app, the tests, or the database. A session that already has a task, handed another, offers it a new session instead — a task chip, or a command. Use with the parallel-agents module: right after triage in the main checkout or in Claude Code's own worktree, and whenever a session that has a task is handed an unrelated one or finds one along the way.
+argument-hint: "[<type>/<slug>, or the other task]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/dispatch/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
 # Dispatch
 
-The main checkout is the shared hub where every developer and agent session starts. **In the main
-checkout you dispatch every task; you never work.** Editing there blocks every other session, and
-analysis done there is wasted: the dispatcher can't run the app or the tests, its conclusions are
-unverified, and the worker in the worktree has to redo the reading anyway — now with tools that can
-check it. The dispatcher's context stays cheap: a branch name, not a plan.
-
-A dispatcher **writes nothing outside this machine** and takes no outward-facing action. Its network
-calls are reads: the task in step 1, and `git pull --ff-only` when the session context says the base
-branch is behind origin's — so `specs/` lists what has merged. It runs no scripts — not even the
-worktree script.
+**Every task gets its own session, worktree, folder, branch, and pull request.** A developer starts
+a new session for each new task, in the main checkout or wherever the desktop app opens it, and that
+session becomes the task's. Once triage says the task needs a worktree, this skill creates it beside
+the main checkout and moves the session there. The main checkout takes no edits (the protect-hub
+hook stops them), so nothing lands on the base branch, and no session sits in it handing tasks out.
 
 This skill needs the `parallel-agents` module: without `ops/agent/worktree.conf` in this
 repository (or `scripts/agent/worktree.conf`, where it was before the module moved), say the module
 isn't installed and stop.
 
-Every task takes the same route. The dispatcher names the task and hands it over. The
-new session's first step is the task's worktree: the scripts create it beside the main checkout, on a
-new branch from the base branch, and the session moves into it before anything else — from the main
-checkout, or from the worktree the desktop app gives a chip's session (decision 0040). Whether the task will run the app is its triage's question, after that; the
-worktree can, because the scripts give it the env file and, where the project uses them, a port.
+## Which route
 
-**Dispatch without asking.** A task that arrives in the main checkout comes straight here — one the
-developer typed, or a command whose own hub check stopped it. Don't ask "shall I dispatch it?"
-first: dispatching runs nothing, and the chip (or the command) is where the developer chooses
-whether the task starts.
+| This session | The task | Route |
+|---|---|---|
+| Has no task yet: in the main checkout, or in Claude Code's own worktree on a generated branch or a detached HEAD | A change, in any lane, or an answer whose triage needs an environment | **Move here** |
+| The same | An answer that only reads — code, docs, the tracker | None. Answer from where you are, and edit nothing. A change the answer recommends moves once the developer approves it |
+| Has a task: in a worktree on a task branch, or one already done in this conversation | Another task — one the developer brings, or one found along the way | **A new session** |
+
+A session on a task branch that wasn't created by the scripts (an old Claude Code worktree) has its
+task: it stays a worker, and the session-context hook names what it lacks.
+
+Neither route asks first. The triage is on the page, and the developer redirects it; the chip is
+where they choose whether the other task starts.
 
 ## Steps
 
-1. **Name the task — nothing more.** If the session context says the base branch is behind origin's,
-   run `git pull --ff-only` first: a feature merged since the last pull isn't in `specs/` yet. Then
-   read only enough of the task to know its title and type
-   (`feat`, `fix`, `chore`, `docs`, `refactor` — `hotfix` where the branching model uses it). No code
-   reading, no requirement analysis, no planning. Choose a short kebab-case slug. If the task names
-   a delivered feature, start the slug with that feature's spec-folder slug and add the change
-   (`feat/newsletter-signup-topics`) — a directory listing (`ls specs/`) is enough; don't open the
-   files. Whether it really is a change request is the worker's triage to decide.
+### Move here
 
-2. **Write the worker's prompt** — pointers, and the one setup step the worker takes first:
+1. **After the triage,** which names the branch: `<type>/<slug>`, where `<type>` is the commit
+   type (`feat`, `fix`, `chore`, `docs`, `refactor`; `hotfix` where the branching model uses it).
+   A change request starts the slug with the delivered feature's spec-folder slug and adds the
+   change (`feat/newsletter-signup-topics`). If the session context says the base branch is behind
+   origin's, run `git pull --ff-only` in the main checkout first.
+2. **Create the worktree:** `adf-worktree-new <type>/<slug> --no-start` (a hotfix from a release tag
+   adds `--from <tag>`). It's a sibling of the main checkout named after the branch
+   (`../feat-newsletter-signup-topics`), on a new branch from `BASE_BRANCH`, with the env file
+   seeded from the main checkout's and, when worktrees run a server, a port reserved. Nothing starts.
+3. **Move this session into it,** to the path the script printed:
+   - **Desktop app:** `change_directory`. The approve-worktree-move hook approves a worktree of this
+     repository, so no prompt asks.
+   - **Terminal:** `EnterWorktree` with `path`. From Claude Code's own worktree it can't reach a
+     folder outside `.claude/worktrees/`: give the developer `cd <path> && claude` and stop.
+
+   If the move is refused, give the developer the path and stop: they open a session on that folder.
+4. **Confirm with `pwd`, and carry on with the task** where the triage left it. The triage stands;
+   don't repeat it. Session-start hooks don't run again after the move, so look for the branch's
+   spec folder yourself (`ls specs/`).
+
+Until the move, run nothing but the script, and edit and commit nothing. In Claude Code's own
+worktree, never rename its generated branch: the app removes that worktree when the session is
+archived (`/adf:wrap-up`).
+
+A command that stops in the main checkout and hands itself here moves the same way, on the branch
+it names, and then runs in the worktree as the developer typed it.
+
+### A new session
+
+1. **Name the task in one line.** Don't read into it: its own session triages it.
+2. **Write its prompt** — the task, and the process to follow:
    ```
    Task: <tracker link or one-line description>
-   Branch: <type>/<slug>
-   First create this task's worktree — adf-worktree-new <type>/<slug> --no-start — and move this session into it; then follow AGENTS.md end to end, starting with triage.
+   Follow AGENTS.md end to end, starting with triage.
    ```
-   A hotfix from a release tag adds `--from <tag>` to the script. Don't restate the workflow: the
-   worker reads it in `AGENTS.md`, and a copy in a handoff message is one more thing that drifts. If
-   the developer set a lane or asked for more effort, pass it on in their words —
-   `Developer: full lane — the billing rules are fragile` — since triage honors it. A command whose
-   hub check stopped it is the task as the developer typed it, arguments included: the worker runs
-   it in the worktree.
-
-3. **Hand it over.**
-   - **Desktop app:** offer the task as a task chip for this main checkout, with the worker prompt.
-     Title it with the task's title alone — `Show the chosen topics after signup` — not the branch:
-     once the session moves into the worktree, the app shows that folder as the session's, and the
-     folder is named after the branch. The app starts the chip's session in a worktree of its own,
-     at its worktree location (`.claude/worktrees/` by default), on a generated branch. That's only
-     where the session starts: its first step moves it to the task's worktree beside the main
-     checkout.
-   - **Terminal:** give the developer one command to run in a new terminal, in this main checkout:
-     `claude "<worker prompt>"`.
-
-   The new session's first lines say how: in the main checkout, `Role: DISPATCHER`, and that a session
-   handed one task and its branch is that task's worker; in the app's worktree, that this worktree
-   isn't the task's. Either way it runs the script, then moves into the task's worktree
-   (`docs/PARALLEL-AGENTS.md` § How a task gets its worktree), and never renames the app's generated
-   branch. In the desktop app the
-   approve-worktree-move hook approves the move, and the session carries on there by itself.
-
-The hand-off ends the task's time here. The next task needs nothing from this conversation, so
-clearing it (`/clear`) between dispatches keeps the hub's session cheap.
+   If the developer set a lane or asked for more effort, pass it on in their words
+   (`Developer: full lane — the billing rules are fragile`), since triage honors it. Don't restate
+   the workflow: the session reads it in `AGENTS.md`.
+3. **Offer it:**
+   - **Desktop app:** a task chip for this repository, with the prompt, titled with the task's title
+     alone (`Show the chosen topics after signup`). The new session's triage moves it to its own
+     worktree, and the app then shows that folder, named after the branch.
+   - **Terminal:** one command to run in a new terminal, in the main checkout: `claude "<prompt>"`.
+4. **Carry on with this session's own task.** The other one needs nothing more from this
+   conversation.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll ask whether to dispatch it first" | The chip is that question. Dispatching runs nothing; the developer starts the chip, or doesn't. Asking first makes them answer twice. |
-| "I'll read the task properly first so the worker gets a head start" | The worker redoes the reading where it can verify it. Analysis here is unverified, burns the hub's context, and drifts in the handoff. |
-| "It's a one-line fix — I'll just do it here" | The main checkout is shared. A stray edit or a running server here collides with every other session. |
-| "I'll create the worktree here and point the chip at it" | Creating it is the new session's first step: it runs the script and moves in, so the app shows that session in the worktree's folder. The dispatcher runs nothing. |
-| "The chip already gave the session a worktree, so it can work there" | The app's worktree sits at its worktree location — inside the main checkout by default — on a generated branch, without the env file's overrides, the setup, or a name after the branch. Nested in the main checkout, tools that walk up find its configuration. The prompt has the session make the task's worktree beside the main checkout with the scripts, and move. |
-| "I'll put the branch in the chip's title so the developer can see it" | The session's folder shows it. Once the session moves in, the app shows the worktree's folder, named after the branch (`../feat-newsletter-signup-topics`). The title is the task's. |
-| "I'll start the environment so it's ready" | The worker may not need one (an answer-only task). It decides after triage. |
-| "I'll open a placeholder issue or take the next spec number for the branch" | That's an outward-facing write, and numbers collide between parallel dispatchers. The slug is the join. |
-| "I'll put the full workflow in the handoff to be safe" | Restated steps drift from `AGENTS.md`. Point at the process; don't copy it. |
+| "It's a one-line fix — I'll just do it here" | The main checkout is shared, and its base branch takes no commits. A change in any lane gets its worktree first. |
+| "I'll make the worktree before triage, to save time" | The triage names the branch, and an answer that only reads needs no worktree at all. |
+| "The app already gave this session a worktree, so it can work there" | The app's worktree sits at its worktree location — inside the main checkout by default — on a generated branch, without the env file, the setup, or a name after the branch. Tools that walk up find the main checkout's configuration. Create the task's worktree, and move. |
+| "This session is free now — I'll take the next task here" | One task per session, worktree, branch, and pull request. Another task in this session mixes their context and their history. Offer it a new session. |
+| "I'll ask whether to open a new session for it" | The chip is that question. Asking first makes the developer answer twice. |
+| "I'll put the branch in the chip's title" | The folder shows it once the new session moves. The title is the task's. |
+| "I'll triage the other task here so its session gets a head start" | Its session triages it where it can check what it reads. Analysis here drifts in the hand-off. |
+| "I'll start the environment so it's ready" | The task's own steps decide. The worktree can run it: the script gave it the env file and its port. |
 
 ## Red flags (stop and reassess)
 
-- You've opened source files, specs, or tests in the main checkout.
-- You ran a script, `git fetch`, or any command beyond listing `specs/` and the `git pull --ff-only`
-  the session context asked for.
-- `git status` in the main checkout shows changes you made — or the protect-hub hook stopped an edit:
-  you were about to work in the hub.
-- The handoff prompt contains analysis, a plan, or a list of files to change.
+- You're about to edit, commit, or create a branch in the main checkout, or the protect-hub hook
+  stopped an edit.
+- You created a worktree before the triage was on the page.
+- You renamed Claude Code's generated branch, or committed in its worktree.
+- This session already has a task, and you started working on another.
 
 ## Verification
 
-- [ ] The task came here without a "shall I dispatch it?" first
-- [ ] Only the task's title and type were read
-- [ ] Nothing was run, edited, committed, or posted from the main checkout — beyond `git pull --ff-only` when the base branch was behind
-- [ ] The chip is for this main checkout and its title is the task's title, without the branch — or the developer has the command
-- [ ] The worker prompt has the task, the branch, the first step — create the worktree with `adf-worktree-new --no-start` and move into it — and "follow AGENTS.md, starting with triage"; nothing else
+- [ ] The triage came first, and named the branch
+- [ ] A change — or an answer that needed an environment — got its own worktree beside the main checkout before any edit, and `pwd` showed the session there
+- [ ] An answer that only read stayed where it was and changed nothing
+- [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own
+- [ ] Nothing was edited or committed in the main checkout or in Claude Code's own worktree
 
 ## Principles
 
-- The hub dispatches every task; worktrees beside it do the work.
-- One route: a chip or a command opens the session, and its first step creates the task's worktree and moves into it.
-- Reads only — no commands, no writes, no analysis.
-- Point at the process; never restate it.
+- One task: one session, one worktree, one folder, one branch, one pull request.
+- The session that takes a task moves to its worktree; nothing hands tasks out from the main checkout.
+- Triage first: it names the branch, and says whether the task needs a worktree at all.
+- Another task, another session.

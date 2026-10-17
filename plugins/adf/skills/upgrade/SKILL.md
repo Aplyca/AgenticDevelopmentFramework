@@ -15,12 +15,10 @@ blind sync.
   `chore/skeleton-upgrade-<NEW_SHA>`); deliver a reviewable draft PR.
 - **In a hub repository, work in a worktree.** When the parallel-agents module is installed
   (`ops/agent/worktree.conf` exists, or `scripts/agent/worktree.conf` in a project that hasn't moved
-  it yet), the main checkout is the hub and the protect-hub hook stops edits there. Run this from a
-  session in a worktree of its own — dispatch it like any task
-  (`adf-worktree-new chore/skeleton-upgrade-<NEW_SHA> --no-start`, the plugin's command, which runs
-  the committed script where the project has one) — and if you were started in the main checkout,
-  say so and run `/adf:dispatch` with the upgrade as the task, without asking first: the chip it
-  offers is where the developer chooses.
+  it yet), the main checkout takes no edits: the protect-hub hook stops them. Started there, say so
+  and run `/adf:dispatch` with `chore/skeleton-upgrade-<NEW_SHA>` as the branch, without asking
+  first: it creates the task's worktree beside the main checkout and moves this session there, where
+  the upgrade goes on.
 - **Plan before touching.** No file is modified until the user approves the per-file plan.
 - **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest

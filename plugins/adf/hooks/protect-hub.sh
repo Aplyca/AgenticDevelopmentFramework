@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook (matcher: Edit|Write|MultiEdit). With the parallel-agents module installed, the main
-# checkout is the shared hub: the dispatcher hands each task to its own worktree and edits nothing
-# here (docs/PARALLEL-AGENTS.md). This stops any file edit in the main checkout; edits in linked
+# checkout is shared: sessions start here, and each task moves to a worktree of its own before its
+# first edit (docs/PARALLEL-AGENTS.md). This stops any file edit in the main checkout; edits in linked
 # worktrees pass. Without the module — no ops/agent/worktree.conf (scripts/agent/ before decision
 # 0032), its settings, which both installs commit — it does nothing. Empty HUB_READONLY turns it off. File writes made through Bash
 # aren't seen by this hook.
@@ -20,4 +20,4 @@ worktree_settings "$root" >/dev/null || exit 0
 
 [ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 
-block "$root is the main checkout — the shared hub, where the dispatcher edits nothing. Give the task to /adf:dispatch now, without asking first, which hands it to a new session in a worktree of its own, and make this change from that session. If this session is a dispatched task's worker, create its worktree first (adf-worktree-new <branch> --no-start) and move this session there."
+block "$root is the main checkout, which takes no edits. Give this task its own worktree first: state the triage if you haven't, then run /adf:dispatch, which creates the worktree beside this checkout on the branch triage names and moves this session there. Make the change from there."

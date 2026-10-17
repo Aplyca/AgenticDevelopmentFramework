@@ -24,9 +24,10 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 ## Steps
 
 1. **Check where you are.**
-   - **The main checkout of a hub** (`ops/agent/worktree.conf` or `scripts/agent/worktree.conf` exists,
-     and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`): the dispatcher's session
-     stays open and has no task to wrap up. Say so in a line and stop. A worktree whose session is
+   - **The main checkout, with the parallel-agents module** (`ops/agent/worktree.conf` or
+     `scripts/agent/worktree.conf` exists, and `git rev-parse --git-dir` equals
+     `git rev-parse --git-common-dir`): a session here has no worktree or branch to wrap up — its task,
+     if any, moved to a worktree, or was an answer. Say so in a line and stop. A worktree whose session is
      gone is removed from here with `adf-worktree-rm <branch>`, only when the developer asks.
    - **Anywhere else** — a task worktree, Claude Code's own worktree, or the main checkout of a
      project without the module — go on.
@@ -104,7 +105,7 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 | "The developer said 'merged', so I'll clean up right away" | "Merged" starts the check, not the close-up. Removing a worktree deletes files, and archiving hides the conversation: ask first. |
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
-| "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the hub, the developer asks for each one. |
+| "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
 | "The pull request closed, close enough" | Closed without merging means its work isn't upstream. Removing the branch would lose it. |
 
 ## Red flags (stop and reassess)
@@ -127,4 +128,4 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 
 - The check before the close-up; one yes for the close-up.
 - Unfinished work is never cleared — it's listed for the developer.
-- Each task's session wraps up its own task, and the hub's session stays open.
+- Each task's session wraps up its own task.

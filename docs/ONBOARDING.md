@@ -319,21 +319,22 @@ if there's no tracker task). Check for business language, verified claims, and y
 ### Parallel sessions
 
 Each agent session gets its own git worktree — never two in one checkout. With the
-[`parallel-agents` module](../modules/parallel-agents/MODULE.md), the main checkout **only
-dispatches**: every task goes to `/dispatch` there, which names it and hands it to a new session: a
-task chip you start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.
-That session's first step creates the task's worktree beside the main checkout with the scripts —
-named after the branch, on a new branch, with the env file and, when the project needs one, a port —
-and moves into it; you approve the new folder once. The worker there does everything from triage on. The main checkout is shared — an edit or a dev server there collides with
-every other session — and analysis there is wasted: the dispatcher can't run the app or the tests, so
-the worker re-reads everything where it can verify it.
-([decisions 0008](decisions/0008-dispatcher-and-worker-worktrees.md),
-[0020](decisions/0020-every-task-through-dispatch.md), and
-[0021](decisions/0021-sibling-worktree-and-chip.md))
+[`parallel-agents` module](../modules/parallel-agents/MODULE.md), **each task gets its own session,
+worktree, folder, branch, and pull request.** Start a new session for each task, in the main
+checkout, and give it the task. It triages from there; then a change — or an answer that runs the
+app — goes to `/dispatch`, which creates the task's worktree beside the main checkout with the
+scripts (named after the branch, on a new branch, with the env file and, when the project needs one,
+a port) and moves the session into it, with no prompt in the desktop app. An answer that only reads
+stays in the main checkout. The main checkout takes no edits — one there collides with every other
+session — and a session that already has a task offers another one a new session: a task chip you
+start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.
+([decisions 0021](decisions/0021-sibling-worktree-and-chip.md) and
+[0042](decisions/0042-each-session-moves-to-its-task-worktree.md))
 
-**Exercise (module installed):** dispatch the typo and the topics estimate. The main checkout's
-`git status` stays clean, each worker's session context says WORKER, and
-`ops/agent/worktree-ls.sh` lists both. ([scenario](scenarios/parallel-agents.md))
+**Exercise (module installed):** start one session for the typo and another for the topics
+estimate. The typo's session moves to its worktree after triage; the estimate, an answer that only
+reads, stays. The main checkout's `git status` stays clean, and `ops/agent/worktree-ls.sh` lists the
+typo's worktree. ([scenario](scenarios/parallel-agents.md))
 
 ### High stakes and upkeep
 
@@ -391,7 +392,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | Audit a spec, or the instruction files | `/spec-drift`, `/context-audit` |
 | See every workflow | `/spec-workflow` |
 | Set up a project | `/init-project` (or the plugin's `/adopt`) |
-| Hand a task to a worktree (`parallel-agents` module) | `/dispatch` |
+| Move a task to its own worktree, or offer another task a new session (`parallel-agents` module) | `/dispatch` |
 
 Full catalog: [SKILLS-REFERENCE.md](SKILLS-REFERENCE.md).
 

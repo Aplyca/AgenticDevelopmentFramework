@@ -49,9 +49,9 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
 
 2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
    and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`,
-   this is the main checkout of a hub: environments run in worktrees. Say so in a line, read
-   nothing more, and run `/adf:dispatch` now with this command, as the developer typed it, as the
-   task. Don't ask first: the chip it offers is where the developer chooses.
+   this is the main checkout, which takes no edits. Say so in a line, read nothing more, and run
+   `/adf:dispatch` now with `chore/dev-env` as the branch, without asking first: it moves this
+   session to the task's worktree, where this command runs as the developer typed it.
 
 3. **Read the facts, running nothing yet:** the Compose files (`compose.yaml`, `compose.yml`,
    `docker-compose.y*ml`, and their overrides), the Dockerfiles wherever they are, the `Makefile`,

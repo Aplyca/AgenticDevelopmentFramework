@@ -1,6 +1,6 @@
 # 0021: `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module)
 
-- **Status:** accepted; amended 2026-10-07 (the chip's title is the task's title, without the branch); amended by [0035](0035-move-into-the-worktree-without-a-prompt.md) (the move into the worktree takes no prompt); amended by [0040](0040-workers-move-out-of-the-apps-worktree.md) (with the parallel-agents module, a session that starts in the app's worktree moves to the task's worktree beside the main checkout)
+- **Status:** accepted; amended 2026-10-07 (the chip's title is the task's title, without the branch); amended by [0035](0035-move-into-the-worktree-without-a-prompt.md) (the move into the worktree takes no prompt); amended by [0040](0040-workers-move-out-of-the-apps-worktree.md) (with the parallel-agents module, a session that starts in the app's worktree moves to the task's worktree beside the main checkout); amended by [0042](0042-each-session-moves-to-its-task-worktree.md) (the session that takes a task moves with it; a new session only for another task)
 - **Date:** 2026-10-06
 - **Amends:** [0020](0020-every-task-through-dispatch.md) — how a task gets its worktree and its session
 

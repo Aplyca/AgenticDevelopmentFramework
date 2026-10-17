@@ -118,9 +118,10 @@ describes the old way in the same pull request. Constitution amendments get thei
 ## Parallel work
 
 When several agent sessions run at once, each works in its own git worktree on its own branch —
-never two sessions in one checkout. With the parallel-agents module installed, the main checkout is a
-**dispatcher** only (`/adf:dispatch`): it names every task and hands it to a new session in a worktree
-of its own; the **worker** there does everything from triage onward. Passing work in progress to a
+never two sessions in one checkout. With the parallel-agents module installed, each task has its own
+session, worktree, branch, and pull request: a session triages its task, and `/adf:dispatch` moves it
+to the task's worktree beside the main checkout, which takes no edits. Another task goes to another
+session. Passing work in progress to a
 teammate, another machine, or a fresh session is `/adf:handoff`: pointers to the record, never a copy.
 
 ## Effort beyond the lane
