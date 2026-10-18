@@ -1,4 +1,4 @@
-# 0045: An upgrade runs a script from the new release, and the developer approves only what needs a person
+# 0046: An upgrade runs a script from the new release, and the developer approves only what needs a person
 
 - **Status:** accepted
 - **Date:** 2026-10-18
