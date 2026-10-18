@@ -46,8 +46,9 @@ what's already logged, so it can run at each milestone without logging a day twi
 
    - From any checkout of the repository, it reads the transcripts of the main checkout and every
      worktree of it, on this machine only.
-   - A session counts when it ran on the branch. The triage just before the move counts, earlier work
-     in the same session doesn't, and two of the task's sessions open at once count each minute once.
+   - A session counts when it ran on the branch, with the work before its move: all of it in the
+     desktop app's own worktree (its generated `claude/<name>` branch), and only the run just before the
+     move on the base branch. Two of the task's sessions open at once count each minute once.
      Another task's session open at the same time doesn't reduce this one's: each task gets its full time.
    - It prints each day's active time and its working blocks. `--json` gives the same in JSON. Pass
      `--siblings` when the task's worktree was already removed.

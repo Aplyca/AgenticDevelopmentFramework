@@ -33,8 +33,10 @@ research, debugging, manual tests, code review, task management, reporting, meet
   the task's worktree is still there.
 - **One entry per day worked, with two numbers:**
   - **AI-assisted** — the time actually spent. Session time comes from the transcripts: the sessions
-    that ran on the task's branch, with the triage just before the move, and two of the task's
-    sessions at once counting each minute once. Work outside the sessions is estimated activity by
+    that ran on the task's branch, with the work before the move — all of it in the desktop app's own
+    worktree, on its generated `claude/<name>` branch, and only the run just before the move on the
+    base branch, where a long-lived session did other work first. Two of the task's sessions at once
+    count each minute once. Work outside the sessions is estimated activity by
     activity, from the evidence each one left — the tracker task, the pull request, commits outside
     the sessions, approved checks, what the developer said. An activity with no evidence isn't in the
     draft; the draft asks what else the developer did.

@@ -97,7 +97,7 @@ mkdir -p "$TP" && git -C "$TP" init -q -b main && git -C "$TP" -c user.email=t@e
 git -C "$TP" worktree add -q -b feat/newsletter-signup "$WORK/code/feat-newsletter-signup" 2>/dev/null
 TMAIN="$WORK/projects/$(slug "$TP")"
 TWT="$WORK/projects/$(slug "$WORK/code/feat-newsletter-signup")"
-mkdir -p "$TMAIN" "$TWT"
+mkdir -p "$TMAIN" "$TWT" "$TMAIN--claude-worktrees-calm-otter"
 python3 - "$TMAIN" "$TWT" <<'PY'
 import json, sys, datetime
 main, wt = sys.argv[1:3]
@@ -122,6 +122,9 @@ session(f"{wt}/22222222-b.jsonl",
         + every("2026-10-15T10:00:00", 30, "feat/newsletter-signup"))
 # Another task's session: never on the branch.
 session(f"{main}/33333333-c.jsonl", every("2026-10-14T09:15:00", 30, "fix/other-thing"))
+# The desktop app's own worktree: 40 minutes on its generated branch, a two-hour break, then the move.
+session(f"{main}--claude-worktrees-calm-otter/44444444-d.jsonl",
+        every("2026-10-16T09:00:00", 40, "claude/calm-otter") + every("2026-10-16T11:40:00", 10, "fix/nav-focus"))
 PY
 timer() { TZ=UTC python3 "$TIMER" feat/newsletter-signup "$TP" --projects-dir "$WORK/projects" "$@" 2>&1; }
 tjson=$(timer --json)
@@ -141,6 +144,9 @@ since=$(timer --json --since 2026-10-14T14:30:00+00:00 | python3 -c 'import json
 check "track-time: --since counts only what's after the last entry logged (got $since)" "[ '$since' = '50 14:30' ]"
 tout=$(timer)
 check "track-time: prints the days and their blocks" "echo \"\$tout\" | grep -q '^feat/newsletter-signup · 2 sessions · 2h 15m active over 2 days' && echo \"\$tout\" | grep -q '14:00–14:50'"
+generated=$(TZ=UTC python3 "$TIMER" fix/nav-focus "$TP" --projects-dir "$WORK/projects" --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["total_min"])')
+# 09:00–09:40 on the generated branch, its last gap capped at 5 minutes, then 11:40–11:50: 45 + 10.
+check "track-time: a session in the app's own worktree counts from its start, before the move (got $generated min)" "[ '$generated' = '55' ]"
 none=$(TZ=UTC python3 "$TIMER" feat/never-started "$TP" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "track-time: a branch no session ran on says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$none\" | grep -q 'No session ran on feat/never-started'"
 
