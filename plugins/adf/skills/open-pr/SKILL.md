@@ -90,7 +90,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    migration that drops or rewrites data, a sent email, a published URL or API contract, or a
    changed external integration is not undone by a revert — say what isn't.
 
-5. **Push and open the draft**, then show the developer the title and body:
+5. **Push and open the draft.** Don't report yet — the developer hears from you once, in step 9:
    ```bash
    git push -u origin <type>/<slug>
    gh pr create --draft --base <base> --title "<title>" --body-file <file>
@@ -111,15 +111,18 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    - **Record it** in the body's *Preview* line (`gh pr edit <n> --body-file <file>`).
    - **A difference from local** — it works here, not there — goes to the developer with what
      differs: configuration, data, the platform. It's not fixed by retrying the deploy.
+   - **The deploy fails:** the *Preview* line says so, naming the failing check. Don't retry it on
+     your own; the report says the preview couldn't be checked, and why.
 
    The developer's QC on the preview still decides ready; yours is evidence for it.
 
-8. **Offer — don't do — the tracker link-back.** Adding the pull request link to the tracker task is
-   a write the requester can see: show the exact text and post it only on the developer's yes.
+8. **Offer — don't do — the tracker link-back** in the report. Adding the pull request link to the
+   tracker task is a write the requester can see: show the exact text and post it only on the
+   developer's yes.
 
-9. **Report:** the pull request URL, and that it is a **draft**. Then where the developer can test
-   it: the local URL — the environment you left running — and the preview's once it deployed, with
-   what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
+9. **Report — once, after the preview walk** (or right after step 6 when there's no preview to
+   check): the pull request URL, and that it is a **draft**. Then where the developer can test it:
+   the local URL — the environment you left running — and the preview's, with what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
    and what you could not. A fix they ask for goes on the same branch: walk it locally again, push,
    and recheck the preview. Don't ask or remind the developer to review it,
    mark it ready, or merge it, and don't offer to: when those happen is theirs. Never request
@@ -138,6 +141,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 | "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to run, for the full gate and a clean `/adf:review`. |
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
+| "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
 | "I walked it locally — the developer will find the rest" | The report tells them where and what to test: the local URL, the preview's, and the criteria. A draft with no instructions makes them reconstruct the task. |
 | "I'll post the link on the tracker task while I'm here" | That's a write the requester sees. Confirm the exact text first, every time. |
 
@@ -156,7 +160,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 - [ ] Opened as a **draft**; not marked ready
 - [ ] The report doesn't ask, remind, or offer to review, ready, or merge it, and no reviewer was requested
 - [ ] The change was checked on the preview once it deployed — read-only — or the body says why not
-- [ ] The report gives the developer the local URL, the preview's, and what to try on each
+- [ ] One report, after the preview walk, gives the developer the local URL, the preview's, and what to try on each — or says why the preview wasn't checked
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
 - [ ] The description matches the diff — no phantom or missing changes

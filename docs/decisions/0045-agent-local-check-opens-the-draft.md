@@ -30,8 +30,10 @@ What must not go is the guarantee 0022 gave: **a change nothing has run never re
   the change on the preview instead.
 - **Then the preview**, as in 0039: read-only, in a browser, recorded in the *Preview* line.
 - **The agent leaves the local environment running** and reports where the developer can test the
-  change: the local URL, the preview's once it deploys, what to try on each, and what it verified and
-  could not.
+  change: the local URL, the preview's, what to try on each, and what it verified and could not.
+- **One report, after the preview walk.** The deploy waits in the background, so the developer hears
+  once, with both URLs, instead of a draft now and a preview later. With no preview, or a deploy
+  that failed, the report says so and gives the local instructions.
 - **The developer tests after the draft opens,** on either environment. A fix they ask for goes on the
   same branch, walked locally again before the push. Their check still decides ready, and the agent
   never marks a pull request ready (0005).

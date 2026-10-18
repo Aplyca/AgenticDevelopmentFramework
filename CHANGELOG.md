@@ -18,8 +18,8 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Now:** the agent runs the change on its checkout's environment and walks the changed flow
     itself. That walk is the gate: once it works, the agent pushes and opens the draft without
     asking. A change that can't run locally isn't pushed; the agent says what blocks it. After the
-    preview check, it leaves the local environment running and tells the developer where to test:
-    the local URL, the preview's, and what to try. Their test still decides ready.
+    preview check, it leaves the local environment running and tells the developer, in one report,
+    where to test: the local URL, the preview's, and what to try. Their test still decides ready.
   - **Where:** `AGENTS.md` (the ground rules, § 3, § Delivery rules), `.claude/rules/git-workflow.md`
     and `claude-code.md`, `specs/README.md`, `docs/getting-started/DEV-SETUP.md`, `/adf:open-pr`,
     `/adf:implement`, `/adf:commit`, `/adf:spec-workflow`, `/adf-dev:dev-env`, the `guard-git.sh`
