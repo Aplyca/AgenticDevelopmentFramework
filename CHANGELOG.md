@@ -11,6 +11,24 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A session says when a newer framework release is out** (core `adf`,
+  [#88](https://github.com/aplyca/AgenticDevelopmentFramework/issues/88)).
+  - **Why:** `autoUpdate` never goes past the pinned `ref` (decision 0041), so nothing told a team
+    that a newer release existed: someone had to remember `/adf:upgrade`.
+  - **Now:** the session-context hook adds one line — "adf vX.Y.Z is available (this project is on
+    vA.B.C) — run `/adf:upgrade`" — when the release in the stamp on `AGENTS.md`'s first line is
+    behind the newest `vX.Y.Z` tag of the framework repository. It asks with `git ls-remote --tags`
+    at most once a day per machine, caches the answer in `${XDG_CACHE_HOME:-~/.cache}/adf/`, gives up
+    after 2 seconds, and says nothing offline or on a timeout. A session hears it once.
+  - **Where:** `plugins/adf/hooks/session-context.sh` and `_lib.sh`, the skeleton's
+    `.claude/hooks/config.sh` (`UPDATE_CHECK`), the hooks' README, and `evals/static/test-hooks.sh`.
+
+  **Upgrade impact:**
+  - **Packaged install:** none — the plugin's hook carries it, on by default.
+  - **Committed install:** overwrite the hook scripts (`build-committed.py` writes them).
+  - **Both — merge, optional:** `.claude/hooks/config.sh` gains `UPDATE_CHECK="1"`. A project without
+    the line gets the default, on; add `UPDATE_CHECK=""` to turn the check off.
+
 - **The docs no longer say a session's move into its worktree never prompts** (parallel-agents).
   - **Why:** the approve-worktree-move hook answers Claude Code's permission check for
     `change_directory`, but the desktop app then runs its own folder-trust check ("This folder isn't
