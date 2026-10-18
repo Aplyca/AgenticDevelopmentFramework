@@ -20,6 +20,9 @@
 # The upgrade suite: a committed adoption at v1.0.0, built from that tag, which /adf:upgrade moves
 # to the newest release — the switch-to-packaged case switches it to the packaged install on the way. It
 # runs like the adopt suite (bypassPermissions on throwaway copies, the plugin per session).
+# The scripted-upgrade case replaces that project with a packaged one at v2.3.0 (its setup.sh), points
+# ADF_FRAMEWORK at the session's copy of this checkout, and, until a release carries scripts/upgrade.py,
+# puts an adf-upgrade shim first on PATH that runs the checkout's script as an unreleased commit.
 #
 # The plugin-hooks suite: a project on the packaged install, with the plugin loaded per session; each
 # case drives one of the plugin's hooks in a real session (Haiku by default), and inspect.sh checks

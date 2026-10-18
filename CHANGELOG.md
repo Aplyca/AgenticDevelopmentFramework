@@ -11,6 +11,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A session eval for the scripted upgrade** (framework evals,
+  [decision 0046](docs/decisions/0046-a-scripted-upgrade-from-the-new-release.md)).
+  - **Why:** the upgrade suite's one case starts at v1.0.0, below the script's v2.0.0 floor, so no
+    session had run `adf-upgrade` or the new `/adf:upgrade` flow.
+  - **Now:** `evals/dynamic/fixtures/upgrade/scripted-upgrade` builds a packaged project at v2.3.0
+    with the `docker` module and the team's customizations, and runs `/adf:upgrade` on it. `inspect.sh`
+    checks that the dry run came first, that `main` is untouched, that the customizations, the
+    `autoUpdate` pin, the dropped rules, and the ask rule for a task that deletes data are there, and
+    that the report exists and nothing was pushed. The pull request body and the approvals are read
+    against the expected file. Run it with `run-session-evals.sh --suite upgrade --cases
+    scripted-upgrade --models sonnet`; it needs a signed-in Claude Code CLI.
+
+  **Upgrade impact:** none — framework evals only; nothing in `skeleton/`, `modules/`, or the plugins changes.
+
 - **The deterministic part of an upgrade is a script; the developer approves only what needs a person**
   ([decision 0046](docs/decisions/0046-a-scripted-upgrade-from-the-new-release.md),
   [#86](https://github.com/aplyca/AgenticDevelopmentFramework/issues/86)).
