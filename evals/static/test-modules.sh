@@ -175,6 +175,8 @@ XR="$X/repo"
 cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/ops/agent/*.sh
 printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
 replace "$XR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
+# Only sibling env files reserve ports here: a host app listening on one of the two slots would fail the run.
+replace "$XR/ops/agent/_worktree-lib.sh" '(exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null' 'return 1'
 git -C "$XR" add -A && git -C "$XR" commit -qm init
 cd "$XR" || exit 1
 ops/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
