@@ -175,11 +175,8 @@ XR="$X/repo"
 cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/ops/agent/*.sh
 printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
 replace "$XR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
-# Only the env files reserve a port here: anything the machine has listening on 41080 or 41180 would
-# take a slot away and fail the run. The listening check has its own test below, on a port it binds.
-replace "$XR/ops/agent/_worktree-lib.sh" 'port_in_use() {' 'port_in_use() { return 1
-}
-port_in_use_unused() {'
+# Only sibling env files reserve ports here: a host app listening on one of the two slots would fail the run.
+replace "$XR/ops/agent/_worktree-lib.sh" '(exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null' 'return 1'
 git -C "$XR" add -A && git -C "$XR" commit -qm init
 cd "$XR" || exit 1
 ops/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
@@ -190,8 +187,8 @@ check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ 
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
 
-# A port something listens on is taken, even with no env file reserving it: one slot, on a port this
-# test binds itself (the system picks a free one).
+# The listening check the test above stubs out: a port something listens on is taken, even with no
+# env file reserving it. One slot, on a port this test binds itself (the system picks a free one).
 B="$WORK/busy"
 mkdir -p "$B" && new_repo "$B/repo"
 BR="$B/repo"

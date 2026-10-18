@@ -36,8 +36,10 @@ desktop app opens it, and gives it the task. That session becomes the task's:
    the main checkout's and, when worktrees run a server, a port reserved. Nothing starts. Then it
    moves the session there:
    - **Desktop app:** `change_directory` to the path the script printed. The approve-worktree-move
-     hook approves a worktree of this repository, so no prompt asks for it, and the app then shows
-     the session in that folder.
+     hook approves a worktree of this repository, so Claude Code's permission check doesn't ask, and
+     the app then shows the session in that folder. The app's own folder-trust check still asks,
+     once per worktree, until the developer trusts the folder that holds the main checkout and its
+     worktrees: they open a session on it once and accept the prompt to trust the folder.
    - **Terminal:** `EnterWorktree` with that path.
 
    `pwd` confirms the move. If it's refused, the session gives the developer the worktree's path and

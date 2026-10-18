@@ -43,9 +43,9 @@ implementation; invest in them early.
    behavior (a fix that restores documented behavior needs none).
 6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
    fails, or no test can prove the change.
-7. **Local check** — when the change alters something a person can see or use, the developer tests
-   it by hand on the local environment and approves it.
-8. **Deliver** — on the developer's approval, a draft pull request stating the lane (`/adf:open-pr`); the human review and
+7. **Local check** — when the change alters something a person can see or use, run it on the local
+   environment and walk the changed flow yourself.
+8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`); the human review and
    QC are the gate.
 
 ## Workflow 2: Feature or behavior change (full lane)
@@ -59,8 +59,8 @@ implementation; invest in them early.
 | 5 | Docs first | `/adf:write-docs` | Pre-implementable docs | `docs:` |
 | 6 | Implement, per task | `/adf:implement` (`/adf:write-tests` inside) | Test + code per task | `feat:` / `fix:` per task |
 | 7 | Reconcile + verify | `/adf:implement`, `/adf:review` | Docs updated; `tasks.md` § Gate results | `docs:` |
-| 8 | Local check | The developer, on the local environment | Their approval | — |
-| 9 | Deliver (on the developer's approval) | `/adf:open-pr` | Draft pull request | — |
+| 8 | Local check | The agent, on the local environment | The flow walked | — |
+| 9 | Deliver (once the local check passes) | `/adf:open-pr` | Draft pull request | — |
 | 10 | Close the loop (when asked) | `/adf:stakeholder-update` | Requester-facing message | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong

@@ -5,8 +5,8 @@
 #   3. never push to, force-push to, or delete a protected branch
 #   4. a pull request opens as a draft (gh pr create needs --draft)
 # Protected branches come from PROTECTED_BRANCHES in config.sh. An agent pushes its work branch and
-# opens the draft pull request on its own once the developer approves the local check (decision
-# 0022), so rule 4 holds the draft rule that a confirmation prompt used to.
+# opens the draft pull request on its own once it has checked the change locally (decisions 0022,
+# 0045), so rule 4 holds the draft rule that a confirmation prompt used to.
 # Matching works on the command text an agent writes, so it is a guardrail, not a sandbox.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
