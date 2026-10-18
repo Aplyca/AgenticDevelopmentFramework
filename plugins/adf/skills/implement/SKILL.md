@@ -90,8 +90,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
     `status: implemented` in `spec.md` — it merges with the pull request, so the folder reads as built.
     Commit (`docs: record <slug> gate results`).
 14. **Self-review**, then `/adf:review`. Don't push. Then the local check (`AGENTS.md` § Delivery rules):
-    start the change on the local environment, give the developer the URL and the acceptance criteria
-    to try, and wait for their approval. On their approval, run `/adf:open-pr`: it opens the draft.
+    start the change on the local environment and walk every acceptance criterion yourself. Once it
+    works, run `/adf:open-pr`: it opens the draft and tells the developer where to test it.
 
 ## Rationalizations (do not accept these)
 
@@ -105,7 +105,7 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "The tests are too strict — I'll loosen them" | Tests are the contract. Fix the implementation; fix a test only when it's genuinely wrong, and say so. |
 | "I'll clean up this nearby code while I'm here" | Not in the spec, not in this branch. Refactoring is its own task or its own workflow. |
 | "I'll add this dependency to make it easier" | The plan didn't approve it. New dependencies need justification and re-confirmation. |
-| "All green — I'll push and open the PR" | Pushing is outward. Finish the gate results and review, then the local check; the developer's approval is what opens the draft. |
+| "All green — I'll push and open the PR" | Pushing is outward. Finish the gate results and review, then walk the change locally; that check is what opens the draft. |
 
 ## Red flags (stop and reassess)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, adopt, upgrade, or
-# plugin-hooks) against real Claude Code sessions.
+# Runs a suite of session fixtures (fixtures/<suite>/ — triage by default, debug, adopt, upgrade,
+# plugin-hooks, plugin-docs, or open-pr) against real Claude Code sessions.
 #
 # Builds a fictional project in a temp directory — the skeleton, the delivered newsletter-signup
 # spec folder from docs/examples/, and a few stub source files matching the fixtures' context, plus
@@ -13,7 +13,8 @@
 # A fixture with a "## Follow-up" section gets a second turn in the same session. A suite's
 # inspect.sh records each run's end state — given the run's copy, its output, and the case — and may
 # check it, marking each check ✓ or ✘; the summary counts them. A case's <case>.setup.sh adjusts its
-# copy before the session. Transcripts land in the output directory for grading against each
+# copy before the session; what it leaves in <copy>.bin/ comes first on the session's PATH, and the
+# KEY=value lines of <copy>.env are set in its environment. Transcripts land in the output directory for grading against each
 # fixture's .expected.md.
 #
 # The upgrade suite: a committed adoption at v1.0.0, built from that tag, which /adf:upgrade moves
@@ -30,6 +31,10 @@
 # passed here with --allowedTools for the plugin's path in this checkout. A case marked
 # <!-- run: no-read-rule --> runs without it. Agents that ask for opus run on Haiku too.
 #
+# The open-pr suite: a packaged project that runs on Node alone, a work branch per case, and local
+# stand-ins for the remote, gh, and the preview (fixtures/open-pr/stubs.sh). inspect.sh checks the
+# order of what ran — the local walk, the push, the draft, the preview walk — from their log.
+#
 # The adopt suite: {{FRAMEWORK}} in a prompt becomes --source (the framework's GitHub address by
 # default — what's published on main; pass this checkout's path to test a branch), and a fixture
 # marked <!-- run: plugin-dir --> loads the installer plugin for that session only, so nothing is
@@ -38,7 +43,7 @@
 # this checkout — with deny rules, which hold in every mode, for `claude` commands, `git push`, and
 # file-tool edits under your home folder.
 #
-# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|plugin-hooks|plugin-docs] [--models "sonnet opus"] [--cases "a b ..."]
+# Usage: ./run-session-evals.sh [--suite triage|debug|adopt|upgrade|plugin-hooks|plugin-docs|open-pr] [--models "sonnet opus"] [--cases "a b ..."]
 #                               [--out DIR] [--budget USD] [--parallel 4] [--read-only] [--source URL|PATH]
 # Needs: a signed-in Claude Code CLI (`claude auth login`), git, python3.
 #
@@ -74,6 +79,8 @@ case "$SUITE" in
   adopt | upgrade) MAX_TURNS=80; BUDGET="${BUDGET:-8.00}"; BYPASS=1
     EXTRA_TOOLS="WebFetch|Bash(git:*)|Bash(cp:*)|Bash(mkdir:*)|Bash(mv:*)|Bash(rm:*)|Bash(chmod:*)|Bash(python3:*)|Bash(printf:*)|Bash(echo:*)|Bash(test:*)|Bash(sed:*)|Bash(touch:*)|Bash(diff:*)" ;;
   plugin-hooks) MAX_TURNS=8; BUDGET="${BUDGET:-0.50}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS="Bash(git commit:*)" ;;
+  open-pr) MAX_TURNS=60; BUDGET="${BUDGET:-3.00}"; MODELS="${MODELS:-sonnet}"
+    EXTRA_TOOLS="Bash(git push:*)|Bash(git add:*)|Bash(git commit:*)|Bash(gh:*)|Bash(pnpm:*)|Bash(npm:*)|Bash(node:*)|Bash(curl:*)|Bash(docker:*)|Bash(sleep:*)|Bash(lsof:*)" ;;
   plugin-docs) MAX_TURNS=12; BUDGET="${BUDGET:-0.75}"; MODELS="${MODELS:-haiku}"; EXTRA_TOOLS=""; DOCS_RULE=1 ;;
   *) MAX_TURNS=14; EXTRA_TOOLS="" ;;
 esac
@@ -234,6 +241,9 @@ run_case() { # run_case <case> <model>
   input="$FIXTURES/$case_name.input.md"
   mkdir -p "$WORK/runs" && cp -R "$REPO" "$work"
   [ -f "$FIXTURES/$case_name.setup.sh" ] && bash "$FIXTURES/$case_name.setup.sh" "$work"
+  local case_env=()
+  [ -d "$work.bin" ] && case_env+=("PATH=$work.bin:$PATH")
+  [ -f "$work.env" ] && while IFS= read -r line; do [ -n "$line" ] && case_env+=("$line"); done < "$work.env"
   python3 - "$input" "$SOURCE" "$work" <<'PY'
 import re, sys
 text = open(sys.argv[1]).read()
@@ -266,6 +276,7 @@ PY
       "Bash(git switch:*)" "Bash(git checkout:*)" "Bash(git branch:*)" "Bash(ls:*)" "Bash(grep:*)" "Bash(find:*)" \
       "Bash(cat:*)" "Bash(head:*)" "Bash(wc:*)" ${extra[@]+"${extra[@]}"} \
     --setting-sources project,local --strict-mcp-config --max-budget-usd "$BUDGET")
+  run_env+=(${case_env[@]+"${case_env[@]}"})
   (cd "$work" && env ${run_env[@]+"${run_env[@]}"} claude -p "$(cat "$work.prompt")" "${flags[@]}" \
     < /dev/null > "$OUT/$case_name.$model.jsonl" 2> "$OUT/$case_name.$model.err")
   if [ -s "$work.follow-up" ]; then
