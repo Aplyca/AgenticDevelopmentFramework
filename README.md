@@ -146,7 +146,11 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.3.0** (2026-10-15), is a minor release. Agents prompt less — make, docker, git,
+The latest, **v2.4.0** (2026-10-18), is a minor release. With `parallel-agents`, each task's session
+moves to its own worktree and the main checkout hands nothing out; only the developer changes the
+local mode; the pinned marketplace auto-updates, so an upgrade reaches every machine; and the new
+`time-tracking` module logs each day of a task in the tracker, as the AI-assisted time or a senior
+developer's estimate without AI. **v2.3.0** (2026-10-15), also a minor release: agents prompt less — make, docker, git,
 and gh run broadly, and only named commands ask — and they stay in the configured local mode. An
 agent checks a change locally, then on the preview, and never nudges you to review, ready, or merge.
 A dispatched worker's worktree sits beside the main checkout. **v2.2.0** (2026-10-14), also a minor
