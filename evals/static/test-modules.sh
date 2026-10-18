@@ -175,6 +175,11 @@ XR="$X/repo"
 cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/ops/agent/*.sh
 printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
 replace "$XR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
+# Only the env files reserve a port here: anything the machine has listening on 41080 or 41180 would
+# take a slot away and fail the run. The listening check has its own test below, on a port it binds.
+replace "$XR/ops/agent/_worktree-lib.sh" 'port_in_use() {' 'port_in_use() { return 1
+}
+port_in_use_unused() {'
 git -C "$XR" add -A && git -C "$XR" commit -qm init
 cd "$XR" || exit 1
 ops/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
@@ -184,6 +189,27 @@ q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+
+# A port something listens on is taken, even with no env file reserving it: one slot, on a port this
+# test binds itself (the system picks a free one).
+B="$WORK/busy"
+mkdir -p "$B" && new_repo "$B/repo"
+BR="$B/repo"
+cp -R "$MODULES/parallel-agents/files/." "$BR/" && chmod +x "$BR"/ops/agent/*.sh
+printf '.env\n' > "$BR/.gitignore" && printf 'A=\n' > "$BR/.env.example"
+python3 -c 'import socket, time
+s = socket.socket(); s.bind(("127.0.0.1", 0)); s.listen()
+print(s.getsockname()[1], flush=True); time.sleep(120)' > "$B/port" &
+listener=$!
+for _ in $(seq 50); do [ -s "$B/port" ] && break; sleep 0.1; done
+busy=$(cat "$B/port")
+replace "$BR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=1'
+replace "$BR/ops/agent/worktree.conf" 'PORT_RANGE_START=41000' "PORT_RANGE_START=$((busy - 80))"
+git -C "$BR" add -A && git -C "$BR" commit -qm init
+cd "$BR" || exit 1
+o4=$(ops/agent/worktree-new.sh feat/busy --no-start 2>&1); c4=$?
+kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null
+check "worktree-new: skips a port something listens on ($busy)" "[ -n '$busy' ] && [ $c4 -ne 0 ] && echo \"\$o4\" | grep -q 'no free port slot'"
 
 # The defaults assume nothing: no env file, no ports, no commands
 N="$WORK/plain"
