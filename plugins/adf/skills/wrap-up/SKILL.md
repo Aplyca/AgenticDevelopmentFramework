@@ -36,6 +36,10 @@ cleared: the check comes first, and anything it finds is the developer's to deci
    - **The pull request:** `gh pr view --json number,url,state,mergedAt,headRefName,headRefOid` for
      this branch, or the one the developer named (`glab mr view` on GitLab). It must be **merged**.
      Closed without merging, or still open: say so and stop.
+   - **The follow-ups:** the pull request's body (`gh pr view --json body`), from the line `## Follow-ups`
+     to the next heading. Each unchecked line, `- [ ] \`<command>\` — <why> (<source>)`, is work the
+     merge made necessary — `/adf:upgrade` writes them (issue #89). `- none`, a checked line, or no
+     section: nothing to offer.
    - **The working tree:**
      - `git status --porcelain` — uncommitted changes, including untracked files;
      - `git stash list` — stashes from this branch;
@@ -63,9 +67,11 @@ cleared: the check comes first, and anything it finds is the developer's to deci
    - Stop what it started: <the containers, the app on the host, the background commands>
    - Remove the worktree <path> and its branch <type>/<slug> (here and on origin)
    - Update <base> in the main checkout to origin's
+   - Start, each in its own session, once <base> is updated: <the follow-up commands, with why>
    - Archive this session
    ```
-   Drop a line that doesn't apply. In a terminal, the last line is "end this session (`/exit`)".
+   Drop a line that doesn't apply. The follow-ups are not unfinished work, so they don't block the
+   close-up: they ride in the same yes, and the developer can drop any of them from it. In a terminal, the last line is "end this session (`/exit`)".
    Wait for the yes. A "yes, but keep the session" or "keep the branch" changes only that line.
 
 5. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
@@ -91,9 +97,17 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 
       The main checkout's base branch is updated only when it is checked out there and the main
       checkout has no uncommitted changes. Otherwise, say why it wasn't updated.
-   4. **Report, then archive.**
-      - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, and
-        anything that didn't happen and why.
+   4. **Start the follow-ups,** when the list had any and the developer kept them. Each one is a
+      session of its own, from the updated base branch in the main checkout, because it needs the merged
+      change; it changes the project's environment or tests and goes through its own review.
+      - **In the desktop app:** call `start_session` once per follow-up, `"fresh"`, with the command as
+        the brief and its why and source; the yes was the developer's ask. Don't run the command here.
+      - **In a terminal:** print each command, for the developer to run in a new session from the main
+        checkout.
+      - If the base branch wasn't updated, say so: the follow-up would start without the merge.
+   5. **Report, then archive.**
+      - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, the
+        follow-ups started, and anything that didn't happen and why.
       - **Archive, in the desktop app:** in the same turn, call the app's `archive_session` with
         `"self"` and the reason `PR #<n> merged`. The conversation ends there.
       - **If the app doesn't archive it** (the session is pinned, open on screen, or still has work
@@ -111,6 +125,7 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
+| "The upgrade's follow-ups are mine to run now" | They change the project's environment and tests: each belongs in its own session and review. Offer them; start them in their own sessions. |
 | "The pull request closed, close enough" | Closed without merging means its work isn't upstream. Removing the branch would lose it. |
 
 ## Red flags (stop and reassess)
@@ -126,6 +141,7 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 - [ ] The pull request is merged, by the host's own state, not by the conversation
 - [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md`; no promise left
 - [ ] The developer saw the full list and said yes once, before anything was stopped or removed
+- [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, never run here
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] The report says what happened, including anything that didn't; the archive came last
 
