@@ -37,8 +37,8 @@ projects.
 | [0024](0024-agents-md-only.md) | No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule | accepted |
 | [0025](0025-no-gemini-md.md) | No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it | accepted |
 | [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | accepted; amended by 0032 |
-| [0027](0027-worktree-scripts-as-plugin-commands.md) | The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module) | accepted; amended by 0032 |
-| [0028](0028-plugins-are-the-source.md) | The plugins are the machinery's source, and a committed install is written from them | accepted; amended by 0029 |
+| [0027](0027-worktree-scripts-as-plugin-commands.md) | The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module) | accepted; amended by 0032, 0045 |
+| [0028](0028-plugins-are-the-source.md) | The plugins are the machinery's source, and a committed install is written from them | accepted; amended by 0029, 0045 |
 | [0029](0029-workflows-carry-agent-checklists.md) | A workflow carries the agent checklists its lenses follow | accepted; amended by 0030 |
 | [0030](0030-workflows-carry-skill-steps.md) | A workflow carries the skill steps its agents follow | accepted |
 | [0031](0031-agent-model-overrides-in-the-project-rule.md) | A project changes an agent's model in its own rule, which the session passes when it spawns the agent | accepted |
@@ -55,6 +55,7 @@ projects.
 | [0042](0042-each-session-moves-to-its-task-worktree.md) | Each task's session moves to its own worktree; the main checkout hands nothing out (parallel-agents module) | accepted |
 | [0043](0043-track-time-in-the-tracker.md) | A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module) | accepted |
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
+| [0045](0045-a-scripted-upgrade-from-the-new-release.md) | An upgrade runs a script from the new release, and the developer approves only what needs a person | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
