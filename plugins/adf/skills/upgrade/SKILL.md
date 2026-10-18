@@ -19,10 +19,53 @@ blind sync.
   and run `/adf:dispatch` with `chore/skeleton-upgrade-<NEW_SHA>` as the branch, without asking
   first: it creates the task's worktree beside the main checkout and moves this session there, where
   the upgrade goes on.
-- **Plan before touching.** No file is modified until the user approves the per-file plan.
+- **Approve what needs a person** (decision 0046). The upgrade changes files only on its own branch,
+  and the draft pull request is the full record. Clean merges and scripted steps apply without a plan
+  row. The developer approves the module choices, each conflict's resolution, and each
+  permission-rule change, before anything is committed.
 - **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest
   cherry-picking the one or two changes they actually want.
+
+## The scripted upgrade
+
+From v2.0.0 the deterministic part is a script (decision 0046): `adf-upgrade`, on the Bash tool's PATH
+while `adf` is on, fetches a framework checkout and runs the new release's own `scripts/upgrade.py`. A
+committed project, where the command may not be on the path, runs
+`python3 <framework-root>/scripts/upgrade.py <repo>` from a checkout at the release. Use it first; the
+manual procedure (Steps 1–6) is for what it refuses.
+
+1. **Branch first,** by the ground rules: `chore/skeleton-upgrade-<NEW_SHA>`, in a worktree in a hub.
+2. **Dry run:** `adf-upgrade [<tag>] --dry-run`. It changes nothing and prints the report. Exit 2 is a
+   refusal; say what it says. "Below v2.0.0" or "predates the scripted upgrade" means the manual
+   procedure below; a dirty tree or the default branch, fix and rerun.
+3. **Hand over to the new release.** This skill is the pinned plugin's, as old as the project. Read
+   `plugins/adf/skills/upgrade/SKILL.md` in the release's tree — `adf-upgrade` keeps it at
+   `${XDG_CACHE_HOME:-~/.cache}/adf/trees/<NEW commit>/` — and if it differs from this file, follow
+   that copy from here on.
+4. **What it brings, and the modules.** Summarize the report's Releases for the developer, with a
+   nameable benefit (the ground rules). Offer the modules under Needs you → Modules by the rules in
+   Step 2, and the other install or the plugin setting when they fit. The developer chooses: the first
+   approval.
+5. **Run it:** `adf-upgrade [<tag>] --add-modules <the chosen ones>`. It applies everything clean,
+   leaves the conflicts marked, and writes the report to `$(git rev-parse --git-dir)/adf-upgrade/`.
+6. **The judgment is yours:**
+   - **Conflicts:** propose a resolution for each, keeping the project's customizations and the new
+     release's structure (Step 5, Bucket 2).
+   - **Clean merges:** read each one the report lists with its hunk count — a clean merge can still be
+     wrong, a section added twice.
+   - **New ask rules:** with `docker`, read the project's `Makefile` and mode files for a task C9 or
+     C10 names (Step 1), and propose its ask rule.
+   - **Files to decide** and **Migrations** that need the developer: the choices they list.
+   - **Each new module's** `MODULE.md` § Customize steps; an install switch with its PDR (Step 2).
+7. **One approval** covers the conflict resolutions, the permission changes — each rule the report or
+   you added or removed that changes what runs without a prompt — and the draft pull request. Revert a
+   rule the developer rejects. Dropped allow rules a broader one covers change nothing that runs, and
+   need none.
+8. **Deliver** (Step 6, 2–5): commit, write the PR body from the report — the releases, what needs a
+   person and how it was resolved, each clean merge with its hunk count, the migrations, the dropped
+   rules, the checks — and push the draft. Give the developer **On each machine** and **Follow-ups**
+   as the report lists them.
 
 ## Step 1 — Establish OLD_SHA and the installed modules
 
@@ -258,12 +301,14 @@ skeleton because the Claude Directory accepts no symlinks, and `/adopt` now crea
 (`R` in `--name-status`, e.g. `specs/_template.md` → `specs/_templates/`, or the parallel-agents
 module's `scripts/agent/` → `ops/agent/`) follow the changelog's migration notes.
 
-## Step 4 — Present the plan
+## Step 4 — Present what needs a person
 
-One table: `file → bucket → action → risk note`, plus the changelog's migration steps as their own
-checklist, the newly chosen modules with their customize steps, the plugin setting when it's
-being added, and an install switch with its PDR. For merge-required files, show which customizations were detected (diff of the target file
-vs the OLD_SHA version) and confirm they will survive. Wait for approval.
+The manual procedure keeps the same gate as the script (decision 0046). Before Step 5, the developer
+approves the module choices. After it, before the commit, they approve the conflict resolutions and
+the permission changes, with the changelog's migration steps, the newly chosen modules' customize
+steps, the plugin setting when it's being added, and an install switch with its PDR. List each clean
+merge with its hunk count, and the customizations each merge kept (the target file vs the OLD_SHA
+version), so the reviewer knows where to look; they need no plan row.
 
 ## Step 5 — Execute
 
@@ -344,7 +389,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
-   `CLAUDE_PROJECT_DIR` set); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
+   `CLAUDE_PLUGIN_ROOT` and `CLAUDE_PROJECT_DIR` exported: the hooks use `set -u`); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
    gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
@@ -354,7 +399,7 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
-3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
+3. PR body: changelog summary, each file's action with each clean merge's hunk count, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
    user-scope copy), an install switch and its PDR, anything needing human judgment.
 4. Push and open the PR **as a draft, only after the user approves**.
