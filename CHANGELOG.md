@@ -11,6 +11,19 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A session eval for `/adf:open-pr`: the local check gates the push**
+  ([decision 0045](docs/decisions/0045-agent-local-check-opens-the-draft.md)).
+  - **Why:** no hook can tell whether the agent walked the change before pushing; only a real session
+    shows it.
+  - **Now:** `evals/dynamic/fixtures/open-pr/` runs three cases with `run-session-evals.sh --suite
+    open-pr`: a visible change walked locally, then drafted, then walked on its preview, with one report
+    giving both URLs; a local environment that won't start, where nothing is pushed; and a docs-only
+    change, drafted after the full gate and `/adf:review` with "nothing to run". Local stand-ins for the
+    remote, `gh`, and the preview log what ran and when, and `inspect.sh` checks the order. The runner
+    puts a case's `<copy>.bin/` first on the session's PATH and sets its `<copy>.env`.
+
+  **Upgrade impact:** none — framework evals only; nothing in `skeleton/`, `modules/`, or the plugins changes.
+
 - **The agent's own local check opens the draft; the developer tests after it, locally and on the
   preview** ([decision 0045](docs/decisions/0045-agent-local-check-opens-the-draft.md)).
   - **Why:** the developer tested each visible change twice — locally to approve the pull request,
