@@ -11,6 +11,35 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A `time-tracking` module: `/track-time` logs a task's time in the tracker, AI-assisted or a
+  senior developer's estimate** ([decision 0043](docs/decisions/0043-track-time-in-the-tracker.md)).
+  - **Why:** some teams want an internal productivity measure — what a task took with AI, next to
+    what it would have taken without — and neither number was recorded anywhere. Teams that don't
+    track time shouldn't see it.
+  - **The module turns it on:** it installs `docs/TIME-TRACKING.md` (the unit, the tracker's
+    time-entry tools, the labels, the activities), and `/track-time`, which `adf` carries, acts only
+    where the stamp names `time-tracking`. `/adf:wrap-up` offers it once before the close-up, only
+    with the module.
+  - **What it drafts:** at a milestone, after significant partial work, or after the merge, one entry
+    per day worked since the last one logged, in whole units rounded up:
+    - the AI-assisted time — the sessions that ran on the task's branch, measured from the local
+      transcripts by the skill's `session_time.py`, plus the work outside them, estimated activity
+      by activity from its evidence (understanding the task, research, debugging, manual testing,
+      code review, task management, reporting, meetings);
+    - a senior developer's estimate without AI, for the same activities.
+
+    The developer picks one number per entry, or edits or skips it. Only the approved entries are
+    written, to the tracker's time entries and nowhere else.
+  - **Where:** the new module and skill, `/adf:wrap-up` step 3, `/adf:adopt` and `/adf:upgrade`'s
+    module lists, the `clickup` module's `MODULE.md` § Customize, and the docs.
+
+  **Upgrade impact:**
+  - **Additive**, and only for a project that chooses the module: `docs/TIME-TRACKING.md`, and the
+    stamp's `modules:` list gains `time-tracking`. A committed install also gets
+    `.claude/skills/track-time/` from `scripts/build-committed.py --modules time-tracking`.
+  - **Committed install:** overwrite for `.claude/skills/wrap-up/`.
+  - **Without the module:** nothing changes.
+
 - **Each task's session moves to its own worktree; the main checkout hands nothing out**
   ([decision 0042](docs/decisions/0042-each-session-moves-to-its-task-worktree.md), parallel-agents).
   - **Why:** the dispatcher hub was a root session the others were created from, and every task

@@ -81,11 +81,11 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up track-time"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
 # Skills that may start from a plain request but post only after showing the draft.
-DRAFT_FIRST_SKILLS="stakeholder-update"
+DRAFT_FIRST_SKILLS="stakeholder-update track-time"
 
 is_discipline_skill() {
     case " $DISCIPLINE_SKILLS " in *" $1 "*) return 0 ;; esac
@@ -724,6 +724,12 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^4\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'time tracking tool is the only record' || missing+=("/track-time: the time tracking tool is the only record (0043)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'names `time-tracking`' || missing+=("/track-time: acts only where the stamp names the time-tracking module (0043)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'whole units, rounded up' || missing+=("/track-time: numbers in whole units, rounded up (0043)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'An activity with no\s*$|evidence isn.t in the draft' || missing+=("/track-time: each off-session activity rests on its evidence (0043)")
+    file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names\s*$|the `time-tracking` module, offer `/track-time`' || missing+=("/wrap-up: offers /track-time only with the time-tracking module (0043)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
     file_contains "$AGENTS_MD" 'Check locally first, then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
     file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")

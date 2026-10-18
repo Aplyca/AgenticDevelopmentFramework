@@ -89,6 +89,61 @@ check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals
 missing=$(python3 "$REPORT" "$WORK/elsewhere" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "cost-report: a project without transcripts says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$missing\" | grep -q 'No Claude Code transcripts'"
 
+# /track-time's session_time.py (decision 0043): a task's active time by day and block, from the
+# transcripts of the main checkout and its worktrees, in UTC so the days are fixed.
+TIMER="$REPO_ROOT/plugins/adf/skills/track-time/session_time.py"
+TP="$WORK/code/shop"
+mkdir -p "$TP" && git -C "$TP" init -q -b main && git -C "$TP" -c user.email=t@e -c user.name=t commit -q --allow-empty -m init
+git -C "$TP" worktree add -q -b feat/newsletter-signup "$WORK/code/feat-newsletter-signup" 2>/dev/null
+TMAIN="$WORK/projects/$(slug "$TP")"
+TWT="$WORK/projects/$(slug "$WORK/code/feat-newsletter-signup")"
+mkdir -p "$TMAIN" "$TWT"
+python3 - "$TMAIN" "$TWT" <<'PY'
+import json, sys, datetime
+main, wt = sys.argv[1:3]
+
+def session(path, events):
+    with open(path, "w") as f:
+        for when, branch in events:
+            f.write(json.dumps({"type": "assistant", "timestamp": when + "Z", "gitBranch": branch}) + "\n")
+
+def every(start, minutes, branch, step=60):
+    t = datetime.datetime.fromisoformat(start)
+    return [((t + datetime.timedelta(seconds=s)).isoformat(), branch) for s in range(0, minutes * 60 + 1, step)]
+
+# Main checkout: an hour on another task, a break, 10 minutes of triage on main, then the move.
+session(f"{main}/11111111-a.jsonl",
+        every("2026-10-14T07:00:00", 60, "main") + every("2026-10-14T09:00:00", 10, "main")
+        + every("2026-10-14T09:10:00", 30, "feat/newsletter-signup"))
+# The worktree: 20 minutes overlapping the session above, a block after lunch, and the next day.
+session(f"{wt}/22222222-b.jsonl",
+        every("2026-10-14T09:30:00", 20, "feat/newsletter-signup")
+        + every("2026-10-14T14:00:00", 45, "feat/newsletter-signup")
+        + every("2026-10-15T10:00:00", 30, "feat/newsletter-signup"))
+# Another task's session: never on the branch.
+session(f"{main}/33333333-c.jsonl", every("2026-10-14T09:15:00", 30, "fix/other-thing"))
+PY
+timer() { TZ=UTC python3 "$TIMER" feat/newsletter-signup "$TP" --projects-dir "$WORK/projects" "$@" 2>&1; }
+tjson=$(timer --json)
+tq() { printf '%s' "$tjson" | python3 -c "import json,sys; d=json.load(sys.stdin); print($1)"; }
+check "track-time: counts the task's sessions in the main checkout and its worktree, not another task's (got $(tq 'd["sessions"]'))" \
+    "[ \"\$(tq 'd[\"sessions\"]')\" = \"['11111111', '22222222']\" ]"
+# A gap counts up to 5 minutes, as in /cost-report, so a block ends 5 minutes after its last event when a
+# longer break follows. 14th: 09:00–09:55 (triage, then the branch; the overlap counted once) and
+# 14:00–14:50; 15th: 10:00–10:30.
+check "track-time: the triage before the move counts, earlier work and overlaps don't (got $(tq 'd["days"][0]["active_min"]') min on the 14th)" \
+    "[ \"\$(tq 'd[\"days\"][0][\"active_min\"]')\" = '105' ]"
+check "track-time: splits a day into blocks at breaks longer than 30 minutes (got $(tq '[(b["start"][11:16], b["end"][11:16]) for b in d["days"][0]["blocks"]]'))" \
+    "[ \"\$(tq '[(b[\"start\"][11:16], b[\"end\"][11:16]) for b in d[\"days\"][0][\"blocks\"]]')\" = \"[('09:00', '09:55'), ('14:00', '14:50')]\" ]"
+check "track-time: one entry per day, and the total (got $(tq '[x["date"] for x in d["days"]], d["total_min"]'))" \
+    "[ \"\$(tq '[x[\"date\"] for x in d[\"days\"]], d[\"total_min\"]')\" = \"['2026-10-14', '2026-10-15'] 135\" ]"
+since=$(timer --json --since 2026-10-14T14:30:00+00:00 | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["total_min"], d["days"][0]["blocks"][0]["start"][11:16])')
+check "track-time: --since counts only what's after the last entry logged (got $since)" "[ '$since' = '50 14:30' ]"
+tout=$(timer)
+check "track-time: prints the days and their blocks" "echo \"\$tout\" | grep -q '^feat/newsletter-signup · 2 sessions · 2h 15m active over 2 days' && echo \"\$tout\" | grep -q '14:00–14:50'"
+none=$(TZ=UTC python3 "$TIMER" feat/never-started "$TP" --projects-dir "$WORK/projects" 2>&1); code=$?
+check "track-time: a branch no session ran on says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$none\" | grep -q 'No session ran on feat/never-started'"
+
 # link-reference-docs.py (decision 0019), on a copy of the skeleton: a packaged project links the
 # reference docs at the release it pins; a committed one, in its own docs/.
 LINKS="$REPO_ROOT/scripts/link-reference-docs.py"
@@ -128,7 +183,7 @@ check "build-committed: writes the core skills, agents, workflows, hooks, and re
 check "build-committed: the committed form — bare names, local docs, no Step 0, the module's script" \
     "grep -q '/write-spec' '$CP/.claude/skills/triage/SKILL.md' && ! grep -rqE '/adf:(triage|write-spec|dispatch)|@adf:|CLAUDE_PLUGIN_ROOT|Step 0 — which copy|adf-worktree-new' '$CP/.claude/skills' '$CP/.claude/agents' && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/.claude/skills/dispatch/SKILL.md' && grep -q \"const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'\" '$CP/.claude/workflows/deep-spec-analysis.js'"
 check "build-committed: takes only the modules it's given, and never the installer's skills" \
-    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
+    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/track-time' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
 check "build-committed: keeps a file the project already has, and says so" \
     "[ \"\$(cat '$CP/.claude/skills/review/SKILL.md')\" = '# our own review' ] && echo \"\$out\" | grep -q 'Kept 1 .*\.claude/skills/review/SKILL.md'"
 out=$(python3 "$BC" "$WORK/elsewhere-project" --modules no-such-module 2>&1); code=$?

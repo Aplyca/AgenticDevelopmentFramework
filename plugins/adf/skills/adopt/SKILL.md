@@ -171,6 +171,9 @@ Present the table before going further. Wrong facts here poison every file downs
     `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the
     checkout's own stack, with one smoke test per critical flow (decision 0037). An existing suite
     (`playwright.config.*`, `cypress/`) is good evidence; with `docker`, it runs in Docker
+  - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time`
+    logs each day of a task in the tracker, in whole units, as the AI-assisted time or a senior
+    developer's estimate without AI (decision 0043). Without the module, the project never sees it
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
   `modules/clickup/install.sh <repo>`. `docker` has no files to copy: `modules/docker/install.sh <repo>`
@@ -178,7 +181,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `e2e` has none either: `modules/e2e/install.sh <repo>` merges its rules, and `/e2e set up` writes
   the suite.
   A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
-  and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020), `adf-dev` for
+  and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020; `/track-time`, decision 0043), `adf-dev` for
   development (`docker`'s `/dev-env`, `e2e`'s `/e2e`). A committed install writes them with `build-committed.py`
   above and leaves that plugin off. **Turn on the plugin that carries a module** in a packaged
   install when it isn't `adf`, once however many of its modules the project has: `"<plugin>@aplyca": true` in
@@ -245,7 +248,9 @@ Present the table before going further. Wrong facts here poison every file downs
   `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_SERVICE`, and `deployment.md`'s
   `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
   `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
-  the critical flows, and it writes the suite and their smoke tests.
+  the critical flows, and it writes the suite and their smoke tests. For `time-tracking`, fill
+  `docs/TIME-TRACKING.md` — the unit, the tracker's time-entry tools, the labels — from the tracker's
+  real tools, or leave a `TODO(team)` for each.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
 - Every unknown: `<!-- TODO(team): <question> -->`. Fill each doc's `owner · last_updated · scope`.
 

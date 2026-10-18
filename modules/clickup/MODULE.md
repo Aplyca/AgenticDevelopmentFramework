@@ -36,6 +36,10 @@ In `docs/TRACKER-INTEGRATION.md`:
    the statuses a task can move to; `/stakeholder-update` uses it before proposing a status change.
 4. **Link back** — where pull request links go on a task: a "Links" section in the description, or a
    comment.
+5. **Time tracking** — with the `time-tracking` module, `docs/TIME-TRACKING.md` names ClickUp's
+   time-tracking tools, which read and write a task's time entries, and the tag that marks the number
+   each entry carries. Reading them falls under the read-only allowlist; writing one prompts, after
+   the developer approves the draft.
 
 ## Good to know
 

@@ -89,6 +89,8 @@ repository's facts, by the same rules as `/adopt` Step 3:
   run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per
   critical flow (decision 0037). An existing suite (`playwright.config.*`, `cypress/`) is good
   evidence
+- `time-tracking` — only when the team says it measures the time its tasks take: `/track-time` logs
+  each day of a task in the tracker, in whole units (decision 0043)
 
 Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
 release with `adf-connect` (decision 0023), offer it the same way when the project works with a
