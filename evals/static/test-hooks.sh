@@ -405,6 +405,55 @@ else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: a committed install read another project's config"
 fi
 
+# Issue #88: a session hears once when a newer release is out than the stamp's, asked of the framework
+# repository at most once a day. A local repository stands in for it; no network.
+REL="$WORK/releases"; mkdir -p "$REL" && git -C "$REL" init -q -b main
+git -C "$REL" -c user.email=test@example.com -c user.name=test commit -q --allow-empty -m init
+for tag in v1.9.0 v2.0.0 v2.10.1 v2.10.1-rc.1 v3.0.0-beta latest; do git -C "$REL" tag "$tag"; done
+UP="$WORK/update-check"; mkdir -p "$UP" && git -C "$UP" init -q -b main
+echo '<!-- Skeleton source: v2.4.0 · abc1234 (2026-10-08) · modules: none · install: packaged -->' > "$UP/AGENTS.md"
+up_context() { # up_context <session id> <remote> — the update line, or nothing
+    printf '{"cwd":"%s","session_id":"%s","hook_event_name":"SessionStart"}' "$UP" "$1" |
+        XDG_CACHE_HOME="$WORK/cache" ADF_RELEASES_REMOTE="$2" CLAUDE_PROJECT_DIR="$UP" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" \
+        "$PKG/session-context.sh" | grep -F "is available"
+}
+check_up() { # check_up <description> <got> <want>
+    if [ "$2" = "$3" ]; then
+        PASS=$((PASS+1)); echo "✓ session-context.sh: $1"
+    else
+        FAIL=$((FAIL+1)); echo "✘ session-context.sh: $1"; echo "    got:  $2"; echo "    want: $3"
+    fi
+}
+CACHE="$WORK/cache/adf/latest-release"
+check_up "behind the newest v* release: one line, pre-releases and other tags ignored" \
+    "$(up_context s1 "$REL")" "- adf v2.10.1 is available (this project is on v2.4.0) — run \`/adf:upgrade\`."
+check_up "once per session: the same session isn't told again" "$(up_context s1 "$REL")" ""
+check_up "cache hit: within a day the repository isn't asked again" \
+    "$(up_context s2 "$WORK/no-such-remote" | grep -c v2.10.1)" "1"
+rm -f "$CACHE"
+offline=$(printf '{"cwd":"%s","session_id":"s3","hook_event_name":"SessionStart"}' "$UP" |
+    XDG_CACHE_HOME="$WORK/cache" ADF_RELEASES_REMOTE="$WORK/no-such-remote" CLAUDE_PROJECT_DIR="$UP" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" \
+    "$PKG/session-context.sh" 2>&1; echo "exit=$?")
+check_up "offline: nothing said, nothing failed" "$(echo "$offline" | grep -c -e "is available" -e "exit=0")" "1"
+check_up "offline: the failed check is cached, so the next session doesn't wait again" "$(wc -w < "$CACHE" | tr -d ' ')" "1"
+echo "$(( $(date +%s) - 90000 )) 2.5.0" > "$CACHE"
+check_up "a day-old cache is checked again" "$(up_context s4 "$REL" | grep -c v2.10.1)" "1"
+rm -f "$CACHE"
+start=$(date +%s)
+slow=$(GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=protocol.ext.allow GIT_CONFIG_VALUE_0=always up_context s5 "ext::sh -c sleep% 20")
+check_up "a remote that doesn't answer: nothing said, given up within seconds" "$slow:$(( $(date +%s) - start < 5 ))" ":1"
+git -C "$REL" tag v2.4.0 2>/dev/null; git -C "$REL" tag -d v2.10.1 >/dev/null; rm -f "$CACHE"
+check_up "current: on the newest release, nothing said" "$(up_context s6 "$REL")" ""
+git -C "$REL" tag v2.10.1; rm -f "$CACHE"
+echo 'UPDATE_CHECK=""' > "$UP/.claude-config.tmp"; mkdir -p "$UP/.claude/hooks" && mv "$UP/.claude-config.tmp" "$UP/.claude/hooks/config.sh"
+check_up "off: UPDATE_CHECK empty in config.sh says nothing and asks nothing" "$(up_context s7 "$REL")$([ -f "$CACHE" ] && echo cached)" ""
+rm -rf "$UP/.claude"
+echo '<!-- Skeleton source: [vX.Y.Z] · [SHA] ([YYYY-MM-DD]) · modules: [none] -->' > "$UP/AGENTS.md"
+check_up "an unfilled stamp: nothing said" "$(up_context s8 "$REL")" ""
+committed=$(printf '{"cwd":"%s","session_id":"s9","hook_event_name":"SessionStart"}' "$T" |
+    XDG_CACHE_HOME="$WORK/cache" ADF_RELEASES_REMOTE="$REL" "$H/session-context.sh" | grep -c "is available")
+check_up "a project without a stamp: nothing said" "$committed" "0"
+
 echo "==================================="
 echo "Results: $PASS passed, $FAIL failed"
 echo ""

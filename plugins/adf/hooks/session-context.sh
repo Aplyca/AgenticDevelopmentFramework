@@ -148,4 +148,69 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -d "${CLAUDE_PLUGIN_ROOT}/docs" ] && [ 
   echo "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md$guide — are in ${CLAUDE_PLUGIN_ROOT}/docs/: read them there, not on GitHub."
 fi
 
+# A project stays on its pinned release (decision 0041) until someone runs /adf:upgrade, so say when a
+# newer one is out. The release is the stamp's on AGENTS.md's first line (CLAUDE.md's before decision
+# 0024). The newest v* tag of the framework repository is asked at most once a day, cached outside the
+# repository and with a short timeout: offline, or slow, the session hears nothing. Once per session.
+# ADF_RELEASES_REMOTE points the check at another repository (the tests use a local one). Files are
+# written through tee: the Claude Directory refuses a redirect to a computed path.
+version_lt() { # version_lt <X.Y.Z> <X.Y.Z> — the first is older
+  local IFS=. i
+  local -a a=($1) b=($2)
+  for i in 0 1 2; do
+    [ "$((10#${a[i]}))" -lt "$((10#${b[i]}))" ] && return 0
+    [ "$((10#${a[i]}))" -gt "$((10#${b[i]}))" ] && return 1
+  done
+  return 1
+}
+release_line='Skeleton source: v([0-9]+)\.([0-9]+)\.([0-9]+)[^0-9.-]'
+stamp="$(head -n 1 "$root/AGENTS.md" 2>/dev/null)"
+[[ $stamp =~ $release_line ]] || stamp="$(head -n 1 "$root/CLAUDE.md" 2>/dev/null)"
+if [ "$UPDATE_CHECK" = "1" ] && [[ $stamp =~ $release_line ]]; then
+  current="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/adf"
+  cache="$cache_dir/latest-release"
+  now="$(date +%s)"
+  checked="" latest=""
+  [ -f "$cache" ] && read -r checked latest < <(cat "$cache")
+  if ! [ "$checked" -le "$now" ] 2>/dev/null || [ $((now - checked)) -ge 86400 ]; then
+    if mkdir -p "$cache_dir" 2>/dev/null; then
+      tags="$cache_dir/tags.$$"
+      GIT_TERMINAL_PROMPT=0 git ls-remote --tags --refs \
+        "${ADF_RELEASES_REMOTE:-https://github.com/aplyca/AgenticDevelopmentFramework.git}" 2>/dev/null </dev/null |
+        tee "$tags" >/dev/null &
+      fetch=$!
+      for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do # up to 2 seconds
+        kill -0 "$fetch" 2>/dev/null || break
+        sleep 0.1
+      done
+      if kill -0 "$fetch" 2>/dev/null; then
+        # Not waited for: wait would wait for git too. Git, left without a reader, ends on its own.
+        kill "$fetch" 2>/dev/null
+      else
+        newest=""
+        while read -r _ ref; do
+          [[ ${ref#refs/tags/} =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || continue
+          tag="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+          if [ -z "$newest" ] || version_lt "$newest" "$tag"; then newest="$tag"; fi
+        done < <(cat "$tags" 2>/dev/null)
+        [ -n "$newest" ] && latest="$newest"
+      fi
+      rm -f "$tags"
+      # A failed check counts too: an offline machine doesn't wait for the timeout in every session.
+      printf '%s %s\n' "$now" "$latest" | tee "$cache" >/dev/null 2>&1
+    fi
+  fi
+  if [ -n "$latest" ] && version_lt "$current" "$latest"; then
+    session="$(json_get '.session_id')"
+    told="$cache_dir/told-sessions"
+    if [ -z "$session" ] || ! grep -qxF "$session" "$told" 2>/dev/null; then
+      echo "- adf v$latest is available (this project is on v$current) — run \`/adf:upgrade\`."
+      if [ -n "$session" ]; then
+        { tail -n 99 "$told" 2>/dev/null; echo "$session"; } | tee "$told.$$" >/dev/null 2>&1 && mv "$told.$$" "$told" 2>/dev/null
+      fi
+    fi
+  fi
+fi
+
 exit 0
