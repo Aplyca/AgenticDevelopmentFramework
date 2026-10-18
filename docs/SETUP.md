@@ -139,7 +139,7 @@ on conflict, so the two must agree — especially about branches and merge targe
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (e.g. migrations), `GENERATED_GLOBS` (add generated types), `CAREFUL_GLOBS` (the sensitive areas you
   list in `AGENTS.md` — any change there takes at least the careful lane), `ENV_TEMPLATE` if not
-  auto-detected, `LOCAL_URL` (the URL the developer opens for the local check).
+  auto-detected, `LOCAL_URL` (the URL the agent walks in the local check, and the developer tests on).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
   the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
   On GitLab, add the `glab` equivalents of the `gh` rules.

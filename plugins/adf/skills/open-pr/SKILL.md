@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Use as soon as the developer approves the change in the local check — or, for work with nothing to run, once the full gate and /adf:review pass — or when the developer asks. Never before the local check, and never marks the pull request ready.
+description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Use as soon as your own local check passes — the changed flow walked on this checkout's environment — or, for work with nothing to run, once the full gate and /adf:review pass — or when the developer asks. Never before the local check, and never marks the pull request ready.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
 ---
 
@@ -8,9 +8,10 @@ argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
 
 # Open a Draft Pull Request
 
-Pushing and opening a pull request leave this machine. The developer's approval in the local check
-is what lets them: once they approve, open the draft without waiting to be asked. Work
-with nothing to run — docs, CI — opens it once the full gate and `/adf:review` pass. The git guard hook
+Pushing and opening a pull request leave this machine. Your own local check is what lets them:
+once the changed flow works on this checkout's environment, open the draft without asking. Work
+with nothing to run — docs, CI — opens it once the full gate and `/adf:review` pass. The developer
+tests the change after the draft opens, locally and on the preview. The git guard hook
 refuses a `gh pr create` without `--draft`.
 
 The pull request opens as a **draft** and stays one. Marking it ready is a claim — *"a person has
@@ -30,13 +31,19 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    update the gate results. Anything you can't run — needs a preview, needs a shared service — is
    listed as *not verified*, with the reason.
 
-   Then the **local check** (`AGENTS.md` § Delivery rules). When the change alters something a person
-   can see or use, check it yourself first — the changed flow, on this checkout's own environment —
-   and then the developer must have tested it by hand there and approved it. If they haven't, stop
-   before pushing and offer it: start the environment, give the local URL and
-   what to try — the acceptance criteria, or the fast lane's "done when" — and continue only after
-   their OK. Docs-only and CI-only work has nothing to run: the full gate and a clean `/adf:review` stand
-   in for the approval.
+   Then the **local check** (`AGENTS.md` § Delivery rules) — the gate for the push. When the change
+   alters something a person can see or use, start it on this checkout's own environment and walk
+   the changed flow yourself: every acceptance criterion, or the fast lane's "done when". Note what
+   you tried and what you saw.
+   - **A step fails:** fix it, rerun the gate, and walk the flow again. Nothing is pushed until it
+     works.
+   - **It can't run here** — the environment won't start, or a criterion needs something only a
+     shared service has: stop before pushing and tell the developer what blocks it. A push to see
+     it on the preview skips the gate.
+   - **Leave the environment running.** The developer tests the change there after the draft opens.
+
+   Docs-only and CI-only work has nothing to run: the full gate and a clean `/adf:review` stand in for
+   the local check.
 
 3. **Verify the pull request, not just the diff.**
    - `git log --oneline <base>..HEAD` and `git diff --stat <base>...HEAD`: no unrelated files, no
@@ -66,7 +73,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
    ## Verified / not verified
    - Verified: <commands run, counts — from tasks.md § Gate results>
-   - Local check: <what you and the developer tried on the local environment, and their OK — or "nothing to run">
+   - Local check: <the flow you walked on the local environment, and what you saw — or "nothing to run">
    - Preview: <the flow you walked on the preview, and what you saw — or "pending: deploying", "no preview", "nothing a person sees">
    - Not verified: <what you could not check, and why>
 
@@ -83,7 +90,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    migration that drops or rewrites data, a sent email, a published URL or API contract, or a
    changed external integration is not undone by a revert — say what isn't.
 
-5. **Push and open the draft**, then show the developer the title and body:
+5. **Push and open the draft.** Don't report yet — the developer hears from you once, in step 9:
    ```bash
    git push -u origin <type>/<slug>
    gh pr create --draft --base <base> --title "<title>" --body-file <file>
@@ -104,14 +111,20 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    - **Record it** in the body's *Preview* line (`gh pr edit <n> --body-file <file>`).
    - **A difference from local** — it works here, not there — goes to the developer with what
      differs: configuration, data, the platform. It's not fixed by retrying the deploy.
+   - **The deploy fails:** the *Preview* line says so, naming the failing check. Don't retry it on
+     your own; the report says the preview couldn't be checked, and why.
 
    The developer's QC on the preview still decides ready; yours is evidence for it.
 
-8. **Offer — don't do — the tracker link-back.** Adding the pull request link to the tracker task is
-   a write the requester can see: show the exact text and post it only on the developer's yes.
+8. **Offer — don't do — the tracker link-back** in the report. Adding the pull request link to the
+   tracker task is a write the requester can see: show the exact text and post it only on the
+   developer's yes.
 
-9. **Report:** the pull request URL, that it is a **draft**, what you verified — locally, and on the
-   preview once it deployed — and what you could not. Don't ask or remind the developer to review it,
+9. **Report — once, after the preview walk** (or right after step 6 when there's no preview to
+   check): the pull request URL, and that it is a **draft**. Then where the developer can test it:
+   the local URL — the environment you left running — and the preview's, with what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
+   and what you could not. A fix they ask for goes on the same branch: walk it locally again, push,
+   and recheck the preview. Don't ask or remind the developer to review it,
    mark it ready, or merge it, and don't offer to: when those happen is theirs. Never request
    reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
    and never on your own initiative.
@@ -125,9 +138,11 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 | "I'll open it ready so the reviewer saves a click" | A ready pull request asks for attention now. Reviewers would spend it on a first QC pass the author should have done. |
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
-| "The tests pass, so I'll push now" | The push waits for the developer's approval in the local check — or, with nothing to run, for the full gate and a clean `/adf:review`. |
+| "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to run, for the full gate and a clean `/adf:review`. |
+| "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
-| "The tests pass, and the preview will show it" | The developer approves the change on the local environment before the pull request exists. The preview check comes later, before ready. |
+| "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
+| "I walked it locally — the developer will find the rest" | The report tells them where and what to test: the local URL, the preview's, and the criteria. A draft with no instructions makes them reconstruct the task. |
 | "I'll post the link on the tracker task while I'm here" | That's a write the requester sees. Confirm the exact text first, every time. |
 
 ## Red flags (stop and reassess)
@@ -136,15 +151,16 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 - The gate hasn't run since the last commit and you were about to describe it as passing.
 - The diff includes `.env` files, credentials, lockfile churn unrelated to the change, or debug code.
 - The tasks in `tasks.md` aren't all ticked and the description doesn't say why.
-- The change alters something a person can see or use, and the developer hasn't approved it locally.
+- The change alters something a person can see or use, and you haven't walked it on the local environment.
 
 ## Verification
 
-- [ ] The push followed the developer's local-check approval — or, with nothing to run, a passing full gate and a clean `/adf:review` — or the developer's ask
-- [ ] The developer approved the change after testing it by hand on the local environment — or it has nothing to run
+- [ ] The push followed your own local check — or, with nothing to run, a passing full gate and a clean `/adf:review` — or the developer's ask
+- [ ] You walked the changed flow on the local environment before the push, and left it running — or it has nothing to run
 - [ ] Opened as a **draft**; not marked ready
 - [ ] The report doesn't ask, remind, or offer to review, ready, or merge it, and no reviewer was requested
-- [ ] The change was checked locally before the push, and on the preview once it deployed — read-only — or the body says why not
+- [ ] The change was checked on the preview once it deployed — read-only — or the body says why not
+- [ ] One report, after the preview walk, gives the developer the local URL, the preview's, and what to try on each — or says why the preview wasn't checked
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
 - [ ] The description matches the diff — no phantom or missing changes
@@ -154,7 +170,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
 ## Principles
 
-- The draft opens on the developer's approval in the local check; every other outward action waits to be asked.
+- The draft opens once your own local check passes; every other outward action waits to be asked.
+- The developer tests after the draft opens, locally and on the preview — tell them where and what.
 - Draft until a human has exercised it; the developer promotes it.
 - Say what you verified and what you could not — evidence, not confidence.
 - The description must be true to the diff.

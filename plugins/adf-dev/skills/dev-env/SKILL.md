@@ -9,7 +9,7 @@ argument-hint: "[set up | worktrees | native | diagnose <symptom> | reset]"
 # Local environment
 
 The local environment is where the change runs before anyone else sees it: the tests that need a
-database, and the developer's **local check** before the draft pull request (`AGENTS.md` § Delivery
+database, the agent's **local check** before the draft pull request, and the developer's testing after it (`AGENTS.md` § Delivery
 rules). This skill gets a Compose stack to that point and keeps it there. It doesn't decide *whether*
 a task needs an environment — triage does (`AGENTS.md` § How work flows → Environment).
 

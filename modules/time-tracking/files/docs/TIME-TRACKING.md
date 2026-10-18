@@ -35,7 +35,7 @@ evidence that it happened, and the developer corrects the draft. <!-- CUSTOMIZE:
 | Research and investigation | Docs, code, and options explored, in the sessions or mentioned by the developer |
 | Implementation | Commits, the diff, tests written |
 | Debugging | Failing runs, hypotheses, fixes in the sessions; issues the developer mentions |
-| Manual testing | The local check and the preview check the developer approved |
+| Manual testing | The developer's own testing of the draft, locally and on the preview |
 | Code review | Reviews and comments on the pull request, received and given |
 | Task management | Status changes, comments, and links on the tracker task |
 | Reporting and stakeholder communication | Stakeholder updates drafted or posted, messages, the handoff |
