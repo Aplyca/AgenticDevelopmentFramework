@@ -49,7 +49,7 @@ python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py .
 ```
 
 The skeleton is the layer the project owns and edits. The machinery — 21 skills, 8 agents, 4
-workflows, the hook scripts, and the four reference docs in `docs/` — has its source in the framework's
+workflows, the hook scripts, and the reference docs in `docs/` (the `parallel-agents` guide only with that module) — has its source in the framework's
 plugins, and `build-committed.py` writes the committed install's copies of it
 ([decision 0028](decisions/0028-plugins-are-the-source.md)). Neither step overwrites a file you already
 have: `-n` skips it, and the script lists the ones it kept. Merge collisions (`README.md`,
@@ -260,6 +260,7 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    > Where they name an agent — `@code-reviewer` — its name is `adf:code-reviewer`. The
    > framework's reference docs — the spec model, the cost model, the memory strategy, MCP
    > integration — come from the plugin too; these files link them at the pinned release.
+   > So does the parallel-agents guide, `PARALLEL-AGENTS.md`, with that module.
    > With the parallel-agents module, the worktree scripts are the plugin's commands: where these
    > files name `ops/agent/worktree-new.sh`, `worktree-ls.sh`, or `worktree-rm.sh`, run
    > `adf-worktree-new`, `adf-worktree-ls`, or `adf-worktree-rm`.

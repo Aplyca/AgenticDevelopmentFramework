@@ -72,6 +72,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/COST-MODEL.md` | Framework reference doc — a packaged project has none: the plugin carries it |
 | `docs/MEMORY-STRATEGY.md` | Framework reference doc — a packaged project has none: the plugin carries it |
 | `docs/MCP-INTEGRATION.md` | Framework reference doc — a packaged project has none: the plugin carries it |
+| `docs/PARALLEL-AGENTS.md` | The `parallel-agents` module's guide, a framework reference doc — a packaged project has none: the plugin carries it ([decision 0044](decisions/0044-parallel-agents-guide-in-the-plugin.md)). Up to v2.4.0 the module copied it into the project, to merge: the first upgrade past that splits the copy, and keeps what the team recorded in `docs/SHARED-SERVICES.md` |
 | `docs/process/0000-pdr-template.md` | The PDR template |
 | `.cursor/rules/*.mdc` | Cursor mirrors of the rules |
 | `specs/_templates/*` | The spec-folder templates (`spec.md`, `plan.md`, `tasks.md`) — merge instead if your team customized them. Your filled-in specs are project-owned |
@@ -92,7 +93,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `ops/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/TIME-TRACKING.md` (the `time-tracking` module) |
+| Module configuration | `ops/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |

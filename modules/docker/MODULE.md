@@ -84,7 +84,7 @@ fills these from what it verifies, for you to review:
 4. **With `parallel-agents`** — `/dev-env worktrees` proposes the `worktree.conf` values that give
    each worktree its own stack (`PORT_SLOTS=0`, `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`,
    `START_CMD="make up"`, `STOP_CMD`, `ENV_INFO_CMD="make urls"`), and records what worktrees share in
-   `docs/PARALLEL-AGENTS.md`.
+   `docs/SHARED-SERVICES.md`.
 
 ## Good to know
 

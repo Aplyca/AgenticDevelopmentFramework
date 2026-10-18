@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook (matcher: Edit|Write|MultiEdit). With the parallel-agents module installed, the main
 # checkout is shared: sessions start here, and each task moves to a worktree of its own before its
-# first edit (docs/PARALLEL-AGENTS.md). This stops any file edit in the main checkout; edits in linked
+# first edit (the module's guide, PARALLEL-AGENTS.md). This stops any file edit in the main checkout; edits in linked
 # worktrees pass. Without the module — no ops/agent/worktree.conf (scripts/agent/ before decision
 # 0032), its settings, which both installs commit — it does nothing. Empty HUB_READONLY turns it off. File writes made through Bash
 # aren't seen by this hook.

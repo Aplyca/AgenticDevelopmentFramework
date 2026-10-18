@@ -229,8 +229,8 @@ and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, 
 
 | Bucket | Typical contents | Action |
 |---|---|---|
-| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`, and the parallel-agents guide, `PARALLEL-AGENTS.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
+| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, `docs/SHARED-SERVICES.md`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
@@ -285,6 +285,22 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
   Worktrees branched before the merge keep `scripts/agent/` until they merge; the commands and hooks
   read either folder, so nothing breaks meanwhile.
+- With the parallel-agents module, on a release whose plugin carries its guide
+  (`<framework-root>/plugins/adf/docs/PARALLEL-AGENTS.md`, decision 0044), while the project's
+  `docs/PARALLEL-AGENTS.md` is still its own copy — it has an `owner:` line and § Shared services —
+  split it, in either install, before Bucket 1 copies the guide into a committed one:
+  1. Write `docs/SHARED-SERVICES.md` from the module's files at NEW_SHA, and carry over the copy's
+     owner line and what the team recorded in § Shared services: everything but the paragraph the
+     module's copy had there at OLD_SHA.
+  2. Compare the rest of the copy with `modules/parallel-agents/files/docs/PARALLEL-AGENTS.md` at
+     OLD_SHA. Unchanged: a packaged project deletes it, and a committed one takes the guide from
+     `<new>`. Edited anywhere else: list each edited section for the developer — it moves into
+     `docs/SHARED-SERVICES.md`, stays under a name of its own, or goes upstream — and replace or
+     delete nothing until they decide.
+  3. Wherever the project names § Shared services of `docs/PARALLEL-AGENTS.md`
+     (`git grep -n "Shared services"`), name `docs/SHARED-SERVICES.md` instead. Its other mentions of
+     the guide stay; in a packaged project, `link-reference-docs.py --packaged` points them at the
+     release.
 - Newly chosen modules: copy or install them, then their customize steps.
 - An install switch, when the developer accepted it: the removals or copies, the settings, the
   names note and the stamp, and its PDR.

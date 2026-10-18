@@ -170,7 +170,7 @@ before it moved); without it, say so and stop.
    project beside another worktree's; `adf-worktree-ls --info` shows each one's ports; the app
    answers on its own. A worktree whose `.env` repeats the main checkout's pinned values stops at
    `make up`, naming the lines to empty.
-4. **Record** in `docs/PARALLEL-AGENTS.md` § Shared services what worktrees share, what each one
+4. **Record** in `docs/SHARED-SERVICES.md` what worktrees share, what each one
    copies, and what a copy costs.
 
 ## Mode: native
@@ -259,7 +259,7 @@ Take the smallest step that works, and re-run the signal after each:
    the data each one holds and how it comes back, and the developer's yes.
 
 Then run the migrations and the seed the way `DEV-SETUP.md` says, and re-run the signal. Never prune
-machine-wide, never touch a shared service (`docs/PARALLEL-AGENTS.md` § Shared services), and never
+machine-wide, never touch a shared service (`docs/SHARED-SERVICES.md`), and never
 reset in the main checkout of a hub.
 
 ## Rationalizations (do not accept these)

@@ -9,7 +9,8 @@ every file to survive the round trip unchanged, so the two forms can't drift apa
 
 A committed install carries every skill and agent that opens with a Step 0 (adf's installer skills and
 adf-connect's /connect run only from their plugin, and have none), adf's workflows, hook scripts, and
-reference docs, and the skills of the modules a project installs, which each module's module.json names.
+reference docs, and the skills and reference docs of the modules a project installs, which each module's
+module.json names.
 """
 import json
 import os
@@ -17,7 +18,8 @@ import re
 
 CORE = "adf"
 REPO_URL = "https://github.com/aplyca/AgenticDevelopmentFramework"
-REFERENCE_DOCS = ["COST-MODEL", "MCP-INTEGRATION", "MEMORY-STRATEGY", "SPEC-MODEL"]
+# Every doc in adf's docs/. A module's guide is among them, and its module.json names it (PARALLEL-AGENTS).
+REFERENCE_DOCS = ["COST-MODEL", "MCP-INTEGRATION", "MEMORY-STRATEGY", "PARALLEL-AGENTS", "SPEC-MODEL"]
 
 HANDOVER = {
     "skill": "> **Step 0 — which copy.** This is the packaged copy{source}. "
@@ -144,7 +146,7 @@ class Machinery:
 
     def _modules(self):
         """Each module's module.json: the plugin that carries its skills and commands (decisions 0023, 0027)."""
-        self.module_plugin, self.module_skills, self.module_of = {}, {}, {}
+        self.module_plugin, self.module_skills, self.module_of, self.doc_module = {}, {}, {}, {}
         self.command_script, self.script_of, self.command_module, self.moved_from = {}, {}, {}, {}
         modules = os.path.join(self.modules_root, "modules")
         for module in sorted(os.listdir(modules)):
@@ -152,8 +154,8 @@ class Machinery:
             if not os.path.isfile(manifest):
                 continue
             data = json.loads(read(manifest))
-            assert "plugin" in data and set(data) <= {"plugin", "skills", "commands", "moved_from"}, \
-                f"modules/{module}/module.json takes plugin and, optionally, skills, commands, and moved_from"
+            assert "plugin" in data and set(data) <= {"plugin", "skills", "commands", "docs", "moved_from"}, \
+                f"modules/{module}/module.json takes plugin and, optionally, skills, commands, docs, and moved_from"
             plugin = data["plugin"]
             assert plugin in self.plugins, f"modules/{module}/module.json names {plugin}, which isn't in plugins/"
             assert data.get("skills") or data.get("commands"), \
@@ -165,6 +167,13 @@ class Machinery:
                     f"modules/{module}/module.json names the skill {name}, which plugins/{plugin} doesn't carry"
                 assert name not in self.module_of, f"two modules name the skill {name}"
                 self.module_of[name] = module
+            # A guide the module's projects read: adf carries it with the reference docs, and a committed
+            # project gets it only with the module.
+            for name in data.get("docs", []):
+                assert name in REFERENCE_DOCS and os.path.isfile(self.path("docs", name + ".md")), \
+                    f"modules/{module}/module.json names the doc {name}, which isn't among adf's reference docs"
+                assert name not in self.doc_module, f"two modules name the doc {name}"
+                self.doc_module[name] = module
             # A command's name starts with its plugin's, so it can't take the name of a command on the
             # developer's PATH by accident (it comes last there, decision 0027).
             for name, rel in data.get("commands", {}).items():
@@ -204,6 +213,8 @@ class Machinery:
                 assert entry.endswith(".md"), f"plugins/{plugin}/agents/{entry}: an agent is one .md file"
                 self.agents[entry[:-3]] = plugin
         self.workflows = sorted(f[:-3] for f in os.listdir(self.path("workflows")) if f.endswith(".js"))
+        docs = sorted(f[:-3] for f in os.listdir(self.path("docs")) if f.endswith(".md"))
+        assert docs == REFERENCE_DOCS, f"adf's docs/ holds {docs}; forms.REFERENCE_DOCS names {REFERENCE_DOCS}"
         self.hooks = sorted(f for f in os.listdir(self.path("hooks")) if f != "hooks.json")
         for name in self.module_of:
             assert name in self.skills, f"{name} comes from a module but has no Step 0"
@@ -322,7 +333,7 @@ class Machinery:
     # ─── The committed install ─────────────────────────────────────────────
 
     def committed_files(self, modules=()):
-        """{path in a committed project: (text, executable)}: the core, and the given modules' skills."""
+        """{path in a committed project: (text, executable)}: the core, and the given modules' skills and docs."""
         files = {}
         skills = [n for n, p in self.skills.items() if p == CORE and n not in self.module_of]
         skills += [n for m in modules for n in self.module_skills.get(m, [])]
@@ -343,6 +354,8 @@ class Machinery:
             executable = name.endswith(".sh") and not name.startswith("_")
             files[os.path.join(".claude", "hooks", name)] = (self.to_committed_hook(read(self.path("hooks", name)), name), executable)
         for name in REFERENCE_DOCS:
+            if name in self.doc_module and self.doc_module[name] not in modules:
+                continue
             files[os.path.join("docs", name + ".md")] = (self.to_committed_names(read(self.path("docs", name + ".md"))), False)
         return files
 

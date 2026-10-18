@@ -158,8 +158,8 @@ cp -R "$REPO_ROOT/skeleton" "$SITE"
 NAMES='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
 local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/\(skills\|agents\|workflows\|hooks\)/" -e "/docs/[A-Z-]*\.md$"; }
 plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
-check "link-reference-docs: the plugin carries the four reference docs (got: $plugin_docs)" \
-    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md SPEC-MODEL.md ' ]"
+check "link-reference-docs: the plugin carries the four reference docs and the parallel-agents guide (got: $plugin_docs)" \
+    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md PARALLEL-AGENTS.md SPEC-MODEL.md ' ]"
 first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
 check "link-reference-docs: --packaged links every skeleton file at the release, in the plugin" \
     "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/plugins/adf/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
@@ -178,6 +178,19 @@ check "link-reference-docs: --committed restores the skeleton's files exactly" "
 bad=$(python3 "$LINKS" "$SITE" --packaged main 2>&1); code=$?
 check "link-reference-docs: --packaged takes a release tag only" "[ $code -ne 0 ] && echo \"\$bad\" | grep -q 'release tag'"
 check "link-reference-docs: the files it rewrote are the skeleton's, its committed rules included" "echo \"\$first\" | grep -q 'AGENTS.md, CONTRIBUTING.md' && echo \"\$first\" | grep -q '\.claude/rules/claude-code.md'"
+# Decision 0044: the parallel-agents guide is a reference doc, and the module's own page links it.
+MSITE="$WORK/linked-module"
+cp -R "$REPO_ROOT/skeleton" "$MSITE" && cp -R "$REPO_ROOT/modules/parallel-agents/files/." "$MSITE/"
+python3 "$LINKS" "$MSITE" --packaged v9.9.9 >/dev/null
+check "link-reference-docs: --packaged links the module's page to the guide at the release" \
+    "grep -q 'blob/v9.9.9/plugins/adf/docs/PARALLEL-AGENTS.md' \"\$MSITE/docs/SHARED-SERVICES.md\" && ! grep -q '\`docs/PARALLEL-AGENTS.md\`' \"\$MSITE/docs/SHARED-SERVICES.md\""
+without=$(python3 "$LINKS" "$MSITE" --committed)
+check "link-reference-docs: --committed restores the module's page exactly" \
+    "diff \"\$REPO_ROOT/modules/parallel-agents/files/docs/SHARED-SERVICES.md\" \"\$MSITE/docs/SHARED-SERVICES.md\" >/dev/null"
+sed -i.bak '1s/modules: \[none\]/modules: github, parallel-agents/' "$MSITE/AGENTS.md" && rm "$MSITE/AGENTS.md.bak"
+with=$(python3 "$LINKS" "$MSITE" --committed)
+check "link-reference-docs: a committed project misses the guide only when its stamp names the module" \
+    "echo \"\$without\" | grep 'Missing from docs/' | grep -qv PARALLEL-AGENTS && echo \"\$with\" | grep 'Missing from docs/' | grep -q 'docs/PARALLEL-AGENTS.md'"
 
 # build-committed.py (decision 0028): a committed project's machinery, written from the plugins.
 BC="$REPO_ROOT/scripts/build-committed.py"
@@ -188,6 +201,9 @@ check "build-committed: writes the core skills, agents, workflows, hooks, and re
     "[ $code -eq 0 ] && [ -f '$CP/.claude/skills/triage/SKILL.md' ] && [ -f '$CP/.claude/agents/code-reviewer/agent.md' ] && [ -f '$CP/.claude/workflows/deep-review.js' ] && [ -x '$CP/.claude/hooks/guard-git.sh' ] && [ ! -x '$CP/.claude/hooks/_lib.sh' ] && [ -f '$CP/docs/SPEC-MODEL.md' ]"
 check "build-committed: the committed form — bare names, local docs, no Step 0, the module's script" \
     "grep -q '/write-spec' '$CP/.claude/skills/triage/SKILL.md' && ! grep -rqE '/adf:(triage|write-spec|dispatch)|@adf:|CLAUDE_PLUGIN_ROOT|Step 0 — which copy|adf-worktree-new' '$CP/.claude/skills' '$CP/.claude/agents' && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/.claude/skills/dispatch/SKILL.md' && grep -q \"const SPEC_MODEL = 'Read docs/SPEC-MODEL.md.'\" '$CP/.claude/workflows/deep-spec-analysis.js'"
+python3 "$BC" "$WORK/core-only" >/dev/null
+check "build-committed: writes the parallel-agents guide only with the module, in the committed form (decision 0044)" \
+    "[ -f '$CP/docs/PARALLEL-AGENTS.md' ] && [ ! -e '$WORK/core-only/docs/PARALLEL-AGENTS.md' ] && [ -f '$WORK/core-only/docs/SPEC-MODEL.md' ] && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/docs/PARALLEL-AGENTS.md' && ! grep -qE 'adf-worktree-|/adf:' '$CP/docs/PARALLEL-AGENTS.md'"
 check "build-committed: takes only the modules it's given, and never the installer's skills" \
     "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/track-time' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
 check "build-committed: keeps a file the project already has, and says so" \
@@ -203,7 +219,7 @@ check "commands: adf carries $COMMANDS, executable" "for c in $COMMANDS; do [ -x
 check "commands: each is one file — none loads a helper or looks beside itself" \
     "! grep -l -e 'dirname \"\$0\"' -e BASH_SOURCE -e '_worktree-lib.sh\"' \"\$BIN\"/* | grep -q ."
 check "commands: the plugins' copies name the commands, not the module's scripts" \
-    "! grep -rnE '(^|[^/\$A-Za-z0-9_-])((ops|scripts)/agent/)?worktree-(new|ls|rm)\.sh' \"\$REPO_ROOT/plugins/adf/skills/dispatch\" \"\$REPO_ROOT/plugins/adf/hooks\" \"\$REPO_ROOT/plugins/adf-dev/skills\" \"\$BIN\" | grep -v -e 'ADF_MODULE_DIR/' -e \"plugin's copy of the\" | grep -q ."
+    "! grep -rnE '(^|[^/\$A-Za-z0-9_-])((ops|scripts)/agent/)?worktree-(new|ls|rm)\.sh' \"\$REPO_ROOT/plugins/adf/skills/dispatch\" \"\$REPO_ROOT/plugins/adf/hooks\" \"\$REPO_ROOT/plugins/adf/docs\" \"\$REPO_ROOT/plugins/adf-dev/skills\" \"\$BIN\" | grep -v -e 'ADF_MODULE_DIR/' -e \"plugin's copy of the\" | grep -q ."
 on_path() { PATH="$PATH:$BIN" "$@"; }
 WT="$WORK/worktrees"
 mkdir -p "$WT" && git init -q --bare "$WT/origin.git" && git clone -q "$WT/origin.git" "$WT/site" 2>/dev/null
