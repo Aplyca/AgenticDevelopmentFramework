@@ -11,6 +11,48 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.4.0 — 2026-10-18 — A session per task, the developer's local mode, and time tracking
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. The changes come from testing the framework in adopting projects.
+
+- **Each task's session moves to its own worktree** (0042). With `parallel-agents`, there is no
+  dispatcher session: you start a session per task, wherever you like. It triages the task, and
+  `/dispatch` creates the task's worktree beside the main checkout and moves the session into it.
+  The main checkout still takes no edits.
+- **Only the developer changes the local mode** (0034 and 0037, amended). Agents run and check
+  everything in the configured mode and never switch it, even when asked. With `docker`, deny rules
+  block anything that would change it.
+- **Time tracking, for teams that want it** (0043). The new `time-tracking` module adds
+  `/track-time`. It drafts one entry per day worked, in whole units rounded up, with two numbers:
+  the AI-assisted time (the task's sessions, measured, plus the work outside them, estimated from
+  its evidence) and a senior developer's estimate without AI. You pick one per entry, and only the
+  entries you approve go to the tracker. A project without the module never sees it.
+- **Upgrades reach every machine** (0041). The pinned marketplace auto-updates, so once a pin change
+  merges, each teammate's plugins move to it. `/adf:upgrade` ends with the commands for each machine.
+
+**Upgrading from v2.3.0:**
+
+1. **Run `/adf:upgrade`.** It moves the pin to `v2.4.0` and, in one draft pull request:
+   - adds `"autoUpdate": true` to the `aplyca` marketplace entry;
+   - merges the changed lines in `AGENTS.md` and `.claude/rules/testing.md`;
+   - with `parallel-agents`, merges `docs/PARALLEL-AGENTS.md`, the "Parallel sessions" line, and
+     `.claude/rules/claude-code.md`;
+   - with `docker`, reruns the module's installer for the new deny rules, and merges
+     `.claude/rules/deployment.md`;
+   - in a committed install, writes the release's machinery with `scripts/build-committed.py`.
+
+   It also offers the `time-tracking` module: choose it only if the team measures the time its
+   tasks take.
+2. **Once it merges, run the commands it lists on each machine.** This is the last upgrade that
+   needs them: the marketplace auto-updates only once this one is in.
+3. **With `parallel-agents`,** close the dispatcher session, and start a session per task from now on.
+4. **With `time-tracking`,** fill in `docs/TIME-TRACKING.md`: the unit, the tracker's time-entry
+   tools, and the labels.
+5. **Nothing else is required.** A project on v2.3.0 keeps working until it upgrades.
+
+Each entry below lists its own **Upgrade impact**.
+
 - **A `time-tracking` module: `/track-time` logs a task's time in the tracker, AI-assisted or a
   senior developer's estimate** ([decision 0043](docs/decisions/0043-track-time-in-the-tracker.md)).
   - **Why:** some teams want an internal productivity measure — what a task took with AI, next to
