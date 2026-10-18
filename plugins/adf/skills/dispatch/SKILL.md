@@ -47,7 +47,10 @@ where they choose whether the other task starts.
    seeded from the main checkout's and, when worktrees run a server, a port reserved. Nothing starts.
 3. **Move this session into it,** to the path the script printed:
    - **Desktop app:** `change_directory`. The approve-worktree-move hook approves a worktree of this
-     repository, so no prompt asks.
+     repository, so Claude Code's permission check doesn't ask. The app still asks the developer to
+     allow the folder when it's outside every folder they trusted; no hook answers that. After the
+     move, if it asked, tell them once that trusting the folder that holds the main checkout and its
+     worktrees — a session opened on it, the trust prompt accepted — stops it for every later task.
    - **Terminal:** `EnterWorktree` with `path`. From Claude Code's own worktree it can't reach a
      folder outside `.claude/worktrees/`: give the developer `cd <path> && claude` and stop.
 
