@@ -187,6 +187,27 @@ check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ 
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
 
+# The listening check the test above stubs out: a port something listens on is taken, even with no
+# env file reserving it. One slot, on a port this test binds itself (the system picks a free one).
+B="$WORK/busy"
+mkdir -p "$B" && new_repo "$B/repo"
+BR="$B/repo"
+cp -R "$MODULES/parallel-agents/files/." "$BR/" && chmod +x "$BR"/ops/agent/*.sh
+printf '.env\n' > "$BR/.gitignore" && printf 'A=\n' > "$BR/.env.example"
+python3 -c 'import socket, time
+s = socket.socket(); s.bind(("127.0.0.1", 0)); s.listen()
+print(s.getsockname()[1], flush=True); time.sleep(120)' > "$B/port" &
+listener=$!
+for _ in $(seq 50); do [ -s "$B/port" ] && break; sleep 0.1; done
+busy=$(cat "$B/port")
+replace "$BR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=1'
+replace "$BR/ops/agent/worktree.conf" 'PORT_RANGE_START=41000' "PORT_RANGE_START=$((busy - 80))"
+git -C "$BR" add -A && git -C "$BR" commit -qm init
+cd "$BR" || exit 1
+o4=$(ops/agent/worktree-new.sh feat/busy --no-start 2>&1); c4=$?
+kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null
+check "worktree-new: skips a port something listens on ($busy)" "[ -n '$busy' ] && [ $c4 -ne 0 ] && echo \"\$o4\" | grep -q 'no free port slot'"
+
 # The defaults assume nothing: no env file, no ports, no commands
 N="$WORK/plain"
 mkdir -p "$N" && new_repo "$N/repo"
