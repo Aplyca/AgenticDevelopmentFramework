@@ -50,8 +50,8 @@ The full lane flows:
 | Docs first | `/write-docs` | Pre-implementable docs; skips cleanly when there are none | `docs:` |
 | Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
-| Local check | You, on the local environment | You test the change by hand and approve it | — |
-| Deliver, on your approval | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and your local check | — |
+| Local check | The agent, on the local environment | It walks the changed flow before any push | — |
+| Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and the local check; then where you test it, locally and on the preview | — |
 | Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
@@ -114,7 +114,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | A session moves into a worktree of this repository without a prompt in the desktop app; any other folder still asks | `approve-worktree-move.sh` hook |
 | `git` and `gh` run without a prompt, except `git config`, pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. With `docker`, Docker and make commands run without a prompt; deleting data, `docker push`, commands that print secrets, and `make run` ask | `permissions.allow` · `permissions.ask` |
 | A person confirms marking a pull request ready, merges, reviews, releases, GitHub API writes. Keeping the draft current — pushing, editing it, commenting on it — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
-| Pull requests open only as drafts — the agent opens the draft itself once you approve the local check | `guard-git.sh` |
+| Pull requests open only as drafts — the agent opens the draft itself once it has checked the change locally | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
 | `/stakeholder-update` starts from a plain request ("update the client"), and posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
@@ -252,10 +252,10 @@ One person drives; another plays marketing, the requester.
 4. Read the *Gate results* in `tasks.md`: red then green per task, commands and counts, what couldn't
    run and why. A claim without evidence doesn't count.
 5. Run `/review` and fix what it finds.
-6. The local check: the agent starts the change on your machine and gives you the URL and what to
-   try. Test it by hand and approve it.
-7. With a remote, your approval opens the pull request: the agent runs `/open-pr`, and it opens as a
-   draft. QC it yourself — the preview, if you have one — then mark it ready.
+6. The local check: the agent starts the change on your machine and walks the changed flow itself.
+7. With a remote, that check opens the pull request: the agent runs `/open-pr`, and it opens as a
+   draft. The agent gives you the local URL, the preview's, and what to try. Test it by hand on
+   either, then mark it ready.
 
 ## Week 2: The full workflow in practice
 
@@ -382,7 +382,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | Tests outside the loop — contract-first, coverage, bug reproduction | `/write-tests` |
 | Review against the spec folder | `/review` |
 | One clean commit | `/commit` |
-| Push and open a draft pull request (on its own, after your local-check approval) | `/open-pr` |
+| Push and open a draft pull request (on its own, once the agent has checked the change locally) | `/open-pr` |
 | Draft the requester's update ("update the client", or type it) | `/stakeholder-update` |
 | Record an ADR or PDR | `/record-decision` |
 | Root-cause a bug | `/debug` |

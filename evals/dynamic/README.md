@@ -35,6 +35,11 @@ dynamic/
       project.sh                   - builds a packaged project without the reference docs, linked at the release
       inspect.sh                   - checks which reads reached the plugin's docs, asked first, or went to the web
       ...                          - an agent and a session reading the plugin's reference docs; the control without the read rule
+    open-pr/
+      project.sh                   - builds a packaged project that runs on Node alone: the dev server and the gate need nothing installed
+      stubs.sh                     - each case's stand-ins for the remote, gh, docker, and the preview, which log what ran and when
+      inspect.sh                   - checks the order: the local walk, the push, the draft, the preview walk, the one report
+      ...                          - a visible change; a local environment that won't start; a docs-only change
     write-tests/
       ...
     write-docs/
@@ -49,7 +54,7 @@ Each fixture has two files:
 
 ## Running
 
-### Session evals — automated (triage, debug, adopt, upgrade, plugin-hooks, plugin-docs)
+### Session evals — automated (triage, debug, adopt, upgrade, plugin-hooks, plugin-docs, open-pr)
 
 `run-session-evals.sh` runs every fixture in one suite — `fixtures/triage/` by default, or
 `--suite debug` — against real Claude Code sessions: it builds a fictional project in a temp
@@ -69,6 +74,7 @@ signal without installing anything.
 ./run-session-evals.sh --suite plugin-hooks              # the plugin's hooks, on Haiku
 ./run-session-evals.sh --suite plugin-docs               # the plugin's reference docs, on Haiku
 ./run-session-evals.sh --suite upgrade --models sonnet   # /upgrade, switching to the packaged install
+./run-session-evals.sh --suite open-pr                   # /adf:open-pr: the local check gates the push, on Sonnet
 ```
 
 The adopt suite's **packaged** case, and the **upgrade** suite's **switch-to-packaged**, check the
@@ -99,6 +105,21 @@ session context. The control, `without-rule`, runs without the rule, where the s
 Agents that ask for `opus` run on Haiku (`ANTHROPIC_DEFAULT_OPUS_MODEL`). Three sessions cost about
 $0.60; run it after any change to how the plugin's skills, agents, or hooks name the reference docs.
 Report: [`reports/2026-10-05-plugin-docs.md`](reports/2026-10-05-plugin-docs.md).
+
+The **open-pr** suite checks what no hook can: that `/adf:open-pr` walks the change locally before
+anything leaves the machine ([decision 0045](../../docs/decisions/0045-agent-local-check-opens-the-draft.md)).
+Its project is a packaged install of a newsletter site that runs on Node alone — `pnpm dev` serves the
+form, the gate needs nothing installed — with the plugin loaded from this checkout per session. Each
+case's setup puts its change on a work branch and, next to the run's copy, stand-ins that keep
+everything on the machine (`stubs.sh`): `origin` is a GitHub address git rewrites to a local bare
+repository, `gh` opens the pull request and deploys the pushed branch as a local preview about 15
+seconds later, and `docker` has no daemon. Each logs what ran, with its time, and `inspect.sh` checks
+the order from that log. `visible-change` walks the change locally before the push, opens the draft,
+waits for the preview in the background, walks it read-only, and reports once with both URLs.
+`env-wont-start` can't reach its database, so it stops before pushing and says what blocks it.
+`docs-only` opens its draft after the full gate and `/adf:review`, with "nothing to run". A case's
+setup can leave `<copy>.bin/`, put first on the session's PATH, and `<copy>.env`, set in its
+environment. Three sessions on Sonnet; run it after any change to `/adf:open-pr` or the delivery rules.
 
 The **adopt** suite builds its own project (`fixtures/adopt/project.sh`: a new repository with no
 commits) and appends each run's end state (`inspect.sh`) to the transcript. `{{FRAMEWORK}}` in a

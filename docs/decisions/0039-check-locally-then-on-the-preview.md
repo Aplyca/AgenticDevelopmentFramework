@@ -1,6 +1,6 @@
 # 0039: An agent checks a change locally first, then on the pull request's preview
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0045](0045-agent-local-check-opens-the-draft.md) (the agent's local check is the gate for the push)
 - **Date:** 2026-10-15
 - **Amends:** [0022](0022-local-check-before-the-pull-request.md) — what the agent checks itself, around the developer's local check
 
