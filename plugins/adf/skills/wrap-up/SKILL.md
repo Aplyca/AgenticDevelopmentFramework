@@ -52,6 +52,11 @@ cleared: the check comes first, and anything it finds is the developer's to deci
    commit and push, open a follow-up, drop the stash, give the handoff. Offer no close-up until
    the developer settles them. Nothing is deleted or archived in this case.
 
+   Time not yet logged isn't work left over. Only when the stamp on `AGENTS.md`'s first line names
+   the `time-tracking` module, offer `/adf:track-time` once, before the close-up: the task's
+   worktree is still there to measure. The developer may skip it. Without the module, say nothing
+   about time.
+
 4. **Ask once.** Show what the close-up will do, in order, naming the real paths and branches:
    ```
    PR #<n> merged, and nothing is left in this task. Close up?
