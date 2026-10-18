@@ -63,9 +63,12 @@ the issue found what a script has to get right before it can take them over:
      developer's own clone keeps its branch.
   2. **Resolves NEW:** `<tag>`, or the newest `v*` tag. `--unreleased <ref>` runs a commit that isn't
      a release, for working on the framework, and the stamp then carries its SHA alone.
-  3. **Runs the script from NEW:** `git archive <NEW>` into a temporary folder, then
+  3. **Runs the script from NEW:** `git archive <NEW>` into
+     `${XDG_CACHE_HOME:-$HOME/.cache}/adf/trees/<commit>/`, then
      `python3 <tree>/scripts/upgrade.py <repo> --history <checkout> --protocol 1`, passing every
-     other option through. The folder is removed afterwards.
+     other option through. The tree stays in the cache: `/adf:upgrade` reads the new release's skill
+     there (§ 5), and a report can name an installer to rerun. *(Refined in the implementation: the
+     record first had the folder removed afterwards.)*
 - **The cache isn't in the plugin's data folder.** The Bash tool gets no `CLAUDE_PLUGIN_ROOT` or
   `CLAUDE_PLUGIN_DATA` (0027, finding 4), and a committed install runs the script without the plugin.
 - **Old wrappers keep working.** The wrapper is old code as well, so its contract with the script is
@@ -124,9 +127,11 @@ by its bucket.
 
   Project-owned paths are never read. Binary files are written or listed, never merged. Executable
   bits follow NEW.
-- **Folder moves are migrations, not renames.** A module that moved its folder names the old one in
-  `module.json`'s `moved_from` (0032), and that release's migration does the `git mv` before any
-  merge runs, so the merges see the new paths. A committed install's machinery has no rename
+- **Folder moves come first.** A module that moved its folder names the old one in `module.json`'s
+  `moved_from` (0032), and the script does the `git mv` on any upgrade that finds the old folder,
+  before any merge runs, so the merges see the new paths. *(Refined in the implementation: the move
+  is data a module declares, so it isn't a migration of one release, and a project that skipped it
+  still gets it.)* A committed install's machinery has no rename
   detection: two builds show a delete and an add, and the delete rule keeps an edited copy.
 - **Module installers rerun from NEW** (`clickup`, `docker`, `e2e`), after the merges, as today.
 
@@ -141,10 +146,12 @@ by its bucket.
 - **Each one is idempotent.** It reads the project's state first and returns one of: applied, already
   done, or needs the developer, with the text to show. It declares whether it runs before the merges
   (moves, splits) or after (settings).
-- **The script runs every migration after OLD up to NEW,** in version order, then by `NN`.
+- **The script runs every migration from OLD's own release through NEW,** in version order, then by
+  `NN`. OLD's own run again because a project may have skipped part of its last upgrade, and a
+  migration that finds its work done says so.
 - **What every upgrade does stays in the script:** setting `ref`, the reference links, the restamp,
-  the checks. `autoUpdate` (0041), the `ops/agent/` move (0032), and the `PARALLEL-AGENTS.md` split
-  (0044) become migrations of their releases. The part of a migration that needs judgment — an edited
+  the checks. `autoUpdate` (0041) and the `PARALLEL-AGENTS.md` split (0044) become migrations of
+  their releases; the `ops/agent/` move (0032) is `moved_from`, above. The part of a migration that needs judgment — an edited
   copy of the guide, a task C9 names — returns "needs the developer", never a guess.
 - **Each migration has a functional test** in `evals/`: a fixture before, the state after, and a
   second run that changes nothing.

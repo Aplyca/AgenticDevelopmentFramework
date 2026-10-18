@@ -93,7 +93,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `ops/agent/worktree.conf`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module) |
+| Module configuration | `ops/agent/worktree.conf`, `.worktreeinclude`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.github/ISSUE_TEMPLATE/*`, `.gitleaks.toml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |
@@ -109,7 +109,55 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/architecture/decisions/*`, `docs/process/pdr-*` | ADRs and PDRs |
 | `docs/reference/*` pages | Your code-level reference pages |
 | `docs/architecture/*` | Project-specific architecture docs you authored |
+| `README.md`, `docs/ARCHITECTURE.md`, `docs/GLOSSARY.md`, `docs/infrastructure/*`, `docs/security/*`, `evals/*`, `specs/*` | The skeleton's starter pages, which adoption fills in — yours from then on (`specs/README.md` and `specs/_templates/*` excepted, above) |
 | Any source code | Out of scope for the upgrade |
+
+The taxonomy is also data: `scripts/upgrade-buckets.json`, which the scripted upgrade reads. A path it
+doesn't name is merge required. The static checks keep it and these tables equal.
+
+## The scripted upgrade
+
+From v2.0.0, the deterministic part of an upgrade is a script
+([decision 0046](decisions/0046-a-scripted-upgrade-from-the-new-release.md)). `/adf:upgrade` runs it and
+keeps the judgment; you can run it yourself.
+
+- **In a project with the `adf` plugin on,** `adf-upgrade [<tag>] [--dry-run]` finds a framework
+  checkout with history — `$ADF_FRAMEWORK`, a local marketplace clone, or a clone it caches in
+  `~/.cache/adf/` — and runs the new release's own `scripts/upgrade.py`. The plugin you have is the old
+  release, so it never upgrades with its own code.
+- **Anywhere else** (a committed install, another AI tool), run the script from a framework checkout at
+  the release you upgrade to:
+
+  ```bash
+  git -C /path/to/AgenticDevelopmentFramework checkout v<X.Y.Z>
+  python3 /path/to/AgenticDevelopmentFramework/scripts/upgrade.py . --dry-run
+  python3 /path/to/AgenticDevelopmentFramework/scripts/upgrade.py . [--add-modules <a,b>]
+  ```
+
+It runs on the upgrade's own branch, never the default branch or a hub's main checkout, with a clean
+working tree, and commits nothing. It:
+
+1. reads the stamp, and builds the old and new copies of every file: `git show` at each release for
+   the skeleton and the modules' files, and `scripts/build-committed.py` from each release's tree for a
+   committed install's machinery;
+2. moves a module's folder its `module.json` says it moved from, and runs the releases' migrations
+   (`scripts/migrations/`);
+3. overwrites, merges (`git merge-file`), adds, deletes, and renames each file by its bucket — leaving
+   conflicts marked, and listing what it won't decide: a file you deleted that changed, a file you
+   edited that was deleted, a new file you already have;
+4. reruns the installed modules' installers, moves the pin, drops allow rules a broader one in the same
+   `allow` list covers (`Bash(make *)` covers `Bash(make test)`; never `ask` or `deny`), points the
+   reference docs at the release (packaged), and restamps;
+5. checks the settings parse and smoke-tests each hook, with `CLAUDE_PLUGIN_ROOT` and
+   `CLAUDE_PROJECT_DIR` set.
+
+Its report — `$(git rev-parse --git-dir)/adf-upgrade/report.md`, and `report.json` — says what needs
+you (conflicts, permission changes, modules, files to decide, migrations), what it applied (each clean
+merge with its hunk count, so you know where to look), the checks, the commands for each machine, and
+the follow-ups to run after the merge. Review the diff, resolve the conflicts, and approve the
+permission changes; nothing lands without the pull request's review.
+
+A project below v2.0.0, or a release before the script, follows the procedure below.
 
 ## Upgrade procedure
 
@@ -206,7 +254,11 @@ Customizations preserved:
 
 ## AI-assisted upgrades
 
-You can have Claude Code do most of step 4 for you. The pattern preserves the plan-then-execute gate, so you stay in control.
+In Claude Code, run `/adf:upgrade`: it runs the scripted upgrade, resolves what needs judgment with you,
+and opens the draft pull request. You approve the modules, each conflict's resolution, and each
+permission change; clean merges and scripted steps need no plan row (decision 0046).
+
+Without the plugin, you can have an AI tool do most of step 4 for you. The pattern preserves the plan-then-execute gate, so you stay in control.
 
 **Setup**: open the target project in Claude Code. Make sure the framework repo is checked out somewhere local.
 

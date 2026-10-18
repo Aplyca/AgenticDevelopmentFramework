@@ -11,6 +11,54 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The deterministic part of an upgrade is a script; the developer approves only what needs a person**
+  ([decision 0046](docs/decisions/0046-a-scripted-upgrade-from-the-new-release.md),
+  [#86](https://github.com/aplyca/AgenticDevelopmentFramework/issues/86)).
+  - **Why:** an upgrade from v2.2.0 to v2.4.0 had the agent find the releases, 3-way merge eight
+    files, rerun two installers, move the pin, drop covered allow rules, and restamp, one call at a
+    time, and the developer approve a plan whose rows were mostly "clean merge". The hook smoke test
+    failed with `unbound variable`, because the test didn't export `CLAUDE_PLUGIN_ROOT`.
+  - **Now:**
+    - `scripts/upgrade.py <repo> [--dry-run] [--add-modules a,b]` upgrades a project (v2.0.0 or
+      later) to the release of the tree it runs from. It builds the old and new copies of each file —
+      `git show` for the skeleton and the modules' files, `build-committed.py` from each release's
+      tree for a committed install's machinery — and overwrites, merges, adds, deletes, or renames
+      each one by its bucket, leaving conflicts marked. It moves a module's old folder
+      (`moved_from`), runs the releases' migrations and the modules' installers, moves the pin, drops
+      allow rules a `Bash(<prefix> *)` in the same list covers (never `ask` or `deny`), links the
+      reference docs, restamps, and smoke-tests the hooks with both variables exported. It commits
+      nothing, and refuses a dirty tree, the default branch, and a hub's main checkout.
+    - **The report**, `$(git rev-parse --git-dir)/adf-upgrade/report.md` and `report.json`: what needs
+      a person, what it applied (each clean merge with its hunk count), the checks, the commands for
+      each machine, and the follow-ups (`command`, `why`, `source`, `plugin`, `when`), for #89.
+    - **`adf-upgrade [<tag>] [--dry-run]`,** a command in `adf`'s `bin/`, fetches a framework checkout
+      (`$ADF_FRAMEWORK`, a local marketplace clone, or a bare clone cached in `~/.cache/adf/`) and runs
+      the new release's own script. `scripts/build-plugins.sh` copies it from
+      `scripts/adf-upgrade.sh`, a framework command beside the modules' (decision 0027).
+    - **Per-release migrations** in `scripts/migrations/<version>/NN-<slug>.py`, idempotent, each named
+      by its CHANGELOG entry: `scripts/migrations/v2.4.0/01-auto-update.py` (`autoUpdate`, decision 0041) and
+      `scripts/migrations/unreleased/01-shared-services.py` (the guide's split, decision 0044).
+    - **The taxonomy is data,** `scripts/upgrade-buckets.json`, and `docs/UPGRADING.md` names the files
+      it lacked: the modules' `.worktreeinclude`, issue templates, and `.gitleaks.toml`, and the
+      skeleton's starter pages (project-owned).
+    - **`/adf:upgrade`** runs the command first: a dry run, the new release's copy of the skill, the
+      modules, the run, then the judgment — conflicts, clean merges to read, new ask rules (C9, C10),
+      what the migrations left — and one approval for the conflicts, the permission changes, and the
+      draft pull request. Its "Plan before touching" ground rule becomes "Approve what needs a
+      person"; the manual procedure stays for a project below v2.0.0 and a release before the script.
+  - **Where:** `scripts/upgrade.py`, `scripts/adf-upgrade.sh`, `scripts/upgrade-buckets.json`,
+    `scripts/migrations/`, `scripts/build-plugins.sh` and `plugins/adf/bin/adf-upgrade`, `/adf:upgrade`,
+    `plugins/adf/README.md`, `docs/UPGRADING.md`, decision 0046, and the evals
+    (`evals/static/test-upgrade.sh`, the upgrade checks in `check-skills.sh`; CI checks out the full
+    history for the release tags).
+
+  **Upgrade impact:**
+  - **Packaged install:** none — `/adf:upgrade` and `adf-upgrade` come with the plugin. The first
+    upgrade to this release still runs the old skill's manual procedure; the next ones run the script.
+  - **Committed install:** none — `/adf:upgrade` runs only from the plugin, which a committed project
+    keeps on for it. Without the plugin, run `scripts/upgrade.py` from a framework checkout at the
+    release (`docs/UPGRADING.md` § The scripted upgrade).
+
 - **The docs no longer say a session's move into its worktree never prompts** (parallel-agents).
   - **Why:** the approve-worktree-move hook answers Claude Code's permission check for
     `change_directory`, but the desktop app then runs its own folder-trust check ("This folder isn't
@@ -95,7 +143,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `/adf-dev:dev-env`, `/adf:upgrade`, the `docker` module's `MODULE.md`, and the docs.
 
   **Upgrade impact:**
-  - **With parallel-agents, either install — migration:** `/adf:upgrade` splits the project's
+  - **With parallel-agents, either install — migration** (`scripts/migrations/unreleased/01-shared-services.py`): `/adf:upgrade` splits the project's
     `docs/PARALLEL-AGENTS.md`. It writes `docs/SHARED-SERVICES.md` (additive) with the copy's owner
     line and what the team recorded in § Shared services. Then:
     - a copy unchanged elsewhere since OLD_SHA goes in a packaged project, and in a committed one

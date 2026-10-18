@@ -13,5 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # the upgrade tests build projects from older release tags
       - name: Run static evals
         run: ./evals/run-evals.sh

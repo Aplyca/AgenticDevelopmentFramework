@@ -1318,6 +1318,59 @@ PY
     fi
 }
 
+check_upgrade() {
+    # The scripted upgrade's data (decision 0046): every file the skeleton and the modules give a
+    # project has a bucket, every bucket entry is in docs/UPGRADING.md, and the changelog's Migration
+    # text and scripts/migrations/ name each other — from the first release that has the script.
+    local out
+    out=$(python3 - "$REPO_ROOT" <<'PY'
+import fnmatch, glob, json, os, re, sys
+root = sys.argv[1]
+data = json.load(open(os.path.join(root, "scripts", "upgrade-buckets.json")))
+patterns = data["merge"] + data["overwrite"] + data["project-owned"]
+problems = []
+for top in [os.path.join(root, "skeleton")] + sorted(glob.glob(os.path.join(root, "modules", "*", "files"))):
+    for directory, _, files in os.walk(top):
+        for f in files:
+            rel = os.path.relpath(os.path.join(directory, f), top)
+            if not any(fnmatch.fnmatchcase(rel, p) for p in patterns):
+                problems.append(f"{os.path.relpath(os.path.join(directory, f), root)} has no bucket in scripts/upgrade-buckets.json")
+guide = open(os.path.join(root, "docs", "UPGRADING.md"), encoding="utf-8").read()
+for p in patterns:
+    if f"`{p}`" not in guide:
+        problems.append(f"scripts/upgrade-buckets.json's `{p}` isn't in docs/UPGRADING.md's taxonomy")
+changelog = open(os.path.join(root, "CHANGELOG.md"), encoding="utf-8").read()
+named = set(re.findall(r"scripts/migrations/((?:v\d+\.\d+\.\d+|unreleased)/\d\d-[a-z0-9-]+\.py)", changelog))
+for section in re.split(r"^## ", changelog, flags=re.M)[1:]:
+    heading = section.split("\n", 1)[0]
+    m = re.match(r"v(\d+)\.(\d+)\.(\d+)", heading)
+    if not (heading.startswith("Unreleased") or (m and tuple(map(int, m.groups())) > (2, 4, 0))):
+        continue
+    for chunk in re.split(r"^- \*\*", section, flags=re.M)[1:]:
+        title = " ".join(chunk.split("**", 1)[0].split())
+        for line in re.findall(r"^.*\*\*[^*\n]*[Mm]igration[^*\n]*\*\*.*$", chunk, re.M):
+            if "scripts/migrations/" not in chunk and "by hand" not in chunk:
+                problems.append(f"CHANGELOG ({heading[:20]}): \"{title[:60]}\" has Migration text that names neither a script nor \"by hand\"")
+                break
+on_disk = {os.path.relpath(p, os.path.join(root, "scripts", "migrations"))
+           for p in glob.glob(os.path.join(root, "scripts", "migrations", "*", "*.py"))}
+for rel in sorted(on_disk - named):
+    problems.append(f"scripts/migrations/{rel} isn't named by any CHANGELOG entry")
+for rel in sorted(named - on_disk):
+    problems.append(f"CHANGELOG names scripts/migrations/{rel}, which doesn't exist")
+for rel in sorted(on_disk):
+    if not re.fullmatch(r"(v\d+\.\d+\.\d+|unreleased)/\d\d-[a-z0-9-]+\.py", rel):
+        problems.append(f"scripts/migrations/{rel} isn't <version>/NN-<slug>.py")
+print("\n".join(problems))
+PY
+)
+    if [ -z "$out" ]; then
+        pass "upgrade: every skeleton and module file has a bucket, the buckets match docs/UPGRADING.md, and the changelog names each migration"
+    else
+        while IFS= read -r line; do fail "upgrade: $line"; done <<< "$out"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -1444,6 +1497,7 @@ check_practices
 check_plugin
 check_mods
 check_dev_env_templates
+check_upgrade
 check_no_tracked_junk
 check_english
 check_directory_rules
