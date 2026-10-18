@@ -299,10 +299,11 @@ sequenceDiagram
     participant PR as Pull request
     participant Tracker as Tracker task
     Agent->>Agent: /review — the lane, the spec, constitution, security, tests, docs
-    Agent->>Dev: starts it on the local environment — the URL and what to try
-    Dev->>Agent: tests it by hand and approves it
-    Agent->>PR: /open-pr on that approval — a draft with the lane, the evidence, the local check, and what was not verified
-    Dev->>PR: QC on the preview, then marks it ready
+    Agent->>Agent: runs it on the local environment and walks the changed flow
+    Agent->>PR: /open-pr once it works — a draft with the lane, the evidence, the local check, and what was not verified
+    Agent->>PR: walks the same flow on the preview, read-only
+    Agent->>Dev: where to test it — the local URL, the preview's, and what to try
+    Dev->>PR: tests it by hand, locally and on the preview, then marks it ready
     Dev->>PR: reviews and merges — CI is a signal, the review is the gate
     Dev->>Agent: asks to update the client
     Agent->>Dev: /stakeholder-update — the draft, in the client's terms

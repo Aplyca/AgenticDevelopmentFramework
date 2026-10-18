@@ -83,7 +83,7 @@ frontmatter() {
 # Skills that carry the full discipline: rationalizations table + verification checklist.
 DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up track-time"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
-OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decision 0022)
+OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decisions 0022, 0045)
 # Skills that may start from a plain request but post only after showing the draft.
 DRAFT_FIRST_SKILLS="stakeholder-update track-time"
 
@@ -736,13 +736,16 @@ check_practices() {
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'An activity with no\s*$|evidence isn.t in the draft' || missing+=("/track-time: each off-session activity rests on its evidence (0043)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names\s*$|the `time-tracking` module, offer `/track-time`' || missing+=("/wrap-up: offers /track-time only with the time-tracking module (0043)")
-    file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the developer's local check before the pull request (0022)")
-    file_contains "$AGENTS_MD" 'Check locally first, then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
+    file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the agent's local check before the pull request (0022, 0045)")
+    file_contains "$AGENTS_MD" 'never push to check it on the preview instead' || missing+=("AGENTS.md: a change that can't run locally isn't pushed (0045)")
+    file_contains "$AGENTS_MD" 'Then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
+    file_contains "$AGENTS_MD" 'Tell the developer where to test it' || missing+=("AGENTS.md: the developer gets the local and preview URLs (0045)")
     file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Don't ask or remind the developer" || missing+=("/open-pr: the report doesn't nudge the developer to review, ready, or merge (0039)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, readying, and merging are the developer' || missing+=("git-workflow rule: no nudges to review, ready, or merge (0039)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*' || missing+=("/open-pr: stops without the developer's local check (0022)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*.*the gate for the push' || missing+=("/open-pr: stops without the agent's own local check (0022, 0045)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Leave the environment running' || missing+=("/open-pr: leaves the local environment running for the developer (0045)")
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" ', so it lacks ' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")

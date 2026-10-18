@@ -11,6 +11,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The agent's own local check opens the draft; the developer tests after it, locally and on the
+  preview** ([decision 0045](docs/decisions/0045-agent-local-check-opens-the-draft.md)).
+  - **Why:** the developer tested each visible change twice — locally to approve the pull request,
+    then on the preview before ready — and the session waited idle for the first approval.
+  - **Now:** the agent runs the change on its checkout's environment and walks the changed flow
+    itself. That walk is the gate: once it works, the agent pushes and opens the draft without
+    asking. A change that can't run locally isn't pushed; the agent says what blocks it. After the
+    preview check, it leaves the local environment running and tells the developer where to test:
+    the local URL, the preview's, and what to try. Their test still decides ready.
+  - **Where:** `AGENTS.md` (the ground rules, § 3, § Delivery rules), `.claude/rules/git-workflow.md`
+    and `claude-code.md`, `specs/README.md`, `docs/getting-started/DEV-SETUP.md`, `/adf:open-pr`,
+    `/adf:implement`, `/adf:commit`, `/adf:spec-workflow`, `/adf-dev:dev-env`, the `guard-git.sh`
+    comment, the `time-tracking` module's `docs/TIME-TRACKING.md`, and the docs.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` — the ground rule on what leaves the machine, § 3 steps 7 and 8, the line
+    on the checks every lane runs, and § Delivery rules (*Local check before the pull request*, *Then
+    on the preview*, and the new *Tell the developer where to test it*). `.claude/rules/git-workflow.md`
+    (§ Outward actions, *Open after the local check*), `.claude/rules/claude-code.md`, `specs/README.md`
+    (the *Local check* and *Deliver* rows), and `docs/getting-started/DEV-SETUP.md`. With
+    `time-tracking`: the *Manual testing* row of `docs/TIME-TRACKING.md`.
+  - **Committed install:** overwrite for `.claude/skills/open-pr/`, `implement/`, `commit/`,
+    `spec-workflow/`, `dev-env/` (with `docker`), and `.claude/hooks/guard-git.sh`.
+  - **Packaged install:** none for the skills and hooks, which the plugins carry.
+  - **To keep the developer's approval first:** say so in `AGENTS.md` § Delivery rules; the agent then
+    waits for it before the push.
+
 - **The parallel-agents guide ships in the plugin; the project keeps only its shared services**
   ([decision 0044](docs/decisions/0044-parallel-agents-guide-in-the-plugin.md), parallel-agents,
   [#85](https://github.com/aplyca/AgenticDevelopmentFramework/issues/85)).
