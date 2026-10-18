@@ -6,7 +6,8 @@
   implementation code. The section the gate scrutinizes most is "Change surface": the most
   common way a convincing plan is wrong is touching more (or other) files and layers than it
   says. When implementation contradicts this plan, fix the plan in the same branch rather than
-  leaving it stale; if the change surface grows, re-confirm with the developer.
+  leaving it stale; if the change surface grows into risk (a new layer, a new dependency, an
+  escalation trigger), re-confirm with the developer.
   Change request: leave the delivered plan as it is and append a "# CR N — <title>" part with
   these headings, covering only the delta.
 -->

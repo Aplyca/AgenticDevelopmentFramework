@@ -37,6 +37,11 @@ HUB_READONLY="1"
 # asks until you trust the folder that holds the main checkout and its worktrees. Empty disables.
 APPROVE_WORKTREE_MOVE="1"
 
+# A session hears once when its branch's pull request merged (offer /wrap-up) or closed without
+# merging (ask whether the task is dropped). "1" asks gh at session start and at most every five
+# minutes after, on a work branch only; without gh it does nothing. Empty disables.
+PR_STATE="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""

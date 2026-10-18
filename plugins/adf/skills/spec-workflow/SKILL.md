@@ -38,11 +38,12 @@ implementation; invest in them early.
    fail (for a bug, the regression test); then edit until it passes. Quiet output; the full gate once, before delivery.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
    code, contract, infrastructure), run `@adf:security-reviewer` for authorization, data, or payments,
-   and get the developer's yes on the risky part.
+   and get the developer's yes on the risky part — once, before the push (`/adf:open-pr`).
 5. **Commit** (`/adf:commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded
    behavior (a fix that restores documented behavior needs none).
-6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
-   fails, or no test can prove the change.
+6. **Move up a lane** when the diff grows past the stated files, a test outside the area fails, or
+   no test can prove the change, and say so. Into careful, carry on with its checklist; into full,
+   stop: the spec and the approval gate come first.
 7. **Local check** — when the change alters something a person can see or use, run it on the local
    environment and walk the changed flow yourself.
 8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`); the human review and
