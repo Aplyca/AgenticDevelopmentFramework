@@ -12,7 +12,7 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |
 | `triage-first.sh` | PreToolUse · Edit/Write, Bash | A nudge: if the session's reply text states no lane yet, the first file edit or new branch (`git switch -c`, `git checkout -b`, `git branch <name>`, `git worktree add`) is stopped once with a reminder to write the triage where the developer can read it (`AGENTS.md` § Triage first). Subagents are exempt. Empty `TRIAGE_FIRST` turns it off |
 | `protect-hub.sh` | PreToolUse · Edit/Write | With the parallel-agents module installed, stops every file edit in the main checkout, so each task moves to its own worktree first, and lets edits in worktrees through. Without the module it does nothing. Empty `HUB_READONLY` turns it off. Writes made through Bash aren't seen |
-| `approve-worktree-move.sh` | PreToolUse · the desktop app's `change_directory` | Approves a session's move into a linked worktree of the same repository — a session's move from the main checkout into its task's worktree (`/adf:dispatch`) — so the app doesn't ask. Any other folder still prompts. Empty `APPROVE_WORKTREE_MOVE` turns it off |
+| `approve-worktree-move.sh` | PreToolUse · the desktop app's `change_directory` | Approves a session's move into a linked worktree of the same repository — a session's move from the main checkout into its task's worktree (`/adf:dispatch`) — so Claude Code's permission check doesn't ask. Any other folder still prompts. The app's own folder-trust check isn't a permission, and no hook answers it: see [Moving into a worktree](#moving-into-a-worktree). Empty `APPROVE_WORKTREE_MOVE` turns it off |
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
 Pushing a work branch, and opening, editing, or commenting on its draft pull request, run without a
@@ -38,6 +38,19 @@ the session transcript with `jq` (`.jq`) or, without it, `python3` (`.py`).
   past it — it is a guardrail against mistakes, not a security boundary. The real boundaries are
   branch protection on the Git host and human review.
 - Hooks in project settings run only after you trust the folder.
+
+## Moving into a worktree
+
+The desktop app checks a session's move twice. The approve-worktree-move hook answers the first,
+Claude Code's permission check. The second is the app's own: it asks before it moves a session into
+a folder outside every folder you trusted ("This folder isn't in a workspace you've trusted"), and a
+hook can't answer it. The worktrees are siblings of the main checkout, so trusting the main checkout
+doesn't cover them, and each new worktree would ask once.
+
+Trust the folder that holds the main checkout and its worktrees, once: open a session on it — in the
+desktop app, or `cd` there and run `claude` — and accept the prompt to trust the folder. Its trust
+covers every worktree created in it from then on. Trust only a folder that holds this project's
+checkouts: everything inside it is trusted too.
 
 ## Disable or extend
 

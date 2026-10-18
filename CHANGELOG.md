@@ -29,6 +29,30 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Both — merge, optional:** `.claude/hooks/config.sh` gains `UPDATE_CHECK="1"`. A project without
     the line gets the default, on; add `UPDATE_CHECK=""` to turn the check off.
 
+- **The docs no longer say a session's move into its worktree never prompts** (parallel-agents).
+  - **Why:** the approve-worktree-move hook answers Claude Code's permission check for
+    `change_directory`, but the desktop app then runs its own folder-trust check ("This folder isn't
+    in a workspace you've trusted"), which no hook can answer. Worktrees sit beside the main checkout,
+    so trusting the main checkout doesn't cover them, and each new worktree asked once.
+  - **Now:** the hook's comment, the hooks README (a new § Moving into a worktree), the
+    parallel-agents guide, and `/adf:dispatch` separate the two checks and say how to end the second:
+    trust the folder that holds the main checkout and its worktrees, once. `/adf:dispatch` tells the
+    developer so after a move the app asked about. The hook itself doesn't change.
+  - **Where:** `approve-worktree-move.sh`, `plugins/adf/hooks/README.md`,
+    `plugins/adf/docs/PARALLEL-AGENTS.md`, `/adf:dispatch`, the skeleton's `.claude/hooks/config.sh`
+    comment and `.claude/rules/claude-code.md` guardrail row, and `docs/ONBOARDING.md`.
+
+  **Upgrade impact:**
+  - **Packaged install:** none — the plugin carries the change.
+  - **Committed install — overwrite:** `.claude/hooks/approve-worktree-move.sh`,
+    `.claude/hooks/README.md`, `.claude/skills/dispatch/SKILL.md`, and, with parallel-agents,
+    `docs/PARALLEL-AGENTS.md`.
+  - **Either install — merge:** the `APPROVE_WORKTREE_MOVE` comment in `.claude/hooks/config.sh` and
+    the approve-worktree-move row in `.claude/rules/claude-code.md` (comment and table text only; no
+    setting changes).
+  - **Once per developer, with parallel-agents:** open a session on the folder that holds the main
+    checkout and its worktrees, and accept the prompt to trust it.
+
 - **A session eval for `/adf:open-pr`: the local check gates the push**
   ([decision 0045](docs/decisions/0045-agent-local-check-opens-the-draft.md)).
   - **Why:** no hook can tell whether the agent walked the change before pushing; only a real session
