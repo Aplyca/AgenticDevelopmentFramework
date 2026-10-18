@@ -11,6 +11,40 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The parallel-agents guide ships in the plugin; the project keeps only its shared services**
+  ([decision 0044](docs/decisions/0044-parallel-agents-guide-in-the-plugin.md), parallel-agents,
+  [#85](https://github.com/aplyca/AgenticDevelopmentFramework/issues/85)).
+  - **Why:** `docs/PARALLEL-AGENTS.md` was copied into every project with the module, and each
+    release that changed the model cost a 3-way merge of about 150 lines of framework text. Only
+    § Shared services was the project's.
+  - **Now:** `adf` carries the guide as `plugins/adf/docs/PARALLEL-AGENTS.md`, with the reference
+    docs (decision 0019). A packaged project reads the plugin's copy and links it at the pinned
+    release; a committed one gets `docs/PARALLEL-AGENTS.md` from `scripts/build-committed.py`, only
+    with the module. The module copies `docs/SHARED-SERVICES.md` instead: what the project's worktrees
+    share, what a task may copy, and what a copy costs.
+  - **The scripts:** `module.json` names a module's guide (`"docs"`). `build-committed.py` writes it
+    only for the modules given. `link-reference-docs.py` also rewrites the modules' files and expects
+    the guide only where the stamp names the module. The session-context hook names it among the
+    plugin's docs only where `worktree.conf` exists.
+  - **Where:** the guide, the module's files, `MODULE.md`, and `module.json`, `scripts/forms.py`,
+    `build-committed.py`, and `link-reference-docs.py`, the session-context and protect-hub hooks,
+    `/adf-dev:dev-env`, `/adf:upgrade`, the `docker` module's `MODULE.md`, and the docs.
+
+  **Upgrade impact:**
+  - **With parallel-agents, either install — migration:** `/adf:upgrade` splits the project's
+    `docs/PARALLEL-AGENTS.md`. It writes `docs/SHARED-SERVICES.md` (additive) with the copy's owner
+    line and what the team recorded in § Shared services. Then:
+    - a copy unchanged elsewhere since OLD_SHA goes in a packaged project, and in a committed one
+      becomes the guide `build-committed.py` writes, which is an overwrite from then on;
+    - a copy edited elsewhere is listed section by section for the developer to decide.
+
+    Mentions of § Shared services name `docs/SHARED-SERVICES.md`; in a packaged project,
+    `link-reference-docs.py --packaged` points the other mentions of the guide at the release.
+  - **Committed install:** overwrite for `.claude/skills/dev-env/` (with `docker`) and
+    `.claude/hooks/session-context.sh` and `protect-hub.sh`.
+  - **Packaged install:** none for the hooks and skills, which the plugins carry.
+  - **Without the module:** nothing changes.
+
 ## v2.4.0 — 2026-10-18 — A session per task, the developer's local mode, and time tracking
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

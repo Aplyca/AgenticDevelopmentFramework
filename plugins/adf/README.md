@@ -146,7 +146,9 @@ agents (`adf:code-reviewer`, `adf:spec-analyzer`, …), the `/adf:deep-…`
 workflows, the hooks, which read the project's `.claude/hooks/config.sh`, the framework's
 reference docs — the spec model, the cost model, the memory strategy, and MCP integration
 ([decision 0019](../../docs/decisions/0019-reference-docs-in-the-plugin.md)) — and, with the
-parallel-agents module, the worktree commands, which read the project's `ops/agent/worktree.conf`. The catalogs:
+parallel-agents module, its guide, `PARALLEL-AGENTS.md`
+([decision 0044](../../docs/decisions/0044-parallel-agents-guide-in-the-plugin.md)), and the worktree
+commands, which read the project's `ops/agent/worktree.conf`. The catalogs:
 [SKILLS-REFERENCE.md](../../docs/SKILLS-REFERENCE.md) and [AGENTS-REFERENCE.md](../../docs/AGENTS-REFERENCE.md).
 
 ## For teams

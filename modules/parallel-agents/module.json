@@ -8,5 +8,8 @@
     "adf-worktree-ls": "ops/agent/worktree-ls.sh",
     "adf-worktree-rm": "ops/agent/worktree-rm.sh"
   },
+  "docs": [
+    "PARALLEL-AGENTS"
+  ],
   "moved_from": "scripts/agent"
 }

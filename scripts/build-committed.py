@@ -8,8 +8,8 @@ docs. A committed project keeps its own copies, in the form scripts/forms.py des
 Usage:
   build-committed.py <project> [--modules <name,name> | --modules all]
       Writes .claude/skills/, .claude/agents/, .claude/workflows/, .claude/hooks/ (all but config.sh,
-      which comes from the skeleton), and docs/'s four reference docs into <project>, with the skills
-      of the modules given. A file that already exists is kept and listed, never overwritten: an
+      which comes from the skeleton), and docs/'s reference docs into <project>, with the skills and
+      guides of the modules given. A file that already exists is kept and listed, never overwritten: an
       upgrade writes into an empty folder and merges from there.
   build-committed.py --check
       Checks that every carried file survives the round trip — plugin, committed, plugin — unchanged,

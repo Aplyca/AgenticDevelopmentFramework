@@ -98,7 +98,7 @@ The session follows whichever scenario its triage picked. What's specific to wor
 Worktrees share whatever their env files point at. That's fine until a task would change the shared
 thing for everyone; then that worktree gets its own copy — started in `START_CMD` under its own name,
 removed in `STOP_CMD`, pointed at through `ENV_OVERRIDES` — at the memory and startup time each copy
-costs. Record what the team shares and what a task may copy in `docs/PARALLEL-AGENTS.md`.
+costs. Record what the team shares and what a task may copy in `docs/SHARED-SERVICES.md`.
 
 On the newsletter site the shared service that matters is the Contentful environment: a session
 running a content-model migration against the shared development environment changes the model under
@@ -227,6 +227,7 @@ cd ../feat-newsletter-signup && claude
 | Keeping a squash-merged branch | The next change request on that feature starts from stale code | Delete it after merge |
 | Restating the workflow in a new session's prompt | The copy drifts from `AGENTS.md` | The task, and "follow `AGENTS.md`" |
 
-**Reference:** [`docs/PARALLEL-AGENTS.md`](../../modules/parallel-agents/files/docs/PARALLEL-AGENTS.md) ·
+**Reference:** [`PARALLEL-AGENTS.md`](../../plugins/adf/docs/PARALLEL-AGENTS.md) ·
+[`docs/SHARED-SERVICES.md`](../../modules/parallel-agents/files/docs/SHARED-SERVICES.md) ·
 [`/dispatch`](../../plugins/adf/skills/dispatch/SKILL.md) ·
 [`worktree.conf`](../../modules/parallel-agents/files/ops/agent/worktree.conf)

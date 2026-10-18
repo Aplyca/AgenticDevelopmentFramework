@@ -351,13 +351,17 @@ fi
 mkdir -p "$PKG_ROOT/docs" && cp "$REPO_ROOT/plugins/adf/docs/"* "$PKG_ROOT/docs/"
 pkg_context() { printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/session-context.sh"; }
 names=$(pkg_context | grep -c -F -- "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md — are in $PKG_ROOT/docs/")
+# Decision 0044: with the parallel-agents module, the guide is among them.
+mkdir -p "$PROJ/ops/agent" && touch "$PROJ/ops/agent/worktree.conf"
+guide=$(pkg_context | grep -c -F -- "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md, PARALLEL-AGENTS.md — are in $PKG_ROOT/docs/")
+rm -rf "$PROJ/ops"
 mkdir -p "$PROJ/docs" && echo '# Spec model' > "$PROJ/docs/SPEC-MODEL.md"
 kept=$(pkg_context | grep -c "reference docs")
 rm -rf "$PROJ/docs"
-if [ "$names" = 1 ] && [ "$kept" = 0 ]; then
-    PASS=$((PASS+1)); echo "✓ session-context.sh: a packaged session is told where the plugin's reference docs are, unless the project keeps its own"
+if [ "$names" = 1 ] && [ "$guide" = 1 ] && [ "$kept" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ session-context.sh: a packaged session is told where the plugin's reference docs are — the parallel-agents guide with the module — unless the project keeps its own"
 else
-    FAIL=$((FAIL+1)); echo "✘ session-context.sh: reference-docs line printed $names time(s) (want 1), $kept with local copies (want 0)"
+    FAIL=$((FAIL+1)); echo "✘ session-context.sh: reference-docs line printed $names time(s) (want 1), $guide with the guide (want 1), $kept with local copies (want 0)"
 fi
 # Decision 0027: a packaged project with the parallel-agents module commits only its settings, and the
 # plugin's hooks name the plugin's skill for the move to the task's worktree.

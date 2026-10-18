@@ -36,6 +36,10 @@ if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf/docs" 2>/dev/n
     "grep -qE 'blob/$release/(skeleton|plugins/adf)/docs/SPEC-MODEL.md' AGENTS.md && ! grep -qE '(^|[^/.A-Za-z0-9_-])docs/($names)\.md' AGENTS.md .claude/rules/claude-code.md CONTRIBUTING.md README.md specs/README.md specs/_templates/spec.md 2>/dev/null"
   check "the settings let Claude read the plugin's folder" "python3 -c 'import json; s = json.load(open(\".claude/settings.json\")); exit(0 if \"Read(~/.claude/plugins/cache/aplyca/adf/**)\" in s.get(\"permissions\", {}).get(\"allow\", []) else 1)'"
 fi
+if [ -n "$fw" ] && [ -f ops/agent/worktree.conf ] && git -C "$fw" cat-file -e "$release:plugins/adf/docs/PARALLEL-AGENTS.md" 2>/dev/null; then
+  check "no \`docs/PARALLEL-AGENTS.md\` — the plugin carries the guide, and the project keeps \`docs/SHARED-SERVICES.md\` (decision 0044)" \
+    "[ ! -e docs/PARALLEL-AGENTS.md ] && [ -f docs/SHARED-SERVICES.md ]"
+fi
 if [ -n "$fw" ] && git -C "$fw" cat-file -e "$release:plugins/adf/skills/dispatch/SKILL.md" 2>/dev/null; then
   check "no committed \`/dispatch\` — the plugin carries it (decision 0020)" "[ ! -e .claude/skills/dispatch ]"
 fi

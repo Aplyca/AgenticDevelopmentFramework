@@ -140,9 +140,12 @@ if [ -n "$base" ] && [ "$branch" = "$base" ] && git -C "$root" show-ref --verify
 fi
 
 # A packaged project reads the framework's reference docs from the adf plugin, which links in
-# the project's files only point at on GitHub (decision 0019).
+# the project's files only point at on GitHub (decision 0019) — the parallel-agents guide too, with
+# the module (decision 0044).
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -d "${CLAUDE_PLUGIN_ROOT}/docs" ] && [ ! -f "$root/docs/SPEC-MODEL.md" ]; then
-  echo "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md — are in ${CLAUDE_PLUGIN_ROOT}/docs/: read them there, not on GitHub."
+  guide=""
+  [ -n "${worktree_conf:-}" ] && guide=", PARALLEL-AGENTS.md"
+  echo "- The framework's reference docs — SPEC-MODEL.md, COST-MODEL.md, MEMORY-STRATEGY.md, MCP-INTEGRATION.md$guide — are in ${CLAUDE_PLUGIN_ROOT}/docs/: read them there, not on GitHub."
 fi
 
 exit 0

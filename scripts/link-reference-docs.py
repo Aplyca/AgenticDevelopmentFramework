@@ -10,11 +10,13 @@ Usage:
   link-reference-docs.py <repo> --packaged vX.Y.Z   link the release on GitHub (and move an older pin)
   link-reference-docs.py <repo> --committed         link docs/ in the project
 
-It rewrites the project's copies of the skeleton files that name a reference doc, then lists every
-other file that still names one the other way, and the reference docs the project still has in docs/.
-It deletes nothing.
+It rewrites the project's copies of the skeleton's and the modules' files that name a reference doc,
+then lists every other file that still names one the other way, and the reference docs the project
+still has in docs/. A module's guide (PARALLEL-AGENTS.md) counts only in a project whose stamp names
+the module. It deletes nothing.
 """
 import argparse
+import json
 import os
 import re
 import sys
@@ -22,6 +24,13 @@ import sys
 FRAMEWORK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = sorted(f[:-3] for f in os.listdir(os.path.join(FRAMEWORK, "plugins", "adf", "docs")) if f.endswith(".md"))
 NAMES = "|".join(map(re.escape, DOCS))
+# A module's guide: {doc: module}, from each module.json's "docs".
+MODULE_DOCS = {}
+for _module in sorted(os.listdir(os.path.join(FRAMEWORK, "modules"))):
+    _manifest = os.path.join(FRAMEWORK, "modules", _module, "module.json")
+    if os.path.isfile(_manifest):
+        with open(_manifest, encoding="utf-8") as _f:
+            MODULE_DOCS.update({doc: _module for doc in json.load(_f).get("docs", [])})
 TEXT_FILES = (".md", ".mdc")
 SKIP_DIRS = {".git", "node_modules"}
 
@@ -78,15 +87,31 @@ def text_files(top, skip=()):
                 yield os.path.normpath(os.path.join(rel_dir, file))
 
 
-def skeleton_files():
-    """The skeleton's files that name a reference doc, its committed rules included. The machinery
-    isn't among them: a packaged project takes it from the plugin, and a committed one's copies, which
-    scripts/build-committed.py writes, link docs/ in the project."""
-    skeleton = os.path.join(FRAMEWORK, "skeleton")
-    for rel in text_files(skeleton):
-        with open(os.path.join(skeleton, rel), encoding="utf-8") as f:
-            if LOCAL_BARE.search(f.read()):
-                yield rel
+def template_files():
+    """The skeleton's files that name a reference doc, its committed rules included, and the modules'
+    (modules/*/files/). The machinery isn't among them: a packaged project takes it from the plugin, and
+    a committed one's copies, which scripts/build-committed.py writes, link docs/ in the project."""
+    tops = [os.path.join(FRAMEWORK, "skeleton")]
+    tops += [os.path.join(FRAMEWORK, "modules", m, "files") for m in sorted(os.listdir(os.path.join(FRAMEWORK, "modules")))]
+    seen = set()
+    for top in tops:
+        for rel in text_files(top) if os.path.isdir(top) else []:
+            with open(os.path.join(top, rel), encoding="utf-8") as f:
+                if rel not in seen and LOCAL_BARE.search(f.read()):
+                    seen.add(rel)
+                    yield rel
+
+
+def installed_modules(repo):
+    """The modules the project's stamp names: `· modules: <list>` on AGENTS.md's first line."""
+    try:
+        with open(os.path.join(repo, "AGENTS.md"), encoding="utf-8") as f:
+            stamp = f.readline()
+    except OSError:
+        return set()
+    found = re.search(r"· modules: ([^·]*)", stamp)
+    # Split as the dynamic checks do: the words after the list (" — update on every…") match no module.
+    return set(re.split(r"[,\s]+", found.group(1))) if found else set()
 
 
 def main():
@@ -101,7 +126,7 @@ def main():
 
     repo = os.path.abspath(args.repo)
     rewritten = []
-    for rel in skeleton_files():
+    for rel in template_files():
         path = os.path.join(repo, rel)
         if not os.path.isfile(path):
             continue
@@ -128,12 +153,14 @@ def main():
               + " way — update them by hand if they should follow:")
         print("\n".join(mentions))
 
+    modules = installed_modules(repo)
+    expected = [name for name in DOCS if name not in MODULE_DOCS or MODULE_DOCS[name] in modules]
     present = [f"docs/{name}.md" for name in DOCS if os.path.isfile(os.path.join(repo, "docs", name + ".md"))]
     if args.packaged and present:
         print("Still in docs/ (a packaged project reads the plugin's copy): " + ", ".join(present))
-    if args.committed and len(present) < len(DOCS):
-        print("Missing from docs/ (scripts/build-committed.py writes them): "
-              + ", ".join(f"docs/{name}.md" for name in DOCS if f"docs/{name}.md" not in present))
+    missing = [f"docs/{name}.md" for name in expected if f"docs/{name}.md" not in present]
+    if args.committed and missing:
+        print("Missing from docs/ (scripts/build-committed.py writes them): " + ", ".join(missing))
 
 
 if __name__ == "__main__":

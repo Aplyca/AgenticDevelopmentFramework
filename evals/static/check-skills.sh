@@ -591,8 +591,8 @@ try:
     data = json.load(open(manifest, encoding="utf-8"))
 except Exception as e:
     print(f"module.json is not valid JSON: {e}"); sys.exit()
-if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands", "moved_from"}:
-    print(f"module.json takes plugin and, optionally, skills, commands, and moved_from — it has {sorted(data)}")
+if "plugin" not in data or not set(data) <= {"plugin", "skills", "commands", "docs", "moved_from"}:
+    print(f"module.json takes plugin and, optionally, skills, commands, docs, and moved_from — it has {sorted(data)}")
 elif not os.path.exists(os.path.join(plugins, str(data["plugin"]), ".claude-plugin", "plugin.json")):
     print(f"module.json names {data['plugin']}, which isn't a plugin in plugins/")
 for skill in data.get("skills", []):
@@ -603,6 +603,12 @@ commands = data.get("commands", {})
 for command, rel in commands.items():
     if not command.startswith(f"{data.get('plugin')}-") or not os.path.isfile(os.path.join(module, "files", rel)):
         print(f"module.json: command {command} must be named {data.get('plugin')}-<name> and come from a script in files/")
+# Decision 0044: a module's guide, which adf carries with the reference docs and the module doesn't copy.
+for doc in data.get("docs", []):
+    if not os.path.isfile(os.path.join(plugins, "adf", "docs", f"{doc}.md")):
+        print(f"module.json names the doc {doc}, which plugins/adf/docs doesn't carry")
+    elif os.path.exists(os.path.join(module, "files", "docs", f"{doc}.md")):
+        print(f"copies docs/{doc}.md, which adf carries as the module's guide (decision 0044)")
 if not data.get("skills") and not commands:
     print("has a module.json but no skills or commands for a plugin to carry")
 # Decision 0032: the folder the commands' scripts lived in before, which the commands still read.

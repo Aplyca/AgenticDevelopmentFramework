@@ -16,7 +16,7 @@ gets its own session, worktree, folder, branch, and pull request.
 | `ops/agent/_worktree-lib.sh` | Shared helpers |
 | `.claude/skills/dispatch/SKILL.md` | `/dispatch`: after triage, creates the task's worktree beside the main checkout with the scripts and moves this session there; offers another task a new session. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
-| `docs/PARALLEL-AGENTS.md` | One task per session and worktree, the scripts, shared vs isolated services |
+| `docs/SHARED-SERVICES.md` | What the project's worktrees share, what a task may copy, and what a copy costs |
 
 A developer starts a new session for each task, and that session takes it (decision 0042). After
 triage, a change — or an answer that runs the app, the tests, or the database — goes to `/dispatch`,
@@ -32,18 +32,26 @@ hook stops file edits in the main checkout once the module is there, and the cor
 prompt in the desktop app. The core `/handoff` skill
 covers passing work in progress on.
 
+The module's guide, `PARALLEL-AGENTS.md` — one task per session and worktree, the scripts, a server
+per worktree, shared and copied services — is the same in every project, so the `adf` plugin carries
+it with the framework's reference docs (decision 0044). A packaged project reads the plugin's copy and
+links it at the release it pins; a committed one gets `docs/PARALLEL-AGENTS.md` from
+`build-committed.py`. The project keeps only what it decides: `ops/agent/worktree.conf` and
+`docs/SHARED-SERVICES.md`.
+
 ## Install
 
 ```bash
 cp -R modules/parallel-agents/files/. /path/to/your-repo/
 chmod +x ops/agent/*.sh
-python3 scripts/build-committed.py /path/to/your-repo --modules parallel-agents   # committed install: /dispatch
+python3 scripts/build-committed.py /path/to/your-repo --modules parallel-agents   # committed install: /dispatch, the guide
 ```
 
 A repository that already has a `.worktreeinclude` keeps it: add the env file's line to it.
 
-With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020): skip the last line
-and type `/adf:dispatch`. The skill stops in a project without the module, so the plugin can carry it
+With the packaged install, the `adf` plugin carries `/dispatch` (decision 0020) and the guide: skip
+the last line, type `/adf:dispatch`, and point the mentions of the guide at the release you pin with
+`python3 scripts/link-reference-docs.py /path/to/your-repo --packaged v<X.Y.Z>`. The skill stops in a project without the module, so the plugin can carry it
 for everyone.
 
 It carries the scripts too, as commands that Claude Code's sessions run by name (decision 0027):
@@ -68,8 +76,8 @@ that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops
    no edits, and another task goes to a new session — see `docs/PARALLEL-AGENTS.md`."* Add the three scripts to
    the Quick reference — packaged, by the commands' names: `adf-worktree-new`, `adf-worktree-ls`,
    `adf-worktree-rm`.
-3. **`docs/PARALLEL-AGENTS.md`** — record what worktrees share and what a task may copy (§ Shared
-   services); optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
+3. **`docs/SHARED-SERVICES.md`** — record what worktrees share, what a task may copy, and what a
+   copy costs; optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
    use each environment.
 4. **`.gitignore`** — the env file, and `.claude/worktrees/`.
 5. **`.worktreeinclude`** — the same env file as `ENV_FILE`, plus any other gitignored file a worktree
