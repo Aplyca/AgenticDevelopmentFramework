@@ -31,7 +31,7 @@ wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
   with "done when…", the test first (watch it fail), then the edit, `/commit`. On delivered work, a light `CR N` entry.
 - **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
   contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist and
-  your yes on the risky part.
+  your yes on the risky part, once, before the push.
 - **Full** — something to decide, a new feature, cross-layer work: the flow below.
 
 What finds defects — a test that proves the change, the hooks, CI, review, your QC on the preview —
@@ -106,6 +106,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Rule | Enforced by |
 |---|---|
 | Claude Code loads `AGENTS.md` — a `CLAUDE.md` or `CLAUDE.local.md` would replace it | The session-context hook warns when one is in the project or above it |
+| A session hears once when its branch's pull request merged (it offers the wrap-up) or closed (it asks whether the task is dropped) | `pr-state.sh` hook — `gh` at session start and at most every five minutes after |
 | No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |

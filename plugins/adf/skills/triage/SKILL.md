@@ -92,8 +92,9 @@ not a research project.
    Clarifications (full lane) or the pull request (fast and careful lanes).
 
 6. **Keep checking while you work.** If the diff grows past the files you stated, a test outside the
-   area fails, a trigger appears, or no test can prove the change — stop, tell the developer, and
-   move up a lane, keeping what's done.
+   area fails, a trigger appears, or no test can prove the change — move up a lane, keeping what's
+   done, and tell the developer. Into careful, carry on with its checklist; into full, stop: the
+   spec and the approval gate come before more code.
 
 ## Routing
 
@@ -108,7 +109,7 @@ one a new session (`/adf:dispatch` too).
 | Triage | Next |
 |---|---|
 | Change · fast lane | Search every use of what you change → the test for the new behavior, written or updated and watched failing (for a bug, the regression test) → edit until it passes → `/adf:commit`. When it changes what a spec records as delivered: a light `CR N` entry in the same commit (`/adf:write-spec`, light mode); a fix that restores documented behavior needs none |
-| Change · careful lane | As fast, plus the area's checklist and `@adf:security-reviewer` for authorization, personal data, or payments; the developer confirms the risky part before the commit |
+| Change · careful lane | As fast, plus the area's checklist and `@adf:security-reviewer` for authorization, personal data, or payments; the developer confirms the risky part once, before the push |
 | Change · full lane, new feature | `/adf:write-spec` → `/adf:write-plan` → approval gate |
 | Change · full lane, change request | `/adf:write-spec` in amend mode (full `CR N`) → `/adf:write-plan` → approval gate |
 | Change · bug, root cause unclear | `/adf:debug`, then the lane the fix needs |

@@ -27,8 +27,9 @@ instead: separate reviewers per dimension, each finding independently verified.
    - **Fast** — the diff stays within the files stated, touches no escalation trigger or sensitive
      area (`specs/README.md` § Lanes, `AGENTS.md` § Sensitive areas), a test proves the change, and
      delivered work has its light `CR N` entry.
-   - **Careful** — the area's checklist shows in the diff and the tests, and the developer confirmed
-     the risky part. A lane lowered by the developer is stated in the pull request.
+   - **Careful** — the area's checklist shows in the diff and the tests, and the risky part is
+     clear enough for the developer's yes before the push. A lane lowered by the developer is stated
+     in the pull request.
    - **Full** — a spec folder with an `approvals:` line covering this scope.
 
    A diff that doesn't fit its lane is a **Critical** finding: name the trigger and the lane it needs.

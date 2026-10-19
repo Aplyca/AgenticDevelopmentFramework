@@ -24,7 +24,8 @@ alwaysApply: false
 
 ## When reality departs from the plan
 - Small deviation inside the change surface → update `plan.md` in the same commit
-- The change surface grows (new layer, file outside the table, dependency, migration) → **stop** and get the developer's re-confirmation
+- The change surface grows into risk (a new layer, a new dependency, an escalation trigger such as a migration) → **stop** and get the developer's re-confirmation
+- It grows otherwise (a file outside the table) → update `plan.md` in the same commit, say so in the pull request, and carry on
 - A requirement turns out ambiguous → stop and ask; never guess
 - Committed docs turn out wrong → small fix folded into the task commit (say so in the body); meaningful revision as its own `docs:` commit
 
