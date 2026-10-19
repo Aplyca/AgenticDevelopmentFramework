@@ -28,3 +28,47 @@ if [ "${3:-}" = switch-to-packaged ]; then
   check "PDR-0001 is marked amended" "grep -q -i 'amend' docs/process/0001-*.md"
   check "\`main\` is untouched: the switch is on its own branch" "[ \"\$(git rev-list --count main)\" = 1 ] && [ \"\$(git branch --show-current)\" != main ]"
 fi
+if [ "${3:-}" = scripted-upgrade ]; then
+  echo "### Checks — the scripted upgrade"
+  check() { if eval "$2"; then echo "- ✓ $1"; else echo "- ✘ $1"; fi; }
+  gd="$(git rev-parse --absolute-git-dir)"
+  transcripts="$2 ${2%.jsonl}.2.jsonl"
+  # The Bash commands of both turns, in order, one per line.
+  cmds="$(python3 - $transcripts <<'PY'
+import json, sys
+for path in sys.argv[1:]:
+    try:
+        lines = open(path)
+    except OSError:
+        continue
+    for raw in lines:
+        try:
+            d = json.loads(raw)
+        except ValueError:
+            continue
+        for block in (d.get("message") or {}).get("content", []) if d.get("type") == "assistant" else []:
+            if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Bash":
+                print(" ".join(block["input"].get("command", "").split()))
+PY
+)"
+  dry=$(printf '%s\n' "$cmds" | grep -n 'adf-upgrade.*--dry-run' | head -1 | cut -d: -f1)
+  real=$(printf '%s\n' "$cmds" | grep -n 'adf-upgrade' | grep -v -e '--dry-run' | head -1 | cut -d: -f1)
+  check "adf-upgrade --dry-run ran before the run" "[ -n '$dry' ] && [ -n '$real' ] && [ '$dry' -lt '$real' ]"
+  check "\`main\` is untouched: the upgrade is on its own branch" "[ \"\$(git rev-list --count main)\" = 1 ] && [ \"\$(git branch --show-current)\" != main ]"
+  check "everything is committed" "[ -z \"\$(git status --porcelain)\" ] && [ \"\$(git rev-list --count HEAD)\" -gt 1 ]"
+  check "nothing was pushed" "! printf '%s\n' \"\$cmds\" | grep -q 'git push'"
+  check "AGENTS.md keeps the team's line" "grep -q 'never write to it from the site' AGENTS.md"
+  check "the stamp moved past v2.3.0 and keeps install: packaged and the docker module" \
+    "head -1 AGENTS.md | grep -q 'install: packaged' && head -1 AGENTS.md | grep -q 'modules: docker' && ! head -1 AGENTS.md | grep -q 'v2.3.0'"
+  check "deployment.md keeps the team's comment" "grep -q 'newsletter pipeline' .claude/rules/deployment.md"
+  check "settings.json parses and has no hooks block" "python3 -c 'import json,sys; sys.exit(\"hooks\" in json.load(open(\".claude/settings.json\")))'"
+  check "autoUpdate is on the aplyca entry" \
+    "python3 -c 'import json,sys; sys.exit(not json.load(open(\".claude/settings.json\"))[\"extraKnownMarketplaces\"][\"aplyca\"].get(\"autoUpdate\"))'"
+  rules() { python3 -c 'import json,sys; print(json.dumps(json.load(open(".claude/settings.json"))["permissions"].get(sys.argv[1], [])))' "$1"; }
+  check "covered allow rules are gone; the covering ones stay" \
+    "! rules allow | grep -q 'Bash(make test)' && ! rules allow | grep -q 'Bash(git status)' && rules allow | grep -q 'Bash(make \*)' && rules allow | grep -q 'Bash(git \*)'"
+  check "the docker ask rules are still there" "rules ask | grep -q 'docker rm \*'"
+  check "the task that deletes data has an ask rule" "rules ask | grep -q 'make wipe-db'"
+  check "the report was written" "[ -f '$gd/adf-upgrade/report.md' ] && [ -f '$gd/adf-upgrade/report.json' ]"
+  check "the Follow-ups section is in the report" "grep -q '^## Follow-ups' '$gd/adf-upgrade/report.md'"
+fi

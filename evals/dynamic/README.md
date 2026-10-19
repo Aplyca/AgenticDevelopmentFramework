@@ -25,7 +25,8 @@ dynamic/
     upgrade/
       project.sh                   - builds a committed adoption at v1.0.0, from that tag
       inspect.sh                   - records the end state; checks the switch to the packaged install
-      ...                          - /upgrade switching a committed project to the packaged install
+      project-v2.sh                - builds a packaged adoption at v2.3.0 with the docker module (the scripted-upgrade case)
+      ...                          - /upgrade switching a committed project to the packaged install; the scripted upgrade
     plugin-hooks/
       project.sh                   - builds a project on the packaged install, with something for each hook to stop
       inspect.sh                   - checks that the case's hook fired (or stood down): ✓ or ✘ per check
@@ -84,6 +85,18 @@ suite builds a committed adoption at v1.0.0 from that tag (`project.sh` gets thi
 `check-packaged.sh`: the stamp naming the newest release and its commit, no framework machinery committed, the plugin pinned to that release and
 turned on, no `hooks` block, the stamp, and the names people type — each marked ✓ or ✘ — plus the PDR
 that records the choice. Both are long sessions; run them on one model.
+
+The upgrade suite's **scripted-upgrade** case checks the scripted upgrade
+([decision 0046](../../docs/decisions/0046-a-scripted-upgrade-from-the-new-release.md)). Its
+`setup.sh` swaps the suite's project for a packaged adoption at v2.3.0 with the `docker` module — the
+team's lines in `AGENTS.md` and a rule, a Makefile task that deletes data, and two allow rules a broader
+one covers — and sets `ADF_FRAMEWORK` to the session's copy of this checkout. Until a release carries
+`scripts/upgrade.py`, a shim in the case's `PATH` runs the checkout's script as an unreleased commit.
+`inspect.sh` checks the order of the commands (`adf-upgrade --dry-run` first), that `main` is untouched
+and everything is committed, that the customizations survived, the pin's `autoUpdate`, the dropped
+rules and the new ask rule, the report, and that nothing was pushed; the pull request body, the
+approvals asked, and the hand-over to the new release's skill are read against the expected file. It
+has no `parallel-agents`, which would make the project a hub and send the upgrade into a worktree first.
 
 The **plugin-hooks** suite checks the `adf` plugin's hooks in real sessions, which the static
 hook tests can't: that Claude Code runs them from the plugin, and that what they print reaches the
