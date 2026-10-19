@@ -51,6 +51,10 @@ the close-up only once it resumes and ends.
      - **None, on a branch with no commits past the base** — an **answer**: go on when it was
        delivered where the task asked. With commits and no pull request, the work isn't delivered:
        say so and stop.
+   - **The follow-ups,** for a merged pull request: its body (`gh pr view --json body`), from the line
+     `## Follow-ups` to the next heading. Each unchecked line, `- [ ] \`<command>\` — <why> (<source>)`,
+     is work the merge made necessary — `/adf:upgrade` writes them (issue #89). `- none`, a checked
+     line, or no section: nothing to offer.
    - **The working tree:**
      - `git status --porcelain` — uncommitted changes, including untracked files;
      - `git stash list` — stashes from this branch;
@@ -78,12 +82,15 @@ the close-up only once it resumes and ends.
    - Stop what it started: <the containers, the app on the host, the background commands>
    - Remove the worktree <path> and its branch <type>/<slug> (here and on origin)
    - Update <base> in the main checkout to origin's
+   - Start, each in its own session, once <base> is updated: <the follow-up commands, with why>
    - Archive this session
    ```
    The first line names the ending: `PR #<n> merged`, `The answer is delivered`, or `PR #<n> closed
    and the task is dropped`. An abandoned task keeps its branch **on origin** — the closed pull
    request points at it and can be reopened — so its line reads "its branch <type>/<slug> (here
    only; origin's stays)". Drop a line that doesn't apply. In a terminal, the last line is "end this session (`/exit`)".
+   Follow-ups are not unfinished work, so they don't block the close-up: they ride in the same yes,
+   and the developer can drop any of them from it.
    Wait for the yes. A "yes, but keep the session" or "keep the branch" changes only that line.
 
 5. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
@@ -112,9 +119,17 @@ the close-up only once it resumes and ends.
 
       The main checkout's base branch is updated only when it is checked out there and the main
       checkout has no uncommitted changes. Otherwise, say why it wasn't updated.
-   4. **Report, then archive.**
-      - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, and
-        anything that didn't happen and why.
+   4. **Start the follow-ups,** when the list had any and the developer kept them. Each one is a
+      session of its own, from the updated base branch in the main checkout, because it needs the merged
+      change; it changes the project's environment or tests and goes through its own review.
+      - **In the desktop app:** call `start_session` once per follow-up, `"fresh"`, with the command as
+        the brief and its why and source; the yes was the developer's ask. Don't run the command here.
+      - **In a terminal:** print each command, for the developer to run in a new session from the main
+        checkout.
+      - If the base branch wasn't updated, say so: the follow-up would start without the merge.
+   5. **Report, then archive.**
+      - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, the
+        follow-ups started, and anything that didn't happen and why.
       - **Archive, in the desktop app:** in the same turn, call the app's `archive_session` with
         `"self"` and the ending as the reason: `PR #<n> merged`, `Answer delivered`, or `PR #<n>
         closed, task dropped`. The conversation ends there.
@@ -136,6 +151,7 @@ the close-up only once it resumes and ends.
 | "The pull request closed, so the task is abandoned" | Closed can mean replaced, paused, or closed by mistake. Only the developer says it's dropped, and even then origin's branch stays. |
 | "It's on hold, but I'll close up the worktree to free the port" | On hold means it resumes. Stop what's running if the developer asks; the worktree, branch, and session stay. |
 | "It was only an answer, nothing to check" | An answer can leave a stash, a scratch branch, a running environment, or a follow-up you promised. Check, then ask once. |
+| "The upgrade's follow-ups are mine to run now" | They change the project's environment and tests: each belongs in its own session and review. Offer them; start them in their own sessions. |
 
 ## Red flags (stop and reassess)
 
@@ -150,6 +166,7 @@ the close-up only once it resumes and ends.
 - [ ] The ending is real, by the host's own state, not by the conversation: merged; closed and dropped in the developer's words; or an answer delivered, with no commits past the base
 - [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md`; no promise left
 - [ ] The developer saw the full list and said yes once, before anything was stopped or removed
+- [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, never run here
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] The report says what happened, including anything that didn't; the archive came last
 
