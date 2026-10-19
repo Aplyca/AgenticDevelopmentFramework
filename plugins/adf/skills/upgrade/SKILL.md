@@ -64,8 +64,13 @@ manual procedure (Steps 1–6) is for what it refuses.
    need none.
 8. **Deliver** (Step 6, 2–5): commit, write the PR body from the report — the releases, what needs a
    person and how it was resolved, each clean merge with its hunk count, the migrations, the dropped
-   rules, the checks — and push the draft. Give the developer **On each machine** and **Follow-ups**
-   as the report lists them.
+   rules, the checks — and push the draft. Give the developer **On each machine** as the report lists
+   it.
+   - **Follow-ups ride in the PR body** (issue #89): copy the report's `## Follow-ups` section into it
+     as it stands, the heading and one `- [ ] \`<command>\` — <why> (<source>)` line per item, or
+     `- none`. The merged PR is what survives the upgrade branch, and `/adf:wrap-up` reads it from there
+     after the merge to offer each one in its own session. Don't rename the heading or reword the lines,
+     and don't run the commands during the upgrade.
 
 ## Step 1 — Establish OLD_SHA and the installed modules
 

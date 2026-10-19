@@ -11,6 +11,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **`/adf:upgrade` records the follow-ups in the PR body; `/adf:wrap-up` offers to start them**
+  ([#89](https://github.com/aplyca/AgenticDevelopmentFramework/issues/89)).
+  - **Why:** when a release changes a specification a project's setup was built from, the project
+    needs `/adf-dev:dev-env set up` or `/adf-dev:e2e audit` after the merge, and the developer had to
+    notice that.
+  - **Now:** the upgrade's draft PR body carries the report's `## Follow-ups` section, one
+    `- [ ] \`<command>\` — <why> (<source>)` line per item. After the merge, `/adf:wrap-up` reads it
+    from the merged PR and adds the unchecked items to its single close-up yes; each kept one starts
+    in its own session from the updated base branch (a printed command in a terminal). The commands
+    never run during the upgrade or inside wrap-up.
+  - **Upgrade impact:** merge for the `upgrade` and `wrap-up` skills in a committed install (a packaged
+    install gets them with the plugin). No migration steps.
 - **Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every
   ending** ([decision 0047](docs/decisions/0047-sessions-move-to-done.md)).
   - **Why:** a developer running several sessions came back to one and couldn't tell what it waited
