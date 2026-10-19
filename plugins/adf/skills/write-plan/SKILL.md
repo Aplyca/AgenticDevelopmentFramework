@@ -107,8 +107,9 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
 ## After approval
 
 The plan is a living record. When implementation contradicts it, `/adf:implement` corrects `plan.md` in
-the same branch. If the change surface grows — a new layer, a new shared component, a file outside
-the table — stop and re-confirm with the developer before continuing.
+the same branch. If the change surface grows into risk — a new layer, a new dependency, an escalation
+trigger — stop and re-confirm with the developer before continuing. Other growth, such as a file
+outside the table, is recorded in `plan.md` and the pull request, and work goes on.
 
 ## Rationalizations (do not accept these)
 

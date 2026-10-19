@@ -30,6 +30,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Generated files and append-only history are not hand-edited | `.claude/hooks/protect-paths.sh` (PreToolUse) |
 | Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
 | Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
+| A session hears once when its branch's pull request merged or closed, so it offers `/wrap-up` or asks whether the task is dropped | `.claude/hooks/pr-state.sh` (SessionStart, UserPromptSubmit) |
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
 | The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 | With the parallel-agents module, file edits in the main checkout are stopped, so each task moves to its own worktree first (`/dispatch`) | `.claude/hooks/protect-hub.sh` (PreToolUse) |
@@ -65,7 +66,7 @@ name it to the developer rather than working around it.
 | Change | Lane | Workflow | Model |
 |---|---|---|---|
 | Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit`; a light `CR N` in the same commit when it changes recorded behavior | `sonnet` |
-| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part | `sonnet`, high effort |
+| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part before the push | `sonnet`, high effort |
 | New feature, unclear requirement, a design choice, cross-layer work, a change request with something to decide | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus` up to the gate; a fresh `sonnet` session from `/write-docs` on |
 | Bug, cause unknown | — | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
 | Refactor with no behavior change | Fast, or full when it sets a structure others must follow | `/refactor` → tests still green → `/commit` | `sonnet` |

@@ -405,6 +405,46 @@ else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: a committed install read another project's config"
 fi
 
+# pr-state — a fake gh answers for the branch's pull request; the hook speaks once per new state.
+PS="$WORK/prstate"
+mkdir -p "$PS" "$WORK/fakegh" && git -C "$PS" init -q -b main
+git -C "$PS" -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m init
+cp -R "$HOOKS_SRC" "$PS/.claude-hooks"
+mkdir -p "$PS/.claude" && mv "$PS/.claude-hooks" "$PS/.claude/hooks"
+printf '#!/usr/bin/env bash\necho "$FAKE_PR" >>"%s/gh-calls"\nprintf "%%s\\n" "$FAKE_PR"\n' "$WORK" >"$WORK/fakegh/gh"
+chmod +x "$WORK/fakegh/gh"
+ps_cache="$PS/.git/adf-pr-state"
+ps() { # ps <event> <fake "number STATE"> → the hook's output
+    printf '{"cwd":"%s","hook_event_name":"%s"}' "$PS" "$1" | FAKE_PR="$2" PATH="$WORK/fakegh:$PATH" "$PS/.claude/hooks/pr-state.sh"
+}
+ps_check() { # ps_check <description> <condition-exit>
+    if [ "$2" = 0 ]; then PASS=$((PASS+1)); echo "✓ pr-state.sh: $1"; else FAIL=$((FAIL+1)); echo "✘ pr-state.sh: $1"; fi
+}
+: >"$WORK/gh-calls"
+out="$(ps SessionStart "42 MERGED")"
+ps_check "says nothing on a protected branch, and doesn't ask gh" $([ -z "$out" ] && [ ! -s "$WORK/gh-calls" ]; echo $?)
+git -C "$PS" switch -q -c feat/newsletter-signup
+out="$(ps SessionStart "42 OPEN")"
+ps_check "an open pull request is nothing to report" $([ -z "$out" ]; echo $?)
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "asks gh at most every five minutes on a prompt" $([ -z "$out" ]; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "a merge noticed on a prompt points at the wrap-up" $(echo "$out" | grep -q 'PR #42 .*merged.*wrap-up'; echo $?)
+sed -i.bak 's/ [0-9]* MERGED/ 0 MERGED/' "$ps_cache"
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "says it once: the same state on a later prompt is silent" $([ -z "$out" ]; echo $?)
+out="$(ps SessionStart "42 MERGED")"
+ps_check "says it again at session start, where the context is new" $(echo "$out" | grep -q 'merged'; echo $?)
+out="$(ps SessionStart "")"
+ps_check "with gh failing, the last known state stands" $(echo "$out" | grep -q 'PR #42 .*merged'; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "42 CLOSED")"
+ps_check "a pull request closed unmerged asks whether the task is dropped" $(echo "$out" | grep -q 'closed without merging.*dropped'; echo $?)
+echo 'PR_STATE=""' >>"$PS/.claude/hooks/config.sh"
+out="$(ps SessionStart "42 MERGED")"
+ps_check "an empty PR_STATE turns it off" $([ -z "$out" ]; echo $?)
+
 echo "==================================="
 echo "Results: $PASS passed, $FAIL failed"
 echo ""

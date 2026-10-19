@@ -45,11 +45,16 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    Docs-only and CI-only work has nothing to run: the full gate and a clean `/adf:review` stand in for
    the local check.
 
+   **Careful lane: the developer's yes before the push.** Once the local check passes, show the risky
+   part in one message — the area, what the checklist found, what you walked — and wait for their
+   yes. It's the lane's one stop, so ask it once, with everything in front of them. A push can
+   deploy a preview against shared services; that's what the yes guards.
+
 3. **Verify the pull request, not just the diff.**
    - `git log --oneline <base>..HEAD` and `git diff --stat <base>...HEAD`: no unrelated files, no
      debug leftovers, no generated files or secrets.
-   - Every changed file is inside the plan's change surface — or the plan was updated and
-     re-confirmed. Say which in the description.
+   - Every changed file is inside the plan's change surface — or the plan was updated, and
+     re-confirmed when the growth reached a risk. Say which in the description.
    - The description you're about to write claims nothing the diff doesn't do, and omits nothing it
      does.
 
@@ -124,16 +129,17 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    check): the pull request URL, and that it is a **draft**. Then where the developer can test it:
    the local URL — the environment you left running — and the preview's, with what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
    and what you could not. A fix they ask for goes on the same branch: walk it locally again, push,
-   and recheck the preview. Don't ask or remind the developer to review it,
-   mark it ready, or merge it, and don't offer to: when those happen is theirs. Never request
-   reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
+   and recheck the preview. Close with their next step, once: test it; ready and merge are theirs;
+   you'll wrap up after the merge (`/adf:wrap-up`). Don't remind them on later turns or offer to
+   promote it: when those happen is theirs. Never request reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
    and never on your own initiative.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll end with 'review it and mark it ready when you're happy'" | The developer knows their process. A reminder at the end of every task is noise, and an offer to promote is a question they didn't ask. Report what you verified; ready, review, and merge are theirs. |
+| "I'll remind them to review and ready it each time they come back" | Their next step is named once, in the report. A reminder on every turn is noise, and an offer to promote is a question they didn't ask. Ready, review, and merge are theirs. |
+| "The report says where to test it; what comes after is obvious" | A developer switching between sessions comes back to this one cold. Name the next step and who takes it: their test, then ready and merge, then your wrap-up. |
 | "CI is green, so I'll mark it ready" | CI is a signal, not the gate. Ready means a person exercised the change; green tests aren't that. |
 | "I'll open it ready so the reviewer saves a click" | A ready pull request asks for attention now. Reviewers would spend it on a first QC pass the author should have done. |
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
