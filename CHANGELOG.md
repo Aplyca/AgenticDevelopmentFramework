@@ -11,6 +11,46 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.5.0 — 2026-10-18 — Sessions move to done, the agent's local check opens the draft, and a scripted upgrade
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts, and its one migration is a script the upgrade runs.
+
+- **Sessions move to done** (0047). Every turn ends with who acts next. The careful lane asks its one
+  yes before the push, the change surface stops work only when it grows into risk, a new
+  `pr-state.sh` hook says once when the branch's pull request merged or closed, and `/adf:wrap-up`
+  closes up every ending: merged, answered, or abandoned.
+- **The agent's own local check opens the draft** (0045). The agent walks the change on its
+  environment and, once it works, pushes and opens the draft without asking. The developer tests
+  after it, locally and on the preview, from one report with both URLs.
+- **A scripted upgrade** (0046). `adf-upgrade` runs the new release's `scripts/upgrade.py`, which does
+  every deterministic step; `/adf:upgrade` keeps only what needs a person, under one approval. Its
+  draft pull request lists the follow-ups, and `/adf:wrap-up` offers to start them after the merge
+  (#89).
+- **The parallel-agents guide ships in the plugin** (0044). The project keeps only
+  `docs/SHARED-SERVICES.md`, so a release that changes the model no longer costs a merge.
+
+**Upgrading from v2.4.0:**
+
+1. **Upgrade with the script, or with `/adf:upgrade`.** The v2.4.0 plugin's `/adf:upgrade` predates
+   the script and follows the manual procedure; to use the script for this upgrade, run
+   `python3 scripts/upgrade.py <repo>` from a framework checkout at `v2.5.0`
+   ([docs/UPGRADING.md § The scripted upgrade](docs/UPGRADING.md#the-scripted-upgrade)). From this
+   release on, `/adf:upgrade` runs it for you. Either way, one draft pull request:
+   - merges the changed lines in `AGENTS.md`, `specs/README.md`, `specs/_templates/plan.md`,
+     `.cursor/rules/implementation.mdc`, `.claude/rules/claude-code.md`, `.claude/rules/git-workflow.md`,
+     and `docs/getting-started/DEV-SETUP.md`, and adds the `PR_STATE` block to `.claude/hooks/config.sh`;
+   - with `parallel-agents`, splits `docs/PARALLEL-AGENTS.md` into `docs/SHARED-SERVICES.md`
+     (`scripts/migrations/v2.5.0/01-shared-services.py`);
+   - in a committed install, writes the release's machinery and merges the `hooks` block of
+     `.claude/settings.json`.
+2. **With `parallel-agents`,** trust the folder that holds the main checkout and its worktrees once,
+   on each machine, so moving into a new worktree stops asking.
+3. **To keep the developer's approval before the push,** say so in `AGENTS.md` § Delivery rules.
+4. **Nothing else is required.** A project on v2.4.0 keeps working until it upgrades.
+
+Each entry below lists its own **Upgrade impact**.
+
 - **`/adf:upgrade` records the follow-ups in the PR body; `/adf:wrap-up` offers to start them**
   ([#89](https://github.com/aplyca/AgenticDevelopmentFramework/issues/89)).
   - **Why:** when a release changes a specification a project's setup was built from, the project
@@ -106,7 +146,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       `scripts/adf-upgrade.sh`, a framework command beside the modules' (decision 0027).
     - **Per-release migrations** in `scripts/migrations/<version>/NN-<slug>.py`, idempotent, each named
       by its CHANGELOG entry: `scripts/migrations/v2.4.0/01-auto-update.py` (`autoUpdate`, decision 0041) and
-      `scripts/migrations/unreleased/01-shared-services.py` (the guide's split, decision 0044).
+      `scripts/migrations/v2.5.0/01-shared-services.py` (the guide's split, decision 0044).
     - **The taxonomy is data,** `scripts/upgrade-buckets.json`, and `docs/UPGRADING.md` names the files
       it lacked: the modules' `.worktreeinclude`, issue templates, and `.gitleaks.toml`, and the
       skeleton's starter pages (project-owned).
@@ -212,7 +252,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `/adf-dev:dev-env`, `/adf:upgrade`, the `docker` module's `MODULE.md`, and the docs.
 
   **Upgrade impact:**
-  - **With parallel-agents, either install — migration** (`scripts/migrations/unreleased/01-shared-services.py`): `/adf:upgrade` splits the project's
+  - **With parallel-agents, either install — migration** (`scripts/migrations/v2.5.0/01-shared-services.py`): `/adf:upgrade` splits the project's
     `docs/PARALLEL-AGENTS.md`. It writes `docs/SHARED-SERVICES.md` (additive) with the copy's owner
     line and what the team recorded in § Shared services. Then:
     - a copy unchanged elsewhere since OLD_SHA goes in a packaged project, and in a committed one

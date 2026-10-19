@@ -184,9 +184,9 @@ class Fake:  # just enough of an Upgrade for a migration's context
 f = Fake()
 f.ws = u.Workspace(p, False); f.repo = p; f.install = "packaged"; f.modules = ["parallel-agents", "docker"]
 f.dry = False; f.touched = set(); f.history = root
-f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.4.0")
+f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.5.0")
 ctx = u.MigrationContext(f)
-for folder, name, path in u.discover_migrations(root, "v2.0.0", "v2.4.0", True):
+for folder, name, path in u.discover_migrations(root, "v2.0.0", "v2.5.0", True):
     status, text = u.load_migration(path).run(ctx)
     print(f"{folder}/{name}: {status}")
 PY
