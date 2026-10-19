@@ -57,6 +57,7 @@ projects.
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
 | [0045](0045-agent-local-check-opens-the-draft.md) | The agent's own local check opens the draft, and the developer tests after it, locally and on the preview | accepted |
 | [0046](0046-a-scripted-upgrade-from-the-new-release.md) | An upgrade runs a script from the new release, and the developer approves only what needs a person | accepted |
+| [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

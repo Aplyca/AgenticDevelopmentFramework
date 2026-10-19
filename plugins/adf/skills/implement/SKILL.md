@@ -60,9 +60,12 @@ plan is the contract for **where** code goes (the change surface); the tests are
 
 - **Small deviation inside the change surface** (a different helper, an extra guard): update
   `plan.md` in the same commit and carry on.
-- **The change surface grows** — a new layer, a file outside the table, a shared component, a
-  migration, a dependency: **stop**. Explain what you found, update `plan.md`, and get the
+- **The change surface grows into risk** — a new layer, a new dependency, or an escalation trigger
+  (a migration, authorization, personal data, payments, a shared contract or shared code,
+  infrastructure, a sensitive area): **stop**. Explain what you found, update `plan.md`, and get the
   developer's re-confirmation (add an `approvals:` line) before continuing.
+- **It grows otherwise** — a file outside the table, in a layer the plan already touches: update
+  `plan.md` in the same commit, carry on, and list it in the pull request's description.
 - **A requirement turns out wrong or ambiguous:** stop and ask; the answer goes into the spec's
   Clarifications. Never guess.
 - **A test is genuinely wrong:** fix it in its own commit and say why. Never weaken a test to get

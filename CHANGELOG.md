@@ -25,6 +25,49 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
   **Upgrade impact:** none — framework evals only; nothing in `skeleton/`, `modules/`, or the plugins changes.
 
+- **Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every
+  ending** ([decision 0047](docs/decisions/0047-sessions-move-to-done.md)).
+  - **Why:** a developer running several sessions came back to one and couldn't tell what it waited
+    on. The report after the draft pull request was told to stay quiet, nothing noticed a merge on
+    the host, only a merged pull request could close up, and some stops came before the risk did.
+  - **Now:**
+    - **Every turn ends with what's next** (`AGENTS.md` § AI interaction rules). Reports, options, and
+      recommendations stay as they are; the closing says who acts next — the agent carrying on, the
+      developer with the decision or test it waits on, or something outside — and, when the work is
+      done, offers the step that closes it. A person is asked only at a gate.
+    - **The careful lane's yes comes once, before the push** — not before the commit — with the change
+      done and walked locally (`/adf:open-pr` asks it).
+    - **The change surface stops implementation only when it grows into risk:** a new layer, a new
+      dependency, or an escalation trigger. A file outside the plan's table is recorded in `plan.md`
+      and the pull request, and work goes on.
+    - **Moving up into careful carries on** with its checklist; moving up into full still stops.
+    - **The pull request report names the developer's next step once** — test it; ready and merge are
+      theirs; the agent wraps up after the merge. Still no reminders, offers to promote, or reviewers.
+    - **`pr-state.sh`,** a new hook (SessionStart, UserPromptSubmit), says once when the branch's pull
+      request merged (offer `/adf:wrap-up`) or closed without merging (ask whether the task is
+      dropped). One `gh` call at session start and at most one every five minutes after, limited to
+      five seconds where `timeout` is installed; silent without `gh`. `PR_STATE` in `config.sh` turns it off.
+    - **`/adf:wrap-up` closes up every ending:** merged, an answer delivered (no pull request, no
+      commits), or abandoned (closed, and the developer drops it — origin's branch stays). A task on
+      hold records why and what resumes it, and isn't closed up.
+  - **Where:** `skeleton/AGENTS.md`, `skeleton/specs/README.md`, `skeleton/specs/_templates/plan.md`,
+    `skeleton/.cursor/rules/implementation.mdc`, `skeleton/.claude/rules/claude-code.md`,
+    `skeleton/.claude/rules/git-workflow.md`, `skeleton/.claude/settings.json`, `skeleton/.claude/hooks/config.sh`; in `adf`, the new
+    `hooks/pr-state.sh`, `hooks/hooks.json`, `hooks/_lib.sh`, `hooks/README.md`, and the skills
+    `wrap-up`, `open-pr`, `implement`, `write-plan`, `spec-workflow`, `triage`, and `review`;
+    `docs/ONBOARDING.md`, `docs/SKILLS-REFERENCE.md`; the hook tests and static checks.
+
+  **Upgrade impact:**
+  - **Packaged install:** the hook and the skills come with the plugin. **Merge** `AGENTS.md`
+    (§ How work flows: the careful lane, moving up a lane, step 5; § Delivery rules: branches, pull
+    requests; § AI interaction rules: the new first bullet), `specs/README.md` (§ Lanes),
+    `specs/_templates/plan.md`, `.cursor/rules/implementation.mdc`, `.claude/rules/claude-code.md` (the lanes table,
+    the guardrails row), and `.claude/rules/git-workflow.md` (reviewing, readying, and merging). **Additive** in `.claude/hooks/config.sh`: the `PR_STATE`
+    block — without it the hook is on.
+  - **Committed install:** the same merges, plus **overwrite** `.claude/hooks/` (`pr-state.sh` is
+    new, `_lib.sh` reads `PR_STATE`) and the skills listed above, and **merge** the `hooks` block of
+    `.claude/settings.json`: `pr-state.sh` under `SessionStart` and a new `UserPromptSubmit` event.
+
 - **The deterministic part of an upgrade is a script; the developer approves only what needs a person**
   ([decision 0046](docs/decisions/0046-a-scripted-upgrade-from-the-new-release.md),
   [#86](https://github.com/aplyca/AgenticDevelopmentFramework/issues/86)).

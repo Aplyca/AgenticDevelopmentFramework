@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: After a task's pull request merges, check that nothing is left — no uncommitted or unpushed work, no stash, no open task or promised follow-up — then ask once to close up: update the base branch, stop what the task started, remove its worktree and branch, and archive the session. Use when the developer says the pull request merged ("merged", "it's in"), when the app reports the merge, or when asked to wrap up, close up, or clean up a finished task.
+description: When a task ends — its pull request merged, its answer delivered, or its pull request closed and the developer drops the task — check that nothing is left (no uncommitted or unpushed work, no stash, no open task or promised follow-up), then ask once to close up: stop what the task started, remove its worktree and branch, update the base branch, and archive the session. Use when the developer says the pull request merged ("merged", "it's in"), when the app or the pr-state hook reports the merge or the close, when an answer task is done, or when asked to wrap up, close up, or clean up a finished or abandoned task. Not for a task on hold.
 argument-hint: "[pull request, when it isn't this branch's]"
 ---
 
@@ -8,7 +8,9 @@ argument-hint: "[pull request, when it isn't this branch's]"
 
 # Wrap up
 
-A merged task leaves things behind:
+A task ends one of three ways: its pull request **merged**, its **answer delivered** (no pull
+request), or its pull request **closed** and the developer drops the task (**abandoned**). Each leaves
+things behind:
 - its branch, locally and on the host;
 - its worktree, beside the main checkout;
 - whatever it started: containers, a server on the host, a background command;
@@ -20,6 +22,11 @@ Over a week of parallel tasks they pile up.
 
 Wrapping up clears them, **with one yes and only when nothing is left**. Unfinished work is never
 cleared: the check comes first, and anything it finds is the developer's to decide.
+
+A task the developer puts **on hold** isn't ending: don't wrap it up. Record why, and what resumes
+it, where its record is — an `On hold:` line under § Gate results in `tasks.md`, or in the pull
+request's description; for an answer, in the session itself — and close the turn with that. Offer
+the close-up only once it resumes and ends.
 
 ## Steps
 
@@ -34,13 +41,21 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 
 2. **Read the state.** Run the reads together:
    - **The pull request:** `gh pr view --json number,url,state,mergedAt,headRefName,headRefOid` for
-     this branch, or the one the developer named (`glab mr view` on GitLab). It must be **merged**.
-     Closed without merging, or still open: say so and stop.
+     this branch, or the one the developer named (`glab mr view` on GitLab). Its state names the
+     ending:
+     - **Merged** — go on.
+     - **Closed without merging** — its work isn't upstream. Go on only once the developer says the
+       task is dropped (**abandoned**); otherwise ask, and stop.
+     - **Still open** — the task isn't over: say what it waits on (the developer's test, ready, the
+       merge) and stop.
+     - **None, on a branch with no commits past the base** — an **answer**: go on when it was
+       delivered where the task asked. With commits and no pull request, the work isn't delivered:
+       say so and stop.
    - **The working tree:**
      - `git status --porcelain` — uncommitted changes, including untracked files;
      - `git stash list` — stashes from this branch;
      - `git log --oneline <headRefOid>..HEAD` — commits made after the pull request's last one,
-       which the merge doesn't have.
+       which the merge doesn't have (for an answer, `git log --oneline <base>..HEAD`).
    - **The record:** in the spec folder, the unchecked tasks in `tasks.md`, the spec's open questions,
      and its `status:`. Then this session's own promises: a follow-up you said you'd do, a `/adf:handoff`
      not yet given, a side task you noted for later.
@@ -65,7 +80,10 @@ cleared: the check comes first, and anything it finds is the developer's to deci
    - Update <base> in the main checkout to origin's
    - Archive this session
    ```
-   Drop a line that doesn't apply. In a terminal, the last line is "end this session (`/exit`)".
+   The first line names the ending: `PR #<n> merged`, `The answer is delivered`, or `PR #<n> closed
+   and the task is dropped`. An abandoned task keeps its branch **on origin** — the closed pull
+   request points at it and can be reopened — so its line reads "its branch <type>/<slug> (here
+   only; origin's stays)". Drop a line that doesn't apply. In a terminal, the last line is "end this session (`/exit`)".
    Wait for the yes. A "yes, but keep the session" or "keep the branch" changes only that line.
 
 5. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
@@ -76,13 +94,16 @@ cleared: the check comes first, and anything it finds is the developer's to deci
         command (`docs/getting-started/DEV-SETUP.md`). `adf-worktree-rm` also runs `STOP_CMD` when
         the project sets one.
    2. **Remove the branch from origin,** if the host didn't delete it on merge
-      (`git ls-remote --heads origin <branch>`): `git push origin --delete <branch>`.
+      (`git ls-remote --heads origin <branch>`): `git push origin --delete <branch>`. Skip it for an
+      abandoned task, and for an answer whose branch was never pushed.
    3. **Remove the worktree and update the base branch.** Which way depends on the worktree:
       - **A worktree from the scripts:** `cd <main checkout> && adf-worktree-rm <branch>`.
         - It removes the worktree, fast-forwards the base branch in the main checkout, and deletes
           the branch when git sees it as merged.
         - After a squash merge, it keeps the branch and says so. Delete it with
-          `git -C <main checkout> branch -D <branch>`: the merged pull request holds its work.
+          `git -C <main checkout> branch -D <branch>`: the merged pull request holds its work. An
+          abandoned task's branch goes the same way: the state you read showed its last commit on
+          origin.
       - **Claude Code's own worktree** (under `.claude/worktrees/`): leave it. Archiving the session
         removes it. Update the base branch in the main checkout as below.
       - **No worktree** (a session in the main checkout):
@@ -95,7 +116,8 @@ cleared: the check comes first, and anything it finds is the developer's to deci
       - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, and
         anything that didn't happen and why.
       - **Archive, in the desktop app:** in the same turn, call the app's `archive_session` with
-        `"self"` and the reason `PR #<n> merged`. The conversation ends there.
+        `"self"` and the ending as the reason: `PR #<n> merged`, `Answer delivered`, or `PR #<n>
+        closed, task dropped`. The conversation ends there.
       - **If the app doesn't archive it** (the session is pinned, open on screen, or still has work
         running), say so: the developer archives it from the sidebar.
       - **In a terminal:** tell the developer the session is done, and that `/exit` ends it.
@@ -111,19 +133,21 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
-| "The pull request closed, close enough" | Closed without merging means its work isn't upstream. Removing the branch would lose it. |
+| "The pull request closed, so the task is abandoned" | Closed can mean replaced, paused, or closed by mistake. Only the developer says it's dropped, and even then origin's branch stays. |
+| "It's on hold, but I'll close up the worktree to free the port" | On hold means it resumes. Stop what's running if the developer asks; the worktree, branch, and session stay. |
+| "It was only an answer, nothing to check" | An answer can leave a stash, a scratch branch, a running environment, or a follow-up you promised. Check, then ask once. |
 
 ## Red flags (stop and reassess)
 
-- You're about to use `--force` with `adf-worktree-rm`, or to delete a branch whose pull request
-  isn't merged.
+- You're about to use `--force` with `adf-worktree-rm`, to delete origin's branch for a pull request
+  that isn't merged, or to delete a local branch whose last commit isn't on origin.
 - The check found uncommitted work, unpushed commits, or a stash, and you're about to close up anyway.
 - You're in the main checkout of a hub.
 - A command is about to run in the worktree after it was removed.
 
 ## Verification
 
-- [ ] The pull request is merged, by the host's own state, not by the conversation
+- [ ] The ending is real, by the host's own state, not by the conversation: merged; closed and dropped in the developer's words; or an answer delivered, with no commits past the base
 - [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md`; no promise left
 - [ ] The developer saw the full list and said yes once, before anything was stopped or removed
 - [ ] What the task started was stopped before its worktree was removed
@@ -131,6 +155,7 @@ cleared: the check comes first, and anything it finds is the developer's to deci
 
 ## Principles
 
+- Every ending gets a close-up; a task on hold gets none.
 - The check before the close-up; one yes for the close-up.
 - Unfinished work is never cleared — it's listed for the developer.
 - Each task's session wraps up its own task.
