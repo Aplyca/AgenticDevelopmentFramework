@@ -146,7 +146,11 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.4.0** (2026-10-18), is a minor release. With `parallel-agents`, each task's session
+The latest, **v2.5.0** (2026-10-18), is a minor release. Every session turn ends with who acts next,
+and `/adf:wrap-up` closes up every ending; the agent's own local check opens the draft pull request,
+and the developer tests after it; an upgrade runs a script from the new release and asks you only what
+needs a person; and the `parallel-agents` guide ships in the plugin. **v2.4.0** (2026-10-18), also a
+minor release: with `parallel-agents`, each task's session
 moves to its own worktree and the main checkout hands nothing out; only the developer changes the
 local mode; the pinned marketplace auto-updates, so an upgrade reaches every machine; and the new
 `time-tracking` module logs each day of a task in the tracker, as the AI-assisted time or a senior
