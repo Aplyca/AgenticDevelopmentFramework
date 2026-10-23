@@ -80,6 +80,7 @@ schema back).
 
 | State | Say |
 |---|---|
+| Work started (after triage) | "in progress" |
 | Pull request open | "in review" |
 | Merged into [the integration branch / preview] | "in acceptance testing" |
 | [Merged into `main` / released with a tag] | "live" |
