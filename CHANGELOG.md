@@ -58,6 +58,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/agents/spec-analyzer/`, `.claude/workflows/{deep-spec-analysis,deep-context-audit}.js`,
     and `docs/SPEC-MODEL.md` and `docs/PARALLEL-AGENTS.md`.
 
+- **Every lane commits, pushes, and opens its draft without asking — a standing go-ahead**
+  ([decision 0049](docs/decisions/0049-every-lane-pushes-without-asking.md)).
+  - **Why:** sessions still stopped before the push. The careful lane asked for a yes on the risky
+    part, and in every lane the tools' own defaults asked "commit and open the draft?", since the
+    framework never said its permission was standing. The developer tests every draft anyway,
+    locally and on the preview, so the question only delayed that test.
+  - **What changes:** once the local check passes, the agent commits, pushes the work branch, and
+    opens the draft in every lane, without asking. The careful lane keeps its checklist; the risky
+    part goes in the pull request's Lane line and leads the report, where the developer's test
+    starts. Ready, merge, reviews, releases, and writes the requester sees still wait for a person,
+    and moving up into full still stops for the spec.
+  - **Where:** `AGENTS.md` (§ Lanes, § Delivery rules), `.claude/rules/claude-code.md` (the
+    guardrail row, the lanes table, and a line that no reply or next-step box asks for them),
+    `specs/README.md` § Lanes; `/adf:open-pr`, `/adf:triage`, `/adf:review`, and
+    `/adf:spec-workflow`; decision 0047 is marked amended; the README, `ONBOARDING.md`,
+    `SKILLS-REFERENCE.md`, and the hotfix scenario.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md`, `.claude/rules/claude-code.md`, and `specs/README.md` — the careful
+    lane's yes before the push goes, and the standing go-ahead is added. A team whose previews share
+    data a migration can damage can keep a stop before careful-lane pushes in its own `AGENTS.md`.
+  - **Committed install:** overwrite for `.claude/skills/{open-pr,triage,review,spec-workflow}/`.
+
 - **An `end-user-docs` module: `/end-user-docs` writes a feature's end-user page in the doc tool end
   users read** ([decision 0048](docs/decisions/0048-end-user-docs-in-the-doc-tool.md)).
   - **Why:** a feature can need two kinds of docs. Technical docs, for the team and its agents, live

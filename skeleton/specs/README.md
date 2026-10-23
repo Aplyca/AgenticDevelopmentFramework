@@ -32,7 +32,7 @@ lane changes is how much gets written down and approved *before* the code exists
 | Lane | When | What happens |
 | --- | --- | --- |
 | **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. About 3 files or fewer, in one layer, and no escalation trigger | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test) → edit until it passes → `/commit`. When it changes what a spec records as delivered, add a [light change request](#change-requests) in the same commit; a fix that restores documented behavior needs none |
-| **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the developer confirms the risky part before the push — once, with the change done and walked locally. Still no spec folder: a light change request when it changes recorded behavior, a regression test for a bug |
+| **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the pull request names the risky part — the area, what the checklist found, what was walked locally — where the developer's test starts. The push and the draft need no yes. Still no spec folder: a light change request when it changes recorded behavior, a regression test for a bug |
 | **Full** | Something to decide: a requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves the design to us. Also a new feature, a new dependency, or work across layers or more than ~3 files | A spec folder and the [flow](#flow) below: spec → plan → tasks → approval gate → docs first → one red → green commit per task → review |
 
 Answers (investigations, impact analyses, estimates) and changes to how the team works (PDRs in
@@ -49,8 +49,8 @@ Answers (investigations, impact analyses, estimates) and changes to how the team
 
 Triggers are checked at triage **and again while working**. When the diff grows past the files
 stated at triage, a test outside the area fails, or no test can prove the change: move up a lane,
-keeping what's done, and tell the developer. Into careful, carry on with its checklist — the yes
-before the push covers it; into full, stop: the spec and the approval gate come before more code.
+keeping what's done, and tell the developer. Into careful, carry on with its checklist; into full,
+stop: the spec and the approval gate come before more code.
 
 ### Careful-lane checklists
 

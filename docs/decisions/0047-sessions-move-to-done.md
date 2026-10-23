@@ -1,6 +1,6 @@
 # 0047: Sessions move to done — each turn ends with what's next, fewer stops, and a close-up for every ending
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0049](0049-every-lane-pushes-without-asking.md) (the careful lane pushes without a yes)
 - **Date:** 2026-10-18
 - **Amends:** [0011](0011-lanes-ceremony-follows-risk.md) — when the careful lane's yes comes, and
   what moving up a lane stops for; [0039](0039-check-locally-then-on-the-preview.md) and

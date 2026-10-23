@@ -20,7 +20,7 @@ Most of what's here was proven in real client projects first — some built on t
 ## What's included
 
 - **Spec folders** — `specs/NNN-<slug>/` with `spec.md` (the multi-perspective WHAT and WHY), `plan.md` (constitution check, change surface, test strategy, documentation plan, assumptions), and `tasks.md` (one task per commit, each naming its test, plus recorded gate results). Change requests amend the same folder. ([Process](skeleton/specs/README.md) · [Spec model](plugins/adf/docs/SPEC-MODEL.md))
-- **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist and the developer's yes), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
+- **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist, and the risky part named for the developer's test), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
 - **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](plugins/adf/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
 - **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
 - **21 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, wrap-up after the merge, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, `/e2e` with `e2e`, `/track-time` with `time-tracking`, and `/end-user-docs` with `end-user-docs`. ([Catalog](docs/SKILLS-REFERENCE.md))
@@ -257,7 +257,7 @@ flowchart TD
     red --> edit["Edit"]
     edit --> green["The test passes"]
     green --> iscareful{"Careful lane?"}
-    iscareful -->|yes| checklist["The area's checklist<br/>@security-reviewer for authorization, data, payments<br/>the developer's yes on the risky part"]
+    iscareful -->|yes| checklist["The area's checklist<br/>@security-reviewer for authorization, data, payments<br/>the risky part named in the pull request"]
     iscareful -->|no| recorded
     checklist --> recorded{"Changes behavior<br/>a spec records?"}
     recorded -->|yes| lightcr["Light CR N in spec.md<br/>in the same commit"]
@@ -352,7 +352,7 @@ flowchart TD
 | Situation | Lane and workflow | Model | Playbook |
 |---|---|---|---|
 | Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | **Fast** — one-line triage → the test first, seen failing → edit → green → `/commit`; a light `CR N` when it changes recorded behavior | `sonnet` | [Change request § Light or full?](docs/scenarios/change-request.md#light-or-full) |
-| The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, data, or payments, and the developer's yes | `sonnet`, high effort | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
+| The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, data, or payments, and the risky part named in the pull request | `sonnet`, high effort | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
 | New feature, unclear requirement, a design choice, cross-layer work | **Full** — `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → your local check → `/open-pr` | `opus` up to the gate; a fresh `sonnet` session after it | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
 | Change request with something to decide | **Full** — `/write-spec` amends the folder as `CR N` → the same gate and loop, for the delta only, on a fresh branch | as the full lane | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
 | Bug, cause unknown | `/debug` → then the lane the fix needs: regression test (red) → fix (green) → `/commit` | `sonnet`; `opus` after two disproven hypotheses | [Debugging](docs/scenarios/debugging.md) |
