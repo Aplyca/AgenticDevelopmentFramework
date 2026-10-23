@@ -12,7 +12,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 ## Unreleased
 
 - **The agent keeps its draft's description current, and syncs with the base branch by a set
-  procedure** ([decision 0050](docs/decisions/0050-agent-owned-sections-of-the-pull-request.md)).
+  procedure** ([decision 0051](docs/decisions/0051-agent-owned-sections-of-the-pull-request.md)).
   - **Why:** an adopting team's agents improvised both. Descriptions still described the first push,
     or were rewritten from memory, dropping what people had added. Syncs rebased pushed history,
     pushed to a merged pull request's branch, and re-ran everything after a merge that touched no

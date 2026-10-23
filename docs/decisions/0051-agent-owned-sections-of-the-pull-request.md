@@ -1,4 +1,4 @@
-# 0050: The agent owns marked sections of its pull request's description, and refreshes them from the record
+# 0051: The agent owns marked sections of its pull request's description, and refreshes them from the record
 
 - **Status:** accepted
 - **Date:** 2026-10-23
