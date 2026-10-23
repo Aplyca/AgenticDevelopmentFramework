@@ -52,7 +52,7 @@ The full lane flows:
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
 | Local check | The agent, on the local environment | It walks the changed flow before any push | — |
 | Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and the local check; then where you test it, locally and on the preview | — |
-| Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
+| Keep the requester informed — started, in review, delivered | `/stakeholder-update` (from `/triage` and `/open-pr`, or when asked) | The requester's update and the task's status, shown to you first | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
 `specs/_templates/`; the slug joins folder, branch (`<type>/<slug>`), and pull request.
@@ -312,8 +312,9 @@ framework's own [decision records](decisions/README.md) are examples.
   every time. Never act on a task the developer isn't assigned to.
 - **Link, don't copy** — the tracker and the repository have different audiences and access.
 
-Tracker-originated work — light changes included — ends with an update to the requester, sent only
-when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
+Tracker-originated work — light changes included — updates the requester at three moments: started
+(after triage), in review (once the draft opens, with the preview and what to test), and delivered.
+Each is a draft, sent only when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
 if there's no tracker task). Check for business language, verified claims, and your status words —
 "in review", "in acceptance testing", "live". Post nothing.
 ([TRACKER-INTEGRATION.md](../skeleton/docs/TRACKER-INTEGRATION.md))

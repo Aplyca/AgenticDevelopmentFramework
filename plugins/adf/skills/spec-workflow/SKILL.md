@@ -63,7 +63,7 @@ implementation; invest in them early.
 | 7 | Reconcile + verify | `/adf:implement`, `/adf:review` | Docs updated; `tasks.md` § Gate results | `docs:` |
 | 8 | Local check | The agent, on the local environment | The flow walked | — |
 | 9 | Deliver (once the local check passes) | `/adf:open-pr` | Draft pull request | — |
-| 10 | Close the loop (when asked) | `/adf:stakeholder-update` | Requester-facing message | — |
+| 10 | Keep the requester informed — started after triage, in review once the draft opens, delivered | `/adf:stakeholder-update` | The update's draft and the task's status, posted on the developer's yes | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change

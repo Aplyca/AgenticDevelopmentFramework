@@ -122,9 +122,11 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
    The developer's QC on the preview still decides ready; yours is evidence for it.
 
-8. **Offer — don't do — the tracker link-back** in the report. Adding the pull request link to the
-   tracker task is a write the requester can see: show the exact text and post it only on the
-   developer's yes.
+8. **Draft the review update** for a tracker task (`/adf:stakeholder-update review`): the task's move
+   to the project's review status, and a business-focused report for the requester — what changes
+   for them, the preview and what to test there, and the pull request link, which is the tracker
+   link-back. It ends the report in step 9. Post it only on the developer's yes to the exact text,
+   the status, and the assignee — often after their own test.
 
 9. **Report — once, after the preview walk** (or right after step 6 when there's no preview to
    check): the pull request URL, and that it is a **draft** — in the careful lane, the risky part
@@ -134,7 +136,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    and recheck the preview. Close with their next step, once: test it; ready and merge are theirs;
    you'll wrap up after the merge (`/adf:wrap-up`). Don't remind them on later turns or offer to
    promote it: when those happen is theirs. Never request reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
-   and never on your own initiative.
+   and never on your own initiative. For a tracker task, the review update's draft and its one
+   question come last (step 8).
 
 ## Rationalizations (do not accept these)
 
@@ -153,7 +156,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
 | "I walked it locally — the developer will find the rest" | The report tells them where and what to test: the local URL, the preview's, and the criteria. A draft with no instructions makes them reconstruct the task. |
-| "I'll post the link on the tracker task while I'm here" | That's a write the requester sees. Confirm the exact text first, every time. |
+| "I'll move the task to Review and post the link while I'm here" | Both are writes the requester sees. Draft them as the review update, at the end of the report; post on the developer's yes to the exact text. |
 
 ## Red flags (stop and reassess)
 
@@ -177,6 +180,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 - [ ] The description matches the diff — no phantom or missing changes
 - [ ] Merge danger says whether a revert undoes the change and what it affects if wrong
 - [ ] The pull request URL is recorded in `spec.md` `pull-requests:`
+- [ ] For a tracker task, the report ends with the review update's draft: the review status, the preview and what to test there, and the pull request link
 - [ ] No tracker write was made without the developer's explicit yes on the exact text
 
 ## Principles
