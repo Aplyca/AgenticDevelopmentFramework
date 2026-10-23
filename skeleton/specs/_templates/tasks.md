@@ -27,6 +27,7 @@
      before the implementation tasks. Delete this phase when the plan lists none. -->
 
 - [ ] T001 — [Doc] for [audience] (→ AC1, AC2)
+- [ ] T002 — Draft the end-user page [page] in the doc tool (→ AC1, AC2) — draft: [link]
 
 ## Phase 2 — Foundation
 
@@ -51,7 +52,7 @@
 
 ## Phase 5 — Reconcile & polish
 
-- [ ] T040 — Reconcile committed docs with what was built (→ Documentation)
+- [ ] T040 — Reconcile committed docs, and the end-user draft, with what was built (→ Documentation)
 - [ ] T041 — Post-implementable docs (→ Documentation)
 - [ ] T042 — Record gate results below
 

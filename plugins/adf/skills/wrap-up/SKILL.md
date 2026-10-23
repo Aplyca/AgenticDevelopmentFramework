@@ -76,6 +76,12 @@ the close-up only once it resumes and ends.
    worktree is still there to measure. The developer may skip it. Without the module, say nothing
    about time.
 
+   An end-user page waiting to be published isn't work left over either. Only when the stamp names
+   the `end-user-docs` module, the pull request merged, the spec lists an end-user page whose draft
+   isn't retired yet, and `docs/END-USER-DOCS.md` publishes after the merge, offer
+   `/adf:end-user-docs publish` once, before the close-up. The developer may skip it: a release
+   publishes it later. Without the module, say nothing about end-user docs.
+
 4. **Ask once.** Show what the close-up will do, in order, naming the real paths and branches:
    ```
    PR #<n> merged, and nothing is left in this task. Close up?

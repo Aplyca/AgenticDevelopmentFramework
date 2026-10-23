@@ -13,9 +13,9 @@ behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no
 
 Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-docs`, `implement`,
 `review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
-`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`.
+`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`.
 
-- [ ] `/open-pr` sets `disable-model-invocation: true`; `/stakeholder-update` shows the draft and asks before posting when nobody asked for it
+- [ ] `/open-pr` sets `disable-model-invocation: true`; `/stakeholder-update`, `/track-time`, and `/end-user-docs` show the draft and ask before posting
 
 ## Agents and workflows
 

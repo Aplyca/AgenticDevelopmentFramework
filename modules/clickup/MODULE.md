@@ -40,6 +40,10 @@ In `docs/TRACKER-INTEGRATION.md`:
    time-tracking tools, which read and write a task's time entries, and the tag that marks the number
    each entry carries. Reading them falls under the read-only allowlist; writing one prompts, after
    the developer approves the draft.
+6. **End-user docs** — with the `end-user-docs` module, `docs/END-USER-DOCS.md` names the ClickUp Doc
+   end users read, a private Doc for drafts, and ClickUp's page tools: `clickup_list_document_pages`
+   and `clickup_get_document_pages` read, under the allowlist; `clickup_create_document_page` and
+   `clickup_update_document_page` write, and prompt, after the developer approves the page.
 
 ## Good to know
 

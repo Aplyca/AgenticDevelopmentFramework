@@ -19,7 +19,8 @@ plan is the contract for **where** code goes (the change surface); the tests are
   change request). If not, stop: the approval gate in `/adf:write-plan` hasn't happened.
 - The spec folder is committed (`spec:`).
 - If `plan.md` lists pre-implementable docs, they're committed (`docs:`) and their Phase 1 tasks
-  are ticked. If not, run `/adf:write-docs` first.
+  are ticked. If not, run `/adf:write-docs` first — and `/adf:end-user-docs` for an end-user page's
+  draft.
 - The environment the tests need is up — start it now if triage deferred it — and host
   dependencies are installed so the git hooks can run on commit.
 
@@ -80,12 +81,15 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 - **Small fix** (a sentence, a field name): fold it into the task's commit and say so in the body.
 - **Meaningful revision** (changed behavior, a new section): its own `docs:` commit; for a large
   rework, re-run `/adf:write-docs` in update mode.
+- **An end-user page's draft** lives in the doc tool, not the repository: when the build changes what
+  it says, update it with `/adf:end-user-docs update`.
 - **Never** ship code that contradicts a committed doc.
 
 ## Phase 3: Finish
 
-11. **Reconcile and backfill** — the Phase 5 tasks: committed docs checked claim by claim against
-    what was built; post-implementable docs (runbooks, troubleshooting) written or listed for later.
+11. **Reconcile and backfill** — the Phase 5 tasks: committed docs, and an end-user page's draft,
+    checked claim by claim against what was built; post-implementable docs (runbooks,
+    troubleshooting) written or listed for later.
 12. **Run the full gate** — the verification checklist in `tasks.md`: lint, typecheck, every test
     layer this environment can run.
 13. **Record the gate results** in `tasks.md`: the red-then-green evidence per task, commands and

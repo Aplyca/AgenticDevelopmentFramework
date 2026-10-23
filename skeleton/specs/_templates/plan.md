@@ -89,11 +89,14 @@ before implementation tasks, when the team wants the verification contract up fr
 ## Documentation plan
 
 <!-- From spec.md § Documentation. Pre-implementable docs become Phase 1 tasks (written before
-     code); post-implementable docs become Phase 5 tasks. "None — <reason>" is valid. -->
+     code); post-implementable docs become Phase 5 tasks. "None — <reason>" is valid. An end-user
+     page (end-user-docs module) is a Phase 1 task too — its draft in the doc tool — and is
+     published after the feature ships, outside tasks.md. -->
 
 | Doc | Audience | Pre / post | Task |
 | --- | --- | --- | --- |
 | [`docs/admin/<feature>.md`] | [site administrator] | pre | [T001] |
+| [User guide › Newsletter › Subscribe] | [site visitors] | end-user | [T002] |
 
 ## Rollout & deployment
 
