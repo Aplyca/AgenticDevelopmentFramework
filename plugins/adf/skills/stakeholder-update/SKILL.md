@@ -1,6 +1,6 @@
 ---
 name: stakeholder-update
-description: Draft the client-facing update for a tracker task once its pull request is open or merged — why it wasn't working or what was needed, what was done, its status, verified findings, and direct questions, in the client's terms — show it, and post it on the pull request so the team can relay it. Posts on the tracker only when the developer asks. Use when asked to update the client, stakeholder, or requester, to reply on the tracker task, to tell the client what was done, or to write the final message to the client.
+description: Draft the client-facing update for a tracker task once its pull request is open or merged — why it wasn't working or what was needed, what was done, its status, verified findings, and direct questions, in the client's terms — with screenshots when they help, and show it in chat; the draft is the deliverable. Posts it on the tracker only after the developer approves the exact text and its assignee; never on the pull request. Use when asked to update the client, stakeholder, or requester, to reply on the tracker task, to tell the client what was done, or to write the final message to the client.
 argument-hint: "[tracker task link or ID] [pull request number]"
 ---
 
@@ -9,9 +9,10 @@ argument-hint: "[tracker task link or ID] [pull request number]"
 # Stakeholder Update
 
 Write the message that tells the client what was done on their tracker task. "Client" means whoever
-asked for the work — a customer, a product owner, another team. The team relays the message, so the
-draft goes on the pull request. **Nothing reaches the tracker without the developer's approval of
-the exact text.**
+asked for the work — a customer, a product owner, another team. **The draft shown in chat is the
+deliverable.** It goes on the tracker only after the developer approves the exact text; if the
+developer posts it themselves, nothing is posted anywhere. It never goes on the pull request:
+reviewers aren't its audience, and a second copy drifts from the one the client reads.
 
 It is the last step of every workflow for tracker-originated work, light changes included.
 
@@ -20,8 +21,9 @@ It is the last step of every workflow for tracker-originated work, light changes
 Read these before writing; they hold what this skill doesn't hardcode:
 
 - **Status words** — `CONTRIBUTING.md` § Status words for requesters (mapped to the branching model).
-- **Links the client can act on, and the tracker's valid statuses** — `docs/TRACKER-INTEGRATION.md`
-  § Stakeholder updates: the live site, preview URLs, CMS entry links, and how to list task statuses.
+- **Links and the tracker's conventions** — `docs/TRACKER-INTEGRATION.md` § Stakeholder updates: the
+  live site, the stable preview address, preview URLs, CMS entry links, how to list task statuses,
+  whether a comment can show an image inline, and how to mention someone.
 
 ## Steps
 
@@ -42,22 +44,49 @@ Read these before writing; they hold what this skill doesn't hardcode:
    Don't give dates unless the developer provides one.
 
 3. **Write the draft**, following the style rules and template below, in the language the client
-   uses on the task.
+   uses on the task. Where a screenshot belongs, put a line of its own:
+   `[Screenshot N: <what it shows>]`.
 
-4. **Show the full draft to the developer in chat,** as the last text of your turn: text written just
-   before a tool call can reach the developer only as a summary, and a question dialog's preview
-   may not display.
+4. **Take the screenshots** — only when a picture shows the client something words can't, such as
+   the fix working. Take them from the preview or the live site, **read-only**: submit no form,
+   change no setting, edit no content. With Playwright (the `e2e` module, or a browser tool the
+   session has):
+   - Use a desktop viewport, such as 1440×900, and `deviceScaleFactor: 2`, so text stays sharp
+     when the tracker scales the image down.
+   - Wait for the data the shot depends on: the element with its content, not only the page load.
+   - Hide consent banners by injecting CSS after load, such as
+     `page.addStyleTag({ content: '<banner selector> { display: none !important; }' })`. **Never
+     accept or decline cookies** — either one records a consent choice on the site.
+   - Screenshot the element the sentence points at (`locator.screenshot()`), not the full page.
+   - Save each file outside the repository, named for what it shows.
 
-5. **Post it on the pull request** as a single comment, with the team note from the template on top,
-   once the developer approves the draft in chat. No permission prompt confirms `gh pr comment`, so
-   ask before posting, even when they asked for the update. For revisions,
-   edit that same comment instead of adding new ones:
-   `gh api -X PATCH repos/<owner>/<repo>/issues/comments/<id> -F body=@<file>`.
-   With no pull request — an answer-only task — the draft in chat is the deliverable.
+   Show each image to the developer before it's used, and drop one that shows what it shouldn't:
+   personal data, a draft entry, an error.
 
-6. **Leave the tracker alone unless asked.** Post the comment or change the task status only when
-   the developer explicitly asks, and confirm the exact text and the target status first. List the
-   task's valid statuses with the tracker's tools before proposing one.
+5. **Show the full draft to the developer in chat,** as the last text of your turn — text written
+   just before a tool call can reach the developer only as a summary, and a question dialog's
+   preview may not display. Hand over the screenshots with it, each file's path next to its
+   placeholder. Always ask before posting, even when the developer asked for the update: close with
+   the one question it needs — whether to post it on the tracker task, and with which assignee
+   (step 6): "Post this on the task and assign it to Dana?" The developer may post it themselves
+   instead; then nothing is posted anywhere.
+
+6. **Post it on the tracker only on an explicit yes to the exact text and its assignee.** The
+   assignment is part of the same approval; a change to either is a new draft to approve.
+   - **Assign** the comment to the requester when it asks them a question or needs an action or a
+     decision from them. Don't assign a purely informational one. Mention people with the
+     tracker's mention syntax (§ Stakeholder updates); a bare `@Name` may notify no one.
+   - **Images.** When the tracker's comment tool can't show an image inline, post the text with
+     each `[Screenshot N: <what it shows>]` line in place, and ask the developer to paste each
+     image over its placeholder in the tracker. Never upload the images to the task to "embed"
+     them: an attachment lands on the task, away from the sentence it illustrates. Once the
+     developer has pasted them, read the comment again where the tracker shows a pasted image in
+     its text (§ Stakeholder updates), to confirm each one replaced its placeholder.
+   - **Read it back** after posting: fetch the comment and confirm the text and the assignee came
+     out as approved — mentions, links, formatting. A correction edits that comment, so the client
+     reads one version.
+   - **Status:** change the task's status only when the developer asks, confirming the target status
+     first. List the task's valid statuses with the tracker's tools before proposing one.
 
 ## Style rules
 
@@ -71,7 +100,9 @@ Read these before writing; they hold what this skill doesn't hardcode:
   names. Explain causes and fixes in terms of pages and what visitors or users see.
 - **Add relevant links inline:**
   - the affected live pages
-  - an example of the fix working
+  - an example of the fix working — on the preview, the stable preview address when
+    `docs/TRACKER-INTEGRATION.md` § Stakeholder updates names one: a deploy's own URL changes with
+    the next push
   - reference pages
   - the exact CMS entries the client would edit
 
@@ -85,16 +116,14 @@ Read these before writing; they hold what this skill doesn't hardcode:
 ## Template
 
 ```markdown
-> **For the team:** suggested client reply for the tracker task [<task name>](<task URL>).
-
----
-
 Hi <names>,
 
 Here's a quick update on <topic>.
 
 <Why it wasn't working, or what was needed, in one or two sentences.> To fix it, we <what we did,
 with links>. <What visitors or users get now.>
+
+[Screenshot 1: <what it shows>]
 
 <What's live, what's pending, and when it goes live — in the project's status words.> We'll let you
 know once it's up.
@@ -114,20 +143,26 @@ Thanks!
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll post it to the tracker to save time" | It reaches the client under the developer's name. Post on the pull request; the tracker only on an explicit yes to the exact text. |
+| "I'll post it to the tracker to save time" | It reaches the client under the developer's name. Show it in chat; the tracker only on an explicit yes to the exact text. |
+| "I'll also put it on the pull request, so the team has it" | Reviewers aren't its audience, and a second copy drifts from the one the client reads. The draft in chat is the deliverable. |
 | "I'll mention the PR so they can see the work" | Internal links confuse clients and may expose what they shouldn't see. Link pages they can act on. |
 | "I'll explain the technical root cause so they trust the fix" | Trust comes from verified outcomes in their terms — pages and behavior — not from component names. |
 | "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
 | "I'll add every finding to be thorough" | Only verified findings that matter to them. Noise buries the questions you need answered. |
-| "I'll post a new comment with the revised text" | Edit the same comment, so the team relays one current version. |
-| "The work is done — I'll post the update now" | Drafting on your own is fine; posting isn't. Show the draft and ask, unless the developer asked for the update. |
+| "I'll upload the screenshots to the task so they're embedded" | An attachment lands on the task, not in the comment. Hand the files over; the developer pastes each over its placeholder. |
+| "I'll accept the cookie banner to get it out of the shot" | That records a consent choice on the site. Hide the banner with CSS after load. |
+| "I'll assign it to the requester so they see it" | Assign only a comment that needs something from them: an answer, an action, a decision. And only with the developer's yes to that assignee. |
+| "It posted without an error, so it's right" | Read it back. Mentions, links, and formatting can come out differently from the draft. |
+| "The work is done — I'll post the update now" | Drafting on your own is fine; posting isn't. Show the draft and ask. |
 
 ## Red flags (stop and reassess)
 
 - A claim in the draft that you haven't verified yourself.
 - Code, branch, file, or tool names in the client-facing text.
 - A question to the client that the spec or the tracker thread already answers.
-- You're about to write to the tracker without the developer's explicit yes.
+- You're about to write to the tracker without the developer's explicit yes to the text and the assignee.
+- You're about to post the update anywhere but the tracker task — the pull request included.
+- A screenshot the developer hasn't seen, or one taken by clicking through a consent banner.
 
 ## Verification
 
@@ -135,11 +170,13 @@ Thanks!
 - [ ] Every claim was verified against the site, the preview, the CMS, or the pull request
 - [ ] Status uses the project's status words and gives no unconfirmed dates
 - [ ] No technical detail or internal links in the client text
-- [ ] The full draft was shown in chat, then posted as one pull-request comment (revisions edit it)
-- [ ] Nothing was posted or changed on the tracker without explicit approval of the exact text
+- [ ] The full draft was shown in chat; nothing was posted on the pull request
+- [ ] Screenshots, if any, were taken read-only, of single elements, shown to the developer, and handed over as files
+- [ ] Nothing was posted or changed on the tracker without explicit approval of the exact text and the assignee
+- [ ] A posted comment was read back: text and assignee as approved
 
 ## Principles
 
 - Write for the person who asked, in their terms and their language.
 - Verified claims only; state the real status.
-- The team relays it; the developer decides what reaches the tracker, and when.
+- The draft is the deliverable; the developer decides what reaches the tracker, and when.

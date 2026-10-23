@@ -311,9 +311,8 @@ sequenceDiagram
     Dev->>PR: reviews and merges — CI is a signal, the review is the gate
     Dev->>Agent: asks to update the client
     Agent->>Dev: /stakeholder-update — the draft, in the client's terms
-    Agent->>PR: posts it as one comment, for the team to relay
-    opt only on a yes to the exact text
-        Agent->>Tracker: posts the update
+    opt only on a yes to the exact text and its assignee
+        Agent->>Tracker: posts the update, then reads it back
     end
 ```
 
@@ -359,7 +358,7 @@ flowchart TD
 | Production is broken | **Careful**, without delay — root cause → regression test → fix → draft PR → ship; then backfill the spec folder | `sonnet`, high effort | [Hotfix](docs/scenarios/hotfix.md) |
 | Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; full lane or an ADR for a structure others must follow | `sonnet` | [Refactor](docs/scenarios/refactor.md) |
 | Investigation, impact analysis, estimate | No lane — `/triage` → the answer, where the task asks for it | `sonnet`; `opus` for architecture-level questions | [Answer-only task](docs/scenarios/answer-only-task.md) |
-| The requester needs an update on a task | `/stakeholder-update` ("update the client") — in the client's terms, shown in chat, posted on the pull request for the team to relay; on the tracker only on your yes to the exact text | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
+| The requester needs an update on a task | `/stakeholder-update` ("update the client") — in the client's terms, with screenshots when they help, shown in chat — the draft is the deliverable; on the tracker only on your yes to the exact text and its assignee, never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
 | Logging the time a task took — at a milestone or after the merge (`time-tracking` module) | `/track-time` — one entry per day, in whole units: the AI-assisted time (the sessions plus the work outside them) next to a senior developer's estimate without AI; you pick one per entry, and only the approved entries go to the tracker | `sonnet` | [time-tracking module](modules/time-tracking/MODULE.md) |
 | End users need to know how to use a feature, in the doc tool they read (`end-user-docs` module) | `/end-user-docs` — the feature's end-user page, drafted before implementation where end users can't see it and published once it ships; you approve each page's exact text | `sonnet` | [end-user-docs module](modules/end-user-docs/MODULE.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |

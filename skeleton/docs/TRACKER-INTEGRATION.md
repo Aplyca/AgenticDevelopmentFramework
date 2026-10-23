@@ -92,19 +92,26 @@ Leave every write tool off the allow list, so each one prompts. <!-- CUSTOMIZE: 
 
 ## Stakeholder updates
 
-`/stakeholder-update` drafts the client-facing message for a delivered task, verifies every claim, posts
-it on the pull request for the team to relay, and writes to the tracker only when the developer
-asks. It uses the status words in `CONTRIBUTING.md` and these project settings:
+`/stakeholder-update` drafts the client-facing message for a delivered task, verifies every claim,
+and shows it in chat: the draft is the deliverable. It goes on the task only after the developer
+approves the exact text and its assignee, and never on the pull request. It uses the status words in
+`CONTRIBUTING.md` and these project settings:
 
 <!-- CUSTOMIZE: fill these in; delete lines that don't apply. -->
 
 - **Live site:** [https://www.example.com]
 - **Previews:** [where each pull request's preview deploys — e.g. the host's comment on the PR]
+- **Stable preview address:** [the per-pull-request address that stays the same across pushes — e.g.
+  `https://pr-<number>.preview.example.com`. Delete this line if each deploy only gets its own URL]
 - **CMS entry links:** [the URL pattern the client clicks to edit content — e.g.
   `https://app.contentful.com/spaces/<space-id>/environments/master/entries/<entry-id>`, space ID
   `<space-id>` (an identifier, not a secret)]
 - **Task statuses:** [how to list a task's valid statuses with the tracker's tools — e.g. the
   get-task tool with statuses expanded]
+- **Images in comments:** [whether the tracker's comment tool can show an image inline. If it can't,
+  the update carries a `[Screenshot N: <what it shows>]` line where each image goes, and the
+  developer pastes the image over it. Say how a pasted image shows when the comment is read back]
+- **Mentions:** [the syntax that notifies a person in a comment, and where their user ID comes from]
 
 ## Optional: a usage guide on the task
 

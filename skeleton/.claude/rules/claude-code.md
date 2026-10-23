@@ -37,7 +37,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | With the docker module, nothing an agent runs changes the local mode — a `make` command or an assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, an edit to `.env` — so only the developer changes it | `permissions.deny` in `.claude/settings.json` (the docker module) |
 | A session's move into a worktree of this repository passes Claude Code's permission check in the desktop app; any other folder still asks. The app's own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `.claude/hooks/approve-worktree-move.sh` (PreToolUse) |
 
-Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once the agent has walked the change on the local environment, and tells you where to test it: locally and on the preview. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts only after your yes in chat.
+Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once the agent has walked the change on the local environment, and tells you where to test it: locally and on the preview. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts it on the tracker task only after your yes to the exact text.
 
 ## Commands that run without a prompt
 
