@@ -59,6 +59,11 @@ by default), on a generated branch. The session triages there and moves to the t
 same way. Until it moves, it edits and commits nothing and never renames the generated branch: the
 app removes that worktree when the session is archived.
 
+**While its pull request is open,** the base branch moves on as other tasks merge. When the task
+needs what landed there, or its pull request conflicts, its session brings the base branch in by
+`.claude/rules/git-workflow.md` § Syncing with the base branch. The task's worktree is the scripts',
+not the desktop app's, so the app's `sync_with_base_branch` tool doesn't reach it: merge with git.
+
 **When the task's pull request merges,** its session wraps up with `/adf:wrap-up`. It checks that
 nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then, with
 one yes from the developer, it stops what the task started, removes the worktree and its branch,

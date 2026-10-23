@@ -1,4 +1,7 @@
 <!-- Title: a commit-style subject under 70 characters — e.g. "feat: add newsletter signup" -->
+<!-- The agent rebuilds the text between each "adf:<section>" marker and its "/adf:<section>" when
+     it refreshes this description after a later push (/open-pr refresh). Write your own notes
+     outside those pairs: they're kept as they are. -->
 
 ## Traceability
 
@@ -13,15 +16,19 @@
 
 ## What changed and why
 
+<!-- adf:what-changed -->
 <!-- A reviewer should not have to reconstruct intent from the diff. AI-assisted or not, the person
      who opened this pull request owns it. -->
+<!-- /adf:what-changed -->
 
 ## How to verify
 
+<!-- adf:how-to-verify -->
 1.
 2.
 
 **Tests:** <!-- tests added or extended, or why none were needed -->
+<!-- /adf:how-to-verify -->
 
 ## Verified / not verified
 
@@ -29,10 +36,12 @@
      be checked, and why. Preview: the flow walked on this pull request's preview once it deployed,
      after the local check — or "pending", "no preview", "nothing a person sees". -->
 
+<!-- adf:verified -->
 - Verified:
 - Local check:
 - Preview:
 - Not verified:
+<!-- /adf:verified -->
 
 ## Merge danger
 

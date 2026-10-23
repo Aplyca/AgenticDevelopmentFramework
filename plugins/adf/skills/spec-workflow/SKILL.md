@@ -125,6 +125,10 @@ to the task's worktree beside the main checkout, which takes no edits. Another t
 session. Passing work in progress to a
 teammate, another machine, or a fresh session is `/adf:handoff`: pointers to the record, never a copy.
 
+**When the base branch moves under an open draft,** follow `.claude/rules/git-workflow.md` § Syncing
+with the base branch: only for a reason, a merge commit and never a rebase, then re-run only what
+the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).
+
 ## Effort beyond the lane
 
 The developer can ask for more care without changing the lane — questions before any code,

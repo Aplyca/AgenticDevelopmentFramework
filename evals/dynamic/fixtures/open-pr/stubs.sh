@@ -9,7 +9,8 @@
 #                     `pnpm` (runs package.json's scripts), and `docker` (no daemon)
 #   $work.env         the session's environment: PORT for the local server, REQUEST_LOG
 #   $work.events      one line per server start and request, push, gh and docker call: "<epoch> <source> …"
-# The preview serves the pushed branch on PORT+1000, from its own export of the remote.
+# The preview serves the pushed branch on PORT+1000, from its own export of the remote. A case whose
+# setup touches $work.redeploy redeploys it ~10 s after each push once it's up, as a host would.
 #
 work="${work:?}"
 port=$(( 4100 + $(printf '%s' "$work" | cksum | cut -d' ' -f1) % 800 ))
@@ -24,6 +25,10 @@ git init -q --bare "$work.origin.git"
 cat > "$work.origin.git/hooks/post-receive" <<EOF
 #!/usr/bin/env bash
 while read -r old new ref; do echo "\$($now) push \$ref" >> "$events"; done
+if [ -f "$work.redeploy" ] && [ -f "$work.deployed" ]; then
+  rm -f "$work.deployed"
+  env -u GIT_DIR -u GIT_QUARANTINE_PATH nohup "$work.bin/gh" __redeploy > /dev/null 2>&1 &
+fi
 EOF
 chmod +x "$work.origin.git/hooks/post-receive"
 git -C "$work" remote add origin https://github.com/example-org/newsletter-site.git
@@ -46,7 +51,7 @@ cat > "$work.bin/gh" <<EOF
 work="$work" events="$events" preview_port="$preview_port"
 EOF
 cat >> "$work.bin/gh" <<'EOF'
-echo "$(python3 -c 'import time; print(time.time())') gh $*" >> "$events"
+case "${1:-}" in __*) ;; *) echo "$(python3 -c 'import time; print(time.time())') gh $*" >> "$events" ;; esac
 url=https://github.com/example-org/newsletter-site/pull/42
 preview="http://localhost:$preview_port"
 save_body() { # the --body-file or --body of a create or edit
@@ -61,12 +66,32 @@ save_body() { # the --body-file or --body of a create or edit
 deploy() { # the preview: the pushed branch, exported from the remote, served read-only on its own port
   local branch
   [ -f "$work.done" ] && return  # the run is over
+  lsof -ti "tcp:$preview_port" -sTCP:LISTEN 2>/dev/null | xargs kill 2>/dev/null && sleep 1  # a redeploy
   branch="$(git -C "$work" rev-parse --abbrev-ref HEAD)"
   rm -rf "$work.preview" && mkdir -p "$work.preview"
   git -C "$work.origin.git" archive "$branch" | tar -x -C "$work.preview"
   (cd "$work.preview" && PORT="$preview_port" PREVIEW=1 REQUEST_LOG="$events" nohup node app/server.mjs > /dev/null 2>&1 &
    echo $! > "$work.preview.pid")
   touch "$work.deployed"
+}
+view_json() { # gh pr view --json: every field the cases read, the body as last saved; --jq '.<field>' picks one
+  python3 - "$url" "$work.pr-body.md" "$(git -C "$work" rev-parse --abbrev-ref HEAD)" "$@" <<'JSON'
+import json, shutil, subprocess, sys
+from pathlib import Path
+url, body_file, branch, *args = sys.argv[1:]
+body = Path(body_file).read_text() if Path(body_file).exists() else ""
+pr = {"number": 42, "url": url, "isDraft": True, "state": "OPEN", "title": "newsletter change",
+      "body": body, "headRefName": branch, "baseRefName": "main"}
+flag = next((f for f in ("--jq", "-q") if f in args), None)
+jq = args[args.index(flag) + 1] if flag else ""
+if jq[:1] == "." and jq[1:].isidentifier():
+    value = pr.get(jq[1:])
+    print(value if isinstance(value, str) else json.dumps(value))
+elif jq and shutil.which("jq"):
+    print(subprocess.run(["jq", "-r", jq], input=json.dumps(pr), text=True, capture_output=True).stdout, end="")
+else:
+    print(json.dumps(pr))
+JSON
 }
 checks() {
   if [ -f "$work.deployed" ]; then printf 'Preview\tpass\t42s\t%s\tDeployment ready\nCI\tpass\t1m3s\thttps://ci.example.com/runs/42\t\n' "$preview"
@@ -85,12 +110,14 @@ case "${1:-} ${2:-}" in
     checks ;;
   "pr view")
     if [[ " $* " == *" --json "* ]]; then
-      printf '{"number":42,"url":"%s","isDraft":true,"state":"OPEN","title":"newsletter change"}\n' "$url"
+      view_json "$@"
     else
       printf 'title:\tnewsletter change\nstate:\tDRAFT\nurl:\t%s\n' "$url"
       [ -f "$work.deployed" ] && printf -- '--\nPreview deployed: %s\n' "$preview"
     fi ;;
   "pr list") printf '42\tnewsletter change\t%s\tDRAFT\n' "$(git -C "$work" rev-parse --abbrev-ref HEAD)" ;;
+  "__deploy "*) deploy ;;
+  "__redeploy "*) sleep 10; deploy ;;
   "auth status") echo "github.com: Logged in to github.com account dev" ;;
   "repo view") echo "example-org/newsletter-site" ;;
   *) : ;;

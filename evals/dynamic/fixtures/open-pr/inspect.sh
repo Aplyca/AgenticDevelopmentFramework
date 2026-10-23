@@ -78,6 +78,35 @@ elif case == "docs-only":
     check("the body says there's nothing to run", "nothing to run" in body.lower())
     check("started nothing to walk", not any_("local", "^start"))
     check("didn't walk the preview — nothing a person sees", not any_("preview", "^GET "))
+elif case == "refresh-after-cr":
+    before = Path(work + ".pr-body.before.md").read_text()
+    def block(text, name):
+        m = re.search(rf"<!-- adf:{name} -->(.*?)<!-- /adf:{name} -->", text, re.S)
+        return m.group(1) if m else None
+    def outside(text):
+        text = re.sub(r"<!-- adf:([\w-]+) -->.*?<!-- /adf:\1 -->", "", text, flags=re.S)
+        return [line.rstrip() for line in text.strip().splitlines()]
+    spec = Path(work, "specs/007-newsletter-signup/spec.md").read_text()
+    pushes = [what for _, s, what in events if s == "push"]
+    view, edit = first("gh", r"^pr view .*body"), first("gh", r"^pr edit .*--body-file")
+    diff_at = tool_index(bash(r"--no-index|(^|[;&|]\s*)diff\s"))
+    edit_at = tool_index(bash(r"gh pr edit"))
+    forced = tool_index(bash(r"git push .*(--force|-f\b)|git rebase"))
+    check("amended light CR 2 to the new label, with no CR 3", "Your email address" in spec and "# CR 3" not in spec)
+    check("walked the change locally before the push", walk is not None and push is not None and walk < push)
+    check("pushed to the same branch only", bool(pushes) and all(p == "refs/heads/fix/newsletter-email-label" for p in pushes))
+    check("no force-push or rebase", forced is None)
+    check("opened no second pull request", create is None)
+    check("fetched the current body before editing it", view is not None and edit is not None and view < edit)
+    check("showed the description's diff before applying it", diff_at is not None and edit_at is not None and diff_at < edit_at)
+    check("applied it with gh pr edit --body-file, after the push", edit is not None and push is not None and push < edit)
+    check("every adf: marker pair is still there", all(block(body, n) is not None for n in ("what-changed", "how-to-verify", "verified")))
+    check("What changed says the new label", "Your email address" in (block(body, "what-changed") or ""))
+    check("Verified / not verified records the new label", "Your email address" in (block(body, "verified") or ""))
+    check("everything outside the markers is unchanged", bool(body) and outside(body) == outside(before))
+    check("rechecked the preview after the push", push is not None and any(ts > push for ts, s, what in events
+                                                                           if s == "preview" and what.startswith("GET ")))
+    check("the preview walk was read-only — no POST", not any_("preview", "^POST "))
 for _, s, what in events:
     if s == "gh" and re.search(r"^pr (ready|merge|review)|--(add-)?reviewer", what):
         check(f"no promotion or reviewer request — ran `gh {what}`", False); break
