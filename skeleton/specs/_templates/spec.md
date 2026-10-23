@@ -218,6 +218,18 @@ Need real running code, real metrics, or real failure modes.
 
 Or: `> Not applicable: [reason]`
 
+### End-user docs [OPTIONAL — with the end-user-docs module]
+
+How the people who use the product do what this feature lets them do — written in the doc tool they
+read (`docs/END-USER-DOCS.md`), never in the repository, via `/end-user-docs`: drafted before code,
+published once the feature ships. Only for a feature that changes what end users see or do.
+
+| End users | What they need | Page in the end-user doc |
+| --- | --- | --- |
+| [Site visitors] | [How to subscribe to the newsletter and confirm it] | [User guide › Newsletter › Subscribe (new page)] |
+
+Or: `> Not applicable: [reason — e.g. nothing end users see or do changes]`
+
 ## Observability [OPTIONAL — fill if non-default monitoring]
 
 - **Logs / metrics / alerts:** [what, beyond `.claude/rules/observability.md` defaults]

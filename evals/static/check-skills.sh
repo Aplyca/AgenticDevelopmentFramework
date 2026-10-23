@@ -81,11 +81,11 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up track-time"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up track-time end-user-docs"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decisions 0022, 0045)
 # Skills that may start from a plain request but post only after showing the draft.
-DRAFT_FIRST_SKILLS="stakeholder-update track-time"
+DRAFT_FIRST_SKILLS="stakeholder-update track-time end-user-docs"
 
 is_discipline_skill() {
     case " $DISCIPLINE_SKILLS " in *" $1 "*) return 0 ;; esac
@@ -736,6 +736,12 @@ check_practices() {
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'An activity with no\s*$|evidence isn.t in the draft' || missing+=("/track-time: each off-session activity rests on its evidence (0043)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names\s*$|the `time-tracking` module, offer `/track-time`' || missing+=("/wrap-up: offers /track-time only with the time-tracking module (0043)")
+    file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'names `end-user-docs`' || missing+=("/end-user-docs: acts only where the stamp names the end-user-docs module (0048)")
+    file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'The doc tool is their only home' || missing+=("/end-user-docs: the doc tool is the end-user docs' only home (0048)")
+    file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'Read the live page first' || missing+=("/end-user-docs: reads the live page before replacing it (0048)")
+    file_contains "$MODULES_DIR/end-user-docs/files/docs/END-USER-DOCS.md" '^## Page structure' || missing+=("end-user-docs module: docs/END-USER-DOCS.md has the page structure (0048)")
+    file_contains "$TEMPLATES/spec.md" '^### End-user docs' || missing+=("spec template: Documentation › End-user docs (0048)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '`end-user-docs` module, the pull request merged' || missing+=("/wrap-up: offers to publish end-user docs only with the end-user-docs module (0048)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the agent's local check before the pull request (0022, 0045)")
     file_contains "$AGENTS_MD" 'never push to check it on the preview instead' || missing+=("AGENTS.md: a change that can't run locally isn't pushed (0045)")
     file_contains "$AGENTS_MD" 'Then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")

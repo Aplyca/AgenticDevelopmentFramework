@@ -1,6 +1,6 @@
 ---
 name: write-docs
-description: Write the pre-implementable user-facing docs an approved spec folder's plan lists (admin guides, API contracts, end-user copy) BEFORE implementation — docs-first — and update them later when implementation shows reality differs. Skips cleanly when the plan lists none. Use after the approval gate, before /adf:implement.
+description: Write the pre-implementable docs an approved spec folder's plan lists for the repository (admin guides, API contracts, end-user copy) BEFORE implementation — docs-first — and update them later when implementation shows reality differs. Skips cleanly when the plan lists none. End-user pages in a doc tool are /adf:end-user-docs' (end-user-docs module). Use after the approval gate, before /adf:implement.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup — or 'update' for update mode]"
 ---
 
@@ -12,6 +12,10 @@ Write the user-facing documentation the plan calls for **before** the code exist
 forces the team to articulate how the feature will be used while that conversation is still cheap.
 Docs are **living artifacts**, not frozen contracts: when implementation reveals reality differs,
 they are updated deliberately (small fixes by `/adf:implement`, larger rewrites by this skill's update mode).
+
+These are the repository's docs, for the team, its agents, and anyone who reads the code. With the
+`end-user-docs` module, the pages end users read live in a doc tool instead: spec § Documentation ›
+End-user docs lists them, and `/adf:end-user-docs` writes them.
 
 Two modes:
 - **First pass (default)** — the Phase 1 doc tasks in `tasks.md`, after the approval gate and before
@@ -27,7 +31,8 @@ Two modes:
 
 If `plan.md` § Documentation plan lists no pre-implementable docs (or spec § Documentation marks
 Pre-implementable as Not applicable), say so, confirm the post-implementable docs are listed for
-later, and hand off to `/adf:implement`. Don't manufacture docs a feature doesn't need.
+later, and hand off to `/adf:implement` — or to `/adf:end-user-docs` first, when the plan lists an
+end-user page. Don't manufacture docs a feature doesn't need.
 
 Pre-implementable docs typically include admin or operator guides, API contracts (OpenAPI, GraphQL
 schemas), end-user help and copy defaults seeded into a CMS, public READMEs or SDK docs, and
@@ -55,7 +60,8 @@ job; they're Phase 5 tasks.
 4. **Validate** — every claim backed by an AC, an edge case, or a planned test; nothing contradicts
    the spec; no implementation details that aren't defined yet; glossary terms used.
 
-5. **Tick the Phase 1 tasks and commit:** `docs: add <audience> docs for <slug>`. Hand off to `/adf:implement`.
+5. **Tick the Phase 1 tasks and commit:** `docs: add <audience> docs for <slug>`. Hand off to
+   `/adf:end-user-docs` when the plan lists an end-user page, then to `/adf:implement`.
 
 ## Update mode
 
@@ -77,6 +83,7 @@ behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it
 | "This feature is small, I'll skip the docs" | The plan decides, not the skill. If it lists pre-implementable docs, write them; if not, skip cleanly. |
 | "I'll keep the docs vague — implementation will fill in the details" | Docs drive implementation thinking; vagueness defeats that. Match the tests' precision. |
 | "The spec is missing an audience — I'll add the doc anyway" | Scope changes go through the spec and plan first. Don't extend scope silently. |
+| "The end-user page is a doc too — I'll write it in `docs/` as well" | With the `end-user-docs` module, the doc tool is its only home. Hand it to `/adf:end-user-docs`. |
 
 ## Red flags (stop and reassess)
 

@@ -6,7 +6,7 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
   `/adf:upgrade`, and `/adf:cost-report`, in every project that uses the framework.
 - **Carry the framework's machinery for a packaged install** ([decision 0016](../../docs/decisions/0016-packaged-install.md)):
   21 skills, 8 agents, 4 workflows, the guardrail hooks, the framework's reference docs, and the
-  `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md)), the `time-tracking` module's `/track-time`,
+  `parallel-agents` module's `/dispatch` ([decision 0020](../../docs/decisions/0020-every-task-through-dispatch.md)), the `time-tracking` module's `/track-time`, the `end-user-docs` module's `/end-user-docs`,
   and worktree scripts, as the commands `adf-worktree-new`, `adf-worktree-ls`, and `adf-worktree-rm`
   ([decision 0027](../../docs/decisions/0027-worktree-scripts-as-plugin-commands.md)), pinned to a release. Typed as
   `/adf:triage`, `/adf:deep-review`, and so on.

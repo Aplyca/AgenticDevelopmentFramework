@@ -139,6 +139,9 @@ repository's facts, by the same rules as `/adopt` Step 3:
   evidence
 - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time` logs
   each day of a task in the tracker, in whole units (decision 0043)
+- `end-user-docs` — the product's end users read its documentation in a doc tool (ClickUp Docs,
+  Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
+  implementation and publishes it once the feature ships (decision 0048)
 
 Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
 release with `adf-connect` (decision 0023), offer it the same way when the project works with a

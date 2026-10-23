@@ -93,7 +93,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `ops/agent/worktree.conf`, `.worktreeinclude`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.github/ISSUE_TEMPLATE/*`, `.gitleaks.toml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module) |
+| Module configuration | `ops/agent/worktree.conf`, `.worktreeinclude`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.github/ISSUE_TEMPLATE/*`, `.gitleaks.toml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module), `docs/END-USER-DOCS.md` (the `end-user-docs` module) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |
@@ -398,7 +398,7 @@ Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade`
 you don't have and recommends the ones your repository's facts support — `parallel-agents` when
 several agent sessions may work at once (each task gets its own worktree, branch, pull request, and
 session; the main checkout takes no edits), `clickup` when requirements arrive as ClickUp tasks,
-`docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `time-tracking` when the team measures the time its tasks take, `github` on GitHub, `git-hooks` for local
+`docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `time-tracking` when the team measures the time its tasks take, `end-user-docs` when end users read the product's documentation in a doc tool, `github` on GitHub, `git-hooks` for local
 gates. The ones you choose join the same upgrade pull
 request, with their customize steps. Choosing `parallel-agents` moves the upgrade itself into a
 worktree, so the main checkout starts as a clean hub. By hand: `cp -R modules/<name>/files/.` (no
