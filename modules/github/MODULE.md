@@ -29,6 +29,37 @@ them.
    end-to-end) in a separate, on-demand workflow. Don't put a `paths:` filter on a workflow you'll
    require: a required check that never runs is not a gate.
 
+## Optional: a stable preview address per pull request
+
+A host that deploys a preview on every push gives each deploy an address of its own, and some — a
+deploy from a CLI — give a new one on every push. A link sent to a person yesterday then shows
+yesterday's build. A stable address per pull request fixes that, for the people who follow the
+link; automation keeps the deploy's own address. Any host that can point a name at a deploy can do
+this, from the workflow that deploys:
+
+- **People get the stable alias:** the developer's check, reviewers, and stakeholders. It always shows
+  the pull request's latest deploy.
+- **Automation gets the deploy's own, immutable address:** a smoke check or an end-to-end job in CI,
+  a link checker. A later push can't change the build under a running test. The agent's end-to-end
+  suite isn't one of them: it runs only on a local stack (`/adf-dev:e2e`).
+- **Set the alias after each deploy,** from the deploy's address. On Vercel, for example:
+
+  ```bash
+  vercel alias set "$DEPLOY_URL" <name>-pr-<number>.vercel.app
+  ```
+
+- **Send `X-Robots-Tag: noindex` on aliased previews yourself.** The host's protection for its own
+  preview addresses may not reach an alias.
+- **Remove the alias when the pull request closes,** from a workflow that runs then
+  (`on: pull_request: types: [closed]`).
+  Decide what a pull request closed without merging gets — usually the same removal, so nobody
+  tests a build that will never ship — and write it down.
+- **An alias on a shared domain is unique across all of the host's customers** (`*.vercel.app`):
+  prefix it with the project's name, and handle the name being taken.
+- **Write the address down** where people and agents find it: `AGENTS.md` § Quick reference's
+  *Preview* line, and the stable preview address in `docs/TRACKER-INTEGRATION.md`, which
+  `/stakeholder-update` links in the requester's update.
+
 ## Make it a gate
 
 Checks only block merges once a repository ruleset (or branch protection) requires them. Until you

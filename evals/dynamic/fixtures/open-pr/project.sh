@@ -137,6 +137,7 @@ fill("AGENTS.md", [
     ("- Install: `[command]`", "- Install: nothing to install (Node 22+)"),
     ("- Dev server: `[command, e.g. make up]` · stop: `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`",
      "- Dev server: `pnpm dev` · stop: Ctrl-C · where it runs: `pnpm urls`"),
+    ('- Production build, locally: `[command, e.g. make prod — or "none"]`', "- Production build, locally: `none`"),
     ("- Tests: `[command]` (on their own port)", "- Tests: `pnpm test`"),
     ("- Lint: `[command]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate before a PR: `[command]`", "- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`"),

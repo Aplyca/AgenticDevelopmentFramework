@@ -17,11 +17,14 @@ endif
 override SERVICES := $(filter-out none,$(or $(strip $(SERVICES)),$(DEFAULT_SERVICES)))
 # CUSTOMIZE: the app's dev command, listening on $APP_PORT — e.g. npm run dev -- --port "$$APP_PORT"
 NATIVE_CMD = echo "CUSTOMIZE: set NATIVE_CMD in ops/native/Makefile to the app's dev command" >&2; exit 1
+# CUSTOMIZE (optional, for make prod): the production build and server, listening on $APP_PORT —
+# e.g. npm run build && npm start -- --port "$$APP_PORT". Delete it with the prod task if there's none.
+NATIVE_PROD_CMD = echo "CUSTOMIZE: set NATIVE_PROD_CMD in ops/native/Makefile to the production build and server" >&2; exit 1
 
-export NATIVE_CMD
+export NATIVE_CMD NATIVE_PROD_CMD
 NATIVE_SH = SERVICES='$(SERVICES)' COMPOSE='$(COMPOSE)' APP='$(APP)' ops/native/native.sh
 
-.PHONY: up down build ps logs urls services test lint format typecheck reset
+.PHONY: up down build ps logs urls prod services test lint format typecheck reset
 
 up: env guard services ## Start the app on the host, wait until it answers, and show where it is
 	@$(COMPOSE) stop $(APP) >/dev/null 2>&1 || true
@@ -46,6 +49,13 @@ logs: ## The last 100 lines of the app's log, and of each service's: make logs s
 urls: ## Where the app and each backing service are now
 	@$(NATIVE_SH) status
 	$(if $(SERVICES),@$(COMPOSE) ps --format 'table {{.Service}}\t{{.Ports}}\t{{.Status}}')
+
+# Optional (C11): delete it, with NATIVE_PROD_CMD, if the project has no production-like run. The
+# build runs before the server answers, so it gets longer than the dev server to start.
+prod: env guard services ## Build the app for production and serve it on the host in place of the dev server, until make up
+	@$(COMPOSE) stop $(APP) >/dev/null 2>&1 || true
+	@READY_SECONDS=600 $(NATIVE_SH) start prod
+	@$(MAKE) --no-print-directory urls
 
 services: env guard ## Start only the backing services in Docker
 	$(if $(SERVICES),$(COMPOSE) up -d --wait $(SERVICES),@echo "No backing services in Docker")

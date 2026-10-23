@@ -185,6 +185,7 @@ docs/                Documentation
 
 - Install: `[command]`
 - Dev server: `[command, e.g. make up]` · stop: `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`
+- Production build, locally: `[command, e.g. make prod — or "none"]` — for what only the production build shows; never the stack's build and start commands run by hand
 - Tests: `[command]` (on their own port)
 - Lint: `[command]` · Typecheck: `[command]`
 - Full gate before a PR: `[command]`

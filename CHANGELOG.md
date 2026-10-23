@@ -11,6 +11,45 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The production build runs locally in the configured mode, end-to-end tests get their red
+  without a preview, and stable preview addresses are documented**
+  ([decision 0052](docs/decisions/0052-production-build-in-the-configured-mode.md)).
+  - **Why:** an adopting team's agents built and served the app on the host to see a production-only
+    bug, outside the project's Docker mode, because no task built it. They also ran end-to-end tests
+    against previews, whose address changed on every push when deployed from a CLI.
+  - **`make prod` (dev-env C11), optional, in every mode.** Docker mode: a `web-prod` service in
+    Compose's `prod` profile, built from the Dockerfile's new `prod` stage and served beside the dev
+    server on `APP_PROD_PORT`. Native mode: `NATIVE_PROD_CMD` through `native.sh`, in place of the
+    dev server and on its port, until `make up`; `ops/native/.run/app.kind` says which runs. `make
+    urls`, `make logs s=web-prod`, and `make down` cover it. `/adf-dev:dev-env` fills it or deletes
+    it, and rejects a host build-and-start. AGENTS.md's Quick reference names it.
+  - **Red first for end-to-end tests, never on a preview.** `/adf:write-tests` and `testing.md`
+    § End-to-end give two ways: the test before the code, or, when the code came first, the test run
+    red on the base branch's code in a second worktree with its own stack, then green here. The e2e
+    specification's F1 and `/adf-dev:e2e`'s safety rule allow that second local stack. The tasks
+    template's gate results get a line for both runs.
+  - **Stable preview addresses (docs only):** the `github` module's `MODULE.md` § Optional: a
+    stable preview address per pull request. Provider-neutral, with `vercel alias set` as one
+    example: the alias is for people, the deploy's own address is for automation, a `noindex` header
+    on the alias, removal when the pull request closes, and shared domains that are global.
+  - **Evals:** the module tests cover `make prod` in both modes, with native mode run for real, and
+    the open-pr suite's new `prod-build` case checks the local check takes `make prod`, with no host
+    server and no `DEV_MODE` override.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` (§ Quick reference: the production-build line), `.claude/rules/testing.md`
+    (§ End-to-end: red first, two ways), `specs/_templates/tasks.md` (§ Gate results: the
+    end-to-end line), and `docs/getting-started/DEV-SETUP.md` (a row in the command table).
+  - **With the `docker` module, optional:** a project that wants `make prod` adds it from
+    `/adf-dev:dev-env`'s templates: the `prod` task in both mode files, `web-prod` in `compose.yaml`,
+    the Dockerfile's `prod` stage, `APP_PROD_PORT=` in `.env.example`, and `NATIVE_PROD_CMD`.
+    `ops/native/native.sh` can be overwritten from the template: `start` with no argument behaves as
+    before. Without it, the stack conforms as it is: C11 asks for the task in both modes or neither.
+  - **Packaged install:** `/adf:write-tests`, `/adf-dev:dev-env`, and `/adf-dev:e2e` come with the
+    plugins.
+  - **Committed install:** overwrite for `.claude/skills/write-tests/`, and with `docker` and `e2e`,
+    `.claude/skills/dev-env/` and `.claude/skills/e2e/`.
+
 - **An `end-user-docs` module: `/end-user-docs` writes a feature's end-user page in the doc tool end
   users read** ([decision 0048](docs/decisions/0048-end-user-docs-in-the-doc-tool.md)).
   - **Why:** a feature can need two kinds of docs. Technical docs, for the team and its agents, live

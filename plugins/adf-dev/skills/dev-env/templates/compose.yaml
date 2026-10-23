@@ -33,6 +33,26 @@ services:
       redis:
         condition: service_healthy
 
+  # Optional: the app's production build, served beside the dev server by `make prod` only — the prod
+  # profile keeps `make up` from starting it. Delete it, with the prod task and the Dockerfile's prod
+  # stage, if the project has no production-like run.
+  web-prod:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: ops/docker/web/Dockerfile
+      target: prod
+    ports:
+      # CUSTOMIZE: the port the production server listens on inside the container
+      - "127.0.0.1:${APP_PROD_PORT:-}:3000"
+    environment:
+      # CUSTOMIZE: what the production build reads, as the app's above — no source mount: it serves
+      # what the image built
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
   # CUSTOMIZE: each backing service the app needs — e.g. the newsletter site's signup rate limiter
   redis:
     image: redis:7.4-alpine

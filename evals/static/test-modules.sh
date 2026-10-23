@@ -371,7 +371,7 @@ check "make logs: the last lines, never followed" \
 # nothing, and never follow a log.
 c9=""
 for mode in docker native; do
-    for task in help env up down build ps logs urls test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+    for task in help env up down build ps logs urls prod test lint format typecheck $( [ "$mode" = native ] && echo services ); do
         out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
         while IFS= read -r line; do
             case "$line" in
@@ -388,6 +388,14 @@ check "C3: make test passes t to the test command as its filter" "echo \"\$out\"
 out=$(stack make -n urls 2>&1)
 check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
     "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
+check "make urls, docker mode: the production build's URL too, when it runs (C11)" "echo \"\$out\" | grep -q 'ps web-prod .*The production build: http://localhost:'"
+out=$(stack make -n prod 2>&1)
+check "make prod, docker mode: builds and serves the prod profile's web-prod beside the dev server, then make urls (C11)" \
+    "echo \"\$out\" | grep -q 'compose --profile prod up -d --build --wait web-prod\$' && echo \"\$out\" | grep -q 'urls' && echo \"\$out\" | sed '/--profile prod up/,\$d' | grep -q 'guard.sh'"
+check "make prod, docker mode: the service is in the prod profile, so make up never starts it (C11)" \
+    "grep -A1 '^  web-prod:' '$TPL/compose.yaml' | grep -q 'profiles: \\[prod\\]' && grep -q 'target: prod' '$TPL/compose.yaml' && grep -q '^FROM dev AS prod' '$TPL/ops/docker/web/Dockerfile'"
+out=$(stack make -n down 2>&1)
+check "make down, docker mode: stops the production build too" "echo \"\$out\" | grep -q 'compose --profile prod down\$'"
 out=$(STUB_PORTS='redis=51001' ports 2>&1); code=$?
 check "native.sh env: each backing service's published port as <SERVICE>_PORT, and a free port for the app" \
     "[ $code -eq 0 ] && echo \"\$out\" | grep -q '^export REDIS_PORT=51001$' && echo \"\$out\" | grep -qE '^export APP_PORT=[0-9]+$'"
@@ -448,7 +456,9 @@ check "make reset, native mode: stops the app on the host, then deletes the volu
 # The app on the host, for real: a dev command that serves the folder, with nothing in Docker.
 NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
 git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n' > "$NS/.gitignore"
-sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
+sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' \
+    -e 's|^NATIVE_PROD_CMD = .*|NATIVE_PROD_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1 --directory ops|' \
+    "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
 native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native SERVICES=none); }
 out=$(native up 2>&1); code=$?
 port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
@@ -460,6 +470,14 @@ out=$(native up 2>&1)
 check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
 out=$(cd "$NS" && SERVICES= /bin/bash ops/native/native.sh env 2>&1)
 check "native.sh env: while the app runs, its port — what make test and make e2e reach" "echo \"\$out\" | grep -q '^export APP_PORT=$port\$'"
+out=$(native prod 2>&1); code=$?
+check "native mode, make prod: the production build replaces the dev server, on its port, and make urls says so (C11)" \
+    "[ $code -eq 0 ] && [ \"\$(cat '$NS/ops/native/.run/app.kind' 2>/dev/null)\" = prod ] && grep -q '^APP_PORT=$port\$' '$NS/ops/native/.run/app.env' && echo \"\$out\" | grep -q \"web .*http://localhost:$port  (the production build, on the host\""
+out=$(native prod 2>&1)
+check "native mode, make prod again: leaves the running production build alone" "echo \"\$out\" | grep -q 'already runs on the host'"
+out=$(native up 2>&1); code=$?
+check "native mode, make up after make prod: the dev server comes back, on the same port" \
+    "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.kind' ] && grep -q '^APP_PORT=$port\$' '$NS/ops/native/.run/app.env' && echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"

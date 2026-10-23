@@ -98,6 +98,21 @@ a project misses. A project that departs from one on purpose records it, with th
 - **C10.** A task that runs a command it's given — `make run cmd="…"`, `make exec` — is for people.
   `.claude/settings.json` asks before it (`Bash(make run *)`), and agents use the named tasks. A
   command agents keep needing that no task covers is a gap: it becomes a task of its own.
+- **C11.** **A production-like run, when the project has one, is the optional task `prod`, in every
+  local mode.** It builds the app the way a deploy does, serves it, and returns once it answers,
+  then prints where it is. It's for what only the production build shows — a bug the preview has
+  and the dev server doesn't, a check before a deploy — so an agent never runs the stack's build
+  and start commands on the host, or switches modes, to get one (M10).
+  - **Docker mode:** a service `<APP>-prod` in Compose's `prod` profile, so `make up` never starts
+    it, built from the app Dockerfile's `prod` stage, with no source mount, and published on
+    `APP_PROD_PORT` (P1, P2). `make prod` builds and starts it beside the dev server.
+  - **Native mode:** `NATIVE_PROD_CMD`, the production build and server listening on `$APP_PORT`,
+    runs through `native.sh` in place of the dev server, on its port, until the next `make up`.
+  - `make urls` shows it, `make logs` prints its log (`s=<APP>-prod` in Docker mode), and
+    `make down` stops it.
+
+  A project without a production-like run deletes the task, the service, and the stage. Then an
+  agent that needs one says so, and asks (C10).
 
 ## Local modes — `M`
 
@@ -126,7 +141,9 @@ a project misses. A project that departs from one on purpose records it, with th
   the whole process group.
 - **M7.** While the app runs on the host, `ops/native/.run/app.env` holds exactly `PID=<pid>` and
   `APP_PORT=<port>`, and `ops/native/.run/app.log` its output. The band above the prompt reads
-  `APP_PORT` from that file. A state file whose process has gone is removed by the next command.
+  `APP_PORT` from that file. `ops/native/.run/app.kind` holds `prod` while the production build runs
+  (C11), and is absent for the dev server. A state file whose process has gone is removed by the
+  next command.
 - **M8.** Switching modes needs no cleanup: each mode's `up` stops what the other mode runs for the
   app — Docker's `up` stops a native app; native `up` stops the app's container.
 - **M9.** The same task names in every mode (C3) mean an agent, a worktree's `START_CMD`, and
@@ -219,6 +236,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
 | Where the services are now | `make urls` |
 | The app on the host while it runs | `ops/native/.run/` |
+| How the production build is built and served | the Dockerfile's `prod` stage and `<APP>-prod` in `compose.yaml`; `NATIVE_PROD_CMD` in `ops/native/Makefile` |
 | How a person sets up and starts the stack, and problems met before | `docs/getting-started/DEV-SETUP.md` |
 | The start and stop commands an agent runs | `AGENTS.md` § Quick reference |
 | The project's conventions, its deployment targets, and anything it changed here, with why | `.claude/rules/deployment.md` |
@@ -231,7 +249,8 @@ A stack conforms when every requirement holds. `/adf-dev:dev-env` checks a stack
 each gap as the requirement's ID, what the project has, and the change:
 
 1. **Layout:** L1–L7.
-2. **Command surface:** C1–C10, and the mode files define every task in C3.
+2. **Command surface:** C1–C11, and the mode files define every task in C3, and `prod` in both or
+   in neither.
 3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, and `make down` in
    the configured mode, and by reading the other mode's file against them — never by running it
    (M10); M10 by the deny rules.

@@ -72,3 +72,5 @@
 <!-- Evidence, not claims. For each task: the red failure you saw and the green that followed.
      Commands run and their counts (e.g. "unit: 19 files, 350 tests"). What was NOT run, and
      why (no environment, shared database, needs a preview). The PR body links here. -->
+
+- End-to-end, red then green: `[test file]` failed [before the code | on the base branch's code, in a second worktree] — "[the assertion that failed]"; passed on this branch — `[command]`, [N] passed <!-- one line per end-to-end test this work added or changed; delete when none -->
