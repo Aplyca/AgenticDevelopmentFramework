@@ -93,7 +93,7 @@ triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE �
 | **Tasks** | `tasks.md` | Dependency-ordered tasks sized to one commit each, each naming its test and ACs |
 | **Analyze** | (report) | Read-only consistency check: every AC → task → test, no constitution conflict, change surface complete (`@spec-analyzer`, or `/deep-spec-analysis` for high-stakes work) |
 | **Approve** | `spec.md` `status: approved` | **Stop.** The developer sees the scope, the change surface, and every assumption, and signs off. No implementation code before this. |
-| **Docs first** | pre-implementable docs | Written from the spec and plan, committed before implementation (`/write-docs`; skips cleanly when there are none) |
+| **Docs first** | pre-implementable docs | Written from the spec and plan, committed before implementation (`/write-docs`; skips cleanly when there are none). With the end-user-docs module, an end-user page is drafted in the doc tool (`/end-user-docs`) and published once the feature ships |
 | **Implement** | one commit per task | Write the test, watch it fail, write the code, watch it pass, commit, tick the task (`/implement`) |
 | **Verify** | `tasks.md` § Gate results | Full gate run; `/implement` records the red-then-green evidence and what could not be run; `/review` checks it |
 | **Local check** | the agent's walk | The agent runs the change on the local environment and walks the changed flow before any push (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use |

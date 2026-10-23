@@ -47,7 +47,7 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - **Performance / SEO / Analytics / Localization** — targets that differ from project defaults?
    - **Constraints & prior decisions** — business rules, compliance, existing ADRs or PDRs to respect?
    - **Testing** — anything beyond "every AC has a test" (accessibility scans, visual regression, manual passes)?
-   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)?
+   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)? With the `end-user-docs` module in the stamp: does the feature change what end users see or do, and which page of the end-user doc covers it (End-user docs)?
    - **Observability / Deployment** — logs, metrics, alerts; env vars, migrations, rollout, rollback?
 
    **Ask in rounds** (`AGENTS.md` § Working economically). A round holds every question that doesn't
@@ -112,7 +112,7 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - [ ] Functional has at least one numbered acceptance criterion
    - [ ] Out of scope has at least one item, or says "nothing intentionally excluded for this iteration"
    - [ ] Security and Testing are filled
-   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable
+   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable — and End-user docs too when the stamp names `end-user-docs`
    - [ ] Clarifications exists (may be empty)
    - [ ] `feature-type: ui | mixed` → Accessibility filled; `personal-data: yes` → Privacy filled
 

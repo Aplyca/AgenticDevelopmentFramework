@@ -11,6 +11,41 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **An `end-user-docs` module: `/end-user-docs` writes a feature's end-user page in the doc tool end
+  users read** ([decision 0048](docs/decisions/0048-end-user-docs-in-the-doc-tool.md)).
+  - **Why:** a feature can need two kinds of docs. Technical docs, for the team and its agents, live
+    in the repository and `/write-docs` writes them. End-user docs — how the people who use the
+    product do what it lets them do — often live in a doc tool those people can read, such as
+    ClickUp Docs, and the framework had no place for them.
+  - **The module turns it on:** it installs `docs/END-USER-DOCS.md` (the doc tool, the end-user doc,
+    a drafts location end users can't see, the page tools, the end users and their language, when to
+    publish, the page structure), and `/end-user-docs`, which `adf` carries, acts only where the
+    stamp names `end-user-docs`.
+  - **What it does:** for a feature whose spec lists an end-user page — only one that changes what
+    end users see or do — it drafts the page after the approval gate, docs first, in the drafts
+    location; updates it when the build changes what it says; and once the feature ships, reads the
+    live page, publishes the final one to the end-user doc, and retires the draft. Each page is shown
+    in full and written only on the developer's yes. The doc tool is the only home: no page text
+    goes into the repository. `/adf:wrap-up` offers to publish once, before the close-up, only with
+    the module.
+  - **Where:** the new module and skill; the spec template's § Documentation › End-user docs, the
+    plan and tasks templates, and `specs/README.md`; `/adf:write-spec`, `/adf:write-plan`,
+    `/adf:write-docs`, `/adf:implement`, and `/adf:wrap-up`; `SPEC-MODEL.md`; `/adf:adopt` and
+    `/adf:upgrade`'s module lists; the `clickup` module's `MODULE.md` § Customize;
+    `TRACKER-INTEGRATION.md` § Optional: a usage guide on the task; and the docs.
+
+  **Upgrade impact:**
+  - **Merge:** `specs/_templates/spec.md` (a new optional § Documentation › End-user docs),
+    `specs/_templates/plan.md` and `tasks.md` (an end-user row and task in their examples),
+    `specs/README.md` (the Docs first row), `docs/TRACKER-INTEGRATION.md` (a paragraph on the module).
+    A project without the module deletes the End-user docs subsection from new specs.
+  - **Additive**, and only for a project that chooses the module: `docs/END-USER-DOCS.md`, and the
+    stamp's `modules:` list gains `end-user-docs`. A committed install also gets
+    `.claude/skills/end-user-docs/` from `scripts/build-committed.py --modules end-user-docs`.
+  - **Committed install:** overwrite for `.claude/skills/{write-spec,write-plan,write-docs,implement,wrap-up}/`
+    and `docs/SPEC-MODEL.md`.
+  - **Without the module:** the skills behave as before.
+
 ## v2.5.0 — 2026-10-18 — Sessions move to done, the agent's local check opens the draft, and a scripted upgrade
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

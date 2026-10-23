@@ -13,6 +13,7 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | [`docker/`](docker/MODULE.md) | The `/dev-env` skill — write or migrate a Docker Compose local environment to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), run it natively or per worktree, diagnose it, and safely reset it — and permission rules that let read-only docker commands run and make destructive ones ask. Packaged, the skill comes from the development plugin, `adf-dev` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
 | [`e2e/`](e2e/MODULE.md) | The `/e2e` skill — set up Playwright end-to-end tests in `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the checkout's own stack (in Docker or on the host), with one smoke test per critical flow; audit a suite, and diagnose a failing or flaky test — and permission rules that let the suite run without a prompt. Packaged, the skill comes from `adf-dev` | People use the app in a browser, and its critical flows should be checked end to end |
 | [`time-tracking/`](time-tracking/MODULE.md) | `docs/TIME-TRACKING.md`, the project's settings, and the `/track-time` skill — one tracker time entry per day of a task, in whole units: the AI-assisted time (the sessions, measured, plus the work outside them, estimated) or a senior developer's estimate without AI, as the developer picks. Packaged, the skill comes with `adf` | The team measures the time its tasks take, as an internal productivity measure |
+| [`end-user-docs/`](end-user-docs/MODULE.md) | `docs/END-USER-DOCS.md`, the project's settings, and the `/end-user-docs` skill — a feature's end-user page, written in the doc tool end users read and never in the repository: drafted before implementation where end users can't see it, published once the feature ships, each page on the developer's yes. Packaged, the skill comes with `adf` | End users read the product's documentation in a doc tool — ClickUp Docs, Confluence, Notion |
 
 ## Installing a module
 
@@ -44,7 +45,7 @@ Code loads: the framework's machinery, one plugin per concern
 
 | Plugin | Concern | Carries the skills and commands of |
 |---|---|---|
-| `adf` | The process | `parallel-agents` (`/dispatch`; the worktree scripts as `adf-worktree-new`, `-ls`, `-rm`), `time-tracking` (`/track-time`) |
+| `adf` | The process | `parallel-agents` (`/dispatch`; the worktree scripts as `adf-worktree-new`, `-ls`, `-rm`), `time-tracking` (`/track-time`), `end-user-docs` (`/end-user-docs`) |
 | `adf-dev` | Development | `docker` (`/dev-env`), `e2e` (`/e2e`) |
 | `adf-connect` | Trackers and services | — (its `/connect` writes a project's MCP configuration itself) |
 

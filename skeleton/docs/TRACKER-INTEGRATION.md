@@ -112,3 +112,8 @@ For requester-facing features, a short **usage guide** in the task description �
 will use the feature — is the requester's version of docs-first: drafted before implementation,
 finalized with screenshots after delivery. Both are requester-visible writes: confirm first. Link it
 from the spec's `tracker:` field.
+
+When end users read the product's documentation in a doc tool — ClickUp Docs, Confluence, Notion —
+the framework's `end-user-docs` module puts the guide there instead (`docs/END-USER-DOCS.md`): drafted
+where end users can't see it before implementation, published once the feature ships, and linked
+from the task on the developer's yes.

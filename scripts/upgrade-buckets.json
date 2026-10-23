@@ -23,6 +23,7 @@
     ".mcp.json",
     "docs/SHARED-SERVICES.md",
     "docs/TIME-TRACKING.md",
+    "docs/END-USER-DOCS.md",
     ".claude/rules/architecture.md",
     ".claude/rules/ui-ux.md",
     ".claude/rules/deployment.md",

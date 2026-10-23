@@ -205,9 +205,12 @@ python3 "$BC" "$WORK/core-only" >/dev/null
 check "build-committed: writes the parallel-agents guide only with the module, in the committed form (decision 0044)" \
     "[ -f '$CP/docs/PARALLEL-AGENTS.md' ] && [ ! -e '$WORK/core-only/docs/PARALLEL-AGENTS.md' ] && [ -f '$WORK/core-only/docs/SPEC-MODEL.md' ] && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/docs/PARALLEL-AGENTS.md' && ! grep -qE 'adf-worktree-|/adf:' '$CP/docs/PARALLEL-AGENTS.md'"
 check "build-committed: takes only the modules it's given, and never the installer's skills" \
-    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/track-time' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
+    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/track-time' ] && [ ! -e '$CP/.claude/skills/end-user-docs' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
 check "build-committed: keeps a file the project already has, and says so" \
     "[ \"\$(cat '$CP/.claude/skills/review/SKILL.md')\" = '# our own review' ] && echo \"\$out\" | grep -q 'Kept 1 .*\.claude/skills/review/SKILL.md'"
+python3 "$BC" "$WORK/docs-project" --modules end-user-docs >/dev/null
+check "build-committed: writes /end-user-docs with its module, in the committed form (decision 0048)" \
+    "[ -f '$WORK/docs-project/.claude/skills/end-user-docs/SKILL.md' ] && grep -q '/write-docs' '$WORK/docs-project/.claude/skills/end-user-docs/SKILL.md' && ! grep -qE '/adf:|Step 0 — which copy' '$WORK/docs-project/.claude/skills/end-user-docs/SKILL.md'"
 out=$(python3 "$BC" "$WORK/elsewhere-project" --modules no-such-module 2>&1); code=$?
 check "build-committed: refuses a module that doesn't exist" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'no such module'"
 

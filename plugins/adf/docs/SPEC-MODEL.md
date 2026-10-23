@@ -71,7 +71,7 @@ spec. It lives in `plan.md`, and is approved together with the spec at the appro
 | Section | Status | Owned by |
 |---|---|---|
 | Testing | Required | QA / tech lead |
-| Documentation (pre- and post-implementable) | Required | Tech writer / dev |
+| Documentation (pre- and post-implementable; end-user docs with the end-user-docs module) | Required | Tech writer / dev |
 | Observability | Optional | DevOps / SRE |
 | Deployment | Optional | DevOps |
 
@@ -98,6 +98,9 @@ Testing · Documentation (both subsections) · Clarifications (may be an empty l
 **Conditionally required:**
 - **Accessibility** — when `feature-type` is `ui` or `mixed`. For `api`, `infra`, or `content`, mark `> Not applicable: [reason]`.
 - **Privacy** — when `personal-data: yes`. Collecting an email address counts.
+- **Documentation › End-user docs** — when the stamp on `AGENTS.md` names the `end-user-docs` module:
+  the page in the doc tool end users read, or `> Not applicable: [reason]` when nothing they see or
+  do changes.
 
 **Approval** happens later, at the gate in `/adf:write-plan`, once the change surface is known: the
 developer signs off on scope, change surface, and assumptions together, and `status` becomes
