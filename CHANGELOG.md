@@ -11,6 +11,36 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **What an agent finds along the way is reported and routed — never dropped, never fixed in
+  passing** ([decision 0054](docs/decisions/0054-found-along-the-way.md)).
+  - **Why:** the bugs and improvements an agent notices while working — related to the task or not —
+    are among the most useful things it does, and the framework had no route for them. Without the
+    parallel-agents module they lived in one turn's report; only `/adf:upgrade` wrote a pull
+    request's `## Follow-ups`; and a bug in the branch's own work could be mistaken for a change
+    request.
+  - **The rule** (`AGENTS.md` § AI interaction rules, `specs/README.md` § Found along the way): report
+    each finding with `file:line`, then route it — a bug in this branch's own work is fixed in the
+    task, with a regression test, not as a change request; an improvement to the feature is the
+    developer's call (a change request if taken); anything else is a follow-up, and a new session at
+    once with parallel-agents; what can't wait goes to the developer first.
+  - **Follow-ups** are `- [ ] <task> — <why> (found in <file:line>)` lines in the pull request's
+    `## Follow-ups`: `/adf:open-pr` writes them, the agent adds one to an open draft as upkeep, and
+    only the developer ticks or removes one. `/adf:wrap-up` offers to start each one left after any
+    ending — merged or abandoned — and an answer's too.
+  - **Where:** `/adf:implement`, `/adf:review`, `/adf:debug`, `/adf:dispatch`, `/adf:handoff`,
+    `/adf:open-pr`, `/adf:wrap-up`, `/adf:spec-workflow`; `@adf:code-reviewer` (`[outside]`) and
+    `/adf:deep-review` (`followUps`) list what's outside the diff apart from the verdict; the github
+    module's pull request template.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` (one line in § AI interaction rules), `specs/README.md` (§ Found along the
+    way, and a line on bugs under § Before the merge), and, with the github module,
+    `.github/pull_request_template.md` (a `## Follow-ups` section before Screenshots).
+  - **Nothing to migrate:** open pull requests without the section get one when the agent next has a
+    follow-up to add.
+  - **Committed install:** overwrite for `.claude/skills/{implement,review,debug,dispatch,handoff,open-pr,wrap-up,spec-workflow}/`,
+    `.claude/agents/code-reviewer/`, and `.claude/workflows/deep-review.js`.
+
 - **Spec folders name roles, a change request can ride the open pull request, and a split feature
   shares one written contract** ([decision 0050](docs/decisions/0050-spec-records-name-roles-and-contracts.md)).
   - **Why:** in an adopting project's session, an agent quoted a stakeholder's tracker reply in a spec

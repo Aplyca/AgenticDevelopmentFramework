@@ -1,6 +1,6 @@
 # 0050: Spec folders name roles, a change request can ride the open pull request, and a split feature shares one written contract
 
-- **Status:** accepted
+- **Status:** accepted; refined by [0054](0054-found-along-the-way.md) (what the agent finds on its own, and a bug in the branch's own work)
 - **Date:** 2026-10-23
 - **Refines:** [0001](0001-spec-folders-as-record-of-intent.md) — what the record holds, and whose
   words stay in the tracker; [0011](0011-lanes-ceremony-follows-risk.md) — light and full change

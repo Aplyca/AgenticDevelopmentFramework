@@ -239,6 +239,37 @@ The pull request's line in `pull-requests:` adds the CR (`<url> · initial deliv
 `/open-pr` keeps the pull request's description current with each push, so the reviewer sees the CR
 there too. Once the pull request merges, the next change request needs a new branch, as above.
 
+A **bug** in the branch's own work — it doesn't do what its spec already says — isn't a change
+request, before the merge or after: fix it on the branch with a regression test. What an agent
+finds on its own, rather than hears from the requester, is routed in [§ Found along the way](#found-along-the-way).
+
+## Found along the way
+
+An agent reads far more code than it changes, and what it notices there is worth having — a bug in
+another feature, a missing test, a slow query, a stale doc, a better way to build what it's building,
+related to the task or not. **Nothing found is dropped, and nothing found is fixed in passing.** The
+agent says it in that turn's report — what, where (`file:line`), how it knows (seen failing, or read
+and suspected), and the lane it would take — and routes it:
+
+| Found | Where it goes |
+| --- | --- |
+| **A bug in this branch's own work** — it doesn't do what its spec, or its "done when", already says | The task itself: a regression test, red then green, on this branch. No change request |
+| **An improvement to what this branch builds**, beyond what was agreed | The developer decides — never added on the agent's own (an invented requirement). Accepted before the merge: a change request on this branch ([§ Before the merge](#before-the-merge)). Not now: a follow-up. Declined: nothing, or a line in the spec's *Out of scope* when the developer wants it on record |
+| **Anything else** — a bug or an improvement outside this task, however unrelated | Its own task, never this branch: a follow-up. With the parallel-agents module, the agent also offers it a new session at once (`/dispatch`) |
+| **Something that can't wait** — a security hole, data lost or exposed, production broken | The top of the report, now, whatever it relates to: it may be a hotfix (careful lane) that doesn't wait for this merge |
+
+A finding the task can't be done without — a bug in shared code the change depends on — isn't a
+follow-up: it joins the change surface (`plan.md` updated, re-confirmed if it reaches a risk), and
+the pull request says so.
+
+**Follow-ups** live in the pull request's `## Follow-ups` section, one line each:
+`- [ ] <the task, in one line> — <why it matters> (found in <file:line>)`. On an open draft the agent
+adds the line at once — upkeep, with no prompt; before the draft opens, `/open-pr` writes the ones
+the session found. The agent adds lines and never ticks or removes one: the developer drops a
+follow-up by ticking or deleting it. When the task ends — merged, or closed and dropped — `/wrap-up`
+offers to start each one left in its own session. A task with no pull request (an answer) lists its
+follow-ups in the answer, and `/wrap-up` offers them the same way.
+
 ## Specs from older framework versions
 
 Single-file specs (`specs/<name>.md`, one file with every section) remain valid records. Leave

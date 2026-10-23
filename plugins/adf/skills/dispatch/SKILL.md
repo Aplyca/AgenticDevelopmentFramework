@@ -92,7 +92,8 @@ it names, and then runs in the worktree as the developer typed it.
      worktree, and the app then shows that folder, named after the branch.
    - **Terminal:** one command to run in a new terminal, in the main checkout: `claude "<prompt>"`.
 4. **Carry on with this session's own task.** The other one needs nothing more from this
-   conversation.
+   conversation. One found along the way is also a line in this pull request's `## Follow-ups`
+   (`specs/README.md` § Found along the way), so it survives a chip nobody started.
 
 ## Rationalizations (do not accept these)
 

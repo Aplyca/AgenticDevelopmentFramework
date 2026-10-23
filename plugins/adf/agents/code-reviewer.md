@@ -64,4 +64,7 @@ Report findings as a list with severity and file references:
 - **[warning]** `file:line` — description (should fix, potential issue)
 - **[nit]** `file:line` — description (minor style/preference)
 
-End with a summary: **approve**, **approve with nits**, or **request changes**.
+End with a summary: **approve**, **approve with nits**, or **request changes**. Below it, list apart
+what you noticed **outside the diff** — a bug or an improvement in code this change doesn't touch —
+as **[outside]** `file:line` — description. It doesn't change the verdict; the session records
+each one as a follow-up.

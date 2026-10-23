@@ -139,6 +139,15 @@ teammate, another machine, or a fresh session is `/adf:handoff`: pointers to the
 A feature split across spec folders shares one written contract, in both specs (`specs/README.md` §
 Granularity); the brief `/adf:dispatch` writes for each part carries it.
 
+## Found along the way
+
+A bug or an improvement the agent notices while working — in this task or far from it — is reported
+with `file:line` and routed, never dropped and never fixed in passing (`specs/README.md` § Found along
+the way): a bug in this branch's own work is fixed in the task; an improvement to it is the
+developer's call, a change request if taken; anything else is a follow-up in the pull request's
+`## Follow-ups` (and a new session at once with the parallel-agents module), which `/adf:wrap-up`
+offers to start when the task ends; what can't wait goes to the developer first.
+
 ## Effort beyond the lane
 
 The developer can ask for more care without changing the lane — questions before any code,

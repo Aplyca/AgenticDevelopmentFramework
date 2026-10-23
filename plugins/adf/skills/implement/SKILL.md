@@ -76,6 +76,12 @@ plan is the contract for **where** code goes (the change surface); the tests are
   spec and its pull request before building on it.
 - **Feedback arrives on the open pull request:** it's a change request on this branch — light, or
   full with its own gate (`specs/README.md` § Before the merge). Don't fold it into the tasks in hand.
+- **You find something along the way** — a bug or an improvement, in this feature or anywhere else:
+  report it with `file:line` and route it (`specs/README.md` § Found along the way). A bug in this
+  branch's own work is a regression test and a fix here; an improvement to the feature is the
+  developer's call, a change request if they take it; anything else is a follow-up for the pull
+  request, never a change in this branch. What can't wait — a security hole, data at risk — goes to
+  the developer now.
 - **A test is genuinely wrong:** fix it in its own commit and say why. Never weaken a test to get
   to green.
 
@@ -120,7 +126,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "I'll batch several tasks into one commit" | One task, one commit — that's what makes the history reviewable and each step revertible. |
 | "This file isn't in the change surface, but it's a tiny edit" | Change surface growth goes back to the developer. Tiny edits to shared code are how regressions ship. |
 | "The tests are too strict — I'll loosen them" | Tests are the contract. Fix the implementation; fix a test only when it's genuinely wrong, and say so. |
-| "I'll clean up this nearby code while I'm here" | Not in the spec, not in this branch. Refactoring is its own task or its own workflow. |
+| "I'll clean up this nearby code while I'm here" | Not in the spec, not in this branch. Report it and make it a follow-up — its own task, with its own review. |
+| "It's unrelated to this task, so I won't mention it" | An unrelated bug is still a bug. Report it with `file:line` and record the follow-up; the developer decides when. |
 | "I'll add this dependency to make it easier" | The plan didn't approve it. New dependencies need justification and re-confirmation. |
 | "All green — I'll push and open the PR" | Pushing is outward. Finish the gate results and review, then walk the change locally; that check is what opens the draft. |
 

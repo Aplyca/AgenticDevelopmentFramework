@@ -912,6 +912,29 @@ check_spec_records() {
     fi
 }
 
+# What an agent finds along the way is reported and routed — never dropped, never fixed in passing (0054).
+check_found_along_the_way() {
+    local missing=()
+    file_contains "$AGENTS_MD" 'Report what you find along the way' || missing+=("AGENTS.md: report and route what you find")
+    file_contains "$SKELETON/specs/README.md" '^## Found along the way' || missing+=("specs/README.md § Found along the way")
+    file_contains "$SKELETON/specs/README.md" "isn't a change\s*$|isn't a change request" || missing+=("specs/README.md: a bug in the branch's own work isn't a change request")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" 'You find something along the way' || missing+=("/implement: routes findings")
+    file_contains "$SKILLS_DIR/review/SKILL.md" '\*\*outside the diff\*\*' || missing+=("/review: lists findings outside the diff apart")
+    file_contains "$SKILLS_DIR/debug/SKILL.md" 'Other bugs you met on the way' || missing+=("/debug: routes other bugs")
+    file_contains "$AGENTS_DIR/code-reviewer/agent.md" '\[outside\]' || missing+=("@code-reviewer: [outside] findings")
+    file_contains "$WORKFLOWS_DIR/deep-review.js" 'followUps' || missing+=("/deep-review: returns follow-ups apart")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## Follow-ups' || missing+=("/open-pr: the body has ## Follow-ups")
+    file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## Follow-ups' || missing+=("PR template: ## Follow-ups")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
+    file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'survives a chip nobody started' || missing+=("/dispatch: a found task is also a follow-up")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up (0054)"
+    else
+        fail "found along the way: missing" "${missing[*]}"
+    fi
+}
+
 check_plugin() {
     local skill
     for skill in "$REPO_ROOT"/plugins/*/skills/*/; do
@@ -1553,6 +1576,7 @@ check_install_prompt
 check_lanes
 check_practices
 check_spec_records
+check_found_along_the_way
 check_plugin
 check_mods
 check_dev_env_templates

@@ -51,10 +51,16 @@ the close-up only once it resumes and ends.
      - **None, on a branch with no commits past the base** — an **answer**: go on when it was
        delivered where the task asked. With commits and no pull request, the work isn't delivered:
        say so and stop.
-   - **The follow-ups,** for a merged pull request: its body (`gh pr view --json body`), from the line
-     `## Follow-ups` to the next heading. Each unchecked line, `- [ ] \`<command>\` — <why> (<source>)`,
-     is work the merge made necessary — `/adf:upgrade` writes them (issue #89). `- none`, a checked
-     line, or no section: nothing to offer.
+   - **The follow-ups,** for a merged or abandoned pull request: its body (`gh pr view --json body`),
+     from the line `## Follow-ups` to the next heading. Each unchecked line is one:
+     - `- [ ] \`<command>\` — <why> (<source>)` — work the merge made necessary; `/adf:upgrade` writes
+       them (issue #89). Offered only after a merge: an abandoned task's merge never happened.
+     - `- [ ] <task> — <why> (found in <file:line>)` — a bug or an improvement found along the way
+       (`specs/README.md` § Found along the way). Offered after any ending: it doesn't depend on this
+       task's code.
+
+     `- none`, a checked line, or no section: nothing to offer. For an answer, the follow-ups are the
+     ones its answer listed.
    - **The working tree:**
      - `git status --porcelain` — uncommitted changes, including untracked files;
      - `git stash list` — stashes from this branch;
@@ -88,7 +94,7 @@ the close-up only once it resumes and ends.
    - Stop what it started: <the containers, the app on the host, the background commands>
    - Remove the worktree <path> and its branch <type>/<slug> (here and on origin)
    - Update <base> in the main checkout to origin's
-   - Start, each in its own session, once <base> is updated: <the follow-up commands, with why>
+   - Start, each in its own session, once <base> is updated: <the follow-up commands and tasks, with why>
    - Archive this session
    ```
    The first line names the ending: `PR #<n> merged`, `The answer is delivered`, or `PR #<n> closed
@@ -128,8 +134,9 @@ the close-up only once it resumes and ends.
    4. **Start the follow-ups,** when the list had any and the developer kept them. Each one is a
       session of its own, from the updated base branch in the main checkout, because it needs the merged
       change; it changes the project's environment or tests and goes through its own review.
-      - **In the desktop app:** call `start_session` once per follow-up, `"fresh"`, with the command as
-        the brief and its why and source; the yes was the developer's ask. Don't run the command here.
+      - **In the desktop app:** call `start_session` once per follow-up, `"fresh"`, with the command or
+        the task as the brief and its why and source (`found in <file:line>`); the yes was the
+        developer's ask. Don't run the command or start the task here.
       - **In a terminal:** print each command, for the developer to run in a new session from the main
         checkout.
       - If the base branch wasn't updated, say so: the follow-up would start without the merge.

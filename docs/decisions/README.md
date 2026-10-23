@@ -60,8 +60,9 @@ projects.
 | [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted; amended by 0049 |
 | [0048](0048-end-user-docs-in-the-doc-tool.md) | End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module) | accepted |
 | [0049](0049-every-lane-pushes-without-asking.md) | Every lane commits, pushes, and opens its draft without asking — a standing go-ahead | accepted |
-| [0050](0050-spec-records-name-roles-and-contracts.md) | Spec folders name roles, a change request can ride the open pull request, and a split feature shares one written contract | accepted |
+| [0050](0050-spec-records-name-roles-and-contracts.md) | Spec folders name roles, a change request can ride the open pull request, and a split feature shares one written contract | accepted; refined by 0054 |
 | [0053](0053-stakeholder-updates-at-three-moments.md) | The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request | accepted |
+| [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
