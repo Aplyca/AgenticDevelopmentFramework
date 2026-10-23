@@ -119,7 +119,7 @@ one a new session (`/adf:dispatch` too).
 | Triage | Next |
 |---|---|
 | Change · fast lane | Search every use of what you change → the test for the new behavior, written or updated and watched failing (for a bug, the regression test) → edit until it passes → `/adf:commit`. When it changes what a spec records as delivered: a light `CR N` entry in the same commit (`/adf:write-spec`, light mode); a fix that restores documented behavior needs none |
-| Change · careful lane | As fast, plus the area's checklist and `@adf:security-reviewer` for authorization, personal data, or payments; the developer confirms the risky part once, before the push |
+| Change · careful lane | As fast, plus the area's checklist and `@adf:security-reviewer` for authorization, personal data, or payments; the pull request names the risky part for the developer's test, and the push needs no yes |
 | Change · full lane, new feature | `/adf:write-spec` → `/adf:write-plan` → approval gate |
 | Change · full lane, change request | `/adf:write-spec` in amend mode (full `CR N`) → `/adf:write-plan` → approval gate |
 | Change · bug, root cause unclear | `/adf:debug`, then the lane the fix needs |

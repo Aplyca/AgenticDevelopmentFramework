@@ -38,7 +38,8 @@ implementation; invest in them early.
    fail (for a bug, the regression test); then edit until it passes. Quiet output; the full gate once, before delivery.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
    code, contract, infrastructure), run `@adf:security-reviewer` for authorization, data, or payments,
-   and get the developer's yes on the risky part — once, before the push (`/adf:open-pr`).
+   and name the risky part in the pull request for the developer's test; the push needs no yes
+   (`/adf:open-pr`).
 5. **Commit** (`/adf:commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded
    behavior (a fix that restores documented behavior needs none).
 6. **Move up a lane** when the diff grows past the stated files, a test outside the area fails, or
