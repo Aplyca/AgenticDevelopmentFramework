@@ -69,12 +69,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     and `docs/SPEC-MODEL.md`.
   - **Without the module:** the skills behave as before.
 
-- **The stakeholder update stays off the pull request: the draft in chat is the deliverable**
-  ([decision 0050](docs/decisions/0050-the-stakeholder-update-stays-off-the-pull-request.md)).
+- **The requester hears at three moments — started, in review, delivered — on the tracker task, on a
+  yes, never on the pull request** ([decision 0053](docs/decisions/0053-stakeholder-updates-at-three-moments.md)).
   - **Why:** in an adopting project's long session, the developer rejected the updates
     `/stakeholder-update` posted on pull requests — reviewers aren't their audience, and the copy
     drifted from the one the client reads — and the tracker's comment tool couldn't show screenshots
-    inline. The same session showed rules the skill was missing.
+    inline. The same session showed rules the skill was missing. And the update ran only at the end,
+    so the requester heard nothing between the triage and the merge.
+  - **Three moments.** `/adf:triage` ends its turn with the **started** update's draft — the task to
+    the project's in-progress status, with a message only when it's worth the requester's time
+    (what we understood, questions only they can answer, a finding). `/adf:open-pr` ends its report
+    with the **in review** update's draft — the task to the review status, with a business-focused
+    report: what changes for them, the preview and what to test there, and the pull request, which
+    is now the tracker link-back. The **delivered** update is as before. Each moment's status, text,
+    and assignee are one approval, and the work doesn't wait for it.
   - **No pull request comment (A4).** The draft shown in chat is the deliverable. It goes on the
     tracker task only after the developer approves the exact text; if the developer posts it
     themselves, nothing is posted anywhere. The template loses its "For the team" note.
@@ -101,21 +109,27 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     October 2026 — markdown-only comments, attachments that land on the task, no comment-level
     operators, a pasted image read back as a file-name line — and the lines a ClickUp project writes
     into § Stakeholder updates, including the mention syntax `[@Name](#user_mention#<user id>)`.
-  - **Where:** in `adf`, the skills `stakeholder-update` and `triage`; `skeleton/AGENTS.md`,
-    `skeleton/.claude/rules/claude-code.md`, `skeleton/docs/TRACKER-INTEGRATION.md`;
-    `modules/clickup/MODULE.md`; `README.md`, `docs/SKILLS-REFERENCE.md`, the two examples, decision
-    0033's status; a new `ambiguous-reply` triage fixture and the static checks.
+  - **Where:** in `adf`, the skills `stakeholder-update`, `triage`, `open-pr`, and `spec-workflow`;
+    `skeleton/AGENTS.md`, `skeleton/CONTRIBUTING.md`, `skeleton/.claude/rules/claude-code.md`,
+    `skeleton/docs/TRACKER-INTEGRATION.md`; `modules/clickup/MODULE.md`; `README.md`,
+    `docs/SKILLS-REFERENCE.md`, `docs/ONBOARDING.md`, the change-request scenario, the two examples,
+    decision 0033's status; a new `ambiguous-reply` triage fixture, the triage and open-pr fixtures'
+    invariants, and the static checks.
 
   **Upgrade impact:**
   - **Packaged install:** the skills come with the plugin. **Merge** `AGENTS.md` (§ Requirements &
-    traceability: the "Close the loop" line), `.claude/rules/claude-code.md` (the `/stakeholder-update`
-    sentence below the guardrails table), and `docs/TRACKER-INTEGRATION.md` (§ Stakeholder updates:
-    its first paragraph, and the new **Stable preview address**, **Images in comments**, and
-    **Mentions** lines — fill them in, or delete the ones that don't apply).
+    traceability: "Close the loop" becomes "Keep the requester informed"), `CONTRIBUTING.md` (§ Status
+    words: the "in progress" row), `.claude/rules/claude-code.md` (the `/stakeholder-update` sentence
+    below the guardrails table), and `docs/TRACKER-INTEGRATION.md` (§ Rules for agents: "Link back";
+    § Stakeholder updates: its first paragraph, and the new **Stable preview address**, **Status at
+    each moment**, **Requesters can open pull requests**, **Images in comments**, and **Mentions**
+    lines — fill them in, or delete the ones that don't apply).
   - **With the `clickup` module:** write § Stakeholder updates' ClickUp lines from `MODULE.md`
     § Customize, step 3.
-  - **Committed install:** the same merges, plus **overwrite** `.claude/skills/stakeholder-update/`
-    and `.claude/skills/triage/`.
+  - **Committed install:** the same merges, plus **overwrite** `.claude/skills/stakeholder-update/`,
+    `.claude/skills/triage/`, `.claude/skills/open-pr/`, and `.claude/skills/spec-workflow/`.
+  - **Without a tracker task** — engineering work from an issue — nothing changes: there's no task to
+    update.
   - **A team that relayed updates from the pull request** now takes the draft from chat, or asks the
     agent to post it on the tracker. Comments already on pull requests stay as they are.
 

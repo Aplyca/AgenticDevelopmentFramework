@@ -1,4 +1,4 @@
-# 0050: The stakeholder update stays off the pull request — the draft in chat is the deliverable, and the tracker gets it only on a yes
+# 0053: The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request
 
 - **Status:** accepted
 - **Date:** 2026-10-23
@@ -34,7 +34,37 @@ The same session showed what the skill left to chance, with no rule to follow:
 - **Which preview to link** — a deploy's own URL changes with the next push; some hosts also give each
   pull request a stable address.
 
+The skill also ran only once, at the end, and only when asked. A typical development workflow
+updates the task earlier, twice:
+
+- **When the task is received and understood** — the task moves to in progress, and the requester
+  hears what the team understood, or the questions only they can answer, while those still cost
+  little.
+- **When its pull request opens** — the task moves to review, and the requester gets a business-focused
+  report: the preview, what to test there, and the pull request.
+
+Between them, the requester heard nothing from the triage to the merge, and the task's status stayed
+wherever someone left it.
+
 ## Decision
+
+- **Three moments, each a draft in chat.** Tracker-originated work, light changes included:
+
+  | Moment | Drafted by | Task status | Message |
+  |---|---|---|---|
+  | **Started** | `/triage`, after it's stated | in progress | Only when it's worth the requester's time: what we understood, questions only they can answer, a finding |
+  | **In review** | `/open-pr`, after the preview walk | review | Always: what changes for them, the preview and what to test there, and the pull request |
+  | **Delivered** | when merged or live, or when asked | where the change is now | Always, as before |
+
+  The status change and the message are one approval, with the assignee. The work goes on while the
+  draft waits: the started update's draft ends triage's turn, and the review update's ends
+  `/open-pr`'s report. If the draft opens in the same turn as the triage, the review update replaces
+  the started one. An answer-only task has no review moment.
+- **The review update links the pull request** — the one update that does, beside the preview and
+  what to test — unless the project says requesters can't open it. `docs/TRACKER-INTEGRATION.md`
+  § Stakeholder updates gains the status for each moment and whether requesters can open pull
+  requests; `CONTRIBUTING.md`'s status words gain "in progress". The review update is the tracker
+  link-back.
 
 - **The draft shown in chat is the deliverable.** `/stakeholder-update` writes nothing on the pull
   request. It goes on the tracker task only after the developer approves the exact text. If the
@@ -70,13 +100,21 @@ The same session showed what the skill left to chance, with no rule to follow:
 ## Consequences
 
 - **Positive:**
-  - One copy of the update, in front of the one person who decides where it goes.
+  - The requester hears when the work starts and when there's something to try, not only at the
+    end, and the task's status follows the work.
+  - Questions reach the requester at the start, when an answer is cheapest.
+  - One copy of each update, in front of the one person who decides where it goes.
   - Reviewers aren't notified about text that isn't for them.
   - A posted comment is checked, not assumed, and its assignee tells the client when an answer is
     needed.
   - Screenshots show what the sentence points at, without changing anything on the client's site.
   - An ambiguous reply costs one short confirming message instead of the wrong work.
 - **Negative / cost:**
+  - **Two more approvals per task** — the started and review updates. Each rides at the end of a
+    message the developer already reads, and nothing waits for it. A started update with nothing
+    worth saying is only a status change.
+  - **The pull request reaches the requester.** A requester who can't open the repository gets a
+    broken link; the project's setting drops it.
   - **A team that relayed updates from the pull request loses that place.** The developer now
     passes the draft on, or asks the agent to post it on the tracker. A project that wants the old
     behavior can say so in its own instructions.
@@ -89,6 +127,15 @@ The same session showed what the skill left to chance, with no rule to follow:
     answer costs less than building on a guess.
 
 ## Alternatives considered
+
+- **Move the task and post the started and review updates without asking.** Declined for now: they
+  reach the client under the developer's name, and the tracker's rules confirm every requester-visible
+  write (decision 0005). A project can choose otherwise in its own instructions.
+- **Always send a started message.** Declined. "We've started" is what the status change says; a
+  message the requester skims trains them to skim the next.
+- **Keep the pull request out of every update.** Declined for the review update: the requester
+  tests there, and the framework's maintainers asked for the link. Where requesters can't open it, the
+  project's setting leaves it out.
 
 - **Keep the pull request comment, behind the developer's yes.** Declined. The developer said no to
   it, and the comment's readers aren't the client.
