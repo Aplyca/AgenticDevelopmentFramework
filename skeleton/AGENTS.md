@@ -60,7 +60,7 @@ Tests, the hooks, CI, review, and the checks run in every lane — your local ch
 
 ### 4. Change request on delivered work
 
-Not a new feature. Find the existing `specs/NNN-<slug>/` and compare the request now against what the spec records as delivered (plus the comments since its last update). A precise adjustment takes the fast or careful lane and adds a **light** `CR N` entry to `spec.md` in the same commit; one with something to decide is a **full** `CR N` with plan, tasks, and the gate. Either way: a fresh branch (`<type>/<slug>-<change>`) and a new pull request. If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
+Not a new feature. Find the existing `specs/NNN-<slug>/` and compare the request now against what the spec records as delivered (plus the comments since its last update). A precise adjustment takes the fast or careful lane and adds a **light** `CR N` entry to `spec.md` in the same commit; one with something to decide is a **full** `CR N` with plan, tasks, and the gate. After the merge, either way: a fresh branch (`<type>/<slug>-<change>`) and a new pull request; feedback while the pull request is still open rides its branch and draft (`specs/README.md` § Before the merge). If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
 
 ### 5. No lane
 

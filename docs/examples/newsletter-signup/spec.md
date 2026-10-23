@@ -6,7 +6,7 @@ feature-type: ui
 personal-data: yes
 tracker: "https://tracker.example.com/t/MKT-412"
 approvals:
-  - "2026-06-09 · Sam (tech lead) · initial scope"
+  - "2026-06-09 · tech lead · initial scope"
 pull-requests:
   - "https://github.com/<org>/marketing-site/pull/142 · initial delivery"
 owners:
@@ -240,32 +240,32 @@ WCAG 2.1 AA (`.claude/rules/ui-ux.md`), plus:
 ## Clarifications [REQUIRED — the section must exist even while empty]
 
 - **Q:** Every article page, or only some — and where on the page? — **A:** Every article page,
-  below the article body and above related articles. _(2026-06-08, Dana)_
+  below the article body and above related articles. _(2026-06-08, requester)_
 - **Q:** What counts as a valid address? — **A:** After trimming: not empty, one `@`, a dot in the
-  domain, no spaces, at most 254 characters. Mailchimp does the strict check. _(2026-06-08, Dana and
-  Sam)_
+  domain, no spaces, at most 254 characters. Mailchimp does the strict check. _(2026-06-08,
+  requester and tech lead)_
 - **Q:** An address already on the list — its own message, or the normal success message? — **A:**
   Its own message: marketing prefers to tell people they're already subscribed. _(2026-06-08,
-  Dana)_ The message reveals whether an address is on the list; the security lead accepted that,
+  requester)_ The message reveals whether an address is on the list; the security lead accepted that,
   since the rate limit bounds lookups and nothing else is revealed. _(2026-06-09, security lead —
   raised by @spec-analyzer)_
 - **Q:** What rate limit? — **A:** 10 requests per IP per minute, about ten times a fast human; 429
   with `Retry-After`. _(2026-06-08, security lead)_
 - **Q:** Contentful down when a page renders — hide the form, or fall back to built-in copy? —
   **A:** Hide it. An article page must never fail because of the CMS, and there is no copy outside
-  Contentful to fall back to. _(2026-06-08, Dana)_
+  Contentful to fall back to. _(2026-06-08, requester)_
 - **Q:** Mailchimp down on submit — what does the reader see? — **A:** The error message from the
-  entry, with the address kept; no automatic retry. _(2026-06-08, Dana)_
+  entry, with the address kept; no automatic retry. _(2026-06-08, requester)_
 - **Q:** What does a reader over the rate limit see? — **A:** The same error message; no separate
-  field. _(2026-06-09, Dana — raised by @spec-analyzer)_
+  field. _(2026-06-09, requester — raised by @spec-analyzer)_
 - **Q:** Single or double opt-in? — **A:** Single opt-in; the audience is set up that way, and
-  double opt-in is out of scope. _(2026-06-08, Dana)_
-- **Q:** How fast must copy edits show up? — **A:** Within 5 minutes is fine. _(2026-06-08, Dana)_
+  double opt-in is out of scope. _(2026-06-08, requester)_
+- **Q:** How fast must copy edits show up? — **A:** Within 5 minutes is fine. _(2026-06-08, requester)_
 - **Q:** Should the field label and the inline error be editable? — **A:** No — fixed text is fine.
-  _(2026-06-08, Dana)_
+  _(2026-06-08, requester)_
 - **Q:** When should readers first see the form? — **A:** On campaign day, 2026-06-22. The code can
-  ship earlier; marketing publishes the entry that day. _(2026-06-09, Dana — relayed by Sam at the
-  approval gate)_
+  ship earlier; marketing publishes the entry that day. _(2026-06-09, requester —
+  relayed by the tech lead at the approval gate)_
 - **Q:** Anything beyond WCAG 2.1 AA? — **A:** The six requirements under Accessibility; nothing
   else. _(2026-06-08, a11y lead)_
 

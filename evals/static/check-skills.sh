@@ -868,6 +868,37 @@ check_practices() {
     fi
 }
 
+# Spec folders name roles, a change request can ride the open pull request, and a split feature
+# shares one written contract (0050).
+check_spec_records() {
+    local readme="$SKELETON/specs/README.md" missing=()
+    file_contains "$readme" '^## Records name roles' || missing+=("specs/README.md § Records name roles")
+    grep -qE '<who>|\[who\]|, who\)' "$TEMPLATES/spec.md" "$TEMPLATES/plan.md" "$TEMPLATES/tasks.md" "$readme" \
+        && missing+=("templates and specs/README.md: attribution by role, never <who>")
+    file_contains "$TEMPLATES/spec.md" '<role>' || missing+=("spec template: approvals name a role")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Roles, not names' || missing+=("/write-spec: roles, not names")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Roles, not names' || missing+=("/write-plan: roles, not names")
+    file_contains "$AGENTS_DIR/spec-analyzer/agent.md" 'Roles, not names' || missing+=("@spec-analyzer: flags names and tracker quotes")
+    file_contains "$SKILLS_DIR/context-audit/SKILL.md" 'People in spec folders' || missing+=("/context-audit: flags names and tracker quotes in spec folders")
+    file_contains "$WORKFLOWS_DIR/deep-context-audit.js" 'check:spec-records' || missing+=("/deep-context-audit: sweeps the spec folders")
+    # The examples' spec folders use roles; their fictional names stay in the story.
+    grep -qwE 'Dana|Sam|Lee' "$REPO_ROOT"/docs/examples/newsletter-signup/{spec,plan,tasks}.md "$REPO_ROOT"/docs/examples/newsletter-topics/*-diff.md \
+        && missing+=("docs/examples: a spec folder names a person")
+    file_contains "$readme" '^### Before the merge' || missing+=("specs/README.md § Before the merge")
+    file_contains "$SKILLS_DIR/spec-workflow/SKILL.md" 'Feedback on an open pull request' || missing+=("/spec-workflow: routes feedback on an open pull request")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Before the merge' || missing+=("/write-spec: a change request before the merge")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" 'Feedback arrives on the open pull request' || missing+=("/implement: feedback on the open pull request is a change request")
+    file_contains "$readme" 'A feature split across spec folders' || missing+=("specs/README.md: a split feature's contract")
+    file_contains "$TEMPLATES/plan.md" 're-checks it against the provider' || missing+=("plan template: the consumer re-checks the contract after a base sync")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'One part of a split feature' || missing+=("/dispatch: the brief carries the contract")
+    file_contains "$AGENTS_DIR/spec-analyzer/agent.md" 'flag it against that consumer spec' || missing+=("@spec-analyzer: flags a contract change against a consumer spec")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "spec records: roles, not names; change requests before the merge; one contract for a split feature (0050)"
+    else
+        fail "spec records: missing" "${missing[*]}"
+    fi
+}
+
 check_plugin() {
     local skill
     for skill in "$REPO_ROOT"/plugins/*/skills/*/; do
@@ -1508,6 +1539,7 @@ check_install_scope
 check_install_prompt
 check_lanes
 check_practices
+check_spec_records
 check_plugin
 check_mods
 check_dev_env_templates

@@ -77,6 +77,15 @@ it names, and then runs in the worktree as the developer typed it.
    If the developer set a lane or asked for more effort, pass it on in their words
    (`Developer: full lane — the billing rules are fragile`), since triage honors it. Don't restate
    the workflow: the session reads it in `AGENTS.md`.
+
+   **One part of a split feature** — a provider and its consumers, in separate spec folders: the
+   contract is written into both specs before the split (`specs/README.md` § Granularity), and the
+   prompt carries it — the provider's folder and the shared interface (parameter names, accepted
+   values, field IDs, endpoints) — and says how a change to it is recorded:
+   ```
+   Contract: specs/012-topic-catalog/ § Constraints — GET /api/topics?state=active|archived → { id, label }.
+   Any change to it is recorded in the consumer's spec and pull request.
+   ```
 3. **Offer it:**
    - **Desktop app:** a task chip for this repository, with the prompt, titled with the task's title
      alone (`Show the chosen topics after signup`). The new session's triage moves it to its own
@@ -96,6 +105,7 @@ it names, and then runs in the worktree as the developer typed it.
 | "I'll ask whether to open a new session for it" | The chip is that question. Asking first makes the developer answer twice. |
 | "I'll put the branch in the chip's title" | The folder shows it once the new session moves. The title is the task's. |
 | "I'll triage the other task here so its session gets a head start" | Its session triages it where it can check what it reads. Analysis here drifts in the hand-off. |
+| "The other part's session will work out the interface from the code" | Its branch was cut from a base without the provider's change. A contract written in both specs, and carried in the prompt, is the only one both sides read. |
 | "I'll start the environment so it's ready" | The task's own steps decide. The worktree can run it: the script gave it the env file and its port. |
 
 ## Red flags (stop and reassess)
@@ -112,6 +122,7 @@ it names, and then runs in the worktree as the developer typed it.
 - [ ] A change — or an answer that needed an environment — got its own worktree beside the main checkout before any edit, and `pwd` showed the session there
 - [ ] An answer that only read stayed where it was and changed nothing
 - [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own
+- [ ] A part of a split feature got the contract in its prompt, and where a change to it is recorded
 - [ ] Nothing was edited or committed in the main checkout or in Claude Code's own worktree
 
 ## Principles

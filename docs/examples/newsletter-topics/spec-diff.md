@@ -36,8 +36,8 @@ index 5d1c0e2..8b3f7a9 100644
  personal-data: yes
 @@ -8,4 +8,5 @@ tracker: "https://tracker.example.com/t/MKT-412"
  approvals:
-   - "2026-06-09 · Sam (tech lead) · initial scope"
-+  - "2026-09-17 · Sam (tech lead) · CR 1"
+   - "2026-06-09 · tech lead · initial scope"
++  - "2026-09-17 · tech lead · CR 1"
  pull-requests:
    - "https://github.com/<org>/marketing-site/pull/142 · initial delivery"
 @@ -47,4 +48,6 @@ go to Mailchimp, the team's email provider.
@@ -225,23 +225,23 @@ index 5d1c0e2..8b3f7a9 100644
  - **Q:** Anything beyond WCAG 2.1 AA? — **A:** The six requirements under Accessibility; nothing
    else. _(2026-06-08, a11y lead)_
 +- **Q:** (CR 1) A reader already on the list picks topics — add them? — **A:** Yes: add them, and
-+  never remove any. _(2026-09-16, Dana)_ Adding interests to an address without proof of ownership
++  never remove any. _(2026-09-16, requester)_ Adding interests to an address without proof of ownership
 +  is accepted — see Security. _(2026-09-16, security lead)_
 +- **Q:** (CR 1) Who maps each topic to its Mailchimp group? — **A:** Each topic entry has a
 +  "Mailchimp group ID" field. Mailchimp doesn't show these IDs on screen, so the web team looks them
-+  up and marketing pastes them in. _(2026-09-16, Dana and Sam)_
++  up and marketing pastes them in. _(2026-09-16, requester and tech lead)_
 +- **Q:** (CR 1) In what order do topics appear, and how many can there be? — **A:** In the entry's
-+  order; at most six, which is what the design fits. _(2026-09-16, Dana)_
++  order; at most six, which is what the design fits. _(2026-09-16, requester)_
 +- **Q:** (CR 1) Should the topic group's label be editable? — **A:** No — "Topics (optional)" is
-+  fine. _(2026-09-16, Dana)_
++  fine. _(2026-09-16, requester)_
 +- **Q:** (CR 1) Does the success message vary by selected topics? — **A:** No — one message,
-+  whatever the reader picks, for this iteration. _(2026-09-16, Dana)_
++  whatever the reader picks, for this iteration. _(2026-09-16, requester)_
 +- **Q:** (CR 1) Contentful can't be reached when the form is submitted, so the topics can't be
 +  checked — what happens? — **A:** Subscribe the reader without topics and log it; a lost signup is
-+  worse than missing topics. _(2026-09-16, Dana)_
++  worse than missing topics. _(2026-09-16, requester)_
 +- **Q:** (CR 1) An address that unsubscribed earlier signs up again — resubscribe it? — **A:** No.
 +  It sees the success message and stays unsubscribed: resubscribing needs Mailchimp's confirmation
-+  email, and double opt-in stays out of scope. _(2026-09-16, Dana — raised by @spec-analyzer)_
++  email, and double opt-in stays out of scope. _(2026-09-16, requester — raised by @spec-analyzer)_
  
  ## References
 @@ -276,2 +355,18 @@ WCAG 2.1 AA (`.claude/rules/ui-ux.md`), plus:
@@ -251,7 +251,7 @@ index 5d1c0e2..8b3f7a9 100644
 +# CR 1 — Topic preferences; one message for everyone (2026-09-16)
 +
 +- **Requested:** [MKT-412](https://tracker.example.com/t/MKT-412) — the description, rewritten on
-+  2026-09-14, and the comments of 2026-09-14 and 2026-09-15 · by Dana (marketing) and Lee (privacy)
++  2026-09-14, and the comments of 2026-09-14 and 2026-09-15 · by requester (marketing lead), privacy lead
 +- **Intent:** Let readers choose the topics they hear about, so marketing can segment the Thursday
 +  digest by interest without losing signups — and stop the form from telling anyone whether an
 +  address is on the list.

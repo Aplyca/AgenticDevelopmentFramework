@@ -9,8 +9,10 @@
   [P] = independent of the previous task (can run in parallel).
   The docs-first tasks (Phase 1) share one `docs:` commit; test-only tasks are `test:` commits.
   Each delivery is one branch and one pull request; size the work so that holds.
-  Change request: leave the delivered tasks as they are and append a "# CR N — <title>" part with
-  these phases, its tasks numbered from T<N>00 (T100 for CR 1) and its own gate results.
+  Change request — after the merge or on the open pull request: leave the earlier tasks as they
+  are and append a "# CR N — <title>" part with these phases, its tasks numbered from T<N>00
+  (T100 for CR 1), each red then green, and its own gate results. An earlier task the CR
+  supersedes is struck through, never deleted.
 -->
 
 - **Spec:** ./spec.md · **Plan:** ./plan.md

@@ -11,6 +11,16 @@ The tracker task (ClickUp, Jira, Linear, GitHub Issues…) stays the source of t
 requester needs**; the spec folder records **how we understood it and what we built**. Specs
 _link_ their tracker task — they never copy it.
 
+## Records name roles
+
+A spec folder is read by everyone with access to the repository, for as long as the repository
+lives — a different audience from the tracker's, and a longer time than anyone holds a role. So
+`spec.md`, `plan.md`, and `tasks.md` date each decision and attribute it to a **role** — requester,
+developer, tech lead, legal — never to a person's name: in `approvals:`, Clarifications, change
+requests, and assumptions alike. Decisions are written in the folder's own words: no quotes or text
+copied from the tracker, and no "the requester said…". The `tracker:` link is where people's words
+live, and git history holds who committed what.
+
 ## Lanes — how much process a change gets
 
 Every change to the repository takes one of three lanes. The lane follows **risk and uncertainty,
@@ -110,12 +120,20 @@ the first commit, a wrong change surface is a sentence to correct; after it, a r
 | --- | --- |
 | Tracker task | The business requirement (one task may need several spec folders) |
 | Spec folder | One feature — created by its first PR, amended by later change requests |
-| Branch | `<type>/<slug>`, where `<slug>` matches the spec folder's slug; a change request's branch adds the change: `<type>/<slug>-<change>` |
+| Branch | `<type>/<slug>`, where `<slug>` matches the spec folder's slug; a change request after the merge gets a branch that adds the change: `<type>/<slug>-<change>` (before the merge, it rides the open branch) |
 | Commit | One task from `tasks.md` (full lane); one change with its test (fast and careful lanes) |
 | Pull request | One per branch; names its spec folder and links its tracker task |
 
 **Shared foundation work** that several features depend on — a migration, a shared type, a
 service — is its own spec folder and its own PR, landed first.
+
+**A feature split across spec folders** — a provider and the consumers that use it, often built on
+parallel branches — shares one written contract. Before the split, write the shared interface —
+parameter names, accepted values, field IDs, endpoints — in both specs (§ Constraints & prior
+decisions). The consumer names the provider's folder in `related-specs`, and the provider names
+its consumers. A change to the contract on either side is recorded in the consumer's spec and pull
+request; after each sync with the base branch, the consumer re-checks the contract against the
+provider's spec. A contract that lives only in two sessions' conversations breaks silently.
 
 ## Folder convention
 
@@ -144,9 +162,9 @@ Recorded in `spec.md` frontmatter:
 | Status | Meaning |
 | --- | --- |
 | `draft` | Being written; may be incomplete |
-| `in-review` | Required sections filled; requirements under review with the requester (optional step for client-facing work) |
-| `approved` | Scope, change surface, and assumptions signed off at the gate — implementation may start. Each sign-off is a line in `approvals:` |
-| `implemented` | Every task done and the gate results recorded — set by `/implement` in the branch, so it merges with the pull request and the folder reads as built. A full change request moves it back to `in-review` until its own sign-off; a light one leaves it `implemented` |
+| `in-review` | Required sections filled; requirements under review with the requester (optional step for client-facing work) — or a full change request waiting for its sign-off |
+| `approved` | Scope, change surface, and assumptions signed off at the gate — implementation may start. Each sign-off is a dated line in `approvals:`, naming a role |
+| `implemented` | Every task done and the gate results recorded — set by `/implement` in the branch, so it merges with the pull request and the folder reads as built. A full change request — after the merge, or on the open pull request — moves it back to `in-review` until its own sign-off, then `approved`, and `/implement` sets it to `implemented` again with the CR's gate results; a light one leaves it `implemented` |
 
 Nothing mechanical enforces the gate — it is a rule an agent could skip and CI can't see. That
 is why `/implement` refuses to write code for a spec whose status is not `approved`, and why
@@ -154,8 +172,9 @@ reviewers check the `approvals:` line.
 
 ## Change requests
 
-Feedback on delivered work is not a new feature. Re-reading the task from scratch is how scope
-gets silently dropped or redone. Find the delta first:
+Feedback on delivered work is not a new feature, and neither is feedback on work whose pull
+request is still open ([before the merge](#before-the-merge)). Re-reading the task from scratch is
+how scope gets silently dropped or redone. Find the delta first:
 
 1. **Find the existing folder.** `git log -- specs/NNN-<slug>/` says when each part landed.
 2. **Compare the request now against what the spec says was delivered.** Trackers rarely keep a
@@ -172,7 +191,7 @@ gets silently dropped or redone. Find the delta first:
      ```markdown
      # CR 2 — Email field label (2026-10-08) · light
 
-     - **Requested:** https://tracker.example.com/t/MKT-530 · by Dana (marketing lead)
+     - **Requested:** https://tracker.example.com/t/MKT-530 · by requester (marketing lead)
 
      | Aspect | Delivered (PR …) | Change |
      | --- | --- | --- |
@@ -183,10 +202,12 @@ gets silently dropped or redone. Find the delta first:
    - **Full** — the request leaves something to decide. Append a `CR N` section (intent + a
      Delivered → Change table), add new ACs tagged `(CR N)`, and append a `# CR N — <title>` part to
      `plan.md` and `tasks.md` covering only the delta — tasks numbered from `T<N>00` (T100 for CR 1),
-     so IDs never collide. Earlier parts stay as the record of what was built. Same gate.
+     so IDs never collide. Earlier parts stay as the record of what was built; an entry the CR
+     supersedes is struck through, not deleted. Same gate, with a dated `approvals:` line naming a
+     role and the CR (`2026-10-08 · tech lead · CR 2`).
 
-   A light change request that turns out to need a decision becomes a full one. Either way: a new
-   branch, a new pull request, the same folder.
+   A light change request that turns out to need a decision becomes a full one. After the merge,
+   either way: a new branch, a new pull request, the same folder.
 4. **If the delta can't be recovered** — no folder, or a description rewritten without a trace —
    say so and ask. Never reconstruct the old requirement from the code and present it as fact.
 
@@ -195,6 +216,28 @@ in a follow-up pull request: a `CR N — hotfix: <title> (date)` section (what c
 Delivered → Change table), the acceptance criteria it changed, and the hotfix pull request in
 `pull-requests:`. There's no approval gate for recording what already shipped — the backfill pull
 request is reviewed like any change.
+
+### Before the merge
+
+Feedback that arrives while the pull request is still open — the requester's second look at the
+preview, a reviewer's change of scope — is a change request too, with the same two weights. It rides
+**the same branch and the same draft pull request**: no new branch, no second pull request, and no
+separate "amendment" record.
+
+- **Light** — precise and already decided: the `CR N — <title> (date) · light` section, committed
+  with the change. No status cycle: the status stays where the branch had it.
+- **Full** — something to decide:
+  - the status goes `implemented` → `in-review` while the CR is written, → `approved` at its gate,
+    with a dated `approvals:` line naming a role and the CR, and back to `implemented` once the CR's
+    gate results are recorded;
+  - `plan.md` and `tasks.md` get a `# CR N` part covering only the delta, its tasks numbered
+    `T<N>00`; an earlier entry it supersedes — a planned file, a task, a test — is struck through,
+    not deleted;
+  - each task goes red then green as its own commit, and the CR gets its own gate-results block.
+
+The pull request's line in `pull-requests:` adds the CR (`<url> · initial delivery, CR 1`), and
+`/open-pr` keeps the pull request's description current with each push, so the reviewer sees the CR
+there too. Once the pull request merges, the next change request needs a new branch, as above.
 
 ## Specs from older framework versions
 

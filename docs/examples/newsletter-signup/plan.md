@@ -235,7 +235,7 @@ stories.
    Production. Preview matters: without them, every signup on the preview answers 502.
 3. Merge and deploy whenever ready. No entry is published in `master`, so production shows no
    section (AC5).
-4. After the deploy, Sam creates the entry in `master` as a draft, with the text from
+4. After the deploy, the tech lead creates the entry in `master` as a draft, with the text from
    `docs/copy/newsletter-defaults.md`.
 5. Marketing reviews the draft and publishes it on 2026-06-22. The section appears within 5
    minutes.
@@ -259,14 +259,14 @@ revert the deploy. Nothing to undo in data: subscribers stay in Mailchimp.
 
 - A1 — Vercel overwrites `x-forwarded-for` with the address of the client that connected, so its
   first entry is the reader's IP. (Vercel's documentation; the contact form's spam check already
-  relies on it. Confirmed by Sam at the gate.)
+  relies on it. Confirmed by the tech lead at the gate.)
 - A2 — The Mailchimp audience is single opt-in, so the API accepts `status: "subscribed"` directly.
-  (Dana — spec § Clarifications.)
+  (Requester — spec § Clarifications.)
 - A3 — Marketing ops creates content types in the Contentful web app; nothing in this repository
-  creates them. (Sam.)
+  creates them. (Tech lead.)
 - A4 — The code deploys before the entry is published; marketing publishes it on campaign day, and
   AC5 keeps the section hidden until then. (Corrected at the gate — the draft assumed marketing
-  would publish first. Dana, relayed by Sam, 2026-06-09.)
+  would publish first. Requester, relayed by the tech lead, 2026-06-09.)
 - A5 — The article route keeps `revalidate = 300`. If someone shortens it, copy edits show up
   sooner; nothing breaks.
 
