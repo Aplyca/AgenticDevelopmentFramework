@@ -5,7 +5,7 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Lane is **careful**, naming the trigger: a migration / schema change
 - [ ] Plans a NEW migration file — never an edit to an existing migration
 - [ ] Names the migration checklist: compatible with the running code, applied to a fresh database, affected tests run against it
-- [ ] Says the developer confirms the risky part before the commit
+- [ ] Says the pull request names the risky part for the developer's test, with no yes before the push or the commit
 - [ ] Does NOT create a spec folder, plan, or approval gate (nothing to decide)
 
 ## Model (record which model the session ran on)
