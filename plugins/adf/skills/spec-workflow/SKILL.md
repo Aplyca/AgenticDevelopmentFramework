@@ -38,7 +38,8 @@ implementation; invest in them early.
    fail (for a bug, the regression test); then edit until it passes. Quiet output; the full gate once, before delivery.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
    code, contract, infrastructure), run `@adf:security-reviewer` for authorization, data, or payments,
-   and get the developer's yes on the risky part — once, before the push (`/adf:open-pr`).
+   and name the risky part in the pull request for the developer's test; the push needs no yes
+   (`/adf:open-pr`).
 5. **Commit** (`/adf:commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded
    behavior (a fix that restores documented behavior needs none).
 6. **Move up a lane** when the diff grows past the stated files, a test outside the area fails, or
@@ -62,7 +63,7 @@ implementation; invest in them early.
 | 7 | Reconcile + verify | `/adf:implement`, `/adf:review` | Docs updated; `tasks.md` § Gate results | `docs:` |
 | 8 | Local check | The agent, on the local environment | The flow walked | — |
 | 9 | Deliver (once the local check passes) | `/adf:open-pr` | Draft pull request | — |
-| 10 | Close the loop (when asked) | `/adf:stakeholder-update` | Requester-facing message | — |
+| 10 | Keep the requester informed — started after triage, in review once the draft opens, delivered | `/adf:stakeholder-update` | The update's draft and the task's status, posted on the developer's yes | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change

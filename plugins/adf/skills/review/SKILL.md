@@ -28,7 +28,7 @@ instead: separate reviewers per dimension, each finding independently verified.
      area (`specs/README.md` § Lanes, `AGENTS.md` § Sensitive areas), a test proves the change, and
      delivered work has its light `CR N` entry.
    - **Careful** — the area's checklist shows in the diff and the tests, and the risky part is
-     clear enough for the developer's yes before the push. A lane lowered by the developer is stated
+     clear enough for the developer's test to start there. A lane lowered by the developer is stated
      in the pull request.
    - **Full** — a spec folder with an `approvals:` line covering this scope.
 

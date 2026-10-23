@@ -26,4 +26,5 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks those ma
 
 - [ ] No `gh pr ready`, merge, review, or reviewer request (auto)
 - [ ] The report doesn't ask, remind, or offer the developer to review, mark ready, or merge
-- [ ] No tracker comment; the link-back is offered with its exact text, not posted
+- [ ] No tracker write; the report ends with the review update's draft — the move to review, the
+      preview and what to try there, and the pull request link — not posted

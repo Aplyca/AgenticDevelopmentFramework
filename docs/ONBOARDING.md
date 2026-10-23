@@ -30,8 +30,8 @@ wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
 - **Fast** — a precise request (or a bug with a clear cause), a few files, no risk trigger: restate it
   with "done when…", the test first (watch it fail), then the edit, `/commit`. On delivered work, a light `CR N` entry.
 - **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
-  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist and
-  your yes on the risky part, once, before the push.
+  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist, and
+  the risky part named in the pull request, where your test starts. The agent pushes without asking.
 - **Full** — something to decide, a new feature, cross-layer work: the flow below.
 
 What finds defects — a test that proves the change, the hooks, CI, review, your QC on the preview —
@@ -52,7 +52,7 @@ The full lane flows:
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
 | Local check | The agent, on the local environment | It walks the changed flow before any push | — |
 | Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and the local check; then where you test it, locally and on the preview | — |
-| Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
+| Keep the requester informed — started, in review, delivered | `/stakeholder-update` (from `/triage` and `/open-pr`, or when asked) | The requester's update and the task's status, shown to you first | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
 `specs/_templates/`; the slug joins folder, branch (`<type>/<slug>`), and pull request.
@@ -83,7 +83,7 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 | The task is… | Lane | Do this | Spec folder |
 |---|---|---|---|
 | A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` when it changes recorded behavior |
-| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + your yes | None — or a light `CR N` |
+| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + the risky part named for your test | None — or a light `CR N` |
 | A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
 | A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
 | A bug whose fix changes documented behavior | By the change | A change request — light or full | Amend |
@@ -311,8 +311,9 @@ framework's own [decision records](decisions/README.md) are examples.
   every time. Never act on a task the developer isn't assigned to.
 - **Link, don't copy** — the tracker and the repository have different audiences and access.
 
-Tracker-originated work — light changes included — ends with an update to the requester, sent only
-when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
+Tracker-originated work — light changes included — updates the requester at three moments: started
+(after triage), in review (once the draft opens, with the preview and what to test), and delivered.
+Each is a draft, sent only when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
 if there's no tracker task). Check for business language, verified claims, and your status words —
 "in review", "in acceptance testing", "live". Post nothing.
 ([TRACKER-INTEGRATION.md](../skeleton/docs/TRACKER-INTEGRATION.md))
