@@ -9,7 +9,8 @@ argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md]"
 # Open a Draft Pull Request
 
 Pushing and opening a pull request leave this machine. Your own local check is what lets them:
-once the changed flow works on this checkout's environment, open the draft without asking. Work
+once the changed flow works on this checkout's environment, open the draft without asking, in
+every lane: it's the team's standing go-ahead. Work
 with nothing to run — docs, CI — opens it once the full gate and `/adf:review` pass. The developer
 tests the change after the draft opens, locally and on the preview. The git guard hook
 refuses a `gh pr create` without `--draft`.
@@ -45,10 +46,9 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    Docs-only and CI-only work has nothing to run: the full gate and a clean `/adf:review` stand in for
    the local check.
 
-   **Careful lane: the developer's yes before the push.** Once the local check passes, show the risky
-   part in one message — the area, what the checklist found, what you walked — and wait for their
-   yes. It's the lane's one stop, so ask it once, with everything in front of them. A push can
-   deploy a preview against shared services; that's what the yes guards.
+   **Careful lane: no stop before the push.** It pushes once the local check passes, like every
+   lane. The risky part — the area, what the checklist found, what you walked — goes in the
+   description's Lane line and leads the report, so the developer's test starts there.
 
 3. **Verify the pull request, not just the diff.**
    - `git log --oneline <base>..HEAD` and `git diff --stat <base>...HEAD`: no unrelated files, no
@@ -67,7 +67,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    adjustment) — or "none: fast lane" for work with nothing to record
    **Tracker task:** <link>  ·  `Closes #N` only for an engineering issue this resolves
    **Lane:** fast | careful | full — <reason>; set by <the triggers | a sensitive area | the developer>
-   <careful: the checklist applied · lowered by the developer: <their reason>>
+   <careful: the checklist applied; the risky part — the area, what the checklist found, what you
+   walked · lowered by the developer: <their reason>>
 
    ## What changed and why
    <the change and its reasoning — a reviewer should not have to reconstruct intent from the diff>
@@ -126,7 +127,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    developer's yes.
 
 9. **Report — once, after the preview walk** (or right after step 6 when there's no preview to
-   check): the pull request URL, and that it is a **draft**. Then where the developer can test it:
+   check): the pull request URL, and that it is a **draft** — in the careful lane, the risky part
+   first. Then where the developer can test it:
    the local URL — the environment you left running — and the preview's, with what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
    and what you could not. A fix they ask for goes on the same branch: walk it locally again, push,
    and recheck the preview. Close with their next step, once: test it; ready and merge are theirs;
@@ -145,6 +147,8 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
 | "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to run, for the full gate and a clean `/adf:review`. |
+| "It's outward — I'll ask before I commit, push, and open the draft" | Your local check is what lets them, in every lane: it's the team's standing go-ahead. The question only delays the developer's test, which comes after the draft opens. Ready and merge are where they decide. |
+| "It's the careful lane, so I'll wait for a yes on the risky part" | The careful lane adds its checklist, not a stop. Put the risky part in the Lane line and first in the report; the developer's test starts there. |
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
@@ -162,6 +166,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 ## Verification
 
 - [ ] The push followed your own local check — or, with nothing to run, a passing full gate and a clean `/adf:review` — or the developer's ask
+- [ ] Nothing asked the developer whether to commit, push, or open the draft, in any lane; in the careful lane, the Lane line and the report name the risky part
 - [ ] You walked the changed flow on the local environment before the push, and left it running — or it has nothing to run
 - [ ] Opened as a **draft**; not marked ready
 - [ ] The report doesn't ask, remind, or offer to review, ready, or merge it, and no reviewer was requested
