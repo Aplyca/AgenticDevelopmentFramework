@@ -23,7 +23,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 
 | Guardrail | Enforced by |
 |---|---|
-| Outward actions past the draft pull request — PR ready / merge / review, releases — need your confirmation. The work branch's push and its draft pull request follow your approval in the local check, and keeping that draft current — editing it, commenting on it — needs no prompt. An issue write needs no prompt either; an agent still posts only when you ask | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
+| Outward actions past the draft pull request — PR ready / merge / review, releases — need your confirmation. The agent commits, pushes the work branch, and opens its draft pull request on its own once its local check passes, in every lane, and keeping that draft current — editing it, commenting on it — needs no prompt. An issue write needs no prompt either; an agent still posts only when you ask | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
 | `git` and `gh` run without a prompt, except `git config` (it could switch off the hooks) and `push --tags`, and readying, merging, or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. Those ask | `permissions.allow` (`git *`, `gh *`) and `permissions.ask` in `.claude/settings.json` |
 | Secret env files (`.env`, `.env.local`, `.env.*.local`) are never read into context — extend the list for your other secret files | `permissions.deny` in `.claude/settings.json` |
 | No `--no-verify`; no commits or pushes on protected branches; no force-push to them; pull requests open only as drafts | `.claude/hooks/guard-git.sh` (PreToolUse) |
@@ -37,7 +37,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | With the docker module, nothing an agent runs changes the local mode — a `make` command or an assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, an edit to `.env` — so only the developer changes it | `permissions.deny` in `.claude/settings.json` (the docker module) |
 | A session's move into a worktree of this repository passes Claude Code's permission check in the desktop app; any other folder still asks. The app's own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `.claude/hooks/approve-worktree-move.sh` (PreToolUse) |
 
-Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once the agent has walked the change on the local environment, and tells you where to test it: locally and on the preview. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts it on the tracker task only after your yes to the exact text.
+Project-specific values (protected branches, append-only paths, the env template, sensitive paths) live in `.claude/hooks/config.sh`. `/open-pr` opens a draft once the agent has walked the change on the local environment, and tells you where to test it: locally and on the preview. Commits, the push, and the draft are a standing go-ahead, so the agent doesn't ask for them — not in a reply, and not in the desktop app's next-step box. `/stakeholder-update` also starts when you ask for a client update in plain words; it shows the draft, and posts it on the tracker task only after your yes to the exact text.
 
 ## Commands that run without a prompt
 
@@ -66,7 +66,7 @@ name it to the developer rather than working around it.
 | Change | Lane | Workflow | Model |
 |---|---|---|---|
 | Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit`; a light `CR N` in the same commit when it changes recorded behavior | `sonnet` |
-| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and your yes on the risky part before the push | `sonnet`, high effort |
+| The same, touching a migration, authorization, personal data, payments, a shared contract, infrastructure, or a sensitive area | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, data, or payments, and the risky part named in the pull request for your test | `sonnet`, high effort |
 | New feature, unclear requirement, a design choice, cross-layer work, a change request with something to decide | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus` up to the gate; a fresh `sonnet` session from `/write-docs` on |
 | Bug, cause unknown | — | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
 | Refactor with no behavior change | Fast, or full when it sets a structure others must follow | `/refactor` → tests still green → `/commit` | `sonnet` |

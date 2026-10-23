@@ -21,8 +21,8 @@ review, or the backfill. Most "urgent" bugs aren't hotfixes — be honest about 
 ## Steps
 
 A hotfix takes the **careful lane, without delay** (`specs/README.md` § Lanes): no spec folder up
-front, but the regression test, the checklist of any risk area the fix touches, and the developer's
-yes on the risky part.
+front, but the regression test, the checklist of any risk area the fix touches, and the risky part
+named in the pull request for the developer's test.
 
 1. **Mitigate if you can.** Rolling back to the previous deployment or release, reverting a content
    or configuration change, turning off a flag: if one restores service faster and more safely than

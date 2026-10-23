@@ -30,8 +30,8 @@ wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
 - **Fast** — a precise request (or a bug with a clear cause), a few files, no risk trigger: restate it
   with "done when…", the test first (watch it fail), then the edit, `/commit`. On delivered work, a light `CR N` entry.
 - **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
-  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist and
-  your yes on the risky part, once, before the push.
+  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist, and
+  the risky part named in the pull request, where your test starts. The agent pushes without asking.
 - **Full** — something to decide, a new feature, cross-layer work: the flow below.
 
 What finds defects — a test that proves the change, the hooks, CI, review, your QC on the preview —
@@ -83,7 +83,7 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 | The task is… | Lane | Do this | Spec folder |
 |---|---|---|---|
 | A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` when it changes recorded behavior |
-| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + your yes | None — or a light `CR N` |
+| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + the risky part named for your test | None — or a light `CR N` |
 | A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
 | A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
 | A bug whose fix changes documented behavior | By the change | A change request — light or full | Amend |
