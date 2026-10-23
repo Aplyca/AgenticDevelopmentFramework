@@ -756,10 +756,6 @@ The task came from the tracker, so the requester hears back in their own terms:
 The skill verifies each claim — the merged PR, production's article pages (no section yet, as
 planned), the draft entry in Contentful `master` — and shows the full draft in chat:
 
-> **For the team:** suggested reply for the tracker task [Newsletter signup on article pages](https://tracker.example.com/t/MKT-412).
->
-> ---
->
 > Hi Dana,
 >
 > Here's a quick update on the newsletter signup form.
@@ -786,9 +782,11 @@ planned), the draft entry in Contentful `master` — and shows the full draft in
 >
 > Thanks!
 
-No code, no branch names, no pull request links — pages and the CMS entry Dana will use. Sam asked
-for it as a comment on the pull request (the default, for the team to relay), approved the draft in
-chat, and pasted it into the tracker by hand.
+No code, no branch names, no pull request links — pages and the CMS entry Dana will use. The draft
+in chat is the deliverable: Sam approved it and pasted it into the tracker by hand, so the agent
+posted nothing, on the task or on the pull request. Had Sam asked the agent to post it, the same yes
+would have named the assignee — Dana, since the update asks Dana a question — and the agent would
+have read the comment back after posting.
 
 ---
 
