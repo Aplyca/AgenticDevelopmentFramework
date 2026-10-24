@@ -57,6 +57,23 @@ test that never failed proves nothing: it may test something that already exists
    A test that **passes** now is testing something that already exists (fine in a change request,
    if intended — say so) or testing the wrong thing (fix it).
 
+   **An end-to-end test is red first too, and only on a local stack.** It never runs against a
+   preview, staging, or production: a preview can share real backends, and the tests write data.
+   Get its red one of two ways:
+   - **Before the code** — the usual way. Write or update the test, run it on this checkout's stack
+     (`make e2e t=<file>` with the `e2e` module), and watch it fail on the missing behavior.
+   - **Against the base branch's code,** when the code came first — a test added after the change,
+     or one the review asked for. Put the base branch in a second worktree with a stack of its own:
+     with the parallel-agents module, `adf-worktree-new chore/<slug>-red --no-start`, which seeds its
+     env file and its ports; otherwise `git worktree add --detach ../<repo>-red origin/<base>`, with
+     `.env` copied in. Start it (`make up`), copy the test in, and run it there: it fails for the
+     right reason. Commands there run outside this checkout, so Claude Code asks for them. Then run
+     it green here, on the new code. Stop that stack (`make down`) and remove the worktree
+     (`adf-worktree-rm`, or `git worktree remove`).
+
+   Record both runs in `tasks.md` § Gate results: where the red ran, the assertion that failed, and
+   the green.
+
 6. **Hand off:**
    - **Task mode** — back to `/adf:implement` to write the code, reach green, and commit both together.
    - **Acceptance mode** — commit the red tests: `test: add <slug> acceptance tests (red — pending implementation)`. `/adf:implement` turns them green task by task.
@@ -68,6 +85,8 @@ test that never failed proves nothing: it may test something that already exists
 |---|---|
 | "I'll write the tests after the code — it's faster" | Tests written after code confirm what was built, not what should be. They miss edge cases and encode implementation accidents. |
 | "It failed with a module-not-found error — that's red" | Red means the behavior is missing, not that the test can't load. Fix the scaffolding until the assertion is what fails. |
+| "The code's already done, so I'll check the end-to-end test red on the preview of the base branch" | The suite runs only against a local stack: a preview can share real backends, and the tests write data. Run it red on the base branch's code in a second local worktree, then green here. |
+| "The code's already done, so this end-to-end test can't be red" | It can: run it on the base branch's code, in a second worktree with its own stack. A test you never saw fail may test nothing. |
 | "This AC is too simple to test" | Simple ACs break too. If it's in the spec, it gets a test. |
 | "I'll combine several ACs in one test" | Each AC needs its own test so a failure names the broken requirement. |
 | "This service is reliable — no need to mock it" | Tests must not depend on external services. A flaky suite is worse than none. |

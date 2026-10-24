@@ -32,8 +32,9 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
 
 ## Safety (always)
 
-- **The checkout's own stack only.** The suite runs against the stack `make up` starts here, never a
-  shared environment, a preview, staging, or production. Never point `E2E_BASE_URL` anywhere else.
+- **The checkout's own stack only.** The suite runs against the stack `make up` starts here — or,
+  for a red run on the base branch's code, a second local worktree's own (F1) — never a shared
+  environment, a preview, staging, or production. Never point `E2E_BASE_URL` anywhere else.
 - **No real third party.** No test sends anything a real person or account receives (B2). A flow
   that can't be kept local is named for the human check, not tested against the real service.
 - **No secrets in the conversation.** Never read `.env`. Test accounts' credentials are variables

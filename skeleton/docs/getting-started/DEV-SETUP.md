@@ -149,6 +149,7 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 | Run / stop | `[e.g., make up · make down]` |
 | Where it runs | `[e.g., make urls]` |
 | Run on the host | `[e.g., DEV_MODE=native in .env, then make up]` |
+| The production build, locally | `[e.g., make prod — make urls shows it, make logs s=web-prod]` |
 | Logs | `[e.g., make logs]` |
 | Test | `[e.g., make test]` |
 | Lint / typecheck | `[e.g., make lint]` |

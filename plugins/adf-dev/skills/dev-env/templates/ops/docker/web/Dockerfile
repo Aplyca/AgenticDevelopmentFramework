@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# The app's image for local development: `target: dev` in compose.yaml. A production image gets a
-# stage of its own below this one. Every line marked CUSTOMIZE is the stack's.
+# The app's image for local development: `target: dev` in compose.yaml. The production build, for
+# `make prod`, is the prod stage below it. Every line marked CUSTOMIZE is the stack's.
 
 # CUSTOMIZE: the base image, pinned to a version — e.g. the Node.js image the newsletter site runs on
 FROM <image>:<version> AS dev
@@ -17,3 +17,11 @@ COPY . .
 EXPOSE 3000
 # CUSTOMIZE: the dev command, listening on every interface so the published port reaches it
 CMD ["<dev command>"]
+
+# Optional: the production build, as a deploy builds it, and the production server — `target: prod`
+# in compose.yaml's web-prod. Delete it with that service if the project has no production-like run.
+FROM dev AS prod
+# CUSTOMIZE: the production build command
+RUN <build command>
+# CUSTOMIZE: the production server, listening on every interface
+CMD ["<production server command>"]

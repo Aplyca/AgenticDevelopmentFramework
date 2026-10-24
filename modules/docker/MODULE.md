@@ -21,7 +21,9 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
   `native.sh`), the parallel-agents module in `ops/agent/`, and any deployment target the project
   adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
 - **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
-  `logs`, `urls`, `test`, `lint`, `reset`.
+  `logs`, `urls`, `test`, `lint`, `reset`, and the optional `prod`: the production build, served
+  beside the dev server in Docker mode, so no agent builds and serves it on the host
+  ([decision 0052](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0052-production-build-in-the-configured-mode.md)).
 - **One file per mode:** the root `Makefile` loads `ops/docker/Makefile` or `ops/native/Makefile` —
   the app in Docker, or on the host against the backing services in Docker — by `DEV_MODE` in `.env`
   or the project's `DEFAULT_MODE`. Both define the same tasks
@@ -74,8 +76,9 @@ fills these from what it verifies, for you to review:
    `make urls` with the services, § 6 the two modes, the command surface, and § Troubleshooting for
    problems actually met. Packaged: `/adf-dev:dev-env` joins the key commands under § AI-assisted
    development.
-2. **`AGENTS.md` § Quick reference** — `make up`, `make down`, and `make urls`; the local check before
-   the pull request starts the stack from there.
+2. **`AGENTS.md` § Quick reference** — `make up`, `make down`, and `make urls`, and `make prod` for
+   the production build (or "none"); the local check before the pull request starts the stack from
+   there.
    **`.claude/hooks/config.sh`** — `LOCAL_URL='http://localhost:${APP_PORT}'`, and `LOCAL_SERVICE`, the
    app's service and container port (`web:3000`): `adf-dev`'s band above the prompt looks up the port
    Docker picked with `docker compose port` (decision 0032).

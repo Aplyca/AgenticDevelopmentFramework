@@ -85,7 +85,11 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      passes `t` to the test runner as its filter, and `lint` and `format` pass `f` as the files
      (C3), so an agent runs the one test or file it changed through the task. Each from the project's package manifest,
      README, or docs — never a guess at the stack. A project that never runs natively keeps
-     `ops/native/Makefile` as the template wrote it.
+     `ops/native/Makefile` as the template wrote it;
+   - the production build, `make prod` (C11): the Dockerfile's `prod` stage — the build command and
+     the production server, as the project's deploy runs them — `web-prod`'s port and
+     `environment:`, and `NATIVE_PROD_CMD`. A project with no production-like run deletes the task
+     in both mode files, the service, and the stage.
 
    Then `chmod +x ops/docker/guard.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
    and `ops/native/.run/`.
@@ -189,6 +193,8 @@ services in Docker. Both define the same tasks.
 2. **What native mode needs,** in `ops/native/Makefile`:
    - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
+     `NATIVE_PROD_CMD`, when the project has `make prod`: the production build and server, on
+     `$APP_PORT`.
      Setting them is a change to the stack, through triage.
    - `DEFAULT_SERVICES` — the backing services that stay in Docker. A developer who runs some on the
      host sets their own `SERVICES` in `.env` — `SERVICES=postgres`, or `none` — and pins the other
@@ -279,6 +285,7 @@ reset in the main checkout of a hub.
 | "`make *` is allowed, so any task is safe to run" | The allow trusts the project's Makefile; only the ask rules stop a task. A task that deletes data under another name, or a `logs` that follows, needs fixing or its own ask rule (C9). Check the task (`make -n <task>`) before you run one you haven't read. |
 | "`make run cmd=\"yarn test src/x.test.ts\"` is the quickest way to run one test" | It's a command of your own through the developer's escape hatch, so it asks every time. `make test t=src/x.test.ts` runs the same thing through the task. When no task does what you need, that's a gap to add (C10). |
 | "It's quicker to run the tests with `DEV_MODE=native`" | The mode is the developer's choice (M10). Run every task in the configured mode; if one can't run there, say what it needs and ask. |
+| "The bug only shows in the production build, so I'll run the build and start commands on the host" | That runs a third environment, outside the configured mode, with the host's runtime and variables. `make prod` builds and serves it in the mode this checkout uses (C11), and `make urls` says where. With no `prod` task, say what you need and ask. |
 | "`make reset` will fix the migration error" | It's `docker compose down -v`: it deletes the data. It's the last step, not the first; find the cause, and reset only as far as it needs. |
 | "It started on the second try, so it's fixed" | A retry that works hides a race — usually a missing healthcheck or `depends_on` condition. Find why the first one failed. |
 

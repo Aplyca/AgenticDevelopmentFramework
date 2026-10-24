@@ -180,6 +180,9 @@ departure (§ Conformance), recorded with its reason.
 - **F1.** **Red before the code.** For a new flow, the acceptance tests that encode its acceptance
   criteria are written first, committed red with `test:` (`/adf:write-tests acceptance`), and
   `/adf:implement` turns each green. For a bug in a flow, the first commit's test fails on the bug.
+  When the code came first, the red comes from the base branch's code: the test run in a second
+  worktree of the base branch, on that worktree's own stack, then green on the new code
+  (`/adf:write-tests`). Never on a preview.
 - **F2.** **The lowest layer that can prove it.** An acceptance criterion gets an end-to-end test
   when only the whole stack can show it: a flow across pages, the browser and the server together,
   a critical flow. A rule — a validation, a calculation — is tested at the unit level, and the

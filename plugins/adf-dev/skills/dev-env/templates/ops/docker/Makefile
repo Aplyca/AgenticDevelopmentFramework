@@ -7,15 +7,15 @@ ifndef MODE_FILE
 $(error run make from the repository root: this file is the $(notdir $(CURDIR)) mode, which the root Makefile loads)
 endif
 
-.PHONY: up down build ps logs urls shell test lint format typecheck reset
+.PHONY: up down build ps logs urls prod shell test lint format typecheck reset
 
 up: env guard ## Start the stack, wait until it's healthy, and show where it is
 	@ops/native/native.sh stop
 	$(COMPOSE) up -d --wait
 	@$(MAKE) --no-print-directory urls
 
-down: guard ## Stop the stack; its data stays
-	$(COMPOSE) down
+down: guard ## Stop the stack, the production build too; its data stays
+	$(COMPOSE) --profile prod down
 
 build: env ## Rebuild the images
 	$(COMPOSE) build
@@ -29,7 +29,13 @@ logs: ## The last 100 lines of every service's log, or one service's: make logs 
 urls: ## Where each service is now, and its health — Docker picks the ports .env doesn't pin
 	@$(COMPOSE) ps --format 'table {{.Service}}\t{{.Ports}}\t{{.Status}}'
 	@$(COMPOSE) ps $(APP) --format '{{range .Publishers}}{{if .PublishedPort}}The app: http://localhost:{{.PublishedPort}} {{end}}{{end}}'
+	@$(COMPOSE) ps $(APP)-prod --format '{{range .Publishers}}{{if .PublishedPort}}The production build: http://localhost:{{.PublishedPort}} {{end}}{{end}}' 2>/dev/null || true
 
+# Optional (C11): delete it, with the $(APP)-prod service and the Dockerfile's prod stage, if the
+# project has no production-like run.
+prod: env guard ## Build the app for production and serve it beside the dev server, then show where; make logs s=web-prod
+	$(COMPOSE) --profile prod up -d --build --wait $(APP)-prod
+	@$(MAKE) --no-print-directory urls
 
 shell: ## A shell in the app's container, for people
 	$(COMPOSE) exec $(APP) sh
@@ -47,5 +53,5 @@ typecheck: ## Run the type checker in the app's container
 	@echo "CUSTOMIZE: the type checker, e.g. $(COMPOSE) exec -T $(APP) <type check command> — or say the stack has none" >&2; exit 1
 
 reset: env guard ## DESTRUCTIVE: delete the stack's containers and volumes, then start it again
-	$(COMPOSE) down -v --remove-orphans
+	$(COMPOSE) --profile prod down -v --remove-orphans
 	@$(MAKE) --no-print-directory up

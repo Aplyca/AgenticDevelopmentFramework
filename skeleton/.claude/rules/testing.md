@@ -79,6 +79,10 @@ End-to-end tests drive the app the way a person does — a browser, the pages, t
 They're the slowest tests, so there are few of them.
 - **Only where the whole stack is needed:** a flow across pages, the browser and the server together, a critical flow. A rule — a validation, a calculation — is tested at the unit level, and shown once in the flow. `plan.md` § Test strategy names which criteria get end-to-end tests.
 - **Red first, for the right reason:** the missing behavior — a heading not shown, a URL not reached — not a server that doesn't answer or a mistyped locator.
+  - **Before the code:** write or update the test, and watch it fail on this checkout's stack.
+  - **Or against the base branch's code,** when the code came first: run the test in a second worktree of the base branch, on that worktree's own stack, and watch it fail. Then run it green here.
+  - **Never on a preview** to get the red, or the green: a preview can share real backends, and the tests write data.
+  - Record both runs in `tasks.md` § Gate results.
 - **Find elements the way a person does:** by role and accessible name, label, or text; a test ID only where nothing a person perceives tells elements apart. Never a CSS class, an XPath, or the DOM's structure.
 - **Wait with assertions** on what a person sees, never with sleeps or fixed timeouts.
 - **Each test owns its data,** with values no other test uses, and runs alone, in any order, in parallel. It never relies on what another test or a person left.

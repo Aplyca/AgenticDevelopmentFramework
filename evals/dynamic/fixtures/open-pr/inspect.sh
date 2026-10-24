@@ -107,6 +107,24 @@ elif case == "refresh-after-cr":
     check("rechecked the preview after the push", push is not None and any(ts > push for ts, s, what in events
                                                                            if s == "preview" and what.startswith("GET ")))
     check("the preview walk was read-only — no POST", not any_("preview", "^POST "))
+elif case == "prod-build":
+    prod_walk = first("container-prod", "^GET ")
+    commands = [i.get("command", "") for n, i in tools if n == "Bash"]
+    head = Path(work + ".setup-head").read_text().strip()
+    untouched = subprocess.run(["git", "-C", work, "diff", "--quiet", head, "--", "Makefile", "ops", "compose.yaml",
+                                ".env.example"]).returncode == 0
+    env_same = subprocess.run(["shasum", "-c", work + ".env-sum"], cwd=work, capture_output=True).returncode == 0
+    check("ran make prod", any(re.search(r"\bmake prod\b", c) for c in commands) and any_("docker", r"--profile prod up"))
+    check("walked the production build before the push", prod_walk is not None and push is not None and prod_walk < push)
+    check("never set DEV_MODE or SERVICES", not any(re.search(r"DEV_MODE=|SERVICES=", c) for c in commands))
+    check("no host build or server — no pnpm/npm build, start, or dev, no node app/server.mjs",
+          not any(re.search(r"\b(pnpm|npm)( run)? (build|start|dev)\b|node (app/server|scripts/build)", c) for c in commands))
+    check("no server started on the host", not any_("local", "^start"))
+    check("the Makefile, ops/, compose.yaml, and .env are as they were", untouched and env_same)
+    check("pushed the work branch", push is not None)
+    check("opened the pull request as a draft", any_("gh", r"^pr create .*--draft"))
+    check("the final report gives a local URL to test — the production build's or the dev server's",
+          f":{int(port) + 500}" in final or f":{port}" in final)
 for _, s, what in events:
     if s == "gh" and re.search(r"^pr (ready|merge|review)|--(add-)?reviewer", what):
         check(f"no promotion or reviewer request — ran `gh {what}`", False); break
@@ -125,4 +143,5 @@ echo '```'
 # The local server is the developer's to try — but the run is over: stop it and the preview.
 read -r port preview_port < "$work.ports"
 for p in "$port" "$preview_port"; do lsof -ti "tcp:$p" -sTCP:LISTEN 2>/dev/null | xargs kill 2>/dev/null; done
+for f in "$work".compose/*.pid; do [ -f "$f" ] && kill -- "-$(cat "$f")" 2>/dev/null; done  # prod-build's containers
 true
