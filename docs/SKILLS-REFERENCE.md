@@ -36,7 +36,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | Skill | Purpose |
 |---|---|
 | `/spec-workflow` | The workflow reference: the three lanes, setup, feature (full lane), fast and careful lanes, change requests (light and full; after the merge or on an open pull request), answer-only task, bugs and hotfixes, process changes, parallel work, effort beyond the lane. |
-| `/init-project` | First-time setup from verified facts: `AGENTS.md`, constitution, hooks configuration, rules, core docs, nested `AGENTS.md` template. (The plugin's `/adopt` does this end to end.) User-invoked only (`disable-model-invocation`): its description stays out of every session's context. |
+| `/init-project` | First-time setup from verified facts: `AGENTS.md`, constitution, hooks configuration, rules, core docs, nested `AGENTS.md` template. (The plugin's `/adopt` does this end to end.) |
 | `/record-decision` | Record an ADR (the application) — only when a decision is hard to reverse, surprising without its context, and a real trade-off — or a PDR (how the team works); supersede or correct earlier records without rewriting them; update the docs that describe the decision in the same change; constitution amendments in their own pull request. |
 
 ## Quality and analysis skills

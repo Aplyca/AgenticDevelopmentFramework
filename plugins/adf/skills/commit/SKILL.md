@@ -94,4 +94,4 @@ Pushing is **not** part of committing. It happens in `/adf:open-pr`, once the ch
 - One logical step per commit; one task per commit in spec-driven work.
 - The subject says what, the body says why; the diff shows how.
 - Never commit secrets; never bypass hooks.
-- Committing is local. Pushing is a separate decision.
+- Committing is local; `/adf:open-pr` pushes, once your own local check passes.

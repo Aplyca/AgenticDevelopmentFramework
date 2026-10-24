@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Hand work in progress to someone who wasn't here — a teammate, another machine, a fresh session — as a short message of pointers, never a copy of the spec: branch, spec folder, pull request, what's done and next, open questions. Use when asked to hand off, or before ending a session mid-task.
+description: Hand work in progress to someone who wasn't here — a teammate, another machine or tool, a fresh session — as a short message of pointers, never a copy of the spec: branch, spec folder, pull request, what's done and next, open questions. Use when asked to hand off, pass the work on, or continue elsewhere, or before ending a session mid-task.
 argument-hint: "[who or where it goes — a teammate, a fresh session, another machine]"
 ---
 

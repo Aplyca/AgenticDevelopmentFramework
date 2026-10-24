@@ -1,8 +1,7 @@
 ---
 name: init-project
-description: First-time setup of a project's AI configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts. Run once after the skeleton is copied in, and again once a project adopted before its code has some.
+description: First-time setup of a project's AI configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts, with nested AGENTS.md files where modules differ. Use once after the skeleton is copied in (/adf:adopt does it end to end), and again in a project adopted before its code existed, once the first code lands.
 argument-hint: "[project name]"
-disable-model-invocation: true
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/init-project/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -20,6 +19,11 @@ honest TODO beats a plausible invention.
 again: replace each planned entry with the verified fact (or a `TODO(team)` where the plan changed),
 fill the commands from the real manifests, and point the globs and the rules' `paths:` at the real
 structure.
+
+**Already initialized?** When `AGENTS.md` has no `[bracketed placeholders]` and no `planned`
+entries left, the project is set up: don't run a setup pass. Make only the edit the request asks
+for — a nested `AGENTS.md` for one module, say, or one rule's `paths:` — and leave the constitution
+alone: it changes only through its amendment process (`/adf:record-decision`). Say so in a line.
 
 ## Steps
 
