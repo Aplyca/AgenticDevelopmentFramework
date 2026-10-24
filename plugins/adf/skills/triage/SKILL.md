@@ -102,7 +102,10 @@ not a research project.
    - **Desktop app:** read this session's title (`get_session` on `self`); when it doesn't name the
      task, `set_session_title` on `self`. A title that already does — a dispatch chip's — stays. The
      app asks the developer first only when they set the title themselves.
-   - **Terminal:** skip it. No tool renames a session there; `/rename` is the developer's.
+   - **Terminal:** nothing to call — no tool renames a session there. The session-title hook does
+     it on the developer's next prompt, from the triage line you wrote: the title after
+     `Triage — `, or the fast lane's request. So open that line with the name the session should
+     have. A title the developer set (`/rename`) stays.
 
 6. **Proceed per the triage** without waiting for permission — the developer redirects you if you
    misread it. Ask the questions that block the next step now, as one round: numbered, each with
@@ -176,7 +179,7 @@ one a new session (`/adf:dispatch` too).
 - [ ] The first message states the deliverable and, for a change, the lane with its reason and source, and the model
 - [ ] A fast-lane change states its request, its "done when", and its files
 - [ ] Nothing — no branch, file, spec folder, or environment — was created before the triage was stated
-- [ ] In the desktop app, the session's title names the task
+- [ ] In the desktop app, the session's title names the task; in a terminal, the triage line opens with it, for the session-title hook
 - [ ] Every gap about what is wanted is a question, not an assumption
 - [ ] A tracker task's turn ended with the started update's draft — the status, and a message only when it's worth sending — and nothing changed on the tracker without the developer's yes
 - [ ] A stakeholder's reply open to more than one reading got its readings and their cost, a recommendation, and a confirming reply that carries the unanswered questions — and nothing was built before it was confirmed

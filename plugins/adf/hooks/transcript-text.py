@@ -1,5 +1,5 @@
-# The text of the assistant's replies in a session transcript on stdin — triage-first.sh when jq
-# isn't installed.
+# The text of the assistant's replies in a session transcript on stdin — triage-first.sh and
+# session-title.sh when jq isn't installed.
 import io
 import json
 import sys
