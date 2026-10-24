@@ -216,14 +216,11 @@ Thanks!
 | "I'll post 'we've started' so they know" | The status change says that. A started message earns its place with what we understood, a question, or a finding. |
 | "The draft is open — I'll move the task to Review now" | A status change is a write the requester sees. It goes in the same approval as the review update's text. |
 | "I'll wait for the yes before I go on with the task" | The update is a draft beside the work. The work goes on; only the post waits for the yes. |
-| "I'll explain the technical root cause so they trust the fix" | Trust comes from verified outcomes in their terms — pages and behavior — not from component names. |
 | "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
-| "I'll add every finding to be thorough" | Only verified findings that matter to them. Noise buries the questions you need answered. |
 | "I'll upload the screenshots to the task so they're embedded" | An attachment lands on the task, not in the comment. Hand the files over; the developer pastes each over its placeholder. |
 | "I'll accept the cookie banner to get it out of the shot" | That records a consent choice on the site. Hide the banner with CSS after load. |
 | "I'll assign it to the requester so they see it" | Assign only a comment that needs something from them: an answer, an action, a decision. And only with the developer's yes to that assignee. |
 | "It posted without an error, so it's right" | Read it back. Mentions, links, and formatting can come out differently from the draft. |
-| "The work is done — I'll post the update now" | Drafting on your own is fine; posting isn't. Show the draft and ask. |
 
 ## Red flags (stop and reassess)
 
@@ -246,10 +243,3 @@ Thanks!
 - [ ] Screenshots, if any, were taken read-only, of single elements, shown to the developer, and handed over as files
 - [ ] Nothing was posted or changed on the tracker without explicit approval of the exact text, the status, and the assignee
 - [ ] A posted comment was read back: text and assignee as approved
-
-## Principles
-
-- Write for the person who asked, in their terms and their language.
-- Keep them informed as the work moves — started, in review, delivered — with nothing they'd skip.
-- Verified claims only; state the real status.
-- The draft is the deliverable; the developer decides what reaches the tracker, and when.

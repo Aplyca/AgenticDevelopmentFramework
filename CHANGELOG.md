@@ -11,6 +11,30 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Skills drop their Principles sections, and the per-task skills drop rationalization rows that
+  restate a step.**
+  - **Why:** decision 0055 left the skill bodies for later. A loaded skill stays in context for the
+    rest of the session, and every task loads `/adf:triage`, `/adf:dispatch`, `/adf:open-pr`,
+    `/adf:wrap-up`, and often `/adf:stakeholder-update`. Each skill's Principles section repeated
+    its steps. `/adf:commit`'s also contradicted the standing go-ahead: it said "pushing is a
+    separate decision".
+  - **What:**
+    - The Principles section is gone from all 25 skills that had one.
+    - These skills lose rationalization rows whose answer is already a step, or something a hook
+      enforces:
+      - `/adf:open-pr`: five rows;
+      - `/adf:triage`: two rows;
+      - `/adf:wrap-up`: three rows;
+      - `/adf:dispatch`: two rows;
+      - `/adf:stakeholder-update`: three rows.
+    - Steps, red flags, and verification checklists are unchanged.
+  - **Measured:** about 11.4k characters less across the skills, and about 4.5k less in the five a
+    task loads.
+
+  **Upgrade impact:**
+  - **Packaged install:** comes with the plugin.
+  - **Committed install:** overwrite `.claude/skills/`.
+
 - **Leaner always-loaded instructions, a triage that fits the model, and a close-up on the
   developer's "merged"** ([decision 0055](docs/decisions/0055-lean-context-and-acting-model-routing.md)).
   - **Why:** the session audit behind the entry below measured about 14k tokens of framework text in

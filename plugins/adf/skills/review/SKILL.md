@@ -112,9 +112,3 @@ instead: separate reviewers per dimension, each finding independently verified.
 - [ ] Security reviewed for every file that handles data or external input
 - [ ] Test evidence checked (`tasks.md` § Gate results, or the commit and pull request in the fast and careful lanes)
 - [ ] Doc accuracy confirmed, and the pull request description compared with the diff (if one exists)
-
-## Principles
-
-- Review against the spec, the plan, and the constitution — not preference.
-- Flag real issues, with fixes; theoretical ones only when the scenario is realistic.
-- Evidence over claims; scope over enthusiasm.

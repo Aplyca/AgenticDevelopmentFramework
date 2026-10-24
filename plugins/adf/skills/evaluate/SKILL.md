@@ -59,15 +59,6 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
 - [ ] Recommendation includes rationale and conditions for changing it
 - [ ] Trade-offs are honest — no option is presented as having no downsides
 
-## Principles
-
-- **Research first, opinion second.** Never lead with a gut feeling. Back up your position.
-- **Honest trade-offs.** Every option has downsides. If you can't name them, you haven't thought hard enough.
-- **Context matters.** The right answer for a PoC is different from a production system. The right answer for a 2-person team is different from a 50-person team.
-- **Challenge the premise.** If the question itself is flawed or the developer's proposal has a fundamental issue, say so respectfully. "Have you considered that the real problem might be X rather than Y?"
-- **No false balance.** If one option is clearly better, say so. Don't artificially inflate weaker options to seem thorough.
-- **Acknowledge uncertainty.** If you don't have enough information to make a confident recommendation, say what you'd need to know to decide.
-
 ## Example invocations
 
 ```

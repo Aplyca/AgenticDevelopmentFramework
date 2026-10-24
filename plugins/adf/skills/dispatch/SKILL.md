@@ -104,10 +104,8 @@ it names, and then runs in the worktree as the developer typed it.
 | "The app already gave this session a worktree, so it can work there" | The app's worktree sits at its worktree location — inside the main checkout by default — on a generated branch, without the env file, the setup, or a name after the branch. Tools that walk up find the main checkout's configuration. Create the task's worktree, and move. |
 | "This session is free now — I'll take the next task here" | One task per session, worktree, branch, and pull request. Another task in this session mixes their context and their history. Offer it a new session. |
 | "I'll ask whether to open a new session for it" | The chip is that question. Asking first makes the developer answer twice. |
-| "I'll put the branch in the chip's title" | The folder shows it once the new session moves. The title is the task's. |
 | "I'll triage the other task here so its session gets a head start" | Its session triages it where it can check what it reads. Analysis here drifts in the hand-off. |
 | "The other part's session will work out the interface from the code" | Its branch was cut from a base without the provider's change. A contract written in both specs, and carried in the prompt, is the only one both sides read. |
-| "I'll start the environment so it's ready" | The task's own steps decide. The worktree can run it: the script gave it the env file and its port. |
 
 ## Red flags (stop and reassess)
 
@@ -125,10 +123,3 @@ it names, and then runs in the worktree as the developer typed it.
 - [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own
 - [ ] A part of a split feature got the contract in its prompt, and where a change to it is recorded
 - [ ] Nothing was edited or committed in the main checkout or in Claude Code's own worktree
-
-## Principles
-
-- One task: one session, one worktree, one folder, one branch, one pull request.
-- The session that takes a task moves to its worktree; nothing hands tasks out from the main checkout.
-- Triage first: it names the branch, and says whether the task needs a worktree at all.
-- Another task, another session.

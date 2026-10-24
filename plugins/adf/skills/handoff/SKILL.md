@@ -80,9 +80,3 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
 - [ ] Uncommitted work is named with its files
 - [ ] It names the next step and every open question with who answers it
 - [ ] It was shown to the developer; nothing was posted or committed without their ask
-
-## Principles
-
-- Point at the record; never copy it.
-- The repository is the handoff's backing store — put the state there first.
-- Hand off only what travels.
