@@ -39,6 +39,7 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
    Done: <one line per finished piece, naming its commit>
    Next: <the next step as the workflow names it, e.g. "/adf:implement from T4">
    Open: <each question waiting on someone, and who>
+   Found: <each follow-up found along the way and not yet in the pull request, with file:line>
    Follow AGENTS.md; start by reading the record above.
    ```
 

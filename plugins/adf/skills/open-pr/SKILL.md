@@ -87,12 +87,19 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    **Reversible:** yes — reverting the merge undoes it | no — <what a revert leaves changed>
    **Blast radius:** <who or what is affected if this is wrong — one page, every form, an API's callers>
 
+   ## Follow-ups
+   - [ ] <a task found along the way, in one line> — <why it matters> (found in <file:line>)
+   <or "- none">
+
    ## Screenshots
    <before / after for UI changes; delete otherwise>
    ```
 
    Fill checklists honestly: leave a box unchecked and say why, rather than checking something you
-   didn't do or deleting the line. **Merge danger** is the reviewer's first read on risk: a
+   didn't do or deleting the line. **Follow-ups** lists every bug or improvement this session found
+   outside the task (`specs/README.md` § Found along the way) — gathered from your reports, not from
+   memory of the last one; on the open draft, add a line when you find one, and never tick or remove
+   one: the developer does. **Merge danger** is the reviewer's first read on risk: a
    migration that drops or rewrites data, a sent email, a published URL or API contract, or a
    changed external integration is not undone by a revert — say what isn't.
 

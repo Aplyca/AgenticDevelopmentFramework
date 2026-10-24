@@ -86,7 +86,16 @@ spec. It lives in `plan.md`, and is approved together with the spec at the appro
 
 When delivered work changes, the same `spec.md` gets a `CR N` section — intent plus a Delivered →
 Change table — and new acceptance criteria tagged `(CR N)`. Retired criteria are struck through, not
-deleted. The folder stays the single record of the feature, before and after.
+deleted. The folder stays the single record of the feature, before and after. Feedback that arrives
+while the pull request is still open is a change request too, on the same branch and draft
+(`specs/README.md` § Change requests).
+
+### Roles, not names
+
+Every decision in the folder — an `approvals:` line, a clarification, a change request, an
+assumption — is dated and attributed to a role (requester, developer, tech lead, legal), never to a
+person's name, and written in the folder's own words: no quotes or text copied from the tracker.
+The `tracker:` link is where people's words live; git history holds who committed what.
 
 ## Mandatory enforcement
 
@@ -172,9 +181,9 @@ Deployment (env vars), Clarifications.
 
 The `owners:` map in the frontmatter records who is responsible for each filled section:
 reviewers know who to ask, partial updates (only Security changed) go to the right person, and
-clarification questions route themselves. Role labels by default (`client`, `senior-dev`,
-`designer`, `tech-lead`, `qa`, `tech-writer`, `devops`, `security-lead`, `a11y-lead`, `privacy`);
-replace them with names if your team prefers.
+clarification questions route themselves. Role labels (`client`, `senior-dev`, `designer`,
+`tech-lead`, `qa`, `tech-writer`, `devops`, `security-lead`, `a11y-lead`, `privacy`), never names:
+people change roles, and the repository outlives who held one.
 
 ## Frontmatter reference
 
@@ -185,8 +194,8 @@ area: ""                       # e.g. "marketing", "auth", "checkout"
 status: draft                  # draft → in-review → approved → implemented
 feature-type: ui | api | infra | content | mixed
 personal-data: yes | no        # collecting email/name/IP/etc. counts as yes
-tracker: ""                    # link to the requirement — never a copy of it
-approvals: []                  # "YYYY-MM-DD · <who> · initial scope" / "… · CR 1"
+tracker: ""                    # link to the requirement — never a copy or a quote of it
+approvals: []                  # "YYYY-MM-DD · <role> · initial scope" / "… · CR 1" — a role, never a name
 pull-requests: []              # "<url> · initial delivery" / "<url> · CR 1"
 owners:
   business: client
@@ -196,7 +205,7 @@ references:
   figma: ""
   adrs: []
   pdrs: []
-  related-specs: []
+  related-specs: []             # a split feature: the consumer names its provider, the provider its consumers
 ---
 ```
 

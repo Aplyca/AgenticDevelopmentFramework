@@ -882,6 +882,60 @@ check_practices() {
     fi
 }
 
+# Spec folders name roles, a change request can ride the open pull request, and a split feature
+# shares one written contract (0050).
+check_spec_records() {
+    local readme="$SKELETON/specs/README.md" missing=()
+    file_contains "$readme" '^## Records name roles' || missing+=("specs/README.md § Records name roles")
+    grep -qE '<who>|\[who\]|, who\)' "$TEMPLATES/spec.md" "$TEMPLATES/plan.md" "$TEMPLATES/tasks.md" "$readme" \
+        && missing+=("templates and specs/README.md: attribution by role, never <who>")
+    file_contains "$TEMPLATES/spec.md" '<role>' || missing+=("spec template: approvals name a role")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Roles, not names' || missing+=("/write-spec: roles, not names")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Roles, not names' || missing+=("/write-plan: roles, not names")
+    file_contains "$AGENTS_DIR/spec-analyzer/agent.md" 'Roles, not names' || missing+=("@spec-analyzer: flags names and tracker quotes")
+    file_contains "$SKILLS_DIR/context-audit/SKILL.md" 'People in spec folders' || missing+=("/context-audit: flags names and tracker quotes in spec folders")
+    file_contains "$WORKFLOWS_DIR/deep-context-audit.js" 'check:spec-records' || missing+=("/deep-context-audit: sweeps the spec folders")
+    # The examples' spec folders use roles; their fictional names stay in the story.
+    grep -qwE 'Dana|Sam|Lee' "$REPO_ROOT"/docs/examples/newsletter-signup/{spec,plan,tasks}.md "$REPO_ROOT"/docs/examples/newsletter-topics/*-diff.md \
+        && missing+=("docs/examples: a spec folder names a person")
+    file_contains "$readme" '^### Before the merge' || missing+=("specs/README.md § Before the merge")
+    file_contains "$SKILLS_DIR/spec-workflow/SKILL.md" 'Feedback on an open pull request' || missing+=("/spec-workflow: routes feedback on an open pull request")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Before the merge' || missing+=("/write-spec: a change request before the merge")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" 'Feedback arrives on the open pull request' || missing+=("/implement: feedback on the open pull request is a change request")
+    file_contains "$readme" 'A feature split across spec folders' || missing+=("specs/README.md: a split feature's contract")
+    file_contains "$TEMPLATES/plan.md" 're-checks it against the provider' || missing+=("plan template: the consumer re-checks the contract after a base sync")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'One part of a split feature' || missing+=("/dispatch: the brief carries the contract")
+    file_contains "$AGENTS_DIR/spec-analyzer/agent.md" 'flag it against that consumer spec' || missing+=("@spec-analyzer: flags a contract change against a consumer spec")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "spec records: roles, not names; change requests before the merge; one contract for a split feature (0050)"
+    else
+        fail "spec records: missing" "${missing[*]}"
+    fi
+}
+
+# What an agent finds along the way is reported and routed — never dropped, never fixed in passing (0054).
+check_found_along_the_way() {
+    local missing=()
+    file_contains "$AGENTS_MD" 'Report what you find along the way' || missing+=("AGENTS.md: report and route what you find")
+    file_contains "$SKELETON/specs/README.md" '^## Found along the way' || missing+=("specs/README.md § Found along the way")
+    file_contains "$SKELETON/specs/README.md" "isn't a change\s*$|isn't a change request" || missing+=("specs/README.md: a bug in the branch's own work isn't a change request")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" 'You find something along the way' || missing+=("/implement: routes findings")
+    file_contains "$SKILLS_DIR/review/SKILL.md" '\*\*outside the diff\*\*' || missing+=("/review: lists findings outside the diff apart")
+    file_contains "$SKILLS_DIR/debug/SKILL.md" 'Other bugs you met on the way' || missing+=("/debug: routes other bugs")
+    file_contains "$AGENTS_DIR/code-reviewer/agent.md" '\[outside\]' || missing+=("@code-reviewer: [outside] findings")
+    file_contains "$WORKFLOWS_DIR/deep-review.js" 'followUps' || missing+=("/deep-review: returns follow-ups apart")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## Follow-ups' || missing+=("/open-pr: the body has ## Follow-ups")
+    file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## Follow-ups' || missing+=("PR template: ## Follow-ups")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
+    file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'survives a chip nobody started' || missing+=("/dispatch: a found task is also a follow-up")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up (0054)"
+    else
+        fail "found along the way: missing" "${missing[*]}"
+    fi
+}
+
 check_plugin() {
     local skill
     for skill in "$REPO_ROOT"/plugins/*/skills/*/; do
@@ -1522,6 +1576,8 @@ check_install_scope
 check_install_prompt
 check_lanes
 check_practices
+check_spec_records
+check_found_along_the_way
 check_plugin
 check_mods
 check_dev_env_templates

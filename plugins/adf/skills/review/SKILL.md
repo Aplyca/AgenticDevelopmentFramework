@@ -79,6 +79,9 @@ instead: separate reviewers per dimension, each finding independently verified.
     - **Warning** — should fix (likely bug, convention violation, missing evidence)
     - **Nit** — minor (style, naming)
     End with: **approve**, **approve with nits**, or **request changes** — and what you did not review.
+    Below the verdict, list apart what you found **outside the diff** — a bug or an improvement in code
+    this change doesn't touch, each with `file:line`. It doesn't change the verdict: each becomes a
+    follow-up (`specs/README.md` § Found along the way), or goes to the developer now when it can't wait.
 
 ## Rationalizations (do not accept these)
 

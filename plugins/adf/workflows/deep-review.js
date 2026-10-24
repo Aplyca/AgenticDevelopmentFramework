@@ -43,7 +43,7 @@ const FINDINGS_SCHEMA = {
         properties: {
           file: { type: 'string' },
           line: { type: 'integer' },
-          severity: { type: 'string', enum: ['critical', 'warning', 'nit'] },
+          severity: { type: 'string', enum: ['critical', 'warning', 'nit', 'outside'] },
           title: { type: 'string' },
           evidence: { type: 'string' },
           fix: { type: 'string' },
@@ -77,11 +77,12 @@ Summarize the change in two sentences.`,
 
 if (!scope || scope.files.length === 0) {
   log('No changes found against the base branch — nothing to review.')
-  return { scope, confirmed: [], refuted: [], nits: [] }
+  return { scope, confirmed: [], refuted: [], nits: [], followUps: [] }
 }
 
 const context = `Branch diff: git diff ${scope.base}...HEAD (${scope.files.length} files). ${scope.specFolder ? `Spec folder: ${scope.specFolder} — read spec.md (every filled section, including CR sections), plan.md (the approved change surface) and tasks.md (gate results).` : 'No spec folder matches this branch; review against AGENTS.md and the rules.'} ${READ_ONLY}
-Report only real issues with concrete evidence (file and line). If the dimension has nothing to report, return an empty findings list and say what you checked.`
+Report only real issues with concrete evidence (file and line). If the dimension has nothing to report, return an empty findings list and say what you checked.
+A bug or an improvement you notice in code this change does not touch gets severity "outside": it is a follow-up for its own task (specs/README.md § Found along the way), not part of this verdict.`
 
 const DIMENSIONS = [
   { key: 'spec-compliance', prompt: `Review for SPEC AND SCOPE COMPLIANCE. Every acceptance criterion and every requirement from each filled spec section is implemented; nothing beyond the spec was built; every changed file is inside plan.md's change surface (or the extension is recorded and re-confirmed in approvals); no principle in docs/CONSTITUTION.md is violated.` },
@@ -106,7 +107,7 @@ const reviewed = await pipeline(
   (review) =>
     parallel(
       review.findings.map((finding) => () => {
-        if (finding.severity === 'nit') {
+        if (finding.severity === 'nit' || finding.severity === 'outside') {
           return Promise.resolve({ ...finding, dimension: review.dimension, verdict: null })
         }
         return agent(
@@ -126,18 +127,20 @@ const seen = new Set()
 const confirmed = []
 const refuted = []
 const nits = []
+const followUps = []
 for (const finding of all) {
   const key = `${finding.file}:${finding.line}:${finding.title.toLowerCase()}`
   if (seen.has(key)) continue
   seen.add(key)
   if (finding.severity === 'nit') nits.push(finding)
+  else if (finding.severity === 'outside') followUps.push(finding)
   else if (finding.verdict && !finding.verdict.refuted) confirmed.push({ ...finding, severity: finding.verdict.severity })
   else refuted.push(finding)
 }
 const rank = { critical: 0, warning: 1, nit: 2 }
 confirmed.sort((a, b) => rank[a.severity] - rank[b.severity] || a.file.localeCompare(b.file) || a.line - b.line)
 
-log(`${confirmed.length} confirmed, ${refuted.length} refuted by verification, ${nits.length} nits (not verified).`)
+log(`${confirmed.length} confirmed, ${refuted.length} refuted by verification, ${nits.length} nits (not verified), ${followUps.length} follow-ups outside the diff.`)
 
 return {
   scope,
@@ -145,4 +148,5 @@ return {
   confirmed,
   refuted: refuted.map((finding) => ({ file: finding.file, line: finding.line, title: finding.title, reason: finding.verdict ? finding.verdict.reason : 'verifier did not return' })),
   nits,
+  followUps,
 }

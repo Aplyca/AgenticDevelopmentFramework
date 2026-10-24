@@ -83,6 +83,8 @@ it fail, and go on to the fix.
   decide.
 - **Production is broken now** — the careful lane, without delay: the hotfix path in
   `CONTRIBUTING.md`; backfill the spec and docs after.
+- **Other bugs you met on the way** — not this one: report each with `file:line` and what you saw,
+  and route it (`specs/README.md` § Found along the way). It's a follow-up, never part of this fix.
 - **Before committing, clean up:** remove every `[DEBUG-…]` line (search the prefix), delete
   throwaway harnesses and scripts, and state the confirmed cause in the commit body so the next
   person debugging this area learns from it.
