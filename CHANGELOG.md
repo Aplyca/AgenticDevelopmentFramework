@@ -11,6 +11,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A terminal session is named after its task, too.**
+  - **Why:** `/adf:triage` names the session after its task in the desktop app, but in a terminal no
+    tool lets the agent rename a session, so a session started with no more than a tracker link kept
+    a title made from that prompt.
+  - **What it does:** a new hook, `session-title.sh` (UserPromptSubmit), reads the agent's replies;
+    once one states the triage — `Triage — <task title> (<link>)`, or the one-line
+    `Fast lane — <request>; …` — the developer's next prompt sets the session's title to the task's
+    title alone, without the lane or link, the same as `/rename`. Once per session, and at most 80
+    characters. A title already set (`/rename`, `--name`) stays, and in the desktop app the hook does
+    nothing: the agent names the session there itself, and the app's own title counts as one already
+    set. `/adf:triage` step 5 now tells the agent to open the triage line with the session's name.
+    Empty `SESSION_TITLE` in `config.sh` turns it off.
+  - **Where:** in `adf`, the new `hooks/session-title.sh` with its `session-title.jq` and
+    `session-title.py`, `hooks/hooks.json`, `hooks/_lib.sh`, the `transcript-text` helpers' comments,
+    `hooks/README.md`, and the `triage` skill; `skeleton/.claude/settings.json`,
+    `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/rules/claude-code.md` (a guardrails row);
+    `docs/ONBOARDING.md`, `docs/SKILLS-REFERENCE.md`; the hook tests and static checks.
+
+  **Upgrade impact:**
+  - **Packaged install:** the hook comes with the plugin. **Merge** `.claude/rules/claude-code.md`
+    (the guardrails row). **Additive** in `.claude/hooks/config.sh`: the `SESSION_TITLE` block —
+    without it the hook is on.
+  - **Committed install:** the same, plus **overwrite** `.claude/hooks/` (`session-title.sh`,
+    `session-title.jq`, and `session-title.py` are new; `_lib.sh` reads `SESSION_TITLE`) and
+    `.claude/skills/triage/`, and **merge** the `hooks` block of `.claude/settings.json`:
+    `session-title.sh` under `UserPromptSubmit`, after `pr-state.sh`.
+
 - **Triage names the session after its task, in the desktop app.**
   - **Why:** a session started with no more than a tracker link (`Work on this task <link>`) gets a
     title made from that prompt, so the session list says nothing about the work. Triage is the
