@@ -148,6 +148,10 @@ developer's call, a change request if taken; anything else is a follow-up in the
 `## Follow-ups` (and a new session at once with the parallel-agents module), which `/adf:wrap-up`
 offers to start when the task ends; what can't wait goes to the developer first.
 
+**When the base branch moves under an open draft,** follow `.claude/rules/git-workflow.md` § Syncing
+with the base branch: only for a reason, a merge commit and never a rebase, then re-run only what
+the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).
+
 ## Effort beyond the lane
 
 The developer can ask for more care without changing the lane — questions before any code,

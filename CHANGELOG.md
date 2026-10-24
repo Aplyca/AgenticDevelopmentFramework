@@ -50,6 +50,42 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Committed install:** overwrite for `.claude/skills/write-tests/`, and with `docker` and `e2e`,
     `.claude/skills/dev-env/` and `.claude/skills/e2e/`.
 
+- **The agent keeps its draft's description current, and syncs with the base branch by a set
+  procedure** ([decision 0051](docs/decisions/0051-agent-owned-sections-of-the-pull-request.md)).
+  - **Why:** an adopting team's agents improvised both. Descriptions still described the first push,
+    or were rewritten from memory, dropping what people had added. Syncs rebased pushed history,
+    pushed to a merged pull request's branch, and re-ran everything after a merge that touched no
+    code.
+  - **The description:** its agent-owned sections — *What changed and why*, *How to verify*,
+    *Verified / not verified* — sit between `<!-- adf:<section> -->` markers, in the `github`
+    module's template and `/adf:open-pr`'s own body. `/adf:open-pr refresh`, after a later push
+    changes what the description says, fetches the current body, rebuilds only the marked sections
+    from `tasks.md` § Gate results and the spec's change requests, keeps everything outside them,
+    shows the description's diff, and applies it with `gh pr edit --body-file`, without a prompt.
+    A body without markers, or a pull request no longer a draft, is applied only on the developer's
+    yes.
+  - **The sync:** `.claude/rules/git-workflow.md` § Syncing with the base branch. The pull request
+    is checked open first, the base branch comes in by a merge commit and never a rebase, conflicts
+    keep both sides' intent and are reported, only what the merged files affect is re-run,
+    cross-spec contracts are re-checked, the push goes to the agent's own draft, the report warns
+    that the preview's address may change, and the evidence is recorded. It names the desktop app's
+    `sync_with_base_branch` tool and its limits. `/adf:spec-workflow` and the parallel-agents guide
+    point to it.
+  - **Eval:** the open-pr suite's `refresh-after-cr` case: an amended light CR, a push, and a refresh
+    that keeps people's text byte for byte. Its stand-ins now return the description from `gh pr
+    view --json body`, and can redeploy the preview on each push.
+
+  **Upgrade impact:**
+  - **Merge:** `.claude/rules/git-workflow.md` (the new § Syncing with the base branch). With the
+    `github` module, `.github/pull_request_template.md`: the note under the title comment and the
+    three marker pairs, around your own checklists.
+  - **Packaged install:** `/adf:open-pr`, `/adf:spec-workflow`, and the parallel-agents guide come
+    with the plugin.
+  - **Committed install:** overwrite for `.claude/skills/{open-pr,spec-workflow}/`, and with
+    `parallel-agents`, `docs/PARALLEL-AGENTS.md`.
+  - **Pull requests already open** have no markers: their first refresh shows the sections it would
+    replace and asks once.
+
 - **A terminal session is named after its task, too.**
   - **Why:** `/adf:triage` names the session after its task in the desktop app, but in a terminal no
     tool lets the agent rename a session, so a session started with no more than a tracker link kept

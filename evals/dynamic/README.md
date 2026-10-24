@@ -41,7 +41,7 @@ dynamic/
       stubs.sh                     - each case's stand-ins for the remote, gh, docker, and the preview, which log what ran and when
       inspect.sh                   - checks the order: the local walk, the push, the draft, the preview walk, the one report
       compose-stub.py              - prod-build's docker: Compose for dev-env's stack, its containers run on this machine
-      ...                          - a visible change; a local environment that won't start; a docs-only change; the production build in Docker mode
+      ...                          - a visible change; a local environment that won't start; a docs-only change; a refresh after a change request; the production build in Docker mode
     write-tests/
       ...
     write-docs/
@@ -134,12 +134,16 @@ the order from that log. `visible-change` walks the change locally before the pu
 waits for the preview in the background, walks it read-only, and reports once with both URLs.
 `env-wont-start` can't reach its database, so it stops before pushing and says what blocks it.
 `docs-only` opens its draft after the full gate and `/adf:review`, with "nothing to run".
+`refresh-after-cr` starts with the draft open, its preview up, and people's text outside the
+description's `adf:` markers; asked for a change, it amends the light CR, walks it locally, pushes,
+and refreshes the description (`/adf:open-pr refresh`): the current body fetched, only the marked
+sections rebuilt, the diff shown, `gh pr edit --body-file`. Its preview redeploys on each push.
 `prod-build` runs on dev-env's templates in Docker mode, with a production build that renders the
 page at build time; its "done when" names the production build, so the local check takes `make prod`
 ([decision 0052](../../docs/decisions/0052-production-build-in-the-configured-mode.md)), never a host
 server or `DEV_MODE=native`. Its `docker` is `compose-stub.py`, whose "containers" log as
 `container` and `container-prod`, so a host server shows up as `local`. A case's setup can leave
-`<copy>.bin/`, put first on the session's PATH, and `<copy>.env`, set in its environment. Four
+`<copy>.bin/`, put first on the session's PATH, and `<copy>.env`, set in its environment. Five
 sessions on Sonnet; run it after any change to `/adf:open-pr`, the delivery rules, or dev-env's
 command surface.
 
