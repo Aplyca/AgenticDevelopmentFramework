@@ -47,6 +47,100 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Pull requests already open** have no markers: their first refresh shows the sections it would
     replace and asks once.
 
+- **What an agent finds along the way is reported and routed — never dropped, never fixed in
+  passing** ([decision 0054](docs/decisions/0054-found-along-the-way.md)).
+  - **Why:** the bugs and improvements an agent notices while working — related to the task or not —
+    are among the most useful things it does, and the framework had no route for them. Without the
+    parallel-agents module they lived in one turn's report; only `/adf:upgrade` wrote a pull
+    request's `## Follow-ups`; and a bug in the branch's own work could be mistaken for a change
+    request.
+  - **The rule** (`AGENTS.md` § AI interaction rules, `specs/README.md` § Found along the way): report
+    each finding with `file:line`, then route it — a bug in this branch's own work is fixed in the
+    task, with a regression test, not as a change request; an improvement to the feature is the
+    developer's call (a change request if taken); anything else is a follow-up, and a new session at
+    once with parallel-agents; what can't wait goes to the developer first.
+  - **Follow-ups** are `- [ ] <task> — <why> (found in <file:line>)` lines in the pull request's
+    `## Follow-ups`: `/adf:open-pr` writes them, the agent adds one to an open draft as upkeep, and
+    only the developer ticks or removes one. `/adf:wrap-up` offers to start each one left after any
+    ending — merged or abandoned — and an answer's too.
+  - **Where:** `/adf:implement`, `/adf:review`, `/adf:debug`, `/adf:dispatch`, `/adf:handoff`,
+    `/adf:open-pr`, `/adf:wrap-up`, `/adf:spec-workflow`; `@adf:code-reviewer` (`[outside]`) and
+    `/adf:deep-review` (`followUps`) list what's outside the diff apart from the verdict; the github
+    module's pull request template.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` (one line in § AI interaction rules), `specs/README.md` (§ Found along the
+    way, and a line on bugs under § Before the merge), and, with the github module,
+    `.github/pull_request_template.md` (a `## Follow-ups` section before Screenshots).
+  - **Nothing to migrate:** open pull requests without the section get one when the agent next has a
+    follow-up to add.
+  - **Committed install:** overwrite for `.claude/skills/{implement,review,debug,dispatch,handoff,open-pr,wrap-up,spec-workflow}/`,
+    `.claude/agents/code-reviewer/`, and `.claude/workflows/deep-review.js`.
+
+- **Spec folders name roles, a change request can ride the open pull request, and a split feature
+  shares one written contract** ([decision 0050](docs/decisions/0050-spec-records-name-roles-and-contracts.md)).
+  - **Why:** in an adopting project's session, an agent quoted a stakeholder's tracker reply in a spec
+    and attributed it by name; the requester asked for changes twice before the merge, and change
+    requests only covered delivered work; and a provider spec changed a query parameter at its own
+    gate while a consumer branch, cut before it, would have broken silently.
+  - **Roles, not names** (`specs/README.md` § Records name roles): spec, plan, and tasks date each
+    decision and attribute it to a role (requester, developer, tech lead, legal), never a person's
+    name; nothing is quoted or copied from the tracker, and no "the requester said…". The templates'
+    `approvals:`, Clarifications, and change-request formats name a role; `SPEC-MODEL.md`'s `owners:`
+    are role labels only. `/adf:write-spec` and `/adf:write-plan` state the rule;
+    `@adf:spec-analyzer`, `/adf:deep-spec-analysis`, `/adf:context-audit`, and
+    `/adf:deep-context-audit` flag a personal name or a quoted tracker comment in a spec folder.
+  - **Change requests before the merge** (`specs/README.md` § Before the merge): feedback while the
+    pull request is open rides the same branch and draft. Light: the `CR N … · light` section with
+    the change, no status cycle. Full: `implemented` → `in-review` → `approved` (a dated, role-based
+    `approvals:` line for the CR) → `implemented`, a `# CR N` part in `plan.md` and `tasks.md` with
+    tasks `T<N>00`, superseded entries struck through, red then green per task, and a gate-results
+    block per CR. After the merge, a new branch as before. `/adf:spec-workflow` routes feedback on an
+    open pull request here; `/adf:write-spec`, `/adf:write-plan`, and `/adf:implement` follow it.
+  - **One written contract for a split feature** (`specs/README.md` § Granularity): the shared
+    interface goes into § Constraints & prior decisions of both specs, linked through
+    `related-specs`; a change is recorded in the consumer's spec and pull request, and the consumer
+    re-checks the contract against the provider's spec after each base sync (the plan template and
+    `/adf:write-plan`). `/adf:dispatch`'s brief for each part carries the contract, and
+    `@adf:spec-analyzer` flags a contract change against a named consumer spec.
+  - **Where:** the spec, plan, and tasks templates; `specs/README.md`; `AGENTS.md` § Change request;
+    the `git-workflow` rule; `SPEC-MODEL.md` and `PARALLEL-AGENTS.md`; the skills and agent above;
+    the examples' spec folders and the change-request scenario.
+
+  **Upgrade impact:**
+  - **Merge:** `specs/_templates/spec.md` (the `tracker:`, `approvals:`, `pull-requests:`, and
+    `related-specs:` comments; the header's roles rule; a shared-contract example under Constraints;
+    Clarifications' attribution; the change-request block), `specs/_templates/plan.md` and
+    `tasks.md` (their change-request notes, the roles rule, the contract re-check, Assumptions'
+    attribution), `specs/README.md` (§ Records name roles, § Granularity, § Status, § Change requests
+    › Before the merge), `AGENTS.md` (§ Change request), and `.claude/rules/git-workflow.md` (the
+    change-request branch line).
+  - **Existing specs:** nothing breaks, and nothing needs rewriting now. A spec folder that names a
+    person is reported by `/adf:context-audit`; when the folder next changes, replace each name with
+    its role (`2026-06-09 · tech lead · initial scope`, `_(2026-06-08, requester)_`) and a quoted
+    tracker comment with the decision in your own words, keeping the tracker link. A split feature
+    already in flight writes its contract into both specs at its next change.
+  - **Committed install:** overwrite for `.claude/skills/{write-spec,write-plan,implement,spec-workflow,context-audit,dispatch}/`,
+    `.claude/agents/spec-analyzer/`, `.claude/workflows/{deep-spec-analysis,deep-context-audit}.js`,
+    and `docs/SPEC-MODEL.md` and `docs/PARALLEL-AGENTS.md`.
+
+- **Triage names the session after its task, in the desktop app.**
+  - **Why:** a session started with no more than a tracker link (`Work on this task <link>`) gets a
+    title made from that prompt, so the session list says nothing about the work. Triage is the
+    first point where the agent knows what the task is.
+  - **What it does:** right after stating the triage, `/adf:triage` reads the session's title and,
+    when it doesn't name the task, sets it to the task's title alone — no lane, branch, or link. A
+    title that already names the task, such as a dispatch chip's, stays, and the app asks the
+    developer before replacing a title they set. In a terminal it does nothing: no tool lets the
+    agent rename a session there, so `/rename` stays the developer's.
+  - **Where:** `/adf:triage` (a new step 5, and a verification item); the skeleton's
+    `.claude/settings.json` allows the desktop app's `mcp__ccd_session_mgmt__get_session` and
+    `mcp__ccd_session_mgmt__set_session_title`, so neither call prompts.
+
+  **Upgrade impact:**
+  - **Merge:** `.claude/settings.json` — two rules in `permissions.allow`.
+  - **Committed install:** overwrite for `.claude/skills/triage/`.
+
 - **Every lane commits, pushes, and opens its draft without asking — a standing go-ahead**
   ([decision 0049](docs/decisions/0049-every-lane-pushes-without-asking.md)).
   - **Why:** sessions still stopped before the push. The careful lane asked for a yes on the risky

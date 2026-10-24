@@ -1,6 +1,6 @@
 ---
 name: spec-workflow
-description: Reference for how work flows in this project — the fast, careful, and full lanes, project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests, answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
+description: Reference for how work flows in this project — the fast, careful, and full lanes, project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests (after the merge or on an open PR), answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/spec-workflow/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -82,7 +82,7 @@ and every assumption together — before the first commit, when correcting them 
 front, the plan lists end-to-end tests that encode the ACs; they're written and committed red
 (`test:`) right after the docs, and the task loop turns them green.
 
-## Workflow 3: Change request on delivered work
+## Workflow 3: Change request — on delivered work, or feedback on an open pull request
 
 A precise adjustment the requester already decided takes Workflow 2a with a **light** `CR N` entry
 committed with the change. When the request leaves something to decide, it's a **full** change
@@ -95,6 +95,17 @@ request:
 4. Then the rest of Workflow 2: docs first when documented behavior changes, the per-task loop, gate
    results, review, the local check, and the draft pull request it approves — on a fresh branch (`<type>/<slug>-<change>`),
    with a new pull request, in the **same folder**. If the delta can't be recovered — ask.
+
+**Feedback on an open pull request** — the requester's second look before the merge — takes this
+workflow too, on **the same branch and the same draft** (`specs/README.md` § Before the merge): a
+light `CR N` committed with the change and no status cycle, or a full one whose status goes
+`implemented` → `in-review` → `approved` (a dated `approvals:` line naming a role and the CR) →
+`implemented`, with a `# CR N` part in `plan.md` and `tasks.md` (tasks `T<N>00`, superseded entries
+struck through), red then green per task, and its own gate results. `/adf:open-pr` keeps the pull
+request's description current with each push. After the merge, the next one needs a new branch.
+
+Either way, the folder records decisions by role, never by name, and links the tracker instead of
+quoting it (`specs/README.md` § Records name roles).
 
 ## Workflow 4: Answer-only task (investigation, impact analysis, estimate)
 
@@ -125,6 +136,17 @@ session, worktree, branch, and pull request: a session triages its task, and `/a
 to the task's worktree beside the main checkout, which takes no edits. Another task goes to another
 session. Passing work in progress to a
 teammate, another machine, or a fresh session is `/adf:handoff`: pointers to the record, never a copy.
+A feature split across spec folders shares one written contract, in both specs (`specs/README.md` §
+Granularity); the brief `/adf:dispatch` writes for each part carries it.
+
+## Found along the way
+
+A bug or an improvement the agent notices while working — in this task or far from it — is reported
+with `file:line` and routed, never dropped and never fixed in passing (`specs/README.md` § Found along
+the way): a bug in this branch's own work is fixed in the task; an improvement to it is the
+developer's call, a change request if taken; anything else is a follow-up in the pull request's
+`## Follow-ups` (and a new session at once with the parallel-agents module), which `/adf:wrap-up`
+offers to start when the task ends; what can't wait goes to the developer first.
 
 **When the base branch moves under an open draft,** follow `.claude/rules/git-workflow.md` § Syncing
 with the base branch: only for a reason, a merge commit and never a rebase, then re-run only what

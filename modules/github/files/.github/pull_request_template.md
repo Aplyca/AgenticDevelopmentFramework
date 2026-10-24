@@ -51,6 +51,14 @@
 **Reversible:** <!-- yes — reverting the merge undoes it | no — what a revert leaves changed -->
 **Blast radius:** <!-- who or what is affected if this is wrong — one page, every form, an API's callers -->
 
+## Follow-ups
+
+<!-- Bugs and improvements found along the way, outside this change (specs/README.md § Found along
+     the way): one "- [ ] <task> — <why> (found in <file:line>)" line each, or "- none". The agent
+     adds lines; tick or delete one to drop it. /wrap-up offers to start each one left. -->
+
+- none
+
 ## Screenshots
 
 <!-- UI changes: before / after. Delete this section otherwise. -->

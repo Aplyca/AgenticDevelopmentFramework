@@ -41,10 +41,11 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Approach** — the design, plus the alternatives you rejected (one line each). Justify any new dependency here or don't add it.
    - **Architecture & integrations** — domain concepts and which layer owns each; what must not leak across layers; a diagram only when prose can't carry it.
    - **Change surface** — every file to create or modify, by layer, with why; plus what is deliberately **not** touched.
-   - **Data model & contracts** — new migrations (never edits to existing ones), API or contract changes, environment variables (declared in the env template), CMS model changes.
+   - **Data model & contracts** — new migrations (never edits to existing ones), API or contract changes, environment variables (declared in the env template), CMS model changes. A contract shared with another spec folder (`related-specs`) is named here: a consumer re-checks it against the provider's spec after each sync with the base branch, and a change to it is recorded in the consumer's spec and pull request.
    - **Test strategy** — every acceptance criterion, edge case, and testable requirement from Security, Accessibility, Performance, Privacy, Analytics, and Localization mapped to a named test.
    - **Documentation plan** — from spec § Documentation: pre-implementable docs become Phase 1 tasks; post-implementable ones Phase 5. An end-user page (End-user docs) is a Phase 1 task too — its draft in the doc tool — and is published after the feature ships, outside `tasks.md`.
    - **Rollout, risks, assumptions, open questions.** Every assumption you are relying on is written down — an unstated assumption is how an invented requirement gets in. Ask the open questions in rounds, each with your recommended answer (`AGENTS.md` § Working economically); name modules and concepts with the terms in `docs/GLOSSARY.md`.
+   - **Roles, not names.** A decision or confirmation in `plan.md` and `tasks.md` — an assumption someone confirmed, a correction at the gate — is dated and attributed to a role (developer, tech lead, requester, legal), never to a person's name, and written in your own words: no quotes or text copied from the tracker (`specs/README.md` § Records name roles).
 
 ## Phase 2: Tasks (`tasks.md`)
 
@@ -60,10 +61,12 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    Mark independent tasks `[P]`. **Sizing:** one task is one red → green cycle and one commit. A task
    that touches more than ~5 files or needs several test files is probably two tasks.
 
-   **For a change request**, don't edit the delivered parts: append a `# CR N — <title>` part to
-   `plan.md` and to `tasks.md`, with the templates' headings, covering only the delta. Number its
-   tasks from `T<N>00` (T100 for CR 1); its gate results go under that part. Delivered tests the CR
-   changes or retires are named in its test strategy, each with the task that touches it.
+   **For a change request** — after the merge, or on the open pull request — don't edit the earlier
+   parts: append a `# CR N — <title>` part to `plan.md` and to `tasks.md`, with the templates'
+   headings, covering only the delta. Number its tasks from `T<N>00` (T100 for CR 1); its gate
+   results go under that part. An earlier entry the CR supersedes — a planned file, a task not yet
+   done, a test — is struck through, not deleted. Tests the CR changes or retires are named in its
+   test strategy, each with the task that touches it.
 
 6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference.
 
@@ -95,9 +98,10 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
 10. **Wait.** Fold every change the developer asks for into the files, and show the result again.
 
 11. **On approval:**
-    - set `status: approved` in `spec.md`, and add an `approvals:` line — `YYYY-MM-DD · <who> · initial scope` (or `· CR N`);
+    - set `status: approved` in `spec.md`, and add an `approvals:` line — `YYYY-MM-DD · <role> · initial scope` (or `· CR N`), naming the approver's role (developer, tech lead), never their name;
     - tick T000;
     - commit the folder: `spec: approve <slug> scope and plan` (or `spec: approve <slug> CR N`). Don't push.
+      A CR on an open pull request is committed on that same branch.
 
 12. **Hand off:** `/adf:write-docs` when Phase 1 has tasks — and `/adf:end-user-docs` for an end-user page — then `/adf:implement`. Suggest doing that in a
     **fresh session on `sonnet`**: an approved plan with named tests is a clear spec with a way to
@@ -125,7 +129,7 @@ outside the table, is recorded in `plan.md` and the pull request, and work goes 
 
 ## Red flags (stop and reassess)
 
-- The change surface touches shared code with consumers the spec never mentions.
+- The change surface touches shared code with consumers the spec never mentions, or changes a contract a consumer spec in `related-specs` relies on.
 - An AC has no test you can name, or a test has no AC — the spec or the plan is ambiguous.
 - More than ~15 tasks, or several unrelated layers — the spec may be more than one PR; consider splitting.
 - A new dependency, service, or migration appears that the spec didn't ask for.
@@ -140,7 +144,8 @@ outside the table, is recorded in `plan.md` and the pull request, and work goes 
 - [ ] The constitution check is done, and conflicts are resolved or recorded
 - [ ] `@adf:spec-analyzer` (or `/adf:deep-spec-analysis`) ran for non-trivial work, and its confirmed gaps are fixed
 - [ ] The gate was presented — scope, change surface, assumptions — and the developer explicitly approved
-- [ ] `status: approved` and an `approvals:` line are set; the folder is committed with `spec:`, not pushed
+- [ ] `status: approved` and an `approvals:` line naming a role are set; the folder is committed with `spec:`, not pushed
+- [ ] No personal name and no quoted tracker text in `plan.md` or `tasks.md`; a shared contract is named, with the consumer's re-check after each base sync
 
 ## Principles
 

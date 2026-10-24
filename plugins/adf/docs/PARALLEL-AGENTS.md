@@ -117,9 +117,10 @@ triage; a dispatched session always creates its worktree with `--no-start`.
 - **Host dependencies** (`SETUP_CMD`): git hooks run on the host. A worker that never needed anything
   else still runs `adf-worktree-new <branch> --setup-only` before its first commit, or the hooks fail —
   and agents never bypass hooks.
-- **A change request gets a fresh branch** (`feat/newsletter-signup-topics`), never the feature's old
-  one: a branch kept after a squash merge carries pre-merge history. The script warns when it reuses
-  a local branch that is behind the base.
+- **A change request after the merge gets a fresh branch** (`feat/newsletter-signup-topics`), never
+  the feature's old one (feedback before the merge rides the open branch): a branch kept after a
+  squash merge carries pre-merge history. The script warns when it reuses a local branch that is
+  behind the base.
 
 ## When each worktree runs a server
 

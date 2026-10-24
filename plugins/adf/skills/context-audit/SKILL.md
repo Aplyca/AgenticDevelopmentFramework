@@ -33,6 +33,7 @@ agent tool, not only Claude Code.
    - `docs/CONSTITUTION.md`, `CONTRIBUTING.md`, `README.md`, `specs/README.md`
    - `.github/pull_request_template.md` (or the host's equivalent), CI workflows, git hooks
    - `docs/process/` and `docs/architecture/decisions/` indexes; `docs/reference/` pages
+   - spec folders (`specs/*/`) — only for the records check in Phase 4: they are records, not instructions
 
 ### Phase 2: Check each claim against the repository
 
@@ -78,6 +79,11 @@ agent tool, not only Claude Code.
       a doc read on demand, behind a pointer that says *when* to read it ("Read `docs/X.md` before
       changing the payment flow"), not a bare "see X".
     - **Prohibitions without the target** — "don't do X" with no statement of what to do instead.
+    - **People in spec folders** — a person's name or handle attributing a decision (an `approvals:`
+      line, a clarification, a change request's *Requested* line, an assumption), or a quote or text
+      copied from the tracker, or a "the requester said…". Decisions name a role (requester,
+      developer, tech lead, legal); the `tracker:` link holds people's words (`specs/README.md` §
+      Records name roles). An agent such as `@adf:spec-analyzer` isn't a person.
 
 ### Phase 5: Report
 
@@ -91,8 +97,10 @@ agent tool, not only Claude Code.
     STALE          CONTRIBUTING.md:40 — `npm run e2e` no longer exists (now `npm run test:e2e`).
     UNVERIFIED     CONTRIBUTING.md:88 — "approvals are required"; host rulesets not readable here.
     HYGIENE        src/lib/AGENTS.md — no metadata header; lists folders that moved.
+    HYGIENE        specs/007-newsletter-signup/spec.md:9 — approvals line names a person; use the role
+                   ("2026-06-09 · tech lead · initial scope").
 
-    Summary: 1 contradiction, 1 false claim, 1 stale, 1 unverified, 1 hygiene.
+    Summary: 1 contradiction, 1 false claim, 1 stale, 1 unverified, 2 hygiene.
     ```
 
 13. **Offer the fix** as one `docs:` pull request — and a PDR when the fix changes a rule rather than
@@ -119,6 +127,7 @@ For a parallel sweep across many files, the user can run the `/adf:deep-context-
 ## Verification
 
 - [ ] Every file in scope was read; nested `AGENTS.md` files were included
+- [ ] Spec folders were swept for personal names and quoted tracker text
 - [ ] Commands, paths, behavior claims, enforcement claims, and versions were checked against the repository
 - [ ] Cross-file contradictions name the winning file and the wrong action it would cause
 - [ ] Claims that couldn't be checked are listed as UNVERIFIED
