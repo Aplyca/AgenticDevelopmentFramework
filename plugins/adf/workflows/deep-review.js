@@ -3,12 +3,13 @@ export const meta = {
   description: 'Multi-agent review of the current branch against its spec folder; every finding is independently verified before it is reported',
   whenToUse: 'High-stakes or large changes before delivery (auth, payments, personal data, migrations, many layers). Several times the cost of /adf:review. Optional argument: the base branch.',
   phases: [
-    { title: 'Scope', detail: 'diff against the base branch, spec folder, dimensions that apply' },
-    { title: 'Review', detail: 'one reviewer per dimension, in parallel' },
-    { title: 'Verify', detail: 'a skeptic tries to refute each critical and warning finding' },
+    { title: 'Scope', model: 'sonnet', detail: 'diff against the base branch, spec folder, dimensions that apply' },
+    { title: 'Review', model: 'sonnet', detail: 'one reviewer per dimension, in parallel' },
+    { title: 'Verify', model: 'sonnet', detail: 'a skeptic tries to refute each critical and warning finding' },
   ],
 }
 
+// Each step's model matches the agent that does the same work (COST-MODEL.md § Dynamic workflows): pinned here, so a run from an Opus session doesn't fan out on Opus.
 const READ_ONLY = 'Do not modify, create, or delete any file, and do not run commands that write, push, or install. Read files and run read-only git commands only.'
 
 // The checklists the security and UX lenses follow are the reviewer agents'. The adf plugin's copy
@@ -72,7 +73,7 @@ Base ref: ${requestedBase ? `use "${requestedBase}"` : 'use the base branch name
 Run git diff --stat <base>...HEAD and list every changed file. Find the spec folder whose slug matches the branch name (<type>/<slug> ↔ specs/NNN-<slug>/), or return an empty string.
 Set hasUI if the change touches UI components or styles; hasDocs if it touches user-facing docs or the spec lists pre-implementable docs.
 Summarize the change in two sentences.`,
-  { label: 'scope', phase: 'Scope', schema: SCOPE_SCHEMA },
+  { label: 'scope', phase: 'Scope', schema: SCOPE_SCHEMA, model: 'sonnet', effort: 'low' },
 )
 
 if (!scope || scope.files.length === 0) {
@@ -101,7 +102,7 @@ if (scope.hasDocs) {
 const reviewed = await pipeline(
   DIMENSIONS,
   (dimension) =>
-    agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA }).then(
+    agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA, model: 'sonnet' }).then(
       (result) => ({ dimension: dimension.key, checked: result ? result.checked : 'reviewer did not return', findings: result ? result.findings : [] }),
     ),
   (review) =>
@@ -115,7 +116,7 @@ const reviewed = await pipeline(
 Finding (${review.dimension}, ${finding.severity}) at ${finding.file}:${finding.line}: ${finding.title}
 Evidence given: ${finding.evidence}
 Read the code and the spec folder${scope.specFolder ? ` (${scope.specFolder})` : ''}. Refute it if the evidence is wrong, the behavior is intended by the spec or plan, or it is handled elsewhere. If it stands, confirm the severity or correct it. Default to refuted=true when you cannot confirm it from the code.`,
-          { label: `verify:${finding.file}:${finding.line}`, phase: 'Verify', schema: VERDICT_SCHEMA },
+          { label: `verify:${finding.file}:${finding.line}`, phase: 'Verify', schema: VERDICT_SCHEMA, model: 'sonnet' },
         ).then((verdict) => ({ ...finding, dimension: review.dimension, verdict }))
       }),
     ).then((findings) => ({ ...review, findings: findings.filter(Boolean) })),

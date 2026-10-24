@@ -11,6 +11,76 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **One rule per question: the push and the draft, the careful lane, `/review`, and the lanes say the
+  same thing everywhere; the `/deep-*` workflows pin their models; `/cost-report` and the cost model
+  are repriced.**
+  - **Why:** an audit of 41 sessions in an adopting project found agents asking 11 times whether to
+    push or open the draft. Files still said "only when asked" next to the standing go-ahead
+    (decisions 0022, 0045). The careful lane read "a confirmation" in some files and "no yes" in
+    others. `/review` was said to run "in every lane", yet only the full lane and docs-only work
+    required it. A precise 5-file change fit none of `AGENTS.md`'s lane definitions. Every
+    `/deep-*` workflow fanned out on the session's model, so on Opus when the session was, while the
+    same reviewers as agents run on Sonnet. `/cost-report` priced every cache write at the 5-minute
+    rate: the desktop app's main conversation writes at the 1-hour rate, which is 2× input. It
+    also counted copied transcripts twice and used Haiku 4.5's prices.
+  - **The push and the draft:** the commit and handoff skills, the Cursor rules
+    (`implementation.mdc`, `spec-writing.mdc`), and the commit skill's description now follow the
+    standing go-ahead: commits, then the push and the draft after the local check. `/adf:adopt` and
+    `/adf:upgrade` still ask before their draft, and now say why: they change the rules that grant
+    the go-ahead.
+  - **The careful lane** adds its checklist and names the risky part in the pull request, with no
+    confirmation step. The commit skill, `CONTRIBUTING.md`, the skeleton's `README.md`, and
+    `COST-MODEL.md` now say so.
+  - **`/review`** runs before the draft in the full lane and for docs or CI work, which no test
+    checks. In the fast and careful lanes it runs when the developer asks. "Review in every lane"
+    now reads "the human review". Work that changes nothing a person sees or uses has nothing to
+    walk: its draft opens once the full gate passes. `AGENTS.md`, `git-workflow.md`, `/adf:open-pr`,
+    and `/adf:review`'s description agree.
+  - **The lanes:** `AGENTS.md` and `claude-code.md` carry `specs/README.md`'s definitions:
+    - fast is about 3 files or fewer, in one layer;
+    - full includes a new dependency and more than ~3 files;
+    - the careful triggers list schema changes, authentication, public contracts, shared code, and
+      CI and deploy configuration;
+    - `@security-reviewer` covers personal data.
+
+    `specs/README.md` now says the local check before the pull request is the agent's.
+  - **Workflow models:** each `/deep-*` script pins its steps to the tier of the agent that does the
+    same work. The scoping step runs on `sonnet` at low effort. Reviewers, file and drift checks,
+    and verifiers run on `sonnet`. `/adf:deep-spec-analysis`'s lenses run on `opus`, like
+    `@adf:spec-analyzer`.
+  - **`/cost-report`:**
+    - prices by model ID: Haiku 5.5, Opus 5 and 4.x, Sonnet 4.6, Fable 5 and 5.1;
+    - prices cache writes at 1.25× or 2× input by their lifetime;
+    - judges pauses against the session's cache lifetime;
+    - counts a call copied into a forked, resumed, or moved transcript once.
+  - **`COST-MODEL.md`:**
+    - the Haiku tier is Haiku 5.5, at a twentieth of Sonnet;
+    - the measured always-loaded share is about 14k tokens, not 5–7k;
+    - it covers the 1-hour cache and its write price;
+    - browser checks match the delivery rules;
+    - the spec-writer and debugger rows give real reasons;
+    - per-skill rows cover every skill;
+    - the dead `AGENTS.md` link is gone.
+
+  **Upgrade impact:**
+  - **Merge:**
+    - `AGENTS.md`: § Pick the lane, with the `/review` sentence and the three lane definitions; and
+      § Delivery rules, with the nothing-to-walk sentence.
+    - `.claude/rules/claude-code.md`: § Lanes, the fast, careful, and full rows.
+    - `CONTRIBUTING.md`: the careful-lane sentence.
+    - `specs/README.md`: § Lanes, the opening paragraph.
+  - **Overwrite:** `.claude/rules/git-workflow.md` (§ Outward actions), and
+    `.cursor/rules/implementation.mdc` and `spec-writing.mdc`.
+  - **Project-owned:** the skeleton's `README.md`. Its careful-lane line changed; adjust yours if
+    you kept it.
+  - **Packaged install:** the skills, the workflows, `session_cost.py`, and `COST-MODEL.md` come
+    with the plugin.
+  - **Committed install:** overwrite these:
+    - `.claude/skills/` for `commit`, `handoff`, `review`, `open-pr`, `triage`, `spec-workflow`, and
+      `cost-report`;
+    - `.claude/workflows/*.js`;
+    - `docs/COST-MODEL.md`.
+
 - **The production build runs locally in the configured mode, end-to-end tests get their red
   without a preview, and stable preview addresses are documented**
   ([decision 0052](docs/decisions/0052-production-build-in-the-configured-mode.md)).

@@ -36,7 +36,10 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
    - **`long-context`** — one task per session, `/clear` between tasks; a 1M-context model lets
      routine sessions grow far past what they need.
    - **`pauses`** — each wait longer than the cache lifetime wrote the whole context again; batch
-     questions into one message.
+     questions into one message. The lifetime is 5 minutes, or an hour where Claude Code used the
+     longer cache (a subscription's main conversation) — whose writes cost twice the input price.
+   - **Forked, resumed, or moved sessions** — a call copied into a later transcript counts once, in
+     the session that made it.
    - **`browser`** — agent browser loops; prefer tests and leave visual QC to the human check.
    - **`spec-heavy`** — a small change with more spec edits than code edits: was the full lane
      needed, or was it a fast-lane change with a light change request?

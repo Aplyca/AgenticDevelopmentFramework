@@ -151,7 +151,7 @@ one a new session (`/adf:dispatch` too).
 | Agent says... | Why it's wrong |
 |---|---|
 | "I'll start the environment first so it's ready" | Most of an investigation needs no running app. A container build for a task that only needed reading is the most common wasted cost. Start it when a step actually runs something. |
-| "Full lane for everything, to be safe" | The full lane costs several times more, and when there's nothing to decide its extra steps record no decision — the tests, review, and QC that find defects run in every lane. Ceremony follows risk. |
+| "Full lane for everything, to be safe" | The full lane costs several times more, and when there's nothing to decide its extra steps record no decision — the tests, the human review, and the QC that find defects run in every lane. Ceremony follows risk. |
 | "It's a small change, so it's the fast lane" | Size isn't the test. A one-line change to an authorization check or an existing migration is careful at least. |
 | "The developer said quick, so I'll skip the migration checklist" | Lowering the lane covers size, not risk. Keep the checklist unless they explicitly accept the risk — and say so in the pull request. |
 | "It's the fast lane, so no test" | Every lane proves the change with a test. The fast lane drops paperwork, not proof. |

@@ -32,10 +32,10 @@ alwaysApply: false
 ## Finish
 - Reconcile docs; backfill post-implementable docs
 - Run the full gate; record **Gate results** in `tasks.md`: red-then-green evidence, commands and counts, what was not run and why
-- Review; push and open a **draft** pull request only when asked
+- Review; run the change on the local environment and walk the changed flow; once it works, push and open a **draft** pull request without asking (`AGENTS.md` § Delivery rules)
 
 ## Rules
 - Build exactly what the spec says — no more, no less
 - Never weaken a test to make it pass
 - Never ship code that contradicts committed docs
-- Never bypass git hooks; never push, open, or ready a pull request unasked
+- Never bypass git hooks; never push before the local check; never mark a pull request ready, merge, or review it unasked

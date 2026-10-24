@@ -410,7 +410,7 @@ version), so the reviewer knows where to look; they need no plan row.
 3. PR body: changelog summary, each file's action with each clean merge's hunk count, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
    user-scope copy), an install switch and its PDR, anything needing human judgment.
-4. Push and open the PR **as a draft, only after the user approves**.
+4. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request changes the rules and guardrails that grant it.
 5. **Give the developer the commands for each machine,** in the report and the PR body. The commit
    changes settings, not the machines: a plugin this upgrade turned on (`adf-dev`, `adf-connect`)
    may not be installed anywhere yet, and the session that ran the upgrade still runs the old

@@ -25,7 +25,7 @@ live, and git history holds who committed what.
 
 Every change to the repository takes one of three lanes. The lane follows **risk and uncertainty,
 not size**. What catches defects runs in every lane: a test that proves the change, the guardrail
-hooks, CI, the developer's check on the local environment before the pull request, a draft pull
+hooks, CI, the agent's own check on the local environment before the pull request, a draft pull
 request reviewed by a person, and the human check on the preview. What the
 lane changes is how much gets written down and approved *before* the code exists.
 

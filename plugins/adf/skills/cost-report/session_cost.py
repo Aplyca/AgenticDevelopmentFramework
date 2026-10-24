@@ -4,7 +4,8 @@
 Reads ~/.claude/projects/<project>/*.jsonl (nothing leaves the machine) and reports, per session:
 API calls, active time, context size, tokens, an estimated cost at list prices — and, for sessions
 on Opus or Fable, what the same tokens cost on Sonnet — and flags for the patterns that make sessions
-expensive. Python 3 standard library only.
+expensive. A call copied into a later transcript (a forked, resumed, or moved session) counts once.
+Python 3 standard library only.
 
 Usage: session_cost.py [project-path] [--days 30] [--top 15] [--siblings] [--json]
                        [--projects-dir ~/.claude/projects]
@@ -19,24 +20,48 @@ import re
 import statistics
 import sys
 
-# USD per million tokens — input, output, cache read, cache write — list prices, September 2026.
+# USD per million tokens — input, output, cache read — list prices, October 2026, by model ID; the
+# first match wins. A cache write costs 1.25× input for the 5-minute lifetime, 2× for the 1-hour one.
 # Keep in step with docs/COST-MODEL.md; the report is an estimate, not an invoice.
-PRICES = {
-    "haiku": (1.00, 5.00, 0.10, 1.25),
-    "sonnet": (2.00, 10.00, 0.20, 2.50),
-    "opus": (4.00, 20.00, 0.20, 5.00),
-    "fable": (10.00, 50.00, 1.00, 12.50),
-}
-CACHE_LIFETIME = 300  # seconds; a longer pause means the next call writes the context again
+PRICES = (
+    ("fable-5-1", (10.00, 50.00, 0.25)),
+    ("mythos-5-1", (10.00, 50.00, 0.25)),
+    ("fable", (10.00, 50.00, 1.00)),
+    ("mythos", (10.00, 50.00, 1.00)),
+    ("opus-5-5", (4.00, 20.00, 0.20)),
+    ("opus", (5.00, 25.00, 0.50)),
+    ("sonnet-4", (3.00, 15.00, 0.30)),
+    ("sonnet", (2.00, 10.00, 0.20)),
+    ("haiku-4", (1.00, 5.00, 0.10)),
+    ("haiku", (0.10, 0.50, 0.01)),
+)
+HAIKU_LONG = (0.50, 2.50, 0.05)  # Haiku 5.5 on a prompt over 100k tokens
+SONNET = dict(PRICES)["sonnet"]
+CACHE_LIFETIME = {"5m": 300, "1h": 3600}  # seconds; a longer pause means the next call writes the context again
 IDLE_CAP = 300        # gaps longer than this don't count as active time
 BROWSER = re.compile(r"(browser|chrome|playwright|puppeteer)", re.I)
 
 
 def tier(model):
-    for name in PRICES:
+    for name in ("fable", "mythos", "opus", "sonnet", "haiku"):
         if name in (model or ""):
-            return name
+            return "fable" if name == "mythos" else name
     return "sonnet"
+
+
+def price_of(model, context):
+    for pattern, price in PRICES:
+        if pattern in (model or ""):
+            return HAIKU_LONG if pattern == "haiku" and context > 100_000 else price
+    return SONNET
+
+
+def call_cost(price, usage):
+    write = usage.get("cache_creation_input_tokens", 0)
+    hour = min((usage.get("cache_creation") or {}).get("ephemeral_1h_input_tokens", 0), write)
+    return (usage.get("input_tokens", 0) * price[0] + usage.get("output_tokens", 0) * price[1]
+            + usage.get("cache_read_input_tokens", 0) * price[2]
+            + (write - hour) * price[0] * 1.25 + hour * price[0] * 2) / 1e6
 
 
 def parse_time(value):
@@ -58,7 +83,7 @@ def first_prompt(event):
     return " ".join(text.split())
 
 
-def analyze(path):
+def analyze(path, counted):
     calls = {}
     times, assistant_times = [], []
     tools = collections.Counter()
@@ -83,6 +108,8 @@ def analyze(path):
         if message.get("model") in (None, "<synthetic>"):
             continue
         key = message.get("id") or event.get("uuid")
+        if key in counted:
+            continue
         if key not in calls and when:
             assistant_times.append(when)
         calls[key] = (message.get("model"), message.get("usage") or {})
@@ -93,30 +120,33 @@ def analyze(path):
                 if name in ("Edit", "Write", "MultiEdit"):
                     file_path = (block.get("input") or {}).get("file_path", "")
                     edits["specs" if "/specs/" in file_path else "other"] += 1
+    counted.update(calls)
     if not calls:
         return None
 
     totals = collections.Counter()
     contexts, models = [], collections.Counter()
     cost = on_sonnet = 0.0
+    lifetime = CACHE_LIFETIME["5m"]
     for model, usage in calls.values():
-        price = PRICES[tier(model)]
-        # The same tokens at Sonnet's prices — for calls above Sonnet only; cheaper calls keep theirs.
-        sonnet = PRICES["sonnet"] if tier(model) in ("opus", "fable") else price
         fresh = usage.get("input_tokens", 0)
         read = usage.get("cache_read_input_tokens", 0)
         write = usage.get("cache_creation_input_tokens", 0)
         out = usage.get("output_tokens", 0)
+        if (usage.get("cache_creation") or {}).get("ephemeral_1h_input_tokens"):
+            lifetime = CACHE_LIFETIME["1h"]
         totals.update(input=fresh, read=read, write=write, output=out)
         contexts.append(fresh + read + write)
         models[tier(model)] += 1
-        cost += (fresh * price[0] + out * price[1] + read * price[2] + write * price[3]) / 1e6
-        on_sonnet += (fresh * sonnet[0] + out * sonnet[1] + read * sonnet[2] + write * sonnet[3]) / 1e6
+        price = price_of(model, fresh + read + write)
+        cost += call_cost(price, usage)
+        # The same tokens at Sonnet's prices — for calls above Sonnet only; cheaper calls keep theirs.
+        on_sonnet += call_cost(SONNET if tier(model) in ("opus", "fable") else price, usage)
 
     times.sort()
     active = sum(min((b - a).total_seconds(), IDLE_CAP) for a, b in zip(times, times[1:]))
     assistant_times.sort()
-    long_pauses = sum(1 for a, b in zip(assistant_times, assistant_times[1:]) if (b - a).total_seconds() > CACHE_LIFETIME)
+    long_pauses = sum(1 for a, b in zip(assistant_times, assistant_times[1:]) if (b - a).total_seconds() > lifetime)
     browser_calls = sum(n for name, n in tools.items() if BROWSER.search(name))
     mean_context = sum(contexts) / len(contexts)
 
@@ -180,13 +210,15 @@ def main():
     if args.days:
         cutoff = datetime.datetime.now().timestamp() - args.days * 86400
     sessions = []
-    for directory in dirs:
-        for path in glob.glob(os.path.join(directory, "*.jsonl")):
-            if cutoff and os.path.getmtime(path) < cutoff:
-                continue
-            result = analyze(path)
-            if result:
-                sessions.append(result)
+    counted = set()
+    paths = [p for d in dirs for p in glob.glob(os.path.join(d, "*.jsonl"))
+             if not cutoff or os.path.getmtime(p) >= cutoff]
+    # Oldest first, so a call copied into a later transcript counts in the session that made it.
+    paths.sort(key=lambda p: getattr(os.stat(p), "st_birthtime", None) or os.path.getmtime(p))
+    for path in paths:
+        result = analyze(path, counted)
+        if result:
+            sessions.append(result)
     if not sessions:
         sys.exit("No sessions with model calls in that window.")
 
@@ -231,7 +263,8 @@ def main():
     if flagged:
         print("\nFlags: " + ", ".join(f"{name} ×{n}" for name, n in flagged.most_common()))
         print("  long-context  average call carried >150k tokens — one task per session, /clear between tasks")
-        print("  pauses        3+ waits longer than the cache lifetime — each one re-wrote the whole context")
+        print("  pauses        3+ waits longer than the cache lifetime (5 min, or 1 h where the session had it)")
+        print("                — each one re-wrote the whole context")
         print("  browser       >30 browser calls — prefer tests; leave visual QC to the human check")
         print("  spec-heavy    spec edits outnumber code edits on a small change — was the full lane needed?")
 

@@ -311,4 +311,4 @@ GAPs go in the PR description; they're findings, not failures to hide.
 1. Commit on the feature branch: `docs: adopt the Agentic Development Framework (skeleton <SHA>)`.
 2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, open TODOs as
    a checklist, verification results.
-3. Push and open the PR **as a draft, only after the user approves**.
+3. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request installs the rules that grant it.
