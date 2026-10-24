@@ -269,11 +269,12 @@ keep a description's history, so the spec folder is the record of what was built
 **Exercise:** with the signup delivered, take task 5 from Day 2 — topics managed in Contentful,
 forwarded to Mailchimp interest groups.
 
-1. `/triage` finds the folder; `/write-spec` appends `CR 1` to `spec.md`: who asked, the intent, and a
-   *Delivered → Change* table. New criteria get new numbers tagged `(CR 1)`; retired ones are struck
-   through, never deleted.
+1. `/triage` finds the folder; `/write-spec` appends `CR 1` to `spec.md`: the role that asked, the
+   intent, and a *Delivered → Change* table. New criteria get new numbers tagged `(CR 1)`; retired
+   ones are struck through, never deleted.
 2. `/write-plan` adds the change request's plan and tasks: same gate, a `CR 1` line in `approvals:`.
-3. New branch, new pull request, same folder. Tests for unchanged criteria pass untouched.
+3. New branch, new pull request, same folder. Tests for unchanged criteria pass untouched. Feedback
+   before the merge is a change request too, on the open branch and draft.
 4. Variation: a change request on a feature delivered before you adopted the framework. With no spec
    folder, the agent should say the delta can't be recovered and ask — never rebuild it from the code.
 

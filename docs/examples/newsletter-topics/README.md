@@ -284,8 +284,8 @@ commits:
 
 ```yaml
 approvals:
-  - "2026-06-09 · Sam (tech lead) · initial scope"
-  - "2026-09-17 · Sam (tech lead) · CR 1"
+  - "2026-06-09 · tech lead · initial scope"
+  - "2026-09-17 · tech lead · CR 1"
 ```
 
 ```bash

@@ -42,7 +42,9 @@ The spec model behind `spec.md` is [`plugins/adf/docs/SPEC-MODEL.md`](../../plug
   one `feat:` / `refactor:` / `test:` per task, then `docs:` again.
 - **People are fictional**, and named only where it helps to follow the story: Dana (marketing
   lead, the requester), Lee (privacy lead), Sam (tech lead, the developer working with the agent).
-  Other roles appear by title.
+  Other roles appear by title. The names stay in the story — the tracker's comments and the
+  conversation; the spec folders attribute every decision to a role (requester, tech lead, privacy
+  lead), as [`specs/README.md`](../../skeleton/specs/README.md#records-name-roles) asks.
 - **Links are placeholders.** `tracker.example.com` stands in for whichever tracker you use
   (ClickUp, Jira, Linear, GitHub Issues…); `github.com/<org>/marketing-site` for your repository.
 

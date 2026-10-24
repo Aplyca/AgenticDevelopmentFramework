@@ -1,6 +1,6 @@
 # 0011: Three lanes — ceremony follows risk and uncertainty, not size
 
-- **Status:** accepted; partly superseded by [0014](0014-test-first-in-every-lane.md) (the fast and careful lanes are test-first)
+- **Status:** accepted; partly superseded by [0014](0014-test-first-in-every-lane.md) (the fast and careful lanes are test-first); refined by [0050](0050-spec-records-name-roles-and-contracts.md) (a change request can come before the merge, on the open branch)
 - **Date:** 2026-10-01
 - **Refines:** [0001](0001-spec-folders-as-record-of-intent.md) and [0002](0002-one-approval-gate-on-the-change-surface.md) — the spec folder and the approval gate apply to the full lane
 

@@ -269,7 +269,7 @@ sign-off, ticks T000, and commits the folder — locally; nothing is pushed:
 ```yaml
 status: approved
 approvals:
-  - "2026-06-09 · Sam (tech lead) · initial scope"
+  - "2026-06-09 · tech lead · initial scope"
 ```
 
 ```bash
