@@ -94,7 +94,17 @@ not a research project.
    on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; after
    the gate, a fresh sonnet session for /adf:implement` (on Sonnet, full lane).
 
-5. **Proceed per the triage** without waiting for permission — the developer redirects you if you
+5. **Name the session after the task,** once the triage is on the page. A session started with no
+   more than a tracker link (`Work on this task <link>`) has a title made from that prompt, which
+   tells the developer nothing in the session list. The name is the task's title alone — the
+   tracker's, in its own language, or for a task with none a short name for what it asks
+   (`Make the Company field optional on signup`) — with no lane, branch, or link.
+   - **Desktop app:** read this session's title (`get_session` on `self`); when it doesn't name the
+     task, `set_session_title` on `self`. A title that already does — a dispatch chip's — stays. The
+     app asks the developer first only when they set the title themselves.
+   - **Terminal:** skip it. No tool renames a session there; `/rename` is the developer's.
+
+6. **Proceed per the triage** without waiting for permission — the developer redirects you if you
    misread it. Ask the questions that block the next step now, as one round: numbered, each with
    your recommended answer (`AGENTS.md` § Working economically). Record the rest in the spec's
    Clarifications (full lane) or the pull request (fast and careful lanes).
@@ -106,7 +116,7 @@ not a research project.
    opens in the same turn, the review update replaces it. Skip it for a task the developer isn't
    assigned to, unless they say so.
 
-6. **Keep checking while you work.** If the diff grows past the files you stated, a test outside the
+7. **Keep checking while you work.** If the diff grows past the files you stated, a test outside the
    area fails, a trigger appears, or no test can prove the change — move up a lane, keeping what's
    done, and tell the developer. Into careful, carry on with its checklist; into full, stop: the
    spec and the approval gate come before more code.
@@ -166,6 +176,7 @@ one a new session (`/adf:dispatch` too).
 - [ ] The first message states the deliverable and, for a change, the lane with its reason and source, and the model
 - [ ] A fast-lane change states its request, its "done when", and its files
 - [ ] Nothing — no branch, file, spec folder, or environment — was created before the triage was stated
+- [ ] In the desktop app, the session's title names the task
 - [ ] Every gap about what is wanted is a question, not an assumption
 - [ ] A tracker task's turn ended with the started update's draft — the status, and a message only when it's worth sending — and nothing changed on the tracker without the developer's yes
 - [ ] A stakeholder's reply open to more than one reading got its readings and their cost, a recommendation, and a confirming reply that carries the unanswered questions — and nothing was built before it was confirmed

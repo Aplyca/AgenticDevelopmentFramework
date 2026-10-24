@@ -3,6 +3,8 @@
   "model": "sonnet",
   "permissions": {
     "allow": [
+      "mcp__ccd_session_mgmt__get_session",
+      "mcp__ccd_session_mgmt__set_session_title",
       "Bash(rg *)",
       "Bash(git *)",
       "Bash(gh *)"
