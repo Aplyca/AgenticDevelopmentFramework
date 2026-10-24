@@ -11,7 +11,7 @@ projects.
 
 | # | Decision | Status |
 |---|---|---|
-| [0001](0001-spec-folders-as-record-of-intent.md) | Spec folders are the record of intent; trackers are linked, never copied | accepted |
+| [0001](0001-spec-folders-as-record-of-intent.md) | Spec folders are the record of intent; trackers are linked, never copied | accepted; refined by 0050 |
 | [0002](0002-one-approval-gate-on-the-change-surface.md) | One approval gate, after the plan, on the change surface | accepted |
 | [0003](0003-tdd-at-task-granularity.md) | TDD at task granularity: one task, one red → green cycle, one commit | accepted |
 | [0004](0004-triage-before-setup.md) | Triage a task before setting anything up | accepted |
@@ -21,7 +21,7 @@ projects.
 | [0008](0008-dispatcher-and-worker-worktrees.md) | The main checkout dispatches; worktrees do the work (optional module) | accepted; amended by 0015, 0020, 0032, 0042, 0044 |
 | [0009](0009-optional-modules.md) | Host- and team-specific harness ships as optional modules | accepted; amended by 0016, 0023 |
 | [0010](0010-model-aliases.md) | Configure models with version-less aliases | accepted |
-| [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted; partly superseded by 0014 |
+| [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted; partly superseded by 0014; refined by 0050 |
 | [0012](0012-choose-the-model-by-the-work.md) | Choose the model by the work — Sonnet for well-specified work, Opus for judgment | accepted |
 | [0013](0013-adapt-practices-not-a-second-workflow.md) | Adapt practices from other skill collections into our skills — never a second workflow | accepted |
 | [0014](0014-test-first-in-every-lane.md) | Test first in every lane | accepted |
@@ -60,8 +60,10 @@ projects.
 | [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted; amended by 0049 |
 | [0048](0048-end-user-docs-in-the-doc-tool.md) | End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module) | accepted |
 | [0049](0049-every-lane-pushes-without-asking.md) | Every lane commits, pushes, and opens its draft without asking — a standing go-ahead | accepted |
+| [0050](0050-spec-records-name-roles-and-contracts.md) | Spec folders name roles, a change request can ride the open pull request, and a split feature shares one written contract | accepted; refined by 0054 |
 | [0052](0052-production-build-in-the-configured-mode.md) | A production-like run is the optional `make prod` task, in the configured mode (docker module) | accepted |
 | [0053](0053-stakeholder-updates-at-three-moments.md) | The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request | accepted |
+| [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

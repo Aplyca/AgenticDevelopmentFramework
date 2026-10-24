@@ -48,6 +48,8 @@ dynamic/
       ...
     implement/
       ...
+    spec-analyzer/
+      ...                          - names, tracker quotes, and a contract change a consumer spec relies on (0050)
 ```
 
 Each fixture has two files:

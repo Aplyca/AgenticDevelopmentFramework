@@ -4,9 +4,9 @@ area: ""
 status: draft                 # draft → in-review → approved → implemented (see specs/README.md § Status)
 feature-type: ui | api | infra | content | mixed
 personal-data: yes | no
-tracker: ""                   # link to the business requirement (task, ticket, issue) — link it, never copy it
-approvals: []                 # one line per sign-off at the approval gate: "YYYY-MM-DD · <who> · initial scope" / "… · CR 1"
-pull-requests: []             # one line per PR: "<url> · initial delivery" / "<url> · CR 1"
+tracker: ""                   # link to the business requirement (task, ticket, issue) — link it, never copy or quote it
+approvals: []                 # one line per sign-off at the approval gate: "YYYY-MM-DD · <role> · initial scope" / "… · CR 1" — a role (developer, tech lead), never a name
+pull-requests: []             # one line per PR: "<url> · initial delivery" / "<url> · CR 1" (a CR on the open PR adds to its line: "· initial delivery, CR 1")
 owners:
   business: client
   functional: senior-dev
@@ -21,7 +21,7 @@ references:
   figma: ""
   adrs: []
   pdrs: []
-  related-specs: []
+  related-specs: []           # a feature split across folders: the consumer names its provider's folder, the provider its consumers
 ---
 
 # [Feature name]
@@ -43,6 +43,11 @@ references:
 
   Requirements come from the tracker task or the requester. If neither states them, stop and
   ask — never fill a gap with a plausible assumption.
+
+  Decisions are dated and attributed to a role — requester, developer, tech lead, legal — never
+  to a person's name, and written in your own words: no quotes or text copied from the tracker,
+  no "the requester said…". The `tracker:` link is where people's words live; git history
+  holds who committed what (specs/README.md § Records name roles).
 -->
 
 # Part 1 — Intent
@@ -165,9 +170,11 @@ Or list specific, testable requirements:
 > Owned by: tech lead
 > Business rules, compliance, and existing decisions (link ADRs / PDRs) this feature must
 > respect. A constraint on HOW belongs here only with its reason; the design itself lives in
-> plan.md.
+> plan.md. A feature split across spec folders writes its shared contract here, in both
+> folders (specs/README.md § Granularity).
 
 - [e.g. Contact data is written only through the existing audit-logged service — Reason: compliance requires the audit trail (ADR-0007)]
+- [e.g. Shared contract with `specs/012-topic-catalog/` (provider): `GET /api/topics?state=active|archived` returns `{ id, label }`; a change to it is recorded in this spec and its pull request — Reason: the feature is split across both folders]
 
 ---
 
@@ -247,9 +254,10 @@ Or: `> Not applicable: [reason — e.g. nothing end users see or do changes]`
 ## Clarifications [REQUIRED — the section must exist even while empty]
 
 > Questions raised while writing the spec, and how they were resolved. Answers are folded back
-> into the sections above; this list preserves why.
+> into the sections above; this list preserves why. Each answer in your own words, attributed
+> to the role that decided it — never a name, never a quote from the tracker.
 
-- **Q:** [question] — **A:** [resolution] _(YYYY-MM-DD, who)_
+- **Q:** [question] — **A:** [resolution] _(YYYY-MM-DD, [role — requester, tech lead, legal…])_
 
 ## References
 
@@ -257,17 +265,18 @@ Or: `> Not applicable: [reason — e.g. nothing end users see or do changes]`
 
 <!--
   ─── Change requests ────────────────────────────────────────────────────────
-  When delivered work changes (client feedback, a second round, a scope change), amend THIS
-  folder instead of opening a new one. Append one section per request:
+  When delivered work changes (client feedback, a second round, a scope change) — or feedback
+  arrives while its pull request is still open — amend THIS folder instead of opening a new one.
+  Append one section per request:
 
   # CR N — [short title] (YYYY-MM-DD)
 
-  - **Requested:** [link to where it was asked — tracker comment, meeting notes] · by [who]
-  - **Intent:** [what the requester is trying to achieve, in one or two sentences]
+  - **Requested:** [link to where it was asked — tracker comment, meeting notes] · by [role — requester, tech lead…]
+  - **Intent:** [what the requester is trying to achieve, in one or two sentences, in your words]
 
   | Aspect | Delivered (PR …) | Change |
   | --- | --- | --- |
-  | [behavior] | [what shipped] | [what changes / none] |
+  | [behavior] | [what shipped — or, on an open PR, what the branch built] | [what changes / none] |
 
   New or changed acceptance criteria go into Functional with new numbers, tagged `(CR N)`;
   a criterion the request retires is struck through, not deleted. Record the gate sign-off
@@ -278,11 +287,14 @@ Or: `> Not applicable: [reason — e.g. nothing end users see or do changes]`
 
   # CR N — [short title] (YYYY-MM-DD) · light
 
-  - **Requested:** [link] · by [who]
+  - **Requested:** [link] · by [role]
 
   | Aspect | Delivered (PR …) | Change |
   | --- | --- | --- |
   | [behavior] | [what shipped] | [what changes] |
 
   Plus any acceptance criterion it adds or changes, tagged `(CR N)`, in Functional.
+
+  Before the merge, a change request rides the same branch and the same draft pull request;
+  after it, a new branch and a new pull request (specs/README.md § Change requests).
 -->

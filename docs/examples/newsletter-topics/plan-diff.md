@@ -189,7 +189,7 @@ default fixture stays topic-free.
    `sandbox`, then in `master`. This is safe before the deploy: the delivered code ignores fields it
    doesn't read.
 2. Merge and deploy. With no topics in the entry, the form is unchanged (AC8).
-3. Sam looks up the group IDs; marketing creates the topics (Tech, Business, Culture), adds them to
+3. The tech lead looks up the group IDs; marketing creates the topics (Tech, Business, Culture), adds them to
    the entry, and publishes. The topics appear within 5 minutes.
 4. Only after step 2 is live: a separate content-model cleanup removes `alreadySubscribedMessage`.
    Before then, the delivered code would see an incomplete entry and hide the form on every article
@@ -214,7 +214,7 @@ Mailchimp do no harm. Leave `alreadySubscribedMessage` in place until the change
   reference.) The "unsubscribed earlier" edge case rests on it.
 - A7 — A Mailchimp group keeps its ID when it is renamed. (Mailchimp's API reference.)
 - A8 — Setting up the digest's segments in Mailchimp is marketing's work, not part of this change.
-  (Dana.)
+  (Requester.)
 
 ## Open questions
 

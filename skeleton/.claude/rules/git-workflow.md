@@ -44,8 +44,9 @@ say so in the body. Meaningful doc revisions get their own `docs:` commit.
   `docs`, `refactor` — plus `hotfix` where the branching model uses it), `<slug>` matches the spec
   folder (`feat/newsletter-signup` ↔ `specs/007-newsletter-signup/`). No ticket numbers or spec
   numbers — the slug is the join.
-- A **change request** gets a fresh branch that starts with the feature's slug and names the change:
-  `feat/newsletter-signup-topics`. Never reuse the feature's earlier branch — after a squash merge it
+- A **change request** after the merge gets a fresh branch that starts with the feature's slug and
+  names the change: `feat/newsletter-signup-topics` (feedback while the pull request is still open
+  rides its branch and draft). Never reuse the feature's earlier branch — after a squash merge it
   can survive with pre-merge history, and new work on it starts from old code.
 - Branch from the base branch named in `CONTRIBUTING.md`, **up to date with its remote**
   (`git switch <base> && git pull --ff-only` first); never commit directly to it or to any other
