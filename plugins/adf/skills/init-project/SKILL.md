@@ -20,6 +20,11 @@ again: replace each planned entry with the verified fact (or a `TODO(team)` wher
 fill the commands from the real manifests, and point the globs and the rules' `paths:` at the real
 structure.
 
+**Already initialized?** When `AGENTS.md` has no `[bracketed placeholders]` and no `planned`
+entries left, the project is set up: don't run a setup pass. Make only the edit the request asks
+for — a nested `AGENTS.md` for one module, say, or one rule's `paths:` — and leave the constitution
+alone: it changes only through its amendment process (`/adf:record-decision`). Say so in a line.
+
 ## Steps
 
 ### Configure the AI layer

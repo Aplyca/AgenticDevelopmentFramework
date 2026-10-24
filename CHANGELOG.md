@@ -29,19 +29,25 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       8.5k after the cut.
     - **`/adf:adopt` and `/adf:init-project` can be started from a plain request again** ("make this
       repo AI-ready"): as user-only skills, their descriptions were out of context, so a request in
-      words would go unrecognized.
+      words would go unrecognized. `/adf:init-project` gets an **Already initialized?** check, like
+      `/adf:adopt`'s: with no placeholders or planned entries left in `AGENTS.md`, it makes only the
+      edit asked for — a nested `AGENTS.md`, one rule — and leaves the constitution to its amendment
+      process.
     - These skills lose rationalization rows:
-      - `/adf:open-pr`: five rows;
+      - `/adf:open-pr`: four rows — "The tests pass, so I'll push now" stays, the one row that
+        answers the most likely failure in the skill every task loads;
       - `/adf:triage`: two rows;
       - `/adf:wrap-up`: three rows;
       - `/adf:dispatch`: two rows;
       - `/adf:stakeholder-update`: three rows.
+    - `/adf:open-pr`'s description again says when `refresh` runs: after a later push changes
+      what the description says. The eval docs no longer say `/adf:open-pr` is user-invoked.
     - `/adf:commit`'s principle now reads "`/adf:open-pr` pushes, once your own local check
       passes".
     - Steps, red flags, verification checklists, and Principles sections are unchanged. Four
       skills' Principles hold rules found nowhere else in them: `/adf:evaluate`, `/adf:review`,
       `/adf:write-tests`, and `/adf:orchestrate`. Trimming them would need the session evals.
-  - **Measured:** about 2.6k characters less across the five skills a task loads.
+  - **Measured:** about 2.3k characters less across the five skills a task loads.
 
   **Upgrade impact:**
   - **Packaged install:** comes with the plugin.

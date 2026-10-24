@@ -15,7 +15,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 `review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
 `record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`.
 
-- [ ] `/open-pr` sets `disable-model-invocation: true`; `/stakeholder-update`, `/track-time`, and `/end-user-docs` show the draft and ask before posting
+- [ ] `/open-pr` opens only a draft, once the agent's own local check passes, and never marks it ready (decisions 0022, 0045); `/stakeholder-update`, `/track-time`, and `/end-user-docs` show the draft and ask before posting
 
 ## Agents and workflows
 

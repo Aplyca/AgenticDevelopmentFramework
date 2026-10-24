@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the work branch and open a DRAFT pull request naming its spec folder, tracker task, and what was and wasn't verified. Use as soon as your own local check passes — for docs or CI, once the gate and /adf:review pass — or when the developer asks; never before the local check, and never marks it ready. `refresh` updates its description; `sync` brings the base branch in.
+description: Push the work branch and open a DRAFT pull request naming its spec folder, tracker task, and what was and wasn't verified. Use as soon as your own local check passes — for docs or CI, once the gate and /adf:review pass — or when the developer asks; never before the local check, and never marks it ready. `refresh` updates your draft's description after a later push changes what it says; `sync` brings the base branch in.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md] | refresh | sync"
 ---
 
@@ -221,6 +221,7 @@ settings files: elsewhere, merge with git; a refused merge goes to the developer
 | "I'll remind them to review and ready it each time they come back" | Their next step is named once, in the report. A reminder on every turn is noise, and an offer to promote is a question they didn't ask. Ready, review, and merge are theirs. |
 | "CI is green, so I'll mark it ready" | CI is a signal, not the gate. Ready means a person exercised the change; green tests aren't that. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
+| "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to walk, for the full gate (and a clean `/adf:review`, for docs or CI work). |
 | "It's outward — I'll ask before I commit, push, and open the draft" | Your local check is what lets them, in every lane: it's the team's standing go-ahead. The question only delays the developer's test, which comes after the draft opens. Ready and merge are where they decide. |
 | "It's the careful lane, so I'll wait for a yes on the risky part" | The careful lane adds its checklist, not a stop. Put the risky part in the Lane line and first in the report; the developer's test starts there. |
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
