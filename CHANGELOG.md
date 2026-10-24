@@ -11,6 +11,23 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The delivered update links the published end-user page** (decisions
+  [0048](docs/decisions/0048-end-user-docs-in-the-doc-tool.md),
+  [0053](docs/decisions/0053-stakeholder-updates-at-three-moments.md); end-user-docs).
+  - **Why:** the requester's delivered update is where they learn what changed, and with the
+    `end-user-docs` module the feature's end-user page tells them how to use it. The update's links
+    didn't include it.
+  - **What it does:** `/adf:stakeholder-update`'s delivered update links the published end-user page,
+    once `/adf:end-user-docs` has published it, and never its draft. When the update already went
+    out, `/adf:end-user-docs` offers a one-line reply on the tracker task with the link. Both are
+    posted only on the developer's yes.
+  - **Where:** `/adf:stakeholder-update` § Style rules (the links) and `/adf:end-user-docs` step 6.
+
+  **Upgrade impact:**
+  - **Committed install:** overwrite for `.claude/skills/stakeholder-update/`, and
+    `.claude/skills/end-user-docs/` with the module.
+  - **Without the module:** nothing changes.
+
 - **What an agent finds along the way is reported and routed — never dropped, never fixed in
   passing** ([decision 0054](docs/decisions/0054-found-along-the-way.md)).
   - **Why:** the bugs and improvements an agent notices while working — related to the task or not —
