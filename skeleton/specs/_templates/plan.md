@@ -8,8 +8,11 @@
   says. When implementation contradicts this plan, fix the plan in the same branch rather than
   leaving it stale; if the change surface grows into risk (a new layer, a new dependency, an
   escalation trigger), re-confirm with the developer.
-  Change request: leave the delivered plan as it is and append a "# CR N — <title>" part with
-  these headings, covering only the delta.
+  Change request — after the merge or on the open pull request: leave the earlier plan as it is
+  and append a "# CR N — <title>" part with these headings, covering only the delta; strike
+  through an earlier entry the CR supersedes, never delete it.
+  Decisions and confirmations are attributed to a role (developer, tech lead, requester), never
+  to a person's name (specs/README.md § Records name roles).
 -->
 
 - **Spec:** ./spec.md · **Tasks:** ./tasks.md
@@ -71,7 +74,10 @@ Every principle in `docs/CONSTITUTION.md` was read against this plan.
 
 <!-- Schema changes (new migrations only — history is append-only), API/contract changes
      (see ./contracts/ if used), new or changed environment variables (declared in the env
-     template), CMS content-model changes. "None" is a valid answer. -->
+     template), CMS content-model changes. "None" is a valid answer.
+     A contract shared with another spec folder (spec.md § Constraints, `related-specs`): a
+     consumer re-checks it against the provider's spec each time it syncs the base branch, and a
+     change to it is recorded in the consumer's spec and pull request. -->
 
 ## Test strategy
 
@@ -113,7 +119,7 @@ before implementation tasks, when the team wants the verification contract up fr
      shows these to the developer explicitly — an unstated assumption is how an invented
      requirement slips in. -->
 
-- [Assumption] — [why it is believed true / who confirmed it]
+- [Assumption] — [why it is believed true / which role confirmed it]
 
 ## Open questions
 

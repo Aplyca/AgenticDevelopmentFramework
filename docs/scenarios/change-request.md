@@ -9,6 +9,8 @@ wants it to behave differently:
 - A tracker task that refers to delivered work ("the topic checkboxes we shipped last month…").
 - A bug report that turns out to be a request: the code does what the spec says, and the requester
   now wants something else.
+- Feedback while the pull request is still open — the requester's second look at the preview. Same
+  scenario, on the same branch and draft: [Before the merge](#before-the-merge).
 
 **Not this scenario:**
 
@@ -54,7 +56,7 @@ email"`):
 ```markdown
 # CR 3 — Email field label (2026-10-08) · light
 
-- **Requested:** https://tracker.example.com/t/MKT-412 (comment of 2026-10-06) · Dana (marketing lead)
+- **Requested:** https://tracker.example.com/t/MKT-412 (comment of 2026-10-06) · by requester (marketing lead)
 
 | Aspect | Delivered (CR 2, PR …) | Change |
 | --- | --- | --- |
@@ -76,25 +78,29 @@ pull request's review approves the diff, and its URL joins `pull-requests:` as `
    delta can't be recovered — no folder, or a description rewritten without a trace — say so and
    ask. Never reconstruct the old requirement from the code and present it as fact.
 
-3. **Branch** — a fresh one that starts with the feature's slug and names the change
+3. **Branch** — after the merge, a fresh one that starts with the feature's slug and names the change
    (`feat/newsletter-signup-success-topics`), so branch, folder, and pull request still join — the
    session hook finds the folder by that prefix. Never reuse the feature's earlier branch: git keeps
-   one after a squash merge, with pre-merge history, and work on it starts from old code.
+   one after a squash merge, with pre-merge history, and work on it starts from old code. Before
+   the merge, the CR stays on the open branch ([Before the merge](#before-the-merge)).
 
 4. **Amend the spec** (`/write-spec`, amend mode). Append a `CR N — <title> (date)` section to
-   `spec.md`: where it was requested and by whom (a link, never a copy), the intent, and a
+   `spec.md`: where it was requested and by which role (a link, never a copy or a quote; a role,
+   never a name), the intent in the spec's own words, and a
    **Delivered → Change** table. New acceptance criteria get new numbers tagged `(CR N)`; criteria
    the request retires are struck through, not deleted; Clarifications are appended, not replaced.
    Status goes to `in-review`.
 
 5. **Plan the delta** (`/write-plan`). Extend `plan.md` and `tasks.md` with the CR's own part —
    change surface (read from the code, with shared code's other consumers), test strategy, docs
-   plan, assumptions, tasks. The earlier parts stay as the record of what was built. Run
+   plan, assumptions, tasks. The earlier parts stay as the record of what was built; an entry the
+   CR supersedes is struck through, not deleted. Run
    `@spec-analyzer` on anything non-trivial.
 
 6. **Approval gate — the same as for a new feature.** Scope (the CR's criteria and what stays out),
-   change surface, assumptions. On sign-off: `status: approved`, an `approvals:` line ending
-   `· CR N`, and one commit: `spec: approve <slug> CR N`.
+   change surface, assumptions. On sign-off: `status: approved`, a dated `approvals:` line naming
+   the approver's role and ending `· CR N` (`2026-10-08 · tech lead · CR 2`), and one commit:
+   `spec: approve <slug> CR N`.
 
 7. **Docs first** (`/write-docs`) when the CR's plan lists pre-implementable docs — usually an
    existing doc gains a section. `docs:` commit.
@@ -116,6 +122,22 @@ pull request's review approves the diff, and its URL joins `pull-requests:` as `
     `gh pr ready` only if that person asks. For a tracker task, `/open-pr`'s report ends with the
     review update's draft — the task to review, the preview, what to test, the pull request — posted
     on the developer's yes.
+
+### Before the merge
+
+The requester tries the preview of the open draft and asks for more. Nothing has merged, so there's
+no new branch and no second pull request: the change request rides **the same branch and the same
+draft**, with the same two weights (`specs/README.md` § Before the merge).
+
+- **Light** — the `CR N … · light` section, committed with the change. No status cycle.
+- **Full** — steps 2 and 4–9 above, on the open branch: the status goes `implemented` → `in-review`
+  → `approved` (a dated `approvals:` line naming a role and the CR) → `implemented`; the `# CR N`
+  part in `plan.md` and `tasks.md` covers the delta, tasks numbered `T<N>00`, superseded entries
+  struck through; red then green per task, and the CR's own gate-results block.
+
+The pull request's line in `pull-requests:` adds the CR (`<url> · initial delivery, CR 1`), and
+`/open-pr` keeps the draft's description current with each push. Once it merges, the next change
+request needs a new branch.
 
 ### A legacy single-file spec
 
@@ -167,7 +189,7 @@ can say so politely by pointing at the record, without arguing from what the cod
 ```markdown
 # CR 2 — Show the chosen topics after signing up (2026-10-01)
 
-- **Requested:** https://tracker.example.com/t/MKT-412 (comment of 2026-09-29) · Dana (marketing lead)
+- **Requested:** https://tracker.example.com/t/MKT-412 (comment of 2026-09-29) · by requester (marketing lead)
 - **Intent:** readers see what they signed up for, which marketing expects to reduce early unsubscribes.
 
 | Aspect | Delivered (CR 1, PR #187) | Change |
