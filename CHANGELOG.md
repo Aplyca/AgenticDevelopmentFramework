@@ -11,6 +11,23 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Triage names the session after its task, in the desktop app.**
+  - **Why:** a session started with no more than a tracker link (`Work on this task <link>`) gets a
+    title made from that prompt, so the session list says nothing about the work. Triage is the
+    first point where the agent knows what the task is.
+  - **What it does:** right after stating the triage, `/adf:triage` reads the session's title and,
+    when it doesn't name the task, sets it to the task's title alone — no lane, branch, or link. A
+    title that already names the task, such as a dispatch chip's, stays, and the app asks the
+    developer before replacing a title they set. In a terminal it does nothing: no tool lets the
+    agent rename a session there, so `/rename` stays the developer's.
+  - **Where:** `/adf:triage` (a new step 5, and a verification item); the skeleton's
+    `.claude/settings.json` allows the desktop app's `mcp__ccd_session_mgmt__get_session` and
+    `mcp__ccd_session_mgmt__set_session_title`, so neither call prompts.
+
+  **Upgrade impact:**
+  - **Merge:** `.claude/settings.json` — two rules in `permissions.allow`.
+  - **Committed install:** overwrite for `.claude/skills/triage/`.
+
 - **Every lane commits, pushes, and opens its draft without asking — a standing go-ahead**
   ([decision 0049](docs/decisions/0049-every-lane-pushes-without-asking.md)).
   - **Why:** sessions still stopped before the push. The careful lane asked for a yes on the risky
