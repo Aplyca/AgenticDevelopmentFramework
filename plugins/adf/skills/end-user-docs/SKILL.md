@@ -92,9 +92,10 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
      3. **Retire the draft:** rename it `[Published] <name>` and replace its content with the
         published page's link and the date, so the text has one home. Deleting it is the
         developer's, in the tool.
-     4. **Report** the published link. Putting it on the tracker task, or in the stakeholder update,
-        is a write the requester can see: confirm it first (`docs/TRACKER-INTEGRATION.md` § Rules
-        for agents).
+     4. **Report** the published link. The delivered update links it (`/adf:stakeholder-update`).
+        When that update already went out, offer a one-line reply on the tracker task with the link.
+        Either is a write the requester can see: confirm it first (`docs/TRACKER-INTEGRATION.md`
+        § Rules for agents).
    - **Publish without a feature** (at a release): list the drafts location's unretired drafts, and
      publish the ones whose features shipped, one approval per page.
 

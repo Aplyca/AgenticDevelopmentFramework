@@ -739,6 +739,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'names `end-user-docs`' || missing+=("/end-user-docs: acts only where the stamp names the end-user-docs module (0048)")
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'The doc tool is their only home' || missing+=("/end-user-docs: the doc tool is the end-user docs' only home (0048)")
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'Read the live page first' || missing+=("/end-user-docs: reads the live page before replacing it (0048)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'the published end-user page' || missing+=("/stakeholder-update: the delivered update links the published end-user page (0048, 0053)")
     file_contains "$MODULES_DIR/end-user-docs/files/docs/END-USER-DOCS.md" '^## Page structure' || missing+=("end-user-docs module: docs/END-USER-DOCS.md has the page structure (0048)")
     file_contains "$TEMPLATES/spec.md" '^### End-user docs' || missing+=("spec template: Documentation › End-user docs (0048)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '`end-user-docs` module, the pull request merged' || missing+=("/wrap-up: offers to publish end-user docs only with the end-user-docs module (0048)")
