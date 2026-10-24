@@ -125,6 +125,8 @@ Read these before writing; they hold what this skill doesn't hardcode:
     can't open it
   - reference pages
   - the exact CMS entries the client would edit
+  - in the delivered update, the published end-user page, with the `end-user-docs` module — once
+    `/adf:end-user-docs` has published it; never its draft, which end users can't open
 
   Don't link commits, branches, CI, or other internal tools in the client text.
 - **Include only findings that matter to the client and are verified** — content gaps, content
