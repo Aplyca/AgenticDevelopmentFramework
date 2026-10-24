@@ -31,6 +31,7 @@ Instructions are context, not enforcement. These hold regardless of what the mod
 | Environment variables read in code are declared in the env template (when the repository has one) | `.claude/hooks/check-env-declared.sh` (PostToolUse) |
 | Each session starts knowing its branch, worktree role, and spec folder | `.claude/hooks/session-context.sh` (SessionStart) |
 | A session hears once when its branch's pull request merged or closed, so it offers `/wrap-up` or asks whether the task is dropped | `.claude/hooks/pr-state.sh` (SessionStart, UserPromptSubmit) |
+| A terminal session is named after its task: once a reply states the triage, your next prompt sets the session's title to the task's title, once. A title you set with `/rename` stays; in the desktop app, `/triage` names the session itself | `.claude/hooks/session-title.sh` (UserPromptSubmit) |
 | The first edit in each sensitive area stops once per session, so the agent confirms the lane is careful or full | `.claude/hooks/careful-paths.sh` (PreToolUse) |
 | The triage — the lane and why — comes before the first change, in reply text you can read: a session's first file edit or new branch with no lane stated stops once, as a reminder | `.claude/hooks/triage-first.sh` (PreToolUse) |
 | With the parallel-agents module, file edits in the main checkout are stopped, so each task moves to its own worktree first (`/dispatch`) | `.claude/hooks/protect-hub.sh` (PreToolUse) |

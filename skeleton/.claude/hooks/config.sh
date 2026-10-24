@@ -42,6 +42,11 @@ APPROVE_WORKTREE_MOVE="1"
 # minutes after, on a work branch only; without gh it does nothing. Empty disables.
 PR_STATE="1"
 
+# A terminal session is named after its task, as /triage does in the desktop app. "1" sets the title
+# to the task's title once a reply states the triage, on the next prompt and once per session; a
+# title already set (/rename, --name) stays, and the desktop app is left to the agent. Empty disables.
+SESSION_TITLE="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""
