@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement an approved spec folder one task at a time — for each task in tasks.md write its test, watch it fail, write the code, watch it pass, and commit — keeping plan.md and the committed docs true to what is built, then record the gate results. Use after the approval gate (spec status approved) and /adf:write-docs.
+description: Implement an approved spec folder one task at a time — test red, code, green, commit — keeping plan.md and the docs true to what is built, then record the gate results. Use after the approval gate and /adf:write-docs.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup]"
 ---
 

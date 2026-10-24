@@ -1,6 +1,6 @@
 ---
 name: dev-env
-description: Set up, migrate, run natively, diagnose, or safely reset this project's local environment to the specification this skill carries — `compose.yaml` and a `Makefile` at the root, one folder per target in `ops/`, Docker or native by `DEV_MODE`, variables from `.env` and each service's `environment:`, host ports Docker picks unless `.env` pins them — written down for people and agents, one stack per worktree with the parallel-agents module, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without the developer's yes. Use when the next step needs the app running and there's no working stack, when a stack should meet the specification, to run the app on the host, when the stack won't start or misbehaves, before the local check, or to reset local data.
+description: Set up, migrate, run natively, diagnose, or reset this project's local environment to the specification this skill carries — compose.yaml and a Makefile, Docker or native by DEV_MODE, one stack per worktree — deleting nothing beyond this project's own containers and volumes without a yes. Use when the app must run and no stack works, or the stack misbehaves.
 argument-hint: "[set up | worktrees | native | diagnose <symptom> | reset]"
 ---
 

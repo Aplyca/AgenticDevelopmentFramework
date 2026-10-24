@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Dispatch multiple specialized agents in parallel for review or investigation tasks. Faster and more thorough than running them sequentially in the main context. Use for thorough pre-merge reviews, multi-perspective investigations, or any analytical task where independent agents add value.
+description: Run several specialized agents in parallel for a review or investigation, and synthesize what they find. Use for thorough pre-merge reviews or multi-perspective investigations.
 argument-hint: "[review | investigate | pre-commit | custom <description>]"
 ---
 

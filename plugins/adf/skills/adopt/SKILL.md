@@ -1,6 +1,7 @@
 ---
 name: adopt
-description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Works in a new project before any code exists, and adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
+description: Bootstrap a repository for the Agentic Development Framework — copy the skeleton and the chosen modules, fill placeholders from verified facts, wire the hooks, record PDR-0001, and prepare the adoption pull request. Also adds modules to an adopted repository.
+disable-model-invocation: true
 ---
 
 # Adopt the Agentic Development Framework

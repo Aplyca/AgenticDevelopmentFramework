@@ -1,6 +1,6 @@
 ---
 name: stakeholder-update
-description: Draft the requester's update on a tracker task at three moments — started (after triage, the task to in progress, with a message only when there's something worth saying), in review (once the draft pull request opens, the task to review, with a business-focused report — the preview, what to test, and the pull request), and delivered (why, what, status, verified findings, direct questions) — in the client's terms, with screenshots when they help, and show it in chat; the draft is the deliverable. Posts it and moves the task only after the developer approves the exact text, the status, and the assignee; never on the pull request. Use when /adf:triage or /adf:open-pr reaches its moment, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done.
+description: Draft the requester's update on a tracker task — started, in review (with the preview and what to test), or delivered — in their terms; post it and move the task only on the developer's yes to the exact text. Use when /adf:triage or /adf:open-pr reaches that moment, or when asked to update the client.
 argument-hint: "[started | review | delivered] [tracker task link or ID] [pull request number]"
 ---
 

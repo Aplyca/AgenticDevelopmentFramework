@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: Give a task its own worktree, branch, and folder beside the main checkout, and move this session into it — after triage, when the task changes the repository or runs the app, the tests, or the database. A session that already has a task, handed another, offers it a new session instead — a task chip, or a command. Use with the parallel-agents module: right after triage in the main checkout or in Claude Code's own worktree, and whenever a session that has a task is handed an unrelated one or finds one along the way.
+description: With the parallel-agents module: give a triaged task its own worktree and branch beside the main checkout and move this session there; a session that already has a task offers another one a new session. Use right after triage, or when handed an unrelated task.
 argument-hint: "[<type>/<slug>, or the other task]"
 ---
 

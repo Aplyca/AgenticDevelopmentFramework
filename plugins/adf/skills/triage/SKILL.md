@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Read a task in full and decide what it needs before setting anything up — the deliverable (an answer or a change), its kind, the lane (fast, careful, or full — from the escalation triggers, the sensitive areas, and the developer's own call), and whether an environment is needed. Triage is proportional — one line for a small, precise change. Use first on every task, especially one that arrives as a tracker link.
+description: Read a task in full and decide what it needs before setting anything up — answer or change, its kind, the lane (fast, careful, or full), the environment, and the model. One line for a small change. Use first on every task, especially a tracker link.
 argument-hint: "[tracker link, task ID, or description] [optional: fast | careful | full]"
 ---
 
@@ -52,7 +52,7 @@ not a research project.
    | **Kind** | new feature · change request · bug · hotfix · refactor · chore · process change | Prior work from step 2; who reported it; whether production is broken now; whether observable behavior changes |
    | **Lane** (changes) | fast · careful · full | The entry criteria and escalation triggers in `specs/README.md` § Lanes; the paths in `AGENTS.md` § Sensitive areas; the developer's instruction (below) |
    | **Environment** | none · needed for a named step | Only when the next step runs the app, the tests, or the database. Reading code and docs needs none |
-   | **Model** (Claude Code) | `sonnet` · `opus` | `sonnet` when the task has a clear spec and a way to check the result: the fast and careful lanes, bug fixes, investigations, reviews, implementing an approved plan. `opus` for judgment: the full lane's spec and plan, ambiguous or long-horizon work, a bug that resists two hypotheses. Name it for every change, and the switch when the session runs on the other model — switching right after triage is cheap, while the context is still small |
+   | **Model** (Claude Code) | `sonnet` · `opus` | `sonnet` when the task has a clear spec and a way to check the result: the fast and careful lanes, bug fixes, investigations, reviews, implementing an approved plan. `opus` for judgment: the full lane's spec and plan, ambiguous or long-horizon work, a bug that resists two hypotheses. Name it for every change. **Effort:** medium for the fast lane and answers, high for the careful lane and the full lane's spec and plan. Fit the session to both right after the triage (step 5) |
    | **Requirements** | sufficient · gaps | List every gap about *what* is wanted as a question; never fill one with a plausible assumption. A gap rules out the fast lane |
 
    **The developer's call** — in the task, the arguments (`/adf:triage <task> careful`), or any message:
@@ -106,6 +106,15 @@ not a research project.
      it on the developer's next prompt, from the triage line you wrote: the title after
      `Triage — `, or the fast lane's request. So open that line with the name the session should
      have. A title the developer set (`/rename`) stays.
+
+   **Then fit the session's model and effort to the lane,** while the context is still small:
+   - **Desktop app:** the same `get_session` on `self` shows the model and effort. When either
+     doesn't fit step 3, set it — `set_session_model`, `set_session_effort` on `self` — and say so in
+     a line. A model or effort the developer chose for this task stays. A model switch re-reads the
+     conversation once, uncached, so skip it for a task a few calls from done; an effort change
+     keeps the cache.
+   - **Terminal:** no tool switches them there: the triage line names the switch
+     (`model: sonnet — this session is on Opus; /model sonnet`).
 
 6. **Proceed per the triage** without waiting for permission — the developer redirects you if you
    misread it. Ask the questions that block the next step now, as one round: numbered, each with
@@ -180,6 +189,7 @@ one a new session (`/adf:dispatch` too).
 - [ ] A fast-lane change states its request, its "done when", and its files
 - [ ] Nothing — no branch, file, spec folder, or environment — was created before the triage was stated
 - [ ] In the desktop app, the session's title names the task; in a terminal, the triage line opens with it, for the session-title hook
+- [ ] The session's model and effort fit the lane — switched in the desktop app unless the developer chose them or the task was nearly done; named in a terminal
 - [ ] Every gap about what is wanted is a question, not an assumption
 - [ ] A tracker task's turn ended with the started update's draft — the status, and a message only when it's worth sending — and nothing changed on the tracker without the developer's yes
 - [ ] A stakeholder's reply open to more than one reading got its readings and their cost, a recommendation, and a confirming reply that carries the unanswered questions — and nothing was built before it was confirmed

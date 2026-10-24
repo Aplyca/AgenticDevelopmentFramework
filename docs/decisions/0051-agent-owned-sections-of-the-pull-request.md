@@ -1,6 +1,6 @@
 # 0051: The agent owns marked sections of its pull request's description, and refreshes them from the record
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0055](0055-lean-context-and-acting-model-routing.md) (the sync procedure moves to `/adf:open-pr sync`)
 - **Date:** 2026-10-23
 
 ## Context

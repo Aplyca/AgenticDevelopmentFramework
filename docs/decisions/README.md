@@ -46,7 +46,7 @@ projects.
 | [0033](0033-pull-request-upkeep-without-prompts.md) | An agent pushes, opens, edits, and comments on its draft pull request without a prompt | accepted; amended by 0038, 0053 |
 | [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted; amended 2026-10-15, 2026-10-16 |
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
-| [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted |
+| [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted; amended by 0055 |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted; amended 2026-10-16 |
 | [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted |
 | [0039](0039-check-locally-then-on-the-preview.md) | An agent checks a change locally first, then on the pull request's preview | accepted |
@@ -61,10 +61,11 @@ projects.
 | [0048](0048-end-user-docs-in-the-doc-tool.md) | End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module) | accepted |
 | [0049](0049-every-lane-pushes-without-asking.md) | Every lane commits, pushes, and opens its draft without asking — a standing go-ahead | accepted |
 | [0050](0050-spec-records-name-roles-and-contracts.md) | Spec folders name roles, a change request can ride the open pull request, and a split feature shares one written contract | accepted; refined by 0054 |
-| [0051](0051-agent-owned-sections-of-the-pull-request.md) | The agent owns marked sections of its pull request's description and refreshes them from the record; syncing with the base branch is a merge, by a procedure in the git rules | accepted |
+| [0051](0051-agent-owned-sections-of-the-pull-request.md) | The agent owns marked sections of its pull request's description and refreshes them from the record; syncing with the base branch is a merge, by a procedure in the git rules | accepted; amended by 0055 |
 | [0052](0052-production-build-in-the-configured-mode.md) | A production-like run is the optional `make prod` task, in the configured mode (docker module) | accepted |
 | [0053](0053-stakeholder-updates-at-three-moments.md) | The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request | accepted |
 | [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted |
+| [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

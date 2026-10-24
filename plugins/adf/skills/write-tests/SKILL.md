@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: Write tests from a spec folder's acceptance criteria and testable requirements, and watch them fail before any implementation (TDD red). Three modes — the test for one task inside the /adf:implement loop, contract-first acceptance tests committed ahead of the code, or standalone coverage for existing code and bugs. Use whenever tests come before code.
+description: Write tests from a spec's acceptance criteria and watch them fail before any code (TDD red) — one task's test inside /adf:implement, contract-first acceptance tests, or coverage for existing code and bugs.
 argument-hint: "[spec folder and task ID, 'acceptance' for contract-first, or an area to cover]"
 ---
 

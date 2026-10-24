@@ -1,6 +1,6 @@
 ---
 name: spec-workflow
-description: Reference for how work flows in this project — the fast, careful, and full lanes, project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests (after the merge or on an open PR), answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
+description: Reference for how work flows here — the fast, careful, and full lanes, feature development, change requests, answers, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies.
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/spec-workflow/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -148,8 +148,7 @@ developer's call, a change request if taken; anything else is a follow-up in the
 `## Follow-ups` (and a new session at once with the parallel-agents module), which `/adf:wrap-up`
 offers to start when the task ends; what can't wait goes to the developer first.
 
-**When the base branch moves under an open draft,** follow `.claude/rules/git-workflow.md` § Syncing
-with the base branch: only for a reason, a merge commit and never a rebase, then re-run only what
+**When the base branch moves under an open draft,** run `/adf:open-pr sync`: only for a reason, a merge commit and never a rebase, then re-run only what
 the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).
 
 ## Effort beyond the lane
