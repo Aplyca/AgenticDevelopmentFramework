@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: Restructure code without changing behavior — pin it with tests, change one thing at a time with the tests green, and commit each step. Use for cleanups, extractions, renames, and simplifications.
+description: Restructure code without changing behavior — pin it with tests, change one thing at a time with the tests green, and commit each step. Use for cleanups, extractions, renames, and simplifications; a structural decision worth keeping gets an ADR, and a change users can notice is not a refactor.
 argument-hint: "[file or area to refactor]"
 ---
 

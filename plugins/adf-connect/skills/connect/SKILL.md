@@ -1,6 +1,6 @@
 ---
 name: connect
-description: Connect this project to a tracker or a service its stack uses (Supabase, Vercel, Contentful, GitLab, Linear, Jira, or another with an official MCP server) with safe defaults — read-only, never production, no credentials in the repository, only read tools pre-approved. Use when asked to connect or add an MCP server.
+description: Connect this project to a tracker or a service its stack uses (Supabase, Vercel, Contentful, GitLab, Linear, Jira, or another with an official MCP server) with safe defaults — read-only, never production, no credentials in the repository, only read tools pre-approved. Use when asked to connect, integrate, or add an MCP server for a service.
 argument-hint: "[service, e.g. supabase]"
 ---
 
