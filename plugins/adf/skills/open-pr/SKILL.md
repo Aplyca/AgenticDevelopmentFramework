@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the work branch and open a DRAFT pull request naming its spec folder, tracker task, and what was and wasn't verified — once your own local check passes, or for docs and CI once the gate and /adf:review pass. Never marks it ready. `refresh` updates its description; `sync` brings the base branch in.
+description: Push the work branch and open a DRAFT pull request naming its spec folder, tracker task, and what was and wasn't verified. Use as soon as your own local check passes — for docs or CI, once the gate and /adf:review pass — or when the developer asks; never before the local check, and never marks it ready. `refresh` updates its description; `sync` brings the base branch in.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md] | refresh | sync"
 ---
 

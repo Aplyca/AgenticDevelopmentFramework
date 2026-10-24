@@ -1,6 +1,6 @@
 ---
 name: evaluate
-description: Deep analysis of a question, proposal, or decision — research, options with pros, cons, and risks, and a recommendation with its rationale. Use for design decisions, tech choices, or a second opinion.
+description: Deep analysis of a question, proposal, or decision — research, options with pros, cons, and risks, and a recommendation with its rationale. Use for design decisions, tech choices, or a second opinion on an approach.
 argument-hint: "[question, proposal, or decision to evaluate]"
 ---
 

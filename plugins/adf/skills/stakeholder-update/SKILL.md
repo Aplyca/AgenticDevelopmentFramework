@@ -1,6 +1,6 @@
 ---
 name: stakeholder-update
-description: Draft the requester's update on a tracker task — started, in review (with the preview and what to test), or delivered — in their terms; post it and move the task only on the developer's yes to the exact text. Use when /adf:triage or /adf:open-pr reaches that moment, or when asked to update the client.
+description: Draft the requester's update on a tracker task — started, in review (with the preview and what to test), or delivered — in their terms, with screenshots when they help; post it and move the task only on the developer's yes to the exact text, the status, and the assignee, never on the pull request. Use when /adf:triage or /adf:open-pr reaches its moment, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done.
 argument-hint: "[started | review | delivered] [tracker task link or ID] [pull request number]"
 ---
 

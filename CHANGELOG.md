@@ -11,14 +11,25 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-- **The per-task skills drop rationalization rows that restate a step, and `/adf:commit`'s
-  principle matches the standing go-ahead.**
+- **Skill descriptions get their trigger phrases back, `/adf:adopt` and `/adf:init-project` are
+  model-invocable again, the per-task skills drop rationalization rows that restate a step, and
+  `/adf:commit`'s principle matches the standing go-ahead.**
   - **Why:** a loaded skill stays in context for the rest of the session. Every task loads
     `/adf:triage`, `/adf:dispatch`, `/adf:open-pr`, and `/adf:wrap-up`, and often
     `/adf:stakeholder-update`. Some of their rationalization rows answered with a step the skill
     already has, or with something a hook enforces. `/adf:commit`'s last principle still said
     "pushing is a separate decision", against the standing go-ahead (decisions 0022, 0045).
   - **What:**
+    - **Descriptions** keep the shorter account of what each skill does, but every trigger phrase
+      is back — for example `/adf:write-tests`' "use whenever tests come before code",
+      `/adf-dev:e2e`'s "use when" clause, `/adf-dev:dev-env`'s "reset local data", and
+      `/adf:wrap-up`'s answers and closed pull requests. `/adf:write-docs` again points end-user
+      pages to `/adf:end-user-docs`. A description decides whether a skill loads at all, and the
+      cut saved about 1% of a session's cost. The listing is about 11.4k characters: 15k before,
+      8.5k after the cut.
+    - **`/adf:adopt` and `/adf:init-project` can be started from a plain request again** ("make this
+      repo AI-ready"): as user-only skills, their descriptions were out of context, so a request in
+      words would go unrecognized.
     - These skills lose rationalization rows:
       - `/adf:open-pr`: five rows;
       - `/adf:triage`: two rows;
@@ -34,8 +45,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
   **Upgrade impact:**
   - **Packaged install:** comes with the plugin.
-  - **Committed install:** overwrite `.claude/skills/` for `commit`, `open-pr`, `triage`,
-    `wrap-up`, `dispatch`, and `stakeholder-update`.
+  - **Committed install:** overwrite `.claude/skills/` — the descriptions changed in most skills.
 
 - **Leaner always-loaded instructions, a triage that fits the model, and a close-up on the
   developer's "merged"** ([decision 0055](docs/decisions/0055-lean-context-and-acting-model-routing.md)).
@@ -49,8 +59,8 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     pull-request rules are one section, and the sync procedure moves to `/adf:open-pr sync`.
     `AGENTS.md` keeps every rule in fewer words. "End every turn with what's next" now names a step
     that waits on the developer once, not on every turn.
-  - **Skill descriptions** are about 250 characters each, about 6.5k characters less in every
-    session's listing. `/adf:adopt` and `/adf:init-project` are user-invoked only. `/adf:context-audit`,
+  - **Skill descriptions** drop the procedure detail their skills carry, and keep every trigger
+    phrase: about 3.7k characters less in every session's listing. `/adf:context-audit`,
     `/adf:spec-drift`, and `/adf:cost-report` run in a forked subagent on Sonnet.
   - **`/adf:triage`, in the desktop app,** sets the session's model and effort to fit the lane right
     after the triage, unless the developer chose them or the task is nearly done. In a terminal it
@@ -59,9 +69,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     "it's in"), the check finds nothing left, and there's nothing to choose. A merge reported by the
     hook or the app still gets the one question. It also offers the **delivered** stakeholder
     update, which no skill offered before.
-  - **Measured:** the framework's always-loaded text goes from about 14.9k tokens to about 9.8k.
+  - **Measured:** the framework's always-loaded text goes from about 14.9k tokens to about 10.5k.
   - **Evals:** the practice checks cover the close-up rule, `/adf:open-pr sync`, triage's model fit,
-    the forked skills, and `/adf:adopt`'s invocation.
+    and the forked skills.
 
   **Upgrade impact:**
   - **Merge:**

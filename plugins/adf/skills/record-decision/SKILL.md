@@ -1,6 +1,6 @@
 ---
 name: record-decision
-description: Record an ADR (the application: structure, dependencies, interfaces, data, platform) or a PDR (how the team works), keep the index current, and supersede rather than rewrite. Use for a hard-to-reverse trade-off, or when a team rule is made or changed.
+description: Record an ADR (the application: structure, dependencies, interfaces, data, platform) or a PDR (how the team works), keep the index current, supersede rather than rewrite, and update the docs that describe the decision in the same change. Use when a technical decision is hard to reverse, surprising without its context, and a real trade-off — or when a team rule is made or changed, or the constitution is amended.
 argument-hint: "[the decision, in a sentence]"
 ---
 

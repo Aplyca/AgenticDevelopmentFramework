@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Write a spec folder's spec.md with the multi-perspective spec model — or amend a delivered feature with a change request (CR) — clarifying ambiguities and enforcing the required sections. Use when starting a feature or changing delivered behavior.
+description: Write a spec folder's spec.md with the multi-perspective spec model — or amend a delivered feature with a change request (CR) — clarifying ambiguities and enforcing the required sections. Use when starting a new feature or changing existing behavior; /adf:write-plan follows and holds the approval gate.
 argument-hint: "[feature description, tracker link, or spec folder to amend]"
 ---
 

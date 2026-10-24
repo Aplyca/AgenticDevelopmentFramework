@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: Turn a spec into plan.md (constitution check, architecture, change surface, test strategy, documentation plan, assumptions) and tasks.md (commit-sized TDD tasks), then stop at the approval gate. Use after /adf:write-spec, for features and change requests.
+description: Turn a spec into plan.md (constitution check, architecture, change surface, test strategy, documentation plan, assumptions) and tasks.md (commit-sized TDD tasks), then stop at the approval gate. Use after /adf:write-spec and before any implementation code, for new features and change requests alike.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup]"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: Close up a finished task — merged, answered, or abandoned — once a check finds nothing left: stop what it started, remove its worktree and branch, update the base branch, archive the session. Use when the developer says it merged ("merged", "it's in"), when the merge is reported, or when asked to close up. Not for a task on hold.
+description: Close up a finished task — merged, answered, or abandoned — once a check finds nothing left: stop what it started, remove its worktree and branch, update the base branch, archive the session. Use when the developer says the pull request merged ("merged", "it's in"), when the app or the pr-state hook reports the merge or the close, when an answer task is done, or when asked to wrap up, close up, or clean up a finished or abandoned task. Not for a task on hold.
 argument-hint: "[pull request, when it isn't this branch's]"
 ---
 

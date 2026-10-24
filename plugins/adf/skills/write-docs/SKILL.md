@@ -1,6 +1,6 @@
 ---
 name: write-docs
-description: Write the pre-implementable repository docs an approved plan lists (admin guides, API contracts, end-user copy) before implementation, and update them when the build differs. Use after the approval gate, before /adf:implement.
+description: Write the pre-implementable repository docs an approved plan lists (admin guides, API contracts, end-user copy) before implementation, and update them when the build differs; skips cleanly when the plan lists none. End-user pages in a doc tool are /adf:end-user-docs'. Use after the approval gate, before /adf:implement.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup — or 'update' for update mode]"
 ---
 

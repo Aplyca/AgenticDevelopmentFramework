@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: With the parallel-agents module: give a triaged task its own worktree and branch beside the main checkout and move this session there; a session that already has a task offers another one a new session. Use right after triage, or when handed an unrelated task.
+description: With the parallel-agents module: give a triaged task its own worktree and branch beside the main checkout and move this session there — a change, or anything that runs the app, the tests, or the database; a session that already has a task offers another one a new session. Use right after triage, in the main checkout or Claude Code's own worktree, and when a session is handed an unrelated task or finds one along the way.
 argument-hint: "[<type>/<slug>, or the other task]"
 ---
 

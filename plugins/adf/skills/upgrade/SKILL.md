@@ -1,6 +1,6 @@
 ---
 name: upgrade
-description: Upgrade a repository that adopted the framework to a newer release — overwrite, merge, or keep each file, diff OLD_SHA → NEW_SHA, apply the changelog's migration steps — and offer the modules it lacks. Use when asked to upgrade or update the framework.
+description: Upgrade a repository that adopted the framework to a newer release — overwrite, merge, or keep each file, diff OLD_SHA → NEW_SHA, apply the changelog's migration steps — and offer the modules it lacks. Use when asked to upgrade, sync, or update the agentic framework or its skeleton in a repository.
 ---
 
 # Upgrade an adopted repository to a newer skeleton version
