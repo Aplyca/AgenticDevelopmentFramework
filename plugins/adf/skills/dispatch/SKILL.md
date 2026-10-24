@@ -123,3 +123,10 @@ it names, and then runs in the worktree as the developer typed it.
 - [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own
 - [ ] A part of a split feature got the contract in its prompt, and where a change to it is recorded
 - [ ] Nothing was edited or committed in the main checkout or in Claude Code's own worktree
+
+## Principles
+
+- One task: one session, one worktree, one folder, one branch, one pull request.
+- The session that takes a task moves to its worktree; nothing hands tasks out from the main checkout.
+- Triage first: it names the branch, and says whether the task needs a worktree at all.
+- Another task, another session.

@@ -191,3 +191,10 @@ the close-up only once it resumes and ends.
 - [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, never run here
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] The report says what happened, including anything that didn't; the archive came last
+
+## Principles
+
+- Every ending gets a close-up; a task on hold gets none.
+- The check before the close-up; one yes for it at most — the developer's own word when it ended the task.
+- Unfinished work is never cleared — it's listed for the developer.
+- Each task's session wraps up its own task.

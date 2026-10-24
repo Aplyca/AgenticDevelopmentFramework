@@ -130,3 +130,10 @@ what's already logged, so it can run at each milestone without logging a day twi
 - [ ] The full draft was shown, and the developer chose a number, an edit, or skip for each entry
 - [ ] Only the approved entries were written, each labelled with the number it carries, and read back
 - [ ] Nothing about the time was written anywhere else
+
+## Principles
+
+- Only where the project turned it on.
+- Two numbers per day, in whole units rounded up; the developer picks.
+- Measured where possible, estimated from evidence where not — a ballpark, never invented.
+- The time tracking tool is the only record — and the source of what's already logged.

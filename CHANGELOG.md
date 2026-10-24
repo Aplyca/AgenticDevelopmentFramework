@@ -11,29 +11,31 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-- **Skills drop their Principles sections, and the per-task skills drop rationalization rows that
-  restate a step.**
-  - **Why:** decision 0055 left the skill bodies for later. A loaded skill stays in context for the
-    rest of the session, and every task loads `/adf:triage`, `/adf:dispatch`, `/adf:open-pr`,
-    `/adf:wrap-up`, and often `/adf:stakeholder-update`. Each skill's Principles section repeated
-    its steps. `/adf:commit`'s also contradicted the standing go-ahead: it said "pushing is a
-    separate decision".
+- **The per-task skills drop rationalization rows that restate a step, and `/adf:commit`'s
+  principle matches the standing go-ahead.**
+  - **Why:** a loaded skill stays in context for the rest of the session. Every task loads
+    `/adf:triage`, `/adf:dispatch`, `/adf:open-pr`, and `/adf:wrap-up`, and often
+    `/adf:stakeholder-update`. Some of their rationalization rows answered with a step the skill
+    already has, or with something a hook enforces. `/adf:commit`'s last principle still said
+    "pushing is a separate decision", against the standing go-ahead (decisions 0022, 0045).
   - **What:**
-    - The Principles section is gone from all 25 skills that had one.
-    - These skills lose rationalization rows whose answer is already a step, or something a hook
-      enforces:
+    - These skills lose rationalization rows:
       - `/adf:open-pr`: five rows;
       - `/adf:triage`: two rows;
       - `/adf:wrap-up`: three rows;
       - `/adf:dispatch`: two rows;
       - `/adf:stakeholder-update`: three rows.
-    - Steps, red flags, and verification checklists are unchanged.
-  - **Measured:** about 11.4k characters less across the skills, and about 4.5k less in the five a
-    task loads.
+    - `/adf:commit`'s principle now reads "`/adf:open-pr` pushes, once your own local check
+      passes".
+    - Steps, red flags, verification checklists, and Principles sections are unchanged. Four
+      skills' Principles hold rules found nowhere else in them: `/adf:evaluate`, `/adf:review`,
+      `/adf:write-tests`, and `/adf:orchestrate`. Trimming them would need the session evals.
+  - **Measured:** about 2.6k characters less across the five skills a task loads.
 
   **Upgrade impact:**
   - **Packaged install:** comes with the plugin.
-  - **Committed install:** overwrite `.claude/skills/`.
+  - **Committed install:** overwrite `.claude/skills/` for `commit`, `open-pr`, `triage`,
+    `wrap-up`, `dispatch`, and `stakeholder-update`.
 
 - **Leaner always-loaded instructions, a triage that fits the model, and a close-up on the
   developer's "merged"** ([decision 0055](docs/decisions/0055-lean-context-and-acting-model-routing.md)).

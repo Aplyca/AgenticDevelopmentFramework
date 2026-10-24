@@ -178,3 +178,11 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 - [ ] For a split feature: the shared contract is in both specs, and `related-specs` links them
 - [ ] No conflict with `docs/CONSTITUTION.md`, or the conflict is explicitly resolved
 - [ ] Status is `draft` or `in-review` — `approved` is recorded only at `/adf:write-plan`'s gate, after the developer's explicit sign-off
+
+## Principles
+
+- WHAT and WHY here; HOW in `plan.md`.
+- Requirements come from people, never from plausible assumptions.
+- Link the tracker; don't copy or quote it. Decisions name roles, not people.
+- Delivered features are amended, never re-specified from scratch.
+- Empty optional sections are fine; empty required sections block planning.

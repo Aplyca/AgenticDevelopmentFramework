@@ -150,3 +150,11 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 - [ ] The full gate ran; `tasks.md` § Gate results records evidence and what was not run
 - [ ] Deployment needs (env vars, migrations, ordering) are listed for whoever ships it
 - [ ] Nothing was pushed
+
+## Principles
+
+- One task, one red → green cycle, one commit.
+- A test that never failed proves nothing.
+- The change surface is a contract; growing it is the developer's call.
+- Keep the plan and the docs true to what is built.
+- Evidence, not claims — and never outward actions unasked.

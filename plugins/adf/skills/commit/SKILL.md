@@ -88,3 +88,10 @@ Pushing is **not** part of committing. It happens in `/adf:open-pr`, once the ch
 - [ ] For a task: the test went red then green, and the task is ticked in `tasks.md`
 - [ ] Hooks ran; nothing was bypassed
 - [ ] `git log -1 --stat` confirms the commit; nothing was pushed
+
+## Principles
+
+- One logical step per commit; one task per commit in spec-driven work.
+- The subject says what, the body says why; the diff shows how.
+- Never commit secrets; never bypass hooks.
+- Committing is local; `/adf:open-pr` pushes, once your own local check passes.

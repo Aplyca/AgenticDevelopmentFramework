@@ -101,3 +101,9 @@ people work. Pick one home per project, say so in both indexes, and stay consist
 - [ ] Superseded records changed only their status line; corrections are dated notes
 - [ ] Every doc describing the decided behavior was updated in the same change
 - [ ] A constitution amendment, if any, is in its own pull request
+
+## Principles
+
+- Short, dated, immutable, append-only.
+- Evidence over opinion; state the cost.
+- The record and the instruction files must agree — update them together.

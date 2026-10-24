@@ -85,3 +85,10 @@ safety net; a refactor without them is a gamble.
 - [ ] Typecheck and lint clean
 - [ ] The diff contains only the planned refactoring; each step is its own `refactor:` commit
 - [ ] A lasting structural decision, if any, is recorded as an ADR
+
+## Principles
+
+- No tests, no refactoring.
+- One step at a time, green after each, committed after each.
+- Behavior a user could notice means it isn't a refactor.
+- Leave the code simpler than you found it — don't gold-plate it.

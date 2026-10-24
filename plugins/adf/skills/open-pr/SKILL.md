@@ -255,3 +255,11 @@ settings files: elsewhere, merge with git; a refused merge goes to the developer
 - [ ] For a tracker task, the report ends with the review update's draft: the review status, the preview and what to test there, and the pull request link
 - [ ] No tracker write was made without the developer's explicit yes on the exact text
 - [ ] After a later push that changed what it says, the description was refreshed from its current body: only the sections between the markers, with the diff shown
+
+## Principles
+
+- The draft opens once your own local check passes; every other outward action waits to be asked.
+- The developer tests after the draft opens, locally and on the preview — tell them where and what.
+- Draft until a human has exercised it; the developer promotes it.
+- Say what you verified and what you could not — evidence, not confidence.
+- The description must be true to the diff.

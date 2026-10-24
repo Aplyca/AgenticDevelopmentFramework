@@ -243,3 +243,10 @@ Thanks!
 - [ ] Screenshots, if any, were taken read-only, of single elements, shown to the developer, and handed over as files
 - [ ] Nothing was posted or changed on the tracker without explicit approval of the exact text, the status, and the assignee
 - [ ] A posted comment was read back: text and assignee as approved
+
+## Principles
+
+- Write for the person who asked, in their terms and their language.
+- Keep them informed as the work moves — started, in review, delivered — with nothing they'd skip.
+- Verified claims only; state the real status.
+- The draft is the deliverable; the developer decides what reaches the tracker, and when.
