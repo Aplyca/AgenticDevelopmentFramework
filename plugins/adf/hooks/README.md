@@ -8,6 +8,7 @@ depending on what the model decides. They are wired in `../settings.json`.
 |---|---|---|
 | `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — in the main checkout, triage first and then `/adf:dispatch` to the task's worktree beside it, in a worktree, one task per session, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup); on the base branch, how many commits it is behind origin's, as of the last fetch |
 | `pr-state.sh` | SessionStart, UserPromptSubmit | Says once when the branch's pull request merged (offer `/adf:wrap-up`) or closed without merging (ask whether the task is dropped), so a session the developer comes back to moves to done (decision 0047). Asks `gh` at session start and at most every five minutes after (five seconds at most, where `timeout` is installed), on a work branch only; remembers the last state in the checkout's git dir. Without `gh` it does nothing. Empty `PR_STATE` turns it off |
+| `session-title.sh` | UserPromptSubmit | Names a terminal session after its task, as `/adf:triage` does in the desktop app: once a reply states the triage (`Triage — <task title> (<link>)`, or the one-line `Fast lane — <request>; …`), the next prompt sets the session's title to the task's title alone, without the lane or link, once per session. A title already set (`/rename`, `--name`) stays, and in the desktop app, where the agent names the session itself, it does nothing. Empty `SESSION_TITLE` turns it off |
 | `guard-git.sh` | PreToolUse · Bash | Blocks `--no-verify` (and `git commit -n`), commits on protected branches, and pushes, force-pushes, or deletes targeting protected branches |
 | `protect-paths.sh` | PreToolUse · Edit/Write | Blocks hand-edits to generated files (lockfiles, generated types) and modifications to existing files in append-only history (migrations) |
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |
@@ -26,8 +27,9 @@ confirm each one.
 Edit **`config.sh`** — protected branches, append-only and generated paths, sensitive paths, the
 env template, ignored variables. The scripts read it on every run, as data: one `KEY="value"` line per
 setting, and nothing in it runs. You don't edit the scripts (they are framework-owned and replaced on
-upgrade), nor their helpers: `_lib.sh`, and `json-get` and `transcript-text`, which read the event and
-the session transcript with `jq` (`.jq`) or, without it, `python3` (`.py`).
+upgrade), nor their helpers: `_lib.sh`, and `json-get`, `transcript-text`, and `session-title`, which
+read the event and the session transcript, and write the session's title, with `jq` (`.jq`) or, without
+it, `python3` (`.py`).
 
 ## Requirements and behavior
 

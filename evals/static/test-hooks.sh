@@ -148,6 +148,40 @@ run triage-first.sh 0 "$(triage_bash b3 "$WORK/lane.jsonl" 'git switch -c fix/la
 echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
 run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
 
+# session-title — a terminal session takes its task's title from the stated triage, once per session
+said() { # said <transcript name> <reply text>
+    printf '%s\n' '{"type":"user","message":{"content":"Work on this task https://app.clickup.com/t/86a1"}}' \
+        "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":$(printf '%s' "$2" | json_string)}]}}" > "$WORK/$1.jsonl"
+}
+named() { # named <session> <transcript name> [<entrypoint>] [<more input fields>] → the title the hook sets, or nothing
+    printf '{"session_id":"%s","transcript_path":"%s","cwd":"%s","hook_event_name":"UserPromptSubmit","prompt":"go on"%s}' "$1" "$WORK/$2.jsonl" "$T" "${4:-}" |
+        CLAUDE_CODE_ENTRYPOINT="${3:-cli}" "$H/session-title.sh" | python3 -c '
+import json, sys
+out = sys.stdin.read().strip()
+if out:
+    event = json.loads(out)
+    hook = event["hookSpecificOutput"]
+    print("blocks the prompt" if "decision" in event or hook["hookEventName"] != "UserPromptSubmit" else hook["sessionTitle"])'
+}
+title_check() { # title_check <description> <got> <want>
+    if [ "$2" = "$3" ]; then PASS=$((PASS+1)); echo "✓ session-title.sh: $1"; else FAIL=$((FAIL+1)); echo "✘ session-title.sh: $1 (got '$2', want '$3')"; fi
+}
+said full $'Read the task and its comments.\n\n**Triage — Newsletter signup: double opt-in ([CU-86a1](https://app.clickup.com/t/86a1))**\n- Deliverable: change\n- Lane: full'
+said fast 'Fast lane — make the "Company" field optional on the signup form; done when an empty value submits; files: SignupForm.tsx; model: sonnet.'
+said none 'Reading the task first. Triage-first is a hook; the format is `Triage — <task title> (<link>)`.'
+title_check "names the session after the triage's task title, without its link" "$(named n1 full)" "Newsletter signup: double opt-in"
+title_check "once per session: a later prompt leaves the title alone" "$(named n1 full)" ""
+title_check "a fast-lane line gives its request, capitalized, without the rest" "$(named n2 fast)" 'Make the "Company" field optional on the signup form'
+title_check "no triage stated yet — or only its template — names nothing" "$(named n3 none)" ""
+said none $'Reading the task first.\n\nTriage — Fix the label on the signup form (#123)'
+title_check "the session is named on a later prompt, once the triage is stated" "$(named n3 none)" "Fix the label on the signup form"
+title_check "a title already set (/rename, --name) stays" "$(named n4 full cli ',"session_title":"My own name"')" ""
+title_check "leaves the desktop app to the agent, which names the session itself" "$(named n5 full claude-desktop)" ""
+said long "Triage — $(printf 'Signup %.0s' $(seq 1 20))(https://app.clickup.com/t/86a1)"
+title_check "cuts a long title to 80 characters" "$(named n6 long | python3 -c 'import sys; print(len(sys.stdin.read().strip()))')" "80"
+echo 'SESSION_TITLE=""' >> "$T/.claude/hooks/config.sh"
+title_check "does nothing when SESSION_TITLE is empty" "$(named n7 full)" ""
+
 out=$(printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$T" | "$H/session-context.sh")
 if echo "$out" | grep -q 'specs/007-newsletter-signup/ (status: approved)'; then
     PASS=$((PASS+1)); echo "✓ session-context.sh: finds the branch's spec folder and status"
@@ -250,8 +284,11 @@ if command -v jq >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
         [ "$(printf '%s' "$event" | jq -r --arg path "$path" -f "$HOOKS_SRC/json-get.jq" 2>/dev/null)" = "$(printf '%s' "$event" | python3 "$HOOKS_SRC/json-get.py" "$path")" ] || same=""
     done
     [ "$(jq -r -f "$HOOKS_SRC/transcript-text.jq" <"$WORK/transcript.jsonl" 2>/dev/null)" = "$(python3 "$HOOKS_SRC/transcript-text.py" <"$WORK/transcript.jsonl")" ] || same=""
+    for title in 'Newsletter signup' 'Say "hi" — back' "$(printf 'é%.0s' $(seq 1 90))"; do
+        [ "$(printf '%s' "$title" | jq -cRs -f "$HOOKS_SRC/session-title.jq")" = "$(printf '%s' "$title" | python3 "$HOOKS_SRC/session-title.py")" ] || same=""
+    done
     if [ -n "$same" ]; then
-        PASS=$((PASS+1)); echo "✓ helpers: json-get and transcript-text give the same answers in jq and Python"
+        PASS=$((PASS+1)); echo "✓ helpers: json-get, transcript-text, and session-title give the same answers in jq and Python"
     else
         FAIL=$((FAIL+1)); echo "✘ helpers: the jq and Python helpers disagree"
     fi
