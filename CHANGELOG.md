@@ -50,6 +50,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Committed install:** overwrite for `.claude/skills/write-tests/`, and with `docker` and `e2e`,
     `.claude/skills/dev-env/` and `.claude/skills/e2e/`.
 
+- **Every lane commits, pushes, and opens its draft without asking — a standing go-ahead**
+  ([decision 0049](docs/decisions/0049-every-lane-pushes-without-asking.md)).
+  - **Why:** sessions still stopped before the push. The careful lane asked for a yes on the risky
+    part, and in every lane the tools' own defaults asked "commit and open the draft?", since the
+    framework never said its permission was standing. The developer tests every draft anyway,
+    locally and on the preview, so the question only delayed that test.
+  - **What changes:** once the local check passes, the agent commits, pushes the work branch, and
+    opens the draft in every lane, without asking. The careful lane keeps its checklist; the risky
+    part goes in the pull request's Lane line and leads the report, where the developer's test
+    starts. Ready, merge, reviews, releases, and writes the requester sees still wait for a person,
+    and moving up into full still stops for the spec.
+  - **Where:** `AGENTS.md` (§ Lanes, § Delivery rules), `.claude/rules/claude-code.md` (the
+    guardrail row, the lanes table, and a line that no reply or next-step box asks for them),
+    `specs/README.md` § Lanes; `/adf:open-pr`, `/adf:triage`, `/adf:review`, and
+    `/adf:spec-workflow`; decision 0047 is marked amended; the README, `ONBOARDING.md`,
+    `SKILLS-REFERENCE.md`, and the hotfix scenario.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md`, `.claude/rules/claude-code.md`, and `specs/README.md` — the careful
+    lane's yes before the push goes, and the standing go-ahead is added. A team whose previews share
+    data a migration can damage can keep a stop before careful-lane pushes in its own `AGENTS.md`.
+  - **Committed install:** overwrite for `.claude/skills/{open-pr,triage,review,spec-workflow}/`.
+
 - **An `end-user-docs` module: `/end-user-docs` writes a feature's end-user page in the doc tool end
   users read** ([decision 0048](docs/decisions/0048-end-user-docs-in-the-doc-tool.md)).
   - **Why:** a feature can need two kinds of docs. Technical docs, for the team and its agents, live
@@ -84,6 +107,70 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Committed install:** overwrite for `.claude/skills/{write-spec,write-plan,write-docs,implement,wrap-up}/`
     and `docs/SPEC-MODEL.md`.
   - **Without the module:** the skills behave as before.
+
+- **The requester hears at three moments — started, in review, delivered — on the tracker task, on a
+  yes, never on the pull request** ([decision 0053](docs/decisions/0053-stakeholder-updates-at-three-moments.md)).
+  - **Why:** in an adopting project's long session, the developer rejected the updates
+    `/stakeholder-update` posted on pull requests — reviewers aren't their audience, and the copy
+    drifted from the one the client reads — and the tracker's comment tool couldn't show screenshots
+    inline. The same session showed rules the skill was missing. And the update ran only at the end,
+    so the requester heard nothing between the triage and the merge.
+  - **Three moments.** `/adf:triage` ends its turn with the **started** update's draft — the task to
+    the project's in-progress status, with a message only when it's worth the requester's time
+    (what we understood, questions only they can answer, a finding). `/adf:open-pr` ends its report
+    with the **in review** update's draft — the task to the review status, with a business-focused
+    report: what changes for them, the preview and what to test there, and the pull request, which
+    is now the tracker link-back. The **delivered** update is as before. Each moment's status, text,
+    and assignee are one approval, and the work doesn't wait for it.
+  - **No pull request comment (A4).** The draft shown in chat is the deliverable. It goes on the
+    tracker task only after the developer approves the exact text; if the developer posts it
+    themselves, nothing is posted anywhere. The template loses its "For the team" note.
+  - **Images (A1).** When the tracker's comment tool can't inline an image, the agent hands the files
+    over in chat, posts the text with a `[Screenshot N: <what it shows>]` line where each image goes,
+    and asks the developer to paste each image over its placeholder. It never uploads the images to
+    the task to "embed" them.
+  - **Screenshots (A2).** Read-only, from the preview or the live site. With Playwright: a desktop
+    viewport and `deviceScaleFactor: 2`, waiting for the data the shot depends on, consent banners
+    hidden with CSS injected after load — never accepting or declining cookies — and the element,
+    not the full page. Each image is shown to the developer before it's used.
+  - **Assignment and read-back (A3).** A comment that asks the requester a question or needs an
+    action or a decision from them is assigned to them; an informational one isn't. The assignee is
+    part of the same approval as the text ("post this and assign it to Dana"), and the agent reads
+    the comment back after posting.
+  - **Ambiguous replies (A5).** `/adf:triage`, given a stakeholder's reply it can read more than one
+    way, lists the readings with what each costs (no change, a change request, new work), recommends
+    one, and drafts a short confirming reply for the developer to approve, carrying every question
+    left unanswered. Nothing is built until the reading is confirmed.
+  - **The stable preview address.** The update links it when `docs/TRACKER-INTEGRATION.md`
+    § Stakeholder updates names one; that section gains slots for it, for images in comments, and for
+    mentions.
+  - **ClickUp.** The `clickup` module's `MODULE.md` records the connector's behavior observed in
+    October 2026 — markdown-only comments, attachments that land on the task, no comment-level
+    operators, a pasted image read back as a file-name line — and the lines a ClickUp project writes
+    into § Stakeholder updates, including the mention syntax `[@Name](#user_mention#<user id>)`.
+  - **Where:** in `adf`, the skills `stakeholder-update`, `triage`, `open-pr`, and `spec-workflow`;
+    `skeleton/AGENTS.md`, `skeleton/CONTRIBUTING.md`, `skeleton/.claude/rules/claude-code.md`,
+    `skeleton/docs/TRACKER-INTEGRATION.md`; `modules/clickup/MODULE.md`; `README.md`,
+    `docs/SKILLS-REFERENCE.md`, `docs/ONBOARDING.md`, the change-request scenario, the two examples,
+    decision 0033's status; a new `ambiguous-reply` triage fixture, the triage and open-pr fixtures'
+    invariants, and the static checks.
+
+  **Upgrade impact:**
+  - **Packaged install:** the skills come with the plugin. **Merge** `AGENTS.md` (§ Requirements &
+    traceability: "Close the loop" becomes "Keep the requester informed"), `CONTRIBUTING.md` (§ Status
+    words: the "in progress" row), `.claude/rules/claude-code.md` (the `/stakeholder-update` sentence
+    below the guardrails table), and `docs/TRACKER-INTEGRATION.md` (§ Rules for agents: "Link back";
+    § Stakeholder updates: its first paragraph, and the new **Stable preview address**, **Status at
+    each moment**, **Requesters can open pull requests**, **Images in comments**, and **Mentions**
+    lines — fill them in, or delete the ones that don't apply).
+  - **With the `clickup` module:** write § Stakeholder updates' ClickUp lines from `MODULE.md`
+    § Customize, step 3.
+  - **Committed install:** the same merges, plus **overwrite** `.claude/skills/stakeholder-update/`,
+    `.claude/skills/triage/`, `.claude/skills/open-pr/`, and `.claude/skills/spec-workflow/`.
+  - **Without a tracker task** — engineering work from an issue — nothing changes: there's no task to
+    update.
+  - **A team that relayed updates from the pull request** now takes the draft from chat, or asks the
+    agent to post it on the tracker. Comments already on pull requests stay as they are.
 
 ## v2.5.0 — 2026-10-18 — Sessions move to done, the agent's local check opens the draft, and a scripted upgrade
 

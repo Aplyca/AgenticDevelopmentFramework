@@ -32,8 +32,20 @@ In `docs/TRACKER-INTEGRATION.md`:
    custom task IDs (e.g. `MKT-412`) — `/triage` searches the spec folders for them.
 2. **§ Connecting the tracker** — replace the example `.mcp.json` with this module's, and note that
    the allowlist is already in `.claude/settings.json`.
-3. **§ Stakeholder updates → Task statuses** — `clickup_get_task` with `expand_statuses: true` lists
-   the statuses a task can move to; `/stakeholder-update` uses it before proposing a status change.
+3. **§ Stakeholder updates** — the lines `/stakeholder-update` reads for ClickUp (§ Good to know says
+   why):
+   - **Task statuses:** `clickup_get_task` with `expand_statuses: true` lists the statuses a task can
+     move to; `/stakeholder-update` uses it before proposing a status change. **Status at each
+     moment** names the list's own statuses for started, in review, and delivered — `clickup_update_task`
+     moves the task, and prompts.
+   - **Images in comments:** the comment tool can't show an image inline, so the update carries a
+     `[Screenshot N: <what it shows>]` line where each image goes, and the developer pastes the image
+     over it in ClickUp. Read back, a pasted image shows as a line with its file name.
+   - **Mentions and assignment:** `clickup_create_comment` posts the comment (`reply_to_id` for a
+     threaded reply). A mention that notifies — confirmed in threaded replies — is
+     `[@Name](#user_mention#<numeric user id>)`, and the
+     comment's `assignee` takes the same numeric id — from the task (its creator, assignees, and
+     watchers) or from `clickup_resolve_assignees`.
 4. **Link back** — where pull request links go on a task: a "Links" section in the description, or a
    comment.
 5. **Time tracking** — with the `time-tracking` module, `docs/TIME-TRACKING.md` names ClickUp's
@@ -53,6 +65,16 @@ In `docs/TRACKER-INTEGRATION.md`:
   comments since it last changed (`specs/README.md` § Change requests).
 - **Each developer acts as themselves.** Comments and status changes carry that developer's name, so
   the agent confirms each one first (`AGENTS.md` § Requirements & traceability).
+- **Comments take text only** (the connector's behavior, observed in October 2026 — check it again
+  when ClickUp updates its server):
+  - `clickup_create_comment` takes markdown only, so `![alt](url)` doesn't render an image inline.
+    (`clickup_create_task_comment` is its deprecated name.)
+  - `clickup_request_attachment_upload` attaches a file to the task, or to a chat message, not to
+    a comment. Uploading screenshots that way leaves them on the task, away from the text they
+    illustrate.
+  - There are no comment-level operators to add an image to a comment.
+  - An image the developer pastes into the comment in ClickUp shows in the comment's text export as
+    a line with the file name. Reading the comment back confirms each image replaced its placeholder.
 - **ClickUp owns the tool names.** After installing, run `/mcp` in Claude Code and look at the
   server's tools: every allowed pattern must match only tools that read. If a new read tool prompts,
   allow it by exact name; never allow a write tool. If reads keep prompting, your Claude Code version

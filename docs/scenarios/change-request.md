@@ -113,8 +113,9 @@ pull request's review approves the diff, and its URL joins `pull-requests:` as `
     and approves it. On that approval `/open-pr` pushes and opens a **draft** naming
     `specs/NNN-<slug>/ (CR N)` and records its URL in
     `pull-requests:` with `· CR N`. A human QCs the preview before it's marked ready; the agent runs
-    `gh pr ready` only if that person asks. For a tracker task, `/stakeholder-update` drafts the reply
-    when the developer asks.
+    `gh pr ready` only if that person asks. For a tracker task, `/open-pr`'s report ends with the
+    review update's draft — the task to review, the preview, what to test, the pull request — posted
+    on the developer's yes.
 
 ### A legacy single-file spec
 

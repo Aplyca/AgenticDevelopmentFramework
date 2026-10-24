@@ -43,7 +43,7 @@ projects.
 | [0030](0030-workflows-carry-skill-steps.md) | A workflow carries the skill steps its agents follow | accepted |
 | [0031](0031-agent-model-overrides-in-the-project-rule.md) | A project changes an agent's model in its own rule, which the session passes when it spawns the agent | accepted |
 | [0032](0032-local-environment-layout.md) | A project's local environment: `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks | accepted; amended by 0034, 0038 |
-| [0033](0033-pull-request-upkeep-without-prompts.md) | An agent pushes, opens, edits, and comments on its draft pull request without a prompt | accepted; amended by 0038 |
+| [0033](0033-pull-request-upkeep-without-prompts.md) | An agent pushes, opens, edits, and comments on its draft pull request without a prompt | accepted; amended by 0038, 0053 |
 | [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted; amended 2026-10-15, 2026-10-16 |
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted |
@@ -57,9 +57,11 @@ projects.
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
 | [0045](0045-agent-local-check-opens-the-draft.md) | The agent's own local check opens the draft, and the developer tests after it, locally and on the preview | accepted |
 | [0046](0046-a-scripted-upgrade-from-the-new-release.md) | An upgrade runs a script from the new release, and the developer approves only what needs a person | accepted |
-| [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted |
+| [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted; amended by 0049 |
 | [0048](0048-end-user-docs-in-the-doc-tool.md) | End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module) | accepted |
+| [0049](0049-every-lane-pushes-without-asking.md) | Every lane commits, pushes, and opens its draft without asking — a standing go-ahead | accepted |
 | [0052](0052-production-build-in-the-configured-mode.md) | A production-like run is the optional `make prod` task, in the configured mode (docker module) | accepted |
+| [0053](0053-stakeholder-updates-at-three-moments.md) | The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
