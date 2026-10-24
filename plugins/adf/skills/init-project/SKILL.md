@@ -1,7 +1,8 @@
 ---
 name: init-project
-description: First-time setup of this project's AI-assisted development configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts about the repository, and add nested AGENTS.md files where modules differ. Use once, after the skeleton has been copied in (the framework's /adopt does this end to end) — and again in a project adopted before its code existed, once the first code lands.
+description: First-time setup of a project's AI configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts. Run once after the skeleton is copied in, and again once a project adopted before its code has some.
 argument-hint: "[project name]"
+disable-model-invocation: true
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/init-project/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.

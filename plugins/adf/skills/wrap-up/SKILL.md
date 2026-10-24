@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: When a task ends — its pull request merged, its answer delivered, or its pull request closed and the developer drops the task — check that nothing is left (no uncommitted or unpushed work, no stash, no open task or promised follow-up), then ask once to close up: stop what the task started, remove its worktree and branch, update the base branch, and archive the session. Use when the developer says the pull request merged ("merged", "it's in"), when the app or the pr-state hook reports the merge or the close, when an answer task is done, or when asked to wrap up, close up, or clean up a finished or abandoned task. Not for a task on hold.
+description: Close up a finished task — merged, answered, or abandoned — once a check finds nothing left: stop what it started, remove its worktree and branch, update the base branch, archive the session. Use when the developer says it merged ("merged", "it's in"), when the merge is reported, or when asked to close up. Not for a task on hold.
 argument-hint: "[pull request, when it isn't this branch's]"
 ---
 
@@ -20,8 +20,9 @@ things behind:
 Each one costs a little: memory, a port, a stale folder, a sidebar the developer has to read past.
 Over a week of parallel tasks they pile up.
 
-Wrapping up clears them, **with one yes and only when nothing is left**. Unfinished work is never
-cleared: the check comes first, and anything it finds is the developer's to decide.
+Wrapping up clears them, **only when nothing is left** — with one yes, or none when the developer's
+own word ended the task and there's nothing to choose. Unfinished work is never cleared: the check
+comes first, and anything it finds is the developer's to decide.
 
 A task the developer puts **on hold** isn't ending: don't wrap it up. Record why, and what resumes
 it, where its record is — an `On hold:` line under § Gate results in `tasks.md`, or in the pull
@@ -88,7 +89,17 @@ the close-up only once it resumes and ends.
    `/adf:end-user-docs publish` once, before the close-up. The developer may skip it: a release
    publishes it later. Without the module, say nothing about end-user docs.
 
-4. **Ask once.** Show what the close-up will do, in order, naming the real paths and branches:
+   For a tracker task, offer the **delivered** update (`/adf:stakeholder-update delivered`) once,
+   when it hasn't been posted. It's a draft in chat and needs no worktree, so it doesn't hold up the
+   close-up.
+
+4. **Ask once, unless the developer's own word ended the task.** When the developer said it in this
+   session — "merged", "it's in", "close up" — the pull request merged by the host's state, the
+   check found nothing left, and there's nothing to choose (no follow-ups, no `/adf:track-time` or
+   `/adf:end-user-docs` offer), their word is the yes: go to step 5, and the list below opens your
+   report. Otherwise — the merge reported by the hook or the app, an abandoned task, an answer, or
+   something to choose — show what the close-up will do, in order, naming the real paths and
+   branches:
    ```
    PR #<n> merged, and nothing is left in this task. Close up?
    - Stop what it started: <the containers, the app on the host, the background commands>
@@ -157,7 +168,8 @@ the close-up only once it resumes and ends.
 | "The pull request merged, so everything in the worktree is in `main`" | Not a commit made after its last push, an untracked file, or a stash. Check them, and list what you find. |
 | "It's only a stash, I'll drop it with the rest" | A stash is work someone set aside on purpose. It's the developer's to drop. |
 | "I'll ask for each step, to be safe" | One yes for the whole list, shown in full, is the confirmation. A prompt per step trains the developer to click through them. |
-| "The developer said 'merged', so I'll clean up right away" | "Merged" starts the check, not the close-up. Removing a worktree deletes files, and archiving hides the conversation: ask first. |
+| "The hook says it merged, so I'll clean up right away" | The hook's word isn't the developer's. Show the list and ask once; close up without asking only when the developer said the task ended and the check found nothing left or to choose. |
+| "The developer said 'merged', so I'll skip the check" | "Merged" starts the check. Anything left stops the close-up, whoever said it ended. |
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
@@ -178,7 +190,7 @@ the close-up only once it resumes and ends.
 
 - [ ] The ending is real, by the host's own state, not by the conversation: merged; closed and dropped in the developer's words; or an answer delivered, with no commits past the base
 - [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md`; no promise left
-- [ ] The developer saw the full list and said yes once, before anything was stopped or removed
+- [ ] The developer said yes once to the full list before anything was stopped or removed — or their own word ended a merged task with nothing left or to choose, and the list opened the report
 - [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, never run here
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] The report says what happened, including anything that didn't; the archive came last
@@ -186,6 +198,6 @@ the close-up only once it resumes and ends.
 ## Principles
 
 - Every ending gets a close-up; a task on hold gets none.
-- The check before the close-up; one yes for the close-up.
+- The check before the close-up; one yes for it at most — the developer's own word when it ended the task.
 - Unfinished work is never cleared — it's listed for the developer.
 - Each task's session wraps up its own task.

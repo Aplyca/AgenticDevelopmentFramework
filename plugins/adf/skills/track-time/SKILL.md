@@ -1,6 +1,6 @@
 ---
 name: track-time
-description: Draft a task's time entries since its last logged one — one per day worked, each in whole units rounded up, with the AI-assisted time (the sessions, measured from Claude Code's local transcripts, plus the work outside them, estimated — understanding the task, research, debugging, manual testing, code review, task management, reporting, meetings) next to an estimate of a senior developer's time without AI — and, once the developer picks one number per entry and approves, write them to the tracker and nowhere else. Use with the time-tracking module, after a milestone, significant partial work, or the merge, or when asked to log, track, or report the time spent on a task.
+description: With the time-tracking module: draft a task's time entries since the last one logged — the AI-assisted time from the transcripts beside an estimate without AI — and write them to the tracker only once the developer approves. Use after a milestone or the merge, or when asked to log time.
 argument-hint: "[tracker task link or ID] [--since <date-time>]"
 ---
 

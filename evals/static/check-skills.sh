@@ -729,6 +729,13 @@ check_practices() {
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^4\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "unless the developer's own word ended the task" || missing+=("/wrap-up: the developer's own word closes up a merged task with nothing left or to choose (0055)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^## Sync — bring the base branch in' || missing+=("/open-pr: the sync procedure lives in the skill (0055)")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" "fit the session's model and effort to the lane" || missing+=("/triage: fits the session's model and effort to the lane (0055)")
+    for name in context-audit spec-drift; do
+        frontmatter "$SKILLS_DIR/$name/SKILL.md" | grep -q '^context: fork$' || missing+=("/$name: runs in a forked subagent (0055)")
+    done
+    frontmatter "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" | grep -q '^disable-model-invocation: true$' || missing+=("/adopt: user-invoked only (0055)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'time tracking tool is the only record' || missing+=("/track-time: the time tracking tool is the only record (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'names `time-tracking`' || missing+=("/track-time: acts only where the stamp names the time-tracking module (0043)")

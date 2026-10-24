@@ -1,6 +1,6 @@
 ---
 name: e2e
-description: Set up, audit, or extend this project's end-to-end tests to the specification this skill carries — Playwright in its own `e2e/` folder, run with `make e2e` and `make smoke` against the checkout's own stack (in Docker or on the host), one `@smoke` test per critical flow, tests that own their data and never reach a real third party — and diagnose a failing or flaky end-to-end test from what it kept. Use when a project has no end-to-end suite, when a suite should meet the specification, when a feature adds a critical flow, or when an end-to-end test fails or flakes. A change's own tests are written test-first with /adf:write-tests, following `.claude/rules/testing.md` § End-to-end.
+description: Set up, audit, or extend this project's end-to-end tests to the specification this skill carries — Playwright in e2e/, make e2e and make smoke against the checkout's own stack, one @smoke test per critical flow — and diagnose a failing or flaky one. A change's own tests come from /adf:write-tests.
 argument-hint: "[set up | audit | smoke | diagnose <test>]"
 ---
 

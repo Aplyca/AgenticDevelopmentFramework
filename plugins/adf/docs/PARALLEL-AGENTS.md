@@ -61,12 +61,12 @@ app removes that worktree when the session is archived.
 
 **While its pull request is open,** the base branch moves on as other tasks merge. When the task
 needs what landed there, or its pull request conflicts, its session brings the base branch in by
-`.claude/rules/git-workflow.md` § Syncing with the base branch. The task's worktree is the scripts',
+`/adf:open-pr sync`. The task's worktree is the scripts',
 not the desktop app's, so the app's `sync_with_base_branch` tool doesn't reach it: merge with git.
 
 **When the task's pull request merges,** its session wraps up with `/adf:wrap-up`. It checks that
-nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then, with
-one yes from the developer, it stops what the task started, removes the worktree and its branch,
+nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then — on the developer's own
+word that it merged, or one yes when the merge was only reported — it stops what the task started, removes the worktree and its branch,
 updates the base branch here, and archives the session. If anything is left, it lists it and
 removes nothing.
 

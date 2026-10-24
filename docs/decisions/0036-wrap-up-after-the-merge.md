@@ -1,6 +1,6 @@
 # 0036: After the merge, a task's session wraps itself up with one yes
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0055](0055-lean-context-and-acting-model-routing.md) (no second yes when the developer's own word ended a merged task with nothing left or to choose)
 - **Date:** 2026-10-11
 
 ## Context

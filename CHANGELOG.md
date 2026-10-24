@@ -11,6 +11,45 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Leaner always-loaded instructions, a triage that fits the model, and a close-up on the
+  developer's "merged"** ([decision 0055](docs/decisions/0055-lean-context-and-acting-model-routing.md)).
+  - **Why:** the session audit behind the entry below measured about 14k tokens of framework text in
+    every call of every session. Much of it was restated procedures and long skill descriptions. 94%
+    of the calls ran on Opus, though triage named Sonnet for most of the work. The close-up spent a
+    turn of its own on "yes, close up".
+  - **The always-loaded files** state rules and leave procedures to the skills that run them.
+    `claude-code.md` goes from about 3.4k tokens to 1.5k: the guardrails are four lines, and the lane
+    table keeps only the workflow and the model. `git-workflow.md` goes from about 2.5k to 1.3k: its
+    pull-request rules are one section, and the sync procedure moves to `/adf:open-pr sync`.
+    `AGENTS.md` keeps every rule in fewer words. "End every turn with what's next" now names a step
+    that waits on the developer once, not on every turn.
+  - **Skill descriptions** are about 250 characters each, about 6.5k characters less in every
+    session's listing. `/adf:adopt` and `/adf:init-project` are user-invoked only. `/adf:context-audit`,
+    `/adf:spec-drift`, and `/adf:cost-report` run in a forked subagent on Sonnet.
+  - **`/adf:triage`, in the desktop app,** sets the session's model and effort to fit the lane right
+    after the triage, unless the developer chose them or the task is nearly done. In a terminal it
+    names the switch, as before.
+  - **`/adf:wrap-up`** closes up in the same turn when the developer says the task ended ("merged",
+    "it's in"), the check finds nothing left, and there's nothing to choose. A merge reported by the
+    hook or the app still gets the one question. It also offers the **delivered** stakeholder
+    update, which no skill offered before.
+  - **Measured:** the framework's always-loaded text goes from about 14.9k tokens to about 9.8k.
+  - **Evals:** the practice checks cover the close-up rule, `/adf:open-pr sync`, triage's model fit,
+    the forked skills, and `/adf:adopt`'s invocation.
+
+  **Upgrade impact:**
+  - **Merge:**
+    - `AGENTS.md`, wording across § Ground rules, § How work flows, § Requirements & traceability,
+      § Delivery rules, and § AI interaction rules. No rule is added or removed.
+    - `.claude/rules/claude-code.md`, rewritten shorter. Keep your project's own rows, such as
+      § Agent model overrides.
+  - **Overwrite:** `.claude/rules/git-workflow.md`.
+  - **Packaged install:** the skills, `PARALLEL-AGENTS.md`, and `COST-MODEL.md` come with the plugin.
+  - **Committed install:** overwrite these:
+    - `.claude/skills/` for `triage`, `wrap-up`, `open-pr`, `handoff`, `spec-workflow`,
+      `context-audit`, `spec-drift`, and every skill whose description changed — all of them;
+    - `docs/COST-MODEL.md` and, with parallel-agents, `docs/PARALLEL-AGENTS.md`.
+
 - **One rule per question: the push and the draft, the careful lane, `/review`, and the lanes say the
   same thing everywhere; the `/deep-*` workflows pin their models; `/cost-report` and the cost model
   are repriced.**

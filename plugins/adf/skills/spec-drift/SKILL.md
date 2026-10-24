@@ -1,7 +1,9 @@
 ---
 name: spec-drift
-description: Detect drift between a committed spec folder (spec, plan, tasks) and the current code, tests, and docs. Reports divergences without fixing them. Run periodically (e.g., monthly per spec area) to catch silent decay after a spec has aged through many pull requests.
+description: Detect drift between a committed spec folder and the current code, tests, and docs. Reports divergences; fixes nothing. Run periodically per spec area to catch silent decay.
 argument-hint: "[spec folder | --all | --area <path>]"
+context: fork
+model: sonnet
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/spec-drift/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.

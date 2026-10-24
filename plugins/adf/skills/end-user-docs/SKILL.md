@@ -1,6 +1,6 @@
 ---
 name: end-user-docs
-description: Write a feature's end-user documentation — how the people who use the product do what the feature lets them do — in the doc tool they read (ClickUp Docs, Confluence, Notion), never in the repository. Drafts the page where end users can't see it before implementation (docs first), updates it when the build changes what it says, and publishes it to the end-user doc after the feature ships, retiring the draft. Shows each page in full and writes only on the developer's yes. Use with the end-user-docs module, after the approval gate when the spec lists end-user docs, after the merge to publish, or when asked to write, update, or publish user documentation, a user guide, or help pages.
+description: With the end-user-docs module: draft, update, or publish a feature's end-user page in the doc tool its users read (ClickUp Docs, Confluence, Notion), never in the repository, writing only on the developer's yes. Use after the approval gate, after the merge, or when asked.
 argument-hint: "[spec folder or tracker task] [draft | update | publish]"
 ---
 
