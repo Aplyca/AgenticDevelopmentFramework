@@ -735,7 +735,10 @@ check_practices() {
     for name in context-audit spec-drift; do
         frontmatter "$SKILLS_DIR/$name/SKILL.md" | grep -q '^context: fork$' || missing+=("/$name: runs in a forked subagent (0055)")
     done
-    frontmatter "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" | grep -q '^disable-model-invocation: true$' || missing+=("/adopt: user-invoked only (0055)")
+    for name in adopt init-project; do
+        ! frontmatter "$REPO_ROOT/plugins/adf/skills/$name/SKILL.md" | grep -q '^disable-model-invocation: true$' || missing+=("/$name: Claude can start it from a plain request")
+    done
+    grep -q 'Use whenever tests come before code' "$REPO_ROOT/plugins/adf/skills/write-tests/SKILL.md" || missing+=("/write-tests: its description keeps its trigger")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'time tracking tool is the only record' || missing+=("/track-time: the time tracking tool is the only record (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'names `time-tracking`' || missing+=("/track-time: acts only where the stamp names the time-tracking module (0043)")

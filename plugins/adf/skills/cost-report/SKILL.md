@@ -1,6 +1,6 @@
 ---
 name: cost-report
-description: Report what Claude Code sessions on a project cost — calls, context, tokens, estimated cost, the Sonnet comparison — from the local transcripts, and flag what made them expensive. Use when asked what agent work costs or why a session was expensive.
+description: Report what Claude Code sessions on a project cost — calls, context, tokens, estimated cost, the Sonnet comparison — from the local transcripts, and flag what made them expensive. Use when asked what agent work costs, why a session was expensive, or whether a change to the lanes or habits paid off.
 argument-hint: "[project path — default: this repository] [--days N] [--siblings]"
 context: fork
 model: sonnet

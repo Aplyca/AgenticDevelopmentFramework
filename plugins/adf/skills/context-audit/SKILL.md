@@ -1,6 +1,6 @@
 ---
 name: context-audit
-description: Read-only audit of the instruction and process files (AGENTS.md, rules, constitution, hook and CI configuration) against the repository and each other — stale commands, unbacked claims, contradictions. Reports; fixes nothing. Use monthly or after a process change.
+description: Read-only audit of the instruction and process files (AGENTS.md, rules, constitution, hook and CI configuration) against the repository and each other — stale commands, unbacked claims, contradictions. Reports; fixes nothing. Use monthly, after a process change or a framework upgrade, and before onboarding someone.
 argument-hint: "[file or directory to limit the audit to — default: everything]"
 context: fork
 model: sonnet

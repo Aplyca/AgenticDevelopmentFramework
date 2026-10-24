@@ -20,7 +20,7 @@ size**, plus the tokens the model writes. Measured on 48 sessions in two product
 | Measure | Value |
 |---|---|
 | Median cost per call | about $0.06 |
-| Context at the first call | 46–93k tokens — Claude Code and its tools, the instruction files, the skill listing, memory. This framework's share is about 10k (14k before decision 0055): `AGENTS.md` and the Claude Code rule (~6k), `git-workflow.md` from the first file read (~1.3k), and the plugins' skill and agent listings (~2.5k) |
+| Context at the first call | 46–93k tokens — Claude Code and its tools, the instruction files, the skill listing, memory. This framework's share is about 11k (15k before decision 0055): `AGENTS.md` and the Claude Code rule (~6.3k), `git-workflow.md` from the first file read (~1.3k), and the plugins' skill and agent listings (~3.3k) |
 | Where the money goes | about 47% re-reading cached context, 27% writing the cache, 17% output — in October 44%, 40%, and 16%, with every cache write at the 1-hour rate |
 | Sessions under 30 calls | median about $1 and 10 minutes of activity |
 | 30–100 calls | median about $4 and 35 minutes |
@@ -41,7 +41,7 @@ What drives the bill, in order:
 4. **The model** — Opus costs twice Sonnet for output and uncached input; cache reads cost the same
    (see the tiers below).
 
-The framework's fixed overhead is small by comparison: its ~10k always-loaded tokens add about a
+The framework's fixed overhead is small by comparison: its ~11k always-loaded tokens add about a
 fifth of a cent per call once cached, and under $0.10 to write at a session's start on Opus, and the guardrail hooks take 60–140 ms per tool call against 5–10
 seconds of model time.
 

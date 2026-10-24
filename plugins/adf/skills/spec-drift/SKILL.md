@@ -1,6 +1,6 @@
 ---
 name: spec-drift
-description: Detect drift between a committed spec folder and the current code, tests, and docs. Reports divergences; fixes nothing. Run periodically per spec area to catch silent decay.
+description: Detect drift between a committed spec folder and the current code, tests, and docs. Reports divergences; fixes nothing. Run periodically — monthly per spec area, say — to catch silent decay after a spec has aged through many pull requests.
 argument-hint: "[spec folder | --all | --area <path>]"
 context: fork
 model: sonnet

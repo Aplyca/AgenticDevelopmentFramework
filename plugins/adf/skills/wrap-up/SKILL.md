@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: Close up a finished task — merged, answered, or abandoned — once a check finds nothing left: stop what it started, remove its worktree and branch, update the base branch, archive the session. Use when the developer says it merged ("merged", "it's in"), when the merge is reported, or when asked to close up. Not for a task on hold.
+description: Close up a finished task — merged, answered, or abandoned — once a check finds nothing left: stop what it started, remove its worktree and branch, update the base branch, archive the session. Use when the developer says the pull request merged ("merged", "it's in"), when the app or the pr-state hook reports the merge or the close, when an answer task is done, or when asked to wrap up, close up, or clean up a finished or abandoned task. Not for a task on hold.
 argument-hint: "[pull request, when it isn't this branch's]"
 ---
 
@@ -167,16 +167,13 @@ the close-up only once it resumes and ends.
 |---|---|
 | "The pull request merged, so everything in the worktree is in `main`" | Not a commit made after its last push, an untracked file, or a stash. Check them, and list what you find. |
 | "It's only a stash, I'll drop it with the rest" | A stash is work someone set aside on purpose. It's the developer's to drop. |
-| "I'll ask for each step, to be safe" | One yes for the whole list, shown in full, is the confirmation. A prompt per step trains the developer to click through them. |
 | "The hook says it merged, so I'll clean up right away" | The hook's word isn't the developer's. Show the list and ask once; close up without asking only when the developer said the task ended and the check found nothing left or to choose. |
 | "The developer said 'merged', so I'll skip the check" | "Merged" starts the check. Anything left stops the close-up, whoever said it ended. |
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
 | "The pull request closed, so the task is abandoned" | Closed can mean replaced, paused, or closed by mistake. Only the developer says it's dropped, and even then origin's branch stays. |
-| "It's on hold, but I'll close up the worktree to free the port" | On hold means it resumes. Stop what's running if the developer asks; the worktree, branch, and session stay. |
 | "It was only an answer, nothing to check" | An answer can leave a stash, a scratch branch, a running environment, or a follow-up you promised. Check, then ask once. |
-| "The upgrade's follow-ups are mine to run now" | They change the project's environment and tests: each belongs in its own session and review. Offer them; start them in their own sessions. |
 
 ## Red flags (stop and reassess)
 

@@ -1,6 +1,6 @@
 ---
 name: spec-workflow
-description: Reference for how work flows here — the fast, careful, and full lanes, feature development, change requests, answers, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies.
+description: Reference for how work flows here — the fast, careful, and full lanes, project setup, feature development, change requests, answers, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/spec-workflow/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
