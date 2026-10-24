@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Use as soon as your own local check passes — the changed flow walked on this checkout's environment — or, for work with nothing to run, once the full gate and /adf:review pass — or when the developer asks. Never before the local check, and never marks the pull request ready. With `refresh`, rebuilds your open draft's description after a later push changed what it says.
+description: Push the current work branch and open a DRAFT pull request that names its spec folder, links its tracker task, and states what was verified and what was not. Use as soon as your own local check passes — the changed flow walked on this checkout's environment — or, for work with nothing to walk, once the full gate passes (and /adf:review, for docs or CI work) — or when the developer asks. Never before the local check, and never marks the pull request ready. With `refresh`, rebuilds your open draft's description after a later push changed what it says.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md] | refresh"
 ---
 
@@ -191,7 +191,7 @@ Editing your own draft's description is upkeep: it takes no prompt.
 | "I'll open it ready so the reviewer saves a click" | A ready pull request asks for attention now. Reviewers would spend it on a first QC pass the author should have done. |
 | "Reviewers can read the diff — a short description is fine" | A reviewer shouldn't reconstruct intent. Agent pull requests whose description doesn't match the diff are a known failure. |
 | "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
-| "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to run, for the full gate and a clean `/adf:review`. |
+| "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to walk, for the full gate (and a clean `/adf:review`, for docs or CI work). |
 | "It's outward — I'll ask before I commit, push, and open the draft" | Your local check is what lets them, in every lane: it's the team's standing go-ahead. The question only delays the developer's test, which comes after the draft opens. Ready and merge are where they decide. |
 | "It's the careful lane, so I'll wait for a yes on the risky part" | The careful lane adds its checklist, not a stop. Put the risky part in the Lane line and first in the report; the developer's test starts there. |
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
@@ -212,7 +212,7 @@ Editing your own draft's description is upkeep: it takes no prompt.
 
 ## Verification
 
-- [ ] The push followed your own local check — or, with nothing to run, a passing full gate and a clean `/adf:review` — or the developer's ask
+- [ ] The push followed your own local check — or, with nothing to walk, a passing full gate (and a clean `/adf:review`, for docs or CI work) — or the developer's ask
 - [ ] Nothing asked the developer whether to commit, push, or open the draft, in any lane; in the careful lane, the Lane line and the report name the risky part
 - [ ] You walked the changed flow on the local environment before the push, and left it running — or it has nothing to run
 - [ ] Opened as a **draft**; not marked ready

@@ -3,12 +3,13 @@ export const meta = {
   description: 'Audit every spec folder (or every spec in an area) for drift against the current code, tests and docs, one agent per spec, verifying contradictions',
   whenToUse: 'Quarterly, or before a large change to an old area. The single-spec version is the /adf:spec-drift skill. Optional argument: a path or keyword to limit the sweep.',
   phases: [
-    { title: 'Discover', detail: 'list spec folders and legacy single-file specs' },
-    { title: 'Audit', detail: 'one drift audit per spec' },
-    { title: 'Verify', detail: 'a skeptic re-checks each CONTRADICTION and MISSING finding' },
+    { title: 'Discover', model: 'sonnet', detail: 'list spec folders and legacy single-file specs' },
+    { title: 'Audit', model: 'sonnet', detail: 'one drift audit per spec' },
+    { title: 'Verify', model: 'sonnet', detail: 'a skeptic re-checks each CONTRADICTION and MISSING finding' },
   ],
 }
 
+// Each step's model matches the agent that does the same work (COST-MODEL.md § Dynamic workflows): pinned here, so a run from an Opus session doesn't fan out on Opus.
 const READ_ONLY = 'Do not modify, create, or delete any file. Read files and run read-only git commands only.'
 
 // The method each auditor follows is the spec-drift skill's. The adf plugin's copy carries the skill's
@@ -57,7 +58,7 @@ phase('Discover')
 const discovered = await agent(
   `List every spec to audit. ${READ_ONLY}
 Spec folders are specs/NNN-<slug>/ containing spec.md; legacy single-file specs are specs/*.md other than README.md. Skip specs/_templates.${filter ? ` Keep only specs matching "${filter}" (path or keyword).` : ''} Return the paths.`,
-  { label: 'discover', phase: 'Discover', schema: DISCOVER_SCHEMA },
+  { label: 'discover', phase: 'Discover', schema: DISCOVER_SCHEMA, model: 'sonnet', effort: 'low' },
 )
 
 const specs = discovered ? discovered.specs : []
@@ -75,7 +76,7 @@ const audited = await pipeline(
 Read the whole spec (every section and change request), plan.md and tasks.md when present. Identify the implementation surface from the plan's change surface and the tests named in tasks.md (legacy specs: their Technical section, then heuristics). Compare each acceptance criterion, edge case, testable requirement, documentation claim and plan item with the current code, tests and docs. Categorize each divergence: CONTRADICTION, MISSING, DRIFT, STALE REFERENCE, DOC MISMATCH. Report the last commit that touched the spec (git log -1 --format='%h %cs' -- ${spec}).
 ${SPEC_DRIFT_STEPS}
 Return the findings in the response schema, one per divergence, instead of writing the report the steps describe.`,
-      { label: `drift:${spec}`, phase: 'Audit', schema: DRIFT_SCHEMA },
+      { label: `drift:${spec}`, phase: 'Audit', schema: DRIFT_SCHEMA, model: 'sonnet' },
     ),
   (drift) =>
     parallel(
@@ -85,7 +86,7 @@ Return the findings in the response schema, one per divergence, instead of writi
           `Try to REFUTE this drift finding for ${drift.spec}. ${READ_ONLY}
 ${finding.category} — ${finding.reference}: ${finding.observed}
 Refute it if the code, tests, or a later change request in the spec actually agree. Default to refuted=true when you cannot confirm it.`,
-          { label: `verify:${drift.spec}`, phase: 'Verify', schema: VERDICT_SCHEMA },
+          { label: `verify:${drift.spec}`, phase: 'Verify', schema: VERDICT_SCHEMA, model: 'sonnet' },
         ).then((verdict) => ({ ...finding, verdict }))
       }),
     ).then((findings) => ({

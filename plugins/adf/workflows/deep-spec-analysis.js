@@ -3,12 +3,13 @@ export const meta = {
   description: 'Analyze a spec folder from several independent lenses before the approval gate, verify each gap, and return a readiness verdict',
   whenToUse: 'Before asking the developer to approve a high-stakes spec folder (auth, payments, personal data, migrations, many layers). Argument: the spec folder path; defaults to the folder matching the current branch.',
   phases: [
-    { title: 'Locate', detail: 'find the spec folder and read its status' },
-    { title: 'Analyze', detail: 'independent lenses over spec, plan, tasks, and the code' },
-    { title: 'Verify', detail: 'a skeptic tries to refute each critical finding and gap' },
+    { title: 'Locate', model: 'sonnet', detail: 'find the spec folder and read its status' },
+    { title: 'Analyze', model: 'opus', detail: 'independent lenses over spec, plan, tasks, and the code' },
+    { title: 'Verify', model: 'sonnet', detail: 'a skeptic tries to refute each critical finding and gap' },
   ],
 }
 
+// Each step's model matches the agent that does the same work (COST-MODEL.md § Dynamic workflows): pinned here, so a run from an Opus session doesn't fan out on Opus.
 const READ_ONLY = 'Do not modify, create, or delete any file. Read files and run read-only commands (git log, grep) only.'
 
 // The spec model the lenses check against. The adf plugin's copy carries the model's text here
@@ -61,7 +62,7 @@ const located = await agent(
   `Locate the spec folder to analyze. ${READ_ONLY}
 ${requested ? `The user named: "${requested}".` : 'Use the folder in specs/ whose slug matches the current branch (<type>/<slug> ↔ specs/NNN-<slug>/).'}
 Return its path, the status in spec.md frontmatter, whether its latest section is a change request (CR N), and a two-sentence summary of what it specifies.`,
-  { label: 'locate', phase: 'Locate', schema: LOCATE_SCHEMA },
+  { label: 'locate', phase: 'Locate', schema: LOCATE_SCHEMA, model: 'sonnet', effort: 'low' },
 )
 
 if (!located || !located.specFolder) {
@@ -84,7 +85,7 @@ const LENSES = [
 const analyzed = await pipeline(
   LENSES,
   (lens) =>
-    agent(`${context}\n\n${lens.prompt}`, { label: `analyze:${lens.key}`, phase: 'Analyze', schema: FINDINGS_SCHEMA }).then(
+    agent(`${context}\n\n${lens.prompt}`, { label: `analyze:${lens.key}`, phase: 'Analyze', schema: FINDINGS_SCHEMA, model: 'opus' }).then(
       (result) => ({ lens: lens.key, checked: result ? result.checked : 'analyzer did not return', findings: result ? result.findings : [] }),
     ),
   (analysis) =>
@@ -96,7 +97,7 @@ const analyzed = await pipeline(
 (${analysis.lens}, ${finding.severity}) at ${finding.where}: ${finding.gap}
 Evidence given: ${finding.evidence}
 Refute it if the spec folder or the code already covers it, or the evidence is wrong. Default to refuted=true when you cannot confirm it.`,
-          { label: `verify:${analysis.lens}`, phase: 'Verify', schema: VERDICT_SCHEMA },
+          { label: `verify:${analysis.lens}`, phase: 'Verify', schema: VERDICT_SCHEMA, model: 'sonnet' },
         ).then((verdict) => ({ ...finding, lens: analysis.lens, verdict }))
       }),
     ).then((findings) => ({ ...analysis, findings: findings.filter(Boolean) })),

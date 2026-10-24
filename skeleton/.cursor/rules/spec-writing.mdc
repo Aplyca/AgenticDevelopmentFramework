@@ -40,4 +40,4 @@ A section is filled with concrete content, "Standard project [area] applies", or
 - Every AC is numbered and independently testable; numbers never change.
 - Change requests on delivered work **amend the same folder** with a `CR N` section (intent + Delivered → Change table) and new ACs tagged `(CR N)`. If the delta can't be recovered, ask.
 - **Approval gate:** after plan and tasks, stop and show the developer the scope, the change surface, and the assumptions. Only the developer approves (`status: approved` + an `approvals:` line). Then commit the folder with `spec:`.
-- Workflow after approval: docs first (`docs:`) → one task per commit (test red → green) → reconcile docs → gate results → draft PR when asked.
+- Workflow after approval: docs first (`docs:`) → one task per commit (test red → green) → reconcile docs → gate results → review → local check → draft PR (`AGENTS.md` § Delivery rules).

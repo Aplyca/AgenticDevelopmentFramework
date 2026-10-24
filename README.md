@@ -302,7 +302,7 @@ sequenceDiagram
     participant Agent
     participant PR as Pull request
     participant Tracker as Tracker task
-    Agent->>Agent: /review — the lane, the spec, constitution, security, tests, docs
+    Agent->>Agent: /review in the full lane, or with nothing to run — the lane, the spec, constitution, security, tests, docs
     Agent->>Agent: runs it on the local environment and walks the changed flow
     Agent->>PR: /open-pr once it works — a draft with the lane, the evidence, the local check, and what was not verified
     Agent->>PR: walks the same flow on the preview, read-only
@@ -351,7 +351,7 @@ flowchart TD
 | Situation | Lane and workflow | Model | Playbook |
 |---|---|---|---|
 | Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | **Fast** — one-line triage → the test first, seen failing → edit → green → `/commit`; a light `CR N` when it changes recorded behavior | `sonnet` | [Change request § Light or full?](docs/scenarios/change-request.md#light-or-full) |
-| The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, data, or payments, and the risky part named in the pull request | `sonnet`, high effort | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
+| The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, personal data, or payments, and the risky part named in the pull request | `sonnet`, high effort | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
 | New feature, unclear requirement, a design choice, cross-layer work | **Full** — `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → your local check → `/open-pr` | `opus` up to the gate; a fresh `sonnet` session after it | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
 | Change request with something to decide | **Full** — `/write-spec` amends the folder as `CR N` → the same gate and loop, for the delta only, on a fresh branch | as the full lane | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
 | Bug, cause unknown | `/debug` → then the lane the fix needs: regression test (red) → fix (green) → `/commit` | `sonnet`; `opus` after two disproven hypotheses | [Debugging](docs/scenarios/debugging.md) |

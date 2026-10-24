@@ -37,7 +37,7 @@ implementation; invest in them early.
 3. **Test first, then edit** — write or update the test that asserts the new behavior and watch it
    fail (for a bug, the regression test); then edit until it passes. Quiet output; the full gate once, before delivery.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
-   code, contract, infrastructure), run `@adf:security-reviewer` for authorization, data, or payments,
+   code, contract, infrastructure), run `@adf:security-reviewer` for authorization, personal data, or payments,
    and name the risky part in the pull request for the developer's test; the push needs no yes
    (`/adf:open-pr`).
 5. **Commit** (`/adf:commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded

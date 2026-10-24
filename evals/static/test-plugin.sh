@@ -29,17 +29,22 @@ slug() { python3 -c 'import re,sys; print(re.sub(r"[^A-Za-z0-9]", "-", sys.argv[
 MAIN="$WORK/projects/$(slug "$PROJECT")"
 INNER="$WORK/projects/$(slug "$PROJECT/.claude/worktrees/calm-otter")"
 SIBLING="$WORK/projects/$(slug "$WORK/code/site-fix")"
-mkdir -p "$MAIN" "$INNER" "$SIBLING"
+OTHER_PROJECT="$WORK/other/app"
+OTHER="$WORK/projects/$(slug "$OTHER_PROJECT")"
+mkdir -p "$MAIN" "$INNER" "$SIBLING" "$OTHER" "$OTHER_PROJECT"
 
-python3 - "$MAIN" "$INNER" "$SIBLING" <<'PY'
-import json, sys, datetime
-main, inner, sibling = sys.argv[1:4]
+python3 - "$MAIN" "$INNER" "$SIBLING" "$OTHER" <<'PY'
+import json, os, sys, datetime
+main, inner, sibling, other = sys.argv[1:5]
 start = datetime.datetime(2026, 9, 1, 9, 0, 0)
 
-def session(path, calls, context, model="claude-opus-5-5", gap_seconds=20, browser=0, spec_edits=0, code_edits=0, title="Session"):
+def session(path, calls, context, model="claude-opus-5-5", gap_seconds=20, browser=0, spec_edits=0, code_edits=0, title="Session", hour_cache=False, copy_of=None):
     t = start
     lines = [{"type": "custom-title", "customTitle": title},
              {"type": "user", "timestamp": t.isoformat() + "Z", "message": {"role": "user", "content": "do the task"}}]
+    if copy_of:
+        lines += [json.loads(l) for l in open(copy_of) if '"assistant"' in l]
+    tag = os.path.basename(path)[:8]
     for i in range(calls):
         t += datetime.timedelta(seconds=gap_seconds)
         content = []
@@ -49,9 +54,11 @@ def session(path, calls, context, model="claude-opus-5-5", gap_seconds=20, brows
             content.append({"type": "tool_use", "id": f"s{i}", "name": "Edit", "input": {"file_path": "/repo/specs/001-x/spec.md"}})
         elif i < browser + spec_edits + code_edits:
             content.append({"type": "tool_use", "id": f"c{i}", "name": "Edit", "input": {"file_path": "/repo/src/app.ts"}})
+        usage = {"input_tokens": 10, "cache_read_input_tokens": context, "cache_creation_input_tokens": 1000, "output_tokens": 500}
+        if hour_cache:
+            usage["cache_creation"] = {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 1000}
         lines.append({"type": "assistant", "timestamp": t.isoformat() + "Z", "message": {
-            "id": f"msg_{i}", "model": model, "content": content,
-            "usage": {"input_tokens": 10, "cache_read_input_tokens": context, "cache_creation_input_tokens": 1000, "output_tokens": 500}}})
+            "id": f"msg_{tag}_{i}", "model": model, "content": content, "usage": usage}})
     with open(path, "w") as f:
         f.write("\n".join(json.dumps(l) for l in lines) + "\n")
 
@@ -60,6 +67,10 @@ session(f"{main}/bbbbbbbb-2.jsonl", calls=40, context=180_000, gap_seconds=400, 
 session(f"{main}/cccccccc-3.jsonl", calls=12, context=60_000, model="claude-sonnet-5-5", spec_edits=6, code_edits=1, title="Spec heavy")
 session(f"{inner}/dddddddd-4.jsonl", calls=5, context=40_000, title="Inner worktree")
 session(f"{sibling}/eeeeeeee-5.jsonl", calls=5, context=40_000, title="Sibling worktree")
+# Another project: the desktop app's 1-hour cache, Haiku 5.5, and a session forked from another.
+session(f"{other}/11111111-a.jsonl", calls=10, context=50_000, gap_seconds=400, hour_cache=True, title="Hour cache")
+session(f"{other}/22222222-b.jsonl", calls=10, context=50_000, model="claude-haiku-5-5", title="Haiku")
+session(f"{other}/33333333-c.jsonl", calls=2, context=50_000, copy_of=f"{other}/11111111-a.jsonl", title="Forked")
 PY
 
 run() { python3 "$REPORT" "$PROJECT" --projects-dir "$WORK/projects" --days 0 "$@" 2>&1; }
@@ -86,6 +97,14 @@ on_sonnet=$(printf '%s' "$json" | python3 -c 'import json,sys; s={x["title"]: x 
 # The same tokens at Sonnet's prices: 10×(10×2 + 500×10 + 50,000×0.20 + 1,000×2.5)/1e6 = 0.18
 check "cost-report: re-prices an Opus session at Sonnet's prices (\$0.18; a Sonnet session unchanged — got $on_sonnet)" "[ '$on_sonnet' = '0.18 True' ]"
 check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals it" "echo \"\$out\" | grep 'Quick fix' | grep -q '≈0.18' && echo \"\$out\" | grep 'Spec heavy' | grep -q ' - ' && echo \"\$out\" | grep -q '^Model: 3 sessions ran above Sonnet'"
+other=$(python3 "$REPORT" "$OTHER_PROJECT" --projects-dir "$WORK/projects" --days 0 --json)
+oq() { printf '%s' "$other" | python3 -c "import json,sys; s={x['title']: x for x in json.load(sys.stdin)}; print($1)"; }
+# 10 calls on Opus 5.5, writes at the 1-hour rate (2× input): 10×(10×4 + 500×20 + 50,000×0.20 + 1,000×8)/1e6 = 0.28
+check "cost-report: prices 1-hour cache writes at twice the input price (\$0.28, got \$$(oq 's["Hour cache"]["cost"]'))" "[ \"\$(oq 's[\"Hour cache\"][\"cost\"]')\" = '0.28' ]"
+check "cost-report: a 400-second wait doesn't flag a session with the 1-hour cache (got $(oq 's["Hour cache"]["flags"]'))" "[ \"\$(oq 's[\"Hour cache\"][\"flags\"]')\" = '[]' ]"
+# 10 calls on Haiku 5.5: 10×(10×0.10 + 500×0.50 + 50,000×0.01 + 1,000×0.125)/1e6 = 0.0088
+check "cost-report: prices Haiku 5.5 at its own rates (\$0.01, got \$$(oq 's["Haiku"]["cost"]'))" "[ \"\$(oq 's[\"Haiku\"][\"cost\"]')\" = '0.01' ]"
+check "cost-report: a forked session's copied calls count once, in the session that made them (got $(oq 's["Forked"]["calls"], s["Hour cache"]["calls"]'))" "[ \"\$(oq 's[\"Forked\"][\"calls\"], s[\"Hour cache\"][\"calls\"]')\" = '2 10' ]"
 missing=$(python3 "$REPORT" "$WORK/elsewhere" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "cost-report: a project without transcripts says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$missing\" | grep -q 'No Claude Code transcripts'"
 

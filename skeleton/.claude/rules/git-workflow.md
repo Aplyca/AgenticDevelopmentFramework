@@ -64,8 +64,8 @@ Pushing, opening a pull request, marking it ready, merging, tagging, releasing, 
 on a pull request, issue, or tracker task all leave this machine. An agent does them **only when
 a human asks**, and marking ready, merging, reviewing, and releases are confirmed again when
 Claude Code's permissions prompt. One exception: once the agent has walked the change on the
-local environment (`AGENTS.md` § Delivery rules) — or, with nothing to run, once the full gate and
-`/review` pass — the agent pushes the work branch and opens its **draft** pull request on its own, then
+local environment (`AGENTS.md` § Delivery rules) — or, with nothing to walk, once the full gate passes
+(and `/review`, for docs or CI work) — the agent pushes the work branch and opens its **draft** pull request on its own, then
 keeps it current: later pushes to the work branch, edits to its description, and comments on it
 take no prompt. The git guard hook refuses a pull request that isn't a draft and any push to a
 protected branch.

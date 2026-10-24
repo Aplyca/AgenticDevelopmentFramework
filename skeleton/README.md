@@ -52,7 +52,7 @@ agents working under the same rules as people:
 
 1. **Triage** — read the task in full; decide what it needs before setting anything up, including
    its **lane**: fast (a precise change — its test first, seen failing, then the edit, commit),
-   careful (the same in a risk area, plus its checklist and a confirmation), or full (something to
+   careful (the same in a risk area, plus its checklist, with the risky part named in the pull request), or full (something to
    decide — the steps below).
    In Claude Code it also names the model: Sonnet for work with a clear spec and a way to check it,
    Opus for the full lane's spec and plan (`.claude/rules/claude-code.md` § Lanes).
