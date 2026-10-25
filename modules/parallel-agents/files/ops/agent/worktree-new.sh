@@ -217,6 +217,11 @@ fi
 release_lock
 trap - EXIT
 
+# The port stays the worktree's while its env file reserves it, so Claude Desktop's Browser can list it.
+if [ -n "$WRITE_ENV" ] && [ -n "$APP_PORT" ]; then
+  launch_entry "$WORKTREE_DIR" "$APP_PORT"
+fi
+
 echo
 echo "==> Worktree ready: $WORKTREE_DIR"
 echo "    Branch:  $BRANCH"

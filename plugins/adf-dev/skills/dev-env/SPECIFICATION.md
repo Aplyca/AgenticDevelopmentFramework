@@ -2,7 +2,8 @@
 
 What a project's local environment must look like, and how it behaves, in a project with the
 `docker` module ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md),
-[decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)).
+[decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md),
+[decision 0056](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0056-the-running-app-in-claude-desktops-browser.md)).
 `/adf-dev:dev-env` writes a stack that meets it, audits a stack against it, and `/adf:adopt` and
 `/adf:upgrade` hand a project to `/adf-dev:dev-env` to reach it.
 
@@ -33,7 +34,7 @@ a project misses. A project that departs from one on purpose records it, with th
   (untracked), and `.env.example`.
 - **L2.** All other operational code lives in `ops/`, **one folder per target**. A target's folder
   holds everything that target needs and can move: its make file, scripts, images, and config.
-  - `ops/docker/` — `Makefile`, `guard.sh`, and each service's image and config in
+  - `ops/docker/` — `Makefile`, `guard.sh`, `launch-json.sh`, and each service's image and config in
     `ops/docker/<service>/` (a Dockerfile, its `<Dockerfile>.dockerignore`, config files).
   - `ops/native/` — `Makefile`, `native.sh`, and `.run/`.
   - `ops/agent/` — the parallel-agents module, when installed.
@@ -41,14 +42,16 @@ a project misses. A project that departs from one on purpose records it, with th
 - **L3.** `ops/` is never organized by kind of file: no `ops/scripts/`, `ops/make/`, `ops/config/`,
   or another folder that several targets share.
 - **L4.** A target may use another target's files, where the dependency is real: native's backing
-  services run in Docker, so native mode runs `ops/docker/guard.sh` too; an ECS deployment builds
-  the image in `ops/docker/<service>/`. A file is never copied between targets.
+  services run in Docker, so native mode runs `ops/docker/guard.sh` too, and `ops/docker/launch-json.sh`
+  for its rows in Claude Desktop's Browser (P8); an ECS deployment builds the image in
+  `ops/docker/<service>/`. A file is never copied between targets.
 - **L5.** A file a tool reads from a fixed place stays there, and the target's folder holds the rest:
   `compose.yaml` at the root (so `docker compose` needs no `-f`), `vercel.json` where Vercel reads it,
   `.github/`, a platform's own manifest. `.claude/rules/deployment.md` lists each one the project has.
 - **L6.** The app's code never lives in `ops/`.
-- **L7.** Git ignores `.env` and `ops/native/.run/`; each Dockerfile's `.dockerignore` excludes `.git`,
-  `.env`, `.env.*` (but `.env.example`), `.claude/`, and `ops/native/.run/`.
+- **L7.** Git ignores `.env`, `ops/native/.run/`, and `.claude/launch.json` (P8); each Dockerfile's
+  `.dockerignore` excludes `.git`, `.env`, `.env.*` (but `.env.example`), `.claude/`, and
+  `ops/native/.run/`.
 
 ## The command surface — `C`
 
@@ -174,13 +177,29 @@ a project misses. A project that departs from one on purpose records it, with th
   `SERVICES` entry's published port under that name, looked up with `docker compose ps`, and
   `APP_PORT`: the shell's, else the one `.env` pins, else a free one. A service in `SERVICES` that
   isn't running stops `make up` with a message to start it.
-- **P5.** Ports are looked up, never written down: only `.env`, by a person, and native mode's run
-  state while the app runs (M7) record a port.
+- **P5.** Ports are looked up, never written down: only `.env`, by a person, and what the app leaves
+  while it runs — native mode's run state (M7) and its rows in Claude Desktop's Browser (P8) — record
+  a port.
 - **P6.** In a linked worktree, `ops/docker/guard.sh` fails when the worktree's `.env` repeats a port
   or the `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins — a copy, which would run the main
   checkout's stack, or delete its volumes on `make reset`.
 - **P7.** `guard.sh` reads only `COMPOSE_PROJECT_NAME` and the `*_PORT` lines of either `.env`, and
   `native.sh` only `APP_PORT`; neither prints a value but a port.
+- **P8.** `.claude/launch.json` lists each web service that runs now, and Claude Desktop's Browser
+  shows each entry on a new tab:
+  - **Which services:** each one in `compose.yaml` labeled `claude.browser: "true"` — one with pages
+    a person opens: the app, its production build, an admin UI, a mail catcher; never a backing
+    service. In native mode, the app on the host too, while it runs (M7).
+  - **The row:** an attach entry, named `<service> · http://localhost:<port>`, with that `url` and
+    `port` and no command. A localhost `url` can't carry a path, so a page inside an app is never a
+    row.
+  - **When:** `ops/docker/launch-json.sh` makes the rows match what runs. `up`, `prod`, `down`, and
+    native mode's `services` run it, and so does `native.sh` when it starts or stops the app. A
+    stopped service loses its row, so a port Docker later hands to another checkout is never listed
+    here.
+  - **How:** only where git ignores the file (L7). It keeps the developer's own entries and settings —
+    its rows are the attach entries named `<service> · <url>` — leaves a file with comments as it is,
+    and never fails the task.
 
 ## Compose — `D`
 
@@ -236,6 +255,8 @@ a project misses. A project that departs from one on purpose records it, with th
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
 | Where the services are now | `make urls` |
 | The app on the host while it runs | `ops/native/.run/` |
+| Which services Claude Desktop's Browser lists | the `claude.browser: "true"` label in `compose.yaml` (P8) |
+| Their rows, while they run | `.claude/launch.json`, untracked, kept by the tasks that start and stop them (P8) |
 | How the production build is built and served | the Dockerfile's `prod` stage and `<APP>-prod` in `compose.yaml`; `NATIVE_PROD_CMD` in `ops/native/Makefile` |
 | How a person sets up and starts the stack, and problems met before | `docs/getting-started/DEV-SETUP.md` |
 | The start and stop commands an agent runs | `AGENTS.md` § Quick reference |
@@ -254,7 +275,7 @@ each gap as the requirement's ID, what the project has, and the change:
 3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, and `make down` in
    the configured mode, and by reading the other mode's file against them — never by running it
    (M10); M10 by the deny rules.
-4. **Ports, Compose, variables:** P1–P7, D1–D4, V1–V4.
+4. **Ports, Compose, variables:** P1–P8, D1–D4, V1–V4.
 5. **Worktrees,** with parallel-agents: W1–W3.
 6. **Deployment targets:** T1–T2.
 

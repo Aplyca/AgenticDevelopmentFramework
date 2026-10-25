@@ -16,10 +16,11 @@
 # APP_PORT: the shell's, then the one .env pins, then a free one. A service the developer runs on the
 # host is left out of SERVICES in their .env: its port is pinned there, and the app reads it itself.
 #
-# ops/native/Makefile passes NATIVE_CMD, SERVICES, and COMPOSE. The app's state — its process,
+# ops/native/Makefile passes NATIVE_CMD, SERVICES, COMPOSE, and APP. The app's state — its process,
 # its port, its log — is in ops/native/.run/, which git ignores: app.env holds PID and APP_PORT while
 # it runs, and the band above the prompt reads APP_PORT there; app.kind says prod while the production
-# build runs. bash 3.2 or later.
+# build runs. While it runs, .claude/launch.json lists it in Claude Desktop's Browser, under APP's name:
+# start and stop run ops/docker/launch-json.sh. bash 3.2 or later.
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
@@ -94,12 +95,16 @@ running_pid() {
 # What runs: prod for the production build, dev otherwise.
 running_kind() { if [ -f "$KIND" ]; then cat "$KIND"; else echo dev; fi; }
 
+# Claude Desktop's Browser lists what runs now: the app while it runs, and the labeled services.
+list_in_browser() { APP="${APP:-app}" COMPOSE="$COMPOSE" ops/docker/launch-json.sh || true; }
+
 start() {
   local kind="${1:-dev}" cmd="${NATIVE_CMD:-}" pid port exports waited=0
   [ "$kind" = dev ] || cmd="${NATIVE_PROD_CMD:-}"
   [ -n "$cmd" ] || die "the app's $kind command is empty: set NATIVE_CMD (dev) or NATIVE_PROD_CMD (prod) in ops/native/Makefile"
   pid="$(running_pid)"
   if [ -n "$pid" ] && [ "$(running_kind)" = "$kind" ]; then
+    list_in_browser
     echo "==> The app already runs on the host: http://localhost:$(value APP_PORT)"
     return 0
   fi
@@ -133,13 +138,17 @@ start() {
     sleep 1
     waited=$((waited + 1))
   done
+  list_in_browser
   echo "==> The app on the host: http://localhost:$port"
 }
 
 stop() {
   local pid tries=0
   pid="$(running_pid)"
-  [ -n "$pid" ] || return 0
+  if [ -z "$pid" ]; then
+    list_in_browser
+    return 0
+  fi
   kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
   while kill -0 "$pid" 2>/dev/null && [ "$tries" -lt 10 ]; do
     sleep 1
@@ -147,6 +156,7 @@ stop() {
   done
   kill -KILL -- "-$pid" 2>/dev/null || kill -KILL "$pid" 2>/dev/null || true
   rm -f "$STATE" "$KIND"
+  list_in_browser
   echo "==> Stopped the app on the host"
 }
 

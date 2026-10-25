@@ -11,6 +11,54 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Claude Desktop's Browser lists each checkout's running web services**
+  ([decision 0056](docs/decisions/0056-the-running-app-in-claude-desktops-browser.md)).
+  - **Why:** the Browser beside the conversation is the easiest place to check a change before the
+    draft pull request. A new tab lists the entries in `.claude/launch.json`, by name and port. Each
+    checkout has its own port, and with Docker it changes on every start. So a committed entry would
+    be wrong everywhere but one checkout, and Desktop computes nothing in the file. A mod can't write
+    the file or open the Browser (decision 0026).
+  - **What:**
+    - **The rows:** one per web service that runs, named `<service> · http://localhost:<port>`, so a
+      new tab shows the full URL. Each row attaches to the running service — `url` and `port`, no
+      command — and one click opens it. The agent's `preview_start` by that name attaches to the same
+      service.
+    - **Docker module:** a service is listed when `compose.yaml` labels it `claude.browser: "true"`.
+      The template labels the app and its production build, and no backing service. In native mode
+      the app on the host is listed too, while it runs. The new `ops/docker/launch-json.sh` makes the
+      rows match what runs; `make up`, `make prod`, `make down`, and native mode's `make services` and
+      `native.sh` run it. A stopped service loses its row, so a port Docker gives to another checkout
+      is never listed.
+    - **Parallel-agents module:** `adf-worktree-new` lists `app · http://localhost:<port>` on the port
+      it reserves when worktrees run a server on the host (`PORT_SLOTS`).
+    - **Safeguards:** rows are written only where git ignores the file. The developer's own entries
+      and settings stay, and a file with comments is left as it is. Nothing fails without `python3`;
+      the rows are just skipped.
+    - **Pages inside an app** (`/admin`) can't be rows: Desktop refuses a path on a localhost URL.
+    - **The specification:** L7 adds `.claude/launch.json` to what git ignores, P5 counts the rows
+      among what records a port while a service runs, and the new P8 says which services are listed
+      and how the rows are kept.
+
+  **Upgrade impact:**
+  - **Merge:** add `.claude/launch.json` to `.gitignore` — with the `docker` module, or with
+    `parallel-agents` when worktrees run a server. Without it, nothing is written, and `make up` says
+    so in one line.
+  - **With the `docker` module,** the stack is the project's own, so take these from
+    `/adf-dev:dev-env`'s templates (or let its audit report P8):
+    - **Additive:** `ops/docker/launch-json.sh`, executable.
+    - **Merge:**
+      - `compose.yaml`: `labels: claude.browser: "true"` on each service with pages a person opens.
+      - The root `Makefile`: `LAUNCH_JSON`.
+      - `ops/docker/Makefile`: `@$(LAUNCH_JSON)` in `up`, `prod`, and `down`, and `COMPOSE` and `APP`
+        on `up`'s `native.sh stop`.
+      - `ops/native/Makefile`: `@$(LAUNCH_JSON)` in `down` and `services`; `down` and `reset` stop
+        the app through `$(NATIVE_SH)`.
+    - **Overwrite:** `ops/native/native.sh`, unless you changed it.
+  - **Packaged install:** `adf-worktree-new`, `/adf-dev:dev-env`, and the parallel-agents guide come
+    with the plugins.
+  - **Committed install:** overwrite `ops/agent/worktree-new.sh` and `ops/agent/_worktree-lib.sh`
+    with `parallel-agents` (not `worktree.conf`), and `.claude/skills/dev-env/` with `docker`.
+
 - **Skill descriptions get their trigger phrases back, `/adf:adopt` and `/adf:init-project` are
   model-invocable again, the per-task skills drop rationalization rows that restate a step, and
   `/adf:commit`'s principle matches the standing go-ahead.**

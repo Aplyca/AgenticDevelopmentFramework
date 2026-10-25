@@ -32,8 +32,9 @@ up: env guard services ## Start the app on the host, wait until it answers, and 
 	@$(MAKE) --no-print-directory urls
 
 down: guard ## Stop the app and the backing services; their data stays
-	@ops/native/native.sh stop
+	@$(NATIVE_SH) stop
 	$(if $(SERVICES),$(COMPOSE) down)
+	@$(LAUNCH_JSON)
 
 build: env ## Install the app's dependencies on the host
 	@echo "CUSTOMIZE: the install command, e.g. npm ci · composer install · bundle install" >&2; exit 1
@@ -59,6 +60,7 @@ prod: env guard services ## Build the app for production and serve it on the hos
 
 services: env guard ## Start only the backing services in Docker
 	$(if $(SERVICES),$(COMPOSE) up -d --wait $(SERVICES),@echo "No backing services in Docker")
+	@$(LAUNCH_JSON)
 
 test: services ## Run the tests on the host, with the services' ports exported; t=<filter> runs only the matching ones
 	@eval "$$($(NATIVE_SH) env)" && echo "CUSTOMIZE: the test command after the exports, with t as its filter, e.g. npm test -- $(t)" >&2 && exit 1
@@ -73,6 +75,6 @@ typecheck: ## Run the type checker on the host
 	@echo "CUSTOMIZE: the type checker, e.g. npx tsc --noEmit — or say the stack has none" >&2; exit 1
 
 reset: env guard ## DESTRUCTIVE: delete the services' containers and volumes, then start again
-	@ops/native/native.sh stop
+	@$(NATIVE_SH) stop
 	$(if $(SERVICES),$(COMPOSE) down -v --remove-orphans)
 	@$(MAKE) --no-print-directory up

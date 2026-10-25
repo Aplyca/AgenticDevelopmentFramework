@@ -78,6 +78,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - every variable the code reads: by name in `.env.example`, and in container form in its
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
    - in the `Makefile`: `APP` and `DEFAULT_MODE` (`docker` unless the team runs the app on the host);
+   - the label `claude.browser: "true"` on each service with pages a person opens — the app, its
+     production build, an admin UI, a mail catcher — and on no backing service (P8);
    - in each mode's `Makefile`, its own commands: in `ops/docker/`, `test`, `lint`, `format`, and
      `typecheck` in the app's container; in `ops/native/`, `DEFAULT_SERVICES` (the backing services
      that stay in Docker), `NATIVE_CMD` (the app's dev command, listening on `$APP_PORT`), and its
@@ -91,8 +93,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      `environment:`, and `NATIVE_PROD_CMD`. A project with no production-like run deletes the task
      in both mode files, the service, and the stage.
 
-   Then `chmod +x ops/docker/guard.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
-   and `ops/native/.run/`.
+   Then `chmod +x ops/docker/guard.sh ops/docker/launch-json.sh ops/native/native.sh`, and make sure
+   `.gitignore` has `.env`, `ops/native/.run/`, and `.claude/launch.json` (P8).
 2. **A stack that doesn't meet the specification?** Audit it in the order its § Conformance gives,
    and show the gaps in one table — the requirement's ID, what the project has, the change. A
    departure `.claude/rules/deployment.md` records with its reason is an exception, not a gap. The

@@ -44,9 +44,10 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the
 specification, starting from the skill's templates — `compose.yaml`, the `Makefile`, `.env.example`, and two target folders:
-`ops/docker/` (its `Makefile`; `guard.sh`, which keeps a worktree off the main checkout's stack; and
-`web/Dockerfile` with its `.dockerignore`) and `ops/native/` (its `Makefile`, and `native.sh`, which
-starts and stops the app on the host) — and fills in what it verifies about the project. No rule of
+`ops/docker/` (its `Makefile`; `guard.sh`, which keeps a worktree off the main checkout's stack;
+`launch-json.sh`, which lists the running web services in Claude Desktop's Browser; and `web/Dockerfile` with
+its `.dockerignore`) and `ops/native/` (its `Makefile`, and `native.sh`, which starts and stops the app
+on the host) — and fills in what it verifies about the project. No rule of
 its own: the skeleton's `.claude/rules/deployment.md` § Docker is the project's copy of the
 conventions, and its § Conformance records each requirement the project departs from on purpose.
 
@@ -93,6 +94,13 @@ fills these from what it verifies, for you to review:
 
 - **A port Docker picked changes** each time its service starts. `make urls` and the band always show
   the current one; pin it in `.env` when something outside the app has to know it.
+- **Claude Desktop's Browser lists the running web services** on a new tab, one row each —
+  `web · http://localhost:55123` — and one click opens it. A service is listed when `compose.yaml`
+  labels it `claude.browser: "true"`: the template labels the app and its production build. `make up`,
+  `make prod`, and `make down` keep the rows in `.claude/launch.json` matching what runs
+  ([decision 0056](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0056-the-running-app-in-claude-desktops-browser.md)).
+  The file is each checkout's own, so git ignores it, and nothing is written where it doesn't. The
+  developer's own entries stay.
 - **The ask rules match what the agent types, not what runs.** A command inside a script — a target
   other than `reset`, a `package.json` script, or `STOP_CMD` when `adf-worktree-rm` runs it — isn't
   seen, and an unusual form (`docker --context x volume rm`) can slip past a pattern. The rules catch
@@ -118,4 +126,4 @@ fills these from what it verifies, for you to review:
 
 Docker Engine or Docker Desktop with Compose v2 (`docker compose`, with `--wait`) and BuildKit, its
 default builder; `make` and `bash` 3.2 or later, which macOS and Linux have; `python3` for the install
-script.
+script, and for the app's entry in Claude Desktop's Browser, which is skipped without it.

@@ -145,6 +145,49 @@ env_value() {
   [ -f "$1" ] && sed -n "s/^$2=//p" "$1" | tail -1 | tr -d '[:space:]'
 }
 
+# launch_entry <worktree> <port> — the app's row in the worktree's .claude/launch.json, which Claude
+# Desktop's Browser lists on a new tab: "app · http://localhost:<port>", the port reserved for the
+# worktree. Only where git ignores the file. The developer's own entries stay: the rows written here
+# are the attach entries whose name is "<service> · <url>". A file that isn't plain JSON is left as it
+# is. Skipped without python3.
+launch_entry() {
+  if ! git -C "$1" check-ignore -q .claude/launch.json 2>/dev/null; then
+    echo "Note: git doesn't ignore .claude/launch.json, so Claude Desktop's Browser doesn't list this worktree's app — add it to .gitignore." >&2
+    return 0
+  fi
+  command -v python3 >/dev/null 2>&1 || return 0
+  python3 - "$1/.claude/launch.json" "$2" <<'PY' || true
+import json, os, sys
+
+path, port = sys.argv[1], int(sys.argv[2])
+try:
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+except FileNotFoundError:
+    data = {"version": "0.0.1", "configurations": []}
+except (OSError, ValueError):
+    print(f"Note: {path} isn't plain JSON, so it's left as it is.", file=sys.stderr)
+    sys.exit()
+configs = data.get("configurations") if isinstance(data, dict) else None
+if not isinstance(configs, list):
+    sys.exit()
+def ours(c):
+    return (isinstance(c, dict) and "runtimeExecutable" not in c and "program" not in c
+            and isinstance(c.get("url"), str) and str(c.get("name", "")).endswith(" · " + c["url"]))
+
+url = f"http://localhost:{port}"
+rows = [c for c in configs if not ours(c)] + [{"name": f"app · {url}", "url": url, "port": port}]
+if rows == configs:
+    sys.exit()
+data["configurations"] = rows
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+os.replace(path + ".tmp", path)
+PY
+}
+
 # expand <text> — substitute ${APP_PORT}, ${SLUG}, ${PROJECT} without eval.
 expand() {
   local text="$1"
@@ -376,6 +419,11 @@ fi
 # The port is claimed once the env file exists; release the lock before any slow work.
 release_lock
 trap - EXIT
+
+# The port stays the worktree's while its env file reserves it, so Claude Desktop's Browser can list it.
+if [ -n "$WRITE_ENV" ] && [ -n "$APP_PORT" ]; then
+  launch_entry "$WORKTREE_DIR" "$APP_PORT"
+fi
 
 echo
 echo "==> Worktree ready: $WORKTREE_DIR"

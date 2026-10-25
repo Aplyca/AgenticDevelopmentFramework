@@ -33,6 +33,12 @@ new_repo() { # new_repo <dir> — a repo with a commit on main and an identity
     git -C "$1" config user.email test@example.com
     git -C "$1" config user.name test
 }
+entries() { # entries <launch.json> — its configurations' names, " | " between them; empty without the file
+    python3 - "$1" 2>/dev/null <<'PY'
+import json, sys
+print(" | ".join(c.get("name") for c in json.load(open(sys.argv[1], encoding="utf-8"))["configurations"]))
+PY
+}
 
 echo ""
 echo "Module tests — modules/*/files"
@@ -71,7 +77,7 @@ git -C "$M" config user.name test
 git -C "$M" symbolic-ref HEAD refs/heads/main   # the clone is empty; don't depend on init.defaultBranch
 cp -R "$MODULES/parallel-agents/files/." "$M/" && chmod +x "$M"/ops/agent/*.sh
 printf 'SECRET=\nAPP_PORT=\n' > "$M/.env.example"
-printf '.env\nsetup.txt\nstarted.txt\n' > "$M/.gitignore"
+printf '.env\nsetup.txt\nstarted.txt\n.claude/launch.json\n' > "$M/.gitignore"
 CONF="$M/ops/agent/worktree.conf"
 replace "$CONF" 'REQUIRED_ENV=""' 'REQUIRED_ENV="SECRET"'
 replace "$CONF" 'SETUP_CMD=""' 'SETUP_CMD="echo setup-${SLUG} > setup.txt"'
@@ -96,6 +102,8 @@ P1=$(port_of "$W1")
 check "worktree-new: replaces stale overrides with exactly one port ($P1)" "[ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ] && [ '$P1' != 1 ] && [ \$(grep -c '^COMPOSE_PROJECT_NAME=' '$W1/.env') -eq 1 ]"
 check "worktree-new: expands placeholders; project prefix is the repository name" "grep -q '^COMPOSE_PROJECT_NAME=origin-feat-newsletter-signup$' '$W1/.env' && grep -q '^SITE_URL=http://localhost:$P1$' '$W1/.env'"
 check "worktree-new: --no-start runs no commands" "[ ! -f '$W1/setup.txt' ] && [ ! -f '$W1/started.txt' ]"
+check "worktree-new: lists the app in Claude Desktop's Browser, named with its URL, on the worktree's port" \
+    "[ \"\$(entries '$W1/.claude/launch.json')\" = 'app · http://localhost:$P1' ] && grep -q '\"url\": \"http://localhost:$P1\"' '$W1/.claude/launch.json'"
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
 check "worktree-new: rerunning with --no-start changes nothing" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'Worktree exists' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ ! -f '$W1/setup.txt' ]"
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --setup-only 2>&1); code=$?
@@ -103,8 +111,11 @@ check "worktree-new: --setup-only on an existing worktree runs only the setup" "
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup 2>&1); code=$?
 check "worktree-new: rerunning without --no-start starts an existing worktree" "[ $code -eq 0 ] && grep -q 'started-$P1' '$W1/started.txt'"
 replace "$M/.env" 'SECRET=abc' 'SECRET=rotated'
+printf '{"version": "0.0.1", "autoVerify": false, "configurations": [{"name": "api", "runtimeExecutable": "npm", "port": 4000}, {"name": "app · http://localhost:1", "url": "http://localhost:1", "port": 1}]}\n' > "$W1/.claude/launch.json"
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --refresh-env --no-start 2>&1); code=$?
 check "worktree-new: --refresh-env re-seeds secrets and keeps the port" "[ $code -eq 0 ] && grep -q '^SECRET=rotated$' '$W1/.env' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ]"
+check "worktree-new: --refresh-env updates the app's entry and keeps the developer's own" \
+    "[ \"\$(entries '$W1/.claude/launch.json')\" = 'api | app · http://localhost:$P1' ] && grep -q '\"autoVerify\": false' '$W1/.claude/launch.json'"
 replace "$M/.env" 'SECRET=rotated' 'SECRET=abc'
 
 echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
@@ -186,6 +197,7 @@ q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
 check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
 check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+check "worktree-new: no entry in Claude Desktop's Browser where git doesn't ignore .claude/launch.json" "[ -n '$q1' ] && [ ! -e '$X/feat-one/.claude/launch.json' ]"
 
 # The listening check the test above stubs out: a port something listens on is taken, even with no
 # env file reserving it. One slot, on a port this test binds itself (the system picks a free one).
@@ -337,6 +349,7 @@ cp -R "$TPL/." "$DS/site/"
 cat > "$DS/bin/docker" <<'STUB'
 #!/bin/sh
 [ "$1 $2" = "compose ps" ] || exit 2
+[ "$3 $4" = "--format json" ] && { printf '%s\n' "${STUB_JSON:-}"; exit 0; }
 for entry in $STUB_PORTS; do
   [ "${entry%%=*}" = "$3" ] && { echo "${entry#*=} "; exit 0; }
 done
@@ -345,10 +358,10 @@ STUB
 chmod +x "$DS/bin/docker"
 git -C "$DS/site" init -q -b main && printf '.env\n' > "$DS/site/.gitignore"
 git -C "$DS/site" add -A && git -C "$DS/site" -c user.email=t@e -c user.name=t commit -qm init
-stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" "$@"); }
+stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" STUB_JSON="${STUB_JSON:-}" "$@"); }
 ports() { stack env SERVICES=redis /bin/bash ops/native/native.sh env; }
 
-check "templates: guard.sh and native.sh are executable" "[ -x '$TPL/ops/docker/guard.sh' ] && [ -x '$TPL/ops/native/native.sh' ]"
+check "templates: guard.sh, launch-json.sh, and native.sh are executable" "[ -x '$TPL/ops/docker/guard.sh' ] && [ -x '$TPL/ops/docker/launch-json.sh' ] && [ -x '$TPL/ops/native/native.sh' ]"
 check "templates: no ports.sh and no PORTS — Docker Compose knows the ports" "[ ! -e '$TPL/ops/docker/ports.sh' ] && ! grep -q '^PORTS' '$TPL/Makefile'"
 out=$(stack make env 2>&1)
 # GNU stat first: its -f means "file system" and takes %Lp for a file name, so BSD's form tried first
@@ -396,6 +409,42 @@ check "make prod, docker mode: the service is in the prod profile, so make up ne
     "grep -A1 '^  web-prod:' '$TPL/compose.yaml' | grep -q 'profiles: \\[prod\\]' && grep -q 'target: prod' '$TPL/compose.yaml' && grep -q '^FROM dev AS prod' '$TPL/ops/docker/web/Dockerfile'"
 out=$(stack make -n down 2>&1)
 check "make down, docker mode: stops the production build too" "echo \"\$out\" | grep -q 'compose --profile prod down\$'"
+check "make down, docker mode: lists in Claude Desktop's Browser what still runs, once the stack is down (P8)" "echo \"\$out\" | sed '1,/--profile prod down/d' | grep -q 'ops/docker/launch-json.sh\$'"
+out=$(stack make -n up 2>&1)
+check "make up, docker mode: lists the web services in Claude Desktop's Browser once they're healthy (P8)" \
+    "echo \"\$out\" | sed '1,/compose up -d --wait/d' | grep -q \"APP='web' COMPOSE='docker compose' ops/docker/launch-json.sh\$\""
+out=$(stack make -n prod 2>&1)
+check "make prod, docker mode: lists the production build too (P8)" "echo \"\$out\" | sed '1,/--profile prod up/d' | grep -q 'ops/docker/launch-json.sh\$'"
+check "compose.yaml: the app and its production build are labeled for Claude Desktop's Browser, the backing service isn't (P8)" \
+    "[ \$(grep -c '^      claude.browser: \"true\"\$' '$TPL/compose.yaml') -eq 2 ] && ! sed -n '/^  redis:/,\$p' '$TPL/compose.yaml' | grep -q claude.browser"
+# launch-json.sh itself (P8): a row per labeled web service that runs, only where git ignores the file.
+LJ="$DS/site/.claude/launch.json"
+WEB='{"Service":"web","Labels":"com.docker.compose.service=web,claude.browser=true","Publishers":[{"URL":"127.0.0.1","TargetPort":3000,"PublishedPort":51234,"Protocol":"tcp"}]}'
+MOVED='{"Service":"web","Labels":"claude.browser=true","Publishers":[{"URL":"127.0.0.1","TargetPort":3000,"PublishedPort":51999,"Protocol":"tcp"}]}'
+PROD='{"Service":"web-prod","Labels":"claude.browser=true,com.docker.compose.service=web-prod","Publishers":[{"URL":"127.0.0.1","TargetPort":3000,"PublishedPort":51300,"Protocol":"tcp"}]}'
+REDIS='{"Service":"redis","Labels":"com.docker.compose.service=redis","Publishers":[{"URL":"127.0.0.1","TargetPort":6379,"PublishedPort":51001,"Protocol":"tcp"}]}'
+lj() { stack env APP=web ops/docker/launch-json.sh; }
+out=$(STUB_JSON="$WEB" lj 2>&1); code=$?
+check "launch-json.sh: writes nothing where git doesn't ignore the file, says so, and doesn't fail" \
+    "[ $code -eq 0 ] && [ ! -e '$LJ' ] && echo \"\$out\" | grep -q 'add it to .gitignore'"
+printf '.claude/launch.json\n' >> "$DS/site/.gitignore"
+STUB_JSON="$WEB
+$REDIS
+$PROD" lj
+check "launch-json.sh: a row per labeled service that runs, named with its URL — no backing service, no command" \
+    "[ \"\$(entries '$LJ')\" = 'web · http://localhost:51234 | web-prod · http://localhost:51300' ] && grep -q '\"url\": \"http://localhost:51234\"' '$LJ' && ! grep -q runtimeExecutable '$LJ'"
+printf '{"version": "0.0.1", "autoVerify": false, "configurations": [{"name": "api", "runtimeExecutable": "npm", "port": 4000}, {"name": "web", "url": "http://localhost:4100", "port": 4100}, {"name": "web · http://localhost:51234", "url": "http://localhost:51234", "port": 51234}]}\n' > "$LJ"
+STUB_JSON="[$MOVED]" lj
+check "launch-json.sh: follows a new port and keeps the developer's entries and settings; reads Compose's older JSON array" \
+    "[ \"\$(entries '$LJ')\" = 'api | web | web · http://localhost:51999' ] && grep -q '\"autoVerify\": false' '$LJ'"
+STUB_JSON= lj
+check "launch-json.sh: a service that stopped loses its row, and the developer's entries stay" "[ \"\$(entries '$LJ')\" = 'api | web' ]"
+printf '{\n  // mine\n  "configurations": []\n}\n' > "$LJ"
+cp "$LJ" "$LJ.mine" && out=$(STUB_JSON="$WEB" lj 2>&1); code=$?
+check "launch-json.sh: leaves a file with comments as it is, and doesn't fail" "[ $code -eq 0 ] && cmp -s '$LJ' '$LJ.mine' && echo \"\$out\" | grep -q \"isn't plain JSON\""
+rm -f "$LJ" "$LJ.mine"
+STUB_JSON="$WEB" lj && STUB_JSON= lj
+check "launch-json.sh: deletes the file once nothing of the developer's is in it" "[ ! -e '$LJ' ]"
 out=$(STUB_PORTS='redis=51001' ports 2>&1); code=$?
 check "native.sh env: each backing service's published port as <SERVICE>_PORT, and a free port for the app" \
     "[ $code -eq 0 ] && echo \"\$out\" | grep -q '^export REDIS_PORT=51001$' && echo \"\$out\" | grep -qE '^export APP_PORT=[0-9]+$'"
@@ -455,7 +504,7 @@ check "make reset, native mode: stops the app on the host, then deletes the volu
     "echo \"\$out\" | grep -q 'native.sh stop' && echo \"\$out\" | grep -q 'down -v'"
 # The app on the host, for real: a dev command that serves the folder, with nothing in Docker.
 NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
-git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n' > "$NS/.gitignore"
+git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n.claude/launch.json\n' > "$NS/.gitignore"
 sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' \
     -e 's|^NATIVE_PROD_CMD = .*|NATIVE_PROD_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1 --directory ops|' \
     "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
@@ -464,6 +513,7 @@ out=$(native up 2>&1); code=$?
 port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
 check "native mode, make up: starts the app in the background and waits until it answers" \
     "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"\$out\" | grep -q \"http://localhost:$port\""
+check "native mode, make up: lists the app in Claude Desktop's Browser, named with its URL (P8)" "[ \"\$(entries '$NS/.claude/launch.json')\" = 'web · http://localhost:$port' ]"
 out=$(native urls 2>&1)
 check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
 out=$(native up 2>&1)
@@ -481,6 +531,7 @@ check "native mode, make up after make prod: the dev server comes back, on the s
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
+check "native mode, make down: takes the app out of Claude Desktop's Browser (P8)" "[ ! -e '$NS/.claude/launch.json' ]"
 sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
 out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \
