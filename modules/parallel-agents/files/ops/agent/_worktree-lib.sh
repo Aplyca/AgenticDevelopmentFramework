@@ -105,10 +105,11 @@ env_value() {
   [ -f "$1" ] && sed -n "s/^$2=//p" "$1" | tail -1 | tr -d '[:space:]'
 }
 
-# launch_entry <worktree> <port> — the app's entry in the worktree's .claude/launch.json, which Claude
-# Desktop's Browser lists on a new tab: "app", at http://localhost:<port>, the port reserved for the
-# worktree. Only where git ignores the file. The developer's own entries stay; a file that isn't
-# plain JSON, or an "app" configuration that runs a command, is left as it is. Skipped without python3.
+# launch_entry <worktree> <port> — the app's row in the worktree's .claude/launch.json, which Claude
+# Desktop's Browser lists on a new tab: "app · http://localhost:<port>", the port reserved for the
+# worktree. Only where git ignores the file. The developer's own entries stay: the rows written here
+# are the attach entries whose name is "<service> · <url>". A file that isn't plain JSON is left as it
+# is. Skipped without python3.
 launch_entry() {
   if ! git -C "$1" check-ignore -q .claude/launch.json 2>/dev/null; then
     echo "Note: git doesn't ignore .claude/launch.json, so Claude Desktop's Browser doesn't list this worktree's app — add it to .gitignore." >&2
@@ -130,17 +131,18 @@ except (OSError, ValueError):
 configs = data.get("configurations") if isinstance(data, dict) else None
 if not isinstance(configs, list):
     sys.exit()
-entry = {"name": "app", "url": f"http://localhost:{port}", "port": port}
-index = next((i for i, c in enumerate(configs) if isinstance(c, dict) and c.get("name") == "app"), None)
-if index is None:
-    configs.append(entry)
-elif "runtimeExecutable" in configs[index] or "program" in configs[index] or configs[index] == entry:
+def ours(c):
+    return (isinstance(c, dict) and "runtimeExecutable" not in c and "program" not in c
+            and isinstance(c.get("url"), str) and str(c.get("name", "")).endswith(" · " + c["url"]))
+
+url = f"http://localhost:{port}"
+rows = [c for c in configs if not ours(c)] + [{"name": f"app · {url}", "url": url, "port": port}]
+if rows == configs:
     sys.exit()
-else:
-    configs[index] = entry
+data["configurations"] = rows
 os.makedirs(os.path.dirname(path), exist_ok=True)
 with open(path + ".tmp", "w", encoding="utf-8") as f:
-    json.dump(data, f, indent=2)
+    json.dump(data, f, indent=2, ensure_ascii=False)
     f.write("\n")
 os.replace(path + ".tmp", path)
 PY

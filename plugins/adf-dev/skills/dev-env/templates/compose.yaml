@@ -10,6 +10,8 @@
 #   Docker picks a free host port each time the service starts (`make urls` shows it); set it to
 #   pin one.
 # - Images are pinned, and a service another one waits for has a healthcheck.
+# - A service with pages a person opens is labeled claude.browser: "true". While it runs, Claude
+#   Desktop's Browser lists it on a new tab (ops/docker/launch-json.sh).
 
 services:
   # CUSTOMIZE: the app — e.g. the newsletter site's web app
@@ -21,6 +23,8 @@ services:
     ports:
       # CUSTOMIZE: the port the app listens on inside the container
       - "127.0.0.1:${APP_PORT:-}:3000"
+    labels:
+      claude.browser: "true"
     environment:
       # CUSTOMIZE: every variable the app reads, in container form (service names, container ports)
       REDIS_URL: redis://redis:6379
@@ -45,6 +49,8 @@ services:
     ports:
       # CUSTOMIZE: the port the production server listens on inside the container
       - "127.0.0.1:${APP_PROD_PORT:-}:3000"
+    labels:
+      claude.browser: "true"
     environment:
       # CUSTOMIZE: what the production build reads, as the app's above — no source mount: it serves
       # what the image built

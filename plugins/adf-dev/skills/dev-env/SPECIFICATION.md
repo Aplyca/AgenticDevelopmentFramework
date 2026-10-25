@@ -43,7 +43,7 @@ a project misses. A project that departs from one on purpose records it, with th
   or another folder that several targets share.
 - **L4.** A target may use another target's files, where the dependency is real: native's backing
   services run in Docker, so native mode runs `ops/docker/guard.sh` too, and `ops/docker/launch-json.sh`
-  for its entry in Claude Desktop's Browser (P8); an ECS deployment builds the image in
+  for its rows in Claude Desktop's Browser (P8); an ECS deployment builds the image in
   `ops/docker/<service>/`. A file is never copied between targets.
 - **L5.** A file a tool reads from a fixed place stays there, and the target's folder holds the rest:
   `compose.yaml` at the root (so `docker compose` needs no `-f`), `vercel.json` where Vercel reads it,
@@ -178,21 +178,28 @@ a project misses. A project that departs from one on purpose records it, with th
   `APP_PORT`: the shell's, else the one `.env` pins, else a free one. A service in `SERVICES` that
   isn't running stops `make up` with a message to start it.
 - **P5.** Ports are looked up, never written down: only `.env`, by a person, and what the app leaves
-  while it runs — native mode's run state (M7) and its entry in Claude Desktop's Browser (P8) — record
+  while it runs — native mode's run state (M7) and its rows in Claude Desktop's Browser (P8) — record
   a port.
 - **P6.** In a linked worktree, `ops/docker/guard.sh` fails when the worktree's `.env` repeats a port
   or the `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins — a copy, which would run the main
   checkout's stack, or delete its volumes on `make reset`.
 - **P7.** `guard.sh` reads only `COMPOSE_PROJECT_NAME` and the `*_PORT` lines of either `.env`, and
   `native.sh` only `APP_PORT`; neither prints a value but a port.
-- **P8.** While the app runs, `.claude/launch.json` lists it in Claude Desktop's Browser, which shows
-  each entry on a new tab. The entry is named `APP` and attaches to the running app: `url`
-  `http://localhost:<port>` and `port`, with no command. In each mode, `up` sets it once the app
-  answers, on the port it has then; `down`, and `up` stopping the other mode's app (M8), unset it, so
-  a port Docker later hands to another checkout is never listed here. `ops/docker/launch-json.sh` does
-  both, and only where git ignores the file (L7). It keeps the developer's own entries and settings,
-  leaves a file with comments or an entry of that name that runs a command as they are, and never
-  fails the task.
+- **P8.** `.claude/launch.json` lists each web service that runs now, and Claude Desktop's Browser
+  shows each entry on a new tab:
+  - **Which services:** each one in `compose.yaml` labeled `claude.browser: "true"` — one with pages
+    a person opens: the app, its production build, an admin UI, a mail catcher; never a backing
+    service. In native mode, the app on the host too, while it runs (M7).
+  - **The row:** an attach entry, named `<service> · http://localhost:<port>`, with that `url` and
+    `port` and no command. A localhost `url` can't carry a path, so a page inside an app is never a
+    row.
+  - **When:** `ops/docker/launch-json.sh` makes the rows match what runs. `up`, `prod`, `down`, and
+    native mode's `services` run it, and so does `native.sh` when it starts or stops the app. A
+    stopped service loses its row, so a port Docker later hands to another checkout is never listed
+    here.
+  - **How:** only where git ignores the file (L7). It keeps the developer's own entries and settings —
+    its rows are the attach entries named `<service> · <url>` — leaves a file with comments as it is,
+    and never fails the task.
 
 ## Compose — `D`
 
@@ -248,7 +255,8 @@ a project misses. A project that departs from one on purpose records it, with th
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
 | Where the services are now | `make urls` |
 | The app on the host while it runs | `ops/native/.run/` |
-| The running app's entry in Claude Desktop's Browser | `.claude/launch.json`, untracked, set by `make up` (P8) |
+| Which services Claude Desktop's Browser lists | the `claude.browser: "true"` label in `compose.yaml` (P8) |
+| Their rows, while they run | `.claude/launch.json`, untracked, kept by the tasks that start and stop them (P8) |
 | How the production build is built and served | the Dockerfile's `prod` stage and `<APP>-prod` in `compose.yaml`; `NATIVE_PROD_CMD` in `ops/native/Makefile` |
 | How a person sets up and starts the stack, and problems met before | `docs/getting-started/DEV-SETUP.md` |
 | The start and stop commands an agent runs | `AGENTS.md` § Quick reference |

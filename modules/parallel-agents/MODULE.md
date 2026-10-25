@@ -80,9 +80,9 @@ that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops
    copy costs; optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
    use each environment.
 4. **`.gitignore`** — the env file, and `.claude/worktrees/`. When each worktree runs a server, also
-   `.claude/launch.json`: `worktree-new.sh` lists the app there on the worktree's port, and Claude
-   Desktop's Browser shows it on a new tab (decision 0056). It skips the entry where git doesn't ignore
-   the file.
+   `.claude/launch.json`: `worktree-new.sh` lists the app there as `app · http://localhost:<port>`,
+   and Claude Desktop's Browser shows it on a new tab (decision 0056). It skips the row where git
+   doesn't ignore the file.
 5. **`.worktreeinclude`** — the same env file as `ENV_FILE`, plus any other gitignored file a worktree
    needs (gitignore syntax). Claude Code copies only files that are gitignored.
 
