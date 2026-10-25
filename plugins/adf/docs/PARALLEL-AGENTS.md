@@ -144,6 +144,10 @@ the app read its port from the env file:
 - `ENV_OVERRIDES` writes the worktree's own values next to its port — its URL, a per-worktree
   container project name (`${PROJECT}`) — and `READY_URL` makes `adf-worktree-new` wait until the app
   answers.
+- **Claude Desktop's Browser lists the app** on a new tab, as `app` on the worktree's port:
+  `adf-worktree-new` writes the entry to the worktree's `.claude/launch.json`, where git ignores that
+  file, and keeps any entries of the developer's own. A Docker Compose stack gets its entry from
+  `make up` instead.
 - **Don't hand-edit** `APP_PORT` or the other generated lines — rerun the script with
   `--refresh-env`. The same flag picks up secrets changed in the main checkout.
 

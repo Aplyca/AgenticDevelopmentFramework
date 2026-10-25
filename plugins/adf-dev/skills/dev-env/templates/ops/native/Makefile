@@ -32,7 +32,7 @@ up: env guard services ## Start the app on the host, wait until it answers, and 
 	@$(MAKE) --no-print-directory urls
 
 down: guard ## Stop the app and the backing services; their data stays
-	@ops/native/native.sh stop
+	@$(NATIVE_SH) stop
 	$(if $(SERVICES),$(COMPOSE) down)
 
 build: env ## Install the app's dependencies on the host
@@ -73,6 +73,6 @@ typecheck: ## Run the type checker on the host
 	@echo "CUSTOMIZE: the type checker, e.g. npx tsc --noEmit — or say the stack has none" >&2; exit 1
 
 reset: env guard ## DESTRUCTIVE: delete the services' containers and volumes, then start again
-	@ops/native/native.sh stop
+	@$(NATIVE_SH) stop
 	$(if $(SERVICES),$(COMPOSE) down -v --remove-orphans)
 	@$(MAKE) --no-print-directory up

@@ -91,8 +91,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      `environment:`, and `NATIVE_PROD_CMD`. A project with no production-like run deletes the task
      in both mode files, the service, and the stage.
 
-   Then `chmod +x ops/docker/guard.sh ops/native/native.sh`, and make sure `.gitignore` has `.env`
-   and `ops/native/.run/`.
+   Then `chmod +x ops/docker/guard.sh ops/docker/launch-json.sh ops/native/native.sh`, and make sure
+   `.gitignore` has `.env`, `ops/native/.run/`, and `.claude/launch.json` (P8).
 2. **A stack that doesn't meet the specification?** Audit it in the order its § Conformance gives,
    and show the gaps in one table — the requirement's ID, what the project has, the change. A
    departure `.claude/rules/deployment.md` records with its reason is an exception, not a gap. The

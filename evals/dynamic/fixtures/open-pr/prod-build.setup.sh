@@ -48,7 +48,7 @@ PY
 printf 'dist/\n' >> .gitignore
 
 # The local environment, from dev-env's templates, filled for this stack.
-cp "$TPL/Makefile" Makefile && cp -R "$TPL/ops" ops && printf 'ops/native/.run/\n' >> .gitignore
+cp "$TPL/Makefile" Makefile && cp -R "$TPL/ops" ops && printf 'ops/native/.run/\n.claude/launch.json\n' >> .gitignore
 cat > compose.yaml <<'YAML'
 services:
   web:

@@ -1,6 +1,7 @@
 # DEV_MODE=docker: the whole stack in Docker. The root Makefile loads this file in that mode; this
-# folder holds everything the target needs — the images and service config (ops/docker/<service>/)
-# and guard.sh, which keeps a worktree off the main checkout's stack.
+# folder holds everything the target needs — the images and service config (ops/docker/<service>/),
+# guard.sh, which keeps a worktree off the main checkout's stack, and launch-json.sh, which lists the
+# running app in Claude Desktop's Browser.
 
 # Loaded by the root Makefile, never run on its own: its settings and paths are the root's.
 ifndef MODE_FILE
@@ -9,13 +10,18 @@ endif
 
 .PHONY: up down build ps logs urls prod shell test lint format typecheck reset
 
+# The host port Docker published for the app now; empty while it's down.
+APP_PUBLISHED = $(COMPOSE) ps $(APP) --format '{{range .Publishers}}{{if .PublishedPort}}{{.PublishedPort}} {{end}}{{end}}' | awk '{ print $$1 }'
+
 up: env guard ## Start the stack, wait until it's healthy, and show where it is
-	@ops/native/native.sh stop
+	@APP='$(APP)' ops/native/native.sh stop
 	$(COMPOSE) up -d --wait
+	@ops/docker/launch-json.sh set $(APP) "$$($(APP_PUBLISHED))"
 	@$(MAKE) --no-print-directory urls
 
 down: guard ## Stop the stack, the production build too; its data stays
 	$(COMPOSE) --profile prod down
+	@ops/docker/launch-json.sh unset $(APP)
 
 build: env ## Rebuild the images
 	$(COMPOSE) build
