@@ -146,7 +146,10 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.5.0** (2026-10-18), is a minor release. Every session turn ends with who acts next,
+The latest, **v2.6.0** (2026-10-25), is a minor release: every lane pushes and opens its draft
+without asking, the requester hears at three moments, a new `end-user-docs` module writes end-user
+pages, and the always-loaded instructions are leaner. **v2.5.0** (2026-10-18), also a minor release:
+every session turn ends with who acts next,
 and `/adf:wrap-up` closes up every ending; the agent's own local check opens the draft pull request,
 and the developer tests after it; an upgrade runs a script from the new release and asks you only what
 needs a person; and the `parallel-agents` guide ships in the plugin. **v2.4.0** (2026-10-18), also a
