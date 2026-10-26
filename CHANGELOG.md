@@ -9,7 +9,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - **Merge** — file has customization expectations; reapply your customizations on top
 - **Additive** — new file, no existing project version to merge against
 
-## Unreleased
+## v2.6.0 — 2026-10-25 — A standing go-ahead for every lane, three requester updates, end-user docs, and leaner instructions
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts, and no migration script is needed.
+
+- **Every lane commits, pushes, and opens its draft without asking** (0049), and the requester hears
+  at three moments (0053).
+- **A new `end-user-docs` module** writes a feature's end-user page in the doc tool (0048).
+- **Spec records name roles, and what an agent finds along the way is routed** (0050, 0054).
+- **Leaner always-loaded instructions and a triage that fits the model** (0055); the production build
+  runs locally in the configured mode (0052); the agent keeps its draft's description current
+  (0051); Claude Desktop's Browser lists each checkout's running web services (0056).
 
 - **Claude Desktop's Browser lists each checkout's running web services**
   ([decision 0056](docs/decisions/0056-the-running-app-in-claude-desktops-browser.md)).
