@@ -28,12 +28,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - **A new ground rule for every service:** a read that returns a secret goes in
       `permissions.deny`.
     - **GitHub stays on `gh`;** the catalog now says why.
-  - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`; the static checks.
+    - **`/adf:upgrade` finds a Vercel or Contentful server already in `.mcp.json`,** by its name or
+      its host, and lists `/adf-connect:connect <service>` under the PR's Follow-ups. It skips a
+      Vercel server whose secret reads are already denied. In a committed install the follow-up keeps
+      the `adf-connect:` prefix, since only the plugin carries `/connect`.
+  - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`;
+    `scripts/migrations/unreleased/01-connect-profiles.py` and `scripts/upgrade.py`; the static checks
+    and the upgrade tests.
 
   **Upgrade impact:**
   - **Additive.** The skill comes with the plugin, and nothing in a project changes by itself.
-  - **A project that already connected Vercel or Contentful:** rerun `/adf-connect:connect vercel`
-    (or `contentful`) to apply the profile. Or by hand in `.claude/settings.json`:
+  - **A project that already connected Vercel or Contentful — migration**
+    (`scripts/migrations/unreleased/01-connect-profiles.py`): `/adf:upgrade` lists
+    `/adf-connect:connect vercel` (or `contentful`) as a follow-up, to run after the merge. It changes
+    no file. To apply the profile by hand instead, in `.claude/settings.json`:
     - add `mcp__vercel__get_project_env` and `mcp__vercel__get_shared_env_var` to
       `permissions.deny`;
     - remove any allowed Vercel tool the profile leaves prompting;

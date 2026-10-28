@@ -45,7 +45,10 @@ Contentful MCP app, and the server then refuses every write, whatever the client
    skeleton denies `Read(.env)`. A ground rule of `/connect`, for every service.
 3. **No modules for them.** A module would only add the allow list as committed files. Vercel's URL
    needs each project's slugs, and Contentful's real limit is set in Contentful itself.
-4. **GitHub stays on `gh`.** `gh api` reaches the whole API, and the skeleton's `ask` rules make
+4. **The upgrade points connected projects at the profile.** When `.mcp.json` already has a Vercel or
+   Contentful server, `/adf:upgrade` lists `/adf-connect:connect <service>` under the PR's Follow-ups.
+   It changes no file itself: the developer reviews `/connect`'s changes as a change of their own.
+5. **GitHub stays on `gh`.** `gh api` reaches the whole API, and the skeleton's `ask` rules make
    each `gh` write prompt. GitHub's MCP server would add its tools to every session's context, and a
    second way to write that those rules don't see.
 
@@ -60,8 +63,8 @@ Contentful MCP app, and the server then refuses every write, whatever the client
     safe. The catalog's "checked on" date says when to look again.
   - **Contentful's tool names come from its open-source server.** The hosted server is expected to
     match, and `/connect` step 6 confirms it on the first connection.
-  - **Projects that already connected either service** keep their old allow list until someone
-    reruns `/adf-connect:connect`.
+  - **Projects that already connected either service** keep their old allow list until someone runs
+    the follow-up the upgrade lists.
 
 ## Alternatives considered
 
