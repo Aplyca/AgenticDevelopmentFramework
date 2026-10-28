@@ -11,6 +11,42 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **`/adf-connect:connect` has fixed read-only profiles for Vercel and Contentful, and denies reads
+  that return secrets**
+  ([decision 0057](docs/decisions/0057-read-only-profiles-for-connected-services.md)).
+  - **Why:** teams want Vercel to troubleshoot deployments and logs, and Contentful to read entries
+    and the content model, both read-only. `/connect` had only their URLs, and the agent sorted each
+    server's tools at connect time. Vercel has no read-only option and 217 tools, and the names
+    mislead. `get_project_env` returns a decrypted secret. `get_access_to_vercel_url` creates a
+    shareable link to a protected deployment.
+  - **What:**
+    - **§ Read-only profiles:** the exact tools to allow, deny, and leave prompting for each service.
+    - **Vercel** uses the project-scoped URL (`https://mcp.vercel.com/<team>/<project>`), and reading
+      production logs needs the developer's yes, written down.
+    - **Contentful** asks the space admin to set the Contentful MCP app's tools to read-only, so
+      Contentful refuses every write itself.
+    - **A new ground rule for every service:** a read that returns a secret goes in
+      `permissions.deny`.
+    - **GitHub stays on `gh`;** the catalog now says why.
+    - **`/adf:upgrade` finds a Vercel or Contentful server already in `.mcp.json`,** by its name or
+      its host, and lists `/adf-connect:connect <service>` under the PR's Follow-ups. It skips a
+      Vercel server whose secret reads are already denied. In a committed install the follow-up keeps
+      the `adf-connect:` prefix, since only the plugin carries `/connect`.
+  - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`;
+    `scripts/migrations/unreleased/01-connect-profiles.py` and `scripts/upgrade.py`; the static checks
+    and the upgrade tests.
+
+  **Upgrade impact:**
+  - **Additive.** The skill comes with the plugin, and nothing in a project changes by itself.
+  - **A project that already connected Vercel or Contentful — migration**
+    (`scripts/migrations/unreleased/01-connect-profiles.py`): `/adf:upgrade` lists
+    `/adf-connect:connect vercel` (or `contentful`) as a follow-up, to run after the merge. It changes
+    no file. To apply the profile by hand instead, in `.claude/settings.json`:
+    - add `mcp__vercel__get_project_env` and `mcp__vercel__get_shared_env_var` to
+      `permissions.deny`;
+    - remove any allowed Vercel tool the profile leaves prompting;
+    - point the `vercel` entry in `.mcp.json` at the project-scoped URL.
+
 - **A desktop session is named after its task even when `/adf:triage` doesn't run.**
   - **Why:** only `/adf:triage` step 5 renamed a desktop session. An agent that triaged by hand from
     `AGENTS.md` — because it skipped the skill, or because the plugin wasn't loaded in that session —

@@ -133,6 +133,9 @@ marker = "<!-- CUSTOMIZE: what worktrees share, what a task may copy, and what t
 t = t.replace("[team or person]", "platform team", 1).replace(marker, marker + "\n\nWorktrees share the newsletter sandbox; a task may copy its database.", 1)
 open(p, "w").write(t)
 PY
+# Vercel and Contentful (under its own name, on the EU host), connected before their read-only profiles.
+printf '{"mcpServers":{"vercel":{"type":"http","url":"https://mcp.vercel.com"},"cms":{"type":"http","url":"https://mcp.eu.contentful.com/mcp"}}}\n' > "$P/.mcp.json"
+git -C "$P" add .mcp.json
 git -C "$P" commit -qam "record shared services"
 HEAD_BEFORE=$(git -C "$P" rev-parse HEAD)
 
@@ -166,6 +169,9 @@ check "run: the report has every section, Follow-ups last" \
 check "run: the machines' commands update adf" "grep -q 'claude plugin update adf@aplyca' '$WORK/run.md'"
 check "run: the docker spec change gives a dev-env follow-up, or none when it didn't change" \
     "report '$P' 'all(set(f) == {\"command\", \"why\", \"source\", \"plugin\", \"when\"} for f in r[\"follow_ups\"])'"
+check "run: Vercel and Contentful servers get /adf-connect:connect follow-ups, found by name and by host (0057)" \
+    "report '$P' '{(f[\"command\"], f[\"plugin\"]) for f in r[\"follow_ups\"]} >= {(\"/adf-connect:connect vercel\", \"adf-connect\"), (\"/adf-connect:connect contentful\", \"adf-connect\")}'"
+check "run: .mcp.json is left as it was" "[ -z \"\$(git -C '$P' diff HEAD -- .mcp.json)\" ]"
 check "run: commits nothing (the skill commits after approval)" "[ \"\$(git -C '$P' rev-parse HEAD)\" = '$HEAD_BEFORE' ]"
 
 git -C "$P" add -A && git -C "$P" commit -qm upgrade
@@ -183,7 +189,7 @@ class Fake:  # just enough of an Upgrade for a migration's context
     pass
 f = Fake()
 f.ws = u.Workspace(p, False); f.repo = p; f.install = "packaged"; f.modules = ["parallel-agents", "docker"]
-f.dry = False; f.touched = set(); f.history = root
+f.dry = False; f.touched = set(); f.history = root; f.add_follow_up = lambda *a: None
 f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.5.0")
 ctx = u.MigrationContext(f)
 for folder, name, path in u.discover_migrations(root, "v2.0.0", "v2.5.0", True):
@@ -198,6 +204,15 @@ new_project "$WORK/committed" committed "parallel-agents"
 C="$WORK/committed-up"
 mkdir -p "$C/scripts" && git -C "$C" mv ops/agent scripts/agent && git -C "$C" commit -qm "the folder before 0032"
 echo "# the team's own line" >> "$C/.claude/skills/triage/SKILL.md" && git -C "$C" commit -qam "edit a skill"
+# Vercel with its secret reads already denied by hand; Contentful not yet profiled.
+printf '{"mcpServers":{"vercel":{"type":"http","url":"https://mcp.vercel.com/acme/newsletter"},"contentful":{"type":"http","url":"https://mcp.contentful.com/mcp"}}}\n' > "$C/.mcp.json"
+python3 - "$C/.claude/settings.json" <<'PY'
+import json, sys
+p = sys.argv[1]; s = json.load(open(p))
+s["permissions"].setdefault("deny", []).extend(["mcp__vercel__get_project_env", "mcp__vercel__get_shared_env_var"])
+json.dump(s, open(p, "w"), indent=2); open(p, "a").write("\n")
+PY
+git -C "$C" add -A && git -C "$C" commit -qm "connect vercel and contentful"
 upgrade "$C" > "$WORK/committed.md" 2>"$WORK/committed.err"; rc=$?
 check "committed: exits 0" "[ $rc -eq 0 ] || { cat '$WORK/committed.err'; false; }"
 check "committed: scripts/agent/ moved to ops/agent/ before the merges (module.json's moved_from)" \
@@ -207,6 +222,8 @@ check "committed: an unchanged skill is overwritten from the new build" \
 check "committed: the edited skill keeps the team's line, flagged as edited machinery" \
     "grep -q \"the team's own line\" '$C/.claude/skills/triage/SKILL.md' || report '$C' 'any(c[\"file\"].endswith(\"triage/SKILL.md\") for c in r[\"needs_you\"][\"conflicts\"])'"
 check "committed: the guide becomes the built one" "! grep -q 'owner:' '$C/docs/PARALLEL-AGENTS.md' && [ -f '$C/docs/SHARED-SERVICES.md' ]"
+check "committed: the connect follow-up keeps its plugin's name, and skips a Vercel server already profiled (0057)" \
+    "report '$C' '[f[\"command\"] for f in r[\"follow_ups\"] if \"connect\" in f[\"command\"]] == [\"/adf-connect:connect contentful\"]'"
 check "committed: the stamp has no install: packaged" "! head -1 '$C/AGENTS.md' | grep -q 'install: packaged'"
 check "committed: hooks smoke-tested from the project's .claude/hooks" \
     "report '$C' 'all(c[\"ok\"] for c in r[\"checks\"])'"

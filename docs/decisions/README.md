@@ -33,7 +33,7 @@ projects.
 | [0020](0020-every-task-through-dispatch.md) | Every task goes through `/dispatch` in the main checkout (parallel-agents module) | accepted; amended by 0021, 0023, 0042 |
 | [0021](0021-sibling-worktree-and-chip.md) | `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module) | accepted; amended 2026-10-07, by 0035; amended by 0040, 0042 |
 | [0022](0022-local-check-before-the-pull-request.md) | The developer approves a change on the local environment, and the approval opens its draft pull request | accepted; amended by 0033, 0039 |
-| [0023](0023-plugins-by-concern.md) | One plugin per concern — the process, development, connections — and modules as each project's switches | accepted; amended by 0027, 0028 |
+| [0023](0023-plugins-by-concern.md) | One plugin per concern — the process, development, connections — and modules as each project's switches | accepted; amended by 0027, 0028; refined by 0057 |
 | [0024](0024-agents-md-only.md) | No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule | accepted |
 | [0025](0025-no-gemini-md.md) | No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it | accepted |
 | [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | accepted; amended by 0032 |
@@ -67,6 +67,7 @@ projects.
 | [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted |
 | [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted |
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
+| [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

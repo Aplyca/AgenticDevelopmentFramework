@@ -929,7 +929,8 @@ class Upgrade:
 
     # ── follow-ups and machines ──
     def add_follow_up(self, command, why, source, plugin="adf"):
-        if self.install == "committed":
+        # A committed install copies adf's and the modules' skills, but adf-connect's only come from its plugin.
+        if self.install == "committed" and plugin != "adf-connect":
             command = re.sub(r"^/[\w-]+:", "/", command)
         item = {"command": command, "why": why, "source": source, "plugin": plugin, "when": "after-merge"}
         if all(f["command"] != command for f in self.report["follow_ups"]):
