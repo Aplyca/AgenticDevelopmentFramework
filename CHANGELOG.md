@@ -14,7 +14,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - **A desktop session is named after its task even when `/adf:triage` doesn't run.**
   - **Why:** only `/adf:triage` step 5 renamed a desktop session. An agent that triaged by hand from
     `AGENTS.md` — because it skipped the skill, or because the plugin wasn't loaded in that session —
-    left the title the app made from the first prompt (`ClickUp tasks 454546`), which tells the
+    left the title the app made from the first prompt (`Work on this task 86a1`), which tells the
     developer nothing in the session list. The session-title hook stood aside in the desktop app, and
     `AGENTS.md` § Triage didn't mention naming the session.
   - **What:**
