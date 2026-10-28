@@ -5,7 +5,7 @@ how a project reaches its tracker and the services its stack uses.
 
 | Skill | What it does |
 |---|---|
-| `/adf-connect:connect` | Connects the project to a service through the service's official MCP server — Supabase, Vercel, Contentful, GitLab, Linear, Jira. It writes the project's `.mcp.json` entry with safe defaults (read-only, never production, no credentials committed), pre-approves only the tools that read, writes it down in `DEV-SETUP.md`, and verifies that every write still prompts |
+| `/adf-connect:connect` | Connects the project to a service through the service's official MCP server — Supabase, Vercel, Contentful, GitLab, Linear, Jira. It writes the project's `.mcp.json` entry with safe defaults (read-only, never production, no credentials committed), pre-approves only the tools that read, denies the reads that return secrets, writes it down in `DEV-SETUP.md`, and verifies that every write still prompts. Vercel (troubleshooting deployments and logs) and Contentful (entries and the content model) have fixed read-only profiles |
 
 The servers themselves stay in the project, not in this plugin
 ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)):
@@ -14,7 +14,8 @@ The servers themselves stay in the project, not in this plugin
 - The allow lists that keep writes prompting are project settings.
 
 This plugin carries the knowledge, and the project keeps the configuration. ClickUp has the
-framework's `clickup` module, and GitHub needs only the `gh` CLI.
+framework's `clickup` module, and GitHub needs only the `gh` CLI
+([decision 0057](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0057-read-only-profiles-for-connected-services.md)).
 
 Turn it on in any project that connects services, committed or packaged:
 `"adf-connect@aplyca": true` in `enabledPlugins`, beside `adf`. It's listed in the `aplyca`

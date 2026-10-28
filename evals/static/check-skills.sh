@@ -838,6 +838,8 @@ check_practices() {
     file_contains_literal "$connect" 'Read-only and not production, unless the developer decides otherwise.' || missing+=("/connect: read-only, not production")
     file_contains_literal "$connect" 'Never allow `mcp__<server>__*`.' || missing+=("/connect: never pre-approves a whole server")
     file_contains_literal "$connect" 'Asking for a write — drafted, not sent — prompts' || missing+=("/connect: verifies that writes prompt")
+    file_contains_literal "$connect" '**Deny reads that return secrets.**' || missing+=("/connect: denies reads that return secrets (0057)")
+    file_contains_literal "$connect" '## Read-only profiles' || missing+=("/connect: read-only profiles for Vercel and Contentful (0057)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")

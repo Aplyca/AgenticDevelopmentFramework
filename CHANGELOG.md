@@ -11,6 +11,34 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **`/adf-connect:connect` has fixed read-only profiles for Vercel and Contentful, and denies reads
+  that return secrets**
+  ([decision 0057](docs/decisions/0057-read-only-profiles-for-connected-services.md)).
+  - **Why:** teams want Vercel to troubleshoot deployments and logs, and Contentful to read entries
+    and the content model, both read-only. `/connect` had only their URLs, and the agent sorted each
+    server's tools at connect time. Vercel has no read-only option and 217 tools, and the names
+    mislead. `get_project_env` returns a decrypted secret. `get_access_to_vercel_url` creates a
+    shareable link to a protected deployment.
+  - **What:**
+    - **§ Read-only profiles:** the exact tools to allow, deny, and leave prompting for each service.
+    - **Vercel** uses the project-scoped URL (`https://mcp.vercel.com/<team>/<project>`), and reading
+      production logs needs the developer's yes, written down.
+    - **Contentful** asks the space admin to set the Contentful MCP app's tools to read-only, so
+      Contentful refuses every write itself.
+    - **A new ground rule for every service:** a read that returns a secret goes in
+      `permissions.deny`.
+    - **GitHub stays on `gh`;** the catalog now says why.
+  - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`; the static checks.
+
+  **Upgrade impact:**
+  - **Additive.** The skill comes with the plugin, and nothing in a project changes by itself.
+  - **A project that already connected Vercel or Contentful:** rerun `/adf-connect:connect vercel`
+    (or `contentful`) to apply the profile. Or by hand in `.claude/settings.json`:
+    - add `mcp__vercel__get_project_env` and `mcp__vercel__get_shared_env_var` to
+      `permissions.deny`;
+    - remove any allowed Vercel tool the profile leaves prompting;
+    - point the `vercel` entry in `.mcp.json` at the project-scoped URL.
+
 - **A desktop session is named after its task even when `/adf:triage` doesn't run.**
   - **Why:** only `/adf:triage` step 5 renamed a desktop session. An agent that triaged by hand from
     `AGENTS.md` — because it skipped the skill, or because the plugin wasn't loaded in that session —
