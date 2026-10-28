@@ -9,6 +9,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 - **Merge** — file has customization expectations; reapply your customizations on top
 - **Additive** — new file, no existing project version to merge against
 
+## Unreleased
+
+- **A desktop session is named after its task even when `/adf:triage` doesn't run.**
+  - **Why:** only `/adf:triage` step 5 renamed a desktop session. An agent that triaged by hand from
+    `AGENTS.md` — because it skipped the skill, or because the plugin wasn't loaded in that session —
+    left the title the app made from the first prompt (`ClickUp tasks 454546`), which tells the
+    developer nothing in the session list. The session-title hook stood aside in the desktop app, and
+    `AGENTS.md` § Triage didn't mention naming the session.
+  - **What:**
+    - **`AGENTS.md` § Triage first:** in the Claude desktop app, name the session after the task's
+      title alone (`set_session_title`); the full triage goes under `Triage — <task title>`, the line
+      the hook reads.
+    - **`session-title.sh` runs in the desktop app too.** The app gives every session a title, and
+      the hook's input can't tell the app's from one the developer set. The app can: it takes a
+      hook's title only over the one it made, never over a title the developer or the agent set. So
+      the hook no longer stands aside there, and in a terminal a title already set still stays. As in
+      a terminal, the title lands on the developer's next prompt after the triage, once per session.
+  - **Where:** `skeleton/AGENTS.md`, `skeleton/.claude/hooks/config.sh` (the `SESSION_TITLE`
+    comment); in `adf`, `hooks/session-title.sh` and `hooks/README.md`; `docs/ONBOARDING.md`; the
+    hook tests.
+
+  **Upgrade impact:**
+  - **Packaged install:** the hook comes with the plugin. **Merge** `AGENTS.md` (§ Triage first: the
+    `Triage — <task title>` heading and the desktop-app sentence). `.claude/hooks/config.sh`: only a
+    comment changed — **merge** it or leave it.
+  - **Committed install:** the same, plus **overwrite** `.claude/hooks/session-title.sh`.
+
 ## v2.6.0 — 2026-10-25 — A standing go-ahead for every lane, three requester updates, end-user docs, and leaner instructions
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
