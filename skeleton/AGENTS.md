@@ -28,14 +28,14 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 
 ### 1. Triage first
 
-Read the task in full — description, comments, attachments — before creating any branch or file or starting anything. Then state in your first message:
+Read the task in full — description, comments, attachments — before creating any branch or file or starting anything. Then state in your first message, under `Triage — <task title>`:
 
 - **Deliverable** — an *answer* (investigation, impact analysis, estimate) or a *change* to the repository.
 - **Kind** — new feature, change request on delivered work, bug or hotfix, refactor, chore, or a change to how we work.
 - **Lane** — for a change: fast, careful, or full, with the reason and where it came from: the triggers, the sensitive areas, or the developer.
 - **Environment** — needed only when the next step runs the app, the tests, or the database. Reading code and docs needs none.
 
-A small task gets a one-line triage: `Fast lane — <the request in your words>; done when <check>; files: <list>.` Then do what the triage calls for without waiting for permission; the developer can redirect you. `/triage` walks through it.
+A small task gets a one-line triage: `Fast lane — <the request in your words>; done when <check>; files: <list>.` In the Claude desktop app, name the session after the task's title alone (`set_session_title`). Then do what the triage calls for without waiting for permission; the developer can redirect you. `/triage` walks through it.
 
 ### 2. Pick the lane — ceremony follows risk, not size
 

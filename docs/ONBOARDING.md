@@ -107,7 +107,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 |---|---|
 | Claude Code loads `AGENTS.md` — a `CLAUDE.md` or `CLAUDE.local.md` would replace it | The session-context hook warns when one is in the project or above it |
 | A session hears once when its branch's pull request merged (it offers the wrap-up) or closed (it asks whether the task is dropped) | `pr-state.sh` hook — `gh` at session start and at most every five minutes after |
-| A terminal session is named after its task once the triage is stated, as `/triage` does in the desktop app; a title you set with `/rename` stays | `session-title.sh` hook |
+| A session is named after its task once the triage is stated, as `/triage` does in the desktop app — in a terminal, and in the desktop app when the triage was made without `/triage`; a title you set stays | `session-title.sh` hook |
 | No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |

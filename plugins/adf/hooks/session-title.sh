@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook. Names a terminal session after its task, as /adf:triage does in the desktop
-# app: no tool lets the agent rename a session in a terminal, but a hook's sessionTitle does, the same
-# as /rename. Once a reply states the triage — "Triage — <task title> (<link>)", or the one-line
-# "Fast lane — <request>; …" — the next prompt sets the title to the task's title alone, with no lane
-# or link, once per session. A title already set (/rename, --name) stays, and in the desktop app the
-# agent names the session itself (triage step 5), so the hook stands aside. Empty SESSION_TITLE turns
-# the hook off.
+# UserPromptSubmit hook. Names a session after its task: no tool lets the agent rename a session in a
+# terminal, but a hook's sessionTitle does, the same as /rename; in the desktop app it covers a triage
+# made without /adf:triage, whose step 5 renames the session itself. Once a reply states the triage —
+# "Triage — <task title> (<link>)", or the one-line "Fast lane — <request>; …" — the next prompt sets
+# the title to the task's title alone, with no lane or link, once per session. In a terminal a title
+# already set (/rename, --name) stays. The desktop app gives every session a title from its first
+# prompt, which the hook can't tell from one the developer set; the app itself takes the hook's title
+# only over its own, so a title the developer or the agent set stays. Empty SESSION_TITLE turns the
+# hook off.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 [ -n "$SESSION_TITLE" ] || exit 0
-[ "${CLAUDE_CODE_ENTRYPOINT:-}" != "claude-desktop" ] || exit 0
-[ -z "$(json_get '.session_title')" ] || exit 0
+[ "${CLAUDE_CODE_ENTRYPOINT:-}" = "claude-desktop" ] || [ -z "$(json_get '.session_title')" ] || exit 0
 
 session="$(json_get '.session_id' | tr -cd 'A-Za-z0-9_-')"
 transcript="$(json_get '.transcript_path')"

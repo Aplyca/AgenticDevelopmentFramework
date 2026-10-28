@@ -148,7 +148,7 @@ run triage-first.sh 0 "$(triage_bash b3 "$WORK/lane.jsonl" 'git switch -c fix/la
 echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
 run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
 
-# session-title — a terminal session takes its task's title from the stated triage, once per session
+# session-title — a session takes its task's title from the stated triage, once per session
 said() { # said <transcript name> <reply text>
     printf '%s\n' '{"type":"user","message":{"content":"Work on this task https://app.clickup.com/t/86a1"}}' \
         "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":$(printf '%s' "$2" | json_string)}]}}" > "$WORK/$1.jsonl"
@@ -176,7 +176,8 @@ title_check "no triage stated yet — or only its template — names nothing" "$
 said none $'Reading the task first.\n\nTriage — Fix the label on the signup form (#123)'
 title_check "the session is named on a later prompt, once the triage is stated" "$(named n3 none)" "Fix the label on the signup form"
 title_check "a title already set (/rename, --name) stays" "$(named n4 full cli ',"session_title":"My own name"')" ""
-title_check "leaves the desktop app to the agent, which names the session itself" "$(named n5 full claude-desktop)" ""
+title_check "in the desktop app, names the session over the app's title — the app keeps one the developer set" "$(named n5 full claude-desktop ',"session_title":"Work on this task"')" "Newsletter signup: double opt-in"
+title_check "in the desktop app too, once per session" "$(named n5 full claude-desktop ',"session_title":"Newsletter signup: double opt-in"')" ""
 said long "Triage — $(printf 'Signup %.0s' $(seq 1 20))(https://app.clickup.com/t/86a1)"
 title_check "cuts a long title to 80 characters" "$(named n6 long | python3 -c 'import sys; print(len(sys.stdin.read().strip()))')" "80"
 echo 'SESSION_TITLE=""' >> "$T/.claude/hooks/config.sh"
