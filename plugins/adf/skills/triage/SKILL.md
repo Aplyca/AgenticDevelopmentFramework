@@ -94,7 +94,9 @@ not a research project.
    on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; after
    the gate, a fresh sonnet session for /adf:implement` (on Sonnet, full lane).
 
-5. **Name the session after the task,** once the triage is on the page. A session started with no
+5. **Name the session after the task — always,** once the triage is on the page, for every task in
+   every lane, an answer included: it's the first thing you do after the triage text, before the
+   lane's work and before `/adf:dispatch`. A session started with no
    more than a tracker link (`Work on this task <link>`) has a title made from that prompt, which
    tells the developer nothing in the session list. The name is the task's title alone — the
    tracker's, in its own language, or for a task with none a short name for what it asks
@@ -121,12 +123,14 @@ not a research project.
    your recommended answer (`AGENTS.md` § Working economically). Record the rest in the spec's
    Clarifications (full lane) or the pull request (fast and careful lanes).
 
-   **A tracker task gets its started update** (`/adf:stakeholder-update started`): the task's move to
-   the project's in-progress status, and a message only when it's worth the requester's time — what
-   you understood and will deliver, the questions only they can answer, a finding. Its draft ends the
-   turn's last message, for the developer's yes; the work goes on meanwhile. If the draft pull request
-   opens in the same turn, the review update replaces it. Skip it for a task the developer isn't
-   assigned to, unless they say so.
+   **A tracker task gets its started update** (`/adf:stakeholder-update started`). First the status:
+   move the task to the project's in-progress status now, on your own
+   (`/adf:stakeholder-update status started`) — no yes needed, forward only, one line to say so.
+   Then a message, only when it's worth the requester's time — what you understood and will deliver,
+   the questions only they can answer, a finding. Its draft ends the turn's last message, for the
+   developer's yes; the work goes on meanwhile. If the draft pull request opens in the same turn, the
+   review update replaces it. Skip both for a task the developer isn't assigned to, unless they say
+   so.
 
 7. **Keep checking while you work.** If the diff grows past the files you stated, a test outside the
    area fails, a trigger appears, or no test can prove the change — move up a lane, keeping what's
@@ -168,7 +172,7 @@ one a new session (`/adf:dispatch` too).
 | "This looks new, I'll analyze it from scratch" | When the task points at a feature or delivered work, check `specs/` and `git log` first. Re-analyzing delivered work silently drops what was built or redoes it. |
 | "The task is vague, I'll fill in reasonable details" | Gaps about what is wanted are questions — and they rule out the fast lane. |
 | "The reply most likely means this, so I'll start on it" | A wrong reading builds the wrong thing, or reopens delivered work nobody asked to change. List the readings and their cost, recommend one, and confirm it with the requester first. |
-| "I'll move the task to In progress — it's only a status" | A status is a write the requester sees. Draft it with the started update; it changes on the developer's yes. |
+| "I'll leave the status for the developer to move" | The board should show the task started. Move it to in progress yourself, forward only; only the message waits for a yes. |
 
 ## Red flags (stop and reassess)
 
@@ -186,10 +190,10 @@ one a new session (`/adf:dispatch` too).
 - [ ] The first message states the deliverable and, for a change, the lane with its reason and source, and the model
 - [ ] A fast-lane change states its request, its "done when", and its files
 - [ ] Nothing — no branch, file, spec folder, or environment — was created before the triage was stated
-- [ ] In the desktop app, the session's title names the task; in a terminal, the triage line opens with it, for the session-title hook
+- [ ] Every task — answers and the fast lane too — got a descriptive session name before any other step; in the desktop app, the session's title names the task; in a terminal, the triage line opens with it, for the session-title hook
 - [ ] The session's model and effort fit the lane — switched in the desktop app unless the developer chose them or the task was nearly done; named in a terminal
 - [ ] Every gap about what is wanted is a question, not an assumption
-- [ ] A tracker task's turn ended with the started update's draft — the status, and a message only when it's worth sending — and nothing changed on the tracker without the developer's yes
+- [ ] A tracker task moved to in progress on its own, and its turn ended with the started message's draft — only when it's worth sending — and nothing else changed on the tracker without the developer's yes
 - [ ] A stakeholder's reply open to more than one reading got its readings and their cost, a recommendation, and a confirming reply that carries the unanswered questions — and nothing was built before it was confirmed
 
 ## Principles

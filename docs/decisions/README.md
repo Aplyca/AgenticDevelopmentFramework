@@ -36,7 +36,7 @@ projects.
 | [0023](0023-plugins-by-concern.md) | One plugin per concern — the process, development, connections — and modules as each project's switches | accepted; amended by 0027, 0028; refined by 0057 |
 | [0024](0024-agents-md-only.md) | No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule | accepted |
 | [0025](0025-no-gemini-md.md) | No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it | accepted |
-| [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | accepted; amended by 0032 |
+| [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | superseded by 0060 |
 | [0027](0027-worktree-scripts-as-plugin-commands.md) | The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module) | accepted; amended by 0032, 0046 |
 | [0028](0028-plugins-are-the-source.md) | The plugins are the machinery's source, and a committed install is written from them | accepted; amended by 0029, 0046 |
 | [0029](0029-workflows-carry-agent-checklists.md) | A workflow carries the agent checklists its lenses follow | accepted; amended by 0030 |
@@ -69,6 +69,8 @@ projects.
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
 | [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted |
 | [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
+| [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted |
+| [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

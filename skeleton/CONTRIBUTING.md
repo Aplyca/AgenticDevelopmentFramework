@@ -85,6 +85,9 @@ schema back).
 | Merged into [the integration branch / preview] | "in acceptance testing" |
 | [Merged into `main` / released with a tag] | "live" |
 
+The task's status moves to match, on its own: in progress when work starts, in review once the pull
+request is pushed, done once it merges.
+
 ## What's enforced, and what isn't
 
 <!-- CUSTOMIZE: be honest. A rule people believe is enforced but isn't is worse than a stated convention. -->

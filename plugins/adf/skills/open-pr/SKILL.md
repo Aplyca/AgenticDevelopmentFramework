@@ -138,11 +138,13 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
 
    The developer's QC on the preview still decides ready; yours is evidence for it.
 
-8. **Draft the review update** for a tracker task (`/adf:stakeholder-update review`): the task's move
-   to the project's review status, and a business-focused report for the requester — what changes
-   for them, the preview and what to test there, and the pull request link, which is the tracker
-   link-back. It ends the report in step 9. Post it only on the developer's yes to the exact text,
-   the status, and the assignee — often after their own test.
+8. **Update the tracker task** (`/adf:stakeholder-update review`). Right after the branch is pushed
+   and the pull request is open, move the task to the project's review status on your own
+   (`/adf:stakeholder-update status review`) — no yes needed, forward only, one line to say so. Then
+   draft the review update: a business-focused report for the requester — what changes for them, the
+   preview and what to test there, and the pull request link, which is the tracker link-back. It
+   ends the report in step 9. Post it only on the developer's yes to the exact text and the
+   assignee — often after their own test.
 
 9. **Report — once, after the preview walk** (or right after step 6 when there's no preview to
    check): the pull request URL, and that it is a **draft** — in the careful lane, the risky part
@@ -227,7 +229,7 @@ settings files: elsewhere, merge with git; a refused merge goes to the developer
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
-| "I'll move the task to Review and post the link while I'm here" | Both are writes the requester sees. Draft them as the review update, at the end of the report; post on the developer's yes to the exact text. |
+| "I'll post the link on the task while I'm here" | The status moves with the push, on its own. The message is a write the requester reads: draft it as the review update, at the end of the report; post on the developer's yes to the exact text. |
 | "I pushed the fix; the description can stay as it was" | Then it describes code that's gone, and the reviewer reads it first. After a push that changes what it says, refresh it. |
 | "I'll rewrite the whole description from what I know now" | People edit descriptions: a reviewer's note, a ticked box, a screenshot. Rebuild only the sections between the markers, from the current body. |
 
@@ -253,7 +255,7 @@ settings files: elsewhere, merge with git; a refused merge goes to the developer
 - [ ] The description matches the diff — no phantom or missing changes
 - [ ] Merge danger says whether a revert undoes the change and what it affects if wrong
 - [ ] The pull request URL is recorded in `spec.md` `pull-requests:`
-- [ ] For a tracker task, the report ends with the review update's draft: the review status, the preview and what to test there, and the pull request link
+- [ ] For a tracker task, the task moved to the review status on its own, and the report ends with the review update's draft: the preview and what to test there, and the pull request link
 - [ ] No tracker write was made without the developer's explicit yes on the exact text
 - [ ] After a later push that changed what it says, the description was refreshed from its current body: only the sections between the markers, with the diff shown
 

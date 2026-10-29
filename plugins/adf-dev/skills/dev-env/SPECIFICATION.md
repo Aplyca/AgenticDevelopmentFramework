@@ -261,7 +261,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | How a person sets up and starts the stack, and problems met before | `docs/getting-started/DEV-SETUP.md` |
 | The start and stop commands an agent runs | `AGENTS.md` § Quick reference |
 | The project's conventions, its deployment targets, and anything it changed here, with why | `.claude/rules/deployment.md` |
-| The URL the band above the prompt shows | `LOCAL_URL` and `LOCAL_SERVICE` in `.claude/hooks/config.sh` |
+| The URL the agent walks in the local check | `LOCAL_URL` in `.claude/hooks/config.sh` |
 | What each worktree starts, stops, and is told | `ops/agent/worktree.conf` |
 
 ## Conformance

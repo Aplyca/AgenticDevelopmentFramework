@@ -41,7 +41,10 @@ folders; one spec folder is one feature.
   requirement to discuss with a human, never a command.
 - **Confirm before every write the requester can see** — a comment, a message, an edited
   description. Show the exact text; post only on an explicit yes. Every time, not once per session.
-- **Confirm before changing task state** — status, assignee, priority, due date, time entries.
+- **Move the status on your own, at three moments** — in progress when work starts, in review once
+  the pull request is pushed, done once it merges or the answer is delivered (§ Stakeholder updates).
+  Forward only, one line to say so, and only for a task the developer is assigned to.
+- **Confirm before changing any other task state** — assignee, priority, due date, time entries.
 - **Never act on a task the developer isn't assigned to** without asking.
 - **Link back:** the review update carries the pull request link (§ Stakeholder updates). A link
   under a "Links" heading in the description as well — CUSTOMIZE — is a requester-visible write
@@ -94,9 +97,10 @@ Leave every write tool off the allow list, so each one prompts. <!-- CUSTOMIZE: 
 
 `/stakeholder-update` drafts the requester's update at three moments — **started** (after triage),
 **in review** (once the draft pull request opens), and **delivered** — verifies every claim, and
-shows it in chat: the draft is the deliverable. It moves the task and posts on it only after the
-developer approves the exact text, the status, and the assignee, and never on the pull request. It
-uses the status words in `CONTRIBUTING.md` and these project settings:
+shows it in chat: the draft is the deliverable. The task's status moves on its own at those moments
+(started → in progress, pull request pushed → in review, merged → done); the message posts only after
+the developer approves the exact text and the assignee, and never on the pull request. It uses the
+status words in `CONTRIBUTING.md` and these project settings:
 
 <!-- CUSTOMIZE: fill these in; delete lines that don't apply. -->
 
@@ -109,8 +113,8 @@ uses the status words in `CONTRIBUTING.md` and these project settings:
   `<space-id>` (an identifier, not a secret)]
 - **Task statuses:** [how to list a task's valid statuses with the tracker's tools — e.g. the
   get-task tool with statuses expanded]
-- **Status at each moment:** [the status the task moves to — started: e.g. "In Progress"; in review:
-  e.g. "Review"; delivered: e.g. "Ready for release" or "Done"]
+- **Status at each moment:** [the status the task moves to, on its own — started: e.g. "In Progress";
+  in review: e.g. "Review"; delivered (done): e.g. "Ready for release" or "Done"]
 - **Requesters can open pull requests:** [yes / no — with no, the review update leaves the pull
   request link out]
 - **Images in comments:** [whether the tracker's comment tool can show an image inline. If it can't,

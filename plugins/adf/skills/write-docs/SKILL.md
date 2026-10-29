@@ -14,8 +14,9 @@ Docs are **living artifacts**, not frozen contracts: when implementation reveals
 they are updated deliberately (small fixes by `/adf:implement`, larger rewrites by this skill's update mode).
 
 These are the repository's docs, for the team, its agents, and anyone who reads the code. With the
-`end-user-docs` module, the pages end users read live in a doc tool instead: spec § Documentation ›
-End-user docs lists them, and `/adf:end-user-docs` writes them.
+`end-user-docs` module, the guides stakeholders read — user, editorial, and administrative guides on
+how to use the system — live in a doc tool instead: spec § Documentation › End-user docs lists them,
+and `/adf:end-user-docs` writes them.
 
 Two modes:
 - **First pass (default)** — the Phase 1 doc tasks in `tasks.md`, after the approval gate and before
@@ -34,8 +35,8 @@ Pre-implementable as Not applicable), say so, confirm the post-implementable doc
 later, and hand off to `/adf:implement` — or to `/adf:end-user-docs` first, when the plan lists an
 end-user page. Don't manufacture docs a feature doesn't need.
 
-Pre-implementable docs typically include admin or operator guides, API contracts (OpenAPI, GraphQL
-schemas), end-user help and copy defaults seeded into a CMS, public READMEs or SDK docs, and
+Pre-implementable docs typically include operator guides, API contracts (OpenAPI, GraphQL
+schemas), help and copy defaults seeded into a CMS, public READMEs or SDK docs, and
 architecture sketches for non-trivial features. Post-implementable docs — runbooks with real
 metrics, tutorials with real screenshots, troubleshooting from real failures — are not this phase's
 job; they're Phase 5 tasks.

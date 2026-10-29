@@ -227,13 +227,14 @@ Or: `> Not applicable: [reason]`
 
 ### End-user docs [OPTIONAL — with the end-user-docs module]
 
-How the people who use the product do what this feature lets them do — written in the doc tool they
-read (`docs/END-USER-DOCS.md`), never in the repository, via `/end-user-docs`: drafted before code,
-published once the feature ships. Only for a feature that changes what end users see or do.
+A stakeholder guide: how the people who use the system do their work with it — visitors, content
+editors, administrators — written in the doc tool they read (`docs/END-USER-DOCS.md`), never in the
+repository, via `/end-user-docs`: drafted before code, published once the feature ships. Only for a
+feature that changes what they see or do.
 
-| End users | What they need | Page in the end-user doc |
+| Audience | What they need | Page in the guide |
 | --- | --- | --- |
-| [Site visitors] | [How to subscribe to the newsletter and confirm it] | [User guide › Newsletter › Subscribe (new page)] |
+| [Content editors] | [How to create, schedule, and publish a newsletter issue] | [Editorial guide › Newsletter › Publish an issue (new page)] |
 
 Or: `> Not applicable: [reason — e.g. nothing end users see or do changes]`
 

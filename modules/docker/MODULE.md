@@ -80,9 +80,7 @@ fills these from what it verifies, for you to review:
 2. **`AGENTS.md` § Quick reference** — `make up`, `make down`, and `make urls`, and `make prod` for
    the production build (or "none"); the local check before the pull request starts the stack from
    there.
-   **`.claude/hooks/config.sh`** — `LOCAL_URL='http://localhost:${APP_PORT}'`, and `LOCAL_SERVICE`, the
-   app's service and container port (`web:3000`): `adf-dev`'s band above the prompt looks up the port
-   Docker picked with `docker compose port` (decision 0032).
+   **`.claude/hooks/config.sh`** — `LOCAL_URL='http://localhost:${APP_PORT}'`.
 3. **`.claude/rules/deployment.md`** — `paths:` names `compose.yaml`, the `Makefile`, `ops/**`, and
    `.env.example`, and § Docker holds any convention the project adds.
 4. **With `parallel-agents`** — `/dev-env worktrees` proposes the `worktree.conf` values that give
@@ -92,7 +90,7 @@ fills these from what it verifies, for you to review:
 
 ## Good to know
 
-- **A port Docker picked changes** each time its service starts. `make urls` and the band always show
+- **A port Docker picked changes** each time its service starts. `make urls` and Claude Desktop's Browser always show
   the current one; pin it in `.env` when something outside the app has to know it.
 - **Claude Desktop's Browser lists the running web services** on a new tab, one row each —
   `web · http://localhost:55123` — and one click opens it. A service is listed when `compose.yaml`

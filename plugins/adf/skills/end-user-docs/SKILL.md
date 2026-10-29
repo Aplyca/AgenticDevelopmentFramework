@@ -1,6 +1,6 @@
 ---
 name: end-user-docs
-description: With the end-user-docs module: draft, update, or publish a feature's end-user page in the doc tool its users read (ClickUp Docs, Confluence, Notion), never in the repository, writing only on the developer's yes. Use after the approval gate when the spec lists end-user docs, after the merge to publish, or when asked to write, update, or publish user documentation, a user guide, or help pages.
+description: With the end-user-docs module: draft, update, or publish a feature's stakeholder guide — how the people who use the system do their work with it, editors and administrators included — in the doc tool they read (ClickUp Docs, Confluence, Notion), never in the repository, writing only on the developer's yes. Use after the approval gate when the spec lists a guide, after the merge to publish, or when asked to write, update, or publish a user guide, an editorial or administrative guide, or help pages.
 argument-hint: "[spec folder or tracker task] [draft | update | publish]"
 ---
 
@@ -10,13 +10,15 @@ argument-hint: "[spec folder or tracker task] [draft | update | publish]"
 
 A feature can need two kinds of documentation, and each has its own home:
 
-- **Technical docs** — admin and operator guides, API contracts, architecture, reference — for the
-  team and its agents, in the repository, written with `/adf:write-docs`.
-- **End-user docs** — how the people who use the product do what a feature lets them do — in the doc
-  tool they have access to, written with this skill. **The doc tool is their only home:** the
-  repository keeps only the spec's line that names the page.
+- **Technical docs** — operator runbooks, API contracts, architecture, reference — for the team and
+  its agents, in the repository, written with `/adf:write-docs`.
+- **Stakeholder guides** — how the people who use the system do their work with it, in the doc tool
+  they have access to, written with this skill. Stakeholders are the client's staff and users: a
+  visitor-facing help page, an **editorial guide** for the content team (create, edit, publish), an
+  **administrative guide** (manage users, settings, configuration in the admin area).
+  **The doc tool is their only home:** the repository keeps only the spec's line that names the page.
 
-Not every feature needs an end-user page — only one that changes what end users see or do, as the
+Not every feature needs a guide — only one that changes what stakeholders see or do, as the
 spec's § Documentation › End-user docs says. The page follows the feature in three modes:
 
 - **Draft** — docs first, after the approval gate and before implementation: written from the spec
