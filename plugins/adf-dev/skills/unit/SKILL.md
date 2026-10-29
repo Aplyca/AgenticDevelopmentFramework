@@ -28,7 +28,7 @@ is done when its runs prove it. Name the requirement's ID whenever you report a 
 - **No weakened tests.** Never add a skip, a retry, or a loosened assertion to get to green, and
   never retag a failing test to a later tier to hide it.
 - **Packages are pinned and installed deliberately.** Choose the newest Vitest release at least two
-  weeks old; ask before adding any dependency beyond `vitest` and `@vitest/coverage-v8`.
+  weeks old; ask before adding any dependency beyond `vitest`, its peer `vite`, and `@vitest/coverage-v8`.
 
 ## Steps
 

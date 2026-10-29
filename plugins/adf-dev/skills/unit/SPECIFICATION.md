@@ -32,7 +32,9 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
 ## Suite layout — `S`
 
 - **S1.** Vitest is a dev dependency of the app's own `package.json`, pinned to an exact version
-  (no `^` or `~`), with the lockfile committed. Its configuration is `vitest.config.ts`.
+  (no `^` or `~`), with the lockfile committed. `vite` is its required peer, so it is a pinned dev
+  dependency too, at a version Vitest's `peerDependencies` accepts: without it, Vitest stops at start-up
+  with `Cannot find package 'vite'`. Its configuration is `vitest.config.ts`.
 - **S2.** Two Vitest **projects** in that configuration: `unit` (`*.test.ts`, `*.test.tsx`) and
   `integration` (`*.int.test.ts`), so `--project integration` runs the slower layer alone.
 - **S3.** Tests live in their feature suite's folder — `tests/<suite>/`, or beside the code in
@@ -87,7 +89,7 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
   - `npm test -- --project integration tests/billing` — one layer of one feature suite.
   With the `docker` module, `make test suite=billing tier=critical`, which resolves the feature suite's
   paths from `docs/TEST-SUITES.md`'s table (T3).
-- **U3.** `vitest related <file>` (or `--changed`) runs the tests for what changed; an agent uses it
+- **U3.** `vitest related <file> --run` (or `--changed`) runs the tests for what changed; an agent uses it
   while iterating on a change that crosses feature suites, then runs each affected feature suite once.
 - **U4.** An end-to-end flow that spans feature suites is tagged `@suite:<name>` for each in `e2e/`
   (`/adf-dev:e2e`); unit and integration tests need no feature suite tag, since their folder is it.
