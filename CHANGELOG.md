@@ -11,6 +11,27 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Tests run by tier and by feature suite, and a `unit` module sets up unit and integration tests**
+  ([decision 0058](docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)).
+  - **What:**
+    - **Tiers:** `@smoke` ⊂ `@critical` ⊂ regression, in Vitest and Playwright alike; a test carries its lowest tier.
+    - **Feature suites:** a folder per feature, listed in `docs/TEST-SUITES.md`; `@suite:<name>` for an end-to-end flow across feature suites.
+    - **New `unit` module** and `/adf-dev:unit` (set up, audit, tag, feature suites) with a specification; its install merges permissions to run the tiers.
+    - **`e2e`'s specification** gains K6 (tiers, feature suites, `make e2e tier= suite=`); `make smoke` is unchanged.
+    - **`testing.md`** (and the Cursor rule) gain § Tiers and feature suites.
+    - **Preferred engines** (Vitest, Playwright) are stated in `testing.md`; `AGENTS.md` § Quick reference gains tier and suite command lines; a starter `docs/TEST-SUITES.md`.
+    - `/adf:adopt` and `/adf:upgrade` offer the module; `/adf:upgrade` offers `/adf-dev:unit set up`, or `audit` when its specification changes.
+  - **Where:** `modules/unit/`, `plugins/adf-dev/skills/unit/`, `plugins/adf-dev/skills/e2e/SPECIFICATION.md`, `skeleton/.claude/rules/testing.md`, `skeleton/.cursor/rules/testing.mdc`, `scripts/upgrade.py`, the static checks.
+
+  **Upgrade impact:**
+  - **`dev-env`'s specification and Makefile templates — merge:** `make test` (and `make e2e`) take `tier=` and `suite=`; a project with `docker` and `unit` adds them to each mode's `Makefile`, and `/adf-dev:dev-env set up` audits it. The templates are an example, never copied over the project's files.
+  - **`testing.md` — merge:** add § Tiers and feature suites above § End-to-end.
+  - **`testing.mdc` — merge:** add its § Tiers and feature suites.
+  - **`AGENTS.md` — merge:** add the tier and suite commands to § Quick reference, and the `docs/TEST-SUITES.md` row to the docs table.
+  - **`docs/TEST-SUITES.md` — additive, project-owned:** fill in the project's feature suites.
+  - **`unit` module — additive:** opt-in; nothing changes until chosen.
+  - **`e2e` projects:** `/adf-dev:e2e audit` reports K6 gaps.
+
 - **`/adf-connect:connect` has fixed read-only profiles for Vercel and Contentful, and denies reads
   that return secrets**
   ([decision 0057](docs/decisions/0057-read-only-profiles-for-connected-services.md)).

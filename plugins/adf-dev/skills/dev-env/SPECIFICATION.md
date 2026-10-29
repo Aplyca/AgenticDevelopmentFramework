@@ -72,7 +72,7 @@ a project misses. A project that departs from one on purpose records it, with th
   | `ps` | Show what runs, its state, and its health |
   | `logs` | Print the last lines — 100 — of every log, or of one service's (`s=<service>`). **Never follow** |
   | `urls` | Print where each service is now, and whether it answers |
-  | `test` | Run the tests, where the mode runs the app. `t=<filter>` runs only the matching ones — a file, or what the test runner takes to select tests |
+  | `test` | Run the tests, where the mode runs the app. `t=<filter>` runs only the matching ones — a file, or what the test runner takes to select tests. `tier=<smoke\|critical\|regression>` runs a tier and `suite=<name>` one feature suite, when the project has the `unit` module ([decision 0058](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)); `make e2e` takes the same two |
   | `lint` | Run the linters, where the mode runs the app. `f=<files>` lints only those |
   | `format` | Rewrite files to the project's formatting, where the mode runs the app; `f=<files>` formats only those. A stack with no formatter keeps the task, saying so |
   | `typecheck` | Run the type checker, where the mode runs the app. A stack with none keeps the task, saying so |

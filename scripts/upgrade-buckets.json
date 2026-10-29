@@ -55,6 +55,7 @@
     "README.md",
     "docs/ARCHITECTURE.md",
     "docs/GLOSSARY.md",
+    "docs/TEST-SUITES.md",
     "docs/architecture/*",
     "docs/infrastructure/*",
     "docs/security/*",

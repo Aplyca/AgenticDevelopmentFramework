@@ -31,7 +31,7 @@ Contract-first option: when the plan asks for it, end-to-end acceptance tests en
 - Green tests are necessary, not sufficient — verify the behavior
 
 ## Structure
-- One test file per feature area; names that read as behavior; Arrange → Act → Assert
+- One test file per feature feature suite; names that read as behavior; Arrange → Act → Assert
 - Mock ALL external services; mock data matches real contracts
 - Mock only at the system boundary (external services, the clock, randomness) — never your own modules
 - Fake but realistic test data — never real credentials or PII
@@ -40,6 +40,12 @@ Contract-first option: when the plan asks for it, end-to-end acceptance tests en
 - Expected values come from outside the code — a literal, a worked example, the spec — never recomputed the way the code computes them
 - Verify through the public interface, not by querying internals or asserting which function was called
 - Assert the behavior the spec names, not that the code ran without an error
+
+## Tiers and feature suites
+- Three cumulative tiers: `@smoke` (one fast test per critical behavior; while iterating) ⊂ `@critical` (delivered features' acceptance criteria; every pull request) ⊂ regression (everything; before delivery, nightly, release)
+- A test carries only its lowest tier, in its title (`'rejects an empty email @smoke'`); untagged = regression only
+- A feature suite is a feature and its folder (`tests/billing/`), listed in `docs/TEST-SUITES.md`; a path runs one feature suite. End-to-end flows across feature suites carry `@suite:<name>`
+- Never retag or skip a failing test to get green
 
 ## What NOT to test
 - Implementation details or internal state; CSS specifics; third-party internals; anything not in the spec

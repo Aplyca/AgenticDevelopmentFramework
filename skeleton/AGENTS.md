@@ -164,6 +164,7 @@ Read the relevant doc before deciding anything in its area. When a doc contradic
 | `docs/infrastructure/OVERVIEW.md` | Changing deployment, CI/CD, environments |
 | `docs/getting-started/DEV-SETUP.md` | Setting up or troubleshooting the dev environment |
 | `docs/TRACKER-INTEGRATION.md` | Reading or writing tracker tasks |
+| `docs/TEST-SUITES.md` | Picking where a test goes, or which feature suite to run |
 | `docs/GLOSSARY.md` | Naming anything — in specs, code, tests, docs, or user-facing text |
 | `docs/COST-MODEL.md` · `docs/MEMORY-STRATEGY.md` | Choosing a model tier · deciding where a piece of knowledge belongs |
 
@@ -185,7 +186,7 @@ docs/                Documentation
 - Install: `[command]`
 - Dev server: `[command, e.g. make up]` · stop: `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`
 - Production build, locally: `[command, e.g. make prod — or "none"]` — for what only the production build shows; never the stack's build and start commands run by hand
-- Tests: `[command]` (on their own port)
+- Tests: `[command]` (on their own port) · by tier: `[e.g. npm run test:smoke · test:critical · npm test]` · one feature suite: `[e.g. npm test -- tests/billing]`
 - Lint: `[command]` · Typecheck: `[command]`
 - Full gate before a PR: `[command]`
 - Preview: `[where each pull request's preview deploys, e.g. the host's comment on the PR — or "none"]`
