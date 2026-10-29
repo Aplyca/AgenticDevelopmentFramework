@@ -66,8 +66,8 @@ not the desktop app's, so the app's `sync_with_base_branch` tool doesn't reach i
 
 **When the task's pull request merges,** its session wraps up with `/adf:wrap-up`. It checks that
 nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then — on the developer's own
-word that it merged, or one yes when the merge was only reported — it stops what the task started, removes the worktree and its branch,
-updates the base branch here, and archives the session. If anything is left, it lists it and
+word that it merged, or one yes when the merge was only reported — it stops what the task started, updates the base branch here,
+starts the follow-ups the developer keeps, removes the worktree and its branch, and archives the session. If anything is left, it lists it and
 removes nothing.
 
 The worktree can run the app, because the scripts gave it the env file and its port; the session

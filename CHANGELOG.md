@@ -11,6 +11,22 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **`/adf:wrap-up` starts the follow-ups before it removes the worktree, and asks about the time
+  before the close-up**
+  ([decision 0061](docs/decisions/0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md)).
+  - **What:**
+    - **Order:** stop what the task started, update the base branch, start the follow-ups, then delete
+      the branch and remove the worktree. A session whose folder is gone couldn't start them.
+    - **Time:** with the `time-tracking` module, a step of its own asks whether to log the time with
+      `/adf:track-time` before the close-up's question, and waits; the developer may skip it. It used
+      to be an offer inside the step that lists what's left, skipped when nothing was.
+  - **Where:** `plugins/adf/skills/wrap-up/`, `plugins/adf/docs/PARALLEL-AGENTS.md`,
+    `modules/time-tracking/MODULE.md`, the static checks.
+
+  **Upgrade impact:**
+  - **Packaged install:** comes with the plugin; nothing to do.
+  - **Committed install — overwrite:** `.claude/skills/wrap-up/`.
+
 - **A tracker task's status follows the work on its own, every session is named after its task, the
   local-environment band is removed, and end-user docs are stakeholder guides**
   ([decision 0059](docs/decisions/0059-task-status-follows-the-work-and-stakeholder-guides.md),

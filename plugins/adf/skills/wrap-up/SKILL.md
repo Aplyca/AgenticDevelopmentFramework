@@ -78,12 +78,7 @@ the close-up only once it resumes and ends.
    commit and push, open a follow-up, drop the stash, give the handoff. Offer no close-up until
    the developer settles them. Nothing is deleted or archived in this case.
 
-   Time not yet logged isn't work left over. Only when the stamp on `AGENTS.md`'s first line names
-   the `time-tracking` module, offer `/adf:track-time` once, before the close-up: the task's
-   worktree is still there to measure. The developer may skip it. Without the module, say nothing
-   about time.
-
-   An end-user page waiting to be published isn't work left over either. Only when the stamp names
+   An end-user page waiting to be published isn't work left over. Only when the stamp names
    the `end-user-docs` module, the pull request merged, the spec lists an end-user page whose draft
    isn't retired yet, and `docs/END-USER-DOCS.md` publishes after the merge, offer
    `/adf:end-user-docs publish` once, before the close-up. The developer may skip it: a release
@@ -96,19 +91,31 @@ the close-up only once it resumes and ends.
    (`/adf:stakeholder-update delivered`) once, when it hasn't been posted. It's a draft in chat and
    needs no worktree, so neither holds up the close-up.
 
-4. **Ask once, unless the developer's own word ended the task.** When the developer said it in this
+4. **Ask about the time, before the close-up.** Only when the stamp on `AGENTS.md`'s first line
+   names the `time-tracking` module, ask whether to log the task's time now with `/adf:track-time`
+   — a question of its own, before the close-up's — and wait for the answer: the task's worktree
+   and its transcripts are still there to measure. Time not yet logged isn't work left over, so the
+   developer may skip it.
+   - **On a yes,** run `/adf:track-time` to its end — the draft, the developer's picks, the entries
+     written — then go on.
+   - **On a skip,** go on.
+
+   Don't ask when `/adf:track-time` already ran in this session after the task's last work. Without
+   the module, say nothing about time.
+
+5. **Ask once, unless the developer's own word ended the task.** When the developer said it in this
    session — "merged", "it's in", "close up" — the pull request merged by the host's state, the
-   check found nothing left, and there's nothing to choose (no follow-ups, no `/adf:track-time` or
-   `/adf:end-user-docs` offer), their word is the yes: go to step 5, and the list below opens your
-   report. Otherwise — the merge reported by the hook or the app, an abandoned task, an answer, or
+   check found nothing left, and there's nothing to choose (no follow-ups, no `/adf:end-user-docs`
+   offer; the time was settled in step 4), their word is the yes: go to step 6, and the list below
+   opens your report. Otherwise — the merge reported by the hook or the app, an abandoned task, an answer, or
    something to choose — show what the close-up will do, in order, naming the real paths and
    branches:
    ```
    PR #<n> merged, and nothing is left in this task. Close up?
    - Stop what it started: <the containers, the app on the host, the background commands>
-   - Remove the worktree <path> and its branch <type>/<slug> (here and on origin)
    - Update <base> in the main checkout to origin's
-   - Start, each in its own session, once <base> is updated: <the follow-up commands and tasks, with why>
+   - Start, each in its own session, from the updated <base>: <the follow-up commands and tasks, with why>
+   - Remove the worktree <path> and its branch <type>/<slug> (here and on origin)
    - Archive this session
    ```
    The first line names the ending: `PR #<n> merged`, `The answer is delivered`, or `PR #<n> closed
@@ -119,42 +126,44 @@ the close-up only once it resumes and ends.
    and the developer can drop any of them from it.
    Wait for the yes. A "yes, but keep the session" or "keep the branch" changes only that line.
 
-5. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
-   so after that step, run nothing but the archive.
+6. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
+   and a session without its folder can't start another: the follow-ups start before it, and after
+   it, run nothing but the archive.
    1. **Stop what the task started.**
       - The background commands this session started.
       - The environment: `make down` with the docker module's conventions, or the project's stop
         command (`docs/getting-started/DEV-SETUP.md`). `adf-worktree-rm` also runs `STOP_CMD` when
         the project sets one.
-   2. **Remove the branch from origin,** if the host didn't delete it on merge
-      (`git ls-remote --heads origin <branch>`): `git push origin --delete <branch>`. Skip it for an
-      abandoned task, and for an answer whose branch was never pushed.
-   3. **Remove the worktree and update the base branch.** Which way depends on the worktree:
-      - **A worktree from the scripts:** `cd <main checkout> && adf-worktree-rm <branch>`.
-        - It removes the worktree, fast-forwards the base branch in the main checkout, and deletes
-          the branch when git sees it as merged.
-        - After a squash merge, it keeps the branch and says so. Delete it with
-          `git -C <main checkout> branch -D <branch>`: the merged pull request holds its work. An
-          abandoned task's branch goes the same way: the state you read showed its last commit on
-          origin.
-      - **Claude Code's own worktree** (under `.claude/worktrees/`): leave it. Archiving the session
-        removes it. Update the base branch in the main checkout as below.
-      - **No worktree** (a session in the main checkout):
-        1. `git switch <base> && git pull --ff-only`;
-        2. then `git branch -d <branch>`, or `-D` after a squash merge.
-
-      The main checkout's base branch is updated only when it is checked out there and the main
-      checkout has no uncommitted changes. Otherwise, say why it wasn't updated.
-   4. **Start the follow-ups,** when the list had any and the developer kept them. Each one is a
-      session of its own, from the updated base branch in the main checkout, because it needs the merged
-      change; it changes the project's environment or tests and goes through its own review.
+   2. **Update the base branch in the main checkout,** so the follow-ups start from the merge:
+      - **From a worktree** (the scripts' or Claude Code's own): `git -C <main checkout> pull --ff-only`,
+        only when `<base>` is checked out there (`git -C <main checkout> branch --show-current`) and
+        the main checkout has no uncommitted changes. Otherwise, say why it wasn't updated.
+      - **No worktree** (a session in the main checkout): `git switch <base> && git pull --ff-only`.
+   3. **Start the follow-ups,** when the list had any and the developer kept them — all of them
+      before the worktree goes. Each one is a session of its own, from the updated base branch in the
+      main checkout, because it needs the merged change; it changes the project's environment or
+      tests and goes through its own review.
       - **In the desktop app:** call `start_session` once per follow-up, `"fresh"`, with the command or
         the task as the brief and its why and source (`found in <file:line>`); the yes was the
         developer's ask. Don't run the command or start the task here.
       - **In a terminal:** print each command, for the developer to run in a new session from the main
         checkout.
       - If the base branch wasn't updated, say so: the follow-up would start without the merge.
-   5. **Report, then archive.**
+   4. **Remove the branch from origin,** if the host didn't delete it on merge
+      (`git ls-remote --heads origin <branch>`): `git push origin --delete <branch>`. Skip it for an
+      abandoned task, and for an answer whose branch was never pushed.
+   5. **Remove the worktree and the local branch.** Which way depends on the worktree:
+      - **A worktree from the scripts:** `cd <main checkout> && adf-worktree-rm <branch>`.
+        - It removes the worktree, fast-forwards the base branch again (already up to date), and
+          deletes the branch when git sees it as merged.
+        - After a squash merge, it keeps the branch and says so. Delete it with
+          `git -C <main checkout> branch -D <branch>`: the merged pull request holds its work. An
+          abandoned task's branch goes the same way: the state you read showed its last commit on
+          origin.
+      - **Claude Code's own worktree** (under `.claude/worktrees/`): leave it. Archiving the session
+        removes it.
+      - **No worktree:** `git branch -d <branch>`, or `-D` after a squash merge.
+   6. **Report, then archive.**
       - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, the
         follow-ups started, and anything that didn't happen and why.
       - **Archive, in the desktop app:** in the same turn, call the app's `archive_session` with
@@ -173,6 +182,8 @@ the close-up only once it resumes and ends.
 | "The hook says it merged, so I'll clean up right away" | The hook's word isn't the developer's. Show the list and ask once; close up without asking only when the developer said the task ended and the check found nothing left or to choose. |
 | "The developer said 'merged', so I'll skip the check" | "Merged" starts the check. Anything left stops the close-up, whoever said it ended. |
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
+| "I'll remove the worktree, then start the follow-ups" | A session whose folder is gone can't start another. Update the base branch, start the follow-ups, then remove the worktree. |
+| "The developer said 'merged', so I'll skip the time question" | With the time-tracking module, the time is asked about before every close-up: once the worktree goes, so does what measures it. Their word answers the close-up, not the time. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
 | "The pull request closed, so the task is abandoned" | Closed can mean replaced, paused, or closed by mistake. Only the developer says it's dropped, and even then origin's branch stays. |
@@ -184,14 +195,15 @@ the close-up only once it resumes and ends.
   that isn't merged, or to delete a local branch whose last commit isn't on origin.
 - The check found uncommitted work, unpushed commits, or a stash, and you're about to close up anyway.
 - You're in the main checkout of a hub.
-- A command is about to run in the worktree after it was removed.
+- A command is about to run in the worktree after it was removed, or a follow-up is about to start after it.
 
 ## Verification
 
 - [ ] The ending is real, by the host's own state, not by the conversation: merged; closed and dropped in the developer's words; or an answer delivered, with no commits past the base
 - [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md`; no promise left
 - [ ] The developer said yes once to the full list before anything was stopped or removed — or their own word ended a merged task with nothing left or to choose, and the list opened the report
-- [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, never run here
+- [ ] With the time-tracking module, the developer was asked about logging the time before the close-up, and `/adf:track-time` ran to its end on a yes
+- [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, from the updated base branch, before the worktree was removed — never run here
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] The report says what happened, including anything that didn't; the archive came last
 
