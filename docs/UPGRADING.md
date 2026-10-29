@@ -109,7 +109,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/architecture/decisions/*`, `docs/process/pdr-*` | ADRs and PDRs |
 | `docs/reference/*` pages | Your code-level reference pages |
 | `docs/architecture/*` | Project-specific architecture docs you authored |
-| `README.md`, `docs/ARCHITECTURE.md`, `docs/GLOSSARY.md`, `docs/infrastructure/*`, `docs/security/*`, `evals/*`, `specs/*` | The skeleton's starter pages, which adoption fills in — yours from then on (`specs/README.md` and `specs/_templates/*` excepted, above) |
+| `README.md`, `docs/ARCHITECTURE.md`, `docs/GLOSSARY.md`, `docs/TEST-SUITES.md`, `docs/infrastructure/*`, `docs/security/*`, `evals/*`, `specs/*` | The skeleton's starter pages, which adoption fills in — yours from then on (`specs/README.md` and `specs/_templates/*` excepted, above) |
 | Any source code | Out of scope for the upgrade |
 
 The taxonomy is also data: `scripts/upgrade-buckets.json`, which the scripted upgrade reads. A path it

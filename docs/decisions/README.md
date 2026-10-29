@@ -68,6 +68,7 @@ projects.
 | [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted |
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
 | [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted |
+| [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

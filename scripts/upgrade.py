@@ -946,6 +946,11 @@ class Upgrade:
         elif "docker" in self.stamp_modules and spec_changed("dev-env"):
             self.add_follow_up("/adf-dev:dev-env set up", "the local environment specification changed",
                                f"{self.new.tag} dev-env SPECIFICATION.md", "adf-dev")
+        if "vitest" in self.added_modules:
+            self.add_follow_up("/adf-dev:vitest set up", "the vitest module was added", "module vitest", "adf-dev")
+        elif "vitest" in self.stamp_modules and spec_changed("vitest"):
+            self.add_follow_up("/adf-dev:vitest audit", "the unit and integration test specification changed",
+                               f"{self.new.tag} vitest SPECIFICATION.md", "adf-dev")
         if "e2e" in self.added_modules:
             self.add_follow_up("/adf-dev:e2e set up", "the e2e module was added", "module e2e", "adf-dev")
         elif "e2e" in self.stamp_modules and spec_changed("e2e"):

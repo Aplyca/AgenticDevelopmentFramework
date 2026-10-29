@@ -84,8 +84,8 @@ e2e rules in `.claude/settings.json`).
 
 For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
-`docker` and `e2e`, rerun `modules/docker/install.sh <repo>` and `modules/e2e/install.sh <repo>` the
-same way, besides their file changes. From v2.3.0 the docker installer adds `Bash(make *)`, so every
+`docker`, `e2e`, and `vitest`, rerun `modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, and
+`modules/vitest/install.sh <repo>` the same way, besides their file changes. From v2.3.0 the docker installer adds `Bash(make *)`, so every
 task runs without a prompt but the ones its ask rules name (`reset`, `run`). Before it does, read
 the project's `Makefile` and mode files for a task that deletes data under another name, or that
 follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan:
@@ -137,6 +137,9 @@ repository's facts, by the same rules as `/adopt` Step 3:
   run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per
   critical flow (decision 0037). An existing suite (`playwright.config.*`, `cypress/`) is good
   evidence
+- `vitest` — a JavaScript or TypeScript app: `/vitest` sets up Vitest unit and integration tests,
+  run by tier (`@smoke`, `@critical`, regression) and by feature suite, like `e2e`'s (decision 0058).
+  An existing runner (`jest.config.*`, `vitest.config.*`) is good evidence
 - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time` logs
   each day of a task in the tracker, in whole units (decision 0043)
 - `end-user-docs` — the product's end users read its documentation in a doc tool (ClickUp Docs,
@@ -286,8 +289,8 @@ and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, 
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
 (merge a collision such as an existing PR template), except `clickup`, which installs with
-`modules/clickup/install.sh <repo>`; `docker` and `e2e` have no files to copy: run
-`modules/docker/install.sh <repo>` or `modules/e2e/install.sh <repo>`.
+`modules/clickup/install.sh <repo>`; `docker`, `e2e`, and `vitest` have no files to copy: run
+`modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, or `modules/vitest/install.sh <repo>`.
 In a packaged project, a module whose skills the release's plugins carry leaves its `.claude/skills/`
 out, and the plugin its `module.json` names, when that isn't `adf`, is turned on:
 `"<plugin>@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in
@@ -301,7 +304,8 @@ gets the same follow-up whenever the release changed the local environment speci
 it and proposes each gap by requirement ID. Never copy the templates over the project's files — they
 are an example of the specification, not the project's stack. For `e2e`, the follow-up is
 `/e2e set up`, after `/dev-env set up` when the project has `docker`; a project that already has
-`e2e` gets `/e2e audit` when the release changed `e2e`'s `SPECIFICATION.md`.
+`e2e` gets `/e2e audit` when the release changed `e2e`'s `SPECIFICATION.md`. For `vitest`, the follow-up
+is `/vitest set up`, and `/vitest audit` when the release changed its `SPECIFICATION.md`.
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the

@@ -26,7 +26,7 @@ paths:
 - **Assert the behavior the spec names**, not that the code ran: "the 11th signup in a minute is rejected", not "no error was thrown".
 
 ## File organization
-- One test file per feature area or module.
+- One test file per feature feature suite or module.
 - Name test files after the feature they verify.
 - Group related tests with describe/context blocks.
 - Use descriptive test names that read as behavior: `'submitting with empty email shows validation error'`.
@@ -73,6 +73,22 @@ lanes.
   locally first, then, for a browser check, on the pull request's preview once it deploys
   (`AGENTS.md` § Delivery rules). The end-to-end suite runs only locally. The human QC on the preview
   remains the real check of how it looks and feels.
+
+## Tiers and feature suites
+Tests run in steps and by feature, so a run is as small as the question.
+- **Preferred engines,** when the stack allows: **Vitest** for unit and integration tests, **Playwright** for end-to-end tests. Another stack keeps its own runner and follows the tiers and feature suites below.
+- **Three cumulative tiers:** `@smoke` ⊂ `@critical` ⊂ regression.
+  - `@smoke` — one fast test per critical behavior or flow. Runs while iterating and before the local check.
+  - `@critical` — the acceptance criteria of delivered features, and every smoke test. Runs on every pull request in CI.
+  - **Regression** — every test, tagged or not. Runs before delivering a full-lane change, on a schedule, and before a release.
+- **A test carries only its lowest tier,** in its title or its `describe`'s (`'rejects an empty email @smoke'`); the commands add the tiers below it. An untagged test is regression only. A bug fix's regression test starts untagged, and is promoted to `@critical` when the bug could cost users the flow.
+- **A feature suite is a feature, and its folder:** `tests/billing/` or `e2e/tests/billing/`, never a folder named for the layer. A path runs one feature suite at any tier. An end-to-end flow across feature suites carries `@suite:<name>` for each.
+- **Pick the feature suite from the project's list** (`docs/TEST-SUITES.md`); add a new one there first.
+- **While iterating,** run the file, then its feature suite, then `@critical` before the local check, and the full run once before delivery. Name each tier you ran in `tasks.md` § Gate results.
+- **Never retag or skip a failing test** to a later tier to get green.
+
+With the `vitest` module (Vitest for unit and integration tests, `/vitest`), a tier is `npm run test:smoke` or `npm run test:critical`, regression is `npm test`, and a feature suite is a path (`npm test -- tests/billing`). This project's commands, and anything it does differently, with why:
+<!-- e.g. `make test tier=critical suite=billing`, `make e2e tier=smoke` -->
 
 ## End-to-end
 End-to-end tests drive the app the way a person does — a browser, the pages, the server behind them.
