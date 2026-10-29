@@ -62,8 +62,8 @@ services: env guard ## Start only the backing services in Docker
 	$(if $(SERVICES),$(COMPOSE) up -d --wait $(SERVICES),@echo "No backing services in Docker")
 	@$(LAUNCH_JSON)
 
-test: services ## Run the tests on the host, with the services' ports exported; t=<filter> runs only the matching ones
-	@eval "$$($(NATIVE_SH) env)" && echo "CUSTOMIZE: the test command after the exports, with t as its filter, e.g. npm test -- $(t)" >&2 && exit 1
+test: services ## Run the tests on the host, with the services' ports exported; t=<filter> runs only the matching ones; tier=<smoke|critical|regression>, suite=<name>
+	@eval "$$($(NATIVE_SH) env)" && echo "CUSTOMIZE: the test command after the exports, with t as its filter, and tier and suite as the unit module's scripts and path (npm run test:$(tier) -- tests/$(suite)), e.g. npm test -- $(t)" >&2 && exit 1
 
 lint: ## Run the linters on the host; f=<files> lints only those
 	@echo "CUSTOMIZE: the lint command, with f as its files, e.g. npx eslint $(or $(f),.)" >&2; exit 1

@@ -24,6 +24,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Where:** `modules/unit/`, `plugins/adf-dev/skills/unit/`, `plugins/adf-dev/skills/e2e/SPECIFICATION.md`, `skeleton/.claude/rules/testing.md`, `skeleton/.cursor/rules/testing.mdc`, `scripts/upgrade.py`, the static checks.
 
   **Upgrade impact:**
+  - **`dev-env`'s specification and Makefile templates — merge:** `make test` (and `make e2e`) take `tier=` and `suite=`; a project with `docker` and `unit` adds them to each mode's `Makefile`, and `/adf-dev:dev-env set up` audits it. The templates are an example, never copied over the project's files.
   - **`testing.md` — merge:** add § Tiers and feature suites above § End-to-end.
   - **`testing.mdc` — merge:** add its § Tiers and feature suites.
   - **`AGENTS.md` — merge:** add the tier and suite commands to § Quick reference, and the `docs/TEST-SUITES.md` row to the docs table.

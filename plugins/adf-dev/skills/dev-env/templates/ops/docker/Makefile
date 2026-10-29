@@ -44,8 +44,8 @@ prod: env guard ## Build the app for production and serve it beside the dev serv
 shell: ## A shell in the app's container, for people
 	$(COMPOSE) exec $(APP) sh
 
-test: ## Run the tests in the app's container; t=<filter> runs only the matching ones
-	@echo "CUSTOMIZE: the test command, with t as its filter, e.g. $(COMPOSE) exec -T $(APP) <test command> $(t)" >&2; exit 1
+test: ## Run the tests in the app's container; t=<filter> runs only the matching ones; tier=<smoke|critical|regression>, suite=<name>
+	@echo "CUSTOMIZE: the test command, with t as its filter, and tier and suite as the unit module's scripts and path (npm run test:$(tier) -- tests/$(suite)), e.g. $(COMPOSE) exec -T $(APP) <test command> $(t)" >&2; exit 1
 
 lint: ## Run the linters in the app's container; f=<files> lints only those
 	@echo "CUSTOMIZE: the lint command, with f as its files, e.g. $(COMPOSE) exec -T $(APP) <lint command> $(f)" >&2; exit 1
