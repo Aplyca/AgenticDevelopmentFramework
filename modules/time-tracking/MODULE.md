@@ -6,8 +6,9 @@ developer's time without AI, in whole units — and writes the ones the develope
 number they pick for each, to the tracker task's time entries
 ([decision 0043](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0043-track-time-in-the-tracker.md)).
 
-A project without the module doesn't track time: `/track-time` stops there, and `/wrap-up` never
-offers it.
+With the module, `/wrap-up` asks whether to log the task's time before it closes up, while the
+worktree is still there to measure. A project without the module doesn't track time: `/track-time`
+stops there, and `/wrap-up` never asks.
 
 ## What it adds
 
