@@ -135,9 +135,7 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
      host — and the command surface;
    - `AGENTS.md` § Quick reference: `make up` and `make down`, and `make urls` for where the app is;
-   - `.claude/hooks/config.sh`: `LOCAL_URL='http://localhost:${APP_PORT}'`, and `LOCAL_SERVICE` — the
-     app's service and container port, `web:3000` — so the band above the prompt looks up the port
-     Docker picked;
+   - `.claude/hooks/config.sh`: `LOCAL_URL='http://localhost:${APP_PORT}'`;
    - `deployment.md`: `paths:` naming `compose.yaml`, `Makefile`, `ops/**`, and `.env.example`, and in
      § Docker any convention the project adds;
    - `.claude/settings.json`: in `permissions.ask`, `Bash(make <task>*)` for each project task that

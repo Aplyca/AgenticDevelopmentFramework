@@ -1,6 +1,6 @@
 # 0048: End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module)
 
-- **Status:** accepted
+- **Status:** accepted; scope clarified in 0059 — the pages are stakeholder guides (user, editorial, and administrative), not only public help
 - **Date:** 2026-10-22
 
 ## Context

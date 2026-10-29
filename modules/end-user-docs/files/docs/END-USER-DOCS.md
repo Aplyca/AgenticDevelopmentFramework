@@ -2,8 +2,10 @@
 
 <!-- owner: [team or person] · last_updated: [YYYY-MM-DD] · scope: where end-user documentation lives and how /end-user-docs writes it -->
 
-The people who use the product read its documentation in a doc tool they have access to, not in the
-repository. `/end-user-docs` writes it there, for the features that change what end users see or do:
+The people who use the system — visitors, the client's editorial team, its administrators — read its
+guides in a doc tool they have access to, not in the repository. `/end-user-docs` writes them there:
+user guides, editorial guides (create, edit, publish content), and administrative guides (manage
+users, settings, configuration), for the features that change what they see or do:
 
 - **Draft** — before implementation, docs first: the page goes to the drafts location, which end
   users can't see.
@@ -27,7 +29,7 @@ feature needs. Nothing else.
 - **Read and write:** [the tool's read and write tools — with ClickUp: `clickup_list_document_pages`
   and `clickup_get_document_pages` read, under the `clickup` module's allowlist;
   `clickup_create_document_page` and `clickup_update_document_page` write, and prompt]
-- **End users:** [who they are — e.g. the client's site editors, the public — and what they already know]
+- **Audiences:** [who reads the guides — e.g. the public, the client's content editors, its administrators — and what each already knows; one section or guide per audience]
 - **Language and voice:** [the language(s) the pages are written in; second person, present tense,
   the product's own UI labels]
 - **Screenshots:** [none — or which pages carry them; they come from the released product, added at

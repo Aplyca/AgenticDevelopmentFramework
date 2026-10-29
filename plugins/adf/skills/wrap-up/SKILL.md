@@ -89,9 +89,12 @@ the close-up only once it resumes and ends.
    `/adf:end-user-docs publish` once, before the close-up. The developer may skip it: a release
    publishes it later. Without the module, say nothing about end-user docs.
 
-   For a tracker task, offer the **delivered** update (`/adf:stakeholder-update delivered`) once,
-   when it hasn't been posted. It's a draft in chat and needs no worktree, so it doesn't hold up the
-   close-up.
+   For a tracker task, move it to the project's done status as soon as the check finds the pull
+   request merged or the answer delivered, on your own
+   (`/adf:stakeholder-update status delivered`) — no yes needed, forward only, one line to say so;
+   an abandoned task keeps its status. Then offer the **delivered** update
+   (`/adf:stakeholder-update delivered`) once, when it hasn't been posted. It's a draft in chat and
+   needs no worktree, so neither holds up the close-up.
 
 4. **Ask once, unless the developer's own word ended the task.** When the developer said it in this
    session — "merged", "it's in", "close up" — the pull request merged by the host's state, the

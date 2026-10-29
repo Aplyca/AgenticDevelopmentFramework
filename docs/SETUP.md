@@ -90,7 +90,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | `e2e` | People use the app in a browser — `/e2e` sets up Playwright end-to-end tests in `e2e/` to its specification, run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per critical flow ([decision 0037](decisions/0037-end-to-end-tests.md)) (run `modules/e2e/install.sh .`, which merges its permission rules; it copies no files) |
 | `unit` | A JavaScript or TypeScript app — `/unit` sets up Vitest unit and integration tests to its specification, run by tier (`@smoke`, `@critical`, regression) and by feature suite, the tiers `e2e` uses too ([decision 0058](decisions/0058-test-tiers-and-feature-suites-with-vitest.md)) (run `modules/unit/install.sh .`, which merges its permission rules; it copies no files) |
 | `time-tracking` | The team measures the time its tasks take — `/track-time` logs each day of a task in the tracker, in whole units: the AI-assisted time or a senior developer's estimate without AI, as the developer picks ([decision 0043](decisions/0043-track-time-in-the-tracker.md)); fill in `docs/TIME-TRACKING.md` |
-| `end-user-docs` | End users read the product's documentation in a doc tool — `/end-user-docs` writes a feature's end-user page there, never in the repository: drafted before implementation where end users can't see it, published once the feature ships, each page on the developer's yes ([decision 0048](decisions/0048-end-user-docs-in-the-doc-tool.md)); fill in `docs/END-USER-DOCS.md`, and connect the doc tool (the `clickup` module for ClickUp Docs) |
+| `end-user-docs` | Stakeholders read the system's guides in a doc tool — `/end-user-docs` writes a feature's user, editorial, or administrative guide page there, never in the repository: drafted before implementation where end users can't see it, published once the feature ships, each page on the developer's yes ([decision 0048](decisions/0048-end-user-docs-in-the-doc-tool.md)); fill in `docs/END-USER-DOCS.md`, and connect the doc tool (the `clickup` module for ClickUp Docs) |
 
 ```bash
 cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
@@ -105,12 +105,6 @@ for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca
 `enabledPlugins`, then run `/adf-connect:connect <service>`. It writes the project's `.mcp.json` entry
 with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
 tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
-
-**Seeing the local environment's URL** — turn on `adf-dev` (`"adf-dev@aplyca": true` in
-`enabledPlugins`, in either install) and set `LOCAL_URL` in `.claude/hooks/config.sh` (step 5). Its mod
-draws a line above the prompt with the URL and whether it answers; with the parallel-agents module,
-each worktree shows its own port from `READY_URL`. It needs Claude Code v2.1.287 or later in a
-terminal, or the desktop app from v2.1.286 ([decision 0026](decisions/0026-display-only-mods.md)).
 
 ## 3. Fill in AGENTS.md — the file every tool reads
 

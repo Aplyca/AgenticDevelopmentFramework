@@ -204,10 +204,6 @@ Present the table before going further. Wrong facts here poison every file downs
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
   `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
   team reviews on its own.
-- **Offer `adf-dev`'s band** (decision 0026) when the app runs locally: a line above the prompt with
-  the local environment's URL, and whether it answers, for the local check. Turn on
-  `"adf-dev@aplyca": true` in `enabledPlugins`, in either install, and fill `LOCAL_URL` below. It needs
-  Claude Code v2.1.287 or later in a terminal, or the desktop app from v2.1.286.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -254,7 +250,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
   stack to the local environment specification it carries (its templates are an example of it), or
   audits the existing one against it and proposes the move, and fills
-  `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_SERVICE`, and `deployment.md`'s
+  `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_URL`, and `deployment.md`'s
   `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
   `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
   the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is

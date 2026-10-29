@@ -1,13 +1,15 @@
 # Module: end-user-docs
 
-For teams whose end users read the product's documentation in a doc tool — ClickUp Docs, Confluence,
-Notion — rather than in the repository. Adds `/end-user-docs`, which writes a feature's end-user page
-there: drafted before implementation where end users can't see it, updated as the build changes it,
+For teams whose stakeholders read the system's guides in a doc tool — ClickUp Docs, Confluence,
+Notion — rather than in the repository. Stakeholders are the people who use the system: visitors, the
+client's **editorial** team, and its **administrators**; the guides say how to use it — create and
+publish content, manage users and settings — not how it's built. Adds `/end-user-docs`, which writes
+a feature's guide page there: drafted before implementation where end users can't see it, updated as the build changes it,
 and published to the end-user doc once the feature ships, each page written only on the developer's
 yes to its exact text
 ([decision 0048](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0048-end-user-docs-in-the-doc-tool.md)).
 
-The repository keeps the technical docs, for the team and its agents (`/write-docs`). A project
+The repository keeps the technical docs — runbooks, API contracts, architecture — for the team and its agents (`/write-docs`). A project
 without the module keeps its end-user docs there too, if it has any: `/end-user-docs` stops, and
 `/wrap-up` never offers it.
 

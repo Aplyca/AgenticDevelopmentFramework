@@ -767,7 +767,9 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'can be read more than one way' || missing+=("/triage: a stakeholder reply open to more than one reading is confirmed first (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Moments' || missing+=("/stakeholder-update: three moments — started, in review, delivered (0053)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'gets its started update' || missing+=("/triage: a tracker task's turn ends with the started update's draft (0053)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Draft the review update' || missing+=("/open-pr: the report ends with the review update's draft (0053)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'draft the review update' || missing+=("/open-pr: the report ends with the review update's draft (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Status moves' || missing+=("/stakeholder-update: the task's status moves on its own at each moment (0059)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'status delivered' || missing+=("/wrap-up: the task moves to done once merged (0059)")
     file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Status at each moment:\*\*' || missing+=("TRACKER-INTEGRATION.md: the task status for each moment (0053)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the agent's local check before the pull request (0022, 0045)")
     file_contains "$AGENTS_MD" 'never push to check it on the preview instead' || missing+=("AGENTS.md: a change that can't run locally isn't pushed (0045)")
@@ -1267,49 +1269,6 @@ for path in sys.stdin.read().split("\0"):
     fi
 }
 
-check_mods() {
-    # The framework's mods are display-only (decision 0026): they read, draw, and add commands. They
-    # never approve, refuse, or rewrite a tool call or a prompt, start a turn, run a process, write a
-    # file, call a model, or change settings — each of those is the process's, through skills, hooks,
-    # and permissions every install shares. One exception (decision 0032): adf-dev's band may run
-    # `docker compose port <service> <port>`, read-only, for the port Docker picked — that call,
-    # with that argument vector, in that file, and no other. Each mod carries tests (`claude plugin test`).
-    local report
-    report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
-import glob, json, os, re, sys
-plugins = sys.argv[1]
-display = {"session.start", "session.end", "turn.complete", "command.run", "command.describe",
-           "ui.render", "ui.press", "ui.input", "ui.select", "ui.close", "ui.focus", "ui.scroll"}
-banned = re.compile(r"\$\.(prompt\.submit|tool\.|process\.|model\.|agent\.|fs\.write|config\.set|env\.set|session\.(?:send|append|compact))")
-lookup = re.compile(r"\$\.process\.run\(\['docker', 'compose', 'port', target\.service, target\.port\], \{")
-for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json"))):
-    if not json.load(open(wiring)).get("modules"):
-        continue
-    plugin = os.path.dirname(os.path.dirname(wiring))
-    name = os.path.basename(plugin)
-    sources = [p for p in glob.glob(os.path.join(plugin, "hooks", "*")) if re.search(r"\.(m?[jt]sx?|c[jt]s)$", p)]
-    for path in sorted(sources):
-        text = open(path, encoding="utf-8").read()
-        for event in re.findall(r"\bon\(\s*['\"]([\w.]+)['\"]", text):
-            if event not in display:
-                print(f"{name}/hooks/{os.path.basename(path)} hooks {event}, which a display-only mod doesn't")
-        calls = banned.findall(text)
-        if (name, os.path.basename(path)) == ("adf-dev", "register.tsx") and calls.count("process.") == 1 \
-                and len(lookup.findall(text)) == 1 and "const target = parseService(service)" in text:
-            calls.remove("process.")
-        for call in calls:
-            print(f"{name}/hooks/{os.path.basename(path)} calls $.{call}, which a display-only mod doesn't")
-    if not glob.glob(os.path.join(plugin, "**", "*.test.ts*"), recursive=True):
-        print(f"{name}: a mod with no *.test.ts")
-PY
-)
-    if [ -z "$report" ]; then
-        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt, and run no process but the band's docker compose port lookup (0032); each has tests"
-    else
-        fail "mods: $report"
-    fi
-}
-
 check_dev_env_templates() {
     # Decision 0032: the stack /dev-env writes from its templates keeps the local-environment
     # conventions — and the scripts any module or skill ships run on macOS's bash 3.2.
@@ -1497,11 +1456,6 @@ for hooks_dir in hooks_dirs:
     if not os.path.exists(wiring):
         continue
     wired = json.load(open(wiring))
-    # A mod's hooks module (decision 0026): one path, beside hooks.json, to a file of the plugin's.
-    for module in wired.get("modules", []):
-        target = os.path.normpath(os.path.join(hooks_dir, module))
-        if module.startswith("/") or ".." in module.split("/") or not os.path.isfile(target):
-            print(f"{os.path.relpath(wiring, sys.argv[1])}: module {module} isn't a file beside it")
     for group in wired.get("hooks", {}).values():
         for entry in group:
             for hook in entry["hooks"]:
@@ -1598,7 +1552,6 @@ check_practices
 check_spec_records
 check_found_along_the_way
 check_plugin
-check_mods
 check_dev_env_templates
 check_upgrade
 check_no_tracked_junk

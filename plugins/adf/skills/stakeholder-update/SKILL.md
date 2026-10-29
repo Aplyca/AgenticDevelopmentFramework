@@ -1,7 +1,7 @@
 ---
 name: stakeholder-update
-description: Draft the requester's update on a tracker task — started, in review (with the preview and what to test), or delivered — in their terms, with screenshots when they help; post it and move the task only on the developer's yes to the exact text, the status, and the assignee, never on the pull request. Use when /adf:triage or /adf:open-pr reaches its moment, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done.
-argument-hint: "[started | review | delivered] [tracker task link or ID] [pull request number]"
+description: Keep a tracker task's status current — in progress when work starts, in review once the pull request is pushed, done once it merges — on its own, and draft the requester's message for each moment (started, in review with the preview and what to test, delivered) in their terms, with screenshots when they help; post a message only on the developer's yes to its exact text and the assignee, never on the pull request. Use when /adf:triage, /adf:open-pr, or /adf:wrap-up reaches its moment, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done.
+argument-hint: "[started | review | delivered] [status] [tracker task link or ID] [pull request number]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/stakeholder-update/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -14,19 +14,51 @@ deliverable.** It goes on the tracker only after the developer approves the exac
 developer posts it themselves, nothing is posted anywhere. It never goes on the pull request:
 reviewers aren't its audience, and a second copy drifts from the one the client reads.
 
+**The task's status is not a message, and it doesn't wait for a yes.** It moves with the work —
+see § Status moves — so the board shows where the task is, without the developer remembering to
+move it.
+
 ## Moments
 
 Tracker-originated work — light changes included — updates its task at three moments. At each one
-the agent drafts the status change and the message together, for one yes; the work doesn't wait for
-the answer.
+the agent moves the status (§ Status moves) and drafts the message for the developer's yes; the work
+doesn't wait for the answer.
 
 | Moment | When | Task status | Message |
 |---|---|---|---|
-| **Started** | Right after `/adf:triage`, once you understand the task | The project's in-progress status | Only when it's worth the client's time: what we understood and will deliver, a question that blocks the work, a finding — it exists already, it was declined before, a risk. "We've started" alone isn't: the status says it |
-| **In review** | Once `/adf:open-pr`'s draft is open and its preview walked | The project's review status | Always: a business-focused report — what changes for visitors or users, the preview and what to test there, and the pull request |
-| **Delivered** | Once it's merged or live, or when asked | Where the change is now, such as in acceptance testing or live | Always: why it wasn't working or what was needed, what we did, the status, findings, next steps |
+| **Started** | Right after `/adf:triage`, once you understand the task | The project's in-progress status — moved by the triage | Only when it's worth the client's time: what we understood and will deliver, a question that blocks the work, a finding — it exists already, it was declined before, a risk. "We've started" alone isn't: the status says it |
+| **In review** | Once `/adf:open-pr`'s draft is open and its preview walked | The project's review status — moved at the push, not here | Always: a business-focused report — what changes for visitors or users, the preview and what to test there, and the pull request |
+| **Delivered** | Once it's merged or live, or when asked | The project's done status — where the change is now, such as in acceptance testing, ready for release, or done | Always: why it wasn't working or what was needed, what we did, the status, findings, next steps |
 
 An answer-only task has no review moment: its delivered update is the answer, in the client's terms.
+
+## Status moves
+
+The status follows the work, on its own — the developer isn't asked each time, and the move isn't
+part of any message's approval. `/adf:stakeholder-update status <moment>` makes it; the skills that
+reach a moment call it:
+
+| Moment | Who moves it | When | To |
+|---|---|---|---|
+| **Started** | `/adf:triage` | Right after the triage is stated, for a task the developer is assigned to | The in-progress status |
+| **In review** | `/adf:open-pr` | Once the branch is pushed and the pull request is open | The review status |
+| **Done** | `/adf:wrap-up` | Once the pull request merged, or an answer is delivered | The done status (`delivered` in the settings) |
+
+Rules for every move:
+
+- **The task's own statuses decide.** Read them with the tracker's tools (§ Project settings), and use
+  the one `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment. A status the task
+  doesn't have is a question for the developer, not a guess.
+- **Forward only.** A task already at or past the target — a developer moved it by hand, or it's
+  waiting on the requester — stays where it is. Never move it back.
+- **Only the developer's tasks.** A task the developer isn't assigned to stays as it is, unless they
+  say so.
+- **The status only.** The assignee, priority, due date, and time entries still need a yes
+  (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
+- **Say it in one line** — "Moved the task to In Progress" — so the developer can correct it. With
+  no tracker tool connected, say which status the developer should set, and go on.
+- **The tracker's own prompt still applies.** The status move is a write; where the project leaves
+  it off the allowlist, the permission prompt is the developer's say, not the skill's to skip.
 
 ## Project settings
 
@@ -35,10 +67,13 @@ Read these before writing; they hold what this skill doesn't hardcode:
 - **Status words** — `CONTRIBUTING.md` § Status words for requesters (mapped to the branching model).
 - **Links and the tracker's conventions** — `docs/TRACKER-INTEGRATION.md` § Stakeholder updates: the
   live site, the stable preview address, preview URLs, CMS entry links, the task status for each
-  moment and how to list a task's statuses, whether requesters can open pull requests, whether a
+  moment (in progress, in review, done) and how to list a task's statuses, whether requesters can open pull requests, whether a
   comment can show an image inline, and how to mention someone.
 
 ## Steps
+
+**With the argument `status`,** do only § Status moves for the named moment — no draft, no
+message — and stop. The skills that reach a moment call it that way.
 
 1. **Gather context.** Read the tracker task — description and every comment: who asked, who is
    copied, what was agreed — the pull request, and the spec folder if there is one (what was decided
@@ -82,14 +117,14 @@ Read these before writing; they hold what this skill doesn't hardcode:
    just before a tool call can reach the developer only as a summary, and a question dialog's
    preview may not display. Hand over the screenshots with it, each file's path next to its
    placeholder. Always ask before posting, even when the developer asked for the update: close with
-   the one question it needs — whether to post it on the tracker task, the status to move it to, and
-   the assignee (step 6): "Post this on the task, move it to Review, and assign it to Dana?" At the
+   the one question it needs — whether to post it on the tracker task, and the assignee (step 6):
+   "Post this on the task and assign it to Dana?" The status has moved already (§ Status moves). At the
    started and review moments, the draft closes `/adf:triage`'s or `/adf:open-pr`'s message, and the
    work goes on without waiting. The developer may post it themselves instead; then nothing is
    posted anywhere.
 
-6. **Post it on the tracker only on an explicit yes to the exact text, the status, and the
-   assignee.** They're one approval; a change to any of them is a new draft to approve.
+6. **Post it on the tracker only on an explicit yes to the exact text and the assignee.** They're
+   one approval; a change to either is a new draft to approve.
    - **Assign** the comment to the requester when it asks them a question or needs an action or a
      decision from them. Don't assign a purely informational one. Mention people with the
      tracker's mention syntax (§ Stakeholder updates); a bare `@Name` may notify no one.
@@ -102,9 +137,8 @@ Read these before writing; they hold what this skill doesn't hardcode:
    - **Read it back** after posting: fetch the comment and confirm the text and the assignee came
      out as approved — mentions, links, formatting. A correction edits that comment, so the client
      reads one version.
-   - **Status:** list the task's valid statuses with the tracker's tools, and propose the one
-     § Stakeholder updates maps to the moment. A status the task doesn't have is a question for the
-     developer, not a guess. Move it in the same approval as the text, never on its own.
+   - **Status:** already moved at its moment (§ Status moves). If it wasn't — the tracker wasn't
+     connected then, say — move it now, by the same rules.
 
 ## Style rules
 
@@ -214,12 +248,14 @@ Thanks!
 | "I'll also put it on the pull request, so the team has it" | Reviewers aren't its audience, and a second copy drifts from the one the client reads. The draft in chat is the deliverable. |
 | "I'll link the PR in every update so they can see the work" | Only the review update carries it, beside the preview and what to test — and not when requesters can't open it. Elsewhere, link pages they can act on. |
 | "I'll post 'we've started' so they know" | The status change says that. A started message earns its place with what we understood, a question, or a finding. |
-| "The draft is open — I'll move the task to Review now" | A status change is a write the requester sees. It goes in the same approval as the review update's text. |
+| "I'll hold the status until the developer approves the update" | The status and the message are separate. The status moves with the work; only the message waits for the yes. |
+| "The task is at Review already — I'll set it to In progress anyway" | Forward only. A task past the target stays where it is. |
 | "I'll wait for the yes before I go on with the task" | The update is a draft beside the work. The work goes on; only the post waits for the yes. |
 | "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
 | "I'll upload the screenshots to the task so they're embedded" | An attachment lands on the task, not in the comment. Hand the files over; the developer pastes each over its placeholder. |
 | "I'll accept the cookie banner to get it out of the shot" | That records a consent choice on the site. Hide the banner with CSS after load. |
 | "I'll assign it to the requester so they see it" | Assign only a comment that needs something from them: an answer, an action, a decision. And only with the developer's yes to that assignee. |
+| "I'm moving the status, so I'll change the assignee too" | Status moves on its own; the assignee, priority, due date, and time entries still need a yes. |
 | "It posted without an error, so it's right" | Read it back. Mentions, links, and formatting can come out differently from the draft. |
 
 ## Red flags (stop and reassess)
@@ -227,7 +263,8 @@ Thanks!
 - A claim in the draft that you haven't verified yourself.
 - Code, branch, file, or tool names in the client-facing text.
 - A question to the client that the spec or the tracker thread already answers.
-- You're about to write to the tracker — a comment or a status — without the developer's explicit yes to the text, the status, and the assignee.
+- You're about to post a comment, or change an assignee, priority, due date, or time entry, without the developer's explicit yes.
+- A status move that goes backward, or onto a task the developer isn't assigned to.
 - You're about to post the update anywhere but the tracker task — the pull request included.
 - A screenshot the developer hasn't seen, or one taken by clicking through a consent banner.
 
@@ -236,12 +273,12 @@ Thanks!
 - [ ] The task, its comments, the pull request(s), and the spec folder were all read
 - [ ] Every claim was verified against the site, the preview, the CMS, or the pull request
 - [ ] Status uses the project's status words and gives no unconfirmed dates
-- [ ] The moment was named; its status is the one § Stakeholder updates maps to it, from the task's valid statuses
+- [ ] The moment was named; the status moved to the one § Stakeholder updates maps to it, from the task's valid statuses, forward only, and said in one line
 - [ ] A started update has a message only when it's worth the client's time; a review update gives the preview, what to test there, and the pull request (unless requesters can't open it)
 - [ ] No technical detail or internal links in the client text — the pull request only in the review update
 - [ ] The full draft was shown in chat; nothing was posted on the pull request
 - [ ] Screenshots, if any, were taken read-only, of single elements, shown to the developer, and handed over as files
-- [ ] Nothing was posted or changed on the tracker without explicit approval of the exact text, the status, and the assignee
+- [ ] Nothing was posted, assigned, or changed on the tracker beyond the status without explicit approval of the exact text and the assignee
 - [ ] A posted comment was read back: text and assignee as approved
 
 ## Principles
@@ -249,4 +286,4 @@ Thanks!
 - Write for the person who asked, in their terms and their language.
 - Keep them informed as the work moves — started, in review, delivered — with nothing they'd skip.
 - Verified claims only; state the real status.
-- The draft is the deliverable; the developer decides what reaches the tracker, and when.
+- The status follows the work; the draft is the deliverable, and the developer decides what message reaches the tracker, and when.

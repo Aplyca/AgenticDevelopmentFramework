@@ -18,7 +18,7 @@
 #
 # ops/native/Makefile passes NATIVE_CMD, SERVICES, COMPOSE, and APP. The app's state — its process,
 # its port, its log — is in ops/native/.run/, which git ignores: app.env holds PID and APP_PORT while
-# it runs, and the band above the prompt reads APP_PORT there; app.kind says prod while the production
+# it runs, and launch-json.sh reads APP_PORT there; app.kind says prod while the production
 # build runs. While it runs, .claude/launch.json lists it in Claude Desktop's Browser, under APP's name:
 # start and stop run ops/docker/launch-json.sh. bash 3.2 or later.
 set -euo pipefail

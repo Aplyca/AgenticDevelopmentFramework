@@ -11,6 +11,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A tracker task's status follows the work on its own, every session is named after its task, the
+  local-environment band is removed, and end-user docs are stakeholder guides**
+  ([decision 0059](docs/decisions/0059-task-status-follows-the-work-and-stakeholder-guides.md),
+  [0060](docs/decisions/0060-retire-the-local-environment-band.md)).
+  - **What:**
+    - **Status:** `/adf:triage` moves the task to in progress, `/adf:open-pr` to in review once the
+      branch is pushed, `/adf:wrap-up` to done once it merges — forward only, for the developer's own
+      tasks, no yes needed. `/adf:stakeholder-update status <moment>` makes the move; messages,
+      assignees, and dates still need a yes.
+    - **Session name:** `/adf:triage` always names the session after the task, in every lane.
+    - **Band removed:** `adf-dev` loses its mod (`hooks/`, `types/`, `tests/`), `/local-url`, and
+      `LOCAL_SERVICE`; Claude Desktop's Browser lists the running app. `LOCAL_URL` stays.
+    - **Stakeholder guides:** `/adf:end-user-docs` and its module are framed as user, editorial, and
+      administrative guides for the people who use the system. The module keeps its name.
+  - **Where:** `plugins/adf/skills/{triage,open-pr,wrap-up,stakeholder-update,end-user-docs,write-docs,adopt,upgrade}`, `plugins/adf-dev/`, `skeleton/`, `modules/{end-user-docs,clickup,docker}/`, the static checks.
+
+  **Upgrade impact:**
+  - **`TRACKER-INTEGRATION.md`, `CONTRIBUTING.md`, `AGENTS.md` — merge:** the status rule, the "done"
+    line under *Status at each moment*, and the session-name wording.
+  - **`.claude/hooks/config.sh` — merge:** drop `LOCAL_SERVICE`; keep `LOCAL_URL`.
+  - **`END-USER-DOCS.md` — merge:** *Audiences* replaces *End users*; reword the intro if you like.
+  - **`adf-dev` band — removed:** nothing to migrate.
+
 - **Tests run by tier and by feature suite, and a `unit` module sets up unit and integration tests**
   ([decision 0058](docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)).
   - **What:**

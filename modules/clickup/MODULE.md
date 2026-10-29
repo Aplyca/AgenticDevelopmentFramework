@@ -36,8 +36,10 @@ In `docs/TRACKER-INTEGRATION.md`:
    why):
    - **Task statuses:** `clickup_get_task` with `expand_statuses: true` lists the statuses a task can
      move to; `/stakeholder-update` uses it before proposing a status change. **Status at each
-     moment** names the list's own statuses for started, in review, and delivered — `clickup_update_task`
-     moves the task, and prompts.
+     moment** names the list's own statuses for started (in progress), in review, and delivered (done) —
+     `clickup_update_task` moves the task, and prompts: the agent moves the status on its own at each
+     moment, so allow that tool in your own `.claude/settings.local.json` if you don't want the
+     prompt (it also edits assignees and dates, which the agent still asks about).
    - **Images in comments:** the comment tool can't show an image inline, so the update carries a
      `[Screenshot N: <what it shows>]` line where each image goes, and the developer pastes the image
      over it in ClickUp. Read back, a pasted image shows as a line with its file name.
