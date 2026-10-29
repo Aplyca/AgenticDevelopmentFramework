@@ -81,7 +81,7 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e vitest wrap-up track-time end-user-docs"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e unit wrap-up track-time end-user-docs"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decisions 0022, 0045)
 # Skills that may start from a plain request but post only after showing the draft.
@@ -636,8 +636,8 @@ import json, re, sys
 fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
 decided = {"docker": {"Bash(make *)", "Bash(docker *)"},
-           # Fixed test scripts and vitest's run mode: they read the code and write only reports (0058).
-           "vitest": {"Bash(npm run test:smoke)", "Bash(npm run test:smoke *)", "Bash(npm run test:critical)",
+           # Fixed test scripts and unit's run mode: they read the code and write only reports (0058).
+           "unit": {"Bash(npm run test:smoke)", "Bash(npm run test:smoke *)", "Bash(npm run test:critical)",
                       "Bash(npm run test:critical *)", "Bash(npx --no-install vitest run *)"}}
 decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
                            "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)"}}

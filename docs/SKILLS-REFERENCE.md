@@ -54,7 +54,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 
 A module's skill is copied with the module in a committed install. In a packaged install it comes
 from the plugin the module's `module.json` names: `/dispatch`, `/track-time`, and `/end-user-docs` from `adf`, the process, and
-`/dev-env`, `/e2e`, and `/vitest` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
+`/dev-env`, `/e2e`, and `/unit` from `adf-dev`, development ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
 | Skill | Module | Purpose |
 |---|---|---|
@@ -63,7 +63,7 @@ from the plugin the module's `module.json` names: `/dispatch`, `/track-time`, an
 | `/end-user-docs` | `end-user-docs` | Write a feature's end-user page — how the people who use the product do what it lets them do — in the doc tool they read (ClickUp Docs, Confluence, Notion), never in the repository: **draft** it after the approval gate, docs first, where end users can't see it; **update** it when the build changes what it says; **publish** it to the end-user doc once the feature ships, reading the live page first and retiring the draft. Only for features whose spec lists an end-user page; each page is shown in full and written only on the developer's yes ([decision 0048](decisions/0048-end-user-docs-in-the-doc-tool.md)). Settings in `docs/END-USER-DOCS.md`. A packaged install gets it from the plugin, as `/adf:end-user-docs`. |
 | `/dev-env` | `docker` | Set up, migrate, run natively, diagnose, or safely reset the project's Docker Compose local environment by the conventions of [decision 0032](decisions/0032-local-environment-layout.md): `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, variables from `.env` and each service's `environment:`, ports Docker picks. It writes a missing stack from its templates and proposes moving an existing one; verified commands go to `DEV-SETUP.md` and the Quick reference, one stack per worktree with `parallel-agents`, a failing signal before any fix, and nothing deleted beyond this project's own containers and volumes without a yes. A packaged install gets it from `adf-dev`, as `/adf-dev:dev-env`. |
 | `/e2e` | `e2e` | Set up, audit, or extend the project's end-to-end tests to the specification it carries ([decision 0037](decisions/0037-end-to-end-tests.md)): Playwright in its own `e2e/` folder, run with `make e2e` and `make smoke` against the checkout's own stack — in Docker, in Playwright's image, or on the host — one `@smoke` test per critical flow the developer names, each seen failing before it's committed; tests that find elements by role, wait with assertions, own their data, and never reach a real third party. Diagnoses a failing or flaky test from what it kept (`error-context.md`, the trace). A change's own tests are written test first with `/write-tests`, following `testing.md` § End-to-end. A packaged install gets it from `adf-dev`, as `/adf-dev:e2e`. |
-| `/vitest` | `vitest` | Set up or audit the project's unit and integration tests to the specification it carries ([decision 0058](decisions/0058-test-tiers-and-feature-suites-with-vitest.md)): Vitest, run by tier (`@smoke`, `@critical`, regression) and by feature suite (a folder per feature, listed in `docs/TEST-SUITES.md`) |
+| `/unit` | `unit` | Set up or audit the project's unit and integration tests to the specification it carries ([decision 0058](decisions/0058-test-tiers-and-feature-suites-with-vitest.md)): Vitest, run by tier (`@smoke`, `@critical`, regression) and by feature suite (a folder per feature, listed in `docs/TEST-SUITES.md`) |
 
 ## Dynamic workflows
 
@@ -88,7 +88,7 @@ repository: `/adf:adopt`, `/adf:upgrade`, and `/adf:cost-report` — what agent
 sessions on a project cost, from Claude Code's local transcripts, with the expensive patterns
 flagged. In a packaged project, every skill above also comes from the plugin, typed
 `/adf:<name>` — except a development module's, typed by `adf-dev`'s name
-(`/adf-dev:dev-env`, `/adf-dev:e2e`, `/adf-dev:vitest`). See the [plugin README](../plugins/adf/README.md).
+(`/adf-dev:dev-env`, `/adf-dev:e2e`, `/adf-dev:unit`). See the [plugin README](../plugins/adf/README.md).
 
 The `adf-connect` plugin adds `/adf-connect:connect`: connect the project to its tracker or a stack
 service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP

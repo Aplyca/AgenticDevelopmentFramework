@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 #
-# Merges the vitest module's permissions into a repository's .claude/settings.json — never overwrites:
+# Merges the unit module's permissions into a repository's .claude/settings.json — never overwrites:
 # existing rules keep their order, and only missing ones are added. Running the unit and integration tests by tier —
 # `npm test`, `npm run test:smoke`, `npm run test:critical` — takes no prompt, so a test-first loop can
 # rerun a test as often as it needs. Safe to run again (an upgrade picks up new rules the
 # same way).
 #
-# Usage: modules/vitest/install.sh [path/to/repository]    (default: the current directory)
+# Usage: modules/unit/install.sh [path/to/repository]    (default: the current directory)
 #
 set -eu
 

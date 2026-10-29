@@ -1,10 +1,10 @@
 ---
-name: vitest
+name: unit
 description: Set up or audit this project's unit and integration tests to the specification this skill carries — Vitest, three cumulative tiers (@smoke, @critical, regression) and feature suites (a folder per feature, listed in docs/TEST-SUITES.md), run with npm test and its tier scripts or make test tier= suite=. Use when a project has no unit or integration suite, when tests should be runnable by tier or by feature, or when a feature adds a critical behavior. A change's own tests come from /adf:write-tests.
 argument-hint: "[set up | audit | tag | feature suites]"
 ---
 
-> **Step 0 — which copy.** This is the packaged copy, from the `vitest` module, carried by `adf-dev` ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/vitest/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+> **Step 0 — which copy.** This is the packaged copy, from the `unit` module, carried by `adf-dev` ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/unit/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
 # Unit and integration tests, by tier and by feature suite
 
@@ -33,12 +33,12 @@ is done when its runs prove it. Name the requirement's ID whenever you report a 
 ## Steps
 
 1. **Check the module.** Read the stamp on the first line of `AGENTS.md` (`head -1 AGENTS.md`).
-   Unless its `modules:` list names `vitest`, say "the vitest module isn't installed in this
+   Unless its `modules:` list names `unit`, say "the unit module isn't installed in this
    project — `/adf:upgrade` offers it" and stop.
 2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
    and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, this is the main checkout,
    which takes no edits. Say so in a line, read nothing more, and run `/adf:dispatch` now with
-   `test/vitest` as the branch, without asking first.
+   `test/unit` as the branch, without asking first.
 3. **Read the facts, running nothing yet:** the app's `package.json`, any test runner already
    there (`jest.config.*`, `vitest.config.*`, `mocha`), where tests live now, the `Makefile` and
    `ops/` when the stamp names `docker`, `.claude/rules/testing.md`, and `AGENTS.md`. A project

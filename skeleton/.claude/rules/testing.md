@@ -87,7 +87,7 @@ Tests run in steps and by feature, so a run is as small as the question.
 - **While iterating,** run the file, then its feature suite, then `@critical` before the local check, and the full run once before delivery. Name each tier you ran in `tasks.md` § Gate results.
 - **Never retag or skip a failing test** to a later tier to get green.
 
-With the `vitest` module (Vitest for unit and integration tests, `/vitest`), a tier is `npm run test:smoke` or `npm run test:critical`, regression is `npm test`, and a feature suite is a path (`npm test -- tests/billing`). This project's commands, and anything it does differently, with why:
+With the `unit` module (Vitest for unit and integration tests, `/unit`), a tier is `npm run test:smoke` or `npm run test:critical`, regression is `npm test`, and a feature suite is a path (`npm test -- tests/billing`). This project's commands, and anything it does differently, with why:
 <!-- e.g. `make test tier=critical suite=billing`, `make e2e tier=smoke` -->
 
 ## End-to-end

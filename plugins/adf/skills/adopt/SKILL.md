@@ -171,7 +171,7 @@ Present the table before going further. Wrong facts here poison every file downs
     `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the
     checkout's own stack, with one smoke test per critical flow (decision 0037). An existing suite
     (`playwright.config.*`, `cypress/`) is good evidence; with `docker`, it runs in Docker
-  - `vitest` — for a JavaScript or TypeScript app: `/vitest` sets up Vitest unit and integration
+  - `unit` — for a JavaScript or TypeScript app: `/unit` sets up Vitest unit and integration
     tests to the specification it carries, run by tier (`@smoke`, `@critical`, regression) and by
     feature suite (a folder per feature, listed in `docs/TEST-SUITES.md`), the same tiers the `e2e`
     module's suite uses (decision 0058). An existing runner (`jest.config.*`, `vitest.config.*`) is
@@ -188,10 +188,10 @@ Present the table before going further. Wrong facts here poison every file downs
   `modules/clickup/install.sh <repo>`. `docker` has no files to copy: `modules/docker/install.sh <repo>`
   merges its permission rules into `.claude/settings.json`, and `/dev-env set up` writes the stack;
   `e2e` has none either: `modules/e2e/install.sh <repo>` merges its rules, and `/e2e set up` writes
-  the suite; likewise `vitest`: `modules/vitest/install.sh <repo>`, and `/vitest set up`.
+  the suite; likewise `unit`: `modules/unit/install.sh <repo>`, and `/unit set up`.
   A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
   and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020; `/track-time`, decision 0043; `/end-user-docs`, decision 0048), `adf-dev` for
-  development (`docker`'s `/dev-env`, `e2e`'s `/e2e`, `vitest`'s `/vitest`). A committed install writes them with `build-committed.py`
+  development (`docker`'s `/dev-env`, `e2e`'s `/e2e`, `unit`'s `/unit`). A committed install writes them with `build-committed.py`
   above and leaves that plugin off. **Turn on the plugin that carries a module** in a packaged
   install when it isn't `adf`, once however many of its modules the project has: `"<plugin>@aplyca": true` in
   `enabledPlugins`, and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`.
@@ -257,8 +257,8 @@ Present the table before going further. Wrong facts here poison every file downs
   `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_SERVICE`, and `deployment.md`'s
   `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
   `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
-  the critical flows, and it writes the suite and their smoke tests. For `vitest`, the follow-up is
-  `/vitest set up` (packaged: `/adf-dev:vitest set up`): the developer picks the feature suites, and it
+  the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is
+  `/unit set up` (packaged: `/adf-dev:unit set up`): the developer picks the feature suites, and it
   writes the configuration, the tier scripts, and `docs/TEST-SUITES.md`. For `time-tracking`, fill
   `docs/TIME-TRACKING.md` — the unit, the tracker's time-entry tools, the labels — from the tracker's
   real tools, or leave a `TODO(team)` for each. For `end-user-docs`, fill `docs/END-USER-DOCS.md` —
@@ -304,7 +304,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Packaged, with `parallel-agents`, on a release whose plugin carries the commands: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
 - [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke`
-- [ ] With `vitest`: `.claude/settings.json` parses and its `allow` list holds `npm test` and `npm run test:smoke`
+- [ ] With `unit`: `.claude/settings.json` parses and its `allow` list holds `npm test` and `npm run test:smoke`
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question

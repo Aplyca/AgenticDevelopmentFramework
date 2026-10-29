@@ -16,7 +16,7 @@ everything. Two needs came up together:
 ## Decision
 
 - **Vitest is the preferred engine for unit and integration tests** in a JavaScript or TypeScript
-  app, carried by a new `vitest` module and its skill, `/adf-dev:vitest`, written like `e2e`: a
+  app, carried by a new `unit` module and its skill, `/adf-dev:unit`, written like `e2e`: a
   specification, no templates, set up and audited by the skill (decision 0037's pattern). A project
   on another stack keeps its own runner and follows the same tiers and feature suites.
 - **Three cumulative tiers, the same in Vitest and Playwright:**
@@ -46,7 +46,7 @@ everything. Two needs came up together:
 
 - `e2e`'s specification gains the `@critical` tier, feature suites, and the `tier` and `feature suite` arguments;
   its K requirements stay. `make smoke` and `@smoke` keep working, so nothing breaks.
-- A project that adopts `vitest` gets permissions to run the suite without a prompt, and
-  `/adf-dev:vitest set up` writes the configuration, the scripts, and the feature suite list.
-- Tags are a convention a test can omit: `/adf-dev:vitest audit` reports a delivered feature
+- A project that adopts `unit` gets permissions to run the suite without a prompt, and
+  `/adf-dev:unit set up` writes the configuration, the scripts, and the feature suite list.
+- Tags are a convention a test can omit: `/adf-dev:unit audit` reports a delivered feature
   with no `@critical` test.

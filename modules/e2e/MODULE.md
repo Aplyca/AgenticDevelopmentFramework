@@ -29,7 +29,7 @@ writes its own suite to it, and its runs prove it. In short:
   and wait with assertions, never sleeps. Flaky is broken.
 - **Tiers and feature suites:** `@smoke` ⊂ `@critical` ⊂ everything, and a folder per feature suite under `e2e/tests/`;
   `make e2e tier=critical suite=billing` ([decision 0058](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)).
-  The `vitest` module applies the same tiers to unit and integration tests.
+  The `unit` module applies the same tiers to unit and integration tests.
 - **Test first:** an acceptance criterion gets an end-to-end test only when the whole stack is needed
   to show it, and the test is seen failing before the code exists.
 

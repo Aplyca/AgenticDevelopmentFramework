@@ -344,7 +344,7 @@ The test comes first:
 
 ```ts
 // lib/newsletter/__tests__/validate-email.test.ts
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'unit';
 import { validateEmail } from '../validate-email';
 
 describe('validateEmail', () => {

@@ -1,9 +1,9 @@
 # The unit and integration testing specification
 
 What a project's unit and integration tests must look like, and how they're run by tier and by
-feature suite, in a project with the `vitest` module
+feature suite, in a project with the `unit` module
 ([decision 0058](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)).
-`/adf-dev:vitest` sets up a suite that meets it and audits one against it. The tests for a change
+`/adf-dev:unit` sets up a suite that meets it and audits one against it. The tests for a change
 are written the way every test is — test first, with `/adf:write-tests` and `/adf:implement` —
 following the project's `.claude/rules/testing.md`, § Tiers and feature suites included.
 
@@ -64,12 +64,12 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
   - `test:smoke` — `vitest run -t @smoke`;
   - `test:critical` — `vitest run -t "@smoke|@critical"`;
   - `test:regression` — `vitest run`, so a pipeline names the tier it means;
-  - `test:watch` — `vitest`, for a developer.
+  - `test:watch` — `unit`, for a developer.
 
   With the `docker` module, `make test` takes `tier=<smoke|critical|regression>` and `suite=<name>`
   and runs these in the configured mode, so an agent never needs to know which one.
 - **T4.** The smoke tier is seconds: a test that needs a network, a database, or a second of setup
-  is `@critical` at most. If `test:smoke` outgrows about ten seconds, `/adf-dev:vitest audit` names
+  is `@critical` at most. If `test:smoke` outgrows about ten seconds, `/adf-dev:unit audit` names
   the slowest tests to demote.
 - **T5.** A delivered feature adds at least one `@critical` test for its main acceptance criterion;
   a bug fix's regression test is untagged, and is promoted when the bug could cost users the flow.
@@ -115,7 +115,7 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
 
 ## Conformance
 
-`/adf-dev:vitest` checks in this order, and reports each gap as the requirement's ID, what the
+`/adf-dev:unit` checks in this order, and reports each gap as the requirement's ID, what the
 project has, and the change:
 
 1. **Layout:** S1–S5.

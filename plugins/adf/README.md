@@ -37,7 +37,7 @@ where it was before decision 0032), and run the committed script instead where a
 `/adf:upgrade` calls.
 
 It carries the process. The `aplyca` marketplace also lists `adf-dev`, the development plugin —
-the `docker` module's `/dev-env` and the `e2e` module's `/e2e`, and the `vitest` module's `/vitest` — at this plugin's version
+the `docker` module's `/dev-env` and the `e2e` module's `/e2e`, and the `unit` module's `/unit` — at this plugin's version
 ([decision 0023](../../docs/decisions/0023-plugins-by-concern.md)). `/adf:adopt` and `/adf:upgrade` turn it on
 in a packaged project that installs one of its modules.
 
