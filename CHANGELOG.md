@@ -11,21 +11,23 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-- **A task's phases stay in its session. After the approval gate, the developer clears the
+- **A task's phases stay in its session. After the approval gate, the developer compacts the
   conversation and switches to Sonnet there, instead of opening a fresh session**
-  ([decision 0062](docs/decisions/0062-one-session-per-task-clear-at-the-gate.md)).
+  ([decision 0062](docs/decisions/0062-one-session-per-task-compact-at-the-gate.md)).
   - **What:**
     - **One session per task, from triage to delivery.** An agent never starts another session for
       a phase of its task, new or child, unless the developer asks. "A fresh session on `sonnet`"
       had been read that way: a child session took the docs and the implementation on the same
       branch, and the parent, on Opus, woke each time the child ended a turn.
     - **The switch after the gate, by client.** `/adf:write-plan` step 12 gives the developer three
-      steps: clear the conversation, pick Sonnet, send the next command. In a terminal that's
-      `/clear`, `/model sonnet`, and the command. In the desktop app, `/clear` in the prompt box and
-      the model menu. In another tool, its way of starting the conversation over. Clearing first
-      means the switch re-reads nothing. `COST-MODEL.md` § Between phases has the table.
-    - **A cleared conversation opens with where the task stands.** `/adf:write-docs` and
-      `/adf:implement` start with one line: the lane, the folder, and the phase.
+      steps: compact the conversation with what the next phases need, pick Sonnet, send the next
+      command. In a terminal that's `/compact <instruction>`, `/model sonnet`, and the command. In
+      the desktop app, the same `/compact` in the prompt box and the model menu. In another tool,
+      its compaction, or starting over where it has none. Compacting first means the switch
+      re-reads only the summary. `COST-MODEL.md` § Between phases has the table.
+    - **The spec folder stays the source of truth.** `/adf:write-docs` and `/adf:implement` read the
+      folder, not the summary. In a conversation that doesn't show where the task stands, they
+      start with one line: the lane, the folder, and the phase.
     - **Triage names the switch where the desktop app won't make it.** That's when the app refuses a
       session's change to its own model or effort.
     - **`/adf:handoff` is for work that leaves the session.** A task's next phase isn't a handoff.
@@ -42,11 +44,11 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     to merge:
     - **`AGENTS.md`:** in § Working economically, the first bullet becomes "One task per session,
       one session per task". It adds that a phase never moves to another session unless the
-      developer asks, and that the conversation is cleared after the approval gate.
+      developer asks, and that the conversation is compacted after the approval gate.
     - **`.claude/rules/claude-code.md`:** two changes.
-      - The Full row's Model cell becomes "`opus`, high effort, up to the gate; then `/clear` and
+      - The Full row's Model cell becomes "`opus`, high effort, up to the gate; then `/compact` and
         `sonnet`, in the same session, from `/write-docs` on".
-      - In § Cost model, the switch after the gate is "right after `/clear`", with one more sentence:
+      - In § Cost model, the switch after the gate is "right after `/compact`", with one more sentence:
         a phase never moves to another session unless the developer asks.
   - **Committed install:**
     - **Overwrite:** `.claude/skills/{write-plan,implement,write-docs,triage,handoff,spec-workflow}/`,

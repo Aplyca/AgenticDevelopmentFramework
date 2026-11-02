@@ -1,6 +1,6 @@
 # 0012: Choose the model by the work — Sonnet for well-specified work, Opus for judgment
 
-- **Status:** accepted; amended by [0062](0062-one-session-per-task-clear-at-the-gate.md) (the switch after the gate happens in the task's session, after a clear — never a fresh session)
+- **Status:** accepted; amended by [0062](0062-one-session-per-task-compact-at-the-gate.md) (the switch after the gate happens in the task's session, after a compaction — never a fresh session)
 - **Date:** 2026-10-01
 - **Builds on:** [0010](0010-model-aliases.md) (version-less aliases) and [0011](0011-lanes-ceremony-follows-risk.md) (lanes)
 

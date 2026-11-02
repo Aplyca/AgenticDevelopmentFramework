@@ -1,6 +1,6 @@
 # 0055: The always-loaded files carry rules, not procedures; triage fits the model; the developer's "merged" closes up
 
-- **Status:** accepted; corrected before release: `/adf:adopt` and `/adf:init-project` stay model-invocable, and the shortened skill descriptions keep their trigger phrases — a description decides whether a skill loads at all (CHANGELOG, Unreleased); amended by [0062](0062-one-session-per-task-clear-at-the-gate.md) (where the desktop app refuses a session's change to its own model or effort, triage names the switch)
+- **Status:** accepted; corrected before release: `/adf:adopt` and `/adf:init-project` stay model-invocable, and the shortened skill descriptions keep their trigger phrases — a description decides whether a skill loads at all (CHANGELOG, Unreleased); amended by [0062](0062-one-session-per-task-compact-at-the-gate.md) (where the desktop app refuses a session's change to its own model or effort, triage names the switch)
 - **Date:** 2026-10-23
 - **Amends:** [0036](0036-wrap-up-after-the-merge.md) (the close-up needs no second yes when the
   developer's own word ended the task) and [0051](0051-agent-owned-sections-of-the-pull-request.md)

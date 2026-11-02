@@ -752,7 +752,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'the follow-ups start before it' || missing+=("/wrap-up: starts the follow-ups before the worktree is removed (0061)")
     file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Never start another' || missing+=("/write-plan: the phases after the gate stay in this session (0062)")
-    file_contains "$SKILLS_DIR/write-plan/SKILL.md" '`/clear`, `/model sonnet`' || missing+=("/write-plan: the switch after the gate, by client (0062)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" '/compact Keep the lane, the approved spec folder' || missing+=("/write-plan: compact, then switch, after the gate (0062)")
     file_contains "$REPO_ROOT/plugins/adf/docs/COST-MODEL.md" '^\*\*A phase never moves to another session\*\*' || missing+=("COST-MODEL.md: a phase never moves to another session (0062)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'refuses a session.s change to itself' || missing+=("/triage: names the switch where the desktop app refuses it (0062)")
     for file in "$REPO_ROOT"/plugins/adf/skills/*/SKILL.md "$REPO_ROOT"/plugins/adf/docs/*.md "$SKELETON/AGENTS.md" "$SKELETON/.claude/rules/claude-code.md" "$REPO_ROOT/README.md"; do

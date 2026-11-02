@@ -19,9 +19,8 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
 
 1. **Check that the work travels.** A handoff is for work that leaves this session: to a teammate,
    to another machine or tool, or to a session the developer chooses to open. A task's next phase
-   stays here and needs no handoff: continue, `/compact` with what it needs, or — after the approval
-   gate — `/clear`, since the spec folder already carries everything (`/adf:write-plan` step 12,
-   `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Between phases).
+   stays here and needs no handoff: continue, or `/compact` with what it needs — after the approval
+   gate, the steps `/adf:write-plan` gives (step 12, `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Between phases).
    A side task found mid-work isn't a handoff either: note it for the developer — or, with the
    parallel-agents module, `/adf:dispatch` offers it a new session of its own.
 

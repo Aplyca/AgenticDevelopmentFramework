@@ -104,18 +104,22 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
       A CR on an open pull request is committed on that same branch.
 
 12. **Hand off — in this session:** `/adf:write-docs` when Phase 1 has tasks — and `/adf:end-user-docs` for an end-user page — then `/adf:implement`. They run on
-    **`sonnet`, from a cleared conversation**: an approved plan with named tests is a clear spec with
-    a way to check the result, the committed folder carries everything they need, and the planning
-    conversation would be re-read on every later call. Give the developer three steps, in order —
-    clear, pick Sonnet, send the next command (`/adf:write-docs specs/<NNN>-<slug>/`, or
-    `/adf:implement …` when Phase 1 has no tasks) — in their client's terms:
-    - **Terminal:** `/clear`, `/model sonnet`, the command.
-    - **Desktop app:** `/clear` in the prompt box, Sonnet in the model menu, the command. Don't clear
-      or re-price the session yourself: a cleared transcript takes your last message with it.
-    - **Another tool:** its way of starting the conversation over, its model picker, the command.
+    **`sonnet`, from a compacted conversation**: an approved plan with named tests is a clear spec
+    with a way to check the result, the committed folder carries the detail, and the whole planning
+    conversation would be re-read on every later call. Give the developer three steps, in order:
+    1. **Compact, right away** — the sooner after approval, the more of the summary's read comes
+       from the cache: `/compact Keep the lane, the approved spec folder specs/<NNN>-<slug>/, the
+       gate's decisions and open questions, and the next step: /adf:write-docs, then /adf:implement`.
+    2. **Pick Sonnet:** `/model sonnet` in a terminal, the model menu in the desktop app, the picker
+       in another tool.
+    3. **Send the next command:** `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` when
+       Phase 1 has no tasks.
 
-    Clearing first means the switch re-reads nothing. If the developer keeps the conversation, the
-    model switches in place (one uncached re-read) or stays — their call. **Never start another
+    Compacting first means the switch re-reads only the summary. Name the steps rather than taking
+    them: no tool compacts a session from inside it, and the desktop app doesn't let a session change
+    its own model. A tool with no compaction starts the conversation over instead — the folder
+    carries the task. If the developer keeps the whole conversation, the model switches in place
+    (one uncached re-read) or stays — their call. **Never start another
     session for these phases** — not a new one, not a child — unless the developer asks: two
     sessions on one branch split the task, and the waiting one wakes, at its own model's price, each
     time the other finishes a turn.

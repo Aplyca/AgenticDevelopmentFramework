@@ -283,7 +283,7 @@ flowchart TD
     end
     gate -->|approved| speccommit["spec: commit"]
     speccommit --> docs
-    subgraph build["Build — /clear, then sonnet, same session"]
+    subgraph build["Build — /compact, then sonnet, same session"]
         docs["/write-docs<br/>pre-implementable docs first"]
         writetest["/implement, one task at a time<br/>write its test · watch it fail"]
         writecode["Write the code · watch it pass"]
@@ -356,7 +356,7 @@ flowchart TD
 |---|---|---|---|
 | Typo, copy, version bump, dev tooling; a precise adjustment the requester already decided; a bug with a clear cause | **Fast** — one-line triage → the test first, seen failing → edit → green → `/commit`; a light `CR N` when it changes recorded behavior | `sonnet` | [Change request § Light or full?](docs/scenarios/change-request.md#light-or-full) |
 | The same, in a risk area or a sensitive area | **Careful** — fast + the area's checklist, `@security-reviewer` for authorization, personal data, or payments, and the risky part named in the pull request | `sonnet`, high effort | [Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) |
-| New feature, unclear requirement, a design choice, cross-layer work | **Full** — `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → your local check → `/open-pr` | `opus` up to the gate; then `/clear` and `sonnet`, in the same session | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
+| New feature, unclear requirement, a design choice, cross-layer work | **Full** — `/write-spec` → `/write-plan` → **approval gate** → `/write-docs` → `/implement` (one red → green commit per task) → `/review` → your local check → `/open-pr` | `opus` up to the gate; then `/compact` and `sonnet`, in the same session | [newsletter-signup example](docs/examples/newsletter-signup/README.md) |
 | Change request with something to decide | **Full** — `/write-spec` amends the folder as `CR N` → the same gate and loop, for the delta only, on a fresh branch | as the full lane | [Change request](docs/scenarios/change-request.md) · [example](docs/examples/newsletter-topics/README.md) |
 | Bug, cause unknown | `/debug` → then the lane the fix needs: regression test (red) → fix (green) → `/commit` | `sonnet`; `opus` after two disproven hypotheses | [Debugging](docs/scenarios/debugging.md) |
 | Production is broken | **Careful**, without delay — root cause → regression test → fix → draft PR → ship; then backfill the spec folder | `sonnet`, high effort | [Hotfix](docs/scenarios/hotfix.md) |
@@ -388,7 +388,7 @@ per session, short tool output, and the model:
   two hypotheses? `opus`.
 - **Switch where it's cheap.** Each model has its own prompt cache, so a switch re-reads the whole
   conversation: switch when the session starts, right after triage, or after the approval gate,
-  right after `/clear` — in the same session; a task's phases never move to another one
+  right after `/compact` — in the same session; a task's phases never move to another one
   (`/write-plan` gives the steps).
 - **Effort before model.** The default for well-specified work, `/effort high` for harder or longer
   work; `xhigh` and `max` make Sonnet think longer and cost more.
