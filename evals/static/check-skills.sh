@@ -753,6 +753,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'the follow-ups start before it' || missing+=("/wrap-up: starts the follow-ups before the worktree is removed (0061)")
     file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Never start another' || missing+=("/write-plan: the phases after the gate stay in this session (0062)")
     file_contains "$SKILLS_DIR/write-plan/SKILL.md" '/compact Keep the lane, the approved spec folder' || missing+=("/write-plan: compact, then switch, after the gate (0062)")
+    python3 -c 'import json,sys; sys.exit(json.load(open(sys.argv[1])).get("autoCompactWindow") != 300000)' "$SETTINGS" || missing+=("settings.json: caps the conversation with autoCompactWindow 300000 (0062)")
     file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Skip the compaction when it can.t pay back' || missing+=("/write-plan: skips the compaction when it can't pay back (0062)")
     file_contains "$REPO_ROOT/plugins/adf/docs/COST-MODEL.md" '^\*\*A phase never moves to another session\*\*' || missing+=("COST-MODEL.md: a phase never moves to another session (0062)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'refuses a session.s change to itself' || missing+=("/triage: names the switch where the desktop app refuses it (0062)")

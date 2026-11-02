@@ -114,8 +114,20 @@ a way to check the result?**
 
 - **One task per session, one session per task; `/clear` before the next.** A cleared conversation
   starts at ~60k tokens; a long one can carry 200k+ on every call.
-- **A 1M-context model is for work that needs it.** With a 1M window (e.g. `opus[1m]`) compaction
-  happens late, so routine sessions grow far past what the task needs — and every call pays for it.
+- **Cap the conversation: `"autoCompactWindow": 300000`.** Opus and Sonnet now run with a 1M
+  window, and Claude Code compacts them by default only near it (about 967k tokens), so routine
+  sessions grow far past what the task needs — and every call pays for it. On one adopting project,
+  calls carried about 289k tokens on average, and re-reading and re-caching that context was 83% of
+  the cost. The skeleton's `.claude/settings.json` sets the window to 300k: room for a phase to
+  finish, at about two thirds of the saving a 200k window would bring, with half the compactions. A
+  developer who needs more sets it in `.claude/settings.local.json` or passes `--autocompact` for one
+  launch; the project file outranks `/autocompact`.
+- **What a compaction keeps** (Claude Code's docs, "What survives compaction"): the instructions and
+  unscoped rules, re-read from disk; the five most recently changed files; the first 5,000 tokens of
+  each invoked skill, 25,000 in all; and the session-start hooks' output. The conversation itself —
+  tool output, exact errors, and anything agreed only in chat — survives only as the summary keeps
+  it. So write a decision where it lasts (the spec, `plan.md`, the pull request) before a
+  compaction can take it.
 - **Keep output short.** Quiet test reporters, `| tail -n 40`, reading the lines you need. A log
   printed once is paid for on every later call.
 - **Targeted tests while iterating, the full gate once** (`.claude/rules/testing.md` § Verification

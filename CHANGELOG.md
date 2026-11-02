@@ -27,6 +27,11 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       re-reads only the summary. With a task or two left, or a conversation that's still short,
       the compaction can't pay back: the model switches in place instead. `COST-MODEL.md` § Between
       phases has the table.
+    - **Conversations are capped at 300k tokens.** The skeleton's `.claude/settings.json` sets
+      `"autoCompactWindow": 300000`. By default, Claude Code compacts Opus 5.5 and Sonnet 5.5 only at
+      about 967k tokens; on one adopting project, calls carried about 289k tokens on average.
+      `COST-MODEL.md` § Keeping sessions cheap explains the window and what a compaction keeps.
+      `/adf:cost-report`'s `long-context` flag points at the setting.
     - **The spec folder stays the source of truth.** `/adf:write-docs` and `/adf:implement` read the
       folder, not the summary. In a conversation that doesn't show where the task stands, they
       start with one line: the lane, the folder, and the phase.
@@ -38,12 +43,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - `plugins/adf/skills/`: `write-plan`, `implement`, `write-docs`, `triage`, `handoff`,
       `spec-workflow`, and `dispatch`.
     - `plugins/adf/docs/COST-MODEL.md` and `PARALLEL-AGENTS.md`.
-    - `skeleton/AGENTS.md` and `skeleton/.claude/rules/claude-code.md`.
+    - `skeleton/AGENTS.md`, `skeleton/.claude/rules/claude-code.md`, and
+      `skeleton/.claude/settings.json`.
+    - `plugins/adf/skills/cost-report/`.
     - `README.md` and the static checks.
 
   **Upgrade impact:**
-  - **Packaged install:** the skills and docs come with the plugin. Two files are the project's own,
-    to merge:
+  - **Packaged install:** the skills and docs come with the plugin. Three files are the project's
+    own, to merge:
+    - **`.claude/settings.json`:** add `"autoCompactWindow": 300000` at the top level. A project
+      that already set a window keeps its own.
     - **`AGENTS.md`:** in § Working economically, the first bullet becomes "One task per session,
       one session per task". It adds that a phase never moves to another session unless the
       developer asks, and that the conversation is compacted after the approval gate.
@@ -53,10 +62,10 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       - In § Cost model, the switch after the gate is "right after `/compact`", with one more sentence:
         a phase never moves to another session unless the developer asks.
   - **Committed install:**
-    - **Overwrite:** `.claude/skills/{write-plan,implement,write-docs,triage,handoff,spec-workflow}/`,
+    - **Overwrite:** `.claude/skills/{write-plan,implement,write-docs,triage,handoff,spec-workflow,cost-report}/`,
       `docs/COST-MODEL.md`, and, with `parallel-agents`, `.claude/skills/dispatch/` and
       `docs/PARALLEL-AGENTS.md`.
-    - **Merge:** `AGENTS.md` and `.claude/rules/claude-code.md`, as above.
+    - **Merge:** `.claude/settings.json`, `AGENTS.md`, and `.claude/rules/claude-code.md`, as above.
 
 - **`/adf:wrap-up` starts the follow-ups before it removes the worktree, and asks about the time
   before the close-up**

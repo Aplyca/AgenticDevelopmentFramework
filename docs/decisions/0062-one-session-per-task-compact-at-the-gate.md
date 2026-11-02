@@ -80,6 +80,19 @@
   folder, not the summary. In a conversation that doesn't show where the task stands, whether
   compacted or started anew, they open with one line: the lane, the folder, that it's approved, and
   the phase.
+- **The project caps the conversation at 300k tokens.** The skeleton's `.claude/settings.json` sets
+  `"autoCompactWindow": 300000`, a documented setting that can be committed.
+  - **Why:** Opus 5.5 and Sonnet 5.5 run with a 1M window, and by default Claude Code compacts them
+    only at about 967k tokens. On one adopting project (47 sessions over 30 days), calls carried
+    about 289k tokens on average, and re-reading and re-caching that context was 83% of the cost.
+  - **Why 300k, not 200k:** it leaves a phase about 220k tokens of room above a desktop session's
+    starting context, and needs about half as many compactions. It keeps an estimated two thirds of
+    the saving a 200k window would bring.
+  - **Where to change it:** a developer who needs a different window sets it in
+    `.claude/settings.local.json` or passes `--autocompact`; the project file outranks
+    `/autocompact`.
+  - **The manual compaction at the gate stays.** It comes at a clean boundary, where the automatic
+    one comes wherever the window fills.
 - **Triage names the switch when the app won't make it.** Where the desktop app refuses a session's
   change to its own model or effort, `/adf:triage` names the switch for the developer (the model
   and effort menus), as it does in a terminal.
@@ -105,6 +118,12 @@
     after approval, while the cache is warm. A long wait at the gate makes it one uncached read,
     once.
   - A summary can drop or blur a detail. The folder is the record, and the next phases read it.
+    After a compaction, Claude Code re-reads the instructions, the five most recently changed
+    files, and the first 5,000 tokens of each invoked skill. The rest of the conversation lives on
+    only in the summary.
+  - At 300k, an automatic compaction can come mid-phase. The spec folder, the ticks in `tasks.md`,
+    and the commits carry the task through it; a decision agreed only in chat may not survive.
+  - Projects merge one key into `.claude/settings.json`.
   - Projects merge two lines into `claude-code.md` (the lane row and the cost paragraph) and one
     into `AGENTS.md`.
 
