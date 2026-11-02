@@ -1,6 +1,6 @@
 # 0059: A tracker task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) — the calling skill makes the move itself
 - **Date:** 2026-10-28
 - **Amends:** [0053](0053-stakeholder-updates-at-three-moments.md) — the status is no longer part of
   the message's approval; [0048](0048-end-user-docs-in-the-doc-tool.md) — the pages are stakeholder

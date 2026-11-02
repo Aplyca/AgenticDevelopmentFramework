@@ -31,6 +31,7 @@ The repo slug is `AgenticDevelopmentFramework` (renamed from `ai-dev-starter-kit
 - Everything inside `skeleton/`, `modules/*/files/`, and the plugins' machinery must stay **generic** — no project-specific stack, paths, or conventions
 - Agent definitions learn project context from `AGENTS.md` and the rules at runtime; skills reference them — never hardcode specifics
 - Universal rules (code-quality, testing, security, git-workflow) apply to any language/framework; customizable rules (architecture, ui-ux, deployment, performance, observability) have `<!-- CUSTOMIZE -->` markers
+- **A skill's `SKILL.md` holds what every run needs** — its steps, decisions, rationalizations, red flags, and verification. A case only some runs reach (an argument, a module, a kind of task) goes in a reference file beside it, named at the step that needs it as `<this skill's base directory>/<file>.md`; a reference file names no `${CLAUDE_PLUGIN_ROOT}` path, since nothing fills it in for a file the agent reads (decision 0063)
 - Skill and agent frontmatter use only documented keys, hyphenated (`argument-hint`, `disable-model-invocation`, `user-invocable`) — unknown keys are silently ignored. Hooks use the nested `hooks` array and read the event from stdin
 - No symlinks anywhere in the repository — the Claude Directory's checks reject them. A link a project needs (Antigravity's `.agents/skills`) is created by `/adopt`
 - Relative links inside `skeleton/` must resolve inside an adopting repo — never link to framework-only docs from the skeleton

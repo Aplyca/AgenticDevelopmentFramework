@@ -21,6 +21,10 @@ or seen the result. The developer QCs the change and promotes it.
 
 Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitLab.
 
+**`refresh` and `sync` have steps of their own:** with either argument, read
+`<this skill's base directory>/refresh.md` or `<this skill's base directory>/sync.md`, follow it,
+and skip the steps below.
+
 ## Steps
 
 1. **Check the branch.** It must be a work branch (`<type>/<slug>`), never a protected one.
@@ -102,7 +106,7 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    ```
 
    Keep the `adf:` markers, the repository template's included: they mark the sections you own,
-   which § Refresh rebuilds later; everything outside them is the people's. Fill checklists
+   which `refresh` rebuilds later; everything outside them is the people's. Fill checklists
    honestly: leave a box unchecked and say why, rather than checking something you
    didn't do or deleting the line. **Follow-ups** lists every bug or improvement this session found
    outside the task (`specs/README.md` § Found along the way) — gathered from your reports, not from
@@ -123,27 +127,20 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    (`spec: link <slug> pull request`), and push it to the same branch.
 
 7. **Check the preview** when the project has previews (`AGENTS.md` § Quick reference) and the change
-   alters something a person sees or uses. Wait for its deploy in the background — the host's check
-   for it, `gh pr checks <n> --watch`, run as a background command, never a polling loop — then walk
-   the same flow you checked locally, on the preview's URL:
-   - **Read-only.** The preview is shared and may reach real services: don't submit what reaches a
-     person or shared data unless the developer asks. Use a browser, not the end-to-end suite, which
-     creates data and runs only against the local stack.
-   - **Record it** in the body's *Preview* line (`gh pr edit <n> --body-file <file>`, from the
-     current body — § Refresh).
-   - **A difference from local** — it works here, not there — goes to the developer with what
-     differs: configuration, data, the platform. It's not fixed by retrying the deploy.
-   - **The deploy fails:** the *Preview* line says so, naming the failing check. Don't retry it on
-     your own; the report says the preview couldn't be checked, and why.
+   alters something a person sees or uses: read `<this skill's base directory>/preview.md` and
+   follow it — the deploy awaited in the background, the flow you checked locally walked again on the
+   preview's URL, read-only, and recorded in the body's *Preview* line.
 
-   The developer's QC on the preview still decides ready; yours is evidence for it.
-
-8. **Update the tracker task** (`/adf:stakeholder-update review`). Right after the branch is pushed
-   and the pull request is open, move the task to the project's review status on your own
-   (`/adf:stakeholder-update status review`) — no yes needed, forward only, one line to say so. Then
-   draft the review update: a business-focused report for the requester — what changes for them, the
-   preview and what to test there, and the pull request link, which is the tracker link-back. It
-   ends the report in step 9. Post it only on the developer's yes to the exact text and the
+8. **Update the tracker task.** Right after the branch is pushed and the pull request is open, move
+   the task to the project's review status on your own — no yes needed, and no skill to load. Use the
+   status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment, from the task's own
+   statuses (one it lacks is a question), written as its § Rules for agents says — through the
+   project's server, as the developer, and read back; forward only; the status alone; only a task
+   the developer is assigned to. One line says so — with no tracker tool, or only one built into the
+   host app, the status for the developer to set. Then
+   draft the review update (`/adf:stakeholder-update review`): a business-focused report for the
+   requester — what changes for them, the preview and what to test there, and the pull request link,
+   which is the tracker link-back. It ends the report in step 9. Post it only on the developer's yes to the exact text and the
    assignee — often after their own test.
 
 9. **Report — once, after the preview walk** (or right after step 6 when there's no preview to
@@ -151,70 +148,11 @@ Use the repository host's CLI: `gh` for GitHub, `glab` (merge requests) for GitL
    first. Then where the developer can test it:
    the local URL — the environment you left running — and the preview's, with what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
    and what you could not. A fix they ask for goes on the same branch: walk it locally again, push,
-   refresh the description (§ Refresh), and recheck the preview. Close with their next step, once: test it; ready and merge are theirs;
+   refresh the description (`/adf:open-pr refresh`), and recheck the preview. Close with their next step, once: test it; ready and merge are theirs;
    you'll wrap up after the merge (`/adf:wrap-up`). Don't remind them on later turns or offer to
    promote it: when those happen is theirs. Never request reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
    and never on your own initiative. For a tracker task, the review update's draft and its one
    question come last (step 8).
-
-## Refresh — keep your draft's description current
-
-`/adf:open-pr refresh`, once a later push to your own open draft changes what its description says:
-a fix or a change request the developer asked for, a sync with the base branch, new gate results.
-Editing your own draft's description is upkeep: it takes no prompt.
-
-1. **Check the pull request:** `gh pr view <n> --json state,isDraft,body`. Merged or closed: stop and
-   say so — never edit it or push to its branch. No longer a draft: the developer has taken it over,
-   so show the diff (step 4) and apply it only on their yes.
-2. **Fetch the current body** into a file and work from that copy, never from what you wrote last:
-   people edit descriptions.
-3. **Rebuild only the sections you own,** the text between each `<!-- adf:<section> -->` and its
-   `<!-- /adf:<section> -->`: *What changed and why*, *How to verify*, and *Verified / not verified*.
-   - **From the record, not from memory:** `tasks.md` § Gate results and the spec's change requests —
-     what this pull request now delivers, with what the latest `CR N` changed. In the fast and
-     careful lanes, the light `CR N` and the gate you just ran.
-   - **Everything outside the markers stays byte for byte:** the traceability lines, checked boxes,
-     a reviewer's notes, screenshots. *Follow-ups* only gains a line for something new you found;
-     never tick or remove one.
-   - **A body without the markers** — opened before the template had them, or rewritten by hand — is
-     all the people's: show the sections you'd replace, and apply only on the developer's yes.
-4. **Show the description's diff** before you apply it, old against new:
-   `git diff --no-index <old> <new>`. Sum it up in your report, so the developer sees what changed.
-5. **Apply it** without waiting: `gh pr edit <n> --body-file <new>`. The title changes only when the
-   scope did. When the change is one a person sees, recheck the preview (step 7).
-
-## Sync — bring the base branch in
-
-`/adf:open-pr sync`, when the base branch moved on under your open pull request and there's a reason
-to bring it in: the pull request conflicts, the work needs something that landed there, or the
-developer asks. Each sync costs a re-run and a new deploy. The steps, in order:
-
-1. **Check the pull request is still open:** `gh pr view <n> --json state`. Never push to the
-   branch of a merged or closed pull request. New commits there reach no one: say so, and leave
-   any remaining work to a fresh branch.
-2. **Merge, never rebase:** `git fetch origin`, then `git merge origin/<base>`, a normal merge
-   commit. Never rebase or force-push history that's already pushed: the review's comments and
-   every other checkout point at it.
-3. **Resolve each conflict by keeping both sides' intent,** never by taking one side whole, and
-   report how you resolved each one, file by file.
-4. **Re-run only what the merged files affect.** `git diff --stat HEAD^1 HEAD` lists what the merge
-   brought in:
-   - no app files — source, tests, package manifests, the app framework's configuration: the
-     earlier gate stands, and you say so;
-   - otherwise the unit tests and lint, plus the build and the end-to-end tests when shared UI or
-     configuration changed.
-5. **Re-check the cross-spec contracts the merge brought in:** an API, schema, or shared type
-   another spec changed still gives this work what it relies on.
-6. **Push to your own draft pull request's branch** — upkeep, with no prompt.
-7. **Expect the preview to move.** A new deploy can change the preview's address, and links
-   already sent to people show the old build: give the new address in your report.
-8. **Record it** when it changed the evidence: the sync, and what you re-ran, in `tasks.md`
-   § Gate results (the pull request's *Verified* line in the fast and careful lanes), then § Refresh.
-
-**In the desktop app,** its `sync_with_base_branch` tool, where you have it, fetches and merges on
-the host, where it can write the files the sandbox protects. Resolve what it reports, then carry on
-from step 3. It works only in a worktree the app made, and refuses a merge that touches protected
-settings files: elsewhere, merge with git; a refused merge goes to the developer.
 
 ## Rationalizations (do not accept these)
 
@@ -230,8 +168,6 @@ settings files: elsewhere, merge with git; a refused merge goes to the developer
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
 | "I'll post the link on the task while I'm here" | The status moves with the push, on its own. The message is a write the requester reads: draft it as the review update, at the end of the report; post on the developer's yes to the exact text. |
-| "I pushed the fix; the description can stay as it was" | Then it describes code that's gone, and the reviewer reads it first. After a push that changes what it says, refresh it. |
-| "I'll rewrite the whole description from what I know now" | People edit descriptions: a reviewer's note, a ticked box, a screenshot. Rebuild only the sections between the markers, from the current body. |
 
 ## Red flags (stop and reassess)
 

@@ -69,10 +69,11 @@ projects.
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
 | [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted |
 | [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
-| [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted |
+| [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063 |
 | [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
 | [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) | The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up | accepted |
 | [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted |
+| [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) | A skill's case-only steps load from reference files beside its `SKILL.md`, and the skill that reaches a moment moves the task's status itself | accepted |
 | [0064](0064-tracker-writes-through-the-projects-server.md) | Tracker writes go through the project's server as the developer, and a correction an edit would damage is the developer's | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in

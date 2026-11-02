@@ -5,8 +5,10 @@ workflows**. Their source is the plugins — `plugins/adf/skills/`, `plugins/adf
 `plugins/adf-dev/skills/` ([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged
 project loads them from there, as `/adf:skill-name`; a committed one keeps copies in `.claude/`, which
 `scripts/build-committed.py` writes, and invokes them with `/skill-name` — other tools read the
-`SKILL.md` and follow it. Skills run in the main conversation; workflows fan out to many
-agents.
+`SKILL.md` and follow it. A skill's folder can also hold reference files: the steps for a case only
+some tasks reach, which a step of its `SKILL.md` names, so they load only then
+([decision 0063](decisions/0063-reference-files-and-status-moves-in-the-calling-skill.md)). Skills run
+in the main conversation; workflows fan out to many agents.
 
 For routing (skill vs agent vs workflow), see `skeleton/.claude/rules/claude-code.md` § Skills, agents, and workflows.
 For model tiers, see `plugins/adf/docs/COST-MODEL.md`. For why the workflow is shaped this way, see

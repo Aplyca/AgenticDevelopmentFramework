@@ -60,7 +60,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 
 | Path | Notes |
 |---|---|
-| `.claude/skills/*` | All skill SKILL.md files. Skills are framework playbooks; rewrite by replacement. |
+| `.claude/skills/*` | All skill folders: each `SKILL.md`, and the reference files and scripts beside it. Skills are framework playbooks; rewrite by replacement. |
 | `.claude/agents/*` | All agent definitions. The `model:` field in frontmatter is a framework decision — don't override casually (see `docs/COST-MODEL.md`). |
 | `.claude/workflows/*` | Dynamic workflow scripts |
 | `.claude/hooks/*` except `config.sh` | Hook scripts and their helpers (`_lib.sh`, `json-get.*`, `transcript-text.*`) — project values live in `config.sh` (merge bucket), so the scripts stay replaceable. Keep the scripts' executable bit |
