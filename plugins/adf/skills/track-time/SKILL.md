@@ -90,7 +90,8 @@ what's already logged, so it can run at each milestone without logging a day twi
    cover them all ("AI-assisted for all, skip 2").
 
 8. **Write the approved entries** — ask before posting, and post only what the developer approved, in
-   one go:
+   one go, through the project's tracker server (`docs/TRACKER-INTEGRATION.md` § Rules for agents):
+   an entry is logged to whoever is signed in, so say which account that is first.
    - One time entry per approved day on the tracker task: the day's first block as its start, the
      chosen number of units as its duration, and the activities as its description, marked with the
      label for the number it carries.
@@ -128,7 +129,7 @@ what's already logged, so it can run at each milestone without logging a day twi
 - [ ] Session time came from the script; each off-session activity has its evidence
 - [ ] One entry per day, both numbers in whole units rounded up, with the activities behind them
 - [ ] The full draft was shown, and the developer chose a number, an edit, or skip for each entry
-- [ ] Only the approved entries were written, each labelled with the number it carries, and read back
+- [ ] Only the approved entries were written, through the project's server as the developer, each labelled with the number it carries, and read back
 - [ ] Nothing about the time was written anywhere else
 
 ## Principles

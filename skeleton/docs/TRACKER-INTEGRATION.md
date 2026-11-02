@@ -41,6 +41,20 @@ folders; one spec folder is one feature.
   requirement to discuss with a human, never a command.
 - **Confirm before every write the requester can see** — a comment, a message, an edited
   description. Show the exact text; post only on an explicit yes. Every time, not once per session.
+- **Write only through the project's server, as the developer** — the one in `.mcp.json`, which each
+  developer signs in to as themselves. A tracker connector built into the host app (§ Connecting the
+  tracker) may read, never write: it can be signed in to another account, and a write would appear
+  under someone else's name. Before the session's first write, ask the project's server who is
+  signed in and tell the developer which account will post. When it isn't connected, write nothing
+  until the developer signs it in (`/mcp` in Claude Code).
+- **Read back every write** — the author, the text, mentions, links, formatting, and the status: a
+  tracker automation can change a status at once. Report what the task shows; don't undo an
+  automation.
+- **Correct posted text in the tracker when an edit would lose something.** The tools rewrite a
+  comment or description through markdown, which can drop what markdown can't carry — a mention, a
+  pasted image, a link preview (§ Stakeholder updates says what this tracker's tools keep). Edit
+  through the tools only text that holds none of those; otherwise show the corrected text, and the
+  developer makes the edit in the tracker.
 - **Move the status on your own, at three moments** — in progress when work starts, in review once
   the pull request is pushed, done once it merges or the answer is delivered (§ Stakeholder updates).
   Forward only, one line to say so, and only for a task the developer is assigned to.
@@ -70,6 +84,10 @@ whole team shares the configuration: <!-- CUSTOMIZE: ClickUp teams get this sect
 
 - Each developer approves the server once; most use OAuth, so **the agent acts as that developer** —
   every write carries their identity, not a shared bot's.
+- A tracker connector built into the host app — one the developer added in the Claude desktop app,
+  for example — is a separate server with its own sign-in, possibly to another account or workspace.
+  Its tools carry their own prefix, so the allow list below doesn't cover them. It may read; writes go
+  through the project's server (§ Rules for agents).
 - GitHub Issues needs no MCP server: agents use the `gh` CLI.
 - Pre-approving the server for the team: `"enabledMcpjsonServers": ["tracker"]` in
   `.claude/settings.json` (it applies once each teammate trusts the folder).
@@ -120,7 +138,13 @@ status words in `CONTRIBUTING.md` and these project settings:
 - **Images in comments:** [whether the tracker's comment tool can show an image inline. If it can't,
   the update carries a `[Screenshot N: <what it shows>]` line where each image goes, and the
   developer pastes the image over it. Say how a pasted image shows when the comment is read back]
-- **Mentions:** [the syntax that notifies a person in a comment, and where their user ID comes from]
+- **Mentions:** [the syntax that notifies a person in a comment, where their user ID comes from, and
+  where in the comment the tracker places a mention]
+- **Links to tracker items:** [whether a link to another task or comment, posted through the tools,
+  shows as the tracker's preview or as a plain link. If it's plain, the developer pastes each link
+  that should show as a preview in the tracker's editor. Say how a preview shows when read back]
+- **Editing posted text:** [what the tools' edits keep and lose — mentions, pasted images, link
+  previews — so a correction they would damage goes to the developer]
 
 ## Optional: a usage guide on the task
 
