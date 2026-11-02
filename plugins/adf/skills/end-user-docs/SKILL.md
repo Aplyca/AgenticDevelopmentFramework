@@ -79,7 +79,9 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
    Then ask before posting: the yes is to this exact text, every time, even when the developer asked
    for the docs.
 
-6. **Write it** — on the yes, the page as approved and nothing else:
+6. **Write it** — on the yes, the page as approved and nothing else, through the project's server
+   for the doc tool, as the developer — never a connector built into the host app, which may be
+   signed in to another account (`docs/TRACKER-INTEGRATION.md` § Rules for agents):
    - **Draft:** create the page in the drafts location, named after the target page, with the
      subtitle `Draft for <target page> · <spec folder>` — or replace an existing draft's content.
      Read it back. Tick its Phase 1 task with the draft's link, and commit the tick with the other
@@ -129,7 +131,7 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
 - [ ] The spec lists the page — or, with no spec folder, the developer confirmed end users need it
 - [ ] Every step, message, and limit is backed by an AC, an edge case, a test, or the built product; nothing is fabricated
 - [ ] The page follows § Page structure, in the end users' language and the product's labels, with nothing technical
-- [ ] The full page was shown, written only on the yes to that text, and read back
+- [ ] The full page was shown, written only on the yes to that text, through the project's server, and read back
 - [ ] A draft went to the drafts location; only a shipped feature's page went to the end-user doc
 - [ ] At publish: the live page's edits were shown first, no placeholder or draft line was left, and the draft was retired
 - [ ] Nothing of the page's text was written to the repository

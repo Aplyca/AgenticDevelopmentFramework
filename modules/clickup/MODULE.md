@@ -31,7 +31,8 @@ In `docs/TRACKER-INTEGRATION.md`:
 1. **The tracker** is ClickUp. Task links look like `https://app.clickup.com/t/<task-id>`, or your
    custom task IDs (e.g. `MKT-412`) — `/triage` searches the spec folders for them.
 2. **§ Connecting the tracker** — replace the example `.mcp.json` with this module's, and note that
-   the allowlist is already in `.claude/settings.json`.
+   the allowlist is already in `.claude/settings.json` and that `clickup_get_user` names the account
+   signed in to the project's server — the check before the session's first write.
 3. **§ Stakeholder updates** — the lines `/stakeholder-update` reads for ClickUp (§ Good to know says
    why):
    - **Task statuses:** `clickup_get_task` with `expand_statuses: true` lists the statuses a task can
@@ -43,11 +44,24 @@ In `docs/TRACKER-INTEGRATION.md`:
    - **Images in comments:** the comment tool can't show an image inline, so the update carries a
      `[Screenshot N: <what it shows>]` line where each image goes, and the developer pastes the image
      over it in ClickUp. Read back, a pasted image shows as a line with its file name.
-   - **Mentions and assignment:** `clickup_create_comment` posts the comment (`reply_to_id` for a
-     threaded reply). A mention that notifies — confirmed in threaded replies — is
-     `[@Name](#user_mention#<numeric user id>)`, and the
+   - **Mentions and assignment:** `clickup_create_comment` posts the comment; for a threaded reply,
+     `reply_to_id` takes the thread's root comment, not its latest reply. A mention that notifies —
+     confirmed in threaded replies — is `[@Name](#user_mention#<numeric user id>)`, and the
      comment's `assignee` takes the same numeric id — from the task (its creator, assignees, and
-     watchers) or from `clickup_resolve_assignees`.
+     watchers) or from `clickup_resolve_assignees`. ClickUp moves a mention to the end of the
+     comment, so "Hi [@Dana](…)," posts as "Hi ,": greet people by name in plain text, and put the
+     mentions on the comment's last line, where ClickUp places them anyway.
+   - **Links to tracker items:** a link to a task or comment posted through the tools — a bare URL or
+     `[url](url)` — shows as a plain link. ClickUp makes a preview only when a link is pasted in its
+     editor, and only a preview keeps showing a task's current name after a rename, so the developer
+     pastes each link that should show as one. Read back, a task preview exports in
+     `markdown_description` as `Task name ([url](url))`; a comment preview looks like a plain link
+     there, and is missing from `text_content`, where a plain link shows its URL. A threaded reply's
+     link is `https://app.clickup.com/t/<workspace id>/<task id>?comment=<root id>&threadedComment=<reply id>`.
+   - **Editing posted text:** `clickup_update_comment` drops a comment's mentions, so a fix to a
+     comment with mentions is the developer's, in ClickUp. So is a rewrite of a comment or
+     description that holds link previews or pasted images: the markdown round-trip would likely turn
+     them into plain links and file-name lines (not yet tested).
 4. **Link back** — where pull request links go on a task: a "Links" section in the description, or a
    comment.
 5. **Time tracking** — with the `time-tracking` module, `docs/TIME-TRACKING.md` names ClickUp's
@@ -66,7 +80,17 @@ In `docs/TRACKER-INTEGRATION.md`:
   record of what was agreed — which is why a change request starts from the spec folder and the
   comments since it last changed (`specs/README.md` § Change requests).
 - **Each developer acts as themselves.** Comments and status changes carry that developer's name, so
-  the agent confirms each one first (`AGENTS.md` § Requirements & traceability).
+  the agent confirms each one first (`AGENTS.md` § Requirements & traceability). That holds only
+  through the project's `clickup` server. ClickUp's connector in the Claude desktop app is another
+  server, with its own sign-in and its own tool prefix: it may read, never write, since it can be
+  signed in to someone else's account (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
+- **Formatting and statuses through the tools** (observed in November 2026):
+  - ClickUp turns a blank line into an extra empty line after a heading, between a heading and its
+    list, and between a list's last item and the next heading. In a description, put each heading
+    directly above its content and the next heading directly after a list's last item; keep blank
+    lines between paragraphs.
+  - A ClickUp automation can change a status as soon as it's set — a new task created in one status
+    reads back in another — so the read-back after each write includes the status.
 - **Comments take text only** (the connector's behavior, observed in October 2026 — check it again
   when ClickUp updates its server):
   - `clickup_create_comment` takes markdown only, so `![alt](url)` doesn't render an image inline.
