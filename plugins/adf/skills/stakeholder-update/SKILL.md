@@ -1,6 +1,6 @@
 ---
 name: stakeholder-update
-description: Keep a tracker task's status current — in progress when work starts, in review once the pull request is pushed, done once it merges — on its own, and draft the requester's message for each moment (started, in review with the preview and what to test, delivered) in their terms, with screenshots when they help; post a message only on the developer's yes to its exact text and the assignee, never on the pull request. Use when /adf:triage, /adf:open-pr, or /adf:wrap-up reaches its moment, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done.
+description: Draft the requester's message on a tracker task for each moment (started, in review with the preview and what to test, delivered) in their terms, with screenshots when they help; post it only on the developer's yes to its exact text and the assignee, never on the pull request. The task's status moves on its own at each moment. Use when /adf:triage, /adf:open-pr, or /adf:wrap-up reaches its moment, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done.
 argument-hint: "[started | review | delivered] [status] [tracker task link or ID] [pull request number]"
 ---
 
@@ -35,30 +35,16 @@ An answer-only task has no review moment: its delivered update is the answer, in
 ## Status moves
 
 The status follows the work, on its own — the developer isn't asked each time, and the move isn't
-part of any message's approval. `/adf:stakeholder-update status <moment>` makes it; the skills that
-reach a moment call it:
+part of any message's approval. The skill that reaches the moment makes the move in a step of its
+own, without loading this skill: `/adf:triage` to the in-progress status once the triage is stated,
+`/adf:open-pr` to the review status once the branch is pushed and the pull request is open,
+`/adf:wrap-up` to the done status (`delivered` in the settings) once the pull request merged or an
+answer is delivered. `/adf:stakeholder-update status <moment>` makes a move too, when asked or when
+one didn't happen at its moment.
 
-| Moment | Who moves it | When | To |
-|---|---|---|---|
-| **Started** | `/adf:triage` | Right after the triage is stated, for a task the developer is assigned to | The in-progress status |
-| **In review** | `/adf:open-pr` | Once the branch is pushed and the pull request is open | The review status |
-| **Done** | `/adf:wrap-up` | Once the pull request merged, or an answer is delivered | The done status (`delivered` in the settings) |
-
-Rules for every move:
-
-- **The task's own statuses decide.** Read them with the tracker's tools (§ Project settings), and use
-  the one `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment. A status the task
-  doesn't have is a question for the developer, not a guess.
-- **Forward only.** A task already at or past the target — a developer moved it by hand, or it's
-  waiting on the requester — stays where it is. Never move it back.
-- **Only the developer's tasks.** A task the developer isn't assigned to stays as it is, unless they
-  say so.
-- **The status only.** The assignee, priority, due date, and time entries still need a yes
-  (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
-- **Say it in one line** — "Moved the task to In Progress" — so the developer can correct it. With
-  no tracker tool connected, say which status the developer should set, and go on.
-- **The tracker's own prompt still applies.** The status move is a write; where the project leaves
-  it off the allowlist, the permission prompt is the developer's say, not the skill's to skip.
+The rules for a move — the task's own statuses, forward only, the developer's tasks only, the
+status alone, one line to say so — are in `<this skill's base directory>/status.md`. Read it for a
+move made here.
 
 ## Project settings
 
@@ -72,14 +58,15 @@ Read these before writing; they hold what this skill doesn't hardcode:
 
 ## Steps
 
-**With the argument `status`,** do only § Status moves for the named moment — no draft, no
-message — and stop. The skills that reach a moment call it that way.
+**With the argument `status`,** make only the move for the named moment, by `status.md` (§ Status
+moves) — no draft, no message — and stop.
 
 1. **Gather context.** Read the tracker task — description and every comment: who asked, who is
    copied, what was agreed — the pull request, and the spec folder if there is one (what was decided
    and why, change requests). Include all the work done for the task: content entered in the CMS,
    settings changed, and data fixed, as well as code. If you're unsure what non-code work was done,
-   ask the developer. Name the moment: the argument, or where the work is.
+   ask the developer. Name the moment — the argument, or where the work is — and read its template
+   with these reads: `<this skill's base directory>/started.md`, `review.md`, or `delivered.md`.
 
 2. **Verify every claim.** Check each statement and finding against the live site, the preview, the
    CMS, or the pull request before including it. A finding you couldn't verify is left out or
@@ -92,26 +79,15 @@ message — and stop. The skills that reach a moment call it that way.
 
    Don't give dates unless the developer provides one.
 
-3. **Write the draft** for its moment, following the style rules and the moment's template below,
+3. **Write the draft** for its moment, following the style rules and the moment's template (step 1),
    in the language the client uses on the task. Where a screenshot belongs, put a line of its own:
    `[Screenshot N: <what it shows>]`. A started moment with nothing worth saying has no message:
    the draft is the status change alone.
 
 4. **Take the screenshots** — only when a picture shows the client something words can't, such as
-   the fix working. Take them from the preview or the live site, **read-only**: submit no form,
-   change no setting, edit no content. With Playwright (the `e2e` module, or a browser tool the
-   session has):
-   - Use a desktop viewport, such as 1440×900, and `deviceScaleFactor: 2`, so text stays sharp
-     when the tracker scales the image down.
-   - Wait for the data the shot depends on: the element with its content, not only the page load.
-   - Hide consent banners by injecting CSS after load, such as
-     `page.addStyleTag({ content: '<banner selector> { display: none !important; }' })`. **Never
-     accept or decline cookies** — either one records a consent choice on the site.
-   - Screenshot the element the sentence points at (`locator.screenshot()`), not the full page.
-   - Save each file outside the repository, named for what it shows.
-
-   Show each image to the developer before it's used, and drop one that shows what it shouldn't:
-   personal data, a draft entry, an error.
+   the fix working. Read `<this skill's base directory>/screenshots.md` first and follow it: shots
+   taken read-only, from the preview or the live site, and shown to the developer before they're
+   used.
 
 5. **Show the full draft to the developer in chat,** as the last text of your turn — text written
    just before a tool call can reach the developer only as a summary, and a question dialog's
@@ -128,17 +104,13 @@ message — and stop. The skills that reach a moment call it that way.
    - **Assign** the comment to the requester when it asks them a question or needs an action or a
      decision from them. Don't assign a purely informational one. Mention people with the
      tracker's mention syntax (§ Stakeholder updates); a bare `@Name` may notify no one.
-   - **Images.** When the tracker's comment tool can't show an image inline, post the text with
-     each `[Screenshot N: <what it shows>]` line in place, and ask the developer to paste each
-     image over its placeholder in the tracker. Never upload the images to the task to "embed"
-     them: an attachment lands on the task, away from the sentence it illustrates. Once the
-     developer has pasted them, read the comment again where the tracker shows a pasted image in
-     its text (§ Stakeholder updates), to confirm each one replaced its placeholder.
+   - **Images:** as `<this skill's base directory>/screenshots.md` § Posting them says — the
+     developer pastes each one over its placeholder.
    - **Read it back** after posting: fetch the comment and confirm the text and the assignee came
      out as approved — mentions, links, formatting. A correction edits that comment, so the client
      reads one version.
    - **Status:** already moved at its moment (§ Status moves). If it wasn't — the tracker wasn't
-     connected then, say — move it now, by the same rules.
+     connected then, say — move it now, by `status.md`.
 
 ## Style rules
 
@@ -169,77 +141,6 @@ message — and stop. The skills that reach a moment call it that way.
 - **Keep it short.** Don't over-explain, and leave out anything obvious, such as asking the client
   to click the links to check them.
 
-## Templates
-
-### Started
-
-```markdown
-Hi <names>,
-
-We've started on <topic>. <What we understood you need, and what we'll deliver, in one or two
-sentences.>
-
-<A finding worth knowing now, with a link — only when there is one.>
-
-<N> questions before we go further:
-
-1. **<Topic>:** <direct question, with the options and our recommendation>?
-
-Thanks!
-```
-
-### In review
-
-```markdown
-Hi <names>,
-
-<Topic> is ready for you to try. <What changes for visitors or users, in one or two sentences.>
-
-You can try it on the [preview](<the stable preview address, when there is one>):
-
-1. <Where to go and what to do, in their terms> — <what they should see>.
-2. <…>
-
-[Screenshot 1: <what it shows>]
-
-<What isn't in it yet, or what to ignore on the preview — only when it matters.>
-
-The team is reviewing the change in its [pull request](<link>). <What happens next, in the project's
-status words — e.g. once you're happy with it, it goes live with the next release.>
-
-<N> questions for you:
-
-1. **<Topic>:** <direct question, with the options and links>?
-
-Thanks!
-```
-
-### Delivered
-
-```markdown
-Hi <names>,
-
-Here's a quick update on <topic>.
-
-<Why it wasn't working, or what was needed, in one or two sentences.> To fix it, we <what we did,
-with links>. <What visitors or users get now.>
-
-[Screenshot 1: <what it shows>]
-
-<What's live, what's pending, and when it goes live — in the project's status words.> We'll let you
-know once it's up.
-
-We noticed a few things along the way:
-
-- **<Finding>** <one sentence, with a link — and whether we're handling it>.
-
-<N> questions for you:
-
-1. **<Topic>:** <direct question, with the options and links>?
-
-Thanks!
-```
-
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
@@ -249,13 +150,9 @@ Thanks!
 | "I'll link the PR in every update so they can see the work" | Only the review update carries it, beside the preview and what to test — and not when requesters can't open it. Elsewhere, link pages they can act on. |
 | "I'll post 'we've started' so they know" | The status change says that. A started message earns its place with what we understood, a question, or a finding. |
 | "I'll hold the status until the developer approves the update" | The status and the message are separate. The status moves with the work; only the message waits for the yes. |
-| "The task is at Review already — I'll set it to In progress anyway" | Forward only. A task past the target stays where it is. |
 | "I'll wait for the yes before I go on with the task" | The update is a draft beside the work. The work goes on; only the post waits for the yes. |
 | "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
-| "I'll upload the screenshots to the task so they're embedded" | An attachment lands on the task, not in the comment. Hand the files over; the developer pastes each over its placeholder. |
-| "I'll accept the cookie banner to get it out of the shot" | That records a consent choice on the site. Hide the banner with CSS after load. |
 | "I'll assign it to the requester so they see it" | Assign only a comment that needs something from them: an answer, an action, a decision. And only with the developer's yes to that assignee. |
-| "I'm moving the status, so I'll change the assignee too" | Status moves on its own; the assignee, priority, due date, and time entries still need a yes. |
 | "It posted without an error, so it's right" | Read it back. Mentions, links, and formatting can come out differently from the draft. |
 
 ## Red flags (stop and reassess)
@@ -264,9 +161,7 @@ Thanks!
 - Code, branch, file, or tool names in the client-facing text.
 - A question to the client that the spec or the tracker thread already answers.
 - You're about to post a comment, or change an assignee, priority, due date, or time entry, without the developer's explicit yes.
-- A status move that goes backward, or onto a task the developer isn't assigned to.
 - You're about to post the update anywhere but the tracker task — the pull request included.
-- A screenshot the developer hasn't seen, or one taken by clicking through a consent banner.
 
 ## Verification
 

@@ -11,6 +11,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The skills every task loads keep their case-only steps in reference files, and the status moves
+  no longer load `/adf:stakeholder-update`**
+  ([decision 0063](docs/decisions/0063-reference-files-and-status-moves-in-the-calling-skill.md)).
+  - **What:**
+    - **Reference files:** a case only some runs reach moves word for word from `SKILL.md` into a file
+      beside it, which the step that needs it names: `/adf:triage`'s ambiguous reply (`reply.md`);
+      `/adf:open-pr`'s `refresh.md`, `sync.md`, and `preview.md`; `/adf:wrap-up`'s `follow-ups.md`
+      and `modules.md`; `/adf:stakeholder-update`'s templates (`started.md`, `review.md`,
+      `delivered.md`), `screenshots.md`, and `status.md`. Behavior is unchanged.
+    - **Status moves:** `/adf:triage`, `/adf:open-pr`, and `/adf:wrap-up` move the task's status in a
+      step of their own, by the same rules; `/adf:stakeholder-update` loads only to draft a message.
+      Its `status` argument still works.
+    - **Size:** a fast-lane tracker task loads about 82k characters of skills instead of up to 151k;
+      without a tracker, 53k instead of 60k.
+  - **Where:** `plugins/adf/skills/{triage,open-pr,wrap-up,stakeholder-update}/`, the static checks,
+    `docs/UPGRADING.md`, `docs/SKILLS-REFERENCE.md`.
+
+  **Upgrade impact:**
+  - **Packaged install:** comes with the plugin; nothing to do.
+  - **Committed install — overwrite:** `.claude/skills/triage/`, `.claude/skills/open-pr/`,
+    `.claude/skills/wrap-up/`, and `.claude/skills/stakeholder-update/`, whole folders: each now holds
+    reference files beside its `SKILL.md`. `/adf:upgrade` writes them.
+
 - **`/adf:wrap-up` starts the follow-ups before it removes the worktree, and asks about the time
   before the close-up**
   ([decision 0061](docs/decisions/0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md)).

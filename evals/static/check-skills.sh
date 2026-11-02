@@ -733,7 +733,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^5\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "unless the developer's own word ended the task" || missing+=("/wrap-up: the developer's own word closes up a merged task with nothing left or to choose (0055)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^## Sync — bring the base branch in' || missing+=("/open-pr: the sync procedure lives in the skill (0055)")
+    file_contains "$SKILLS_DIR/open-pr/sync.md" '^# Sync — bring the base branch in' || missing+=("/open-pr: the sync procedure lives in the skill (0055)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" "fit the session's model and effort to the lane" || missing+=("/triage: fits the session's model and effort to the lane (0055)")
     for name in context-audit spec-drift; do
         frontmatter "$SKILLS_DIR/$name/SKILL.md" | grep -q '^context: fork$' || missing+=("/$name: runs in a forked subagent (0055)")
@@ -749,7 +749,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'whole units, rounded up' || missing+=("/track-time: numbers in whole units, rounded up (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'An activity with no\s*$|evidence isn.t in the draft' || missing+=("/track-time: each off-session activity rests on its evidence (0043)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")
+    file_contains "$SKILLS_DIR/wrap-up/modules.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'the follow-ups start before it' || missing+=("/wrap-up: starts the follow-ups before the worktree is removed (0061)")
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'names `end-user-docs`' || missing+=("/end-user-docs: acts only where the stamp names the end-user-docs module (0048)")
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'The doc tool is their only home' || missing+=("/end-user-docs: the doc tool is the end-user docs' only home (0048)")
@@ -757,12 +757,12 @@ check_practices() {
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'the published end-user page' || missing+=("/stakeholder-update: the delivered update links the published end-user page (0048, 0053)")
     file_contains "$MODULES_DIR/end-user-docs/files/docs/END-USER-DOCS.md" '^## Page structure' || missing+=("end-user-docs module: docs/END-USER-DOCS.md has the page structure (0048)")
     file_contains "$TEMPLATES/spec.md" '^### End-user docs' || missing+=("spec template: Documentation › End-user docs (0048)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '`end-user-docs` module, the pull request merged' || missing+=("/wrap-up: offers to publish end-user docs only with the end-user-docs module (0048)")
+    file_contains "$SKILLS_DIR/wrap-up/modules.md" '`end-user-docs` module, the pull request merged' || missing+=("/wrap-up: offers to publish end-user docs only with the end-user-docs module (0048)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'The draft shown in chat is the' || missing+=("/stakeholder-update: the draft in chat is the deliverable (0053)")
-    ! file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'gh pr comment|For the team' || missing+=("/stakeholder-update: posts nothing on the pull request (0053)")
+    ! grep -rqE 'gh pr comment|For the team' "$SKILLS_DIR/stakeholder-update" || missing+=("/stakeholder-update: posts nothing on the pull request (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '\[Screenshot N: <what it shows>\]' || missing+=("/stakeholder-update: a placeholder where an image the tracker can't inline goes (0053)")
-    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'Never upload the images to the task' || missing+=("/stakeholder-update: never attaches images to the task to embed them (0053)")
-    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'accept or decline cookies' || missing+=("/stakeholder-update: hides consent banners, never accepts or declines cookies (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/screenshots.md" 'Never upload the images to the task' || missing+=("/stakeholder-update: never attaches images to the task to embed them (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/screenshots.md" 'accept or decline cookies' || missing+=("/stakeholder-update: hides consent banners, never accepts or declines cookies (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'Read it back' || missing+=("/stakeholder-update: reads a posted comment back (0053)")
     file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Stable preview address:\*\*' || missing+=("TRACKER-INTEGRATION.md: the stable preview address (0053)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'can be read more than one way' || missing+=("/triage: a stakeholder reply open to more than one reading is confirmed first (0053)")
@@ -770,7 +770,12 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'gets its started update' || missing+=("/triage: a tracker task's turn ends with the started update's draft (0053)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'draft the review update' || missing+=("/open-pr: the report ends with the review update's draft (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Status moves' || missing+=("/stakeholder-update: the task's status moves on its own at each moment (0059)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'status delivered' || missing+=("/wrap-up: the task moves to done once merged (0059)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'maps to `delivered`' || missing+=("/wrap-up: the task moves to done once merged (0059)")
+    for name in triage open-pr wrap-up; do
+        file_contains "$SKILLS_DIR/$name/SKILL.md" 'no skill to load' && file_contains "$SKILLS_DIR/$name/SKILL.md" 'forward only; the status alone' \
+            || missing+=("/$name: moves the task's status in a step of its own, by the rules (0063)")
+        ! file_contains "$SKILLS_DIR/$name/SKILL.md" 'stakeholder-update status' || missing+=("/$name: loads /stakeholder-update only to draft a message, never for a status move (0063)")
+    done
     file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Status at each moment:\*\*' || missing+=("TRACKER-INTEGRATION.md: the task status for each moment (0053)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the agent's local check before the pull request (0022, 0045)")
     file_contains "$AGENTS_MD" 'never push to check it on the preview instead' || missing+=("AGENTS.md: a change that can't run locally isn't pushed (0045)")
@@ -948,7 +953,7 @@ check_found_along_the_way() {
     file_contains "$WORKFLOWS_DIR/deep-review.js" 'followUps' || missing+=("/deep-review: returns follow-ups apart")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## Follow-ups' || missing+=("/open-pr: the body has ## Follow-ups")
     file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## Follow-ups' || missing+=("PR template: ## Follow-ups")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
+    file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'survives a chip nobody started' || missing+=("/dispatch: a found task is also a follow-up")
     if [ ${#missing[@]} -eq 0 ]; then
@@ -998,6 +1003,36 @@ PY
             fail "plugin script '$(basename "$script")': does not compile"
         fi
     done
+}
+
+check_skill_reference_files() {
+    # A skill's reference files load only when a step of its SKILL.md sends the agent to them (decision
+    # 0063): each one is named there, each file a SKILL.md names in its base directory exists, and none
+    # names ${CLAUDE_PLUGIN_ROOT}, which nothing fills in for a file read with the Read tool.
+    local report
+    report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
+import glob, os, re, sys
+plugins = sys.argv[1]
+for skill in sorted(glob.glob(os.path.join(plugins, "*", "skills", "*", "SKILL.md"))):
+    folder = os.path.dirname(skill)
+    rel = os.path.relpath(folder, os.path.dirname(plugins))
+    text = open(skill, encoding="utf-8").read()
+    for name in re.findall(r"<this skill.s base directory>/([\w./-]+)", text):
+        if not os.path.exists(os.path.join(folder, name.rstrip("/."))):
+            print(f"{rel}/SKILL.md names {name}, which is not beside it")
+    for ref in sorted(f for f in os.listdir(folder) if f.endswith(".md") and f != "SKILL.md"):
+        tick = chr(96)
+        if tick + ref + tick not in text and "/" + ref + tick not in text:
+            print(f"{rel}/{ref}: no step of its SKILL.md names it")
+        if "${CLAUDE_PLUGIN_ROOT}" in open(os.path.join(folder, ref), encoding="utf-8").read():
+            print(f"{rel}/{ref}: names " + "${CLAUDE_PLUGIN_ROOT}" + ", which nothing fills in for a file read with the Read tool")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "skills' reference files: each named by a step of its SKILL.md, each one named there present, none relying on \${CLAUDE_PLUGIN_ROOT} (0063)"
+    else
+        fail "skills' reference files" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
 }
 
 check_packaged_plugin() {
@@ -1553,6 +1588,7 @@ check_practices
 check_spec_records
 check_found_along_the_way
 check_plugin
+check_skill_reference_files
 check_dev_env_templates
 check_upgrade
 check_no_tracked_junk

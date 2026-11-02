@@ -53,15 +53,12 @@ the close-up only once it resumes and ends.
        delivered where the task asked. With commits and no pull request, the work isn't delivered:
        say so and stop.
    - **The follow-ups,** for a merged or abandoned pull request: its body (`gh pr view --json body`),
-     from the line `## Follow-ups` to the next heading. Each unchecked line is one:
-     - `- [ ] \`<command>\` — <why> (<source>)` — work the merge made necessary; `/adf:upgrade` writes
-       them (issue #89). Offered only after a merge: an abandoned task's merge never happened.
-     - `- [ ] <task> — <why> (found in <file:line>)` — a bug or an improvement found along the way
-       (`specs/README.md` § Found along the way). Offered after any ending: it doesn't depend on this
-       task's code.
-
-     `- none`, a checked line, or no section: nothing to offer. For an answer, the follow-ups are the
-     ones its answer listed.
+     from the line `## Follow-ups` to the next heading. `- none`, a checked line, or no section:
+     nothing to offer. An unchecked line — or, for an answer, a follow-up its answer listed: read
+     `<this skill's base directory>/follow-ups.md` for which ones to offer and how they start.
+   - **The modules:** when the stamp on `AGENTS.md`'s first line names `end-user-docs` or
+     `time-tracking`, read `<this skill's base directory>/modules.md` with these reads. Without
+     them, say nothing about end-user docs or time.
    - **The working tree:**
      - `git status --porcelain` — uncommitted changes, including untracked files;
      - `git stash list` — stashes from this branch;
@@ -78,30 +75,23 @@ the close-up only once it resumes and ends.
    commit and push, open a follow-up, drop the stash, give the handoff. Offer no close-up until
    the developer settles them. Nothing is deleted or archived in this case.
 
-   An end-user page waiting to be published isn't work left over. Only when the stamp names
-   the `end-user-docs` module, the pull request merged, the spec lists an end-user page whose draft
-   isn't retired yet, and `docs/END-USER-DOCS.md` publishes after the merge, offer
-   `/adf:end-user-docs publish` once, before the close-up. The developer may skip it: a release
-   publishes it later. Without the module, say nothing about end-user docs.
+   An end-user page waiting to be published isn't work left over: with the `end-user-docs` module,
+   `modules.md` § End-user docs says when to offer `/adf:end-user-docs publish`, once, before the
+   close-up.
 
    For a tracker task, move it to the project's done status as soon as the check finds the pull
-   request merged or the answer delivered, on your own
-   (`/adf:stakeholder-update status delivered`) — no yes needed, forward only, one line to say so;
-   an abandoned task keeps its status. Then offer the **delivered** update
+   request merged or the answer delivered, on your own — no yes needed, and no skill to load. Use the
+   status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to `delivered`, from the task's
+   own statuses (one it lacks is a question); forward only; the status alone; only a task the
+   developer is assigned to. One line says so — with no tracker tool, the status for the developer
+   to set. An abandoned task keeps its status. Then offer the **delivered** update
    (`/adf:stakeholder-update delivered`) once, when it hasn't been posted. It's a draft in chat and
    needs no worktree, so neither holds up the close-up.
 
-4. **Ask about the time, before the close-up.** Only when the stamp on `AGENTS.md`'s first line
-   names the `time-tracking` module, ask whether to log the task's time now with `/adf:track-time`
-   — a question of its own, before the close-up's — and wait for the answer: the task's worktree
-   and its transcripts are still there to measure. Time not yet logged isn't work left over, so the
-   developer may skip it.
-   - **On a yes,** run `/adf:track-time` to its end — the draft, the developer's picks, the entries
-     written — then go on.
-   - **On a skip,** go on.
-
-   Don't ask when `/adf:track-time` already ran in this session after the task's last work. Without
-   the module, say nothing about time.
+4. **Ask about the time, before the close-up.** Only when the stamp names the `time-tracking`
+   module: ask as `modules.md` § Time says — a question of its own, before the close-up's — and wait
+   for the answer; on a yes, `/adf:track-time` runs to its end before step 5. Without the module, say
+   nothing about time.
 
 5. **Ask once, unless the developer's own word ended the task.** When the developer said it in this
    session — "merged", "it's in", "close up" — the pull request merged by the host's state, the
@@ -140,15 +130,8 @@ the close-up only once it resumes and ends.
         the main checkout has no uncommitted changes. Otherwise, say why it wasn't updated.
       - **No worktree** (a session in the main checkout): `git switch <base> && git pull --ff-only`.
    3. **Start the follow-ups,** when the list had any and the developer kept them — all of them
-      before the worktree goes. Each one is a session of its own, from the updated base branch in the
-      main checkout, because it needs the merged change; it changes the project's environment or
-      tests and goes through its own review.
-      - **In the desktop app:** call `start_session` once per follow-up, `"fresh"`, with the command or
-        the task as the brief and its why and source (`found in <file:line>`); the yes was the
-        developer's ask. Don't run the command or start the task here.
-      - **In a terminal:** print each command, for the developer to run in a new session from the main
-        checkout.
-      - If the base branch wasn't updated, say so: the follow-up would start without the merge.
+      before the worktree goes, each in a session of its own, as `follow-ups.md` § Starting them
+      says. Never run one here.
    4. **Remove the branch from origin,** if the host didn't delete it on merge
       (`git ls-remote --heads origin <branch>`): `git push origin --delete <branch>`. Skip it for an
       abandoned task, and for an answer whose branch was never pushed.
