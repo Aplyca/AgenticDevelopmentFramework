@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: Drafts or amends the spec.md of a spec folder from business requirements, using the multi-perspective spec model — including change-request (CR) amendments to delivered features. Use when starting a new feature or changing existing behavior; /adf:write-plan follows with the plan and the approval gate.
+description: Drafts or amends a spec folder's spec.md from business requirements with the multi-perspective spec model, change-request (CR) amendments included. Use when starting a new feature or changing existing behavior; /adf:write-plan follows with the plan and the approval gate.
 model: sonnet
 tools:
   - Read

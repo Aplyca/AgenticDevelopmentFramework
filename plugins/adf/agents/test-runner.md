@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Writes and runs tests from a committed spec — covering acceptance criteria, edge cases, and testable requirements from Security/Accessibility/Performance/Privacy/Analytics/Localization sections. Tests are written BEFORE implementation (TDD red phase), then run again after implementation to verify (TDD green phase).
+description: Writes and runs tests from a committed spec — acceptance criteria, edge cases, and the testable requirements of its Security, Accessibility, Performance, Privacy, Analytics, and Localization sections — before the code (TDD red), then again after it (green).
 model: sonnet
 tools:
   - Read

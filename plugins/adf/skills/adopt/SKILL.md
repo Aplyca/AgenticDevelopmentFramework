@@ -1,6 +1,6 @@
 ---
 name: adopt
-description: Bootstrap a repository for the Agentic Development Framework — copy the skeleton and the chosen modules, fill placeholders from verified facts, wire the hooks, record PDR-0001, and prepare the adoption pull request; works before any code exists, and adds modules to an adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
+description: Bootstrap a repository for the Agentic Development Framework — the skeleton and chosen modules, placeholders filled from verified facts, the hooks, PDR-0001, and the adoption pull request — even before any code exists; also adds modules to an adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
 ---
 
 # Adopt the Agentic Development Framework
