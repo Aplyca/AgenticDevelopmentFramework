@@ -67,7 +67,8 @@ read), and the plugins' skill and agent descriptions.
   - The session name in `AGENTS.md`'s triage, for the tasks `/adf:triage` doesn't run on.
   - The tracker sentences in `AGENTS.md` § Requirements & traceability, word for word. They still
     ask for the developer's yes before a status change, which 0059 made automatic in the skills and
-    `docs/TRACKER-INTEGRATION.md`. Reconciling them changes behavior, so it's a change of its own.
+    `docs/TRACKER-INTEGRATION.md`. Reconciling them changes behavior, so they're corrected in a change
+    of their own, against 0059.
 
 ## Consequences
 
