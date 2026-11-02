@@ -44,8 +44,9 @@ desktop app opens it, and gives it the task. That session becomes the task's:
 
    `pwd` confirms the move. If it's refused, the session gives the developer the worktree's path and
    stops; the developer opens a session on that folder.
-3. **It carries on with the task there,** from where the triage left it. Session-start hooks don't
-   run again after the move, so it reads its spec folder itself.
+3. **It carries on with the task there,** from where the triage left it, to delivery: the task's
+   phases never move to another session (`COST-MODEL.md` § Between phases). Session-start hooks
+   don't run again after the move, so it reads its spec folder itself.
 
 **Another task goes to another session.** When a session that has a task is handed an unrelated
 one, or finds one along the way, `/adf:dispatch` offers it a new session — a task chip in the desktop

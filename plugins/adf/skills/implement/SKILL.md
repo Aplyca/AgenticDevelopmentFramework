@@ -30,9 +30,12 @@ plan is the contract for **where** code goes (the change surface); the tests are
 1. **Read the folder:** `spec.md` (every filled section, not only Functional), `plan.md` (change
    surface, test strategy, risks, assumptions), `tasks.md`, and the committed docs — they describe
    how the feature will be used and should drive your thinking.
+   In a conversation with no triage on the page — cleared after the gate — open with one line on
+   where the task stands: `Full lane — specs/007-newsletter-signup/, approved; implementing T003 next`.
 2. **Mind the model.** Implementing an approved plan is well-specified work — `sonnet` handles it.
-   If this session is on Opus and still carries the whole planning conversation, suggest a fresh
-   Sonnet session (the spec folder is the handoff); keep Opus for a task that turns out genuinely hard.
+   If this session is on Opus and still carries the whole planning conversation, suggest the gate's
+   switch, in this session: clear, pick Sonnet, send this command again (`/adf:write-plan` step 12).
+   Never start another session for it. Keep Opus for a task that turns out genuinely hard.
 3. **Run the existing suite** to know the baseline. Pre-existing failures are recorded in the gate
    results and reported — not silently fixed, and not mistaken for yours.
 

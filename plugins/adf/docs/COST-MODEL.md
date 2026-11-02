@@ -96,9 +96,9 @@ a way to check the result?**
 
 - **Switch where the cache is cold or small.** Each model has its own prompt cache: after a switch,
   the next call re-reads the whole conversation uncached. Switch when the session starts, right
-  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or in a
-  fresh session after the approval gate: the spec folder is the handoff, and the wait at the gate has
-  usually let the cache expire anyway. Don't switch for a single step.
+  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or
+  after the approval gate, right after a clear — in the same session (§ Between phases): the spec
+  folder carries the next phases, so the switch re-reads nothing. Don't switch for a single step.
 - **Effort before model.** Within Sonnet, `/effort high` for harder or longer work is often enough.
   `xhigh` and `max` make Sonnet think longer and cost more — at that point Opus is usually the
   better trade.
@@ -111,8 +111,8 @@ a way to check the result?**
 
 ## Keeping sessions cheap
 
-- **One task per session; `/clear` before the next.** A fresh session starts at ~60k tokens; a long
-  one can carry 200k+ on every call.
+- **One task per session, one session per task; `/clear` before the next.** A cleared conversation
+  starts at ~60k tokens; a long one can carry 200k+ on every call.
 - **A 1M-context model is for work that needs it.** With a 1M window (e.g. `opus[1m]`) compaction
   happens late, so routine sessions grow far past what the task needs — and every call pays for it.
 - **Keep output short.** Quiet test reporters, `| tail -n 40`, reading the lines you need. A log
@@ -135,20 +135,35 @@ loses the thread. Ask in order; the first yes wins.
 1. **Does the next phase need this conversation as it happened?** Continue. Triage → a fast-lane
    edit, or clarifying a spec → writing it: the reasoning is the input, and any summary of it loses
    something.
-2. **Is everything here disposable?** `/clear` — a finished task, an unrelated next one. It's the
-   cheapest move, and the old session stays resumable.
-3. **Does the work travel** — to a teammate, another worktree, another tool? Write a short handoff
+2. **Is everything here disposable?** `/clear` — a finished task, an unrelated next one, or the
+   full lane after the approval gate, where the committed spec folder carries what the next phases
+   need. It's the cheapest move, and the old conversation stays resumable.
+3. **Does the work travel** — to a teammate, another machine, another tool? Write a short handoff
    (`/adf:handoff`): what was decided, what's next, and pointers to the spec folder, branch, and pull
-   request rather than copies of them. In the full lane after the approval gate, the spec folder
-   already is the handoff: start a fresh session from it.
+   request rather than copies of them.
 4. **Can the next step run unattended?** Give it to an agent (`@adf:code-reviewer`, `/adf:deep-review`): it
    works in its own context and returns a report, and this session stays as it is.
 5. **Otherwise, `/compact`** — with an instruction about what the next phase needs
    (`/compact keep the open questions and the change surface`).
 
 Switching the model follows the same logic: `/model opus` in place re-reads the conversation once,
-uncached, but keeps all of it; a fresh session is cheaper only when files carry what the next phase
-needs.
+uncached, but keeps all of it; after a clear it re-reads nothing, so clear first when files carry
+what the next phase needs.
+
+**A phase never moves to another session** unless the developer asks. Clearing keeps the session —
+its folder, branch, and title — and starts its conversation over. A second session on the same task
+splits it: two places to talk to, two sessions on one branch, and the one waiting re-reads its whole
+conversation, at its own model's price, each time it's woken. The switch after the gate, by client
+(`/adf:write-plan` step 12):
+
+| Client | Clear | Model | Then |
+|---|---|---|---|
+| Terminal | `/clear` | `/model sonnet` | The next command: `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` |
+| Desktop app | `/clear` in the prompt box | The model menu | The same |
+| Another tool | Its way of starting the conversation over — usually a new chat in the same workspace | Its model picker | The same |
+
+The developer does all three. In the desktop app, a session may not re-price its own turns, and a
+clear it queues for itself takes its last message — the command to send next — with the transcript.
 
 ## Measuring
 
@@ -197,7 +212,7 @@ Skills run in your conversation, on its model. A skill could name its own model,
 | `/adf:init-project` | Sonnet | Multi-perspective setup decisions; one-time so cost is small |
 | `/adf:triage` | Sonnet | Reading a task in full and deciding what it needs; cheap, and it prevents the most expensive mistakes |
 | `/adf:write-spec` | Opus | Full lane: ambiguity, clarification, and the decisions the spec records — judgment work |
-| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then hand off to a fresh Sonnet session |
+| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then clear and switch to Sonnet, in the same session |
 | `/adf:write-tests` | Sonnet | AC → test mapping is moderate complexity |
 | `/adf:write-docs` | Sonnet | Synthesis from spec + tests; matters for tone and accuracy |
 | `/adf:implement` | Sonnet | An approved plan with named tests is a clear spec with a way to check the result; Opus for a task that turns out genuinely hard |

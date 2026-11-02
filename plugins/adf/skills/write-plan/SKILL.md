@@ -103,10 +103,22 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
     - commit the folder: `spec: approve <slug> scope and plan` (or `spec: approve <slug> CR N`). Don't push.
       A CR on an open pull request is committed on that same branch.
 
-12. **Hand off:** `/adf:write-docs` when Phase 1 has tasks — and `/adf:end-user-docs` for an end-user page — then `/adf:implement`. Suggest doing that in a
-    **fresh session on `sonnet`**: an approved plan with named tests is a clear spec with a way to
-    check the result, the spec folder carries everything the next session needs, and the wait at the
-    gate has usually let the prompt cache expire anyway — so the switch costs nothing extra.
+12. **Hand off — in this session:** `/adf:write-docs` when Phase 1 has tasks — and `/adf:end-user-docs` for an end-user page — then `/adf:implement`. They run on
+    **`sonnet`, from a cleared conversation**: an approved plan with named tests is a clear spec with
+    a way to check the result, the committed folder carries everything they need, and the planning
+    conversation would be re-read on every later call. Give the developer three steps, in order —
+    clear, pick Sonnet, send the next command (`/adf:write-docs specs/<NNN>-<slug>/`, or
+    `/adf:implement …` when Phase 1 has no tasks) — in their client's terms:
+    - **Terminal:** `/clear`, `/model sonnet`, the command.
+    - **Desktop app:** `/clear` in the prompt box, Sonnet in the model menu, the command. Don't clear
+      or re-price the session yourself: a cleared transcript takes your last message with it.
+    - **Another tool:** its way of starting the conversation over, its model picker, the command.
+
+    Clearing first means the switch re-reads nothing. If the developer keeps the conversation, the
+    model switches in place (one uncached re-read) or stays — their call. **Never start another
+    session for these phases** — not a new one, not a child — unless the developer asks: two
+    sessions on one branch split the task, and the waiting one wakes, at its own model's price, each
+    time the other finishes a turn.
 
 ## After approval
 

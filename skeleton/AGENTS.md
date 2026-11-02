@@ -109,7 +109,7 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 
 Every call re-reads the whole conversation, so cost and time grow with how long a session runs and how much it has printed.
 
-- **One task per session** — `/clear` before the next. Between phases, continue while the next phase needs this conversation; otherwise clear, hand off, or compact (`docs/COST-MODEL.md` § Between phases).
+- **One task per session, one session per task** — `/clear` before the next task, and never start another session for a phase of this one unless the developer asks. Between phases, continue while the next phase needs this conversation; otherwise clear or compact it — after the approval gate, clear it (`docs/COST-MODEL.md` § Between phases).
 - **Keep output small** — quiet test reporters, `| tail -n 40`, read the lines you need; whatever a command prints stays in context.
 - **Targeted tests while iterating; the full gate once**, before delivery.
 - **Browser checks for a change a person sees or uses** — locally first, then on the preview (§ Delivery rules); the developer's QC on the preview is still the gate.

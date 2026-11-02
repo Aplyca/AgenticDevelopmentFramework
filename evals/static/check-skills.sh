@@ -751,6 +751,13 @@ check_practices() {
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'the follow-ups start before it' || missing+=("/wrap-up: starts the follow-ups before the worktree is removed (0061)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Never start another' || missing+=("/write-plan: the phases after the gate stay in this session (0062)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" '`/clear`, `/model sonnet`' || missing+=("/write-plan: the switch after the gate, by client (0062)")
+    file_contains "$REPO_ROOT/plugins/adf/docs/COST-MODEL.md" '^\*\*A phase never moves to another session\*\*' || missing+=("COST-MODEL.md: a phase never moves to another session (0062)")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" 'refuses a session.s change to itself' || missing+=("/triage: names the switch where the desktop app refuses it (0062)")
+    for file in "$REPO_ROOT"/plugins/adf/skills/*/SKILL.md "$REPO_ROOT"/plugins/adf/docs/*.md "$SKELETON/AGENTS.md" "$SKELETON/.claude/rules/claude-code.md" "$REPO_ROOT/README.md"; do
+        ! grep -qiE 'fresh `?sonnet`? session|fresh session (on|after|from)' "$file" || missing+=("${file#"$REPO_ROOT"/}: no fresh session for a task's next phase (0062)")
+    done
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'names `end-user-docs`' || missing+=("/end-user-docs: acts only where the stamp names the end-user-docs module (0048)")
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'The doc tool is their only home' || missing+=("/end-user-docs: the doc tool is the end-user docs' only home (0048)")
     file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'Read the live page first' || missing+=("/end-user-docs: reads the live page before replacing it (0048)")

@@ -1,6 +1,6 @@
 # 0013: Adapt practices from other skill collections into our skills — never a second workflow
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0062](0062-one-session-per-task-clear-at-the-gate.md) (a handoff is for work that leaves the session, not a choice between a task's phases)
 - **Date:** 2026-10-01
 - **Builds on:** [0004](0004-triage-before-setup.md) (triage), [0011](0011-lanes-ceremony-follows-risk.md) (lanes), [0012](0012-choose-the-model-by-the-work.md) (model choice)
 
