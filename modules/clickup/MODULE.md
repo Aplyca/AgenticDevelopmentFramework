@@ -79,8 +79,9 @@ In `docs/TRACKER-INTEGRATION.md`:
   `date_updated`, not earlier versions. Once a delivered task is edited, the spec folder is the only
   record of what was agreed — which is why a change request starts from the spec folder and the
   comments since it last changed (`specs/README.md` § Change requests).
-- **Each developer acts as themselves.** Comments and status changes carry that developer's name, so
-  the agent confirms each one first (`AGENTS.md` § Requirements & traceability). That holds only
+- **Each developer acts as themselves.** Comments and status changes carry that developer's name: the
+  agent confirms each comment first, and moves a status on its own only at the three moments
+  (`AGENTS.md` § Requirements & traceability). That holds only
   through the project's `clickup` server. ClickUp's connector in the Claude desktop app is another
   server, with its own sign-in and its own tool prefix: it may read, never write, since it can be
   signed in to someone else's account (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
