@@ -179,7 +179,8 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - **Status:** `/adf:triage` moves the task to in progress, `/adf:open-pr` to in review once the
       branch is pushed, `/adf:wrap-up` to done once it merges — forward only, for the developer's own
       tasks, no yes needed. `/adf:stakeholder-update status <moment>` makes the move; messages,
-      assignees, and dates still need a yes.
+      assignees, and dates still need a yes. `AGENTS.md` (§ Ground rules, § Requirements &
+      traceability) and the ClickUp module's guide say so too: they had kept the old yes.
     - **Session name:** `/adf:triage` always names the session after the task, in every lane.
     - **Band removed:** `adf-dev` loses its mod (`hooks/`, `types/`, `tests/`), `/local-url`, and
       `LOCAL_SERVICE`; Claude Desktop's Browser lists the running app. `LOCAL_URL` stays.
@@ -189,7 +190,10 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
   **Upgrade impact:**
   - **`TRACKER-INTEGRATION.md`, `CONTRIBUTING.md`, `AGENTS.md` — merge:** the status rule, the "done"
-    line under *Status at each moment*, and the session-name wording.
+    line under *Status at each moment*, and the session-name wording. In `AGENTS.md`, the status
+    rule is three sentences: the status moves join § Ground rules' exceptions, the tracker bullet
+    confirms every other change to a task, and *Keep the requester informed* moves the status on its
+    own while the message waits for a yes.
   - **`.claude/hooks/config.sh` — merge:** drop `LOCAL_SERVICE`; keep `LOCAL_URL`.
   - **`END-USER-DOCS.md` — merge:** *Audiences* replaces *End users*; reword the intro if you like.
   - **`adf-dev` band — removed:** nothing to migrate.

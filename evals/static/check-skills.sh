@@ -780,6 +780,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'draft the review update' || missing+=("/open-pr: the report ends with the review update's draft (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Status moves' || missing+=("/stakeholder-update: the task's status moves on its own at each moment (0059)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'maps to `delivered`' || missing+=("/wrap-up: the task moves to done once merged (0059)")
+    file_contains "$AGENTS_MD" 'its status moves on your own' && ! file_contains "$AGENTS_MD" 'before changing task state' || missing+=("AGENTS.md: the status moves on its own; messages still need a yes (0059)")
     for name in triage open-pr wrap-up; do
         file_contains "$SKILLS_DIR/$name/SKILL.md" 'no skill to load' && file_contains "$SKILLS_DIR/$name/SKILL.md" 'forward only; the status alone' \
             || missing+=("/$name: moves the task's status in a step of its own, by the rules (0063)")
