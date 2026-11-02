@@ -81,7 +81,7 @@ not a research project.
    - Deliverable: change — the signup form must accept a second email field
    - Kind: change request on specs/007-newsletter-signup/ (delivered in <PR link>; this changes AC3)
    - Lane: full — the request leaves open who receives the confirmation (source: triggers)
-   - Model: opus for the spec and plan; after the gate, a fresh sonnet session for /adf:implement
+   - Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
    - Environment: needed later, for the TDD loop — not for planning
    - Open questions: 1) Is the second email optional? 2) Does it receive the confirmation email?
    - Next: /adf:write-spec (CR 2), then /adf:write-plan
@@ -92,7 +92,7 @@ not a research project.
 
    When the session runs on the other model, say so in that line: `model: sonnet — this session is
    on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; after
-   the gate, a fresh sonnet session for /adf:implement` (on Sonnet, full lane).
+   the gate, /compact and back to sonnet` (on Sonnet, full lane).
 
 5. **Name the session after the task — always,** once the triage is on the page, for every task in
    every lane, an answer included: it's the first thing you do after the triage text, before the
@@ -112,7 +112,8 @@ not a research project.
    **Then fit the session's model and effort to the lane,** while the context is still small:
    - **Desktop app:** the same `get_session` on `self` shows the model and effort. When either
      doesn't fit step 3, set it — `set_session_model`, `set_session_effort` on `self` — and say so in
-     a line. A model or effort the developer chose for this task stays. A model switch re-reads the
+     a line. Where the app refuses a session's change to itself, name the switch instead: the model
+     and effort menus. A model or effort the developer chose for this task stays. A model switch re-reads the
      conversation once, uncached, so skip it for a task a few calls from done; an effort change
      keeps the cache.
    - **Terminal:** no tool switches them there: the triage line names the switch

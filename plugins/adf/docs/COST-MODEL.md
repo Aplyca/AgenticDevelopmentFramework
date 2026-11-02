@@ -96,9 +96,10 @@ a way to check the result?**
 
 - **Switch where the cache is cold or small.** Each model has its own prompt cache: after a switch,
   the next call re-reads the whole conversation uncached. Switch when the session starts, right
-  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or in a
-  fresh session after the approval gate: the spec folder is the handoff, and the wait at the gate has
-  usually let the cache expire anyway. Don't switch for a single step.
+  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or
+  after the approval gate, right after a compaction — in the same session (§ Between phases): the
+  spec folder carries the detail, so the switch re-reads only the summary. Don't switch for a single
+  step.
 - **Effort before model.** Within Sonnet, `/effort high` for harder or longer work is often enough.
   `xhigh` and `max` make Sonnet think longer and cost more — at that point Opus is usually the
   better trade.
@@ -111,10 +112,22 @@ a way to check the result?**
 
 ## Keeping sessions cheap
 
-- **One task per session; `/clear` before the next.** A fresh session starts at ~60k tokens; a long
-  one can carry 200k+ on every call.
-- **A 1M-context model is for work that needs it.** With a 1M window (e.g. `opus[1m]`) compaction
-  happens late, so routine sessions grow far past what the task needs — and every call pays for it.
+- **One task per session, one session per task; `/clear` before the next.** A cleared conversation
+  starts at ~60k tokens; a long one can carry 200k+ on every call.
+- **Cap the conversation: `"autoCompactWindow": 300000`.** Opus and Sonnet now run with a 1M
+  window, and Claude Code compacts them by default only near it (about 967k tokens), so routine
+  sessions grow far past what the task needs — and every call pays for it. On one adopting project,
+  calls carried about 289k tokens on average, and re-reading and re-caching that context was 83% of
+  the cost. The skeleton's `.claude/settings.json` sets the window to 300k: room for a phase to
+  finish, at about two thirds of the saving a 200k window would bring, with half the compactions. A
+  developer who needs more sets it in `.claude/settings.local.json` or passes `--autocompact` for one
+  launch; the project file outranks `/autocompact`.
+- **What a compaction keeps** (Claude Code's docs, "What survives compaction"): the instructions and
+  unscoped rules, re-read from disk; the five most recently changed files; the first 5,000 tokens of
+  each invoked skill, 25,000 in all; and the session-start hooks' output. The conversation itself —
+  tool output, exact errors, and anything agreed only in chat — survives only as the summary keeps
+  it. So write a decision where it lasts (the spec, `plan.md`, the pull request) before a
+  compaction can take it.
 - **Keep output short.** Quiet test reporters, `| tail -n 40`, reading the lines you need. A log
   printed once is paid for on every later call.
 - **Targeted tests while iterating, the full gate once** (`.claude/rules/testing.md` § Verification
@@ -136,19 +149,40 @@ loses the thread. Ask in order; the first yes wins.
    edit, or clarifying a spec → writing it: the reasoning is the input, and any summary of it loses
    something.
 2. **Is everything here disposable?** `/clear` — a finished task, an unrelated next one. It's the
-   cheapest move, and the old session stays resumable.
-3. **Does the work travel** — to a teammate, another worktree, another tool? Write a short handoff
+   cheapest move, and the old conversation stays resumable.
+3. **Does the work travel** — to a teammate, another machine, another tool? Write a short handoff
    (`/adf:handoff`): what was decided, what's next, and pointers to the spec folder, branch, and pull
-   request rather than copies of them. In the full lane after the approval gate, the spec folder
-   already is the handoff: start a fresh session from it.
+   request rather than copies of them.
 4. **Can the next step run unattended?** Give it to an agent (`@adf:code-reviewer`, `/adf:deep-review`): it
    works in its own context and returns a report, and this session stays as it is.
 5. **Otherwise, `/compact`** — with an instruction about what the next phase needs
-   (`/compact keep the open questions and the change surface`).
+   (`/compact keep the open questions and the change surface`). The full lane's approval gate lands
+   here: the spec folder carries the detail, the summary keeps the thread, and the session stays one.
 
 Switching the model follows the same logic: `/model opus` in place re-reads the conversation once,
-uncached, but keeps all of it; a fresh session is cheaper only when files carry what the next phase
-needs.
+uncached, but keeps all of it; after a compaction it re-reads only the summary — so compact first,
+then switch.
+
+**A phase never moves to another session** unless the developer asks. Compacting keeps the session —
+its folder, branch, title, and thread — and shrinks what each call carries. A second session on the
+same task splits it: two places to talk to, two sessions on one branch, and the one waiting re-reads
+its whole conversation, at its own model's price, each time it's woken. The switch after the gate,
+by client (`/adf:write-plan` step 12):
+
+| Client | Compact | Model | Then |
+|---|---|---|---|
+| Terminal | `/compact <what the next phases need>` | `/model sonnet` | The next command: `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` |
+| Desktop app | The same, in the prompt box | The model menu | The same |
+| Another tool | Its compaction; with none, starting the conversation over — the folder carries the task | Its model picker | The same |
+
+The developer takes all three steps: no tool compacts a session from inside it, and the desktop app
+doesn't let a session re-price its own turns. Compact soon after approval — the summary's read of the
+conversation is then mostly from the cache.
+
+**Skip the compaction when it can't pay back.** The summary call costs about what 10–40 later calls
+pay to carry a long planning conversation, so it's worth it when dozens of calls follow. With a task
+or two left in `tasks.md`, or a conversation that's still short, switch the model in place — or keep
+going as is.
 
 ## Measuring
 
@@ -197,7 +231,7 @@ Skills run in your conversation, on its model. A skill could name its own model,
 | `/adf:init-project` | Sonnet | Multi-perspective setup decisions; one-time so cost is small |
 | `/adf:triage` | Sonnet | Reading a task in full and deciding what it needs; cheap, and it prevents the most expensive mistakes |
 | `/adf:write-spec` | Opus | Full lane: ambiguity, clarification, and the decisions the spec records — judgment work |
-| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then hand off to a fresh Sonnet session |
+| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then compact and switch to Sonnet, in the same session |
 | `/adf:write-tests` | Sonnet | AC → test mapping is moderate complexity |
 | `/adf:write-docs` | Sonnet | Synthesis from spec + tests; matters for tone and accuracy |
 | `/adf:implement` | Sonnet | An approved plan with named tests is a clear spec with a way to check the result; Opus for a task that turns out genuinely hard |
