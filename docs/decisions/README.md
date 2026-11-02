@@ -22,8 +22,8 @@ projects.
 | [0009](0009-optional-modules.md) | Host- and team-specific harness ships as optional modules | accepted; amended by 0016, 0023 |
 | [0010](0010-model-aliases.md) | Configure models with version-less aliases | accepted |
 | [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted; partly superseded by 0014; refined by 0050 |
-| [0012](0012-choose-the-model-by-the-work.md) | Choose the model by the work — Sonnet for well-specified work, Opus for judgment | accepted |
-| [0013](0013-adapt-practices-not-a-second-workflow.md) | Adapt practices from other skill collections into our skills — never a second workflow | accepted |
+| [0012](0012-choose-the-model-by-the-work.md) | Choose the model by the work — Sonnet for well-specified work, Opus for judgment | accepted; amended by 0062 |
+| [0013](0013-adapt-practices-not-a-second-workflow.md) | Adapt practices from other skill collections into our skills — never a second workflow | accepted; amended by 0062 |
 | [0014](0014-test-first-in-every-lane.md) | Test first in every lane | accepted |
 | [0015](0015-tool-worktrees-are-workers.md) | Worktrees that Claude Code creates are workers too (parallel-agents module) | accepted; amended by 0020, 0040 |
 | [0016](0016-packaged-install.md) | A packaged install — the framework's machinery from its pinned plugin, `aplyca-adf` (opt-in, Claude Code only) | accepted; amended by 0018, 0019, 0020, 0023 (renamed `adf` in v2.0.0), 0024, 0027, 0028, 0041 |
@@ -65,13 +65,14 @@ projects.
 | [0052](0052-production-build-in-the-configured-mode.md) | A production-like run is the optional `make prod` task, in the configured mode (docker module) | accepted |
 | [0053](0053-stakeholder-updates-at-three-moments.md) | The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request | accepted |
 | [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted |
-| [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted |
+| [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted; amended by 0062 |
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
 | [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted |
 | [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
 | [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063 |
 | [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
 | [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) | The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up | accepted |
+| [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted |
 | [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) | A skill's case-only steps load from reference files beside its `SKILL.md`, and the skill that reaches a moment moves the task's status itself | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in

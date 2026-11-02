@@ -134,8 +134,9 @@ When several agent sessions run at once, each works in its own git worktree on i
 never two sessions in one checkout. With the parallel-agents module installed, each task has its own
 session, worktree, branch, and pull request: a session triages its task, and `/adf:dispatch` moves it
 to the task's worktree beside the main checkout, which takes no edits. Another task goes to another
-session. Passing work in progress to a
-teammate, another machine, or a fresh session is `/adf:handoff`: pointers to the record, never a copy.
+session. A task's own phases never move to another session: after the approval gate, the
+conversation is compacted in place (`/adf:write-plan` step 12). Passing work in progress to a
+teammate or another machine or tool is `/adf:handoff`: pointers to the record, never a copy.
 A feature split across spec folders shares one written contract, in both specs (`specs/README.md` §
 Granularity); the brief `/adf:dispatch` writes for each part carries it.
 

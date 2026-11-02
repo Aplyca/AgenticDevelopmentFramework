@@ -36,7 +36,8 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
      picker or with `/model`, since the picker overrides the project's `"model"` setting. Cache reads
      cost the same on both, so in long sessions the context is as large a lever.
    - **`long-context`** — one task per session, `/clear` between tasks; a 1M-context model lets
-     routine sessions grow far past what they need.
+     routine sessions grow far past what they need. Check that `.claude/settings.json` caps them
+     with `"autoCompactWindow"` (the skeleton sets 300000).
    - **`pauses`** — each wait longer than the cache lifetime wrote the whole context again; batch
      questions into one message. The lifetime is 5 minutes, or an hour where Claude Code used the
      longer cache (a subscription's main conversation) — whose writes cost twice the input price.
