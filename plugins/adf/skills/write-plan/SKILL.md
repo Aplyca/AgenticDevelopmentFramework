@@ -118,7 +118,9 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
     Compacting first means the switch re-reads only the summary. Name the steps rather than taking
     them: no tool compacts a session from inside it, and the desktop app doesn't let a session change
     its own model. A tool with no compaction starts the conversation over instead — the folder
-    carries the task. If the developer keeps the whole conversation, the model switches in place
+    carries the task. **Skip the compaction when it can't pay back** — a task or two left in
+    `tasks.md`, or a planning conversation that's still short: name only the model switch, made in
+    place. If the developer keeps the whole conversation, the model switches in place
     (one uncached re-read) or stays — their call. **Never start another
     session for these phases** — not a new one, not a child — unless the developer asks: two
     sessions on one branch split the task, and the waiting one wakes, at its own model's price, each

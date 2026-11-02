@@ -68,6 +68,11 @@
   - **Other tools:** the tool's compaction and model picker. A tool with no compaction starts the
     conversation over instead; the folder carries the task.
 
+  The compaction is skipped when it can't pay back: with a task or two left in `tasks.md`, or a
+  planning conversation that's still short, the hand-off names only the model switch, made in
+  place. The summary call costs about what 10–40 later calls pay to carry a long planning
+  conversation, so it's worth it when dozens of calls follow.
+
   The developer may keep the whole conversation instead. Then the model switches in place, with
   one uncached re-read and every later call still carrying the conversation, or the session stays
   on Opus. That's the developer's call.

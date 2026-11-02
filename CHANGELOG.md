@@ -24,7 +24,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       command. In a terminal that's `/compact <instruction>`, `/model sonnet`, and the command. In
       the desktop app, the same `/compact` in the prompt box and the model menu. In another tool,
       its compaction, or starting over where it has none. Compacting first means the switch
-      re-reads only the summary. `COST-MODEL.md` § Between phases has the table.
+      re-reads only the summary. With a task or two left, or a conversation that's still short,
+      the compaction can't pay back: the model switches in place instead. `COST-MODEL.md` § Between
+      phases has the table.
     - **The spec folder stays the source of truth.** `/adf:write-docs` and `/adf:implement` read the
       folder, not the summary. In a conversation that doesn't show where the task stands, they
       start with one line: the lane, the folder, and the phase.

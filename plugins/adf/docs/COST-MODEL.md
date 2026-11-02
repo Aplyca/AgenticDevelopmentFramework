@@ -167,6 +167,11 @@ The developer takes all three steps: no tool compacts a session from inside it, 
 doesn't let a session re-price its own turns. Compact soon after approval — the summary's read of the
 conversation is then mostly from the cache.
 
+**Skip the compaction when it can't pay back.** The summary call costs about what 10–40 later calls
+pay to carry a long planning conversation, so it's worth it when dozens of calls follow. With a task
+or two left in `tasks.md`, or a conversation that's still short, switch the model in place — or keep
+going as is.
+
 ## Measuring
 
 - **`/cost`** in Claude Code shows the current session.
