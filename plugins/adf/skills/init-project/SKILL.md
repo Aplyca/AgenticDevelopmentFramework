@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: First-time setup of a project's AI configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts, with nested AGENTS.md files where modules differ. Use once after the skeleton is copied in (/adf:adopt does it end to end), and again in a project adopted before its code existed, once the first code lands.
+description: First-time setup of a project's AI configuration — AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs, filled from verified facts, with nested AGENTS.md files where modules differ. Use once after the skeleton is copied in (/adf:adopt does it end to end), and again once the first code lands in a project adopted before it.
 argument-hint: "[project name]"
 ---
 

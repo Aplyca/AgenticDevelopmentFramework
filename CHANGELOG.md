@@ -11,6 +11,41 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The text every call re-reads says each rule once**
+  ([decision 0065](docs/decisions/0065-always-loaded-text-says-each-rule-once.md)).
+  - **What:**
+    - **One copy per rule:** rules that `AGENTS.md`, `claude-code.md`, and `git-workflow.md` each
+      restated — a change request's branch, the pull-request rules, the commit prefixes, the
+      stakeholder update's yes, one task per session, the preview check — keep one copy, in the file
+      whose readers need it. Behavior is unchanged.
+    - **Procedures stay in their skills:** `AGENTS.md`'s full lane points to `/adf:implement` for a
+      plan that departs from reality and drops the list of `plan.md`'s sections; `claude-code.md`'s
+      lane table drops what `AGENTS.md` already says; its rule on diffs that need no docs moves to
+      `/adf:write-plan`.
+    - **Descriptions:** the longest skill and agent descriptions lose wording; every trigger phrase
+      stays.
+    - **Size:** about 43.7k characters every call re-reads become 40.1k (−8%); a packaged project's
+      `AGENTS.md` loses two reference-doc links too (44.5k → 40.5k). That's under one percent of a
+      session's cost.
+  - **Where:** `skeleton/AGENTS.md`, `skeleton/.claude/rules/claude-code.md`,
+    `skeleton/.claude/rules/git-workflow.md`, the descriptions of ten `adf` skills and three agents,
+    `plugins/adf/skills/write-plan/SKILL.md`, the static checks.
+
+  **Upgrade impact:**
+  - **Overwrite:** `.claude/rules/git-workflow.md`. Committed install: `.claude/skills/*` and
+    `.claude/agents/*`, as `/adf:upgrade` writes them; packaged, they come with the plugin.
+  - **Merge:** `AGENTS.md` and `.claude/rules/claude-code.md` — wording in most sections. Take the
+    new text wherever your copy still reads as the old skeleton's, and keep your own content
+    (identity, stack, sensitive areas, conventions, docs, structure, quick reference). Then:
+    1. `AGENTS.md`: remove § Commit message prefixes — the Commits line in § Delivery rules now
+       carries the order.
+    2. `AGENTS.md`: move "Never do silently" from § AI interaction rules to § Boundaries &
+       antipatterns, and remove the "Browser checks" line from § Working economically.
+    3. `AGENTS.md` § Project documentation: the `COST-MODEL.md` · `MEMORY-STRATEGY.md` row becomes a
+       `MEMORY-STRATEGY.md` row. Packaged: the `COST-MODEL.md` link goes with it.
+    4. `claude-code.md`: take the new § Guardrails, § Lanes table, § Cost model, and § Memory,
+       rules, and MCP; a packaged project keeps its names note.
+
 - **The skills every task loads keep their case-only steps in reference files, and the status moves
   no longer load `/adf:stakeholder-update`**
   ([decision 0063](docs/decisions/0063-reference-files-and-status-moves-in-the-calling-skill.md)).

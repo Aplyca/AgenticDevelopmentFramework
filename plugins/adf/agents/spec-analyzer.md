@@ -1,6 +1,6 @@
 ---
 name: spec-analyzer
-description: Adversarial, read-only analysis of a spec folder (spec.md, plan.md, tasks.md) before the approval gate — finds acceptance criteria without tasks or tests, tasks without criteria, change-surface gaps the code reveals, contract changes a consumer spec relies on, constitution conflicts, contradictions, unstated assumptions, invented requirements, and personal names or quoted tracker text. Use on any non-trivial spec folder before asking the developer to approve it.
+description: Adversarial, read-only analysis of a spec folder (spec.md, plan.md, tasks.md) before the approval gate — acceptance criteria without tasks or tests and the reverse, change-surface gaps the code reveals, contract changes another spec relies on, constitution conflicts, contradictions, unstated assumptions, invented requirements, personal names or quoted tracker text. Use on any non-trivial spec folder before asking the developer to approve it.
 model: opus
 tools:
   - Read

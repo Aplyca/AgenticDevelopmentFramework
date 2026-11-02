@@ -75,6 +75,7 @@ projects.
 | [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted |
 | [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) | A skill's case-only steps load from reference files beside its `SKILL.md`, and the skill that reaches a moment moves the task's status itself | accepted |
 | [0064](0064-tracker-writes-through-the-projects-server.md) | Tracker writes go through the project's server as the developer, and a correction an edit would damage is the developer's | accepted |
+| [0065](0065-always-loaded-text-says-each-rule-once.md) | The always-loaded text says each rule once, and a phase's procedure stays in its skill | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

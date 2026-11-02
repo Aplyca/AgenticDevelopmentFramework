@@ -1,6 +1,6 @@
 ---
 name: end-user-docs
-description: With the end-user-docs module: draft, update, or publish a feature's stakeholder guide — how the people who use the system do their work with it, editors and administrators included — in the doc tool they read (ClickUp Docs, Confluence, Notion), never in the repository, writing only on the developer's yes. Use after the approval gate when the spec lists a guide, after the merge to publish, or when asked to write, update, or publish a user guide, an editorial or administrative guide, or help pages.
+description: With the end-user-docs module: draft, update, or publish a feature's stakeholder guide — how users, editors, and administrators do their work with the system — in the doc tool they read (ClickUp Docs, Confluence, Notion), never the repository, writing only on the developer's yes. Use after the approval gate when the spec lists a guide, after the merge to publish, or when asked to write, update, or publish a user guide, an editorial or administrative guide, or help pages.
 argument-hint: "[spec folder or tracker task] [draft | update | publish]"
 ---
 

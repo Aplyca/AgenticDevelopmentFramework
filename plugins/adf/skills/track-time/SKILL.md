@@ -1,6 +1,6 @@
 ---
 name: track-time
-description: With the time-tracking module: draft a task's time entries since the last one logged — one per day worked, the AI-assisted time from the transcripts beside an estimate without AI — and write them to the tracker only once the developer approves. Use after a milestone, significant partial work, or the merge, or when asked to log, track, or report the time spent on a task.
+description: With the time-tracking module: draft a task's time entries since the last one logged — one per day worked, the AI-assisted time from the transcripts beside an estimate without AI — and write them to the tracker only on the developer's yes. Use after a milestone, significant partial work, or the merge, or when asked to log, track, or report the time spent on a task.
 argument-hint: "[tracker task link or ID] [--since <date-time>]"
 ---
 
