@@ -44,7 +44,7 @@ Lane definitions are in `AGENTS.md` § How work flows; in Claude Code:
 |---|---|---|
 | Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit`; a light `CR N` when it changes recorded behavior | `sonnet` |
 | Careful | Fast, plus the area's checklist (`specs/README.md`), `@security-reviewer` for authorization, personal data, or payments, and the risky part named in the pull request | `sonnet`, high effort |
-| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus`, high effort, up to the gate; a fresh `sonnet` session from `/write-docs` on |
+| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus`, high effort, up to the gate; then `/compact` and `sonnet`, in the same session, from `/write-docs` on |
 | Bug, cause unknown | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
 | Refactor | `/refactor` → tests still green → `/commit` (full when it sets a structure others must follow) | `sonnet` |
 | Answer | `/triage` → deliver the answer; no spec, no environment unless needed | `sonnet`; `opus` for architecture-level questions |
@@ -57,8 +57,9 @@ docs, there's nothing for `/write-docs`.
 A session costs roughly *calls × context*: one task per session (`/clear` between tasks), short
 output. Choose the model by the work: `sonnet` when the task has a clear spec and a way to check the
 result, `opus` for judgment. Each model has its own prompt cache, so switch where it's cheap — at the
-start, right after triage (in the desktop app, `/triage` switches the session's model and effort
-itself), or in a fresh session after the approval gate. Agents carry their own model; the `/deep-…`
+start, right after triage (`/triage` fits the session or names the switch), or after the approval
+gate, right after `/compact` (`/write-plan` gives the steps). A phase never moves to another session
+unless the developer asks. Agents carry their own model; the `/deep-…`
 workflows pin theirs. The project default is `"model": "sonnet"`, but the desktop app's picker and
 `/model` decide for a session. Keep this file, `AGENTS.md`, and the rules stable — an edit busts the
 cache. Details: `docs/COST-MODEL.md`.

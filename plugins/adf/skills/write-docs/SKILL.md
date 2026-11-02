@@ -47,7 +47,9 @@ job; they're Phase 5 tasks.
    where they live), the spec — Functional, Design, Documentation, and the sections each doc draws
    on — and `plan.md` § Test strategy: the tests are the precise statement of behavior the docs
    must match. For a change request, focus on the `CR N` section and leave docs for unchanged
-   behavior alone.
+   behavior alone. In a conversation that doesn't show where the task stands — compacted after the
+   gate, or started anew — open with one line on it: `Full lane — specs/007-newsletter-signup/,
+   approved; writing its Phase 1 docs`.
 
 2. **Read the existing docs** in the same area and match their tone, structure, and depth. Use
    `docs/GLOSSARY.md` terms.

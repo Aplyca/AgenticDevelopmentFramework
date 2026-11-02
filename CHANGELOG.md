@@ -41,6 +41,62 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     **Editing posted text** lines in § Stakeholder updates and extend **Mentions** with where the
     tracker places a mention. ClickUp projects copy them from `modules/clickup/MODULE.md` step 3.
 
+- **A task's phases stay in its session. After the approval gate, the developer compacts the
+  conversation and switches to Sonnet there, instead of opening a fresh session**
+  ([decision 0062](docs/decisions/0062-one-session-per-task-compact-at-the-gate.md)).
+  - **What:**
+    - **One session per task, from triage to delivery.** An agent never starts another session for
+      a phase of its task, new or child, unless the developer asks. "A fresh session on `sonnet`"
+      had been read that way: a child session took the docs and the implementation on the same
+      branch, and the parent, on Opus, woke each time the child ended a turn.
+    - **The switch after the gate, by client.** `/adf:write-plan` step 12 gives the developer three
+      steps: compact the conversation with what the next phases need, pick Sonnet, send the next
+      command. In a terminal that's `/compact <instruction>`, `/model sonnet`, and the command. In
+      the desktop app, the same `/compact` in the prompt box and the model menu. In another tool,
+      its compaction, or starting over where it has none. Compacting first means the switch
+      re-reads only the summary. With a task or two left, or a conversation that's still short,
+      the compaction can't pay back: the model switches in place instead. `COST-MODEL.md` § Between
+      phases has the table.
+    - **Conversations are capped at 300k tokens.** The skeleton's `.claude/settings.json` sets
+      `"autoCompactWindow": 300000`. By default, Claude Code compacts Opus 5.5 and Sonnet 5.5 only at
+      about 967k tokens; on one adopting project, calls carried about 289k tokens on average.
+      `COST-MODEL.md` § Keeping sessions cheap explains the window and what a compaction keeps.
+      `/adf:cost-report`'s `long-context` flag points at the setting.
+    - **The spec folder stays the source of truth.** `/adf:write-docs` and `/adf:implement` read the
+      folder, not the summary. In a conversation that doesn't show where the task stands, they
+      start with one line: the lane, the folder, and the phase.
+    - **Triage names the switch where the desktop app won't make it.** That's when the app refuses a
+      session's change to its own model or effort.
+    - **`/adf:handoff` is for work that leaves the session.** A task's next phase isn't a handoff.
+      `/adf:dispatch` gets a rationalization row for the phases.
+  - **Where:**
+    - `plugins/adf/skills/`: `write-plan`, `implement`, `write-docs`, `triage`, `handoff`,
+      `spec-workflow`, and `dispatch`.
+    - `plugins/adf/docs/COST-MODEL.md` and `PARALLEL-AGENTS.md`.
+    - `skeleton/AGENTS.md`, `skeleton/.claude/rules/claude-code.md`, and
+      `skeleton/.claude/settings.json`.
+    - `plugins/adf/skills/cost-report/`.
+    - `README.md` and the static checks.
+
+  **Upgrade impact:**
+  - **Packaged install:** the skills and docs come with the plugin. Three files are the project's
+    own, to merge:
+    - **`.claude/settings.json`:** add `"autoCompactWindow": 300000` at the top level. A project
+      that already set a window keeps its own.
+    - **`AGENTS.md`:** in § Working economically, the first bullet becomes "One task per session,
+      one session per task". It adds that a phase never moves to another session unless the
+      developer asks, and that the conversation is compacted after the approval gate.
+    - **`.claude/rules/claude-code.md`:** two changes.
+      - The Full row's Model cell becomes "`opus`, high effort, up to the gate; then `/compact` and
+        `sonnet`, in the same session, from `/write-docs` on".
+      - In § Cost model, the switch after the gate is "right after `/compact`", with one more sentence:
+        a phase never moves to another session unless the developer asks.
+  - **Committed install:**
+    - **Overwrite:** `.claude/skills/{write-plan,implement,write-docs,triage,handoff,spec-workflow,cost-report}/`,
+      `docs/COST-MODEL.md`, and, with `parallel-agents`, `.claude/skills/dispatch/` and
+      `docs/PARALLEL-AGENTS.md`.
+    - **Merge:** `.claude/settings.json`, `AGENTS.md`, and `.claude/rules/claude-code.md`, as above.
+
 - **`/adf:wrap-up` starts the follow-ups before it removes the worktree, and asks about the time
   before the close-up**
   ([decision 0061](docs/decisions/0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md)).
