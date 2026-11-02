@@ -786,6 +786,10 @@ check_practices() {
         ! file_contains "$SKILLS_DIR/$name/SKILL.md" 'stakeholder-update status' || missing+=("/$name: loads /stakeholder-update only to draft a message, never for a status move (0063)")
     done
     file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Status at each moment:\*\*' || missing+=("TRACKER-INTEGRATION.md: the task status for each moment (0053)")
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" "Write only through the project's server" || missing+=("TRACKER-INTEGRATION.md: writes go through the project's server, never a host connector (0064)")
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Editing posted text:\*\*' || missing+=("TRACKER-INTEGRATION.md: what an edit to posted text keeps (0064)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'say which account will post' || missing+=("/stakeholder-update: says which account will post before the first post (0064)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'the developer edits the comment in the tracker' || missing+=("/stakeholder-update: a correction an edit would damage is the developer's (0064)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the agent's local check before the pull request (0022, 0045)")
     file_contains "$AGENTS_MD" 'never push to check it on the preview instead' || missing+=("AGENTS.md: a change that can't run locally isn't pushed (0045)")
     file_contains "$AGENTS_MD" 'Then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")

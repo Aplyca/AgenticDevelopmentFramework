@@ -134,8 +134,10 @@ and skip the steps below.
 8. **Update the tracker task.** Right after the branch is pushed and the pull request is open, move
    the task to the project's review status on your own — no yes needed, and no skill to load. Use the
    status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment, from the task's own
-   statuses (one it lacks is a question); forward only; the status alone; only a task the developer
-   is assigned to. One line says so — with no tracker tool, the status for the developer to set. Then
+   statuses (one it lacks is a question), written as its § Rules for agents says — through the
+   project's server, as the developer, and read back; forward only; the status alone; only a task
+   the developer is assigned to. One line says so — with no tracker tool, or only one built into the
+   host app, the status for the developer to set. Then
    draft the review update (`/adf:stakeholder-update review`): a business-focused report for the
    requester — what changes for them, the preview and what to test there, and the pull request link,
    which is the tracker link-back. It ends the report in step 9. Post it only on the developer's yes to the exact text and the

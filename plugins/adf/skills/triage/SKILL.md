@@ -124,9 +124,10 @@ not a research project.
    **A tracker task gets its started update.** First the status: move the task to the project's
    in-progress status now, on your own — no yes needed, and no skill to load. Use the status
    `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment, from the task's own
-   statuses (one it lacks is a question); forward only; the status alone. One line says so — with no
-   tracker tool, the status for the developer to set. Then a message (`/adf:stakeholder-update
-   started`), only when it's worth the requester's time — what you understood and will deliver,
+   statuses (one it lacks is a question), written as its § Rules for agents says — through the
+   project's server, as the developer, and read back; forward only; the status alone. One line says
+   so — with no tracker tool, or only one built into the host app, the status for the developer to
+   set. Then a message (`/adf:stakeholder-update started`), only when it's worth the requester's time — what you understood and will deliver,
    the questions only they can answer, a finding. Its draft ends the turn's last message, for the
    developer's yes; the work goes on meanwhile. If the draft pull request opens in the same turn, the
    review update replaces it. Skip both for a task the developer isn't assigned to, unless they say

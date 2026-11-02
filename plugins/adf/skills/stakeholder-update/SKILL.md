@@ -43,8 +43,8 @@ answer is delivered. `/adf:stakeholder-update status <moment>` makes a move too,
 one didn't happen at its moment.
 
 The rules for a move — the task's own statuses, forward only, the developer's tasks only, the
-status alone, one line to say so — are in `<this skill's base directory>/status.md`. Read it for a
-move made here.
+status alone, through the project's server, one line to say so — are in
+`<this skill's base directory>/status.md`. Read it for a move made here.
 
 ## Project settings
 
@@ -54,7 +54,8 @@ Read these before writing; they hold what this skill doesn't hardcode:
 - **Links and the tracker's conventions** — `docs/TRACKER-INTEGRATION.md` § Stakeholder updates: the
   live site, the stable preview address, preview URLs, CMS entry links, the task status for each
   moment (in progress, in review, done) and how to list a task's statuses, whether requesters can open pull requests, whether a
-  comment can show an image inline, and how to mention someone.
+  comment can show an image inline, how to mention someone, how a link to another task shows, and
+  what an edit to a posted comment keeps.
 
 ## Steps
 
@@ -101,14 +102,23 @@ moves) — no draft, no message — and stop.
 
 6. **Post it on the tracker only on an explicit yes to the exact text and the assignee.** They're
    one approval; a change to either is a new draft to approve.
+   - **Through the project's tracker server, as the developer** (`docs/TRACKER-INTEGRATION.md`
+     § Rules for agents) — never a tracker connector built into the host app. Before the session's
+     first post, ask the server who is signed in and say which account will post.
    - **Assign** the comment to the requester when it asks them a question or needs an action or a
      decision from them. Don't assign a purely informational one. Mention people with the
-     tracker's mention syntax (§ Stakeholder updates); a bare `@Name` may notify no one.
+     tracker's mention syntax (§ Stakeholder updates); a bare `@Name` may notify no one. Where the
+     tracker moves mentions, greet by name in plain text and put the mentions where it places them.
+   - **Links to other tasks or comments** go out as plain links when the tools can't make the
+     tracker's preview (§ Stakeholder updates): ask the developer to paste each one that should show
+     as a preview in the tracker's editor, and read the comment again once they have.
    - **Images:** as `<this skill's base directory>/screenshots.md` § Posting them says — the
      developer pastes each one over its placeholder.
-   - **Read it back** after posting: fetch the comment and confirm the text and the assignee came
-     out as approved — mentions, links, formatting. A correction edits that comment, so the client
-     reads one version.
+   - **Read it back** after posting: fetch the comment and confirm the author, the text, and the
+     assignee came out as approved — mentions, links, formatting. A correction edits that comment, so
+     the client reads one version — through the tools only when the comment holds nothing an edit
+     would lose (a mention, a pasted image, a link preview — § Stakeholder updates). Otherwise show
+     the corrected text, and the developer edits the comment in the tracker.
    - **Status:** already moved at its moment (§ Status moves). If it wasn't — the tracker wasn't
      connected then, say — move it now, by `status.md`.
 
@@ -154,6 +164,8 @@ moves) — no draft, no message — and stop.
 | "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
 | "I'll assign it to the requester so they see it" | Assign only a comment that needs something from them: an answer, an action, a decision. And only with the developer's yes to that assignee. |
 | "It posted without an error, so it's right" | Read it back. Mentions, links, and formatting can come out differently from the draft. |
+| "The tracker connector in the app is already signed in, so I'll post through it" | It may be signed in to someone else's account. Post through the project's server, once you've said which account will post. |
+| "The mention came out wrong — I'll fix it by editing the comment" | An edit through the tools can drop mentions, pasted images, and link previews. Show the fix; the developer edits the comment in the tracker. |
 
 ## Red flags (stop and reassess)
 
@@ -162,6 +174,7 @@ moves) — no draft, no message — and stop.
 - A question to the client that the spec or the tracker thread already answers.
 - You're about to post a comment, or change an assignee, priority, due date, or time entry, without the developer's explicit yes.
 - You're about to post the update anywhere but the tracker task — the pull request included.
+- You're about to post through a server other than the project's, or before saying which account posts.
 
 ## Verification
 
@@ -174,7 +187,7 @@ moves) — no draft, no message — and stop.
 - [ ] The full draft was shown in chat; nothing was posted on the pull request
 - [ ] Screenshots, if any, were taken read-only, of single elements, shown to the developer, and handed over as files
 - [ ] Nothing was posted, assigned, or changed on the tracker beyond the status without explicit approval of the exact text and the assignee
-- [ ] A posted comment was read back: text and assignee as approved
+- [ ] A comment was posted through the project's server, as the account the developer was told, and read back: author, text, and assignee as approved
 
 ## Principles
 

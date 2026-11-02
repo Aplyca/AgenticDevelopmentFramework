@@ -82,9 +82,10 @@ the close-up only once it resumes and ends.
    For a tracker task, move it to the project's done status as soon as the check finds the pull
    request merged or the answer delivered, on your own — no yes needed, and no skill to load. Use the
    status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to `delivered`, from the task's
-   own statuses (one it lacks is a question); forward only; the status alone; only a task the
-   developer is assigned to. One line says so — with no tracker tool, the status for the developer
-   to set. An abandoned task keeps its status. Then offer the **delivered** update
+   own statuses (one it lacks is a question), written as its § Rules for agents says — through the
+   project's server, as the developer, and read back; forward only; the status alone; only a task
+   the developer is assigned to. One line says so — with no tracker tool, or only one built into the
+   host app, the status for the developer to set. An abandoned task keeps its status. Then offer the **delivered** update
    (`/adf:stakeholder-update delivered`) once, when it hasn't been posted. It's a draft in chat and
    needs no worktree, so neither holds up the close-up.
 

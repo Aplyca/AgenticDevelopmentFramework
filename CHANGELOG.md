@@ -34,6 +34,36 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/skills/wrap-up/`, and `.claude/skills/stakeholder-update/`, whole folders: each now holds
     reference files beside its `SKILL.md`. `/adf:upgrade` writes them.
 
+- **Tracker writes go through the project's server, as the developer, and a correction an edit would
+  damage is the developer's**
+  ([decision 0064](docs/decisions/0064-tracker-writes-through-the-projects-server.md)).
+  - **What:**
+    - **Which server:** a tracker connector built into the host app may read, never write — it can be
+      signed in to another account. Before the session's first write, the agent says which account
+      the project's server is signed in to; with the server disconnected, it writes nothing.
+      `/adf:stakeholder-update`, `/adf:track-time`, and `/adf:end-user-docs` follow it.
+    - **Read-back:** every write is read back, the author and the status included; a status a tracker
+      automation changed is reported, not undone.
+    - **Corrections:** a posted comment or description holding a mention, a pasted image, or a link
+      preview is corrected by the developer in the tracker — an edit through the tools can drop them.
+    - **Links:** a link to another task or comment that should show as the tracker's preview is pasted
+      by the developer, like an image.
+    - **ClickUp:** the module's guide records where mentions land, the thread root for replies, link
+      previews and how they read back, what `clickup_update_comment` drops, blank-line spacing, and
+      status automations.
+  - **Where:** `skeleton/docs/TRACKER-INTEGRATION.md` (§ Rules for agents, § Connecting the tracker,
+    § Stakeholder updates), `plugins/adf/skills/stakeholder-update/`, `plugins/adf/skills/track-time/`,
+    `plugins/adf/skills/end-user-docs/`, `modules/clickup/MODULE.md`, the static checks.
+
+  **Upgrade impact:**
+  - **Packaged install:** the skills come with the plugin.
+  - **Committed install — overwrite:** `.claude/skills/stakeholder-update/`, and
+    `.claude/skills/track-time/` and `.claude/skills/end-user-docs/` with their modules.
+  - **Merge:** `docs/TRACKER-INTEGRATION.md` — add the three new bullets in § Rules for agents and the
+    host-connector bullet in § Connecting the tracker, then fill in the **Links to tracker items** and
+    **Editing posted text** lines in § Stakeholder updates and extend **Mentions** with where the
+    tracker places a mention. ClickUp projects copy them from `modules/clickup/MODULE.md` step 3.
+
 - **A task's phases stay in its session. After the approval gate, the developer compacts the
   conversation and switches to Sonnet there, instead of opening a fresh session**
   ([decision 0062](docs/decisions/0062-one-session-per-task-compact-at-the-gate.md)).

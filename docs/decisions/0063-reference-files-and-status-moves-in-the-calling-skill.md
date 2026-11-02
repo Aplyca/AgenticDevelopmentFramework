@@ -66,8 +66,9 @@ text it loads, in characters (about four to a token).
   - `/adf:triage`, `/adf:open-pr`, and `/adf:wrap-up` each carry the move as a step of their own,
     with the rules in a few lines. The status comes from the task's own statuses, as
     `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps the moment, and one the task lacks is
-    a question. Forward only; the status alone; only a task the developer is assigned to; one line
-    to say so.
+    a question. It's written through the project's server, as the developer, and read back
+    ([0064](0064-tracker-writes-through-the-projects-server.md)). Forward only; the status alone;
+    only a task the developer is assigned to; one line to say so.
   - `/adf:stakeholder-update` loads only to draft a message. Its `status` argument still works, from
     `status.md`.
 - **The machinery stays as it is.**

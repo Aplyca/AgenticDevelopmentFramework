@@ -17,6 +17,9 @@ carry the same rules in their own step.
   no tracker tool connected, say which status the developer should set, and go on.
 - **The tracker's own prompt still applies.** The status move is a write; where the project leaves
   it off the allowlist, the permission prompt is the developer's say, not the skill's to skip.
+- **Through the project's server, as the developer,** like the post (`/adf:stakeholder-update`
+  step 6). With only a tracker connector built into the host app, say which status the developer
+  should set.
 
 ## Rationalizations (do not accept these)
 
