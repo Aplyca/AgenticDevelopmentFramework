@@ -102,6 +102,10 @@ text it loads, in characters (about four to a token).
 
     "Before" counts a skill load for each status move, as the skills' text asked. A reference file
     adds its size only on the runs that reach its case.
+  - **In dollars, a few percent.** On one adopting project, the framework's text came to about 7–10%
+    of the cost: 5–7% in cache reads, plus its share of each cache rewrite. Cutting part of that text
+    saves part of that share. Session length and the model are the bigger levers: there, sessions
+    of 100+ calls made 80% of the cost, and the same tokens on Sonnet would have cost 23% less.
   - A tracker task makes three fewer skill calls.
   - The case-only text is in one place per case.
 - **Negative / cost:**
