@@ -13,7 +13,7 @@ The framework is built on three reinforcing disciplines:
 
 How much of that a change gets follows its risk, not its size: a precise fix goes through a fast lane and is proved by a test, and the full spec flow is kept for changes with something to decide. The model follows the work the same way — Sonnet for well-specified work, Opus for judgment.
 
-Works with Claude Code natively; supports Cursor, Antigravity, GitHub Copilot, Codex, Aider, and Windsurf via the [AGENTS.md](https://agents.md) standard.
+Works with Claude Code natively; supports Cursor, Antigravity, GitHub Copilot, Codex, Aider, and Windsurf via the [AGENTS.md](https://agents.md) standard, and Gemini CLI through a settings file that points it there.
 
 Most of what's here was proven in real client projects first — some built on this framework, some grown alongside it — and then generalized. The reasoning behind each decision is in [`docs/decisions/`](docs/decisions/README.md).
 
@@ -23,15 +23,15 @@ Most of what's here was proven in real client projects first — some built on t
 - **Three lanes — ceremony follows risk, not size** — fast (a precise change, proved by a test), careful (a risk area: plus its checklist, and the risky part named for the developer's test), and full (something to decide: the spec-driven flow). `/triage` states the lane before the first edit, the developer can always raise it, and sensitive areas are configuration, enforced by a hook. ([Lanes](skeleton/specs/README.md#lanes--how-much-process-a-change-gets) · [why](docs/decisions/0011-lanes-ceremony-follows-risk.md))
 - **The model follows the work** — `sonnet` when the task has a clear spec and a way to check the result (the fast and careful lanes, bug fixes, reviews, implementing an approved plan), `opus` for judgment (the full lane's spec and plan, a bug that resists diagnosis). Version-less aliases throughout; `/triage` names the model, and agents carry their own. ([Choosing a model](plugins/adf/docs/COST-MODEL.md#choosing-between-sonnet-and-opus) · [why](docs/decisions/0012-choose-the-model-by-the-work.md))
 - **One approval gate on the change surface** (full lane) — after the plan, before any code: scope, the files and layers the change touches, and every assumption, signed off by a human.
-- **21 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, wrap-up after the merge, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, `/e2e` with `e2e`, `/track-time` with `time-tracking`, and `/end-user-docs` with `end-user-docs`. ([Catalog](docs/SKILLS-REFERENCE.md))
+- **21 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, wrap-up after the merge, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, `/e2e` with `e2e`, `/unit` with `unit`, `/track-time` with `time-tracking`, and `/end-user-docs` with `end-user-docs`. ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents**, each on the model its work needs — reviewers on `sonnet`; `@spec-analyzer` (which adversarially checks a spec folder before the gate) and `@architect` on `opus`. ([Catalog](docs/AGENTS-REFERENCE.md))
-- **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs where every finding is independently verified.
-- **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. The hooks give each session its branch and spec folder, remind the agent once to state the triage before its first edit, stop a fast-lane edit in a sensitive area, keep the main checkout edit-free when it's the hub (parallel-agents), block `--no-verify`, block commits and pushes on protected branches, block hand-edits to lockfiles and existing migrations, and report undeclared env vars. Marking a pull request ready, merging, reviewing, and releases need a human to confirm them; keeping the draft current doesn't. `.env` files are never read.
-- **9 engineering standards** — code quality (including "write almost no comments"), testing, security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
+- **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs whose findings are independently verified or cross-checked, each step on a pinned model.
+- **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. Ten hooks tell each session its checkout, branch, and spec folder; name the session after its task; say when the branch's pull request merged (offer `/wrap-up`) or closed; remind the agent once to state the triage before its first edit or branch; stop the first edit in each sensitive area once, to confirm the lane; keep the main checkout edit-free when it's the hub (parallel-agents) and approve a session's move into its worktree; block `--no-verify`, commits and pushes on protected branches, and a pull request that isn't a draft; block hand-edits to generated files and existing migrations; and report undeclared env vars. Commits, the work branch's push, and its draft pull request run without a prompt; readying, merging, or reviewing a pull request, releases, and `gh api` writes ask a human first. `.env` files are never read. ([Hooks](plugins/adf/hooks/README.md))
+- **9 engineering standards** — code quality (including "write almost no comments"), testing (with test tiers — `@smoke` ⊂ `@critical` ⊂ regression — and feature suites), security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
-- **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` writes or migrates a Docker Compose local environment — `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks — runs it natively or one stack per worktree, diagnoses it, and safely resets it; destructive docker commands ask first), `vitest` (`/unit` sets up Vitest unit and integration tests, run by tier — `@smoke`, `@critical`, regression — and by feature suite), `e2e` (`/e2e` sets up Playwright end-to-end tests to a specification — `make e2e` and `make smoke` against the checkout's own stack, one smoke test per critical flow, written test first), `time-tracking` (`/track-time` logs each day of a task in the tracker, in whole units: the AI-assisted time or a senior developer's estimate without AI, as the developer picks), `end-user-docs` (`/end-user-docs` writes a feature's end-user page in the doc tool end users read — ClickUp Docs, Confluence, Notion — drafted before implementation where they can't see it, published once the feature ships). ([Modules](modules/README.md))
-- **The `adf` plugin** — `/adf:adopt` and `/adf:upgrade` for Claude Code, plus `/adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/adf/README.md)) In a packaged project it also carries the framework's skills, agents, workflows, and hooks, pinned to a release. Beside it, `adf-dev` carries the development skills of the modules a project installs — `/adf-dev:dev-env` with `docker` — and a mod that shows the local environment's URL above the prompt, and whether it answers; and `adf-connect` connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, with read-only, non-production defaults and only its read tools pre-approved ([why](docs/decisions/0023-plugins-by-concern.md)).
-- **Evals** — structural checks plus functional tests of the hooks, module scripts, and plugin, run in CI on every pull request at zero token cost; routing evals that run `/triage` in real Claude Code sessions on Sonnet and Opus, with graded reports. ([Evals](evals/README.md) · [latest report](evals/dynamic/reports/2026-10-01-triage-routing.md))
+- **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` writes or migrates a Docker Compose local environment — `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks — runs it natively or one stack per worktree, diagnoses it, and safely resets it; destructive docker commands ask first), `e2e` (`/e2e` sets up Playwright end-to-end tests to a specification — `make e2e` and `make smoke` against the checkout's own stack, one smoke test per critical flow, written test first), `unit` (`/unit` sets up Vitest unit and integration tests to a specification, run by tier — `@smoke`, `@critical`, regression — and by feature suite), `time-tracking` (`/track-time` logs each day of a task in the tracker, in whole units: the AI-assisted time or a senior developer's estimate without AI, as the developer picks, each entry saying what the day delivered in business terms), `end-user-docs` (`/end-user-docs` writes a feature's user, editorial, or administrative guide in the doc tool its readers use — ClickUp Docs, Confluence, Notion — drafted before implementation where they can't see it, published once the feature ships). ([Modules](modules/README.md))
+- **The `adf` plugin** — `/adf:adopt` and `/adf:upgrade` for Claude Code, plus `/adf:cost-report`: what each agent session on a project cost — calls, context, tokens, estimated cost, and what Opus sessions would have cost on Sonnet — with flags for long context, cache-expiring pauses, and spec-heavy small changes. ([Plugin](plugins/adf/README.md)) It is the source of the framework's machinery: a packaged project loads the skills, agents, workflows, hooks, and reference docs from it, pinned to a release, along with the skills and worktree commands of the `parallel-agents`, `time-tracking`, and `end-user-docs` modules. Beside it, `adf-dev` carries the development modules' skills — `/adf-dev:dev-env` with `docker`, `/adf-dev:e2e` with `e2e`, `/adf-dev:unit` with `unit`; and `adf-connect` connects a project to its tracker or a stack service — Supabase, Vercel, Contentful, GitLab, Linear, Jira — through the service's official MCP server, with read-only, non-production defaults, only its read tools pre-approved, reads that return secrets denied, and fixed read-only profiles for Vercel and Contentful ([why](docs/decisions/0023-plugins-by-concern.md)).
+- **Evals** — structural checks plus functional tests of the hooks, module scripts, plugin, and scripted upgrade, run in CI on every pull request at zero token cost; session evals that run the skills in real Claude Code sessions — `/triage` routing on Sonnet and Opus, `/debug`, `/adopt`, `/upgrade`, `/open-pr`, and the plugin's hooks and docs — with graded reports. ([Evals](evals/README.md) · [triage routing report](evals/dynamic/reports/2026-10-01-triage-routing.md))
 - **Onboarding, worked examples, scenario playbooks** — see [Team onboarding](#team-onboarding).
 
 ## Install in a project
@@ -128,13 +128,20 @@ plugin, which then only installs and maintains them. `/adf:adopt` asks which one
 
 ### By hand
 
+A hand install is the **committed** one: the skeleton is the project's own layer, and
+`build-committed.py` writes the skills, agents, workflows, hook scripts, and reference docs from the
+plugins, their source.
+
 ```bash
-git clone https://github.com/aplyca/AgenticDevelopmentFramework.git
-cp -Rn AgenticDevelopmentFramework/skeleton/. your-project/                 # never overwrites your files
-cp -Rn AgenticDevelopmentFramework/modules/github/files/. your-project/     # each optional module you want
-AgenticDevelopmentFramework/modules/clickup/install.sh your-project          # clickup merges instead of copying
-AgenticDevelopmentFramework/modules/docker/install.sh your-project           # docker merges its permissions; /dev-env writes the stack
-AgenticDevelopmentFramework/modules/e2e/install.sh your-project              # e2e merges its permissions; /e2e writes the suite
+git clone --depth 1 --branch v<X.Y.Z> https://github.com/aplyca/AgenticDevelopmentFramework.git
+cp -Rn AgenticDevelopmentFramework/skeleton/. your-project/                         # never overwrites your files
+python3 AgenticDevelopmentFramework/scripts/build-committed.py your-project          # the machinery
+cp -Rn AgenticDevelopmentFramework/modules/github/files/. your-project/             # each optional module you want
+python3 AgenticDevelopmentFramework/scripts/build-committed.py your-project --modules parallel-agents  # a module's skills
+AgenticDevelopmentFramework/modules/clickup/install.sh your-project                  # clickup merges instead of copying
+AgenticDevelopmentFramework/modules/docker/install.sh your-project                   # docker merges its permissions; /dev-env writes the stack
+AgenticDevelopmentFramework/modules/e2e/install.sh your-project                      # e2e merges its permissions; /e2e writes the suite
+AgenticDevelopmentFramework/modules/unit/install.sh your-project                     # unit merges its permissions; /unit writes the setup
 ```
 
 Then follow [docs/SETUP.md](docs/SETUP.md): fill `AGENTS.md` and the constitution, configure the
@@ -148,34 +155,17 @@ pull request and keeps its customizations. Read the **Upgrade impact** of each r
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
 The latest, **v2.6.0** (2026-10-25), is a minor release: every lane pushes and opens its draft
 without asking, the requester hears at three moments, a new `end-user-docs` module writes end-user
-pages, and the always-loaded instructions are leaner. **v2.5.0** (2026-10-18), also a minor release:
-every session turn ends with who acts next,
-and `/adf:wrap-up` closes up every ending; the agent's own local check opens the draft pull request,
-and the developer tests after it; an upgrade runs a script from the new release and asks you only what
-needs a person; and the `parallel-agents` guide ships in the plugin. **v2.4.0** (2026-10-18), also a
-minor release: with `parallel-agents`, each task's session
-moves to its own worktree and the main checkout hands nothing out; only the developer changes the
-local mode; the pinned marketplace auto-updates, so an upgrade reaches every machine; and the new
-`time-tracking` module logs each day of a task in the tracker, as the AI-assisted time or a senior
-developer's estimate without AI. **v2.3.0** (2026-10-15), also a minor release: agents prompt less — make, docker, git,
-and gh run broadly, and only named commands ask — and they stay in the configured local mode. An
-agent checks a change locally, then on the preview, and never nudges you to review, ready, or merge.
-A dispatched worker's worktree sits beside the main checkout. **v2.2.0** (2026-10-14), also a minor
-release, moves a dispatched session into its worktree without a prompt, closes up a task with
-`/wrap-up` once its pull request merges, and adds the `e2e` module for end-to-end tests to a
-specification. **v2.1.0** (2026-10-10), also a minor release,
-runs the local environment in Docker or natively by a setting, `ops/` has one folder per target, and
-the `docker` module's rules are a specification with IDs that `/dev-env` audits a stack against. The
-main checkout dispatches without asking first, and an agent keeps its draft pull request current
-without prompts. **v2.0.0** (2026-10-09), a major release, renamed the plugin `adf`, with `adf-dev`
-and `adf-connect` beside it. A project keeps no `CLAUDE.md` or `GEMINI.md`, and the
-`parallel-agents` module moves to `ops/agent/`. Its changelog section opens with the order to
-upgrade in, and `/aplyca-adf:upgrade` carries it out. **v1.4.0** added the local check, **v1.3.0**
-took every task in the main checkout through `/dispatch`, **v1.2.1** fixed drift in the instruction
-files, and **v1.2.0** moved the framework's reference docs out of packaged projects and into the
-plugin. **v1.0.0** (2026-10-02) renamed the plugin `aplyca-adf` and opens with the order to upgrade
-in. A baseline older than `7383422` takes that release's order first, and one older than `3eb7777`
-takes its three fixes before that — they affect every adopted repository.
+pages, and the always-loaded instructions are leaner. This README describes `main`: what has landed
+since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
+one.
+
+Two releases set the order of an upgrade that crosses them. **v2.0.0** (2026-10-09), a major release,
+renamed the plugin `adf`, with `adf-dev` and `adf-connect` beside it; a project keeps no `CLAUDE.md`
+or `GEMINI.md`, and the `parallel-agents` module moves to `ops/agent/`. Its changelog section opens
+with the order to upgrade in, and `/aplyca-adf:upgrade` carries it out. **v1.0.0** (2026-10-02)
+renamed the plugin `aplyca-adf` and opens with its own order. A baseline older than `7383422` takes
+that release's order first, and one older than `3eb7777` takes its three fixes before that — they
+affect every adopted repository.
 
 1. **Get the plugin into the project.** Adopted before v1.0.0 — a stamp with no `v` version? Paste
    the [install prompt](#with-claude-code--the-installer-plugin-recommended) into a session on the
@@ -183,13 +173,15 @@ takes its three fixes before that — they affect every adopted repository.
    needs nothing here: the pinned plugin runs the upgrade.
 2. **Run `/adf:upgrade`** in the adopted project (`/aplyca-adf:upgrade` in a project still on v1).
    It reads the baseline stamp
-   (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and diffs the framework from that
-   release to the newest. It sorts every changed file into overwrite, merge, or additive, applies the
-   CHANGELOG migration steps, and offers the optional modules the project doesn't have yet — the
-   one task per session and worktree (`parallel-agents`) among them — and the other install, committed or packaged. It
-   shows you the plan before changing anything. Then it updates the files — your project-specific
-   content stays — installs the modules you chose, moves the release pin, re-stamps, and prepares a
-   draft pull request.
+   (`<!-- Skeleton source: <version> · <SHA> (<date>) · modules: … -->`) and, on its own branch, runs
+   the new release's upgrade script (`adf-upgrade`, from v2.0.0): it sorts every changed file into
+   overwrite, merge, or additive, applies the clean merges and the releases' migrations — your
+   project-specific content stays — reruns the modules' installers, moves the release pin, re-stamps,
+   and smoke-tests the settings and hooks. You decide only what needs a person: the optional modules
+   it offers (the one task per session and worktree, `parallel-agents`, among them), the other
+   install, committed or packaged, each conflict's resolution, and each permission-rule change. A
+   baseline below v2.0.0, or what the script refuses, takes the manual procedure. It delivers a draft
+   pull request whose body lists the follow-ups to run after the merge.
 3. **Review the pull request** and run the verification in [docs/UPGRADING.md](docs/UPGRADING.md):
    valid settings, hooks that fire, both instruction files loading, a smoke test of a changed skill.
    Once it merges, everyone's next session loads the new release.
@@ -202,19 +194,24 @@ By hand, or to cherry-pick one improvement: [docs/UPGRADING.md](docs/UPGRADING.m
 
 ## How it works
 
+What an adopted project commits:
+
 ```
-AGENTS.md          → Universal instructions — identity, ground rules, how work flows, boundaries (read by every AI tool)
-.gemini/          → Gemini CLI settings that point it at AGENTS.md
-.claude/rules/     → The Claude Code layer (claude-code.md, every session) and engineering standards, loaded when Claude reads matching files
-.claude/skills/    → Workflow playbooks (/triage, /write-spec, /write-plan, /implement, …)
-.claude/agents/    → Specialized agents (generic — they learn your project from AGENTS.md)
-.claude/workflows/ → Dynamic multi-agent workflows (/deep-review, …)
-.claude/hooks/     → Guardrails as code, configured in config.sh
-.agents/skills     → Link to .claude/skills, created at adoption (Antigravity)
-.cursor/rules/     → Cursor rules (.mdc)
-specs/             → Spec folders — the record of intent
-docs/              → Constitution, architecture, ADRs, PDRs, reference pages, security, infrastructure
+AGENTS.md                → Universal instructions — identity, ground rules, how work flows, boundaries (read by every AI tool)
+.gemini/settings.json    → Gemini CLI settings that point it at AGENTS.md
+.claude/rules/           → The Claude Code layer (claude-code.md, every session) and engineering standards, loaded when Claude reads matching files
+.claude/settings.json    → Model, context cap, permissions (allow / ask / deny), and the plugin and its pinned release
+.claude/hooks/config.sh  → The hooks' project settings: protected branches, sensitive areas, generated paths, …
+.cursor/rules/           → Cursor rules (.mdc)
+specs/                   → Spec folders — the record of intent
+docs/                    → Constitution, architecture, ADRs, PDRs, tracker integration, test suites, reference pages, security, infrastructure
 ```
+
+The machinery — the workflow skills (`/triage`, `/write-spec`, `/write-plan`, `/implement`, …), the
+specialized agents (generic: they learn your project from `AGENTS.md`), the `/deep-…` workflows, the
+hook scripts, and the reference docs — comes from the `adf` plugin in a **packaged** install. A
+**committed** install keeps copies of it in `.claude/skills/`, `.claude/agents/`,
+`.claude/workflows/`, `.claude/hooks/`, and `docs/`, with an `.agents/skills` link for Antigravity.
 
 | File | Read by |
 |---|---|
@@ -222,7 +219,7 @@ docs/              → Constitution, architecture, ADRs, PDRs, reference pages, 
 | **.claude/rules/claude-code.md** | Claude Code — its own layer, in every session |
 | **.gemini/settings.json** | Gemini CLI — points it at `AGENTS.md` (Antigravity reads `AGENTS.md` natively) |
 | **.cursor/rules/** | Cursor |
-| **.agents/skills/** | Antigravity |
+| **.agents/skills/** | Antigravity (committed install) |
 
 There's no `CLAUDE.md`: Claude Code reads `AGENTS.md` natively (v2.1.281 or later), and reads a `CLAUDE.md` or `CLAUDE.local.md` **instead** of it — so keep the project free of both. The session-context hook warns when one turns up ([why](docs/decisions/0024-agents-md-only.md)).
 
@@ -240,7 +237,7 @@ before the code exists.
 
 ```mermaid
 flowchart TD
-    task(["A task: a request, a tracker link, a bug report"]) --> triage["/triage<br/>reads the task in full, looks for prior work,<br/>states deliverable · kind · lane · model<br/>before any branch or file"]
+    task(["A task: a request, a tracker link, a bug report"]) --> triage["/triage<br/>reads the task in full, looks for prior work,<br/>states deliverable · kind · lane · model<br/>before any branch or file;<br/>names the session, moves a tracker task to in progress"]
     dev(["The developer: 'full lane on this' · 'just a quick fix'"]) -.->|raising is always honored;<br/>lowering keeps a risk checklist| triage
     triage -->|asks for an answer| answer["Investigate read-only and deliver the answer<br/>no lane · no spec · no environment"]
     triage -->|precise request, about 3 files,<br/>no risk trigger| fast["FAST lane<br/>sonnet"]
@@ -317,7 +314,9 @@ sequenceDiagram
     end
     Dev->>PR: tests it by hand, locally and on the preview, then marks it ready
     Dev->>PR: reviews and merges — CI is a signal, the review is the gate
+    Agent->>Tracker: /wrap-up moves the task to done, on its own
     Agent->>Dev: the delivered update's draft, in the client's terms — posted the same way, on a yes
+    Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, starts the follow-ups in their own sessions, removes the worktree and branch
 ```
 
 ### Change requests — amend the delivered spec
@@ -362,8 +361,8 @@ flowchart TD
 | Production is broken | **Careful**, without delay — root cause → regression test → fix → draft PR → ship; then backfill the spec folder | `sonnet`, high effort | [Hotfix](docs/scenarios/hotfix.md) |
 | Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; full lane or an ADR for a structure others must follow | `sonnet` | [Refactor](docs/scenarios/refactor.md) |
 | Investigation, impact analysis, estimate | No lane — `/triage` → the answer, where the task asks for it | `sonnet`; `opus` for architecture-level questions | [Answer-only task](docs/scenarios/answer-only-task.md) |
-| The requester needs an update on a task | `/stakeholder-update` — at three moments: started (after `/triage`: the task to in progress, a message only when it's worth sending), in review (after `/open-pr`: the task to review, the preview, what to test, the pull request), and delivered — or when you ask ("update the client"). In the client's terms, with screenshots when they help, shown in chat — the draft is the deliverable; on the tracker only on your yes to the exact text, the status, and the assignee, never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
-| Logging the time a task took — at a milestone or after the merge (`time-tracking` module) | `/track-time` — one entry per day, in whole units: the AI-assisted time (the sessions plus the work outside them) next to a senior developer's estimate without AI; you pick one per entry, and only the approved entries go to the tracker | `sonnet` | [time-tracking module](modules/time-tracking/MODULE.md) |
+| The requester needs an update on a task | The task's status follows the work on its own, forward only: `/triage` moves it to in progress, `/open-pr` to in review, `/wrap-up` to done. `/stakeholder-update` drafts the message — at three moments: started (only when it's worth sending), in review (the preview, what to test, the pull request), and delivered — or when you ask ("update the client"). In the client's terms, with screenshots when they help, shown in chat — the draft is the deliverable; it's posted on the tracker, through the project's own server, only on your yes to the exact text and the assignee, then read back — never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
+| Logging the time a task took — at a milestone or after the merge (`time-tracking` module) | `/track-time` — one entry per day, in whole units: the AI-assisted time (the sessions plus the work outside them) next to a senior developer's estimate without AI, each described by what the day delivered, in business terms; you pick one number per entry, and only the approved entries go to the tracker | `sonnet` | [time-tracking module](modules/time-tracking/MODULE.md) |
 | Stakeholders (users, editors, administrators) need a guide to a feature, in the doc tool they read (`end-user-docs` module) | `/end-user-docs` — the feature's end-user page, drafted before implementation where end users can't see it and published once it ships; you approve each page's exact text | `sonnet` | [end-user-docs module](modules/end-user-docs/MODULE.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | `sonnet` | — |
@@ -394,19 +393,23 @@ per session, short tool output, and the model:
   work; `xhigh` and `max` make Sonnet think longer and cost more.
 - **Check the picker.** The project sets `"model": "sonnet"`, but the desktop app's model picker and
   `/model` decide per session — and Claude Code's own default is Opus.
+- **Cap the context.** The project sets `"autoCompactWindow": 300000`, so a conversation compacts at
+  300k tokens instead of near the model's full window.
 
 [`COST-MODEL.md`](plugins/adf/docs/COST-MODEL.md) has the measured numbers, and the plugin's
 `/cost-report` shows what your own sessions cost. In the routing evals, Sonnet triaged as accurately
 as Opus at about half the cost.
 
-What holds in every workflow: nothing leaves the machine unless a human asks — no push, pull
-request, tracker comment, or message — and the hooks and permissions enforce the rules that must
-hold every time. The full reference is the `/spec-workflow` skill and
+What holds in every workflow: nothing leaves the machine unless a human asks — except the work
+branch's push and its draft pull request after the local check, keeping that draft current, and the
+tracker task's status moves. No push to another branch, no pull request readied, merged, or
+reviewed, no release, tracker comment, or message goes out on its own, and the hooks and permissions
+enforce the rules that must hold every time. The full reference is the `/spec-workflow` skill and
 [`skeleton/specs/README.md`](skeleton/specs/README.md).
 
 ## Team onboarding
 
-- **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — week-by-week guide to adopting the workflow.
+- **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — a two-week path to adopting the workflow: one feature from triage to a draft pull request, then the other situations.
 - **[docs/examples/](docs/examples/README.md)** — worked examples on a Next.js + Contentful + Vercel stack: a complete spec folder for a newsletter signup, then a change request amending it.
 - **[docs/scenarios/](docs/scenarios/README.md)** — one-page playbooks: change requests, answer-only tasks, hotfixes, refactors, debugging, parallel agents.
 - **[docs/decisions/](docs/decisions/README.md)** — why the framework works this way.
@@ -415,32 +418,36 @@ hold every time. The full reference is the `/spec-workflow` skill and
 ## Repository structure
 
 ```
-skeleton/                 Portable project skeleton — what an adopting repository gets
+skeleton/                 Portable project skeleton — the layer an adopting repository owns and edits
 ├── AGENTS.md · README.md · CONTRIBUTING.md · .claudeignore
 ├── .claude/
-│   ├── agents/           8 agents, each with its model alias
-│   ├── skills/           21 skills
-│   ├── workflows/        4 dynamic workflows
-│   ├── hooks/            8 guardrail hooks + config.sh (protected branches, sensitive areas, …)
-│   ├── rules/            9 engineering standards
-│   └── settings.json     model alias, permissions (allow / ask / deny), hook wiring
+│   ├── rules/            claude-code.md (the Claude Code layer) + 9 engineering standards
+│   ├── hooks/config.sh   the hooks' project settings (protected branches, sensitive areas, …)
+│   └── settings.json     model alias, context cap, permissions (allow / ask / deny), hook wiring
+├── .gemini/settings.json points Gemini CLI at AGENTS.md
 ├── .cursor/rules/        Cursor rules
 ├── specs/                README.md (the process) + _templates/ (spec, plan, tasks)
-└── docs/                 CONSTITUTION, SPEC-MODEL, ARCHITECTURE, TRACKER-INTEGRATION, COST-MODEL,
-                          MEMORY-STRATEGY, MCP-INTEGRATION, GLOSSARY, process/ (PDRs),
-                          architecture/decisions/ (ADRs), reference/, security/, infrastructure/,
-                          getting-started/
+└── docs/                 CONSTITUTION, ARCHITECTURE, GLOSSARY, TRACKER-INTEGRATION, TEST-SUITES,
+                          process/ (PDRs), architecture/decisions/ (ADRs), reference/, security/,
+                          infrastructure/, getting-started/
 
-modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/, docker/, e2e/, unit/, time-tracking/, end-user-docs/
-plugins/adf/              The Claude Code plugin: /adf:adopt, :upgrade, :cost-report — and, for
-                          packaged projects, the skills, agents, workflows, hooks, and reference
-                          docs (generated)
-plugins/adf-dev/          The development plugin: the skills of development modules: docker, e2e, unit
+plugins/adf/              The source of the framework's machinery, written by hand: 21 workflow skills,
+                          8 agents, 4 dynamic workflows, 10 guardrail hooks, the reference docs
+                          (SPEC-MODEL, COST-MODEL, MEMORY-STRATEGY, MCP-INTEGRATION, PARALLEL-AGENTS),
+                          the process modules' skills, the installer (/adf:adopt, :upgrade,
+                          :cost-report), and bin/ commands (generated)
+plugins/adf-dev/          The development plugin: the skills of the docker, e2e, and unit modules
 plugins/adf-connect/      The connections plugin: /adf-connect:connect, for trackers and services
+modules/                  Optional additions: github/, git-hooks/, clickup/, parallel-agents/, docker/,
+                          e2e/, unit/, time-tracking/, end-user-docs/
+scripts/                  build-plugins.sh, build-committed.py (a committed install's copies),
+                          upgrade.py and migrations/ (the scripted upgrade)
 docs/                     Framework docs: SETUP, UPGRADING, ONBOARDING, references, examples,
                           scenarios, decisions
-evals/                    Static checks; hook, module, and plugin tests; triage routing evals and
+evals/                    Static checks; hook, module, plugin, and upgrade tests; session evals and
                           their reports
+ADOPT.md                  The adoption procedure for AI agents
+CHANGELOG.md              Every change, with its upgrade impact
 ```
 
 ## Contributing

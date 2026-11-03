@@ -11,6 +11,22 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A time entry's description says what the day delivered, in business terms**
+  ([decision 0066](docs/decisions/0066-time-entries-describe-outcomes.md)).
+  - **What:** `/adf:track-time` writes each entry's description as the day's outcome for the people
+    the task serves — or, on a day with nothing delivered yet, what it found, settled, or unblocked —
+    with no code, file, or tool names, instead of the list of activities. The activities stay in the
+    draft, in a column of their own, as the basis for the numbers. The developer approves or edits
+    the description with the number.
+  - **Where:** `plugins/adf/skills/track-time/SKILL.md`, `modules/time-tracking/` (`MODULE.md` and
+    `docs/TIME-TRACKING.md`'s new § Descriptions), `docs/SKILLS-REFERENCE.md`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install with the `time-tracking` module: `.claude/skills/track-time/`,
+    as `/adf:upgrade` writes it; packaged, it comes with the plugin.
+  - **Merge:** `docs/TIME-TRACKING.md` — add § Descriptions after § Settings. Without it the skill
+    still writes outcomes; the section is where the team adds its own convention.
+
 - **The text every call re-reads says each rule once**
   ([decision 0065](docs/decisions/0065-always-loaded-text-says-each-rule-once.md)).
   - **What:**

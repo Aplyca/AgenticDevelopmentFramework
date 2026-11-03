@@ -53,7 +53,7 @@ projects.
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted; amended by 0042 |
 | [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted |
 | [0042](0042-each-session-moves-to-its-task-worktree.md) | Each task's session moves to its own worktree; the main checkout hands nothing out (parallel-agents module) | accepted |
-| [0043](0043-track-time-in-the-tracker.md) | A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module) | accepted; amended by 0061 |
+| [0043](0043-track-time-in-the-tracker.md) | A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module) | accepted; amended by 0061, 0066 |
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
 | [0045](0045-agent-local-check-opens-the-draft.md) | The agent's own local check opens the draft, and the developer tests after it, locally and on the preview | accepted |
 | [0046](0046-a-scripted-upgrade-from-the-new-release.md) | An upgrade runs a script from the new release, and the developer approves only what needs a person | accepted |
@@ -76,6 +76,7 @@ projects.
 | [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) | A skill's case-only steps load from reference files beside its `SKILL.md`, and the skill that reaches a moment moves the task's status itself | accepted |
 | [0064](0064-tracker-writes-through-the-projects-server.md) | Tracker writes go through the project's server as the developer, and a correction an edit would damage is the developer's | accepted |
 | [0065](0065-always-loaded-text-says-each-rule-once.md) | The always-loaded text says each rule once, and a phase's procedure stays in its skill | accepted |
+| [0066](0066-time-entries-describe-outcomes.md) | A time entry's description says what the day delivered, in business terms | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

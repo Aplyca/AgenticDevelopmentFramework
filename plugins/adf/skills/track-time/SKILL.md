@@ -25,9 +25,9 @@ what's already logged, so it can run at each milestone without logging a day twi
 1. **Check the module.** Read the stamp on the first line of `AGENTS.md` (`head -1 AGENTS.md`).
    Unless its `modules:` list names `time-tracking`, say "this project doesn't track time — the
    time-tracking module isn't installed" and stop: offer nothing, draft nothing. Then read
-   `docs/TIME-TRACKING.md`: the unit, how time entries are read and written, the labels, and the
-   activities with their evidence. Placeholders left in it are questions for the developer before
-   going on.
+   `docs/TIME-TRACKING.md`: the unit, how time entries are read and written, the labels, the
+   activities with their evidence, and any convention for the descriptions. Placeholders left in it
+   are questions for the developer before going on.
 
 2. **Find the task and what's logged.**
    - **The task:** the argument, the spec's `tracker:` field, or the pull request's tracker link. If
@@ -72,29 +72,37 @@ what's already logged, so it can run at each milestone without logging a day twi
      as long without AI; writing, researching, and debugging usually take longer.
    - Never below the AI-assisted number without saying why.
 
-6. **Round and build the entries.** One entry per day worked. Each number is the day's total in
-   whole units, rounded up: a day with 1h 10m in the sessions and an hour of estimated review is 3
-   units at one hour (2h 10m → 3). Name the activities behind each number in a few words.
+6. **Round and build the entries.** One entry per day worked:
+   - **The numbers:** each is the day's total in whole units, rounded up: a day with 1h 10m in the
+     sessions and an hour of estimated review is 3 units at one hour (2h 10m → 3).
+   - **The description** — what the entry says in the tracker: what the day delivered, in business
+     terms, for the people the task serves. Take it from the task's goal (the tracker task, the
+     spec's Business section) and what the day's work achieved toward it. On a day with nothing
+     delivered yet, say what it found, settled, or unblocked. One or two sentences, with no code,
+     file, or component names, commands, branches, or tool names. `docs/TIME-TRACKING.md` §
+     Descriptions may set the team's own convention.
+   - **The activities:** the work behind the numbers, in a few words, so the developer can check
+     them. They stay in the draft.
 
 7. **Show the full draft** of the entries, as the last text of your turn:
 
    ```
-   | # | Day | Activities | AI-assisted | Manual estimate |
-   |---|-----|------------|-------------|-----------------|
-   | 1 | 2026-10-14 | Understanding the task, signup form and its tests (sessions 1h 50m), manual test | 3h | 8h |
-   | 2 | 2026-10-15 | Debugging the confirmation email (sessions 40m), call with the requester, PR review | 2h | 5h |
+   | # | Day | Description | Activities | AI-assisted | Manual estimate |
+   |---|-----|-------------|------------|-------------|-----------------|
+   | 1 | 2026-10-14 | Readers can subscribe to the newsletter from the article they're reading | Understanding the task, signup form and its tests (sessions 1h 50m), manual test | 3h | 8h |
+   | 2 | 2026-10-15 | New subscribers get their confirmation email; the requester confirmed it on the preview | Debugging the confirmation email (sessions 40m), call with the requester, PR review | 2h | 5h |
    ```
 
    Then the totals of each column, and the questions: **anything else done outside the sessions?**
-   And for each entry: **AI-assisted, manual estimate, an edited value, or skip?** One answer may
-   cover them all ("AI-assisted for all, skip 2").
+   And for each entry: **AI-assisted, manual estimate, an edited value, or skip?** — with any change
+   to its description. One answer may cover them all ("AI-assisted for all, skip 2").
 
 8. **Write the approved entries** — ask before posting, and post only what the developer approved, in
    one go, through the project's tracker server (`docs/TRACKER-INTEGRATION.md` § Rules for agents):
    an entry is logged to whoever is signed in, so say which account that is first.
    - One time entry per approved day on the tracker task: the day's first block as its start, the
-     chosen number of units as its duration, and the activities as its description, marked with the
-     label for the number it carries.
+     chosen number of units as its duration, and the approved description, marked with the label for
+     the number it carries.
    - Read the task's entries back and confirm they match. Report what was written, and anything that
      wasn't and why.
    - Write nothing else, anywhere: no file, commit, comment, or memory with the times. The draft
@@ -112,6 +120,8 @@ what's already logged, so it can run at each milestone without logging a day twi
 | "I'll keep the breakdown in the spec folder, so the estimate is traceable" | The time tracking tool is the only record. The breakdown stays in the conversation. |
 | "Last run logged until Friday, I remember" | The tracker's entries say what's logged, not the conversation. Read them each time. |
 | "Two tasks ran at once, so I'll split the overlap" | Each task gets its full time; the measure is per task. |
+| "The activities explain the time, so they're the description" | The entries are read by people who don't see the code or the sessions. The description says what the day delivered; the activities stay in the draft. |
+| "Nothing was delivered that day, so the description lists what I worked on" | An investigation day has an outcome too: what it found, settled, or unblocked. Say that. |
 | "The developer said log my time, so I'll post the entries now" | The request starts the draft. Show it, and post only the entries approved, with their chosen numbers. |
 
 ## Red flags (stop and reassess)
@@ -120,6 +130,7 @@ what's already logged, so it can run at each milestone without logging a day twi
 - A number with a fraction of a unit, or one rounded down.
 - An activity in the draft with no evidence behind it and no word from the developer.
 - An entry for a day already logged on the task.
+- A description that lists activities, or names code, files, commands, or tools.
 - You're about to write a time, an estimate, or a breakdown anywhere but the time tracking tool.
 
 ## Verification
@@ -128,6 +139,7 @@ what's already logged, so it can run at each milestone without logging a day twi
 - [ ] The task's existing entries were read first, and the window starts after the latest one
 - [ ] Session time came from the script; each off-session activity has its evidence
 - [ ] One entry per day, both numbers in whole units rounded up, with the activities behind them
+- [ ] Each description says what the day delivered in business terms, with no technical names
 - [ ] The full draft was shown, and the developer chose a number, an edit, or skip for each entry
 - [ ] Only the approved entries were written, through the project's server as the developer, each labelled with the number it carries, and read back
 - [ ] Nothing about the time was written anywhere else
@@ -137,4 +149,5 @@ what's already logged, so it can run at each milestone without logging a day twi
 - Only where the project turned it on.
 - Two numbers per day, in whole units rounded up; the developer picks.
 - Measured where possible, estimated from evidence where not — a ballpark, never invented.
+- Each entry says what the day delivered, for the people the task serves.
 - The time tracking tool is the only record — and the source of what's already logged.
