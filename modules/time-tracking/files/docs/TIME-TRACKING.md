@@ -9,7 +9,7 @@ task's entries, one per day worked, each with two numbers in whole units:
   done outside them, estimated.
 - **Manual estimate** — the time a senior developer would have spent on the same work without AI.
 
-The developer picks one number per entry, and only the entries they approve are written to the
+Each entry's description says what the day delivered, in business terms. The developer picks one number per entry, and only the entries they approve are written to the
 tracker task's time entries. **The tracker is the only record:** no time goes into the repository,
 the spec folders, or the pull requests.
 
@@ -23,6 +23,18 @@ the spec folders, or the pull requests.
 - **Labels:** [what marks the number an entry carries — e.g. the tag `ai-assisted` for the time spent,
   `manual-estimate` for the estimate; or a prefix in the description]
 - **Billable:** [no — the entries are an internal measure — or how the team sets it]
+
+## Descriptions
+
+An entry's description says what the day delivered for the people the task serves — or, on a day
+with nothing delivered yet, what it found, settled, or unblocked. One or two sentences, with no code,
+file, or component names, commands, or tool names. The activities behind the numbers stay in the
+draft. <!-- CUSTOMIZE: add the team's own convention, if any — the audience the reports go to, a prefix. -->
+
+| Not this | This |
+|---|---|
+| Implementation, tests, PR review | Readers can subscribe to the newsletter from the article they're reading |
+| Debugging the confirmation email | Found why new subscribers got no confirmation email; the fix is agreed with the requester |
 
 ## Activities
 

@@ -2,8 +2,9 @@
 
 For teams that measure the time their tasks take. Adds `/track-time`, which drafts a task's time
 entries — one per day worked, each with the AI-assisted time spent and an estimate of a senior
-developer's time without AI, in whole units — and writes the ones the developer approves, with the
-number they pick for each, to the tracker task's time entries
+developer's time without AI, in whole units, and a description of what the day delivered in business
+terms — and writes the ones the developer approves, with the number they pick for each, to the
+tracker task's time entries
 ([decision 0043](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0043-track-time-in-the-tracker.md)).
 
 With the module, `/wrap-up` asks whether to log the task's time before it closes up, while the
@@ -14,7 +15,7 @@ stops there, and `/wrap-up` never asks.
 
 | File | Purpose |
 |---|---|
-| `docs/TIME-TRACKING.md` | The project's settings — the unit, how time entries are read and written with the tracker's tools, the labels, whether they're billable — and the activities an entry covers, with the evidence `/track-time` looks for |
+| `docs/TIME-TRACKING.md` | The project's settings — the unit, how time entries are read and written with the tracker's tools, the labels, whether they're billable — how an entry's description is written, and the activities an entry covers, with the evidence `/track-time` looks for |
 | `.claude/skills/track-time/` | **Committed install only:** the skill and the script that measures the sessions' time. A packaged project gets `/adf:track-time` from the `adf` plugin, which `module.json` names |
 
 ## Install
@@ -42,6 +43,8 @@ In `docs/TIME-TRACKING.md`:
 3. **Labels** — the tag or prefix that says whether an entry carries the AI-assisted time or the
    manual estimate, so reports can tell them apart.
 4. **Activities** — the work the team counts, and the evidence of each.
+5. **Descriptions** — by default, what each day delivered in business terms; add the team's own
+   convention, if any.
 
 ## Good to know
 
