@@ -106,12 +106,15 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 
 11. **Reconcile and backfill** — the Phase 5 tasks: committed docs, and an end-user page's draft,
     checked claim by claim against what was built; post-implementable docs (runbooks,
-    troubleshooting) written or listed for later.
+    troubleshooting) written now. One that can't be written yet — it needs production, or a decision
+    still to come — is a follow-up: strike its task through in `tasks.md` with
+    `— follow-up: <why>`, and `/adf:open-pr` lists it under Follow-ups.
 12. **Run the full gate** — the verification checklist in `tasks.md`: lint, typecheck, every test
     layer this environment can run.
 13. **Record the gate results** in `tasks.md`: the red-then-green evidence per task, commands and
-    counts, what you could **not** run and why, pre-existing failures. With every task ticked, set
-    `status: implemented` in `spec.md` — it merges with the pull request, so the folder reads as built.
+    counts, what you could **not** run and why, pre-existing failures. With every task ticked or
+    struck through as a follow-up, set `status: implemented` in `spec.md`. The record merges with the
+    pull request, so the folder reads as built and nothing of this task is left to commit after it.
     A change request gets its own gate-results block under its part, and sets `implemented` again.
     Commit (`docs: record <slug> gate results`, or `… CR N gate results`).
 14. **Self-review**, then `/adf:review`. Don't push. Then the local check (`AGENTS.md` § Delivery rules):
@@ -134,6 +137,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "It's unrelated to this task, so I won't mention it" | An unrelated bug is still a bug. Report it with `file:line` and record the follow-up; the developer decides when. |
 | "I'll add this dependency to make it easier" | The plan didn't approve it. New dependencies need justification and re-confirmation. |
 | "All green — I'll push and open the PR" | Pushing is outward. Finish the gate results and review, then walk the change locally; that check is what opens the draft. |
+| "I'll set `implemented` once it merges — that's when it's really built" | The record merges with the pull request. Set after the merge, it needs a pull request of its own. |
+| "This doc can wait, so I'll leave its task open" | An open task keeps the status short of `implemented` past the merge. Write it now, or strike it through as a follow-up. |
 
 ## Red flags (stop and reassess)
 
@@ -147,10 +152,10 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 
 - [ ] `status: approved` and an `approvals:` line existed before the first line of code
 - [ ] Every task went red (for the right reason) then green — a test-only task by breaking the behavior on purpose — and landed as its own commit (docs-first tasks share one)
-- [ ] Every task in `tasks.md` is ticked, or its absence is explained
+- [ ] Every task in `tasks.md` is ticked, or struck through as a follow-up with why, and `spec.md` reads `status: implemented`
 - [ ] All changes are inside the approved change surface — or the extension was re-confirmed
 - [ ] Every filled spec section (Security, Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment) is addressed
-- [ ] Committed docs match what was built; post-implementable docs written or listed
+- [ ] Committed docs match what was built; post-implementable docs written, or struck through as follow-ups
 - [ ] The full gate ran; `tasks.md` § Gate results records evidence and what was not run
 - [ ] Deployment needs (env vars, migrations, ordering) are listed for whoever ships it
 - [ ] Nothing was pushed

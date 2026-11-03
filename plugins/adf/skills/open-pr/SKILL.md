@@ -31,10 +31,15 @@ and skip the steps below.
    `git status` is clean; every commit belongs to this change. Find the base branch in
    `CONTRIBUTING.md` (or use the argument).
 
-2. **Check the evidence.** Read `tasks.md` § Gate results in the spec folder. If the full gate
-   hasn't run since the last commit, run it now (commands in `AGENTS.md` § Quick reference) and
-   update the gate results. Anything you can't run — needs a preview, needs a shared service — is
+2. **Check the evidence and the record.** Read `tasks.md` § Gate results in the spec folder. If the
+   full gate hasn't run since the last commit, run it now (commands in `AGENTS.md` § Quick reference)
+   and update the gate results. Anything you can't run — needs a preview, needs a shared service — is
    listed as *not verified*, with the reason.
+
+   Then the record, when there's a spec folder: every task in `tasks.md` ticked, or struck through as a follow-up with why (it
+   goes under Follow-ups), and `spec.md` at `status: implemented` — a light change request leaves it
+   as it was. Fix what's missing and commit it before the push. Everything the task changes in the
+   repository merges with this pull request; after the merge, a missing line needs one of its own.
 
    Then the **local check** (`AGENTS.md` § Delivery rules) — the gate for the push. When the change
    alters something a person can see or use, start it on this checkout's own environment and walk
@@ -147,8 +152,9 @@ and skip the steps below.
    check): the pull request URL, and that it is a **draft** — in the careful lane, the risky part
    first. Then where the developer can test it:
    the local URL — the environment you left running — and the preview's, with what to try on each (the acceptance criteria, or the "done when"). Say what you verified on each,
-   and what you could not. A fix they ask for goes on the same branch: walk it locally again, push,
-   refresh the description (`/adf:open-pr refresh`), and recheck the preview. Close with their next step, once: test it; ready and merge are theirs;
+   and what you could not. A fix they ask for goes on the same branch: walk it locally again, keep
+   the record current (step 2), push, refresh the description (`/adf:open-pr refresh`), and recheck
+   the preview. Close with their next step, once: test it; ready and merge are theirs;
    you'll wrap up after the merge (`/adf:wrap-up`). Don't remind them on later turns or offer to
    promote it: when those happen is theirs. Never request reviewers. If, after their QC, they ask you to promote it, run `gh pr ready` then — never before,
    and never on your own initiative. For a tracker task, the review update's draft and its one
@@ -167,6 +173,7 @@ and skip the steps below.
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy waits in the background, so waiting costs them nothing: report once, with both URLs. |
+| "The status is only bookkeeping; it can go in after the merge" | After the merge, bookkeeping needs a pull request of its own. Everything the task changes in the repository rides this one. |
 | "I'll post the link on the task while I'm here" | The status moves with the push, on its own. The message is a write the requester reads: draft it as the review update, at the end of the report; post on the developer's yes to the exact text. |
 
 ## Red flags (stop and reassess)
@@ -174,7 +181,7 @@ and skip the steps below.
 - The branch is protected, or the diff contains files outside the change surface the plan didn't record.
 - The gate hasn't run since the last commit and you were about to describe it as passing.
 - The diff includes `.env` files, credentials, lockfile churn unrelated to the change, or debug code.
-- The tasks in `tasks.md` aren't all ticked and the description doesn't say why.
+- A task in `tasks.md` is neither ticked nor struck through as a follow-up, or `spec.md` isn't at `implemented` with the work done, and you're about to push.
 - The change alters something a person can see or use, and you haven't walked it on the local environment.
 
 ## Verification
@@ -188,6 +195,7 @@ and skip the steps below.
 - [ ] One report, after the preview walk, gives the developer the local URL, the preview's, and what to try on each — or says why the preview wasn't checked
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
+- [ ] Before each push, the spec folder was complete in the branch: every task ticked or struck through as a follow-up, the gate results, `status: implemented`
 - [ ] The description matches the diff — no phantom or missing changes
 - [ ] Merge danger says whether a revert undoes the change and what it affects if wrong
 - [ ] The pull request URL is recorded in `spec.md` `pull-requests:`
