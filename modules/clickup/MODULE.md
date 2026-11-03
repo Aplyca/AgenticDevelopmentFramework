@@ -49,21 +49,29 @@ In `docs/TRACKER-INTEGRATION.md`:
      confirmed in threaded replies — is `[@Name](#user_mention#<numeric user id>)`, and the
      comment's `assignee` takes the same numeric id — from the task (its creator, assignees, and
      watchers) or from `clickup_resolve_assignees`. ClickUp moves a mention to the end of the
-     comment, so "Hi [@Dana](…)," posts as "Hi ,": greet people by name in plain text, and put the
-     mentions on the comment's last line, where ClickUp places them anyway.
+     comment, on a line of its own, so "Hi [@Dana](…)," posts as "Hi ,": greet people by name in
+     plain text, and put the mentions on the comment's last line, where they stay.
    - **Links to tracker items:** a link to a task or comment posted through the tools — a bare URL or
      `[url](url)` — shows as a plain link. ClickUp makes a preview only when a link is pasted in its
      editor, and only a preview keeps showing a task's current name after a rename, so the developer
-     pastes each link that should show as one. Read back, a task preview exports in
-     `markdown_description` as `Task name ([url](url))`; a comment preview looks like a plain link
-     there, and is missing from `text_content`, where a plain link shows its URL. A threaded reply's
-     link is `https://app.clickup.com/t/<workspace id>/<task id>?comment=<root id>&threadedComment=<reply id>`.
-   - **Editing posted text:** `clickup_update_comment` drops a comment's mentions, so a fix to a
-     comment with mentions is the developer's, in ClickUp. So is a rewrite of a comment or
-     description that holds link previews or pasted images: the markdown round-trip would likely turn
-     them into plain links and file-name lines (not yet tested).
+     pastes each link that should show as one. A read-back can't tell a preview from a plain link
+     for sure: a task preview has exported in `markdown_description` both as `Task name ([url](url))`
+     and as `[url](url)`, and in a comment's text as the task's bare ID; a comment preview looks like
+     a plain link. The developer's look in ClickUp confirms a preview. A threaded reply's link is
+     `https://app.clickup.com/t/<workspace id>/<task id>?comment=<root id>&threadedComment=<reply id>`.
+   - **Editing posted text:** an edit through the tools loses what markdown can't carry, and the
+     read-back after it looks unchanged, so only a look in ClickUp shows the loss:
+     - `clickup_update_comment` drops a comment's mentions, its link previews (left as the task's
+       bare ID), and its pasted images (left as the file name).
+     - A description rewritten through `markdown_description` drops its link previews and mentions,
+       though both read back as markdown; its pasted images stay.
+     - A Doc page replaced through `clickup_update_document_page` keeps its pasted images.
+
+     So a fix to a comment that holds a mention, a preview, or an image, or to a description that
+     holds a mention or a preview, is the developer's, in ClickUp.
 4. **Link back** — where pull request links go on a task: a "Links" section in the description, or a
-   comment.
+   comment. Adding the link rewrites the whole description, so where the description holds a mention
+   or a link preview (step 3, Editing posted text), the link goes in a comment instead.
 5. **Time tracking** — with the `time-tracking` module, `docs/TIME-TRACKING.md` names ClickUp's
    time-tracking tools, which read and write a task's time entries, and the tag that marks the number
    each entry carries. Reading them falls under the read-only allowlist; writing one prompts, after

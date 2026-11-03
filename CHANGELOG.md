@@ -84,8 +84,12 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - **Links:** a link to another task or comment that should show as the tracker's preview is pasted
       by the developer, like an image.
     - **ClickUp:** the module's guide records where mentions land, the thread root for replies, link
-      previews and how they read back, what `clickup_update_comment` drops, blank-line spacing, and
-      status automations.
+      previews and how they read back, blank-line spacing, and status automations — and what an edit
+      through the tools keeps, tested by writing back unchanged text: a comment edit loses mentions,
+      previews, and pasted images; a description rewrite loses previews and mentions but keeps
+      images; a Doc page replace keeps images. The read-back after an edit looks unchanged, so it
+      can't show the loss. A pull request link goes in a comment, not the description, when the
+      description holds a mention or a preview.
   - **Where:** `skeleton/docs/TRACKER-INTEGRATION.md` (§ Rules for agents, § Connecting the tracker,
     § Stakeholder updates), `plugins/adf/skills/stakeholder-update/`, `plugins/adf/skills/track-time/`,
     `plugins/adf/skills/end-user-docs/`, `modules/clickup/MODULE.md`, the static checks.
@@ -97,7 +101,8 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Merge:** `docs/TRACKER-INTEGRATION.md` — add the three new bullets in § Rules for agents and the
     host-connector bullet in § Connecting the tracker, then fill in the **Links to tracker items** and
     **Editing posted text** lines in § Stakeholder updates and extend **Mentions** with where the
-    tracker places a mention. ClickUp projects copy them from `modules/clickup/MODULE.md` step 3.
+    tracker places a mention. ClickUp projects copy them from `modules/clickup/MODULE.md` step 3, and
+    when § Rules for agents puts pull request links in the description, add step 4's exception.
 
 - **A task's phases stay in its session. After the approval gate, the developer compacts the
   conversation and switches to Sonnet there, instead of opening a fresh session**
