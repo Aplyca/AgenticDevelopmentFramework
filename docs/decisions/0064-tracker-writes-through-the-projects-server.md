@@ -51,6 +51,10 @@ What it found applies to more than ClickUp:
   exactly what to change.
 - One more call per session (who is signed in) and one per write (the read-back, which the comments
   had already).
-- Not yet tested: whether a rewrite through the tools loses link previews and pasted images, and
-  whether a mention on a comment's last line stays there. The `clickup` module marks them; a later
-  test confirms or corrects them.
+- Tested in November 2026, on personal ClickUp tasks, by writing back the text just read: a mention
+  on a comment's last line stays there. A comment edit lost its link preview and pasted image; a
+  description rewrite lost its preview and mention but kept its image; a Doc page replace kept its
+  image. The read-back after each edit looked unchanged, so only the developer's look in the tracker
+  shows such a loss — the reason these fixes are the developer's. The `clickup` module records the
+  results, and puts a pull request link in a comment when adding it to the description would
+  rewrite a mention or a preview.
