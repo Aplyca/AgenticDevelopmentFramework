@@ -6,10 +6,15 @@ Editing your own draft's description is upkeep: it takes no prompt.
 
 1. **Check the pull request:** `gh pr view <n> --json state,isDraft,body`. Merged or closed: stop and
    say so — never edit it or push to its branch. No longer a draft: the developer has taken it over,
-   so show the diff (step 4) and apply it only on their yes.
-2. **Fetch the current body** into a file and work from that copy, never from what you wrote last:
+   so show the diff (step 5) and apply it only on their yes.
+2. **Check the record** the push left in the spec folder: a fix's task ticked; a change request's
+   tasks and gate results; `status: implemented` again once a full change request's gate results are
+   in. Commit and push what's missing before the description: the merge takes the record as the
+   branch has it. A full change request still under way keeps its status, and the description says
+   the pull request waits for it.
+3. **Fetch the current body** into a file and work from that copy, never from what you wrote last:
    people edit descriptions.
-3. **Rebuild only the sections you own,** the text between each `<!-- adf:<section> -->` and its
+4. **Rebuild only the sections you own,** the text between each `<!-- adf:<section> -->` and its
    `<!-- /adf:<section> -->`: *What changed and why*, *How to verify*, and *Verified / not verified*.
    - **From the record, not from memory:** `tasks.md` § Gate results and the spec's change requests —
      what this pull request now delivers, with what the latest `CR N` changed. In the fast and
@@ -19,9 +24,9 @@ Editing your own draft's description is upkeep: it takes no prompt.
      never tick or remove one.
    - **A body without the markers** — opened before the template had them, or rewritten by hand — is
      all the people's: show the sections you'd replace, and apply only on the developer's yes.
-4. **Show the description's diff** before you apply it, old against new:
+5. **Show the description's diff** before you apply it, old against new:
    `git diff --no-index <old> <new>`. Sum it up in your report, so the developer sees what changed.
-5. **Apply it** without waiting: `gh pr edit <n> --body-file <new>`. The title changes only when the
+6. **Apply it** without waiting: `gh pr edit <n> --body-file <new>`. The title changes only when the
    scope did. When the change is one a person sees, recheck the preview (`/adf:open-pr` step 7).
 
 ## Rationalizations (do not accept these)

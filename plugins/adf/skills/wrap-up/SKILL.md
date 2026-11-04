@@ -75,6 +75,13 @@ the close-up only once it resumes and ends.
    commit and push, open a follow-up, drop the stash, give the handoff. Offer no close-up until
    the developer settles them. Nothing is deleted or archived in this case.
 
+   **A record the merge left short** — a task in `tasks.md` neither ticked nor struck through as a
+   follow-up, or `status:` short of `implemented` — is a miss: the task's pull request should have
+   carried it (`/adf:open-pr` step 2). Say so, and never commit it on the merged branch. Ask whether
+   each open task was done: done, or only the status unset, is a fix to the record; not done is a
+   follow-up for the work. Either is settled as a follow-up of the close-up
+   (`<this skill's base directory>/follow-ups.md`).
+
    An end-user page waiting to be published isn't work left over: with the `end-user-docs` module,
    `modules.md` § End-user docs says when to offer `/adf:end-user-docs publish`, once, before the
    close-up.
@@ -168,6 +175,7 @@ the close-up only once it resumes and ends.
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "I'll remove the worktree, then start the follow-ups" | A session whose folder is gone can't start another. Update the base branch, start the follow-ups, then remove the worktree. |
 | "The developer said 'merged', so I'll skip the time question" | With the time-tracking module, the time is asked about before every close-up: once the worktree goes, so does what measures it. Their word answers the close-up, not the time. |
+| "The status is one line; I'll commit it on the merged branch" | The merged branch takes no more pushes, and the base branch is protected. The fix is a pull request of its own, and the miss was the task's pull request's: say so. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
 | "The pull request closed, so the task is abandoned" | Closed can mean replaced, paused, or closed by mistake. Only the developer says it's dropped, and even then origin's branch stays. |
@@ -184,7 +192,7 @@ the close-up only once it resumes and ends.
 ## Verification
 
 - [ ] The ending is real, by the host's own state, not by the conversation: merged; closed and dropped in the developer's words; or an answer delivered, with no commits past the base
-- [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md`; no promise left
+- [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md` and `status: implemented` — or the miss named and kept as a follow-up; no promise left
 - [ ] The developer said yes once to the full list before anything was stopped or removed — or their own word ended a merged task with nothing left or to choose, and the list opened the report
 - [ ] With the time-tracking module, the developer was asked about logging the time before the close-up, and `/adf:track-time` ran to its end on a yes
 - [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, from the updated base branch, before the worktree was removed — never run here

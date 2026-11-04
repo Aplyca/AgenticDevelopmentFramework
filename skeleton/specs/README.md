@@ -122,7 +122,7 @@ the first commit, a wrong change surface is a sentence to correct; after it, a r
 | Spec folder | One feature — created by its first PR, amended by later change requests |
 | Branch | `<type>/<slug>`, where `<slug>` matches the spec folder's slug; a change request after the merge gets a branch that adds the change: `<type>/<slug>-<change>` (before the merge, it rides the open branch) |
 | Commit | One task from `tasks.md` (full lane); one change with its test (fast and careful lanes) |
-| Pull request | One per branch; names its spec folder and links its tracker task |
+| Pull request | One per branch; names its spec folder, links its tracker task, and carries everything the task changes in the repository, its record included. After the merge, only a change request, a fix, or a follow-up opens another |
 
 **Shared foundation work** that several features depend on — a migration, a shared type, a
 service — is its own spec folder and its own PR, landed first.
@@ -164,7 +164,7 @@ Recorded in `spec.md` frontmatter:
 | `draft` | Being written; may be incomplete |
 | `in-review` | Required sections filled; requirements under review with the requester (optional step for client-facing work) — or a full change request waiting for its sign-off |
 | `approved` | Scope, change surface, and assumptions signed off at the gate — implementation may start. Each sign-off is a dated line in `approvals:`, naming a role |
-| `implemented` | Every task done and the gate results recorded — set by `/implement` in the branch, so it merges with the pull request and the folder reads as built. A full change request — after the merge, or on the open pull request — moves it back to `in-review` until its own sign-off, then `approved`, and `/implement` sets it to `implemented` again with the CR's gate results; a light one leaves it `implemented` |
+| `implemented` | Every task done — or struck through as a follow-up, with why — and the gate results recorded. Set by `/implement` in the branch and checked by `/open-pr` before each push, so it merges with the pull request and the folder reads as built; after the merge, it would need a pull request of its own. A full change request — after the merge, or on the open pull request — moves it back to `in-review` until its own sign-off, then `approved`, and `/implement` sets it to `implemented` again with the CR's gate results; a light one leaves it `implemented` |
 
 Nothing mechanical enforces the gate — it is a rule an agent could skip and CI can't see. That
 is why `/implement` refuses to write code for a spec whose status is not `approved`, and why

@@ -11,6 +11,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A task's pull request carries its whole record, and a gap after the merge is a miss**
+  ([decision 0067](docs/decisions/0067-the-task-record-merges-with-its-pull-request.md)).
+  - **What:**
+    - **`/adf:implement`:** a task that can't be done now — a post-implementable doc that needs
+      production — is struck through in `tasks.md` with `— follow-up: <why>` instead of left open,
+      so `status: implemented` is set in the branch.
+    - **`/adf:open-pr`:** step 2 checks the record before every push, the first and each refresh:
+      every task ticked or struck through, and `status: implemented` once the work it records is
+      done. What's missing is committed in the branch first.
+    - **`/adf:wrap-up`:** a record the merge left short is named as a miss, never committed on the
+      merged branch, and settled as a follow-up of the close-up — a fix to the record, or the work
+      still to do.
+    - After the merge, only a change request, a fix, or a follow-up opens another pull request.
+  - **Where:** `plugins/adf/skills/implement/SKILL.md`, `plugins/adf/skills/open-pr/` (`SKILL.md`,
+    `refresh.md`), `plugins/adf/skills/wrap-up/` (`SKILL.md`, `follow-ups.md`), `skeleton/specs/README.md`
+    (§ Granularity, § Status), `docs/SKILLS-REFERENCE.md`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/implement/`, `.claude/skills/open-pr/`, and
+    `.claude/skills/wrap-up/`, as `/adf:upgrade` writes them; packaged, they come with the plugin.
+  - **Merge:** `specs/README.md` — the Pull request row in § Granularity and the `implemented` row in
+    § Status. Take the new text wherever your copy still reads as the old skeleton's.
+
 - **A time entry's description says what the day delivered, in business terms**
   ([decision 0066](docs/decisions/0066-time-entries-describe-outcomes.md)).
   - **What:** `/adf:track-time` writes each entry's description as the day's outcome for the people
