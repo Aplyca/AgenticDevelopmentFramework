@@ -199,6 +199,39 @@ PY
 check "migrations: a second run returns done for each" "! grep -qv ': done$' '$WORK/twice.out' && [ -s '$WORK/twice.out' ]"
 check "migrations: the tree is unchanged after them" "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
 
+# ─── a Contentful server is profiled once it's named after its project (0068) ─
+X="$WORK/contentful"; mkdir -p "$X/.claude"
+python3 - "$REPO_ROOT" "$X" > "$WORK/contentful.out" 2>&1 <<'PY'
+import importlib.util, json, os, sys
+root, x = sys.argv[1:]
+spec = importlib.util.spec_from_file_location("upgrade", root + "/scripts/upgrade.py")
+u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
+migration = u.load_migration(root + "/scripts/migrations/unreleased/01-connect-profiles.py")
+
+def follow_ups(servers, allow):
+    json.dump({"mcpServers": servers}, open(os.path.join(x, ".mcp.json"), "w"))
+    json.dump({"permissions": {"allow": allow}}, open(os.path.join(x, ".claude", "settings.json"), "w"))
+    class Fake:  # just enough of an Upgrade for a migration's context
+        pass
+    f = Fake(); queued = []
+    f.ws = u.Workspace(x, False); f.repo = x; f.install = "packaged"; f.modules = []
+    f.dry = False; f.touched = set(); f.history = root; f.add_follow_up = lambda *a: queued.append(a[0])
+    f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.5.0")
+    migration.run(u.MigrationContext(f))
+    return queued
+
+url = {"type": "http", "url": "https://mcp.contentful.com/mcp"}
+print("named, allowed:", follow_ups({"contentful-newsletter": url}, ["mcp__contentful-newsletter__get_entry"]))
+print("plain, allowed:", follow_ups({"contentful": url}, ["mcp__contentful__get_entry"]))
+print("named, not allowed:", follow_ups({"contentful-newsletter": url}, []))
+PY
+check "contentful: a server named after its project, with its reads allowed, gets no follow-up" \
+    "grep -qx 'named, allowed: \[\]' '$WORK/contentful.out' || { cat '$WORK/contentful.out'; false; }"
+check "contentful: a server named plain contentful gets the follow-up, even with its reads allowed" \
+    "grep -qx \"plain, allowed: \['/adf-connect:connect contentful'\]\" '$WORK/contentful.out'"
+check "contentful: a server named after its project without its reads allowed gets the follow-up" \
+    "grep -qx \"named, not allowed: \['/adf-connect:connect contentful'\]\" '$WORK/contentful.out'"
+
 # ─── committed, with parallel-agents still in scripts/agent/ ────────────────
 new_project "$WORK/committed" committed "parallel-agents"
 C="$WORK/committed-up"

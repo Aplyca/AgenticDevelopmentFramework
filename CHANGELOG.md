@@ -11,6 +11,32 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A Contentful server is named after its project, so each project has its own sign-in and space**
+  ([decision 0068](docs/decisions/0068-a-contentful-server-is-named-after-its-project.md)).
+  - **Why:** the developer picks Contentful spaces when signing in, not in the URL, and Claude Code
+    keeps one sign-in per server. A server named `contentful` in several projects shared one sign-in,
+    so an agent in one project could read another project's space.
+  - **What:**
+    - **`/adf-connect:connect contentful`** names the server `contentful-<project>`, after the
+      repository. The developer signs in to it and picks only this project's space. The allow list
+      names its tools as `mcp__contentful-<project>__<tool>`.
+    - **A server named plain `contentful`:** `/connect` offers the rename.
+    - **Verification:** `list_spaces` returns only this project's space.
+    - **`/adf:upgrade`'s Contentful follow-up** (0057's migration) stays until the server is named
+      after its project and its reads are allowed under that name.
+  - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`;
+    `scripts/migrations/unreleased/01-connect-profiles.py`; the static checks and the upgrade tests.
+
+  **Upgrade impact:**
+  - **Additive.** The skill comes with the plugin, and nothing in a project changes by itself.
+  - **A project already connected to Contentful:** `/adf:upgrade` lists
+    `/adf-connect:connect contentful` as a follow-up, to run after the merge. To rename by hand
+    instead:
+    - rename the server in `.mcp.json` and in `enabledMcpjsonServers` to `contentful-<project>`;
+    - change its `permissions.allow` rules from `mcp__contentful__` to `mcp__contentful-<project>__`;
+    - each developer signs in again under the new name through `/mcp` and picks only this project's
+      space.
+
 - **A task's pull request carries its whole record, and a gap after the merge is a miss**
   ([decision 0067](docs/decisions/0067-the-task-record-merges-with-its-pull-request.md)).
   - **What:**

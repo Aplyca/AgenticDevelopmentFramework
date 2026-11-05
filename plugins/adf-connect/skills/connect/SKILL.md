@@ -37,14 +37,15 @@ This skill writes that configuration. The catalog below is what it knows about e
 
 ## Catalog
 
-Checked on 2026-10-08; Vercel and the read-only profiles on 2026-10-28. Endpoints, options, and tool
-names change, so confirm them in the linked docs before writing.
+Checked on 2026-10-08; Vercel and the read-only profiles on 2026-10-28; Contentful's server name on
+2026-11-05. Endpoints, options, and tool names change, so confirm them in the linked docs before
+writing.
 
 | Service | Kind | `.mcp.json` entry (`"type": "http"`) | Safe defaults and caveats | Ask the developer | Docs |
 |---|---|---|---|---|---|
 | Supabase | Database, auth, storage | `"url": "https://mcp.supabase.com/mcp?project_ref=<ref>&read_only=true"`. A local stack started by the Supabase CLI: `http://localhost:54321/mcp` | `read_only=true`. `project_ref` scopes the server to one project, so use a development one. `features=` narrows the tool groups | The project ref; which environment | [supabase.com/docs/guides/getting-started/mcp](https://supabase.com/docs/guides/getting-started/mcp) |
 | Vercel | Hosting | `"url": "https://mcp.vercel.com/<team-slug>/<project-slug>"`, scoped to one project. The bare `https://mcp.vercel.com` reaches the whole account | OAuth. Vercel has no read-only option, so the permission rules are the only limit: use § Read-only profiles. The project scope reaches its preview and production deployments alike | The team and project slugs (each under Settings → General); whether agents may read production logs | [vercel.com/docs/agent-resources/vercel-mcp](https://vercel.com/docs/agent-resources/vercel-mcp) |
-| Contentful | CMS | `"url": "https://mcp.contentful.com/mcp"`; EU data residency: `https://mcp.eu.contentful.com/mcp` | OAuth; the developer picks the spaces and environments when signing in. A space admin installs the Contentful MCP app and sets each environment's tools to read-only, and Contentful then refuses every write: use § Read-only profiles. Reading `master` is reading production content; write access, if ever, only in a sandbox environment | The space; the environments to read; the region; the space admin | [contentful.com/developers/docs/tools/mcp-server](https://www.contentful.com/developers/docs/tools/mcp-server/) |
+| Contentful | CMS | `"url": "https://mcp.contentful.com/mcp"`; EU data residency: `https://mcp.eu.contentful.com/mcp` | OAuth; the developer picks the spaces and environments when signing in, so the server is named after the project, `contentful-<project>`: § Read-only profiles. A space admin installs the Contentful MCP app and sets each environment's tools to read-only, and Contentful then refuses every write: use § Read-only profiles. Reading `master` is reading production content; write access, if ever, only in a sandbox environment | The space; the environments to read; the region; the space admin | [contentful.com/developers/docs/tools/mcp-server](https://www.contentful.com/developers/docs/tools/mcp-server/) |
 | GitLab | Git host and tracker | `"url": "https://gitlab.com/api/v4/mcp"`; self-managed: `https://<host>/api/v4/mcp` | OAuth. An admin or group owner allows the MCP server first. The `glab` CLI covers merge requests without MCP | The host; whether the instance has the MCP server on | [docs.gitlab.com/user/model_context_protocol/mcp_server](https://docs.gitlab.com/user/model_context_protocol/mcp_server/) |
 | Linear | Tracker | `"url": "https://mcp.linear.app/mcp"` | OAuth | — | [linear.app/docs/mcp](https://linear.app/docs/mcp) |
 | Jira, Confluence | Tracker, wiki | `"url": "https://mcp.atlassian.com/v2/mcp"` | OAuth. It reaches every Atlassian product the developer can | The site | [Atlassian's MCP server guide](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/) |
@@ -86,7 +87,16 @@ read-only.
 **Contentful: reading entries and the content model.** Contentful enforces read-only itself: a space
 admin sets each environment's tools to read-only in the Contentful MCP app. Ask for that first. The
 allow list is the second layer.
-- **Allow,** each as `mcp__contentful__<tool>`: `get_initial_context`, `list_spaces`, `get_space`,
+- **One server per project, named after it.** The URL carries no space: the developer picks spaces
+  when signing in, and Claude Code keeps a server's sign-in under its name. Name the server
+  `contentful-<project>`, with `<project>` the repository's name in lowercase letters, digits, and
+  hyphens. Each project then has its own sign-in, where the developer picks only this project's
+  space and environments.
+  - **A server named plain `contentful`** shares one sign-in, and the spaces picked in it, with every
+    other project that uses that name.
+  - **Found one in step 3?** Offer the rename. Each developer signs in again under the new name, and
+    the allow list moves to it.
+- **Allow,** each as `mcp__contentful-<project>__<tool>`: `get_initial_context`, `list_spaces`, `get_space`,
   `list_environments`, `list_content_types`, `get_content_type`, `search_entries`, `get_entry`,
   `list_locales`, `get_locale`, `list_assets`, `get_asset`, `list_tags`.
 - **Prompt:** every tool that creates, updates, patches, publishes, unpublishes, deletes, uploads, or
@@ -111,7 +121,8 @@ allow list is the second layer.
    `AGENTS.md`. If the service is already configured, say how and ask what should change.
 
 4. **Agree on the entry.** From the catalog, show the developer:
-   - the server name (the service, lowercase: `supabase`);
+   - the server name (the service, lowercase: `supabase`; Contentful's carries the project too:
+     `contentful-<project>`);
    - the URL with its options;
    - how each developer signs in;
    - the questions the catalog lists, each with your recommended answer;
@@ -175,6 +186,7 @@ allow list is the second layer.
 - [ ] A read tool runs without a prompt
 - [ ] Asking for a write — drafted, not sent — prompts, and nothing was written
 - [ ] Every read the profile denies is in `permissions.deny`
+- [ ] Contentful: `list_spaces` returns only this project's space
 - [ ] `DEV-SETUP.md` names the service, and how to sign in
 
 ## Principles

@@ -67,7 +67,7 @@ projects.
 | [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted |
 | [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted; amended by 0062 |
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
-| [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted |
+| [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted; refined by 0068 |
 | [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
 | [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063 |
 | [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
@@ -78,6 +78,7 @@ projects.
 | [0065](0065-always-loaded-text-says-each-rule-once.md) | The always-loaded text says each rule once, and a phase's procedure stays in its skill | accepted |
 | [0066](0066-time-entries-describe-outcomes.md) | A time entry's description says what the day delivered, in business terms | accepted |
 | [0067](0067-the-task-record-merges-with-its-pull-request.md) | A task's pull request carries its whole record, and a gap after the merge is a miss | accepted |
+| [0068](0068-a-contentful-server-is-named-after-its-project.md) | A Contentful server is named after its project, so each project has its own sign-in and space | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
