@@ -1,6 +1,7 @@
 # 0057: Vercel and Contentful get fixed read-only profiles in `/connect`; reads that return secrets are denied; GitHub stays on `gh`
 
-- **Status:** accepted
+- **Status:** accepted; refined by [0068](0068-a-contentful-server-is-named-after-its-project.md)
+  (a Contentful server is named after its project)
 - **Date:** 2026-10-28
 - **Refines:** [0023](0023-plugins-by-concern.md) — where Supabase, Vercel, and Contentful go, and how
   `/connect` builds a server's allow list
