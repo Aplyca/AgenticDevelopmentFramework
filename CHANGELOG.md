@@ -11,6 +11,43 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.7.0 — 2026-11-05 — One session per task, a status that follows the work, test tiers, and read-only service profiles
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts, and its one migration lists follow-ups for after the merge.
+
+- **One session per task, named after it** (0062, 0059). A task's phases stay in its session: after
+  the approval gate, the developer compacts and switches to Sonnet there, and conversations are
+  capped at 300k tokens. Every session is named after its task, even when `/adf:triage` doesn't run.
+- **A tracker task's status follows the work** (0059). Tracker writes go through the project's
+  server, as the developer, and each is read back (0064). Time entries say what the day delivered
+  (0066).
+- **A task's pull request carries its whole record** (0067), and `/adf:wrap-up` starts the
+  follow-ups before it removes the worktree (0061).
+- **Test tiers and feature suites, and a new `unit` module** (0058).
+- **Read-only profiles for Vercel and Contentful in `/adf-connect:connect`** (0057), with each
+  project's Contentful server named after it (0068).
+- **Leaner instructions:** case-only steps move to reference files (0063), each rule is said once
+  (0065), and `adf-dev`'s local-environment band gives way to Claude Desktop's Browser (0060).
+
+**Upgrading from v2.6.0:**
+
+1. **Run `/adf:upgrade`.** One draft pull request:
+   - merges the changed lines in `AGENTS.md`, `.claude/rules/claude-code.md`,
+     `.claude/rules/git-workflow.md`, `.claude/rules/testing.md`, `.cursor/rules/testing.mdc`,
+     `.claude/settings.json` (`"autoCompactWindow": 300000`), `.claude/hooks/config.sh`,
+     `CONTRIBUTING.md`, `specs/README.md`, `specs/_templates/spec.md`, `docs/TRACKER-INTEGRATION.md`,
+     and, with their modules, `docs/TIME-TRACKING.md` and `docs/END-USER-DOCS.md`; adds
+     `docs/TEST-SUITES.md`;
+   - in a committed install, writes the release's machinery;
+   - offers the new `unit` module;
+   - with Vercel or Contentful already in `.mcp.json`, lists `/adf-connect:connect <service>` under
+     its Follow-ups (`scripts/migrations/v2.7.0/01-connect-profiles.py`).
+2. **After the merge, run those follow-ups.** For Contentful, each developer then signs in again to
+   `contentful-<project>` through `/mcp` and picks only this project's space.
+3. **ClickUp projects:** fill in the new lines of `docs/TRACKER-INTEGRATION.md` § Stakeholder updates
+   from the ClickUp module's guide, step 3.
+
 - **A Contentful server is named after its project, so each project has its own sign-in and space**
   ([decision 0068](docs/decisions/0068-a-contentful-server-is-named-after-its-project.md)).
   - **Why:** the developer picks Contentful spaces when signing in, not in the URL, and Claude Code
@@ -25,7 +62,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - **`/adf:upgrade`'s Contentful follow-up** (0057's migration) stays until the server is named
       after its project and its reads are allowed under that name.
   - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`;
-    `scripts/migrations/unreleased/01-connect-profiles.py`; the static checks and the upgrade tests.
+    `scripts/migrations/v2.7.0/01-connect-profiles.py`; the static checks and the upgrade tests.
 
   **Upgrade impact:**
   - **Additive.** The skill comes with the plugin, and nothing in a project changes by itself.
@@ -311,13 +348,13 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       Vercel server whose secret reads are already denied. In a committed install the follow-up keeps
       the `adf-connect:` prefix, since only the plugin carries `/connect`.
   - **Where:** in `adf-connect`, `skills/connect/SKILL.md` and `README.md`;
-    `scripts/migrations/unreleased/01-connect-profiles.py` and `scripts/upgrade.py`; the static checks
+    `scripts/migrations/v2.7.0/01-connect-profiles.py` and `scripts/upgrade.py`; the static checks
     and the upgrade tests.
 
   **Upgrade impact:**
   - **Additive.** The skill comes with the plugin, and nothing in a project changes by itself.
   - **A project that already connected Vercel or Contentful — migration**
-    (`scripts/migrations/unreleased/01-connect-profiles.py`): `/adf:upgrade` lists
+    (`scripts/migrations/v2.7.0/01-connect-profiles.py`): `/adf:upgrade` lists
     `/adf-connect:connect vercel` (or `contentful`) as a follow-up, to run after the merge. It changes
     no file. To apply the profile by hand instead, in `.claude/settings.json`:
     - add `mcp__vercel__get_project_env` and `mcp__vercel__get_shared_env_var` to
