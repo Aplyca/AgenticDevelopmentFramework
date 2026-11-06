@@ -190,9 +190,9 @@ class Fake:  # just enough of an Upgrade for a migration's context
 f = Fake()
 f.ws = u.Workspace(p, False); f.repo = p; f.install = "packaged"; f.modules = ["parallel-agents", "docker"]
 f.dry = False; f.touched = set(); f.history = root; f.add_follow_up = lambda *a: None
-f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.5.0")
+f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.7.0")
 ctx = u.MigrationContext(f)
-for folder, name, path in u.discover_migrations(root, "v2.0.0", "v2.5.0", True):
+for folder, name, path in u.discover_migrations(root, "v2.0.0", "v2.7.0", True):
     status, text = u.load_migration(path).run(ctx)
     print(f"{folder}/{name}: {status}")
 PY
@@ -206,7 +206,7 @@ import importlib.util, json, os, sys
 root, x = sys.argv[1:]
 spec = importlib.util.spec_from_file_location("upgrade", root + "/scripts/upgrade.py")
 u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
-migration = u.load_migration(root + "/scripts/migrations/unreleased/01-connect-profiles.py")
+migration = u.load_migration(root + "/scripts/migrations/v2.7.0/01-connect-profiles.py")
 
 def follow_ups(servers, allow):
     json.dump({"mcpServers": servers}, open(os.path.join(x, ".mcp.json"), "w"))
@@ -216,7 +216,7 @@ def follow_ups(servers, allow):
     f = Fake(); queued = []
     f.ws = u.Workspace(x, False); f.repo = x; f.install = "packaged"; f.modules = []
     f.dry = False; f.touched = set(); f.history = root; f.add_follow_up = lambda *a: queued.append(a[0])
-    f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.5.0")
+    f.old = u.Release(root, "v2.3.0", "v2.3.0"); f.new = u.Release(root, "HEAD", "v2.7.0")
     migration.run(u.MigrationContext(f))
     return queued
 
