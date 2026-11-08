@@ -58,9 +58,13 @@
 - [ ] T041 — Post-implementable docs (→ Documentation)
 - [ ] T042 — Record gate results below
 
-## Verification checklist (each checkpoint)
+## Verification checklist (the full gate, once before delivery)
 
-<!-- CUSTOMIZE: the project's real commands, from AGENTS.md § Quick reference -->
+<!-- CUSTOMIZE: the project's real commands, from AGENTS.md § Quick reference. When each run comes:
+     .claude/rules/testing.md § Verification budget. -->
+
+While iterating — each task: its tests by name (`[command]`), static checks on the changed files
+(`[command]`); each phase's end: its feature suite, once (`[command]`).
 
 - [ ] Lint clean
 - [ ] Typecheck clean

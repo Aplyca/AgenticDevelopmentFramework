@@ -17,10 +17,11 @@ alwaysApply: false
 
 ## For each task in tasks.md, in order
 1. Write the test the task names
-2. Run it — **watch it fail for the right reason** (the missing behavior, not an import or fixture error)
+2. Run it — **watch it fail for the right reason** (the missing behavior, not an import, fixture, or type error); if it passes first, find out why before going on
 3. Write the smallest code that makes it pass, **inside the plan's change surface**
-4. Run it to green, plus neighboring tests
+4. Run it to green — the task's tests by name, and lint and typecheck on the changed files
 5. Tick the task and commit test + code together (`feat:` / `fix:` / `refactor:`)
+6. When a phase's last task is committed, run the feature suite it touched, once
 
 ## When reality departs from the plan
 - Small deviation inside the change surface → update `plan.md` in the same commit

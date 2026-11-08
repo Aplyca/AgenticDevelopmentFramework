@@ -42,7 +42,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Architecture & integrations** — domain concepts and which layer owns each; what must not leak across layers; a diagram only when prose can't carry it.
    - **Change surface** — every file to create or modify, by layer, with why; plus what is deliberately **not** touched.
    - **Data model & contracts** — new migrations (never edits to existing ones), API or contract changes, environment variables (declared in the env template), CMS model changes. A contract shared with another spec folder (`related-specs`) is named here: a consumer re-checks it against the provider's spec after each sync with the base branch, and a change to it is recorded in the consumer's spec and pull request.
-   - **Test strategy** — every acceptance criterion, edge case, and testable requirement from Security, Accessibility, Performance, Privacy, Analytics, and Localization mapped to a named test.
+   - **Test strategy** — every acceptance criterion, edge case, and testable requirement from Security, Accessibility, Performance, Privacy, Analytics, and Localization mapped to a named test, at the cheapest layer that proves it and tested once (`.claude/rules/testing.md` § Strategy): a check repeats across variants — screens, locales, roles — only where each runs code of its own. When that layer doesn't exist in the project — logic a unit test would prove, testable only end to end — keep the test where it can run, and list the missing layer as a risk; adding it is the developer's call.
    - **Documentation plan** — from spec § Documentation: pre-implementable docs become Phase 1 tasks; post-implementable ones Phase 5. A diff a teammate could merge without new docs has none. An end-user page (End-user docs) is a Phase 1 task too — its draft in the doc tool — and is published after the feature ships, outside `tasks.md`.
    - **Rollout, risks, assumptions, open questions.** Every assumption you are relying on is written down — an unstated assumption is how an invented requirement gets in. Ask the open questions in rounds, each with your recommended answer (`AGENTS.md` § Working economically); name modules and concepts with the terms in `docs/GLOSSARY.md`.
    - **Roles, not names.** A decision or confirmation in `plan.md` and `tasks.md` — an assumption someone confirmed, a correction at the gate — is dated and attributed to a role (developer, tech lead, requester, legal), never to a person's name, and written in your own words: no quotes or text copied from the tracker (`specs/README.md` § Records name roles).
@@ -68,7 +68,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    done, a test — is struck through, not deleted. Tests the CR changes or retires are named in its
    test strategy, each with the task that touches it.
 
-6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference.
+6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference — one test by name, a feature suite, and the full gate: what runs while iterating is the task's tests, never a whole file of them.
 
 ## Phase 3: Analyze (read-only)
 
@@ -91,7 +91,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Scope** — the ACs in, and what is explicitly out.
    - **Change surface** — the table, the shared code and its other consumers, what is not touched.
    - **Assumptions and risks** — every one, plainly.
-   - **Verification** — the test strategy in a few lines, and what will be checked manually.
+   - **Verification** — the test strategy in a few lines, a test layer the project lacks, and what will be checked manually.
    - **Docs** — what will be written before code.
    - End with: *"No implementation code until you approve. Reply with changes, or approve."*
 

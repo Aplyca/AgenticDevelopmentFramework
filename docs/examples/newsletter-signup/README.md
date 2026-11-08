@@ -335,7 +335,7 @@ git commit -m "docs: add marketing docs for newsletter-signup"
 > failures. Starting T010.
 
 Every task then runs the same loop: **write the task's test → run it and watch it fail for the right
-reason → write the smallest code that passes → run it to green, with its neighbors → tick the task
+reason → write the smallest code that passes → run its tests to green, by name → tick the task
 → commit test, code, and tick together.** Three tasks in detail:
 
 ### T010 — email validation: what counts as "red"

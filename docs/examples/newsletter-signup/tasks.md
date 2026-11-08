@@ -62,7 +62,10 @@
 - [x] T041 — Post-implementable docs: operator runbook `docs/runbooks/newsletter.md` (→ Documentation)
 - [x] T042 — Record gate results below
 
-## Verification checklist (each checkpoint)
+## Verification checklist (the full gate, once before delivery)
+
+While iterating — each task: its tests by name (`pnpm test <file> -t "<name>"`), `pnpm lint <files>`
+on the changed files; each phase's end: `pnpm test newsletter`, once.
 
 - [x] Lint clean — `pnpm lint`
 - [x] Typecheck clean — `pnpm typecheck`

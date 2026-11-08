@@ -48,20 +48,30 @@ plan is the contract for **where** code goes (the change surface); the tests are
    neighboring tests.
 6. **Run it and watch it fail — for the right reason:** an assertion about the missing behavior,
    not a syntax error, import error, or broken fixture. Keep the failure line for the gate results.
-   If it **passes** before you've written any code, stop: the behavior already exists or the test is
-   wrong. Find out which and tell the developer. The exception is a **test-only task** — acceptance
-   tests written after the stories, or a test that pins behavior the change must not break. It is
-   expected to pass: break the behavior it covers on purpose, watch it fail, restore it, and record
-   that in the gate results.
+   If it **passes** before you've written any code, find out why:
+   - **The test is wrong** — it asserts nothing the task adds: fix it until it fails for the right
+     reason.
+   - **The behavior already exists** — an earlier task or the code base already does it: tell the
+     developer in one line, and keep the test as a pin. Break the behavior on purpose, watch the test
+     fail, restore it, and record that in the gate results. The rest of the task lands in the same
+     commit, prefixed for what it does: `refactor:` when no behavior changes.
+   - **You can't tell which:** stop and ask.
+
+   A type or compile error is never the red, however the task is shaped. A **test-only task** —
+   acceptance tests written after the stories, or a test that pins behavior the change must not
+   break — is expected to pass, and proves itself the same way: break, fail, restore, record.
 7. **Write the smallest code that makes it pass**, inside the plan's change surface, matching the
    existing patterns. Handle the edge cases the spec lists; validate at system boundaries.
-8. **Run it to green**, plus the neighboring tests, to catch regressions early — targeted runs with
-   quiet output, not the whole suite each time (`.claude/rules/testing.md` § Verification budget).
-   Tidy the code while everything stays green.
+8. **Run it to green** — the tests this task wrote or changed, by name, with quiet output, and the
+   static checks on the files it changed (`.claude/rules/testing.md` § Verification budget). Not
+   their whole file or feature suite: that runs once, when the phase ends. Tidy the code while
+   everything stays green.
 9. **Tick the task and commit** test, code, and the tick together — one commit:
    `feat: <what the task delivers>` (or `fix:`, `refactor:`; `test:` for a test-only task). Stage
    files by name. Hooks run; never `--no-verify`.
-10. **Next task.**
+10. **Next task.** When the last task of a phase is committed, run the feature suite the phase
+    touched, once — plus `@smoke` when it changed shared code, configuration, or the stack. A
+    failure is traced through the phase's task commits and fixed before the next phase.
 
 ## When reality departs from the plan
 
@@ -130,6 +140,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "The spec is approved in spirit — I'll start" | No `status: approved` and no `approvals:` line means no gate happened. Run `/adf:write-plan`'s gate first. |
 | "I'll write all the code, then the tests" | Then no test ever failed — and a test that never failed proves nothing. One red → green cycle per task. |
 | "The test failed with an import error — that counts as red" | Red means the assertion failed because the behavior is missing. Fix the scaffolding until it fails for the right reason. |
+| "The test passed first, but the typecheck fails until I make the change — that's my red" | A type error shows the code doesn't build, not that the behavior is missing. Keep the test as a pin: break the behavior on purpose and watch it fail. |
+| "I'll rerun the whole test file after each task, to be safe" | A file can hold a feature's every test. Run the task's tests by name; the feature suite runs once at the phase's end, and the full gate once before delivery. |
 | "I'll batch several tasks into one commit" | One task, one commit — that's what makes the history reviewable and each step revertible. |
 | "This file isn't in the change surface, but it's a tiny edit" | Change surface growth goes back to the developer. Tiny edits to shared code are how regressions ship. |
 | "The tests are too strict — I'll loosen them" | Tests are the contract. Fix the implementation; fix a test only when it's genuinely wrong, and say so. |
@@ -151,7 +163,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 ## Verification
 
 - [ ] `status: approved` and an `approvals:` line existed before the first line of code
-- [ ] Every task went red (for the right reason) then green — a test-only task by breaking the behavior on purpose — and landed as its own commit (docs-first tasks share one)
+- [ ] Every task went red (for the right reason) then green — a test-only task or a pin by breaking the behavior on purpose, never by a type error — and landed as its own commit (docs-first tasks share one)
+- [ ] Each task ran its own tests by name; each phase ran its feature suite once, at its end
 - [ ] Every task in `tasks.md` is ticked, or struck through as a follow-up with why, and `spec.md` reads `status: implemented`
 - [ ] All changes are inside the approved change surface — or the extension was re-confirmed
 - [ ] Every filled spec section (Security, Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment) is addressed

@@ -75,7 +75,10 @@ Everything below this line is the appended text.
       topics, a wrong group ID (→ Documentation)
 - [x] T142 — Record gate results below
 
-## Verification checklist (each checkpoint)
+## Verification checklist (the full gate, once before delivery)
+
+While iterating — each task: its tests by name (`pnpm test <file> -t "<name>"`), `pnpm lint <files>`
+on the changed files; each phase's end: `pnpm test newsletter`, once.
 
 - [x] Lint clean — `pnpm lint`
 - [x] Typecheck clean — `pnpm typecheck`
