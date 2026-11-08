@@ -27,7 +27,7 @@ doesn't wait for the answer.
 | Moment | When | Task status | Message |
 |---|---|---|---|
 | **Started** | Right after `/adf:triage`, once you understand the task | The project's in-progress status — moved by the triage | Only when it's worth the client's time: what we understood and will deliver, a question that blocks the work, a finding — it exists already, it was declined before, a risk. "We've started" alone isn't: the status says it |
-| **In review** | Once `/adf:open-pr`'s draft is open and its preview walked | The project's review status — moved at the push, not here | Always: a business-focused report — what changes for visitors or users, the preview and what to test there, and the pull request |
+| **In review** | Once `/adf:open-pr` marks the pull request ready, its preview walked | The project's review status — moved by `/adf:open-pr` at ready, not here | Always: a business-focused report — what changes for visitors or users, the preview and what to test there, and the pull request |
 | **Delivered** | Once it's merged or live, or when asked | The project's done status — where the change is now, such as in acceptance testing, ready for release, or done | Always: why it wasn't working or what was needed, what we did, the status, findings, next steps |
 
 An answer-only task has no review moment: its delivered update is the answer, in the client's terms.
@@ -37,7 +37,7 @@ An answer-only task has no review moment: its delivered update is the answer, in
 The status follows the work, on its own — the developer isn't asked each time, and the move isn't
 part of any message's approval. The skill that reaches the moment makes the move in a step of its
 own, without loading this skill: `/adf:triage` to the in-progress status once the triage is stated,
-`/adf:open-pr` to the review status once the branch is pushed and the pull request is open,
+`/adf:open-pr` to the review status once the pull request is ready,
 `/adf:wrap-up` to the done status (`delivered` in the settings) once the pull request merged or an
 answer is delivered. `/adf:stakeholder-update status <moment>` makes a move too, when asked or when
 one didn't happen at its moment.
@@ -74,7 +74,7 @@ moves) — no draft, no message — and stop.
    flagged to the developer — never stated to the client. State the status as it actually is, in the
    project's status words. Typical mapping:
    - work started → "in progress"
-   - pull request open → "in review"
+   - pull request ready for review → "in review"
    - merged to the integration or preview branch for combined testing → "in acceptance testing"
    - merged or released to production → "live"
 

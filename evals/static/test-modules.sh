@@ -373,7 +373,7 @@ out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
 out=$(stack make help 2>&1)
 check "make help: the default target lists every task of the mode" \
-    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up stop down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
     "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'guard.sh'"
@@ -384,7 +384,7 @@ check "make logs: the last lines, never followed" \
 # nothing, and never follow a log.
 c9=""
 for mode in docker native; do
-    for task in help env up down build ps logs urls prod test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+    for task in help env up stop down build ps logs urls prod test lint format typecheck $( [ "$mode" = native ] && echo services ); do
         out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
         while IFS= read -r line; do
             case "$line" in
@@ -407,6 +407,10 @@ check "make prod, docker mode: builds and serves the prod profile's web-prod bes
     "echo \"\$out\" | grep -q 'compose --profile prod up -d --build --wait web-prod\$' && echo \"\$out\" | grep -q 'urls' && echo \"\$out\" | sed '/--profile prod up/,\$d' | grep -q 'guard.sh'"
 check "make prod, docker mode: the service is in the prod profile, so make up never starts it (C11)" \
     "grep -A1 '^  web-prod:' '$TPL/compose.yaml' | grep -q 'profiles: \\[prod\\]' && grep -q 'target: prod' '$TPL/compose.yaml' && grep -q '^FROM dev AS prod' '$TPL/ops/docker/web/Dockerfile'"
+out=$(stack make -n stop 2>&1)
+check "make stop, docker mode: stops the stack, the production build too, and removes nothing (0071)" \
+    "echo \"\$out\" | grep -q 'compose --profile prod stop\$' && ! echo \"\$out\" | grep -qE ' down| rm |-v( |\$)' && echo \"\$out\" | sed '/--profile prod stop/,\$d' | grep -q 'guard.sh'"
+check "make stop, docker mode: lists in Claude Desktop's Browser what still runs, once the stack is stopped (P8)" "echo \"\$out\" | sed '1,/--profile prod stop/d' | grep -q 'ops/docker/launch-json.sh\$'"
 out=$(stack make -n down 2>&1)
 check "make down, docker mode: stops the production build too" "echo \"\$out\" | grep -q 'compose --profile prod down\$'"
 check "make down, docker mode: lists in Claude Desktop's Browser what still runs, once the stack is down (P8)" "echo \"\$out\" | sed '1,/--profile prod down/d' | grep -q 'ops/docker/launch-json.sh\$'"
@@ -528,6 +532,14 @@ check "native mode, make prod again: leaves the running production build alone" 
 out=$(native up 2>&1); code=$?
 check "native mode, make up after make prod: the dev server comes back, on the same port" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.kind' ] && grep -q '^APP_PORT=$port\$' '$NS/ops/native/.run/app.env' && echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
+out=$(native stop 2>&1); code=$?
+check "native mode, make stop: stops the app and its process group, and frees its port (0071)" \
+    "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
+check "native mode, make stop: takes the app out of Claude Desktop's Browser (P8)" "[ ! -e '$NS/.claude/launch.json' ]"
+out=$(native up 2>&1); code=$?
+port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
+check "native mode, make up after make stop: the app answers again" \
+    "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"

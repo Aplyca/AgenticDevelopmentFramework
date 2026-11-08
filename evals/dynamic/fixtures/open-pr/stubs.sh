@@ -5,10 +5,12 @@
 #   $work.origin.git  the remote: origin is a GitHub address that git rewrites to this bare repository;
 #                     its post-receive hook logs each push
 #   $work.bin/        put first on the session's PATH by the runner: `gh` (records each call, opens the
-#                     pull request, deploys the pushed branch as the preview ~15 s after it opens),
+#                     pull request, deploys the pushed branch as the preview ~15 s after it opens —
+#                     CI passes with it — and marks the pull request ready),
 #                     `pnpm` (runs package.json's scripts), and `docker` (no daemon)
 #   $work.env         the session's environment: PORT for the local server, REQUEST_LOG
-#   $work.events      one line per server start and request, push, gh and docker call: "<epoch> <source> …"
+#   $work.events      one line per server start and request, push, deploy, gh and docker call:
+#                     "<epoch> <source> …"
 # The preview serves the pushed branch on PORT+1000, from its own export of the remote. A case whose
 # setup touches $work.redeploy redeploys it ~10 s after each push once it's up, as a host would.
 #
@@ -73,14 +75,15 @@ deploy() { # the preview: the pushed branch, exported from the remote, served re
   (cd "$work.preview" && PORT="$preview_port" PREVIEW=1 REQUEST_LOG="$events" nohup node app/server.mjs > /dev/null 2>&1 &
    echo $! > "$work.preview.pid")
   touch "$work.deployed"
+  echo "$(python3 -c 'import time; print(time.time())') deploy $branch" >> "$events"
 }
 view_json() { # gh pr view --json: every field the cases read, the body as last saved; --jq '.<field>' picks one
-  python3 - "$url" "$work.pr-body.md" "$(git -C "$work" rev-parse --abbrev-ref HEAD)" "$@" <<'JSON'
+  python3 - "$url" "$work.pr-body.md" "$(git -C "$work" rev-parse --abbrev-ref HEAD)" "$work.ready" "$@" <<'JSON'
 import json, shutil, subprocess, sys
 from pathlib import Path
-url, body_file, branch, *args = sys.argv[1:]
+url, body_file, branch, ready, *args = sys.argv[1:]
 body = Path(body_file).read_text() if Path(body_file).exists() else ""
-pr = {"number": 42, "url": url, "isDraft": True, "state": "OPEN", "title": "newsletter change",
+pr = {"number": 42, "url": url, "isDraft": not Path(ready).exists(), "state": "OPEN", "title": "newsletter change",
       "body": body, "headRefName": branch, "baseRefName": "main"}
 flag = next((f for f in ("--jq", "-q") if f in args), None)
 jq = args[args.index(flag) + 1] if flag else ""
@@ -103,6 +106,7 @@ case "${1:-} ${2:-}" in
     (sleep 15; deploy) > /dev/null 2>&1 &
     echo "$url" ;;
   "pr edit") save_body "$@"; echo "$url" ;;
+  "pr ready") touch "$work.ready"; echo "✓ Pull request example-org/newsletter-site#42 is marked as \"ready for review\"" ;;
   "pr checks")
     if [[ " $* " == *" --watch "* ]]; then
       while [ ! -f "$work.deployed" ]; do sleep 2; done
@@ -112,10 +116,10 @@ case "${1:-} ${2:-}" in
     if [[ " $* " == *" --json "* ]]; then
       view_json "$@"
     else
-      printf 'title:\tnewsletter change\nstate:\tDRAFT\nurl:\t%s\n' "$url"
+      printf 'title:\tnewsletter change\nstate:\t%s\nurl:\t%s\n' "$([ -f "$work.ready" ] && echo OPEN || echo DRAFT)" "$url"
       [ -f "$work.deployed" ] && printf -- '--\nPreview deployed: %s\n' "$preview"
     fi ;;
-  "pr list") printf '42\tnewsletter change\t%s\tDRAFT\n' "$(git -C "$work" rev-parse --abbrev-ref HEAD)" ;;
+  "pr list") printf '42\tnewsletter change\t%s\t%s\n' "$(git -C "$work" rev-parse --abbrev-ref HEAD)" "$([ -f "$work.ready" ] && echo OPEN || echo DRAFT)" ;;
   "__deploy "*) deploy ;;
   "__redeploy "*) sleep 10; deploy ;;
   "auth status") echo "github.com: Logged in to github.com account dev" ;;

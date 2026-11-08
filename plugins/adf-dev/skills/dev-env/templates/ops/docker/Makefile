@@ -8,7 +8,7 @@ ifndef MODE_FILE
 $(error run make from the repository root: this file is the $(notdir $(CURDIR)) mode, which the root Makefile loads)
 endif
 
-.PHONY: up down build ps logs urls prod shell test lint format typecheck reset
+.PHONY: up stop down build ps logs urls prod shell test lint format typecheck reset
 
 up: env guard ## Start the stack, wait until it's healthy, and show where it is
 	@APP='$(APP)' COMPOSE='$(COMPOSE)' ops/native/native.sh stop
@@ -16,7 +16,11 @@ up: env guard ## Start the stack, wait until it's healthy, and show where it is
 	@$(LAUNCH_JSON)
 	@$(MAKE) --no-print-directory urls
 
-down: guard ## Stop the stack, the production build too; its data stays
+stop: guard ## Stop the stack, the production build too, to free memory and CPU; its containers and data stay, and make up starts it again
+	$(COMPOSE) --profile prod stop
+	@$(LAUNCH_JSON)
+
+down: guard ## Stop the stack, the production build too, and remove its containers and networks; its data stays
 	$(COMPOSE) --profile prod down
 	@$(LAUNCH_JSON)
 

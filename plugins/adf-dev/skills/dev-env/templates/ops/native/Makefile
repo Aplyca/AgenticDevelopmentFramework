@@ -24,14 +24,19 @@ NATIVE_PROD_CMD = echo "CUSTOMIZE: set NATIVE_PROD_CMD in ops/native/Makefile to
 export NATIVE_CMD NATIVE_PROD_CMD
 NATIVE_SH = SERVICES='$(SERVICES)' COMPOSE='$(COMPOSE)' APP='$(APP)' ops/native/native.sh
 
-.PHONY: up down build ps logs urls prod services test lint format typecheck reset
+.PHONY: up stop down build ps logs urls prod services test lint format typecheck reset
 
 up: env guard services ## Start the app on the host, wait until it answers, and show where it is
 	@$(COMPOSE) stop $(APP) >/dev/null 2>&1 || true
 	@$(NATIVE_SH) start
 	@$(MAKE) --no-print-directory urls
 
-down: guard ## Stop the app and the backing services; their data stays
+stop: guard ## Stop the app and the backing services to free memory and CPU; their containers and data stay, and make up starts them again
+	@$(NATIVE_SH) stop
+	$(if $(SERVICES),$(COMPOSE) stop)
+	@$(LAUNCH_JSON)
+
+down: guard ## Stop the app and the backing services, and remove their containers; their data stays
 	@$(NATIVE_SH) stop
 	$(if $(SERVICES),$(COMPOSE) down)
 	@$(LAUNCH_JSON)

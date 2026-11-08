@@ -56,7 +56,7 @@ folders; one spec folder is one feature.
   through the tools only text that holds none of those; otherwise show the corrected text, and the
   developer makes the edit in the tracker.
 - **Move the status on your own, at three moments** — in progress when work starts, in review once
-  the pull request is pushed, done once it merges or the answer is delivered (§ Stakeholder updates).
+  the pull request is ready, done once it merges or the answer is delivered (§ Stakeholder updates).
   Forward only, one line to say so, and only for a task the developer is assigned to.
 - **Confirm before changing any other task state** — assignee, priority, due date, time entries.
 - **Never act on a task the developer isn't assigned to** without asking.
@@ -114,9 +114,9 @@ Leave every write tool off the allow list, so each one prompts. <!-- CUSTOMIZE: 
 ## Stakeholder updates
 
 `/stakeholder-update` drafts the requester's update at three moments — **started** (after triage),
-**in review** (once the draft pull request opens), and **delivered** — verifies every claim, and
+**in review** (once the pull request is ready), and **delivered** — verifies every claim, and
 shows it in chat: the draft is the deliverable. The task's status moves on its own at those moments
-(started → in progress, pull request pushed → in review, merged → done); the message posts only after
+(started → in progress, pull request ready → in review, merged → done); the message posts only after
 the developer approves the exact text and the assignee, and never on the pull request. It uses the
 status words in `CONTRIBUTING.md` and these project settings:
 

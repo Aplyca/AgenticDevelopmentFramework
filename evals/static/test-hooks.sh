@@ -67,6 +67,11 @@ run guard-git.sh 2 "$(bash_event 'gh pr create --title "Add signup" --body-file 
 run guard-git.sh 0 "$(bash_event 'gh pr create --draft --title "Add signup" --body-file /tmp/body.md')" "allows a draft pull request"
 run guard-git.sh 0 "$(bash_event 'git push -u origin feat/new-thing && gh pr create -d --fill')" "allows a draft by its short flag, after a work-branch push"
 run guard-git.sh 2 "$(bash_event 'gh pr create --title "--draft later" --fill')" "isn't fooled by --draft inside a quoted title"
+# Decision 0072: the same draft rule on GitLab.
+run guard-git.sh 2 "$(bash_event 'glab mr create --target-branch main --title "Add signup" --description-file /tmp/body.md')" "blocks a GitLab merge request that isn't a draft"
+run guard-git.sh 0 "$(bash_event 'glab mr create --draft --target-branch main --title "Add signup"')" "allows a GitLab draft merge request"
+run guard-git.sh 0 "$(bash_event 'glab mr new --wip --fill')" "allows a GitLab draft by --wip, and mr new"
+run guard-git.sh 2 "$(bash_event 'glab mr create -d "notes" --fill')" "doesn't take glab's -d (--description) for --draft"
 run guard-git.sh 0 "$(bash_event 'gh pr view 12 --json state')" "ignores other gh commands"
 
 git -C "$T" switch -q -c feat/newsletter-signup

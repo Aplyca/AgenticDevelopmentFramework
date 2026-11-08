@@ -32,9 +32,10 @@
 
 ## Verified / not verified
 
-<!-- From the spec folder's tasks.md § Gate results: what ran (commands, counts) and what could not
-     be checked, and why. Preview: the flow walked on this pull request's preview once it deployed,
-     after the local check — or "pending", "no preview", "nothing a person sees". -->
+<!-- From the spec folder's tasks.md § Gate results: what ran (commands, counts), the agent's review,
+     and what could not be checked, and why. Preview: the flow walked and reviewed on this pull
+     request's preview once it deployed, after the local check — or "pending", "no preview",
+     "can't reach it", "nothing a person sees". -->
 
 <!-- adf:verified -->
 - Verified:

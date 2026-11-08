@@ -1,6 +1,6 @@
 ---
 name: review
-description: Multi-perspective review of a change against its spec folder or request — lane fit, acceptance criteria, change surface, constitution, conventions, security, UX, tests, docs. Use before delivering a full-lane change or docs or CI work, or when the developer asks; /adf:deep-review for high-stakes diffs.
+description: Multi-perspective review of a change against its spec folder or request — lane fit, acceptance criteria, change surface, constitution, conventions, security, UX, tests, docs. Use before every push, in every lane — it reads in proportion to the lane — or when the developer asks; /adf:deep-review for high-stakes diffs.
 argument-hint: "[spec folder, branch, or files to review]"
 ---
 

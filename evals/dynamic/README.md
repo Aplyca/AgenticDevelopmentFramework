@@ -39,7 +39,7 @@ dynamic/
     open-pr/
       project.sh                   - builds a packaged project that runs on Node alone: the dev server and the gate need nothing installed
       stubs.sh                     - each case's stand-ins for the remote, gh, docker, and the preview, which log what ran and when
-      inspect.sh                   - checks the order: the local walk, the push, the draft, the preview walk, the one report
+      inspect.sh                   - checks the order: the local walk, the push, the draft, the preview walk, ready after CI, the one report
       compose-stub.py              - prod-build's docker: Compose for dev-env's stack, its containers run on this machine
       ...                          - a visible change; a local environment that won't start; a docs-only change; a refresh after a change request; the production build in Docker mode
     write-tests/
@@ -123,21 +123,26 @@ $0.60; run it after any change to how the plugin's skills, agents, or hooks name
 Report: [`reports/2026-10-05-plugin-docs.md`](reports/2026-10-05-plugin-docs.md).
 
 The **open-pr** suite checks what no hook can: that `/adf:open-pr` walks the change locally before
-anything leaves the machine ([decision 0045](../../docs/decisions/0045-agent-local-check-opens-the-draft.md)).
+anything leaves the machine ([decision 0045](../../docs/decisions/0045-agent-local-check-opens-the-draft.md)),
+and marks the pull request ready only once its own tests pass ([0070](../../docs/decisions/0070-the-agent-marks-its-pull-request-ready.md)).
 Its project is a packaged install of a newsletter site that runs on Node alone — `pnpm dev` serves the
 form, the gate needs nothing installed — with the plugin loaded from this checkout per session. Each
 case's setup puts its change on a work branch and, next to the run's copy, stand-ins that keep
 everything on the machine (`stubs.sh`): `origin` is a GitHub address git rewrites to a local bare
-repository, `gh` opens the pull request and deploys the pushed branch as a local preview about 15
-seconds later, and `docker` has no daemon. Each logs what ran, with its time, and `inspect.sh` checks
+repository, `gh` opens the pull request, deploys the pushed branch as a local preview about 15
+seconds later — CI passes with it — and marks the pull request ready, and `docker` has no daemon. Each logs what ran, with its time, and `inspect.sh` checks
 the order from that log. `visible-change` walks the change locally before the push, opens the draft,
-waits for the preview in the background, walks it read-only, and reports once with both URLs.
+runs `/adf:review`, waits for the preview and CI in the background, walks and reviews it read-only,
+marks it ready, requests the Reviewers line (`sam-lead`), and reports once, sending the developer to
+the preview.
 `env-wont-start` can't reach its database, so it stops before pushing and says what blocks it.
-`docs-only` opens its draft after the full gate and `/adf:review`, with "nothing to run".
+`docs-only` opens its draft after the full gate and `/adf:review`, with "nothing to run", and marks
+it ready once CI passes.
 `refresh-after-cr` starts with the draft open, its preview up, and people's text outside the
 description's `adf:` markers; asked for a change, it amends the light CR, walks it locally, pushes,
 and refreshes the description (`/adf:open-pr refresh`): the current body fetched, only the marked
-sections rebuilt, the diff shown, `gh pr edit --body-file`. Its preview redeploys on each push.
+sections rebuilt, the diff shown, `gh pr edit --body-file` — and, the draft's tests passing after the
+redeploy, marks it ready. Its preview redeploys on each push.
 `prod-build` runs on dev-env's templates in Docker mode, with a production build that renders the
 page at build time; its "done when" names the production build, so the local check takes `make prod`
 ([decision 0052](../../docs/decisions/0052-production-build-in-the-configured-mode.md)), never a host

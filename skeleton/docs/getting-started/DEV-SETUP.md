@@ -146,7 +146,7 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 |---|---|
 | List the tasks | `[e.g., make help]` |
 | Install | `[command]` |
-| Run / stop | `[e.g., make up · make down]` |
+| Run / stop / down | `[e.g., make up · make stop (keeps containers and data) · make down (removes containers; data stays)]` |
 | Where it runs | `[e.g., make urls]` |
 | Run on the host | `[e.g., DEV_MODE=native in .env, then make up]` |
 | The production build, locally | `[e.g., make prod — make urls shows it, make logs s=web-prod]` |

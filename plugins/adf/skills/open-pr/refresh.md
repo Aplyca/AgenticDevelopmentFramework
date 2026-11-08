@@ -1,12 +1,13 @@
-# Refresh — keep your draft's description current
+# Refresh — keep your pull request's description current
 
-`/adf:open-pr refresh`, once a later push to your own open draft changes what its description says:
+`/adf:open-pr refresh`, once a later push to your own open pull request — a draft, or one you marked
+ready — changes what its description says:
 a fix or a change request the developer asked for, a sync with the base branch, new gate results.
-Editing your own draft's description is upkeep: it takes no prompt.
+Editing your own pull request's description is upkeep: it takes no prompt.
 
 1. **Check the pull request:** `gh pr view <n> --json state,isDraft,body`. Merged or closed: stop and
-   say so — never edit it or push to its branch. No longer a draft: the developer has taken it over,
-   so show the diff (step 5) and apply it only on their yes.
+   say so — never edit it or push to its branch. Ready or draft, it's still yours to keep current:
+   the markers say which sections are.
 2. **Check the record** the push left in the spec folder: a fix's task ticked; a change request's
    tasks and gate results; `status: implemented` again once a full change request's gate results are
    in. Commit and push what's missing before the description: the merge takes the record as the
@@ -28,6 +29,11 @@ Editing your own draft's description is upkeep: it takes no prompt.
    `git diff --no-index <old> <new>`. Sum it up in your report, so the developer sees what changed.
 6. **Apply it** without waiting: `gh pr edit <n> --body-file <new>`. The title changes only when the
    scope did. When the change is one a person sees, recheck the preview (`/adf:open-pr` step 7).
+7. **Still a draft?** Once the push's CI and the preview recheck pass, check `/adf:open-pr` step 8's
+   conditions again and mark it ready when they hold, then request the reviewers. One already ready
+   stays ready: when the fix answers someone's review, request that reviewer again —
+   `gh pr edit <n> --add-reviewer <name>`. Either way,
+   once it's ready, stop the local environment you started again for the fix — a stop, as step 8 says: nothing removed.
 
 ## Rationalizations (do not accept these)
 

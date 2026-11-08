@@ -36,7 +36,7 @@
 #
 # The open-pr suite: a packaged project that runs on Node alone, a work branch per case, and local
 # stand-ins for the remote, gh, and the preview (fixtures/open-pr/stubs.sh). inspect.sh checks the
-# order of what ran — the local walk, the push, the draft, the preview walk — from their log.
+# order of what ran — the local walk, the push, the draft, the preview walk, ready — from their log.
 #
 # The adopt suite: {{FRAMEWORK}} in a prompt becomes --source (the framework's GitHub address by
 # default — what's published on main; pass this checkout's path to test a branch), and a fixture

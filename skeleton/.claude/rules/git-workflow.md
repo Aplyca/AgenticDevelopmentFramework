@@ -48,13 +48,18 @@ the body.
 
 Pushing, opening, readying, merging, or reviewing a pull request, tagging, releasing, and commenting
 on a pull request, issue, or tracker task happen **only when a human asks** — except the work
-branch's **draft**:
+branch's own pull request:
 
 - **Open after the local check** (`AGENTS.md` § Delivery rules): push the work branch, open its
-  draft, and keep it current — later pushes, its description, comments on it. The git guard hook
-  refuses a pull request that isn't a draft and any push to a protected branch.
-- **Reviewing, readying, and merging are the developer's, on their schedule.** Run `gh pr ready`
-  only when the developer, having QC'd the change, asks.
+  draft, and keep it current, draft or ready — later pushes, its description, comments on it. The
+  git guard hook refuses a pull request that isn't a draft and any push to a protected branch.
+- **Ready once your own tests and review pass:** mark it ready once the full gate, `/review`, every
+  criterion's walk — locally, then on the preview — and CI pass, with nothing a criterion depends on
+  unverified (`/open-pr`). Until then it stays a draft.
+- **Then request the reviewers** `CONTRIBUTING.md` § Pull requests names — never the author, never
+  on a draft — and again after a fix that answers their review.
+- **Reviewing, approving, and merging are people's, on their schedule.** Don't remind them or offer
+  to merge.
 - **Title:** a commit-style subject under 70 characters. The body follows the repository's template
   and matches what the diff does.
 - A CI failure the reviewer accepts is explained in the pull request.

@@ -118,8 +118,8 @@ fill("ops/native/Makefile", [
 ])
 fill("AGENTS.md", [
     ("modules: none", "modules: docker"),
-    ("- Dev server: `pnpm dev` · stop: Ctrl-C · where it runs: `pnpm urls`",
-     "- Dev server: `make up` · stop: `make down` · where it runs: `make urls`"),
+    ("- Dev server: `pnpm dev` · stop (keeps containers and data): Ctrl-C, or end its background command · down (removes containers; data stays): nothing to remove · where it runs: `pnpm urls`",
+     "- Dev server: `make up` · stop (keeps containers and data): `make stop` · down (removes containers; data stays): `make down` · where it runs: `make urls`"),
     ('- Production build, locally: `none`', '- Production build, locally: `make prod`'),
     ("- Tests: `pnpm test`", "- Tests: `make test` (t=<file>)"),
     ("- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`", "- Lint: `make lint` · Typecheck: `make typecheck`"),

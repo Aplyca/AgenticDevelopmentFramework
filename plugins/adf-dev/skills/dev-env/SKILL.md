@@ -134,7 +134,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - `DEV-SETUP.md`: the Docker row of Prerequisites, § 3 `make env`, § 4 `make up` and `make urls`
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
      host — and the command surface;
-   - `AGENTS.md` § Quick reference: `make up` and `make down`, and `make urls` for where the app is;
+   - `AGENTS.md` § Quick reference: `make up`, `make stop` (keeps containers and data), `make down`
+     (removes containers; data stays), and `make urls` for where the app is — the words of C12;
    - `.claude/hooks/config.sh`: `LOCAL_URL='http://localhost:${APP_PORT}'`;
    - `deployment.md`: `paths:` naming `compose.yaml`, `Makefile`, `ops/**`, and `.env.example`, and in
      § Docker any convention the project adds;
@@ -210,8 +211,9 @@ services in Docker. Both define the same tasks.
    `make up` starts the backing services in Docker, stops the app's container if it
    runs, and starts the app in the background (`ops/native/native.sh`), with each `<NAME>_PORT`
    exported — `APP_PORT` too: pinned in `.env`, or a free one. It waits until the app answers, and
-   fails with the end of its log if the app exits first. `make down` stops the app and its process
-   group; `make logs` shows its log.
+   fails with the end of its log if the app exits first. `make stop` and `make down` stop the app and
+   its process group — `stop` keeps the services' containers, `down` removes them; `make logs` shows
+   its log.
 4. **Switching modes** is the developer's, and needs no cleanup: `make up` in Docker mode stops an app running on the host,
    and native `make up` stops the app's container.
 5. **Verify:** `make ps` shows the app on the host and only the backing services in Docker; the app

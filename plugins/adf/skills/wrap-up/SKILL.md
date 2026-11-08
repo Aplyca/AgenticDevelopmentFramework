@@ -129,8 +129,9 @@ the close-up only once it resumes and ends.
    it, run nothing but the archive.
    1. **Stop what the task started.**
       - The background commands this session started.
-      - The environment: `make down` with the docker module's conventions, or the project's stop
-        command (`docs/getting-started/DEV-SETUP.md`). `adf-worktree-rm` also runs `STOP_CMD` when
+      - The environment — stopped since the pull request was ready, or still running: `make down`
+        with the docker module's conventions (the containers go, the data stays), or the project's
+        stop command (`docs/getting-started/DEV-SETUP.md`). `adf-worktree-rm` also runs `STOP_CMD` when
         the project sets one.
    2. **Update the base branch in the main checkout,** so the follow-ups start from the merge:
       - **From a worktree** (the scripts' or Claude Code's own): `git -C <main checkout> pull --ff-only`,

@@ -20,7 +20,7 @@ developer asks. Each sync costs a re-run and a new deploy. The steps, in order:
      configuration changed.
 5. **Re-check the cross-spec contracts the merge brought in:** an API, schema, or shared type
    another spec changed still gives this work what it relies on.
-6. **Push to your own draft pull request's branch** — upkeep, with no prompt.
+6. **Push to your own pull request's branch** — upkeep, with no prompt, draft or ready.
 7. **Expect the preview to move.** A new deploy can change the preview's address, and links
    already sent to people show the old build: give the new address in your report.
 8. **Record it** when it changed the evidence: the sync, and what you re-ran, in `tasks.md`

@@ -19,7 +19,9 @@ How work gets from your machine to production — for people and AI agents alike
    implementation code. Commit the folder (`spec:`).
 4. **Docs first** — pre-implementable user-facing docs (`docs:`), when the plan lists any.
 5. **One task at a time** — write the test, watch it fail, write the code, watch it pass, commit.
-6. **Review**, then a **draft** pull request; QC it in its preview; mark it ready.
+6. **Review**, then a **draft** pull request, marked ready once the author's own tests and review
+   pass — locally, on its preview, and CI; then the reviewers review it on its preview, approve it,
+   and merge.
 
 That is the **full lane**, for work with something to decide. A precise request with no risk
 trigger takes the **fast lane** — the test first, seen failing, then the edit, commit — and one in a risk area takes
@@ -66,9 +68,17 @@ schema back).
 
 ## Pull requests
 
-- **Open every pull request as a draft.** QC it yourself in its preview (or read it back, if there's
-  nothing to preview), then mark it ready — "ready" means a person has exercised it. AI agents open
-  drafts and never mark them ready.
+- **Agents implement and review; humans decide.** The local environment is where a change is built
+  and tested; the preview is where its author — an agent, usually — tests and reviews it, and where
+  people review, approve, and merge it.
+- **Open every pull request as a draft,** and mark it ready once your own tests and review pass —
+  the changed flow walked locally and on its preview, CI green. "Ready" means ready for review: its
+  author has tested and reviewed it, and a person's review comes next. AI agents mark their own the
+  same way, request the reviewers below, and never merge.
+- **Reviewers:** [`@username`, … — usernames work on GitHub and GitLab; on GitHub, an `@org/team`
+  too, or `CODEOWNERS` when that file names them; or `none`] <!-- CUSTOMIZE: who reviews and
+  decides. Never the pull request's author. --> Requested once a pull request is ready, and again
+  after a fix that answers their review.
 - **One spec folder per pull request.** The description names the spec folder, links the tracker
   task, says what changed and why, how to verify it, and what was not verified.
 - **No merge without human review** — AI-generated changes included. Read the whole pull request, not
@@ -81,12 +91,12 @@ schema back).
 | State | Say |
 |---|---|
 | Work started (after triage) | "in progress" |
-| Pull request open | "in review" |
+| Pull request ready for review | "in review" |
 | Merged into [the integration branch / preview] | "in acceptance testing" |
 | [Merged into `main` / released with a tag] | "live" |
 
 The task's status moves to match, on its own: in progress when work starts, in review once the pull
-request is pushed, done once it merges.
+request is ready, done once it merges.
 
 ## What's enforced, and what isn't
 
@@ -94,7 +104,7 @@ request is pushed, done once it merges.
 
 - **Enforced by the Git host:** [e.g., pull requests required on `main`; no force-push; merge method]
 - **Enforced locally:** [e.g., pre-commit lint; pre-push typecheck and unit tests; agent hooks in `.claude/hooks/`]
-- **Not enforced — conventions:** [e.g., required approvals, passing checks, draft-until-QC]. We follow
+- **Not enforced — conventions:** [e.g., required approvals, passing checks, draft-until-tested]. We follow
   them because that's the agreement, not because anything stops us.
 
 ## Commit messages

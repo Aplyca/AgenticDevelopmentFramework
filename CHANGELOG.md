@@ -11,6 +11,150 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Agents implement and review; humans decide — and `/adf:open-pr` works on GitLab too**
+  ([decision 0072](docs/decisions/0072-agents-implement-and-review-humans-decide.md), amending
+  0039, 0045, and 0070).
+  - **What:**
+    - **Each environment has its role.** The local environment is the agent's, to build, test, and
+      review the change; the preview is the agent's to test and review it, and the developer's to
+      review, approve, and merge it. `AGENTS.md`, `CONTRIBUTING.md`, the README, and onboarding say
+      so.
+    - **`/adf:review` runs in every lane, before the push,** reading in proportion to the lane; its
+      findings are fixed first. It ran only in the full lane and for docs or CI work before.
+    - **On the preview, the agent tests and reviews** — when there is one and it can reach it: the
+      flow, then the changed page at a phone's width and a desktop's, its copy, the console, basic
+      accessibility, and any difference from local. Read-only. A finding is fixed before ready.
+    - **Ready asks a person.** Right after marking it ready, `/adf:open-pr` requests the reviewers
+      the new **Reviewers** line in `CONTRIBUTING.md` names — usernames, a GitHub team, `CODEOWNERS`,
+      or `none` — never the author, never on a draft; `refresh` requests a reviewer again after a fix
+      that answers their review. The report sends the developer to the preview, not the local
+      environment.
+    - **GitHub and GitLab.** A new reference file, `open-pr/gitlab.md`, gives the `glab` command for
+      every step — the draft, CI and the preview, the description, ready, reviewers — and what
+      differs. `guard-git.sh` refuses a `glab mr create` without `--draft` or `--wip`. `/adf:adopt`
+      names the `glab` rules to add. The rules name actions, not one host's commands.
+  - **Where:** `plugins/adf/skills/open-pr/` (`SKILL.md`, `preview.md`, `refresh.md`, new
+    `gitlab.md`), `plugins/adf/skills/review/SKILL.md`'s description, `plugins/adf/skills/adopt/SKILL.md`,
+    `plugins/adf/hooks/guard-git.sh`; `skeleton/AGENTS.md`, `skeleton/CONTRIBUTING.md`,
+    `skeleton/.claude/rules/git-workflow.md` and `claude-code.md`,
+    `skeleton/.cursor/rules/implementation.mdc`, `skeleton/specs/README.md`, `skeleton/README.md`;
+    `modules/github/files/.github/pull_request_template.md`; the README, onboarding, skills
+    reference, and scenarios; the hook tests, static checks, and the open-pr session evals.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/open-pr/` (with its new `gitlab.md`),
+    `.claude/skills/review/`, and `.claude/hooks/guard-git.sh`, as `/adf:upgrade` writes them;
+    packaged, they come with the plugin.
+  - **Merge:** `AGENTS.md` — the new ground rule, § How work flows' lane line, and § Delivery rules'
+    local check, preview, and pull request lines. `CONTRIBUTING.md` — the workflow's step 6 and
+    § Pull requests: add the principle and the **Reviewers** line, and fill it in. `git-workflow.md`
+    § Pull requests and outward actions; `claude-code.md`'s local URL line and Fast lane row;
+    `.cursor/rules/implementation.mdc`; `specs/README.md`'s lanes intro, *Local check*, and
+    *Deliver*; `README.md`'s step 5. With the github module, the comment above *Verified / not
+    verified* in `.github/pull_request_template.md`.
+  - **Fill in the Reviewers line.** Until then, the agent requests no one and its report says so.
+  - **A GitLab project** adds the `glab` rules `/adf:adopt` names to `.claude/settings.json`, if it
+    hasn't.
+
+- **The agent stops the local environment once its pull request is ready, keeping its containers
+  and data — and stop, pause, down, kill, and remove each mean one thing** ([decision 0071](docs/decisions/0071-stop-the-local-environment-once-ready.md),
+  amending 0045 and 0032).
+  - **What:**
+    - **Once `/adf:open-pr` marks the pull request ready,** it stops what the session started, to
+      free memory and CPU: the background commands (the dev server), and the services through the
+      project's stop task — `make stop` with the docker module. Containers, volumes, data,
+      dependencies, and the worktree stay, so `make up` resumes it for the next adjustment. Never
+      `make down`, `make reset`, the worktree's `STOP_CMD`, or anything that removes containers,
+      volumes, or data; an environment that ran before the session is left alone; a draft keeps
+      its environment running.
+    - **The report gives the preview's URL and the command that resumes the local environment**
+      (`make up`, which prints where it runs), instead of a local URL that no longer answers. A fix
+      after ready resumes it, walks the change, and stops it again.
+    - **`/adf:wrap-up` still closes up after the merge** — `make down` removes the stopped
+      containers; the data stays.
+    - **One word for each state of the local environment** — Docker's own, in the dev-env
+      specification's new C12: **stop** ends the processes and containers and keeps everything
+      (`make stop`, the agent once ready); **pause** freezes them in memory (no task: it frees no
+      memory); **down** removes the containers and networks and keeps the data (`make down`,
+      `/adf:wrap-up` after the merge); **kill** ends them with no graceful shutdown (no task: only an
+      agent's own process that ignores a stop); **remove** deletes the volumes too (`make reset`,
+      and a worktree's `STOP_CMD`, only on the developer's yes). Images stay in every state.
+    - **The docker module's `make stop`, in both modes:** Docker mode runs
+      `docker compose --profile prod stop`; native mode stops the app's process group and the
+      backing services' containers. It runs `guard` first and updates Claude Desktop's Browser.
+      `make down`'s description now says it removes the containers and networks. The specification
+      lists `stop` in C3, C6, C11, M6, and P8.
+  - **Where:** `plugins/adf/skills/open-pr/SKILL.md` and `refresh.md`,
+    `plugins/adf/skills/wrap-up/SKILL.md`; `plugins/adf-dev/skills/dev-env/` (`SPECIFICATION.md`,
+    `SKILL.md`, both mode `Makefile`s, `launch-json.sh`), `modules/docker/MODULE.md`;
+    `skeleton/AGENTS.md` (§ Delivery rules and § Quick reference),
+    `skeleton/docs/getting-started/DEV-SETUP.md`; the README and onboarding; the module tests and
+    the open-pr session evals.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/open-pr/` and `.claude/skills/wrap-up/`, and
+    with the docker module `.claude/skills/dev-env/`, as `/adf:upgrade` writes them; packaged, they
+    come with the plugins.
+  - **Merge:** `AGENTS.md` — § Delivery rules' local check line, and § Quick reference's dev server
+    line: name the stop that keeps containers and data (`make stop` with the docker module) and the
+    down that removes containers (`make down`). `docs/getting-started/DEV-SETUP.md` — the run /
+    stop / down row.
+  - **With the docker module:** add `stop` to `ops/docker/Makefile` and `ops/native/Makefile` —
+    run `/adf-dev:dev-env`, whose audit now finds it missing (C3), or copy the two targets from the
+    templates, with `stop` in each `.PHONY`. Until then, the agent ends only the background commands
+    it started and says what still runs.
+  - **A project without the docker module** whose services the agent starts names their stop
+    command — one that removes nothing — in § Quick reference.
+
+- **The agent marks its pull request ready once its own tests pass**
+  ([decision 0070](docs/decisions/0070-the-agent-marks-its-pull-request-ready.md), amending 0005,
+  0033, 0045, and 0059).
+  - **What:**
+    - **Ready means the agent's tests passed and a person's review is next,** not that a person has
+      exercised the change. `/adf:open-pr` still opens a draft after the local check; its new step 8
+      waits for CI in the background with the preview's deploy and runs `gh pr ready` — no prompt,
+      no question — once the full gate passed, every acceptance criterion (or the "done when")
+      worked locally and on the preview when there is one, CI is green, and nothing a criterion
+      depends on is *Not verified*. Until then it stays a draft, and the one report says what holds
+      it. Docs and CI work: the gate, a clean `/adf:review`, and CI.
+    - **A criterion only a shared service can run is tested on the preview.** The rest is walked
+      locally, the draft opens, and that criterion is walked on the preview, read-only, before ready.
+      With no preview, or an environment that won't start, the push still stops.
+    - **The tracker task moves to in review when the pull request is ready,** not when the draft
+      opens, and the review update is drafted then. A draft the agent isn't confident about leaves
+      the task in progress.
+    - **The pull request stays the agent's to keep current after ready:** `refresh` no longer treats
+      a ready pull request as taken over, `sync` pushes to it, and a fix the developer asks for keeps
+      it ready. `refresh` marks a draft ready once the conditions hold.
+    - **Review and merge stay the developer's;** the report names their next step once — test and
+      review it; the merge is theirs — and requests no reviewers.
+    - **`gh pr ready` leaves `permissions.ask`.** `guard-git.sh` still refuses a pull request that
+      doesn't open as a draft; its message now says the agent marks it ready after its tests.
+  - **Where:** `plugins/adf/skills/open-pr/` (`SKILL.md`, `preview.md`, `refresh.md`, `sync.md`),
+    `plugins/adf/skills/stakeholder-update/SKILL.md`, `plugins/adf/skills/spec-workflow/SKILL.md`,
+    `plugins/adf/hooks/guard-git.sh` and its `README.md`; `skeleton/.claude/settings.json`,
+    `skeleton/AGENTS.md`, `skeleton/.claude/rules/git-workflow.md` and `claude-code.md`,
+    `skeleton/.cursor/rules/implementation.mdc`, `skeleton/CONTRIBUTING.md`, `skeleton/README.md`,
+    `skeleton/specs/README.md`, `skeleton/docs/TRACKER-INTEGRATION.md`; the README, onboarding,
+    skills reference, scenarios, and newsletter examples; the static checks and the open-pr session
+    evals, whose `gh` stand-in now marks a pull request ready.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/open-pr/`, `.claude/skills/stakeholder-update/`,
+    `.claude/skills/spec-workflow/`, and `.claude/hooks/guard-git.sh`, as `/adf:upgrade` writes
+    them; packaged, they come with the plugin.
+  - **Merge:** `.claude/settings.json` — remove `"Bash(gh pr ready)"` and `"Bash(gh pr ready *)"`
+    from `permissions.ask`; the `Bash(gh *)` allow rule then covers it. `AGENTS.md` — § Core rules'
+    "Nothing leaves this machine" line, step 7 of the workflow, the requester line, and § Delivery
+    rules' local check, preview, and pull request lines. `.claude/rules/git-workflow.md` — § Pull
+    requests and outward actions. `.claude/rules/claude-code.md` — the *Ask first* and *No prompt*
+    lines. `.cursor/rules/implementation.mdc`, `CONTRIBUTING.md` (the workflow's step 6, § Pull
+    requests, the "in review" status words), `README.md`, `specs/README.md` (the flow and *Deliver*),
+    and `docs/TRACKER-INTEGRATION.md` (when the status moves to in review). Keep your own wording
+    elsewhere.
+  - **A team that wants a person to promote every pull request** says so in `AGENTS.md` § Delivery
+    rules and keeps `gh pr ready` in `permissions.ask`; the agent then leaves the draft.
+
 - **A test run is as small as its question, and each behavior is tested once at its cheapest layer**
   ([decision 0069](docs/decisions/0069-a-run-is-as-small-as-the-question.md)).
   - **What:**

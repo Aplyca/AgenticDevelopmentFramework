@@ -13,8 +13,6 @@
     "ask": [
       "Bash(git config *)",
       "Bash(git push *--tags*)",
-      "Bash(gh pr ready)",
-      "Bash(gh pr ready *)",
       "Bash(gh pr merge)",
       "Bash(gh pr merge *)",
       "Bash(gh pr review *)",

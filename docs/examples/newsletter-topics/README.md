@@ -467,8 +467,9 @@ From the local Playwright run at 375 px and 1280 px: the form with three topics;
 ```
 
 The agent records #187 in `spec.md` (`spec: link newsletter-signup CR 1 pull request`) — a second
-line under `pull-requests:`, below #142. Sam QC'd the preview the next working day, VoiceOver
-included, and asked the agent to push the link commit and mark the pull request ready. It merged on
+line under `pull-requests:`, below #142. The real Mailchimp update and the VoiceOver pass held it a
+draft. Sam QC'd the preview the next working day, VoiceOver included, and asked the agent to push the
+link commit and mark the pull request ready. It merged on
 2026-09-21.
 
 ---

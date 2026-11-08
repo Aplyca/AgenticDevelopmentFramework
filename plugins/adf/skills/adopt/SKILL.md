@@ -228,7 +228,9 @@ Present the table before going further. Wrong facts here poison every file downs
   opens for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
   parallel-agents module, or leave it empty there and let `READY_URL` serve).
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
-  keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
+  keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules —
+  `Bash(glab *)` allowed, and asked: `glab mr merge`, `glab mr approve`, `glab release`, `glab repo delete`,
+  `glab variable` (its secrets), `glab auth`, and `glab api` writes.
   Packaged: no `hooks` block, since the plugin wires them, and
   `Read(~/.claude/plugins/cache/aplyca/adf/**)` in `permissions.allow`, so the plugin's skills
   and agents open its reference docs without asking.

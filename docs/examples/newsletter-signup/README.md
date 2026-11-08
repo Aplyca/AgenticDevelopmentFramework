@@ -729,8 +729,9 @@ Sam approved the local check, so the agent pushes and runs `gh pr create --draft
 prompt. The pull request opens as a **draft**: #142. The agent records it in `spec.md`
 and commits locally — `spec: link newsletter-signup pull request`, which goes up with the next
 push. It offers to post the PR link on MKT-412, showing the exact text; that's a write
-Dana would see, so it waits for a yes (Sam preferred to post it by hand). It ends with what to QC before
-the PR is marked ready: the Vercel variables, a real signup on the preview, and the VoiceOver pass.
+Dana would see, so it waits for a yes (Sam preferred to post it by hand). It leaves the pull request
+a draft and says what holds it: a real signup on the preview, which its read-only walk doesn't make,
+the Vercel variables, and the VoiceOver pass.
 
 **The human QC paid off.** On the preview the next morning, Sam's first test signup showed the
 error message: the Mailchimp variables were set for Production only. Sam added them for Preview,
@@ -739,9 +740,9 @@ job — the agent said plainly what it couldn't see. Then:
 
 > **Sam:** QC done. Push the link commit and mark it ready.
 
-The agent ran `git push` and `gh pr ready 142`, each confirmed again at the prompt. An agent marks a
-pull request ready only when a person who has exercised it asks. A teammate reviewed it, and it was
-squash-merged on 2026-06-15.
+The agent ran `git push` and `gh pr ready 142`. With every criterion tested, it marks a pull request
+ready on its own; here, what it couldn't test held the draft until a person had. A teammate reviewed
+it, and it was squash-merged on 2026-06-15.
 
 ---
 

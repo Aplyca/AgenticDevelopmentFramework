@@ -25,8 +25,9 @@ live, and git history holds who committed what.
 
 Every change to the repository takes one of three lanes. The lane follows **risk and uncertainty,
 not size**. What catches defects runs in every lane: a test that proves the change, the guardrail
-hooks, CI, the agent's own check on the local environment before the pull request, a draft pull
-request reviewed by a person, and the human check on the preview. What the
+hooks, CI, the agent's own check and review on the local environment before the pull request, its
+test and review on the preview, and a person's review there before the merge — agents implement and
+review; humans decide. What the
 lane changes is how much gets written down and approved *before* the code exists.
 
 | Lane | When | What happens |
@@ -91,7 +92,7 @@ higher effort level or a stronger model, and extra verification (`@security-revi
 The full lane:
 
 ```
-triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE → docs first → implement (TDD per task) → verify → local check → draft PR
+triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE → docs first → implement (TDD per task) → verify → local check → draft PR → ready
 ```
 
 | Step | Artifact | What happens |
@@ -106,8 +107,8 @@ triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE �
 | **Docs first** | pre-implementable docs | Written from the spec and plan, committed before implementation (`/write-docs`; skips cleanly when there are none). With the end-user-docs module, an end-user page is drafted in the doc tool (`/end-user-docs`) and published once the feature ships |
 | **Implement** | one commit per task | Write the test, watch it fail, write the code, watch it pass, commit, tick the task (`/implement`) |
 | **Verify** | `tasks.md` § Gate results | Full gate run; `/implement` records the red-then-green evidence and what could not be run; `/review` checks it |
-| **Local check** | the agent's walk | The agent runs the change on the local environment and walks the changed flow before any push (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use |
-| **Deliver** | draft PR | Once the local check passes (with nothing to run, once the gate and review pass): push and open a **draft** PR naming the spec folder and tracker task (`/open-pr`). The developer tests it locally and on the preview, QCs it, and marks it ready. |
+| **Local check** | the agent's walk and review | The agent runs the change on the local environment and walks the changed flow before any push (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use — and runs `/review`, in every lane |
+| **Deliver** | draft PR | Once the local check and review pass (with nothing to run, the gate and review): push and open a **draft** PR naming the spec folder and tracker task, test and review it on the preview, and mark it ready once that and CI pass, then request the reviewers (`/open-pr`). The reviewers review it on the preview, approve it, and merge. |
 
 The approval gate sits after the plan on purpose: approving a spec alone is cheap but checks
 the wrong thing — the riskiest part of an agent's convincing analysis is usually **which files
@@ -263,7 +264,7 @@ follow-up: it joins the change surface (`plan.md` updated, re-confirmed if it re
 the pull request says so.
 
 **Follow-ups** live in the pull request's `## Follow-ups` section, one line each:
-`- [ ] <the task, in one line> — <why it matters> (found in <file:line>)`. On an open draft the agent
+`- [ ] <the task, in one line> — <why it matters> (found in <file:line>)`. On an open pull request the agent
 adds the line at once — upkeep, with no prompt; before the draft opens, `/open-pr` writes the ones
 the session found. The agent adds lines and never ticks or removes one: the developer drops a
 follow-up by ticking or deleting it. When the task ends — merged, or closed and dropped — `/wrap-up`
