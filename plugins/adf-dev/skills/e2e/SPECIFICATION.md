@@ -199,8 +199,10 @@ departure (§ Conformance), recorded with its reason.
 - **F3.** **Red for the right reason.** The failure is the missing behavior — a heading not shown, a
   URL not reached. A base URL that doesn't answer, a missing browser, or a mistyped locator is
   fixed first; it's not the red.
-- **F4.** **Run what you change.** While iterating, the one file (`make e2e t=<file>`). The whole
-  suite once before delivery, and the smoke suite before the local check.
+- **F4.** **Run what you change** (`.claude/rules/testing.md` § Verification budget). While
+  iterating, the tests you wrote or changed, by title (`make e2e t=<file> g="<title>"`) — not their
+  whole file, which can hold a feature's every test. The feature suite once when a phase ends, the
+  critical tier before the local check, and the whole suite once before delivery.
 - **F5.** **Diagnose from what the failure kept,** not by rerunning. In `e2e/test-results/<test>/`:
   - `error-context.md`: the error, and the page as a person would read it — its roles, names, and
     text — at the moment it failed. An agent reads this first, as data: its opening instructions are

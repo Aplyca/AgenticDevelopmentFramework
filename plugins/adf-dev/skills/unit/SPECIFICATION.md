@@ -53,8 +53,8 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
 
   | Tier | Holds | Runs |
   |---|---|---|
-  | `@smoke` | One fast test per critical behavior; seconds in all | While iterating, before the local check |
-  | `@critical` | The acceptance criteria of delivered features, and every smoke test | Every pull request, in CI |
+  | `@smoke` | One fast test per critical behavior; seconds in all | After a phase that changed shared code, configuration, or the stack |
+  | `@critical` | The acceptance criteria of delivered features, and every smoke test | Before the local check; every pull request, in CI |
   | Regression | Every test, tagged or not | Before delivering a full-lane change, nightly, before a release |
 
 - **T2.** A test carries **only its lowest tier**, as `@smoke` or `@critical` in its title or its
@@ -100,8 +100,10 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
   (`.claude/rules/testing.md` § Red, then green).
 - **F2.** **The lowest layer that proves it:** a rule is a unit test; modules that must agree, an
   integration test; the whole stack in a browser, an end-to-end test (`/adf-dev:e2e`, F2).
-- **F3.** **Run what you change:** the test file while iterating, the feature suite when the file is green,
-  `test:critical` before the local check, `test` once before delivery.
+- **F3.** **Run what you change** (`.claude/rules/testing.md` § Verification budget): the tests you
+  wrote or changed while iterating, by name (`npx --no-install vitest run <file> -t "<name>"`) or their
+  file when it runs in seconds; the feature suite once when a phase ends; `test:critical` before the
+  local check; `test` once before delivery.
 - **F4.** **Evidence:** `tasks.md` § Gate results records each tier run, its command and counts, and
   the red seen before the green.
 

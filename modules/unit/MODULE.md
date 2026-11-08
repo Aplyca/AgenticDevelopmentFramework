@@ -13,11 +13,11 @@ Three cumulative **tiers**, the same in Vitest and in the `e2e` module's Playwri
 
 | Tier | Holds | Runs |
 |---|---|---|
-| `@smoke` | One fast test per critical behavior or flow | While iterating; before the local check |
-| `@critical` | The acceptance criteria of delivered features, and every smoke test | Every pull request, in CI |
+| `@smoke` | One fast test per critical behavior or flow | After a phase that changed shared code, configuration, or the stack |
+| `@critical` | The acceptance criteria of delivered features, and every smoke test | Before the local check; every pull request, in CI |
 | Regression | Every test | Before delivering a full-lane change; nightly; before a release |
 
-A test carries only its lowest tier, in its title; the commands add the tiers below it. An **feature suite**
+A test carries only its lowest tier, in its title; the commands add the tiers below it. A **feature suite**
 is the feature a test verifies — its folder, listed in `docs/TEST-SUITES.md`.
 
 ```

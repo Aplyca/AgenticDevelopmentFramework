@@ -9,8 +9,20 @@ alwaysApply: false
 Tests are written from the spec folder before the code that satisfies them. `plan.md` § Test
 strategy maps every requirement to a test; each task in `tasks.md` names the test that proves it.
 In the fast and careful lanes too, the test that asserts the new behavior (for a bug, the regression
-test) is written or updated first and seen failing; then the change makes it pass. Run targeted
-tests while iterating and the full gate once.
+test) is written or updated first and seen failing; then the change makes it pass.
+
+## Strategy — the fewest, fastest tests that prove the spec
+- Test what a requirement needs, once — not again in another test or another layer
+- At the cheapest layer that proves it: a rule in a unit test; parts that must agree in an integration test; the whole stack in an end-to-end test, which shows a lower layer's behavior once in its flow
+- Repeat a check across variants (screens, locales, roles, inputs) only where each runs code of its own
+- A slow test pays its setup once: check what the requirement needs from the screen or response it loaded
+- Run only what the question needs, by tag, path, or name
+
+## When each run comes
+- Each red and green: the tests you wrote or changed, by name (or their file, when it runs in seconds); at the green, lint and typecheck on the changed files
+- A phase of `tasks.md` ends (fast and careful lanes: the change is green): the feature suite it touched, once — a sanity check — plus `@smoke` when it changed shared code, configuration, or the stack
+- Before the local check: `@critical`. Before delivery: the full gate, once
+- A slow run — a whole end-to-end file, a feature suite, a tier — never follows every task
 
 ## Test scope comes from every filled spec section
 - **Functional** — every AC and edge case (always)
@@ -22,7 +34,7 @@ Skip sections marked Not applicable or Standard applies.
 1. Write the task's test
 2. Run it — it must **fail for the right reason** (the missing behavior, not an import or fixture error). A test that never failed proves nothing
 3. Write the code, run it to green, commit test and code together as the task's commit
-4. If a new test passes before any code exists, stop: the behavior exists or the test is wrong
+4. If a new test passes before any code exists, find out why: fix a wrong test until it fails for the right reason; for behavior that already exists, say so and keep the test as a pin — break the behavior on purpose, watch it fail, restore it. A type or compile error is never the red
 
 Contract-first option: when the plan asks for it, end-to-end acceptance tests encoding the ACs are written first and committed red (`test:`); the task loop turns them green.
 
@@ -31,7 +43,7 @@ Contract-first option: when the plan asks for it, end-to-end acceptance tests en
 - Green tests are necessary, not sufficient — verify the behavior
 
 ## Structure
-- One test file per feature feature suite; names that read as behavior; Arrange → Act → Assert
+- One test file per feature suite; names that read as behavior; Arrange → Act → Assert
 - Mock ALL external services; mock data matches real contracts
 - Mock only at the system boundary (external services, the clock, randomness) — never your own modules
 - Fake but realistic test data — never real credentials or PII
@@ -42,7 +54,7 @@ Contract-first option: when the plan asks for it, end-to-end acceptance tests en
 - Assert the behavior the spec names, not that the code ran without an error
 
 ## Tiers and feature suites
-- Three cumulative tiers: `@smoke` (one fast test per critical behavior; while iterating) ⊂ `@critical` (delivered features' acceptance criteria; every pull request) ⊂ regression (everything; before delivery, nightly, release)
+- Three cumulative tiers: `@smoke` (one fast test per critical behavior; after a phase that changed shared code, configuration, or the stack) ⊂ `@critical` (the critical paths: delivered features' acceptance criteria; before the local check, every pull request) ⊂ regression (everything; before delivery, nightly, release). A sanity check is not a tier: it's the touched feature suite, once per phase
 - A test carries only its lowest tier, in its title (`'rejects an empty email @smoke'`); untagged = regression only
 - A feature suite is a feature and its folder (`tests/billing/`), listed in `docs/TEST-SUITES.md`; a path runs one feature suite. End-to-end flows across feature suites carry `@suite:<name>`
 - Never retag or skip a failing test to get green

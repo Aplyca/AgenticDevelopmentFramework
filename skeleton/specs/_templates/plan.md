@@ -82,8 +82,10 @@ Every principle in `docs/CONSTITUTION.md` was read against this plan.
 ## Test strategy
 
 <!-- Map every AC, edge case and testable requirement (Security, Accessibility, Performance,
-     Privacy, Analytics, Localization) to a test. tasks.md repeats the test on the task that
-     makes it pass. Note anything verified manually and why it can't be automated. -->
+     Privacy, Analytics, Localization) to a test, at the cheapest layer that proves it and tested
+     once (.claude/rules/testing.md § Strategy). tasks.md repeats the test on the task that
+     makes it pass. Note anything verified manually and why it can't be automated, and a layer
+     the project lacks. -->
 
 | Requirement | Test (file · name) | Type |
 | --- | --- | --- |

@@ -79,6 +79,7 @@ projects.
 | [0066](0066-time-entries-describe-outcomes.md) | A time entry's description says what the day delivered, in business terms | accepted |
 | [0067](0067-the-task-record-merges-with-its-pull-request.md) | A task's pull request carries its whole record, and a gap after the merge is a miss | accepted |
 | [0068](0068-a-contentful-server-is-named-after-its-project.md) | A Contentful server is named after its project, so each project has its own sign-in and space | accepted |
+| [0069](0069-a-run-is-as-small-as-the-question.md) | A test run is as small as its question, and each behavior is tested once at its cheapest layer | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

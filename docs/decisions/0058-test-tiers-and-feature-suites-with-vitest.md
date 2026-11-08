@@ -1,6 +1,6 @@
 # 0058: Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0069](0069-a-run-is-as-small-as-the-question.md) (`@smoke` runs after a phase that changed shared code, not while iterating; each run waits for its point)
 - **Date:** 2026-10-28
 
 ## Context

@@ -11,6 +11,48 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A test run is as small as its question, and each behavior is tested once at its cheapest layer**
+  ([decision 0069](docs/decisions/0069-a-run-is-as-small-as-the-question.md)).
+  - **What:**
+    - **A strategy for every stack:** `testing.md` opens with § Strategy — test what a requirement
+      needs, once; at the cheapest layer that proves it; repeat a check across variants only where
+      each runs code of its own; a slow test pays its setup once; run only what the question needs,
+      by tag, path, or name.
+    - **Each run waits for its point** (§ Verification budget): a task runs the tests it wrote or
+      changed, by name, and static checks on its changed files; a phase's end runs the touched
+      feature suite once — a sanity check — plus `@smoke` when it changed shared code,
+      configuration, or the stack; `@critical` before the local check; the full gate once. Before,
+      the rule said "run the file", and a feature's tests in one slow end-to-end file reran after
+      every task.
+    - **`@smoke` no longer runs while iterating;** sanity is the phase-end run, not a tier.
+    - **`/adf:implement`:** step 8 runs the task's tests by name, step 10 the feature suite at a
+      phase's end. A test that passes before any code is fixed if wrong, or kept as a pin — break
+      the behavior on purpose, watch it fail, restore it — with the rest of the task in the same
+      commit (`refactor:` when no behavior changes). A type or compile error is never the red.
+    - **`/adf:write-plan`:** the test strategy picks the cheapest layer, tests each behavior once,
+      and lists a layer the project lacks as a risk at the gate. The verification checklist names
+      the commands for one test by name, a feature suite, and the full gate.
+    - **`tasks.md`'s checklist** reads "the full gate, once before delivery", not "each checkpoint",
+      with a line for what runs while iterating.
+  - **Where:** `skeleton/.claude/rules/testing.md`, `skeleton/.cursor/rules/testing.mdc` and
+    `implementation.mdc`, `skeleton/specs/_templates/tasks.md` and `plan.md`,
+    `plugins/adf/skills/implement/SKILL.md`, `plugins/adf/skills/write-plan/SKILL.md`, the `unit` and
+    `e2e` specifications (`T1`, `F3`, `F4`) and `modules/unit/MODULE.md`, the newsletter examples.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/implement/` and `.claude/skills/write-plan/`,
+    as `/adf:upgrade` writes them, and with the `unit` and `e2e` modules `.claude/skills/unit/` and
+    `.claude/skills/e2e/`; packaged, they come with the plugins.
+  - **Merge:** `.claude/rules/testing.md` — add § Strategy at the top, and take the new
+    § Verification budget, the `@smoke` and `@critical` lines, the sanity line in § Tiers and feature
+    suites, and the passes-first line in § Red, then green; keep your commands. `.cursor/rules/testing.mdc`
+    and `implementation.mdc`, the same way. `specs/_templates/tasks.md` — the checklist's heading
+    and its "While iterating" line; `specs/_templates/plan.md` — the Test strategy comment.
+  - **A project whose commands or docs say `@smoke` runs while iterating** (an `e2e/README.md`, a
+    `Makefile` help line): change it to after a phase that changed shared code. Spec folders
+    already written keep their checklist; a folder still being implemented can change its "while
+    iterating" command to the task's tests by name.
+
 ## v2.7.0 — 2026-11-05 — One session per task, a status that follows the work, test tiers, and read-only service profiles
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
