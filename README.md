@@ -153,12 +153,12 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.7.0** (2026-11-05), is a minor release: a task stays in one session named after
+The latest, **v2.8.0** (2026-11-12), is a minor release: the agent tests and reviews its own pull
+request, marks it ready, and stops its local environment, while people review and merge; the ticket
+speaks to stakeholders and the pull request to the developer; and a test run is only as large as its
+question. **v2.7.0** (2026-11-05), also a minor release: a task stays in one session named after
 it, its tracker status follows the work, tests run by tier and feature suite with a new `unit`
-module, and `/adf-connect:connect` has read-only profiles for Vercel and Contentful. **v2.6.0**
-(2026-10-25), also a minor release: every lane pushes and opens its draft without asking, the
-requester hears at three moments, a new `end-user-docs` module writes end-user pages, and the
-always-loaded instructions are leaner. This README describes `main`: what has landed
+module, and `/adf-connect:connect` has read-only profiles for Vercel and Contentful. This README describes `main`: what has landed
 since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
 one.
 
