@@ -67,6 +67,8 @@ if case == "visible-change":
     check("waited for the preview with gh pr checks", any_("gh", r"^pr checks"))
     check("walked the preview once it deployed", any_("preview", "^GET "))
     check("the preview walk was read-only — no POST", not any_("preview", "^POST "))
+    check("the description carries the review instructions — where, and what to look at",
+          "## How to review and test" in body and "**Where:**" in body and "**Look at:**" in body)
     check("the body's Preview line records the walk, not 'pending'",
           bool(re.search(r"Preview:(?!.*pending)", body, re.I)))
     preview_walk = first("preview", "^GET ")

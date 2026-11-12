@@ -1,6 +1,6 @@
 # 0072: Agents implement and review; humans decide
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) — the review instructions live in the pull request's description, not the chat report
 - **Date:** 2026-11-08
 - **Amends:** [0039](0039-check-locally-then-on-the-preview.md) — the agent reviews the change on the
   preview too, and requests the project's reviewers; [0045](0045-agent-local-check-opens-the-draft.md)

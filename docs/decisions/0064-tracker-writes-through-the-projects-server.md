@@ -1,6 +1,6 @@
 # 0064: Tracker writes go through the project's server, and a correction an edit would damage is the developer's
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) — the project's tracker tool is its server, or `gh` or `glab` for issues
 - **Date:** 2026-11-02
 - **Amends:** [0053](0053-stakeholder-updates-at-three-moments.md) — the read-back checks the author,
   and a correction no longer always edits the comment;

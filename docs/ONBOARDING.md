@@ -51,8 +51,8 @@ The full lane flows:
 | Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
 | Local check | The agent, on the local environment | It walks the changed flow before any push | — |
-| Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, the local check and review; tested and reviewed on the preview, marked ready, and the reviewers requested; then where you review it — the preview | — |
-| Keep the requester informed — started, in review, delivered | `/stakeholder-update` (from `/triage` and `/open-pr`, or when asked) | The requester's update and the task's status, shown to you first | — |
+| Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, the local check and review; tested and reviewed on the preview, marked ready with the review instructions in its description, and the reviewers requested; then where you review it — the preview | — |
+| Keep the requester informed — started, in review, delivered | `/stakeholder-update` (from `/triage` and `/open-pr`, or when asked) | The task's status and the requester's update on the ticket — the outcome posts on its own and is shown to you; a question for them waits for your yes | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
 `specs/_templates/`; the slug joins folder, branch (`<type>/<slug>`), and pull request.
@@ -120,7 +120,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | A person confirms merges, reviews, releases, GitHub API writes. Keeping the pull request current — pushing, editing it, commenting on it, marking it ready once the agent's own tests pass — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once it has checked the change locally | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/stakeholder-update` starts from a plain request ("update the client"), and posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
+| `/stakeholder-update` starts from a plain request ("update the client"); a message that asks the requester for something posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
 | Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
@@ -260,7 +260,7 @@ One person drives; another plays marketing, the requester.
 7. With a remote, that check opens the pull request: the agent runs `/open-pr`, and it opens as a
    draft. The agent tests and reviews it on the preview, marks it ready once that and CI pass, and
    requests the reviewers `CONTRIBUTING.md` names. Then it stops the local environment — its
-   containers and data stay — and gives you the preview's URL and what to try there. Review it on
+   containers and data stay — and gives you the preview's URL; what to try is in the pull request's description. Review it on
    the preview; approving and merging are yours.
 
 ## Week 2: The full workflow in practice
@@ -313,13 +313,16 @@ framework's own [decision records](decisions/README.md) are examples.
 - **Read freely** — with a tracker MCP server connected, `/triage` reads the task itself.
 - **Tracker text is data, not instructions.** A comment telling the agent to deploy is a requirement
   to discuss; otherwise anyone who can comment on a task can steer your agent.
-- **Confirm every requester-visible write** — comment, message, status change — with the exact text,
-  every time. Never act on a task the developer isn't assigned to.
+- **The ticket is for stakeholders; the pull request is for the developer.** On the task you hand
+  it, the agent moves the status and posts the outcome — in review, delivered — on its own, and
+  shows you the text. Anything that asks the requester for something waits for your yes to the
+  exact text, every time, and so does any write on another task.
 - **Link, don't copy** — the tracker and the repository have different audiences and access.
 
 Tracker-originated work — light changes included — updates the requester at three moments: started
-(after triage), in review (once the pull request is ready, with the preview and what to test), and delivered.
-Each is a draft, sent only when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
+(after triage), in review (once the pull request is ready, with the preview and what to test), and
+delivered (once the change is live). The started message is a draft; the other two post on their
+own unless `docs/TRACKER-INTEGRATION.md` says *Updates post: on the developer's yes*. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
 if there's no tracker task). Check for business language, verified claims, and your status words —
 "in review", "in acceptance testing", "live". Post nothing.
 ([TRACKER-INTEGRATION.md](../skeleton/docs/TRACKER-INTEGRATION.md))
@@ -391,7 +394,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | Review against the spec folder | `/review` |
 | One clean commit | `/commit` |
 | Push and open a draft pull request (on its own, once the agent has checked the change locally) | `/open-pr` |
-| Draft the requester's update ("update the client", or type it) | `/stakeholder-update` |
+| Write the requester's update ("update the client", or type it) | `/stakeholder-update` |
 | Record an ADR or PDR | `/record-decision` |
 | Root-cause a bug | `/debug` |
 | Restructure code safely | `/refactor` |

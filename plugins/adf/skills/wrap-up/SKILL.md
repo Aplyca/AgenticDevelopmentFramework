@@ -86,15 +86,28 @@ the close-up only once it resumes and ends.
    `modules.md` § End-user docs says when to offer `/adf:end-user-docs publish`, once, before the
    close-up.
 
-   For a tracker task, move it to the project's done status as soon as the check finds the pull
-   request merged or the answer delivered, on your own — no yes needed, and no skill to load. Use the
-   status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to `delivered`, from the task's
-   own statuses (one it lacks is a question), written as its § Rules for agents says — through the
-   project's server, as the developer, and read back; forward only; the status alone; only a task
-   the developer is assigned to. One line says so — with no tracker tool, or only one built into the
-   host app, the status for the developer to set. An abandoned task keeps its status. Then offer the **delivered** update
-   (`/adf:stakeholder-update delivered`) once, when it hasn't been posted. It's a draft in chat and
-   needs no worktree, so neither holds up the close-up.
+   For a tracker task — a ClickUp task, a GitHub or GitLab issue — the **delivered** step, once
+   the check finds the answer delivered, or the pull request merged **and the change live**.
+   Delivered means the requester can use it: `docs/TRACKER-INTEGRATION.md` § Stakeholder updates ›
+   *Live when* says whether that's on the merge, on a release, or when the developer says (no line:
+   ask once). Verify it — the live site shows the change, or the release's deploy finished.
+   - **Live, or an answer delivered:** run `/adf:stakeholder-update delivered` — the outcome update,
+     posted on its own and shown in your report, with the usage guide brought up to date when the
+     task has one; an answer that isn't on the task yet is a draft, for the developer's yes. Then move the task to the project's delivered status, on your own — no yes
+     needed, and no skill to load for the move. Use the status § Stakeholder updates maps to `delivered`, from the task's own statuses
+     (one it lacks is a question; an issue is closed, § Issues as the tracker), written as its
+     § Rules for agents says — through the project's tracker tool, as the developer, and read back;
+     forward only; the status alone. The task the developer handed this session is theirs to move,
+     assigned to them or not. One line says so.
+   - **Merged, not live yet:** post nothing and move nothing. Quality control, acceptance testing,
+     and release are the developer's statuses. Say once, in one line, that the delivered step waits
+     for the release, and that `/adf:stakeholder-update delivered <task>` runs it then, from any
+     session.
+   - **Can't write** — no tracker tool, or only one built into the host app: open your report with
+     the status to set and the update's text to paste.
+   - **Abandoned:** the task keeps its status, and gets no update.
+
+   None of it needs the worktree, so it doesn't hold up the close-up.
 
 4. **Ask about the time, before the close-up.** Only when the stamp names the `time-tracking`
    module: ask as `modules.md` § Time says — a question of its own, before the close-up's — and wait
@@ -180,6 +193,7 @@ the close-up only once it resumes and ends.
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
 | "I'll wrap up the other finished worktrees while I'm at it" | Each task's session wraps up its own. Another worktree may hold work its session hasn't pushed. From the main checkout, the developer asks for each one. |
 | "The pull request closed, so the task is abandoned" | Closed can mean replaced, paused, or closed by mistake. Only the developer says it's dropped, and even then origin's branch stays. |
+| "It merged, so the task is delivered" | Delivered means the requester can use it. Merged but not live, post nothing and move nothing: acceptance testing and release are the developer's statuses. Say once that the delivered step waits. |
 | "It was only an answer, nothing to check" | An answer can leave a stash, a scratch branch, a running environment, or a follow-up you promised. Check, then ask once. |
 
 ## Red flags (stop and reassess)
@@ -197,6 +211,7 @@ the close-up only once it resumes and ends.
 - [ ] The developer said yes once to the full list before anything was stopped or removed — or their own word ended a merged task with nothing left or to choose, and the list opened the report
 - [ ] With the time-tracking module, the developer was asked about logging the time before the close-up, and `/adf:track-time` ran to its end on a yes
 - [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, from the updated base branch, before the worktree was removed — never run here
+- [ ] For a tracker task: once the change was live, or the answer delivered, the delivered update was posted and shown, the usage guide brought up to date, and the task moved to the delivered status; merged but not live, nothing was posted or moved, and one line said the delivered step waits
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] The report says what happened, including anything that didn't; the archive came last
 

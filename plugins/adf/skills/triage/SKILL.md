@@ -121,17 +121,19 @@ not a research project.
    your recommended answer (`AGENTS.md` § Working economically). Record the rest in the spec's
    Clarifications (full lane) or the pull request (fast and careful lanes).
 
-   **A tracker task gets its started update.** First the status: move the task to the project's
-   in-progress status now, on your own — no yes needed, and no skill to load. Use the status
-   `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment, from the task's own
-   statuses (one it lacks is a question), written as its § Rules for agents says — through the
-   project's server, as the developer, and read back; forward only; the status alone. One line says
-   so — with no tracker tool, or only one built into the host app, the status for the developer to
-   set. Then a message (`/adf:stakeholder-update started`), only when it's worth the requester's time — what you understood and will deliver,
-   the questions only they can answer, a finding. Its draft ends the turn's last message, for the
-   developer's yes; the work goes on meanwhile. If the draft pull request opens in the same turn, the
-   review update replaces it. Skip both for a task the developer isn't assigned to, unless they say
-   so.
+   **A tracker task — a ClickUp task, a GitHub or GitLab issue — gets its started update.** First
+   the status: move the task to the project's in-progress status now, on your own — no yes needed,
+   and no skill to load. Use the status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to
+   the moment, from the task's own statuses (one it lacks is a question; on issues it's a label,
+   § Issues as the tracker), written as its § Rules for agents says — through the project's tracker
+   tool, as the developer, and read back; forward only; the status alone. The task the developer
+   handed this session is theirs to move, assigned to them or not. One line says so. With no
+   tracker tool, or only one built into the host app, you can't write: open your message with the
+   status for the developer to set. Then a message (`/adf:stakeholder-update started`), only when
+   it's worth the requester's time — what you understood and will deliver, the questions only they
+   can answer, a finding. Its draft ends the turn's last message, for the developer's yes; the work
+   goes on meanwhile. If the pull request turns ready in the same turn, the review update replaces
+   it.
 
 7. **Keep checking while you work.** If the diff grows past the files you stated, a test outside the
    area fails, a trigger appears, or no test can prove the change — move up a lane, keeping what's

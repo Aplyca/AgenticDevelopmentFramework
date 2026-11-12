@@ -11,6 +11,73 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The ticket is for stakeholders, the pull request for the developer — and GitHub and GitLab
+  issues are trackers too**
+  ([decision 0073](docs/decisions/0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md),
+  amending 0053, 0059, 0063, 0064, and 0072).
+  - **What:**
+    - **The principle.** The tracker task — a ClickUp task, a GitHub or GitLab issue — is for
+      business communication with stakeholders; the pull request is for technical communication
+      with the developer. Neither carries the other's text.
+    - **The review and delivered updates post on their own,** verified, read back, and shown in
+      the agent's report. They were drafts that waited for a yes, which left tickets with no
+      outcome and no pull request link. Still a draft for the developer's yes: the started message,
+      an answer-only task's answer, and any message that asks the requester for something — a
+      question, an action, a decision, an assignment. Questions that come with an outcome are a
+      second message. **Updates post: on the developer's yes** in `docs/TRACKER-INTEGRATION.md`
+      keeps every message a draft.
+    - **The review instructions live in the pull request's description.** *How to verify* is now
+      *How to review and test* — where (the preview), the steps and what to expect, what to look at,
+      the tests — rebuilt with *Verified / not verified* just before `/adf:open-pr` marks the pull
+      request ready. The chat report points there. The section's marker is unchanged.
+    - **Delivered means live, not merged.** A new **Live when** setting says which. Merged but not
+      live, `/adf:wrap-up` posts nothing and moves nothing, and says once that the delivered step
+      waits; `/adf:stakeholder-update delivered` runs it then. Quality control, acceptance testing,
+      and release statuses are the developer's: the agent never moves a task to or from them.
+    - **The usage guide is written with the spec** — *Documentation › Usage guide*, required for a
+      tracker task or marked Not applicable — approved at the gate, posted on the task as a draft
+      before the build, and brought up to date once the change is live
+      (`/adf:stakeholder-update guide`).
+    - **GitHub and GitLab issues.** `docs/TRACKER-INTEGRATION.md` § Issues as the tracker gives the
+      `gh` and `glab` command for each action. In progress and in review are labels the project
+      names; delivered closes the issue. A requester's issue is referenced (`Refs #N`), never closed
+      by the merge. A missing label is a question.
+    - **The session's own task needs no assignment check,** and a tracker the agent can't write to
+      is said first in its report, with the status to set and the text to paste.
+  - **Where:** `plugins/adf/skills/stakeholder-update/` (`SKILL.md`, `status.md`, `review.md`,
+    `delivered.md`, `started.md`, `screenshots.md`, new `guide.md`); `plugins/adf/skills/`
+    `open-pr/` (`SKILL.md`, `refresh.md`, `gitlab.md`), `triage/`, `wrap-up/`, `write-spec/`,
+    `write-plan/`, `implement/`, `adopt/`, `upgrade/`; `plugins/adf/docs/SPEC-MODEL.md` and the
+    workflows built from it; `skeleton/docs/TRACKER-INTEGRATION.md`, `skeleton/AGENTS.md`,
+    `skeleton/CONTRIBUTING.md`, `skeleton/.claude/rules/git-workflow.md`, `skeleton/specs/README.md`
+    and `_templates/` (`spec.md`, `plan.md`); `modules/github/files/.github/pull_request_template.md`,
+    `modules/github/MODULE.md`, `modules/clickup/MODULE.md`; the README, onboarding, skills
+    reference, scenarios, and examples; the static checks and the open-pr session evals.
+
+  **Upgrade impact:**
+  - **Behavior change on upgrade:** the review and delivered updates now post without a yes. To
+    keep the approval, add `- **Updates post:** on the developer's yes` to
+    `docs/TRACKER-INTEGRATION.md` § Stakeholder updates before upgrading.
+  - **Overwrite:** committed install: `.claude/skills/stakeholder-update/` (with its new
+    `guide.md`), `open-pr/`, `triage/`, `wrap-up/`, `write-spec/`, `write-plan/`, `implement/`, and
+    the workflows, as `/adf:upgrade` writes them; packaged, they come with the plugin.
+  - **Merge:** `docs/TRACKER-INTEGRATION.md` — § Rules for agents; § Stakeholder updates' intro and
+    its new **Updates post**, **Live when**, and **Usage guide** lines, with *Status at each moment*
+    naming only in progress, in review, and delivered; the new § Issues as the tracker; § The usage
+    guide, which replaces the optional one. `AGENTS.md` — the "nothing leaves this machine" rule,
+    § Requirements & traceability, and § Delivery rules' preview and pull request lines.
+    `CONTRIBUTING.md` — § Pull requests and the note under the status words. `git-workflow.md`
+    § Pull requests and outward actions. `specs/README.md`'s *Docs first* and *Deliver* rows;
+    `specs/_templates/spec.md` — the new *Usage guide* subsection; `plan.md`'s documentation plan.
+    `.github/pull_request_template.md` — rename *How to verify* to *How to review and test*, keep
+    its `adf:how-to-verify` markers, and add the *Where* and *Look at* lines.
+  - **Migration:** by hand — set **Live when** from your branching model, and move the task's "delivered"
+    status off any pre-release status such as "Ready for release". On GitHub or GitLab issues, name
+    the labels for in progress and in review, and create them in the repository. With the `clickup`
+    module, allow `clickup_create_comment` in `.claude/settings.local.json` if the post's prompt
+    isn't wanted. An open pull request keeps its *How to verify* heading; `refresh` still finds it
+    by its markers.
+
 - **Agents implement and review; humans decide — and `/adf:open-pr` works on GitLab too**
   ([decision 0072](docs/decisions/0072-agents-implement-and-review-humans-decide.md), amending
   0039, 0045, and 0070).

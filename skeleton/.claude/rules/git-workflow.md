@@ -48,7 +48,8 @@ the body.
 
 Pushing, opening, readying, merging, or reviewing a pull request, tagging, releasing, and commenting
 on a pull request, issue, or tracker task happen **only when a human asks** — except the work
-branch's own pull request:
+branch's own pull request, and its tracker task's status moves and outcome updates (`AGENTS.md`
+§ Requirements & traceability):
 
 - **Open after the local check** (`AGENTS.md` § Delivery rules): push the work branch, open its
   draft, and keep it current, draft or ready — later pushes, its description, comments on it. The

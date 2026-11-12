@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the work branch, open a draft pull request naming its spec folder, tracker task, and what was and wasn't verified, and mark it ready once your own tests pass — locally, on the preview, and CI. Use once your own local check passes — for docs or CI, once the gate and /adf:review pass — or when the developer asks. `refresh` updates the draft's description after a later push; `sync` brings the base branch in.
+description: Push the work branch, open a draft pull request naming its spec folder, tracker task, and what was and wasn't verified, and mark it ready — its description carrying the review instructions — once your own tests pass, locally, on the preview, and CI; then update the tracker task for the requester. Use once your own local check passes — for docs or CI, once the gate and /adf:review pass — or when the developer asks. `refresh` updates the draft's description after a later push; `sync` brings the base branch in.
 argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md] | refresh | sync"
 ---
 
@@ -22,6 +22,11 @@ passed; a person's review is next"*, not that a person has exercised it ([decisi
 yours, to build, test, and review the change; the preview is yours to test and review it, when
 there is one, and the developer's to review, approve, and merge it. Marking it ready hands it over:
 you request the project's reviewers then.
+
+**The pull request is for technical communication with the developer; the ticket is for business
+communication with stakeholders** ([decision 0073](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md)).
+How to review and test it, and what you tested, go in the description; what changes for the people
+who use the system goes on the tracker task (step 9).
 
 **GitHub or GitLab.** The steps name each action with its `gh` command. When the remote is on GitLab
 (`git remote -v`), read `<this skill's base directory>/gitlab.md` first: it gives the `glab` command
@@ -86,7 +91,7 @@ and skip the steps below.
    ## Traceability
    **Spec:** `specs/NNN-<slug>/` (CR N, when amending — "light" for a fast- or careful-lane
    adjustment) — or "none: fast lane" for work with nothing to record
-   **Tracker task:** <link>  ·  `Closes #N` only for an engineering issue this resolves
+   **Tracker task:** <link> — a requester's issue: `Refs #N`, never `Closes`, since the merge isn't live  ·  `Closes #N` only for an engineering issue this resolves
    **Lane:** fast | careful | full — <reason>; set by <the triggers | a sensitive area | the developer>
    <careful: the checklist applied; the risky part — the area, what the checklist found, what you
    walked · lowered by the developer: <their reason>>
@@ -96,9 +101,11 @@ and skip the steps below.
    <the change and its reasoning — a reviewer should not have to reconstruct intent from the diff>
    <!-- /adf:what-changed -->
 
-   ## How to verify
+   ## How to review and test
    <!-- adf:how-to-verify -->
-   1. <concrete step a reviewer can follow>
+   **Where:** <the preview's URL — "pending" until it deploys; or "no preview: `make up`, which prints where">
+   1. <a step the reviewer follows there, in order> — <what they should see>
+   **Look at:** <what deserves the reviewer's attention — the risky part, a decision, the files that carry the change>
    **Tests:** <which tests cover this — added or extended>
    <!-- /adf:how-to-verify -->
 
@@ -152,8 +159,8 @@ and skip the steps below.
 
 8. **Mark it ready once your own tests pass.** CI is awaited in the background with the preview's
    deploy — `gh pr checks <n> --watch`, run as a background command, never a polling loop; with no
-   preview to check, start it right after step 6. Then run `gh pr ready <n>` — no prompt, no
-   question — once all of these hold:
+   preview to check, start it right after step 6. Then, once all of these hold, write the review
+   instructions (below) and run `gh pr ready <n>` — no prompt, no question:
    - the full gate passed since the last commit (step 2);
    - every acceptance criterion, or the "done when", worked on a test environment — locally, and on
      the preview when there is one — or, with nothing to run, the full gate passed;
@@ -168,6 +175,13 @@ and skip the steps below.
    only the developer can explain — keeps it a draft, and the report says what holds it. When
    `AGENTS.md` § Delivery rules says a person marks pull requests ready, leave the draft: it's
    theirs.
+
+   **Write the review instructions first.** The description is how you talk to the developer who
+   reviews it. Just before marking it ready, rebuild two of its sections, as
+   `<this skill's base directory>/refresh.md` steps 3–6 say: *How to review and test* — where (the
+   preview), the steps to try and what to expect, what deserves their attention, the tests — and
+   *Verified / not verified*, the summary of what you tested and reviewed, and what you couldn't.
+   The reviewers you request next find them there.
 
    **Then request the reviewers** — the people who decide — from the **Reviewers** line in
    `CONTRIBUTING.md` § Pull requests: `gh pr edit <n> --add-reviewer <name>,<name>`, right after
@@ -187,35 +201,41 @@ and skip the steps below.
    stop. An environment that ran before this session is the
    developer's: leave it. A draft keeps its environment running.
 
-9. **Update the tracker task** once the pull request is ready — a draft that stays one leaves the
-   task where it is, with no review update. Move the task to the project's review status on your own — no yes needed, and no skill to load. Use the
-   status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment, from the task's own
-   statuses (one it lacks is a question), written as its § Rules for agents says — through the
-   project's server, as the developer, and read back; forward only; the status alone; only a task
-   the developer is assigned to. One line says so — with no tracker tool, or only one built into the
-   host app, the status for the developer to set. Then
-   draft the review update (`/adf:stakeholder-update review`): a business-focused report for the
-   requester — what changes for them, the preview and what to test there, and the pull request link,
-   which is the tracker link-back. It ends the report in step 10. Post it only on the developer's yes to the exact text and the
-   assignee — often after their own test.
+9. **Update the tracker task** — a ClickUp task, a GitHub or GitLab issue — once the pull request
+   is ready. A draft that stays one leaves the task where it is, with no review update.
+   - **The status:** move the task to the project's review status on your own — no yes needed, and
+     no skill to load. Use the status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to
+     the moment, from the task's own statuses (one it lacks is a question; on issues it's a label,
+     § Issues as the tracker), written as its § Rules for agents says — through the project's
+     tracker tool, as the developer, and read back; forward only; the status alone. The task the
+     developer handed this session is theirs to move, assigned to them or not. One line says so.
+   - **The review update** (`/adf:stakeholder-update review`): the business outcome, for the
+     requester — what changes for them, the preview and what to test there — with the pull request
+     link for reference, which relates the two. It posts on its own, and the report shows its text
+     (step 10). Questions for the requester are a second message, a draft for the developer's yes;
+     so is every message when § Stakeholder updates says *Updates post: on the developer's yes*.
+   - **Can't write** — no tracker tool, or only one built into the host app: the report opens with
+     the status to set and the update's text to paste.
 
 10. **Report — once, after the preview walk and CI** (step 8): the pull request URL, and that it is
    **ready for review** — or still a **draft**, and what holds it — in the careful lane, the risky
    part first — and who was requested to review it, or that no one was. Then where the developer
-   reviews it: the preview's URL, with what to try there (the acceptance criteria, or the "done
-   when"). The local environment is yours, stopped since ready: don't send them there. With no
+   reviews it: the preview's URL, and that the review instructions — what to try, what to look at,
+   what you tested — are in the description (*How to review and test*); don't repeat them here. The
+   local environment is yours, stopped since ready: don't send them there. With no
    preview, they review the pull request itself — the diff and the evidence — so say there's none,
    and give the command that runs it locally if they want to (`make up`, which prints where). While
    it's a draft, say what holds it; the local URL only when they must see that for themselves. Say
-   what you tested and reviewed, locally and on the preview, and what you could not. A fix they or a
+   in a line what you tested and reviewed, locally and on the preview, and what you could not. A fix they or a
    reviewer ask for goes on the same branch: start the environment again, walk it locally, keep the
    record current (step 2), push, refresh the description (`/adf:open-pr refresh`), test and review
    the preview again, and stop the environment once the checks pass; a pull request already ready
    stays ready, and the reviewer who asked is requested again (`refresh`).
    Close with their next step, once: review it on the preview; approving and merging are theirs;
    you'll wrap up after the merge (`/adf:wrap-up`). Don't remind them on later turns or offer to merge it: when that happens
-   is theirs. Request no one beyond the Reviewers line. For a tracker task, the review update's
-   draft and its one question come last (step 9).
+   is theirs. Request no one beyond the Reviewers line. For a tracker task, say what you did on it
+   (step 9): the status, and the review update's text as posted, with its link. A tracker you
+   couldn't write to leads the report instead; a draft and its one question come last.
 
 ## Rationalizations (do not accept these)
 
@@ -240,7 +260,10 @@ and skip the steps below.
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy and CI wait in the background, so waiting costs them nothing: report once, with both URLs and the pull request's state. |
 | "The status is only bookkeeping; it can go in after the merge" | After the merge, bookkeeping needs a pull request of its own. Everything the task changes in the repository rides this one. |
-| "I'll post the link on the task while I'm here" | The status moves once the pull request is ready, on its own. The message is a write the requester reads: draft it as the review update, at the end of the report; post on the developer's yes to the exact text. |
+| "I'll put what changes for the client in the description too" | That's the ticket's. The description is for the developer: how to review and test it, and what you tested. |
+| "The report already says what to try — the description can keep its first draft" | Reviewers open the pull request, not this chat. The review instructions go in the description, rebuilt just before ready. |
+| "I'll draft the review update and let the developer post it" | An outcome report posts on its own, with the pull request link, and the report shows its text. Only a question for the requester waits for a yes. |
+| "The issue is the requester's — I'll write `Closes #12` so it closes itself" | Then it closes at the merge, before the change is live and before the outcome is written. `Refs #12`; the delivered step closes it. |
 
 ## Red flags (stop and reassess)
 
@@ -262,15 +285,16 @@ and skip the steps below.
 - [ ] Once it was ready, the Reviewers line was requested — never the author — or the report says no one was; a draft requested no one
 - [ ] The report doesn't remind or offer to review or merge it
 - [ ] The change was tested and reviewed on the preview once it deployed — read-only — or the body says why not
-- [ ] One report, after the preview walk and CI, says whether the pull request is ready and who was requested, and sends the developer to the preview with what to try there — or, with no preview, says so and how to run it locally
+- [ ] Just before it was marked ready, the description's *How to review and test* and *Verified / not verified* were rebuilt: where to review, the steps and what to expect, what to look at, the tests, what was and wasn't verified
+- [ ] One report, after the preview walk and CI, says whether the pull request is ready and who was requested, and sends the developer to the preview and to the description's review instructions — or, with no preview, says so and how to run it locally
 - [ ] The body names the spec folder and links the tracker task
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
 - [ ] Before each push, the spec folder was complete in the branch: every task ticked or struck through as a follow-up, the gate results, `status: implemented`
 - [ ] The description matches the diff — no phantom or missing changes
 - [ ] Merge danger says whether a revert undoes the change and what it affects if wrong
 - [ ] The pull request URL is recorded in `spec.md` `pull-requests:`
-- [ ] For a tracker task, the task moved to the review status on its own once the pull request was ready, and the report ends with the review update's draft: the preview and what to test there, and the pull request link
-- [ ] No tracker write was made without the developer's explicit yes on the exact text
+- [ ] For a tracker task, once the pull request was ready: the task moved to the review status on its own, and the review update — the business outcome, the preview and what to test there, the pull request for reference — was posted and shown in the report; a requester's issue is referenced with `Refs`, not closed
+- [ ] Nothing that asks the requester for something was posted without the developer's explicit yes on the exact text; with no tracker tool that can write, the report opened with the status to set and the text to paste
 - [ ] After a later push that changed what it says, the description was refreshed from its current body: only the sections between the markers, with the diff shown
 
 ## Principles
@@ -279,4 +303,5 @@ and skip the steps below.
 - Agents implement and review; humans decide. Local is yours to build, test, and review; the preview is yours to test and review, and the developer's to review, approve, and merge.
 - A draft while you're testing or blocked; ready once your tests pass.
 - Say what you verified and what you could not — evidence, not confidence.
+- The description speaks to the developer who reviews it; the ticket speaks to the people who asked.
 - The description must be true to the diff.

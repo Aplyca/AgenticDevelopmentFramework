@@ -310,17 +310,17 @@ sequenceDiagram
     Agent->>Agent: /review, in every lane — the lane, the spec, constitution, security, tests, docs
     Agent->>PR: /open-pr once it works — a draft with the lane, the evidence, the local check, and what was not verified
     Agent->>PR: tests and reviews it on the preview, read-only — the flow, the page at two widths, copy, console, accessibility
+    Agent->>PR: writes the review instructions into the description — where, what to try, what was tested
     Agent->>PR: marks it ready once that and CI pass, then requests the reviewers CONTRIBUTING.md names
     Agent->>Agent: stops the local environment it started — containers and data kept
-    Agent->>Tracker: moves the task to in review, on its own
-    Agent->>Dev: where to review it — the preview's URL and what to try there
-    Agent->>Dev: the review update's draft — the preview, what to test, the pull request
-    opt only on a yes to the exact text and the assignee
-        Agent->>Tracker: posts the update, then reads it back
+    Agent->>Tracker: moves the task to in review and posts the outcome, on its own — what changes, the preview, what to test, the pull request for reference
+    Agent->>Dev: where to review it — the preview — and the text it posted on the task
+    opt a question for the requester — only on a yes to the exact text and the assignee
+        Agent->>Tracker: posts it, then reads it back
     end
     Dev->>PR: reviews it on the preview, approves, and merges — CI is a signal, the review is the gate
-    Agent->>Tracker: /wrap-up moves the task to done, on its own
-    Agent->>Dev: the delivered update's draft, in the client's terms — posted the same way, on a yes
+    Note over Dev,Tracker: quality control, acceptance testing, and release statuses are the developer's
+    Agent->>Tracker: once it's live, /wrap-up posts the delivered update, updates the usage guide, and moves the task to delivered
     Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, starts the follow-ups in their own sessions, removes the worktree and branch
 ```
 
@@ -366,7 +366,7 @@ flowchart TD
 | Production is broken | **Careful**, without delay — root cause → regression test → fix → draft PR → ship; then backfill the spec folder | `sonnet`, high effort | [Hotfix](docs/scenarios/hotfix.md) |
 | Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; full lane or an ADR for a structure others must follow | `sonnet` | [Refactor](docs/scenarios/refactor.md) |
 | Investigation, impact analysis, estimate | No lane — `/triage` → the answer, where the task asks for it | `sonnet`; `opus` for architecture-level questions | [Answer-only task](docs/scenarios/answer-only-task.md) |
-| The requester needs an update on a task | The task's status follows the work on its own, forward only: `/triage` moves it to in progress, `/open-pr` to in review, `/wrap-up` to done. `/stakeholder-update` drafts the message — at three moments: started (only when it's worth sending), in review (the preview, what to test, the pull request), and delivered — or when you ask ("update the client"). In the client's terms, with screenshots when they help, shown in chat — the draft is the deliverable; it's posted on the tracker, through the project's own server, only on your yes to the exact text and the assignee, then read back — never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
+| The requester needs an update on a task | The ticket is for business communication with stakeholders — a ClickUp task, a GitHub or GitLab issue — and the pull request for technical communication with the developer. The task's status follows the work on its own, forward only: `/triage` moves it to in progress, `/open-pr` to in review, `/wrap-up` to delivered once the change is live; the statuses between are yours. `/stakeholder-update` writes the message at three moments — started (a draft, only when it's worth sending), in review (what changes, the preview, what to test, the pull request for reference), and delivered — or when you ask ("update the client"). In the client's terms, every claim verified: the review and delivered updates post on their own, through the project's tracker tool, are read back, and are shown to you; anything that asks the requester for something posts only on your yes to the exact text and the assignee — never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
 | Logging the time a task took — at a milestone or after the merge (`time-tracking` module) | `/track-time` — one entry per day, in whole units: the AI-assisted time (the sessions plus the work outside them) next to a senior developer's estimate without AI, each described by what the day delivered, in business terms; you pick one number per entry, and only the approved entries go to the tracker | `sonnet` | [time-tracking module](modules/time-tracking/MODULE.md) |
 | Stakeholders (users, editors, administrators) need a guide to a feature, in the doc tool they read (`end-user-docs` module) | `/end-user-docs` — the feature's end-user page, drafted before implementation where end users can't see it and published once it ships; you approve each page's exact text | `sonnet` | [end-user-docs module](modules/end-user-docs/MODULE.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
@@ -408,8 +408,8 @@ as Opus at about half the cost.
 What holds in every workflow: agents implement and review; humans decide. Nothing leaves the
 machine unless a human asks — except the work branch's push and its draft pull request after the
 local check, marking it ready once the agent's own tests and review pass, requesting the reviewers
-the project names, keeping it current, and the tracker task's status moves. No push to another branch,
-no pull request merged or reviewed, no release, tracker comment, or message goes out on its own, and the hooks and permissions
+the project names, keeping it current, and the tracker task's status moves and outcome updates. No push to another branch,
+no pull request merged or reviewed, no release, and no message that asks the requester for something goes out on its own, and the hooks and permissions
 enforce the rules that must hold every time. The full reference is the `/spec-workflow` skill and
 [`skeleton/specs/README.md`](skeleton/specs/README.md).
 

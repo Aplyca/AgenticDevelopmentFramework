@@ -97,7 +97,7 @@ Build a facts table (`fact → evidence file:line`):
   `main`, optional never-merged integration branch) or **Model B** (integration branch, release
   merge, tag ships) from the skeleton's `CONTRIBUTING.md` — or note a third shape
 - **History that must stay append-only** — migrations directories; **generated files** — lockfiles, generated types
-- **Requirements source** — ask: which tracker (ClickUp, Jira, Linear, GitHub Issues, none)? Its MCP endpoint, if any
+- **Requirements source** — ask: which tracker (ClickUp, GitHub issues, GitLab issues, Jira, Linear, none)? Its MCP endpoint, if any; on issues, the labels that mean in progress and in review. When a merged change is live — on the merge, on a release, or when someone says
 - **Connected services** — ask: which services does the stack use that agents should read — a database, hosting, a CMS (Supabase, Vercel, Contentful…)? Each one with an official MCP server is a later `/adf-connect:connect`
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
 - **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), a `Makefile`, `ops/`, `.devcontainer/`; what the local stack runs, and how
@@ -199,8 +199,8 @@ Present the table before going further. Wrong facts here poison every file downs
   `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0027). For
   `parallel-agents`, that's every file in `ops/agent/` but `worktree.conf`, which stays: it's the
   project's settings, and what shows the module is installed.
-- **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than GitHub Issues or
-  ClickUp (Jira, Linear, GitLab), or connected services: turn on `"adf-connect@aplyca": true` in
+- **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than ClickUp or GitHub or
+  GitLab issues (Jira, Linear), or connected services: turn on `"adf-connect@aplyca": true` in
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
   `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
   team reviews on its own.
@@ -241,8 +241,11 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`docs/TRACKER-INTEGRATION.md`** — the tracker, `.mcp.json` (if it has an MCP server), and a
   read-only `mcp__<server>__…` allowlist from the server's real tool names. With the `clickup`
   module, fill the values its `MODULE.md` § Customize lists (task links, statuses via
-  `clickup_get_task` with `expand_statuses: true`, where PR links go). Delete the page if there is no
-  tracker.
+  `clickup_get_task` with `expand_statuses: true`, where PR links go). On GitHub or GitLab issues,
+  there's no server: name the labels for in progress and in review in *Status at each moment*, and
+  keep § Issues as the tracker. Fill *Live when* from the branching model, and leave *Updates post*
+  at `on their own` unless the team wants every update approved first. Delete the page if there is
+  no tracker.
 - **Modules** — `ops/agent/worktree.conf`; the PR template's quality and constitution checklists;
   `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
   `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`, and its

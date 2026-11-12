@@ -80,7 +80,10 @@ schema back).
   decides. Never the pull request's author. --> Requested once a pull request is ready, and again
   after a fix that answers their review.
 - **One spec folder per pull request.** The description names the spec folder, links the tracker
-  task, says what changed and why, how to verify it, and what was not verified.
+  task, says what changed and why, how to review and test it, and what was and wasn't verified.
+- **The pull request is for technical communication with the developer; the ticket is for business
+  communication with stakeholders.** Review instructions and tests go in the description; what
+  changes for the people who use the system goes on the tracker task.
 - **No merge without human review** — AI-generated changes included. Read the whole pull request, not
   just the diff. CI is a signal; the review is the gate.
 
@@ -95,8 +98,9 @@ schema back).
 | Merged into [the integration branch / preview] | "in acceptance testing" |
 | [Merged into `main` / released with a tag] | "live" |
 
-The task's status moves to match, on its own: in progress when work starts, in review once the pull
-request is ready, done once it merges.
+The task's status moves to match, on its own, at three moments: in progress when work starts, in
+review once the pull request is ready, delivered once the change is live. The statuses between
+review and delivered — quality control, acceptance testing, release — are set by people.
 
 ## What's enforced, and what isn't
 

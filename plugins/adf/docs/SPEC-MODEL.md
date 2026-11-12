@@ -71,7 +71,7 @@ spec. It lives in `plan.md`, and is approved together with the spec at the appro
 | Section | Status | Owned by |
 |---|---|---|
 | Testing | Required | QA / tech lead |
-| Documentation (pre- and post-implementable; end-user docs with the end-user-docs module) | Required | Tech writer / dev |
+| Documentation (pre- and post-implementable; a usage guide for a tracker task; end-user docs with the end-user-docs module) | Required | Tech writer / dev |
 | Observability | Optional | DevOps / SRE |
 | Deployment | Optional | DevOps |
 
@@ -107,6 +107,10 @@ Testing · Documentation (both subsections) · Clarifications (may be an empty l
 **Conditionally required:**
 - **Accessibility** — when `feature-type` is `ui` or `mixed`. For `api`, `infra`, or `content`, mark `> Not applicable: [reason]`.
 - **Privacy** — when `personal-data: yes`. Collecting an email address counts.
+- **Documentation › Usage guide** — when the spec has a `tracker:` task: how the requester will use
+  what it delivers, in their terms, or `> Not applicable: [reason]` when there's nothing they'll use.
+  It's posted on the task as a draft once the gate approves the spec, and brought up to date once
+  the change is live.
 - **Documentation › End-user docs** — when the stamp on `AGENTS.md` names the `end-user-docs` module:
   the page in the doc tool end users read, or `> Not applicable: [reason]` when nothing they see or
   do changes.

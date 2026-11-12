@@ -99,12 +99,15 @@ before implementation tasks, when the team wants the verification contract up fr
 <!-- From spec.md § Documentation. Pre-implementable docs become Phase 1 tasks (written before
      code); post-implementable docs become Phase 5 tasks. "None — <reason>" is valid. An end-user
      page (end-user-docs module) is a Phase 1 task too — its draft in the doc tool — and is
-     published after the feature ships, outside tasks.md. -->
+     published after the feature ships, outside tasks.md. The spec's usage guide likewise: its
+     draft posted on the tracker task is a Phase 1 task, its text reconciled in Phase 5, and its
+     final version goes up once the change is live. -->
 
 | Doc | Audience | Pre / post | Task |
 | --- | --- | --- | --- |
 | [`docs/admin/<feature>.md`] | [site administrator] | pre | [T001] |
 | [User guide › Newsletter › Subscribe] | [site visitors] | end-user | [T002] |
+| [Usage guide, on the tracker task] | [the requester] | usage guide | [T003] |
 
 ## Rollout & deployment
 

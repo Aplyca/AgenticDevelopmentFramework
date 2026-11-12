@@ -7,8 +7,9 @@
 
 <!-- Required. The spec folder is the record of intent; the tracker task is the requirement it
      fulfills. Fast- and careful-lane work has no spec folder — say so and cite the task alone
-     (on delivered work, cite the light CR entry).
-     Add `Closes #N` as well if this resolves an engineering issue. -->
+     (on delivered work, cite the light CR entry). A requester's issue is referenced — `Refs #N` —
+     never closed by the merge, which isn't live yet. Add `Closes #N` only if this resolves an
+     engineering issue. -->
 
 **Spec:** `specs/NNN-slug/` <!-- add "(CR N)" when amending a delivered feature, "(CR N, light)" for a fast- or careful-lane adjustment; "none" in the fast lane with nothing to record -->
 **Tracker task:**
@@ -21,12 +22,19 @@
      who opened this pull request owns it. -->
 <!-- /adf:what-changed -->
 
-## How to verify
+## How to review and test
+
+<!-- The review instructions, for the developer who reviews this: where, the steps to try and what
+     to expect, and what deserves a close look. What changes for the people who use the system goes
+     on the tracker task, not here. -->
 
 <!-- adf:how-to-verify -->
+**Where:** <!-- the preview's URL — or "no preview", and the command that runs it locally -->
+
 1.
 2.
 
+**Look at:** <!-- the risky part, a decision, the files that carry the change -->
 **Tests:** <!-- tests added or extended, or why none were needed -->
 <!-- /adf:how-to-verify -->
 

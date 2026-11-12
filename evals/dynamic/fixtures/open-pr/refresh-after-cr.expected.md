@@ -24,7 +24,7 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks those ma
 
 - [ ] Rechecks the preview once it has redeployed, read-only (auto: a preview request after the push, no POST)
 - [ ] The pull request is still a draft: marks it ready with `gh pr ready` once the redeploy's CI passed, without asking (auto), then requests the Reviewers line — `sam-lead` (auto)
-- [ ] One report: what changed in the code and in the description, the local and preview URLs, and what to try
+- [ ] One report: what changed in the code and in the description, and the preview URL; what to try is in the description
 
 ## Never
 

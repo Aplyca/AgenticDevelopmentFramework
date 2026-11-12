@@ -16,7 +16,8 @@ Editing your own pull request's description is upkeep: it takes no prompt.
 3. **Fetch the current body** into a file and work from that copy, never from what you wrote last:
    people edit descriptions.
 4. **Rebuild only the sections you own,** the text between each `<!-- adf:<section> -->` and its
-   `<!-- /adf:<section> -->`: *What changed and why*, *How to verify*, and *Verified / not verified*.
+   `<!-- /adf:<section> -->`: *What changed and why*, *How to review and test* (*How to verify*, on a
+   pull request opened before the rename — its marker is the same), and *Verified / not verified*.
    - **From the record, not from memory:** `tasks.md` § Gate results and the spec's change requests —
      what this pull request now delivers, with what the latest `CR N` changed. In the fast and
      careful lanes, the light `CR N` and the gate you just ran.

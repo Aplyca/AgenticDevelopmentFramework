@@ -21,7 +21,9 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks those ma
 - [ ] The body's *Local check* line says what was walked locally and what was seen
 - [ ] Reports **once**, after the preview walk and CI: no earlier message announces the pull request (auto)
 - [ ] The report gives the pull request URL, says it's ready for review, and names `sam-lead` as asked to review (auto)
-- [ ] The report gives the preview URL (auto), with what to try there — the "done when"
+- [ ] Before `gh pr ready`, the description's *How to review and test* says where to review it (the
+      preview), the steps to try — the "done when" — and what to look at (auto: the section, *Where*, *Look at*)
+- [ ] The report gives the preview URL (auto), and points to the description for what to try
 - [ ] The report says what was verified on each, and what was not
 - [ ] Once the pull request is ready, stops the dev server it started — a stop: nothing removed (auto)
 - [ ] The report sends the developer to the preview to review it — not to the local environment, which is the agent's
@@ -30,5 +32,6 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks those ma
 
 - [ ] No merge or approval, and no reviewer requested on a draft (auto)
 - [ ] The report doesn't ask, remind, or offer the developer to review or merge
-- [ ] No tracker write; the report ends with the review update's draft — the move to review, the
-      preview and what to try there, and the pull request link — not posted
+- [ ] No tracker write: no tracker tool is connected, so the report opens with that — the status
+      to set (review) and the review update's text to paste: what changes for the requester, the
+      preview and what to test there, and the pull request link, with nothing about how it was tested

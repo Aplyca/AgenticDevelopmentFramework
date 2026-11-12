@@ -1,7 +1,7 @@
 # The started update's template
 
 `/adf:stakeholder-update` reads this at step 1 for the **started** moment, and fills it in by
-its style rules.
+its style rules. It's a draft, posted on the developer's yes.
 
 ```markdown
 Hi <names>,

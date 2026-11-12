@@ -2,7 +2,8 @@
 
 For teams whose requirements arrive as ClickUp tasks. Connects agents to ClickUp's official MCP
 server, so they read the task — description, comments, statuses — instead of asking someone to paste
-it, while every write the client can see still waits for a person's yes.
+it. On the task a developer hands it, the agent moves the status and posts the review and delivered
+updates on its own; anything that asks the client for something still waits for a person's yes.
 
 ## What it adds
 
@@ -37,10 +38,15 @@ In `docs/TRACKER-INTEGRATION.md`:
    why):
    - **Task statuses:** `clickup_get_task` with `expand_statuses: true` lists the statuses a task can
      move to; `/stakeholder-update` uses it before proposing a status change. **Status at each
-     moment** names the list's own statuses for started (in progress), in review, and delivered (done) —
-     `clickup_update_task` moves the task, and prompts: the agent moves the status on its own at each
-     moment, so allow that tool in your own `.claude/settings.local.json` if you don't want the
-     prompt (it also edits assignees and dates, which the agent still asks about).
+     moment** names the list's own statuses for started (in progress), in review, and delivered (once the
+     change is live) — leave out the ones between, such as acceptance testing or ready for release,
+     which people set. `clickup_update_task` moves the task and `clickup_create_comment` posts the
+     review and delivered updates, and both prompt: the agent does these on its own at each moment,
+     so allow the two tools in your own `.claude/settings.local.json` if you don't want the prompts
+     (`clickup_update_task` also edits assignees and dates, which the agent still asks about).
+   - **Usage guide:** a comment on the task — `clickup_create_comment` posts the draft, and
+     `clickup_update_comment` brings it up to date once the change is live, which is safe while the
+     guide holds no mention, link preview, or pasted image.
    - **Images in comments:** the comment tool can't show an image inline, so the update carries a
      `[Screenshot N: <what it shows>]` line where each image goes, and the developer pastes the image
      over it in ClickUp. Read back, a pasted image shows as a line with its file name.
@@ -88,8 +94,8 @@ In `docs/TRACKER-INTEGRATION.md`:
   record of what was agreed — which is why a change request starts from the spec folder and the
   comments since it last changed (`specs/README.md` § Change requests).
 - **Each developer acts as themselves.** Comments and status changes carry that developer's name: the
-  agent confirms each comment first, and moves a status on its own only at the three moments
-  (`AGENTS.md` § Requirements & traceability). That holds only
+  agent moves the status and posts the review and delivered updates on its own at the three moments,
+  and confirms any other comment first (`AGENTS.md` § Requirements & traceability). That holds only
   through the project's `clickup` server. ClickUp's connector in the Claude desktop app is another
   server, with its own sign-in and its own tool prefix: it may read, never write, since it can be
   signed in to someone else's account (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
@@ -119,8 +125,8 @@ In `docs/TRACKER-INTEGRATION.md`:
 
 - Both files are valid JSON: `python3 -m json.tool .mcp.json` and `python3 -m json.tool .claude/settings.json`.
 - In a new session, `/mcp` shows `clickup`; signing in connects it.
-- Ask the agent to read a task assigned to you — no permission prompt. Ask it to draft a comment — it
-  shows the text, and posting prompts.
+- Ask the agent to read a task assigned to you — no permission prompt. Ask it to draft a question
+  for the requester — it shows the text, and posts only on your yes; the post prompts.
 
 ## Requirements
 

@@ -118,9 +118,9 @@ pull request's review approves the diff, and its URL joins `pull-requests:` as `
 10. **Local check, then deliver.** The agent walks the change on the local environment; once it
     works, `/open-pr` pushes and opens a **draft** naming `specs/NNN-<slug>/ (CR N)`, records its URL
     in `pull-requests:` with `· CR N`, walks it on the preview, and marks it ready once its tests and
-    CI pass. A human QCs the preview and reviews it before the merge. For a tracker task, `/open-pr`'s report ends with the
-    review update's draft — the task to review, the preview, what to test, the pull request — posted
-    on the developer's yes.
+    CI pass. A human QCs the preview and reviews it before the merge. For a tracker task, `/open-pr` moves it to in review and
+    posts the review update — what changes, the preview, what to test, the pull request for
+    reference — and its report shows the text.
 
 ### Before the merge
 

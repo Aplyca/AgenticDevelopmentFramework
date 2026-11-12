@@ -49,8 +49,8 @@ migration plan is the wrong deliverable, however thorough, because nobody has ap
    estimate states what it includes, what it excludes, and how confident it is. A recommendation
    says what would need approving.
 
-5. **Deliver it where the task asks.** Usually the tracker task: a write the requester sees, so the
-   developer sees the exact text first and it's posted only on their yes. A document in the
+5. **Deliver it where the task asks.** Usually the tracker task: an answer is the developer's to send, so
+   they see the exact text first and it's posted only on their yes. A document in the
    repository when the task asks for one: a `docs:` commit, and a draft pull request when asked.
 
 6. **If someone approves a recommended change**, it becomes a new task with its own triage — a new
