@@ -157,6 +157,8 @@ Present the table before going further. Wrong facts here poison every file downs
   common case — delete `evals/`.
 - **Offer the modules** (`modules/README.md`), recommending from the facts:
   - `github` — when the repo is on GitHub
+  - `gitlab` — when the repo is on GitLab, GitLab.com or self-managed (`origin`'s URL, a
+    `.gitlab-ci.yml`): the same harness as `github`, with its gates as a CI include
   - `git-hooks` — when the team wants local gates for every git client
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
@@ -185,7 +187,8 @@ Present the table before going further. Wrong facts here poison every file downs
     0048). The doc tool needs its MCP server — `clickup` for ClickUp Docs
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
-  `modules/clickup/install.sh <repo>`. `docker` has no files to copy: `modules/docker/install.sh <repo>`
+  `modules/clickup/install.sh <repo>`. `gitlab` copies, and merges into an existing `.gitlab-ci.yml`
+  the three blocks its `MODULE.md` § Install names. `docker` has no files to copy: `modules/docker/install.sh <repo>`
   merges its permission rules into `.claude/settings.json`, and `/dev-env set up` writes the stack;
   `e2e` has none either: `modules/e2e/install.sh <repo>` merges its rules, and `/e2e set up` writes
   the suite; likewise `unit`: `modules/unit/install.sh <repo>`, and `/unit set up`.
@@ -245,7 +248,9 @@ Present the table before going further. Wrong facts here poison every file downs
   at `on their own` unless the team wants every update approved first. Delete the page if there is
   no tracker.
 - **Modules** — `ops/agent/worktree.conf`; the PR template's quality and constitution checklists;
-  `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
+  `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`) — with `gitlab`, the
+  merge request template, `issue_templates/Default.md`'s tracker link, and the `ADF_` variables in
+  `.gitlab-ci.yml`; `FAST_CHECKS` in
   `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`, and its
   Quick reference lines — packaged, the commands' names (`adf-worktree-new`, `adf-worktree-ls`,
   `adf-worktree-rm`), as `DEV-SETUP.md` has the skills' full names. For

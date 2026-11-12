@@ -7,6 +7,7 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | Module | Adds | Use it when |
 |---|---|---|
 | [`github/`](github/MODULE.md) | Pull request template (traceability, verified / not verified, constitution gates), issue forms that redirect requirements to the tracker, a secret-scan workflow, a base-branch policy check, `.gitleaks.toml` | The repository lives on GitHub |
+| [`gitlab/`](gitlab/MODULE.md) | The same harness for GitLab: a merge request template (the pull request template's sections), issue templates that redirect requirements to the tracker, and the secret scan and base-branch policy as one CI include (`.gitlab/ci/adf.yml`) with `.gitlab-ci.yml` to hold the branch model, `.gitleaks.toml` | The repository lives on GitLab, GitLab.com or self-managed |
 | [`git-hooks/`](git-hooks/MODULE.md) | A tool-agnostic `pre-push` hook that refuses pushes to protected branches and runs the fast checks | You want local gates that apply to every git client, not only to Claude Code |
 | [`clickup/`](clickup/MODULE.md) | ClickUp's official MCP server in `.mcp.json` and a read-only permission allowlist, so agents read tasks freely and every write prompts | Requirements arrive as ClickUp tasks |
 | [`parallel-agents/`](parallel-agents/MODULE.md) | Worktree scripts (`worktree-new`, `-rm`, `-ls`) that give every task its own worktree, branch, env file, and port; the `/dispatch` skill, which moves each task's session to its worktree; the process doc | Several agent sessions work on the same repository at once, and each needs a running app |
@@ -26,7 +27,7 @@ cp -R modules/<module>/files/. /path/to/your-repo/
 ```
 
 Nothing is overwritten that you didn't mean to — check `git status` and merge any file that already
-existed (a pull request template, for example). The `clickup` module is the exception: it changes
+existed (a pull request template, or the `gitlab` module's `.gitlab-ci.yml`, for example). The `clickup` module is the exception: it changes
 files every repository already has (`.mcp.json`, `.claude/settings.json`), so it installs with
 `modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module has no
 files to copy: `modules/docker/install.sh <repo>` merges its permission rules, and `/dev-env set up`

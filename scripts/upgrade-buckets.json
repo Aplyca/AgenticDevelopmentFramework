@@ -18,6 +18,9 @@
     ".github/pull_request_template.md",
     ".github/workflows/branch-policy.yml",
     ".github/ISSUE_TEMPLATE/*",
+    ".gitlab/merge_request_templates/Default.md",
+    ".gitlab/issue_templates/*",
+    ".gitlab-ci.yml",
     ".gitleaks.toml",
     ".githooks/pre-push",
     ".mcp.json",
@@ -49,7 +52,8 @@
     ".cursor/rules/*.mdc",
     "specs/_templates/*",
     "ops/agent/*.sh",
-    ".github/workflows/secret-scan.yml"
+    ".github/workflows/secret-scan.yml",
+    ".gitlab/ci/adf.yml"
   ],
   "project-owned": [
     "README.md",

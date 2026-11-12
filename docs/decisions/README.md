@@ -85,6 +85,7 @@ projects.
 | [0072](0072-agents-implement-and-review-humans-decide.md) | Agents implement and review; humans decide: `/review` in every lane, the agent tests and reviews on the preview, and requests the project's reviewers at ready, on GitHub and GitLab | accepted; amended by 0073, 0074 |
 | [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) | The ticket is for business communication with stakeholders, the pull request for technical communication with the developer: outcome updates post on their own, delivered means live, and GitHub and GitLab issues are trackers too | accepted |
 | [0074](0074-github-and-gitlab-alike.md) | GitHub and GitLab alike: the PR-state hook asks `glab` on GitLab, every skill's `gh` command has its `glab` one, and the skeleton's settings ship the `glab` rules | accepted |
+| [0075](0075-the-gitlab-module.md) | The `gitlab` module: GitHub's harness in GitLab's terms — a `Default.md` merge request template, the tracker redirect in the default issue template, and the gates as one framework-owned CI include with the team's settings in `.gitlab-ci.yml` | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
