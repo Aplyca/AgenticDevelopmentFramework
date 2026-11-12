@@ -11,6 +11,43 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **GitHub and GitLab alike — the rest of the framework works on GitLab too**
+  ([decision 0074](docs/decisions/0074-github-and-gitlab-alike.md), amending 0038 and 0072).
+  - **What:**
+    - **The `pr-state.sh` hook asks `glab` on GitLab.** `glab` first when `origin`'s URL names
+      GitLab, `gh` first otherwise, and the other when the first can't answer — a self-managed
+      GitLab whose host name doesn't say so. A session on GitLab now hears once that its merge
+      request (`!<n>`) merged or closed. Without `gh` or `glab` it does nothing, as before.
+    - **Every skill's `gh` command has its `glab` one:** `/adf:wrap-up` (the merge request's state,
+      head, and description), `/adf:track-time` (its discussions, approvals included),
+      `/adf:end-user-docs` (merged or not), and `/adf:context-audit` (protected branches and the
+      pipeline-must-succeed setting). `/adf:open-pr`'s `gitlab.md` adds GitLab's description
+      template, `.gitlab/merge_request_templates/Default.md`.
+    - **The skeleton's settings ship the `glab` rules beside the `gh` ones.** `glab` runs without a
+      prompt except merging (`mr merge`, `mr accept`), approving or revoking an approval, releases,
+      `repo delete`, CI/CD variables and secure files, `auth` and `token`, and `glab api` writes.
+      `/adf:adopt` no longer adds them by hand. `docs/TRACKER-INTEGRATION.md`'s "who is signed in"
+      on GitLab is `glab api user`, which needs no prompt.
+    - **A static check keeps the hosts in step:** a skill, agent, workflow, hook, or skeleton file
+      that names a `gh` command must name a `glab` one too.
+  - **Where:** `plugins/adf/hooks/pr-state.sh` and `README.md`; `plugins/adf/skills/` `wrap-up/`,
+    `track-time/`, `end-user-docs/`, `context-audit/`, `open-pr/gitlab.md`, `adopt/`;
+    `skeleton/.claude/settings.json`, `.claude/rules/claude-code.md`, `.claude/hooks/config.sh`
+    (a comment), `docs/TRACKER-INTEGRATION.md`; `docs/SETUP.md`, `docs/ONBOARDING.md`; the hook
+    tests and static checks.
+
+  **Upgrade impact:**
+  - **Overwrite:** packaged, the hook and skills come with the plugin. Committed install:
+    `.claude/hooks/pr-state.sh` and `.claude/skills/` `wrap-up/`, `track-time/`, `end-user-docs/`,
+    `context-audit/`, `open-pr/`, `adopt/`, as `/adf:upgrade` writes them. `.claude/rules/claude-code.md`.
+  - **Merge:** `.claude/settings.json` — `Bash(glab *)` in `permissions.allow` and the `glab` rules
+    in `permissions.ask`, placed away from the lists' ends so they merge beside your own rules. A
+    GitLab project that added them by hand at adoption keeps one copy of each: the upgrade drops a
+    duplicate `allow` rule, not an `ask` one. `docs/TRACKER-INTEGRATION.md` § Issues as the
+    tracker — the "who is signed in" row. `.claude/hooks/config.sh` — the `PR_STATE` comment only;
+    the value is unchanged.
+  - **Migration:** none.
+
 - **The ticket is for stakeholders, the pull request for the developer — and GitHub and GitLab
   issues are trackers too**
   ([decision 0073](docs/decisions/0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md),

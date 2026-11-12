@@ -298,8 +298,8 @@ for event, entries in settings.get("hooks", {}).items():
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
 # Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
-# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
-# still prompt is asked by name (decisions 0022, 0033, 0038).
+# command, and an ask rule wins over any allow rule. git, gh, and glab are allowed broadly, and what
+# must still prompt is asked by name (decisions 0022, 0033, 0038, 0074).
 allow_rules = settings.get("permissions", {}).get("allow", [])
 ask_rules = settings.get("permissions", {}).get("ask", [])
 def matches(rules, command):
@@ -328,6 +328,20 @@ expected = {
     "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
     "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
     "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+    # GitLab, the same split (0074): the draft merge request, its upkeep, ready, reviewers, issues, reads.
+    "glab mr create --draft --target-branch main --title x": "allow",
+    "glab mr update 12 --description-file b.md": "allow", "glab mr update 12 --ready": "allow",
+    "glab mr update 12 --reviewer +a": "allow", "glab mr note create 12 --message x": "allow",
+    "glab mr view 12 --output json": "allow", "glab ci status --wait": "allow", "glab mr close 12": "allow",
+    "glab issue note 3 --message x": "allow", "glab issue update 3 --label x": "allow",
+    "glab api user": "allow", "glab api projects/:id/protected_branches": "allow",
+    # Merging, approving, releases, the repository, secrets (CI/CD variables, secure files), auth, API writes.
+    "glab mr merge": "ask", "glab mr merge 12": "ask", "glab mr accept 12": "ask",
+    "glab mr approve": "ask", "glab mr approve 12": "ask", "glab mr revoke 12": "ask",
+    "glab mr unapprove 12": "ask", "glab release create v1": "ask", "glab repo delete x": "ask",
+    "glab variable get X": "ask", "glab var list": "ask", "glab securefile download 1": "ask",
+    "glab auth status": "ask", "glab token create t": "ask", "glab api projects/:id -X PUT": "ask",
+    "glab api projects/:id/notes -f body=x": "ask", "glab api projects/:id/uploads --form file=@a.png": "ask",
 }
 for command, want in expected.items():
     if verdict(command) != want:
@@ -336,7 +350,7 @@ print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git, gh, and glab allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -1099,6 +1113,37 @@ PY
     fi
 }
 
+check_host_parity() {
+    # The framework works on GitHub and GitLab (decision 0074): a skill whose folder names a `gh`
+    # command names the `glab` one too — in its steps or a reference file beside them — and so does
+    # each agent, workflow, hook script, and skeleton file that names one. The github module is GitHub's own.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+gh = re.compile(r"(?<![\w-])gh (pr|issue|api|run|release|repo|label|auth|secret|workflow|search|browse|cache|variable)\b")
+glab = re.compile(r"(?<![\w-])glab\b")
+units = [(os.path.relpath(d, root) + "/", sorted(glob.glob(os.path.join(d, "*.md"))))
+         for d in sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*"))) if os.path.isdir(d)]
+singles = glob.glob(os.path.join(root, "plugins", "*", "agents", "**", "*.md"), recursive=True) \
+    + glob.glob(os.path.join(root, "plugins", "*", "workflows", "**", "*"), recursive=True) \
+    + glob.glob(os.path.join(root, "plugins", "*", "hooks", "*.sh")) \
+    + glob.glob(os.path.join(root, "skeleton", "**", "*.md"), recursive=True) \
+    + glob.glob(os.path.join(root, "skeleton", "**", "*.mdc"), recursive=True)
+units += [(os.path.relpath(f, root), [f]) for f in sorted(singles) if os.path.isfile(f)]
+for rel, files in units:
+    text = "".join(open(f, encoding="utf-8", errors="replace").read() for f in files)
+    if gh.search(text) and not glab.search(text):
+        print(f"{rel}: names a gh command and no glab one")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "GitHub and GitLab: every skill, agent, workflow, hook, and skeleton file that names a gh command names its glab one (0074)"
+    else
+        fail "GitHub and GitLab: a gh command without its glab one" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
 check_packaged_plugin() {
     # The plugins are the machinery's source (decision 0028); build-plugins.sh generates the parts that
     # can't be kept by hand — the module commands in bin/; the spec model, the agents' checklists, and
@@ -1653,6 +1698,7 @@ check_spec_records
 check_found_along_the_way
 check_plugin
 check_skill_reference_files
+check_host_parity
 check_dev_env_templates
 check_upgrade
 check_no_tracked_junk

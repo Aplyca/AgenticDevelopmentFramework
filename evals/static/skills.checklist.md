@@ -25,7 +25,8 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 ## Settings, hooks, instruction files
 
 - [ ] `settings.json` is valid JSON; `model` is an alias; every hook entry nests `{"type": "command", "command": …}` inside a `hooks` array; no `$CLAUDE_FILE_PATH`; every referenced `.claude/hooks/*.sh` exists and is executable
-- [ ] `permissions.allow` names `Bash(git *)` and `Bash(gh *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge`, `review`, releases, `gh repo delete`, secrets, `gh auth`, `gh api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070)
+- [ ] `permissions.allow` names `Bash(git *)`, `Bash(gh *)`, and `Bash(glab *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge` and `glab mr merge`, reviews and approvals, releases, deleting the repository, secrets, `gh auth`, `glab auth` and `glab token`, `gh api` and `glab api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070, 0074)
+- [ ] Every skill, agent, workflow, hook, and skeleton file that names a `gh` command names its `glab` one (decision 0074)
 - [ ] No `CLAUDE.md`; `AGENTS.md`'s first line is the `Skeleton source:` stamp; `.claude/rules/claude-code.md` has no `paths:`
 - [ ] `AGENTS.md` covers triage, the approval gate, the change surface, docs first, "watch it fail", change requests, "don't invent requirements", and a Boundaries section — in ≤200 lines
 - [ ] `git-workflow.md` lists `spec:`, `test:`, `docs:`, `feat:`, `fix:`, `refactor:`, `chore:`, plus the draft and "only when asked" rules

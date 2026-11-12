@@ -48,7 +48,7 @@ projects.
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted; amended by 0055, 0061, 0067 |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted; amended 2026-10-16 |
-| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted |
+| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted; amended by 0074 |
 | [0039](0039-check-locally-then-on-the-preview.md) | An agent checks a change locally first, then on the pull request's preview | accepted; amended by 0045, 0072 |
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted; amended by 0042 |
 | [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted |
@@ -82,8 +82,9 @@ projects.
 | [0069](0069-a-run-is-as-small-as-the-question.md) | A test run is as small as its question, and each behavior is tested once at its cheapest layer | accepted |
 | [0070](0070-the-agent-marks-its-pull-request-ready.md) | The agent marks its pull request ready once its own tests pass — locally first, on the preview for what only a shared service has, and CI green | accepted; amended by 0072 |
 | [0071](0071-stop-the-local-environment-once-ready.md) | The agent stops the local environment once its pull request is ready — stop, which keeps containers and data; never down, kill, or remove | accepted |
-| [0072](0072-agents-implement-and-review-humans-decide.md) | Agents implement and review; humans decide: `/review` in every lane, the agent tests and reviews on the preview, and requests the project's reviewers at ready, on GitHub and GitLab | accepted; amended by 0073 |
+| [0072](0072-agents-implement-and-review-humans-decide.md) | Agents implement and review; humans decide: `/review` in every lane, the agent tests and reviews on the preview, and requests the project's reviewers at ready, on GitHub and GitLab | accepted; amended by 0073, 0074 |
 | [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) | The ticket is for business communication with stakeholders, the pull request for technical communication with the developer: outcome updates post on their own, delivered means live, and GitHub and GitLab issues are trackers too | accepted |
+| [0074](0074-github-and-gitlab-alike.md) | GitHub and GitLab alike: the PR-state hook asks `glab` on GitLab, every skill's `gh` command has its `glab` one, and the skeleton's settings ship the `glab` rules | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

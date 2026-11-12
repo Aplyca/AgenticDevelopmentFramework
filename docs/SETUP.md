@@ -138,7 +138,7 @@ on conflict, so the two must agree — especially about branches and merge targe
   auto-detected, `LOCAL_URL` (the URL the agent walks in the local check, and the developer tests on).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
   the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
-  On GitLab, add the `glab` equivalents of the `gh` rules.
+  The `glab` rules sit beside the `gh` ones, so a GitLab project needs nothing added.
 - **`.claude/rules/`** — update the `<!-- CUSTOMIZE -->` sections and the `paths:` frontmatter of
   `architecture`, `ui-ux`, `deployment`, `performance`, `observability`; delete rules that can't apply.
   `code-quality`, `testing`, `security`, and `git-workflow` are universal.

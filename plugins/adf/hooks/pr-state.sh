@@ -2,12 +2,13 @@
 # SessionStart and UserPromptSubmit hook. Tells the session, once, when its branch's pull request
 # merged or closed without merging: the moment the task can close up (/adf:wrap-up, decision 0047).
 # A developer who merges on the host and comes back later would otherwise find the session as they
-# left it. One `gh` call at session start and at most one every five minutes after; silent without gh.
+# left it. One call to the host's CLI (`gh`, or `glab` on GitLab) at session start and at most one
+# every five minutes after; silent without either.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 [ -n "$PR_STATE" ] || exit 0
-command -v gh >/dev/null 2>&1 || exit 0
+command -v gh >/dev/null 2>&1 || command -v glab >/dev/null 2>&1 || exit 0
 
 cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
@@ -24,25 +25,56 @@ last_branch="" last_time=0 last_state="-" last_number=""
 if [ "$last_branch" != "$branch" ]; then last_time=0 last_state="-" last_number=""; fi
 if [ "$event" != "SessionStart" ] && [ $((now - ${last_time:-0})) -lt 300 ]; then exit 0; fi
 
-# gh can hang on a slow network: coreutils' timeout bounds it where it's installed (gtimeout on macOS).
+# A CLI can hang on a slow network: coreutils' timeout bounds it where it's installed (gtimeout on macOS).
 limited() {
   if command -v timeout >/dev/null 2>&1; then timeout 5 "$@"
   elif command -v gtimeout >/dev/null 2>&1; then gtimeout 5 "$@"
   else "$@"; fi
 }
-pr="$(cd "$root" && limited gh pr view "$branch" --json number,state --jq '"\(.number) \(.state)"' 2>/dev/null)" || pr=""
+# "<number> <STATE>" from GitHub; a merge request's number carries GitLab's "!" (decision 0074).
+ask_gh() {
+  (cd "$root" && limited gh pr view "$branch" --json number,state --jq '"\(.number) \(.state)"' 2>/dev/null)
+}
+ask_glab() { # glab's --jq is recent (2026), so its JSON goes through the hooks' own reader.
+  local mr state url
+  mr="$(cd "$root" && limited glab mr view "$branch" --output json 2>/dev/null)" || return 1
+  state="$(HOOK_INPUT="$mr" json_get '.state')" url="$(HOOK_INPUT="$mr" json_get '.web_url')"
+  case "$state" in
+    merged) state=MERGED ;;
+    closed) state=CLOSED ;;
+    opened | locked) state=OPEN ;;
+    *) return 1 ;;
+  esac
+  echo "!${url##*/} $state"
+}
+# glab first when origin is on GitLab, gh first otherwise; the other answers when the first can't —
+# a self-managed GitLab whose host name doesn't say so.
+case "$(git -C "$root" remote get-url origin 2>/dev/null)" in
+  *gitlab*) clis="glab gh" ;;
+  *) clis="gh glab" ;;
+esac
+pr=""
+for cli in $clis; do
+  command -v "$cli" >/dev/null 2>&1 || continue
+  pr="$("ask_$cli")" && [ -n "$pr" ] && break
+  pr=""
+done
 number="${pr%% *}" state="${pr#* }"
 if [ -z "$pr" ]; then state="$last_state" number="$last_number"; fi
+case "$number" in
+  '!'*) ref="Merge request $number" ;;
+  *) ref="PR #$number" ;;
+esac
 printf '%s %s %s %s\n' "$branch" "$now" "${state:--}" "$number" | tee "$cache" >/dev/null
 
 # At session start the context is new, so say it again; on a prompt, only when the state changed.
 [ "$event" = "SessionStart" ] || [ "$state" != "$last_state" ] || exit 0
 case "$state" in
   MERGED)
-    echo "PR state (the pr-state hook): PR #$number for $branch merged, so the task's work is upstream. Once this turn's request is settled, offer /adf:wrap-up, unless the developer put the task on hold or asked to keep the session."
+    echo "PR state (the pr-state hook): $ref for $branch merged, so the task's work is upstream. Once this turn's request is settled, offer /adf:wrap-up, unless the developer put the task on hold or asked to keep the session."
     ;;
   CLOSED)
-    echo "PR state (the pr-state hook): PR #$number for $branch closed without merging, so its work isn't upstream. Ask the developer whether the task is dropped; if it is, /adf:wrap-up closes it up and keeps the branch on origin."
+    echo "PR state (the pr-state hook): $ref for $branch closed without merging, so its work isn't upstream. Ask the developer whether the task is dropped; if it is, /adf:wrap-up closes it up and keeps the branch on origin."
     ;;
 esac
 exit 0

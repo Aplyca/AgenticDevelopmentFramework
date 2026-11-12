@@ -42,8 +42,9 @@ the close-up only once it resumes and ends.
 
 2. **Read the state.** Run the reads together:
    - **The pull request:** `gh pr view --json number,url,state,mergedAt,headRefName,headRefOid` for
-     this branch, or the one the developer named (`glab mr view` on GitLab). Its state names the
-     ending:
+     this branch, or the one the developer named. On GitLab (`git remote -v`),
+     `glab mr view <branch> --output json`: `iid`, `web_url`, `state` (`opened`, `merged`, `closed`),
+     `merged_at`, `source_branch`, and `sha` for the head. Its state names the ending:
      - **Merged** — go on.
      - **Closed without merging** — its work isn't upstream. Go on only once the developer says the
        task is dropped (**abandoned**); otherwise ask, and stop.
@@ -52,7 +53,8 @@ the close-up only once it resumes and ends.
      - **None, on a branch with no commits past the base** — an **answer**: go on when it was
        delivered where the task asked. With commits and no pull request, the work isn't delivered:
        say so and stop.
-   - **The follow-ups,** for a merged or abandoned pull request: its body (`gh pr view --json body`),
+   - **The follow-ups,** for a merged or abandoned pull request: its body (`gh pr view --json body`;
+     GitLab's `description`),
      from the line `## Follow-ups` to the next heading. `- none`, a checked line, or no section:
      nothing to offer. An unchecked line — or, for an answer, a follow-up its answer listed: read
      `<this skill's base directory>/follow-ups.md` for which ones to offer and how they start.
@@ -62,8 +64,8 @@ the close-up only once it resumes and ends.
    - **The working tree:**
      - `git status --porcelain` — uncommitted changes, including untracked files;
      - `git stash list` — stashes from this branch;
-     - `git log --oneline <headRefOid>..HEAD` — commits made after the pull request's last one,
-       which the merge doesn't have (for an answer, `git log --oneline <base>..HEAD`).
+     - `git log --oneline <headRefOid>..HEAD` (GitLab's `sha`) — commits made after the pull
+       request's last one, which the merge doesn't have (for an answer, `git log --oneline <base>..HEAD`).
    - **The record:** in the spec folder, the unchecked tasks in `tasks.md`, the spec's open questions,
      and its `status:`. Then this session's own promises: a follow-up you said you'd do, a `/adf:handoff`
      not yet given, a side task you noted for later.
