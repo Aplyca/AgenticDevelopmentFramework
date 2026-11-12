@@ -153,6 +153,101 @@ run triage-first.sh 0 "$(triage_bash b3 "$WORK/lane.jsonl" 'git switch -c fix/la
 echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
 run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
 
+# approval-gate — edits outside specs/ wait for the branch's spec to be approved (decision 0074)
+AG="$WORK/approval"
+mkdir -p "$AG/.claude" "$AG/src" "$AG/specs/007-newsletter-signup" && git -C "$AG" init -q -b main
+cp -R "$HOOKS_SRC" "$AG/.claude/hooks"
+printf 'dist/\n' > "$AG/.gitignore"
+set_spec_status() { printf -- '---\nstatus: %s\n---\n' "$1" > "$AG/specs/007-newsletter-signup/spec.md"; }
+set_spec_status draft
+git -C "$AG" add -A && git -C "$AG" -c user.email=t@example.com -c user.name=t commit -qm init
+git -C "$AG" switch -q -c feat/newsletter-signup
+ag_event() { printf '{"tool_name":"Edit","session_id":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$1" "$AG" "$2"; }
+H_T="$H"; H="$AG/.claude/hooks"
+run approval-gate.sh 2 "$(ag_event a1 "$AG/src/app.ts")" "stops an edit outside specs/ while the branch's spec is a draft"
+run approval-gate.sh 2 "$(ag_event a1 "$AG/src/app.ts")" "blocks every time — the way through is the approval, not a retry"
+run approval-gate.sh 0 "$(ag_event a1 "$AG/specs/007-newsletter-signup/plan.md")" "lets the spec folder itself be written before the gate"
+run approval-gate.sh 0 "$(ag_event a1 "$AG/dist/bundle.js")" "ignores a file git ignores"
+run approval-gate.sh 0 "$(ag_event a1 "$WORK/notes.md")" "ignores a file outside the repository"
+set_spec_status in-review
+run approval-gate.sh 2 "$(ag_event a1 "$AG/src/app.ts")" "stops while the spec is in review"
+git -C "$AG" switch -q -c feat/newsletter-signup-topics
+run approval-gate.sh 2 "$(ag_event a1 "$AG/src/app.ts")" "holds a change request's branch to its folder's status"
+set_spec_status approved
+run approval-gate.sh 0 "$(ag_event a1 "$AG/src/app.ts")" "lets edits through once the spec is approved"
+set_spec_status implemented
+run approval-gate.sh 0 "$(ag_event a1 "$AG/src/app.ts")" "lets edits through on an implemented spec — a fix, a light change request"
+set_spec_status draft
+git -C "$AG" switch -q -c fix/label
+run approval-gate.sh 0 "$(ag_event a1 "$AG/src/app.ts")" "leaves a branch with no spec folder alone — the fast and careful lanes"
+git -C "$AG" switch -q feat/newsletter-signup
+echo 'APPROVAL_GATE="remind"' >> "$AG/.claude/hooks/config.sh"
+run approval-gate.sh 2 "$(ag_event a2 "$AG/src/app.ts")" "remind: stops the first edit of the session"
+run approval-gate.sh 0 "$(ag_event a2 "$AG/src/app.ts")" "remind: lets the next one through — a nudge, not a lock"
+run approval-gate.sh 2 "$(ag_event a3 "$AG/src/app.ts")" "remind: stops again in a new session"
+echo 'APPROVAL_GATE=""' >> "$AG/.claude/hooks/config.sh"
+run approval-gate.sh 0 "$(ag_event a4 "$AG/src/app.ts")" "does nothing when APPROVAL_GATE is empty"
+H="$H_T"
+# A packaged project that hasn't added the setting yet: the plugin's default is off.
+AGP="$WORK/approval-packaged"
+mkdir -p "$AGP/.claude/hooks" "$AGP/src" "$AGP/specs/007-newsletter-signup" && git -C "$AGP" init -q -b feat/newsletter-signup
+echo '<!-- Skeleton source: v2.7.0 · abc1234 (2026-11-01) · modules: none · install: packaged -->' > "$AGP/AGENTS.md"
+printf -- '---\nstatus: draft\n---\n' > "$AGP/specs/007-newsletter-signup/spec.md"
+echo 'PROTECTED_BRANCHES="main"' > "$AGP/.claude/hooks/config.sh"
+pkg_gate() { ag_event p1 "$AGP/src/app.ts" | CLAUDE_PROJECT_DIR="$AGP" CLAUDE_PLUGIN_ROOT="$REPO_ROOT/plugins/adf" "$REPO_ROOT/plugins/adf/hooks/approval-gate.sh" >/dev/null 2>&1; echo $?; }
+gate_off="$(pkg_gate)"; echo 'APPROVAL_GATE="block"' >> "$AGP/.claude/hooks/config.sh"; gate_on="$(pkg_gate)"
+if [ "$gate_off" = 0 ] && [ "$gate_on" = 2 ]; then
+    PASS=$((PASS+1)); echo "✓ approval-gate.sh: off in a packaged project until its config.sh sets APPROVAL_GATE"
+else
+    FAIL=$((FAIL+1)); echo "✘ approval-gate.sh: packaged, without the setting exit $gate_off (want 0), with it $gate_on (want 2)"
+fi
+
+# guard-git, the ready gate — a fake gh and glab answer for the pull request (decision 0074)
+mkdir -p "$WORK/fakeready"
+printf '#!/usr/bin/env bash\necho "$*" >>"%s/ready-calls"\nprintf "%%s\\n" "$FAKE_VIEW"\nexit "${FAKE_EXIT:-0}"\n' "$WORK" > "$WORK/fakeready/gh"
+cp "$WORK/fakeready/gh" "$WORK/fakeready/glab" && chmod +x "$WORK/fakeready/gh" "$WORK/fakeready/glab"
+ready_event() { printf '{"tool_name":"Bash","session_id":"%s","cwd":"%s","tool_input":{"command":%s}}' "$1" "$T" "$(printf '%s' "$2" | json_string)"; }
+ready() { # ready <expected-exit> <session> <command> <CI states> <description> <test description>
+    FAKE_VIEW="$4"$'\n'"$5" PATH="$WORK/fakeready:$PATH" run guard-git.sh "$1" "$(ready_event "$2" "$3")" "$6"
+}
+filled_body='## How to review and test
+<!-- adf:how-to-verify -->
+**Where:** https://pr-12.preview.example.com
+1. Open /newsletter and submit an email — the confirmation shows
+**Look at:** the rate limit
+**Tests:** tests/newsletter/signup.test.ts
+<!-- /adf:how-to-verify -->'
+template_body="$(cat "$REPO_ROOT/modules/github/files/.github/pull_request_template.md")"
+ready 0 r1 'gh pr ready 12' "SUCCESS COMPLETED" "$filled_body" "lets ready through with the review instructions written and CI green"
+ready 2 r1 'gh pr ready 12' "SUCCESS COMPLETED" "$template_body" "stops ready while How to review and test is the empty template"
+ready 2 r1 'gh pr ready 12' "SUCCESS COMPLETED" "A description written by hand." "stops ready when the description has no review instructions section"
+ready 2 r1 'gh pr ready 12' " IN_PROGRESS" "$filled_body" "stops ready while CI is still running"
+ready 2 r1 'gh pr ready 12' "SUCCESS COMPLETED FAILURE COMPLETED" "$filled_body" "stops ready while a check is failing"
+ready 0 r1 'gh pr ready 12' "" "$filled_body" "lets ready through in a project with no CI"
+ready 0 r1 'gh pr ready 12' "SUCCESS COMPLETED SKIPPED COMPLETED NEUTRAL COMPLETED" "$filled_body" "counts skipped and neutral checks as green"
+ready 2 r1 'gh pr checks 12 && gh pr ready' "SUCCESS COMPLETED" "$template_body" "catches ready inside a compound command, with no number"
+ready 0 r1 'gh pr ready 12 --undo' "FAILURE COMPLETED" "$template_body" "lets a pull request go back to draft"
+ready 0 r1 'gh pr view 12 --json isDraft' "FAILURE COMPLETED" "$template_body" "ignores other gh pr commands"
+FAKE_EXIT=1 ready 0 r1 'gh pr ready 12' "" "" "lets ready through when the pull request can't be read"
+: > "$WORK/ready-calls"
+ready 0 r1 'gh pr ready --repo acme/site 12' "SUCCESS COMPLETED" "$filled_body" "reads the pull request the command names, in the repository it names"
+if grep -q '^pr view 12 --repo acme/site ' "$WORK/ready-calls"; then PASS=$((PASS+1)); echo "✓ guard-git.sh: asks the host for that pull request"; else FAIL=$((FAIL+1)); echo "✘ guard-git.sh: asked the host for: $(cat "$WORK/ready-calls")"; fi
+glab_view() { python3 -c 'import json,sys; print(json.dumps({"description": sys.argv[1], "head_pipeline": {"status": sys.argv[2]}}))' "$1" "$2"; }
+glab_ready() { # glab_ready <expected-exit> <command> <pipeline status> <description> <test description>
+    FAKE_VIEW="$(glab_view "$4" "$3")" PATH="$WORK/fakeready:$PATH" run guard-git.sh "$1" "$(ready_event r1 "$2")" "$5"
+}
+glab_ready 0 'glab mr update 12 --ready' success "$filled_body" "lets a GitLab merge request turn ready with instructions and a green pipeline"
+glab_ready 2 'glab mr update 12 --ready' running "$filled_body" "stops a GitLab ready while the pipeline runs"
+glab_ready 2 'glab mr update 12 --ready' success "$template_body" "stops a GitLab ready without review instructions"
+glab_ready 0 'glab mr update 12 --description-file /tmp/body.md' failed "$template_body" "ignores a GitLab update that doesn't mark it ready"
+echo 'READY_GATE="remind"' >> "$T/.claude/hooks/config.sh"
+ready 2 r2 'gh pr ready 12' "FAILURE COMPLETED" "$filled_body" "remind: stops the first ready of the session"
+ready 0 r2 'gh pr ready 12' "FAILURE COMPLETED" "$filled_body" "remind: lets the next one through — the developer's call"
+echo 'READY_GATE=""' >> "$T/.claude/hooks/config.sh"
+: > "$WORK/ready-calls"
+ready 0 r3 'gh pr ready 12' "FAILURE COMPLETED" "$template_body" "does nothing when READY_GATE is empty"
+if [ -s "$WORK/ready-calls" ]; then FAIL=$((FAIL+1)); echo "✘ guard-git.sh: asked the host about the pull request with READY_GATE empty"; else PASS=$((PASS+1)); echo "✓ guard-git.sh: doesn't ask the host when READY_GATE is empty"; fi
+
 # session-title — a session takes its task's title from the stated triage, once per session
 said() { # said <transcript name> <reply text>
     printf '%s\n' '{"type":"user","message":{"content":"Work on this task https://app.clickup.com/t/86a1"}}' \

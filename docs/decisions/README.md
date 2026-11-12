@@ -12,7 +12,7 @@ projects.
 | # | Decision | Status |
 |---|---|---|
 | [0001](0001-spec-folders-as-record-of-intent.md) | Spec folders are the record of intent; trackers are linked, never copied | accepted; refined by 0050 |
-| [0002](0002-one-approval-gate-on-the-change-surface.md) | One approval gate, after the plan, on the change surface | accepted |
+| [0002](0002-one-approval-gate-on-the-change-surface.md) | One approval gate, after the plan, on the change surface | accepted; amended by 0074 |
 | [0003](0003-tdd-at-task-granularity.md) | TDD at task granularity: one task, one red → green cycle, one commit | accepted |
 | [0004](0004-triage-before-setup.md) | Triage a task before setting anything up | accepted |
 | [0005](0005-outward-actions-and-draft-prs.md) | Outward actions only on request; pull requests stay drafts until a human QCs them | accepted; amended by 0022, 0033, 0070 |
@@ -80,10 +80,11 @@ projects.
 | [0067](0067-the-task-record-merges-with-its-pull-request.md) | A task's pull request carries its whole record, and a gap after the merge is a miss | accepted |
 | [0068](0068-a-contentful-server-is-named-after-its-project.md) | A Contentful server is named after its project, so each project has its own sign-in and space | accepted |
 | [0069](0069-a-run-is-as-small-as-the-question.md) | A test run is as small as its question, and each behavior is tested once at its cheapest layer | accepted |
-| [0070](0070-the-agent-marks-its-pull-request-ready.md) | The agent marks its pull request ready once its own tests pass — locally first, on the preview for what only a shared service has, and CI green | accepted; amended by 0072 |
+| [0070](0070-the-agent-marks-its-pull-request-ready.md) | The agent marks its pull request ready once its own tests pass — locally first, on the preview for what only a shared service has, and CI green | accepted; amended by 0072, 0074 |
 | [0071](0071-stop-the-local-environment-once-ready.md) | The agent stops the local environment once its pull request is ready — stop, which keeps containers and data; never down, kill, or remove | accepted |
 | [0072](0072-agents-implement-and-review-humans-decide.md) | Agents implement and review; humans decide: `/review` in every lane, the agent tests and reviews on the preview, and requests the project's reviewers at ready, on GitHub and GitLab | accepted; amended by 0073 |
 | [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) | The ticket is for business communication with stakeholders, the pull request for technical communication with the developer: outcome updates post on their own, delivered means live, and GitHub and GitLab issues are trackers too | accepted |
+| [0074](0074-hooks-hold-the-approval-gate-and-the-ready-conditions.md) | Hooks hold the approval gate and the ready conditions: no edit outside `specs/` until the spec is approved, no ready without review instructions and green CI — each gate set to block, remind, or off | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

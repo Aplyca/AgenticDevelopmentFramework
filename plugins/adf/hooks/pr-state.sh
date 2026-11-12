@@ -24,12 +24,7 @@ last_branch="" last_time=0 last_state="-" last_number=""
 if [ "$last_branch" != "$branch" ]; then last_time=0 last_state="-" last_number=""; fi
 if [ "$event" != "SessionStart" ] && [ $((now - ${last_time:-0})) -lt 300 ]; then exit 0; fi
 
-# gh can hang on a slow network: coreutils' timeout bounds it where it's installed (gtimeout on macOS).
-limited() {
-  if command -v timeout >/dev/null 2>&1; then timeout 5 "$@"
-  elif command -v gtimeout >/dev/null 2>&1; then gtimeout 5 "$@"
-  else "$@"; fi
-}
+# gh can hang on a slow network: limited (_lib.sh) bounds it.
 pr="$(cd "$root" && limited gh pr view "$branch" --json number,state --jq '"\(.number) \(.state)"' 2>/dev/null)" || pr=""
 number="${pr%% *}" state="${pr#* }"
 if [ -z "$pr" ]; then state="$last_state" number="$last_number"; fi

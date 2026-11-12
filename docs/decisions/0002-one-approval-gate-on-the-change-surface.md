@@ -1,6 +1,6 @@
 # 0002: One approval gate, after the plan, on the change surface
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0074](0074-hooks-hold-the-approval-gate-and-the-ready-conditions.md) — in Claude Code, a hook holds the gate
 - **Date:** 2026-10-01
 - **Refined by:** [0011](0011-lanes-ceremony-follows-risk.md) — the gate applies to the full lane; the fast and careful lanes rely on the diff's review
 

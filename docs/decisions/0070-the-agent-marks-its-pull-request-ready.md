@@ -1,6 +1,6 @@
 # 0070: The agent marks its pull request ready once its own tests pass
 
-- **Status:** accepted; amended by [0072](0072-agents-implement-and-review-humans-decide.md) — `/review` runs in every lane, the agent reviews on the preview, and ready requests the reviewers
+- **Status:** accepted; amended by [0072](0072-agents-implement-and-review-humans-decide.md) — `/review` runs in every lane, the agent reviews on the preview, and ready requests the reviewers; and by [0074](0074-hooks-hold-the-approval-gate-and-the-ready-conditions.md) — the git guard checks the review instructions and CI before ready
 - **Date:** 2026-11-07
 - **Amends:** [0005](0005-outward-actions-and-draft-prs.md) — who marks a pull request ready, and what
   ready means; [0033](0033-pull-request-upkeep-without-prompts.md) — `gh pr ready` no longer prompts;

@@ -26,6 +26,20 @@ CAREFUL_GLOBS=""
 # edit or new branch once, as a reminder, when its reply text states no lane yet. Empty disables.
 TRIAGE_FIRST="1"
 
+# The approval gate: while the spec folder a branch belongs to reads `status: draft` or `in-review`,
+# edits outside the specs folder are stopped — the developer signs off scope, change surface, and
+# assumptions first. A branch with no spec folder (the fast and careful lanes) is never stopped.
+# "block" stops every such edit; "remind" stops the first one per session, then lets them through.
+# Empty disables.
+APPROVAL_GATE="block"
+
+# The ready gate: a pull request is marked ready (gh pr ready; glab mr update --ready) only once its
+# description carries the review instructions — text between the adf:how-to-verify markers — and CI is
+# neither failing nor still running. One read of the pull request, only when that command runs; one
+# the hook can't read is let through. "block" stops it every time; "remind" stops it once per
+# session. Empty disables.
+READY_GATE="block"
+
 # With the parallel-agents module installed, each task moves to its own worktree before its first
 # edit. "1" stops every file edit in the main checkout (worktrees are unaffected). Without the
 # module it has no effect. Empty disables.

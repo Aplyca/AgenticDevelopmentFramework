@@ -58,6 +58,7 @@ In a repository that adopted the skeleton, these hold in Claude Code whatever th
 |---|---|
 | No `--no-verify`; no commits or pushes on protected branches | `guard-git.sh` hook |
 | No hand-edits to lockfiles and other generated files, or to existing migrations | `protect-paths.sh` hook |
+| Full lane: nothing outside `specs/` is written until the spec is approved. Any lane: a pull request turns ready only with its review instructions written and CI green | `approval-gate.sh` and `guard-git.sh` hooks |
 | Every environment variable the code reads is declared in the env template | `check-env-declared.sh` hook |
 | Merging and reviewing a pull request, and releases, are confirmed by a person; the pull request's push, edits, comments, and promotion to ready aren't | `permissions.ask` and `permissions.allow` in `.claude/settings.json` |
 

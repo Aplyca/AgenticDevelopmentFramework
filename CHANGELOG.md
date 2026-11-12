@@ -11,6 +11,48 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Hooks hold the approval gate and the ready conditions**
+  ([decision 0074](docs/decisions/0074-hooks-hold-the-approval-gate-and-the-ready-conditions.md),
+  amending 0002 and 0070).
+  - **What:**
+    - **The approval gate is a hook.** A new `approval-gate.sh` stops an edit outside `specs/` while
+      the spec folder the branch belongs to reads `status: draft` or `in-review`. A branch with no
+      spec folder — the fast and careful lanes — is never stopped, and neither is a file git ignores.
+      It was an instruction only: `/adf:implement` refused to start, when it was the skill running.
+    - **The ready gate is the git guard's fifth rule.** `guard-git.sh` stops `gh pr ready` and
+      `glab mr update --ready` while the description has no review instructions — nothing between
+      the `adf:how-to-verify` markers beyond the empty template — or a check is failing or still
+      running. One read of the pull request, only when that command runs; one it can't read is let
+      through, and so is a project with no CI.
+    - **Each gate has a mode:** `APPROVAL_GATE` and `READY_GATE` in `.claude/hooks/config.sh` —
+      `block` every time, `remind` once per session, empty for off. The skeleton sets both to
+      `block`; unset is off.
+    - **The hooks check facts, not judgment.** Who set the status, and whether the criteria were
+      walked, stay with the `approvals:` line, *Verified / not verified*, and the reviewers.
+    - **Shared helpers in `_lib.sh`:** the branch's spec folder and its status (which
+      `session-context.sh` now uses), the five-second limit on a host call (from `pr-state.sh`), and
+      a JSON field read from any text.
+  - **Where:** `plugins/adf/hooks/` (new `approval-gate.sh`; `guard-git.sh`, `_lib.sh`,
+    `session-context.sh`, `pr-state.sh`, `hooks.json`, `README.md`);
+    `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/settings.json`,
+    `skeleton/.claude/rules/claude-code.md`, `skeleton/specs/README.md`; onboarding and the
+    scenarios; the hook tests and the static checks.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** none until the project adds the two settings: both gates are off
+    without them.
+  - **Overwrite:** committed install: `.claude/hooks/` — the new `approval-gate.sh`, and
+    `guard-git.sh`, `_lib.sh`, `session-context.sh`, `pr-state.sh` — as `/adf:upgrade` writes them;
+    packaged, they come with the plugin, wiring included.
+  - **Merge:** committed install: the `hooks` block of `.claude/settings.json` —
+    `approval-gate.sh` on `Edit|Write|MultiEdit`. `.claude/rules/claude-code.md` — the *Never* line
+    under *Guardrails enforced by configuration*. `specs/README.md` § Status — its last paragraph.
+  - **Additive:** in `.claude/hooks/config.sh`, the `APPROVAL_GATE` and `READY_GATE` blocks. Start
+    with `remind` to see where a gate would stop the team's work, then `block`.
+  - **Migration:** by hand — before setting `READY_GATE`, check that the project's pull request
+    template has the `<!-- adf:how-to-verify -->` and `<!-- /adf:how-to-verify -->` markers (the
+    `github` module's does): without them every ready is stopped.
+
 - **The ticket is for stakeholders, the pull request for the developer — and GitHub and GitLab
   issues are trackers too**
   ([decision 0073](docs/decisions/0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md),

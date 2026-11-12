@@ -829,6 +829,16 @@ check_practices() {
     file_contains "$SKILLS_DIR/open-pr/preview.md" 'Then \*\*review\*\* what a person sees' || missing+=("/open-pr: reviews what a person sees on the preview (0072)")
     file_contains "$SKELETON/CONTRIBUTING.md" '^- \*\*Reviewers:\*\*' || missing+=("CONTRIBUTING.md: the Reviewers line (0072)")
     file_contains "$HOOKS_DIR/guard-git.sh" 'glab mr create' || missing+=("guard-git.sh: a GitLab merge request opens only as a draft (0072)")
+    # Hooks hold the approval gate and the ready conditions (0074). The ready gate reads the marker
+    # /open-pr and the pull request template write: renaming it on one side would stop every ready.
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVAL_GATE=' || missing+=("config.sh: APPROVAL_GATE (0074)")
+    file_contains "$HOOKS_DIR/config.sh" '^READY_GATE=' || missing+=("config.sh: READY_GATE (0074)")
+    grep -q 'approval-gate.sh' "$SETTINGS" || missing+=("settings.json: approval-gate hook (0074)")
+    file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_ready' || missing+=("guard-git.sh: the ready gate (0074)")
+    for marked in "$HOOKS_DIR/guard-git.sh" "$SKILLS_DIR/open-pr/SKILL.md" "$MODULES_DIR/github/files/.github/pull_request_template.md"; do
+        grep -qF '<!-- adf:how-to-verify -->' "$marked" || missing+=("${marked#"$REPO_ROOT"/}: the adf:how-to-verify marker the ready gate reads (0074)")
+    done
+    file_contains "$SKELETON/specs/README.md" 'the approval-gate hook holds the gate' || missing+=("specs/README.md: the approval gate is held by a hook (0074)")
     # The ticket is for stakeholders, the pull request for the developer (0073).
     file_contains "$AGENTS_MD" 'The ticket is for business communication with stakeholders' || missing+=("AGENTS.md: the ticket for stakeholders, the pull request for the developer (0073)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Live' || missing+=("/stakeholder-update: delivered means live (0073)")

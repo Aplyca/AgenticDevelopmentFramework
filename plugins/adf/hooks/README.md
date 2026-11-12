@@ -9,7 +9,8 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `session-context.sh` | SessionStart | Adds a few lines to the session: main checkout or worktree, branch, uncommitted changes, the spec folder for the branch and its status, and — with the parallel-agents module — in the main checkout, triage first and then `/adf:dispatch` to the task's worktree beside it, in a worktree, one task per session, and what a worktree the scripts didn't set up lacks (a task branch name, the env file, the scripts' setup); on the base branch, how many commits it is behind origin's, as of the last fetch |
 | `pr-state.sh` | SessionStart, UserPromptSubmit | Says once when the branch's pull request merged (offer `/adf:wrap-up`) or closed without merging (ask whether the task is dropped), so a session the developer comes back to moves to done (decision 0047). Asks `gh` at session start and at most every five minutes after (five seconds at most, where `timeout` is installed), on a work branch only; remembers the last state in the checkout's git dir. Without `gh` it does nothing. Empty `PR_STATE` turns it off |
 | `session-title.sh` | UserPromptSubmit | Names a session after its task — in a terminal, where no tool renames one, and in the desktop app when the triage was made without `/adf:triage`, which renames it there itself: once a reply states the triage (`Triage — <task title> (<link>)`, or the one-line `Fast lane — <request>; …`), the next prompt sets the session's title to the task's title alone, without the lane or link, once per session. In a terminal a title already set (`/rename`, `--name`) stays. In the desktop app the app takes the title only over the one it made from the first prompt, so a title the developer or the agent set stays. Empty `SESSION_TITLE` turns it off |
-| `guard-git.sh` | PreToolUse · Bash | Blocks `--no-verify` (and `git commit -n`), commits on protected branches, and pushes, force-pushes, or deletes targeting protected branches |
+| `guard-git.sh` | PreToolUse · Bash | Blocks `--no-verify` (and `git commit -n`), commits on protected branches, pushes, force-pushes, or deletes targeting protected branches, and a pull request that doesn't open as a draft. **The ready gate** (decision 0074): marking a pull request ready (`gh pr ready`, `glab mr update --ready`) is stopped while its description has no review instructions — text between the `adf:how-to-verify` markers — or CI is failing or still running. One read of the pull request, only when that command runs; one it can't read is let through. `READY_GATE`: `block` every time, `remind` once per session, empty turns it off |
+| `approval-gate.sh` | PreToolUse · Edit/Write | **The approval gate** (decision 0074): while the spec folder the branch belongs to reads `status: draft` or `in-review`, edits outside the specs folder are stopped. A branch with no spec folder — the fast and careful lanes — is never stopped, and neither is a file git ignores. It checks the status, not who set it: the `approvals:` line is the reviewers' check. `APPROVAL_GATE`: `block` every time, `remind` the first edit per session, empty turns it off |
 | `protect-paths.sh` | PreToolUse · Edit/Write | Blocks hand-edits to generated files (lockfiles, generated types) and modifications to existing files in append-only history (migrations) |
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |
 | `triage-first.sh` | PreToolUse · Edit/Write, Bash | A nudge: if the session's reply text states no lane yet, the first file edit or new branch (`git switch -c`, `git checkout -b`, `git branch <name>`, `git worktree add`) is stopped once with a reminder to write the triage where the developer can read it (`AGENTS.md` § Triage first). Subagents are exempt. Empty `TRIAGE_FIRST` turns it off |
@@ -18,14 +19,15 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
 Pushing a work branch, and opening, editing, commenting on, or marking ready its pull request, run
-without a prompt (decisions 0033, 0070), and so do issue writes (0038). Merging or reviewing a pull
+without a prompt (decisions 0033, 0070), and so do issue writes (0038) — the ready gate checks the
+command; it asks no one. Merging or reviewing a pull
 request, and releases, aren't blocked here — `permissions.ask` in the project's `.claude/settings.json` makes a human
 confirm each one.
 
 ## Configure
 
 Edit **`config.sh`** — protected branches, append-only and generated paths, sensitive paths, the
-env template, ignored variables. The scripts read it on every run, as data: one `KEY="value"` line per
+approval and ready gates, the env template, ignored variables. The scripts read it on every run, as data: one `KEY="value"` line per
 setting, and nothing in it runs. You don't edit the scripts (they are framework-owned and replaced on
 upgrade), nor their helpers: `_lib.sh`, and `json-get`, `transcript-text`, and `session-title`, which
 read the event and the session transcript, and write the session's title, with `jq` (`.jq`) or, without

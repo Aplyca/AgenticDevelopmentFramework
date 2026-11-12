@@ -167,8 +167,10 @@ Recorded in `spec.md` frontmatter:
 | `approved` | Scope, change surface, and assumptions signed off at the gate — implementation may start. Each sign-off is a dated line in `approvals:`, naming a role |
 | `implemented` | Every task done — or struck through as a follow-up, with why — and the gate results recorded. Set by `/implement` in the branch and checked by `/open-pr` before each push, so it merges with the pull request and the folder reads as built; after the merge, it would need a pull request of its own. A full change request — after the merge, or on the open pull request — moves it back to `in-review` until its own sign-off, then `approved`, and `/implement` sets it to `implemented` again with the CR's gate results; a light one leaves it `implemented` |
 
-Nothing mechanical enforces the gate — it is a rule an agent could skip and CI can't see. That
-is why `/implement` refuses to write code for a spec whose status is not `approved`, and why
+In Claude Code, the approval-gate hook holds the gate: while the branch's spec reads `draft` or
+`in-review`, it stops edits outside `specs/` (`APPROVAL_GATE` in `.claude/hooks/config.sh`). It
+checks the status, not who set it, and other tools have no hook — CI can't see the gate either.
+That is why `/implement` refuses to write code for a spec whose status is not `approved`, and why
 reviewers check the `approvals:` line.
 
 ## Change requests

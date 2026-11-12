@@ -44,26 +44,11 @@ if in_words "$branch" "$PROTECTED_BRANCHES"; then
   echo "- $branch is protected: create a work branch (<type>/<slug>) before changing anything."
 fi
 
-# A branch joins its spec folder by slug: feat/newsletter-signup → specs/007-newsletter-signup/, and a
-# change request's branch (feat/newsletter-signup-topics) joins the longest folder slug it starts with.
+# The spec folder this branch belongs to, joined by slug (branch_spec_dir in _lib.sh).
 slug="${branch#*/}"
 if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
-  spec_dir=""
-  best=0
-  while IFS= read -r dir; do
-    folder_slug="${dir##*/}"
-    [ "${folder_slug:0:1}" != "." ] && [ -f "$dir/spec.md" ] || continue
-    [[ $folder_slug =~ ^[0-9]+-(.*)$ ]] && folder_slug="${BASH_REMATCH[1]}"
-    if [ "$slug" = "$folder_slug" ] || [ "${slug#"$folder_slug"-}" != "$slug" ]; then
-      if [ "${#folder_slug}" -gt "$best" ]; then
-        spec_dir="$dir"
-        best="${#folder_slug}"
-      fi
-    fi
-  done < <(find "$root/$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-  if [ -n "$spec_dir" ]; then
-    status="" status_line='^status:[[:space:]]*([a-z-]+)'
-    [[ "$(grep -m 1 -E "$status_line" "$spec_dir/spec.md")" =~ $status_line ]] && status="${BASH_REMATCH[1]}"
+  if spec_dir="$(branch_spec_dir "$root" "$branch")"; then
+    status="$(spec_status "$spec_dir")"
     echo "- Spec folder for this branch: ${spec_dir#"$root"/}/ (status: ${status:-unknown})"
   else
     echo "- No spec folder matches '$slug' — triage decides whether this work needs one."
