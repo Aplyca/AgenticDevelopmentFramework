@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the
-# parallel-agents worktree scripts, and the clickup and docker install scripts. Builds throwaway repositories (with a bare "origin") in a temp
+# Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the gitlab
+# module's branch-policy job, the parallel-agents worktree scripts, and the clickup and docker install scripts. Builds throwaway repositories (with a bare "origin") in a temp
 # directory. No AI invocation, no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
 #
 set -uo pipefail
@@ -66,6 +66,39 @@ echo b > "$R/b" && git -C "$R" add -A && git -C "$R" commit -qm b
 check "pre-push: a failing fast check refuses the push" "! pushes feat/x"
 replace "$R/.githooks/pre-push" 'false"' 'true"'
 check "pre-push: passing fast checks allow the push" "pushes feat/x"
+
+# ─── gitlab: the branch-policy job's script (decision 0075) ─────────────────
+ci_script() { # ci_script <job> — the job's `- |` script block from the gitlab module's CI include
+    python3 - "$MODULES/gitlab/files/.gitlab/ci/adf.yml" "$1" <<'PY'
+import sys
+lines = open(sys.argv[1], encoding="utf-8").read().split("\n")
+start = lines.index(sys.argv[2] + ":")
+first = next(n for n in range(start, len(lines)) if lines[n] == "    - |")
+block = []
+for line in lines[first + 1:]:
+    if line and not line.startswith("      "):
+        break
+    block.append(line[6:])
+print("\n".join(block))
+PY
+}
+BP="$WORK/branch-policy.sh"
+ci_script branch-policy > "$BP"
+policy() { # policy <target> <source> [VAR=value ...] — runs the job's script as a merge request pipeline would
+    local target="$1" source="$2"; shift 2
+    env -i PATH="$PATH" CI_MERGE_REQUEST_IID=7 CI_MERGE_REQUEST_TARGET_BRANCH_NAME="$target" \
+        CI_MERGE_REQUEST_SOURCE_BRANCH_NAME="$source" "$@" sh "$BP" >/dev/null 2>&1
+}
+check "gitlab branch-policy: with no model set, every merge request passes" "policy main feat/x"
+check "gitlab branch-policy: integration model refuses a work branch into main" "! policy main feat/x 'ADF_ALLOWED_HEADS=staging hotfix/*'"
+check "gitlab branch-policy: integration model allows staging and hotfix/* into main" \
+    "policy main staging 'ADF_ALLOWED_HEADS=staging hotfix/*' && policy main hotfix/login 'ADF_ALLOWED_HEADS=staging hotfix/*'"
+check "gitlab branch-policy: trunk model refuses dev into main, allows it elsewhere" \
+    "! policy main dev ADF_FORBIDDEN_HEADS=dev && policy staging dev ADF_FORBIDDEN_HEADS=dev"
+check "gitlab branch-policy: a pattern matches branch names, never files in the folder" \
+    "(cd '$WORK' && touch hotfix-file && policy main hotfix/login 'ADF_ALLOWED_HEADS=hotfix*')"
+check "gitlab branch-policy: guards the base it is set to" "! policy develop feat/x ADF_GUARDED_BASE=develop 'ADF_ALLOWED_HEADS=release/*'"
+check "gitlab secret-scan: its script is valid shell" "ci_script secret-scan | sh -n"
 
 # ─── parallel-agents: worktree scripts ──────────────────────────────────────
 P="$WORK/proj"

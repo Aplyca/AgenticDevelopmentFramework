@@ -38,8 +38,8 @@ HUB_READONLY="1"
 APPROVE_WORKTREE_MOVE="1"
 
 # A session hears once when its branch's pull request merged (offer /wrap-up) or closed without
-# merging (ask whether the task is dropped). "1" asks gh at session start and at most every five
-# minutes after, on a work branch only; without gh it does nothing. Empty disables.
+# merging (ask whether the task is dropped). "1" asks gh, or glab on GitLab, at session start and at
+# most every five minutes after, on a work branch only; without either it does nothing. Empty disables.
 PR_STATE="1"
 
 # A session is named after its task, as /triage does in the desktop app. "1" sets the title to the

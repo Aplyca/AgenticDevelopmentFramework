@@ -46,8 +46,8 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
      fast or careful lane), the tracker task and the diff are the source, and the developer says
      whether end users need a page.
    - **The mode:** the argument; otherwise draft before implementation, publish once the pull request
-     has merged (`gh pr view --json state`) and the settings' moment to publish has come, update in
-     between.
+     has merged (`gh pr view --json state`, or `glab mr view <n> --output json` on GitLab) and the
+     settings' moment to publish has come, update in between.
    - **The draft:** the Phase 1 task in `tasks.md` links it; otherwise list the drafts location's
      pages — a feature's draft is the one whose subtitle names its spec folder or tracker task.
 

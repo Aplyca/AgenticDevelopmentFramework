@@ -448,17 +448,21 @@ else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: a committed install read another project's config"
 fi
 
-# pr-state — a fake gh answers for the branch's pull request; the hook speaks once per new state.
+# pr-state — a fake gh and glab answer for the branch's pull request; the hook speaks once per new state.
 PS="$WORK/prstate"
 mkdir -p "$PS" "$WORK/fakegh" && git -C "$PS" init -q -b main
 git -C "$PS" -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m init
 cp -R "$HOOKS_SRC" "$PS/.claude-hooks"
 mkdir -p "$PS/.claude" && mv "$PS/.claude-hooks" "$PS/.claude/hooks"
 printf '#!/usr/bin/env bash\necho "$FAKE_PR" >>"%s/gh-calls"\nprintf "%%s\\n" "$FAKE_PR"\n' "$WORK" >"$WORK/fakegh/gh"
-chmod +x "$WORK/fakegh/gh"
+printf '#!/usr/bin/env bash\necho "$FAKE_MR" >>"%s/glab-calls"\nprintf "%%s\\n" "$FAKE_MR"\n' "$WORK" >"$WORK/fakegh/glab"
+chmod +x "$WORK/fakegh/gh" "$WORK/fakegh/glab"
 ps_cache="$PS/.git/adf-pr-state"
-ps() { # ps <event> <fake "number STATE"> → the hook's output
-    printf '{"cwd":"%s","hook_event_name":"%s"}' "$PS" "$1" | FAKE_PR="$2" PATH="$WORK/fakegh:$PATH" "$PS/.claude/hooks/pr-state.sh"
+ps() { # ps <event> <fake gh "number STATE"> [<fake glab JSON>] → the hook's output
+    printf '{"cwd":"%s","hook_event_name":"%s"}' "$PS" "$1" | FAKE_PR="$2" FAKE_MR="${3:-}" PATH="$WORK/fakegh:$PATH" "$PS/.claude/hooks/pr-state.sh"
+}
+mr_json() { # mr_json <state> → a merge request as glab prints it, with a nested state to skip
+    printf '{"iid":7,"state":"%s","author":{"state":"active"},"web_url":"https://gitlab.example.com/team/app/-/merge_requests/7"}' "$1"
 }
 ps_check() { # ps_check <description> <condition-exit>
     if [ "$2" = 0 ]; then PASS=$((PASS+1)); echo "✓ pr-state.sh: $1"; else FAIL=$((FAIL+1)); echo "✘ pr-state.sh: $1"; fi
@@ -484,6 +488,28 @@ ps_check "with gh failing, the last known state stands" $(echo "$out" | grep -q 
 printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
 out="$(ps UserPromptSubmit "42 CLOSED")"
 ps_check "a pull request closed unmerged asks whether the task is dropped" $(echo "$out" | grep -q 'closed without merging.*dropped'; echo $?)
+# GitLab: glab first when origin says so, and the merge request's number goes by "!" (0074).
+git -C "$PS" remote add origin git@gitlab.example.com:team/app.git
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+: >"$WORK/gh-calls"
+out="$(ps UserPromptSubmit "42 OPEN" "$(mr_json opened)")"
+ps_check "an opened merge request is nothing to report, and gh isn't asked on a GitLab origin" $([ -z "$out" ] && [ ! -s "$WORK/gh-calls" ]; echo $?)
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "42 OPEN" "$(mr_json merged)")"
+ps_check "a merged merge request points at the wrap-up" $(echo "$out" | grep -q 'Merge request !7 .*merged.*wrap-up'; echo $?)
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "" "$(mr_json closed)")"
+ps_check "a merge request closed unmerged asks whether the task is dropped" $(echo "$out" | grep -q 'Merge request !7 .*closed without merging.*dropped'; echo $?)
+out="$(ps SessionStart "" "")"
+ps_check "with glab failing, the last known merge request stands" $(echo "$out" | grep -q 'Merge request !7 .*closed'; echo $?)
+git -C "$PS" remote set-url origin git@git.example.com:team/app.git
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "" "$(mr_json merged)")"
+ps_check "a GitLab whose host name doesn't say so: glab answers when gh can't" $(echo "$out" | grep -q 'Merge request !7 .*merged'; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+: >"$WORK/glab-calls"
+out="$(ps UserPromptSubmit "42 MERGED" "$(mr_json closed)")"
+ps_check "gh's answer stands when it gives one, and glab isn't asked" $(echo "$out" | grep -q 'PR #42 .*merged' && [ ! -s "$WORK/glab-calls" ]; echo $?)
 echo 'PR_STATE=""' >>"$PS/.claude/hooks/config.sh"
 out="$(ps SessionStart "42 MERGED")"
 ps_check "an empty PR_STATE turns it off" $([ -z "$out" ]; echo $?)

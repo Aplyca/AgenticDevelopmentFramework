@@ -1,6 +1,6 @@
 # 0038: Allow broadly, ask by name: make, docker, git, and gh
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0074](0074-github-and-gitlab-alike.md) — `glab` is allowed broadly and asked by name the same way, in the skeleton's settings
 - **Date:** 2026-10-15
 - **Amends:** [0032](0032-local-environment-layout.md) — the docker module's `make` allows;
   [0033](0033-pull-request-upkeep-without-prompts.md) — which git commands run without a prompt

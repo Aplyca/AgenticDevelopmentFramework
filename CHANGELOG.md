@@ -11,6 +11,76 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The `gitlab` module — the `github` module's harness for GitLab**
+  ([decision 0075](docs/decisions/0075-the-gitlab-module.md), extending 0009 and 0074).
+  - **What:**
+    - **A merge request template,** `.gitlab/merge_request_templates/Default.md`: the pull request
+      template's sections, `adf:` markers, and checklists, in GitLab's words — a requester's issue
+      is `Related to #N`. `/adf:open-pr` already fills it on GitLab; now a module ships it.
+    - **Issue templates:** `Default.md` starts every new issue with the redirect of business
+      requirements to the tracker (GitLab has no contact links), and `Bug.md` carries the bug form's
+      sections and `/label ~bug`.
+    - **The gates as one CI include the framework owns,** `.gitlab/ci/adf.yml`: `secret-scan`
+      (gitleaks over only the merge request's commits; it fails the job on a finding, on every
+      tier) and `branch-policy` (fails a merge request that targets the wrong branch, with the
+      `glab` command that fixes it in the log). Both run in merge request pipelines only.
+    - **A `.gitlab-ci.yml`** with the include, the branch model's `ADF_` variables, and GitLab's
+      `workflow:` rules, so a merge request's pipeline runs the gates and the project's jobs
+      together. A project with its own merges the three blocks.
+    - **`/adf:adopt` and `/adf:upgrade` offer it** when the repository is on GitLab. A static check
+      keeps the two templates' sections and markers the same, and the module tests run the branch
+      policy's script against both branch models.
+  - **Where:** `modules/gitlab/`; `plugins/adf/skills/adopt/`, `upgrade/`, `open-pr/gitlab.md`;
+    `scripts/upgrade-buckets.json`; `README.md`, `modules/README.md`, `docs/SETUP.md`,
+    `docs/UPGRADING.md`, `docs/ONBOARDING.md`; the static checks and module tests.
+
+  **Upgrade impact:**
+  - **Additive:** the `gitlab` module, offered by `/adf:upgrade` on a GitLab repository — install it
+    as its `MODULE.md` § Install says, and merge the three blocks into an existing `.gitlab-ci.yml`
+    by hand.
+    From then on `.gitlab/ci/adf.yml` is overwritten and the templates, `.gitlab-ci.yml`, and
+    `.gitleaks.toml` merge.
+  - **Overwrite:** packaged, the skills come with the plugin. Committed install: `.claude/skills/`
+    `adopt/`, `upgrade/`, `open-pr/`, as `/adf:upgrade` writes them.
+  - **Migration:** none.
+
+- **GitHub and GitLab alike — the rest of the framework works on GitLab too**
+  ([decision 0074](docs/decisions/0074-github-and-gitlab-alike.md), amending 0038 and 0072).
+  - **What:**
+    - **The `pr-state.sh` hook asks `glab` on GitLab.** `glab` first when `origin`'s URL names
+      GitLab, `gh` first otherwise, and the other when the first can't answer — a self-managed
+      GitLab whose host name doesn't say so. A session on GitLab now hears once that its merge
+      request (`!<n>`) merged or closed. Without `gh` or `glab` it does nothing, as before.
+    - **Every skill's `gh` command has its `glab` one:** `/adf:wrap-up` (the merge request's state,
+      head, and description), `/adf:track-time` (its discussions, approvals included),
+      `/adf:end-user-docs` (merged or not), and `/adf:context-audit` (protected branches and the
+      pipeline-must-succeed setting). `/adf:open-pr`'s `gitlab.md` adds GitLab's description
+      template, `.gitlab/merge_request_templates/Default.md`.
+    - **The skeleton's settings ship the `glab` rules beside the `gh` ones.** `glab` runs without a
+      prompt except merging (`mr merge`, `mr accept`), approving or revoking an approval, releases,
+      `repo delete`, CI/CD variables and secure files, `auth` and `token`, and `glab api` writes.
+      `/adf:adopt` no longer adds them by hand. `docs/TRACKER-INTEGRATION.md`'s "who is signed in"
+      on GitLab is `glab api user`, which needs no prompt.
+    - **A static check keeps the hosts in step:** a skill, agent, workflow, hook, or skeleton file
+      that names a `gh` command must name a `glab` one too.
+  - **Where:** `plugins/adf/hooks/pr-state.sh` and `README.md`; `plugins/adf/skills/` `wrap-up/`,
+    `track-time/`, `end-user-docs/`, `context-audit/`, `open-pr/gitlab.md`, `adopt/`;
+    `skeleton/.claude/settings.json`, `.claude/rules/claude-code.md`, `.claude/hooks/config.sh`
+    (a comment), `docs/TRACKER-INTEGRATION.md`; `docs/SETUP.md`, `docs/ONBOARDING.md`; the hook
+    tests and static checks.
+
+  **Upgrade impact:**
+  - **Overwrite:** packaged, the hook and skills come with the plugin. Committed install:
+    `.claude/hooks/pr-state.sh` and `.claude/skills/` `wrap-up/`, `track-time/`, `end-user-docs/`,
+    `context-audit/`, `open-pr/`, `adopt/`, as `/adf:upgrade` writes them. `.claude/rules/claude-code.md`.
+  - **Merge:** `.claude/settings.json` — `Bash(glab *)` in `permissions.allow` and the `glab` rules
+    in `permissions.ask`, placed away from the lists' ends so they merge beside your own rules. A
+    GitLab project that added them by hand at adoption keeps one copy of each: the upgrade drops a
+    duplicate `allow` rule, not an `ask` one. `docs/TRACKER-INTEGRATION.md` § Issues as the
+    tracker — the "who is signed in" row. `.claude/hooks/config.sh` — the `PR_STATE` comment only;
+    the value is unchanged.
+  - **Migration:** none.
+
 ## v2.8.0 — 2026-11-12 — A tested pull request, a ticket for stakeholders, and smaller test runs
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

@@ -1,0 +1,30 @@
+# The project's pipeline. The gitlab module adds the three blocks below; the jobs are yours.
+# With a .gitlab-ci.yml of your own, merge them into it.
+
+# Merge request pipelines while a merge request is open, branch pipelines otherwise — never both
+# (GitLab's "switch between branch pipelines and merge request pipelines"). A merge request gates on
+# its merge request pipeline: without this block, a push to its branch runs your jobs in a branch
+# pipeline it doesn't wait for. Jobs with no `rules:` run in either kind.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# The branch policy in .gitlab/ci/adf.yml (CONTRIBUTING.md § Branching and release).
+# CUSTOMIZE: set ADF_GUARDED_BASE, and either ADF_ALLOWED_HEADS (integration-branch model: only
+# "staging hotfix/*" may target main) or ADF_FORBIDDEN_HEADS (trunk model: "dev" never targets main).
+variables:
+  ADF_GUARDED_BASE: main
+  ADF_ALLOWED_HEADS: ''
+  ADF_FORBIDDEN_HEADS: ''
+
+# The framework's merge request gates: the secret scan and the branch policy.
+include:
+  - local: .gitlab/ci/adf.yml
+
+# CUSTOMIZE: your stack's quality jobs — lint, typecheck, unit tests — and a dependency audit that
+# reports without blocking until the existing backlog is triaged (`allow_failure: true`). Keep jobs
+# that need services (integration, end-to-end) on demand (`when: manual`).
