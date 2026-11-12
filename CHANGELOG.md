@@ -11,6 +11,39 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The `gitlab` module — the `github` module's harness for GitLab**
+  ([decision 0075](docs/decisions/0075-the-gitlab-module.md), extending 0009 and 0074).
+  - **What:**
+    - **A merge request template,** `.gitlab/merge_request_templates/Default.md`: the pull request
+      template's sections, `adf:` markers, and checklists, in GitLab's words — a requester's issue
+      is `Related to #N`. `/adf:open-pr` already fills it on GitLab; now a module ships it.
+    - **Issue templates:** `Default.md` starts every new issue with the redirect of business
+      requirements to the tracker (GitLab has no contact links), and `Bug.md` carries the bug form's
+      sections and `/label ~bug`.
+    - **The gates as one CI include the framework owns,** `.gitlab/ci/adf.yml`: `secret-scan`
+      (gitleaks over only the merge request's commits; it fails the job on a finding, on every
+      tier) and `branch-policy` (fails a merge request that targets the wrong branch, with the
+      `glab` command that fixes it in the log). Both run in merge request pipelines only.
+    - **A `.gitlab-ci.yml`** with the include, the branch model's `ADF_` variables, and GitLab's
+      `workflow:` rules, so a merge request's pipeline runs the gates and the project's jobs
+      together. A project with its own merges the three blocks.
+    - **`/adf:adopt` and `/adf:upgrade` offer it** when the repository is on GitLab. A static check
+      keeps the two templates' sections and markers the same, and the module tests run the branch
+      policy's script against both branch models.
+  - **Where:** `modules/gitlab/`; `plugins/adf/skills/adopt/`, `upgrade/`, `open-pr/gitlab.md`;
+    `scripts/upgrade-buckets.json`; `README.md`, `modules/README.md`, `docs/SETUP.md`,
+    `docs/UPGRADING.md`, `docs/ONBOARDING.md`; the static checks and module tests.
+
+  **Upgrade impact:**
+  - **Additive:** the `gitlab` module, offered by `/adf:upgrade` on a GitLab repository — install it
+    as its `MODULE.md` § Install says, and merge the three blocks into an existing `.gitlab-ci.yml`
+    by hand.
+    From then on `.gitlab/ci/adf.yml` is overwritten and the templates, `.gitlab-ci.yml`, and
+    `.gitleaks.toml` merge.
+  - **Overwrite:** packaged, the skills come with the plugin. Committed install: `.claude/skills/`
+    `adopt/`, `upgrade/`, `open-pr/`, as `/adf:upgrade` writes them.
+  - **Migration:** none.
+
 - **GitHub and GitLab alike — the rest of the framework works on GitLab too**
   ([decision 0074](docs/decisions/0074-github-and-gitlab-alike.md), amending 0038 and 0072).
   - **What:**

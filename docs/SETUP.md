@@ -83,6 +83,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | Module | When |
 |---|---|
 | `github` | The repository is on GitHub — PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy |
+| `gitlab` | The repository is on GitLab — the same as `github`: a merge request template, issue templates, and the secret scan and base-branch policy as a CI include; merge its blocks into an existing `.gitlab-ci.yml` ([decision 0075](decisions/0075-the-gitlab-module.md)) |
 | `git-hooks` | You want a `pre-push` gate for every git client, not only Claude Code |
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
 | `parallel-agents` | Several agent sessions work at once, each needing a running app |
