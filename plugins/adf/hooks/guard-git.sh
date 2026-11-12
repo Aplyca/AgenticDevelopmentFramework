@@ -3,17 +3,18 @@
 #   1. never bypass git hooks (--no-verify, or -n on commit)
 #   2. never commit on a protected branch
 #   3. never push to, force-push to, or delete a protected branch
-#   4. a pull request opens as a draft (gh pr create needs --draft)
+#   4. a pull request opens as a draft (gh pr create needs --draft; glab mr create, --draft or --wip)
 # Protected branches come from PROTECTED_BRANCHES in config.sh. An agent pushes its work branch and
 # opens the draft pull request on its own once it has checked the change locally (decisions 0022,
-# 0045), so rule 4 holds the draft rule that a confirmation prompt used to.
+# 0045), so rule 4 holds the draft rule that a confirmation prompt used to. The draft is where the
+# preview and CI run before the agent marks it ready (0070).
 # Matching works on the command text an agent writes, so it is a guardrail, not a sandbox.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 command_text="$(json_get '.tool_input.command')"
 [ -n "$command_text" ] || exit 0
-case "$command_text" in *git* | *gh*) ;; *) exit 0 ;; esac
+case "$command_text" in *git* | *gh* | *glab*) ;; *) exit 0 ;; esac
 
 cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="$PWD"
@@ -91,11 +92,16 @@ check_push() {
 }
 
 check_pr_create() {
-  local token
+  local cli="$1" token
+  shift
   for token in "$@"; do
-    case "$token" in --draft | -d) return 0 ;; esac
+    # glab's -d is --description, so only gh takes a short flag.
+    case "$cli:$token" in gh:--draft | gh:-d | glab:--draft | glab:--wip) return 0 ;; esac
   done
-  block "'gh pr create' without --draft. Pull requests open as drafts; a person marks one ready after QC on the preview."
+  case "$cli" in
+    glab) block "'glab mr create' without --draft. Merge requests open as drafts; the agent marks one ready once its own tests and review pass — locally, on the preview, and CI." ;;
+    *) block "'gh pr create' without --draft. Pull requests open as drafts; the agent marks one ready once its own tests and review pass — locally, on the preview, and CI." ;;
+  esac
 }
 
 analyze_segment() {
@@ -113,7 +119,11 @@ analyze_segment() {
   while [ $i -lt $n ] && [[ ${tokens[$i]} == *=* && ${tokens[$i]} != -* ]]; do i=$((i + 1)); done
   case "${tokens[$i]:-}" in command | exec | nohup | time) i=$((i + 1)) ;; esac
   if [ "${tokens[$i]:-}" = "gh" ] && [ "${tokens[$((i + 1))]:-}" = "pr" ] && [ "${tokens[$((i + 2))]:-}" = "create" ]; then
-    check_pr_create "${tokens[@]:$((i + 3))}"
+    check_pr_create gh "${tokens[@]:$((i + 3))}"
+    return 0
+  fi
+  if [ "${tokens[$i]:-}" = "glab" ] && [ "${tokens[$((i + 1))]:-}" = "mr" ]; then
+    case "${tokens[$((i + 2))]:-}" in create | new) check_pr_create glab "${tokens[@]:$((i + 3))}" ;; esac
     return 0
   fi
   [ "${tokens[$i]:-}" = "git" ] || return 0

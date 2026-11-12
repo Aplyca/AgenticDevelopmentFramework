@@ -15,7 +15,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 `review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
 `record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`.
 
-- [ ] `/open-pr` opens only a draft, once the agent's own local check passes, and never marks it ready (decisions 0022, 0045); `/stakeholder-update`, `/track-time`, and `/end-user-docs` show the draft and ask before posting
+- [ ] `/open-pr` opens a draft once the agent's own local check and `/review` pass, tests and reviews it on the preview, marks it ready once that and CI pass, and requests the reviewers `CONTRIBUTING.md` names — on GitHub or GitLab (decisions 0022, 0045, 0070, 0072); `/track-time` and `/end-user-docs` show the draft and ask before posting, and so does `/stakeholder-update` for anything that asks the requester for something — its review and delivered updates post on their own (decision 0073)
 
 ## Agents and workflows
 
@@ -25,7 +25,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 ## Settings, hooks, instruction files
 
 - [ ] `settings.json` is valid JSON; `model` is an alias; every hook entry nests `{"type": "command", "command": …}` inside a `hooks` array; no `$CLAUDE_FILE_PATH`; every referenced `.claude/hooks/*.sh` exists and is executable
-- [ ] `permissions.allow` names `Bash(git *)` and `Bash(gh *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr ready`, `merge`, `review`, releases, `gh repo delete`, secrets, `gh auth`, `gh api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038)
+- [ ] `permissions.allow` names `Bash(git *)` and `Bash(gh *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge`, `review`, releases, `gh repo delete`, secrets, `gh auth`, `gh api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070)
 - [ ] No `CLAUDE.md`; `AGENTS.md`'s first line is the `Skeleton source:` stamp; `.claude/rules/claude-code.md` has no `paths:`
 - [ ] `AGENTS.md` covers triage, the approval gate, the change surface, docs first, "watch it fail", change requests, "don't invent requirements", and a Boundaries section — in ≤200 lines
 - [ ] `git-workflow.md` lists `spec:`, `test:`, `docs:`, `feat:`, `fix:`, `refactor:`, `chore:`, plus the draft and "only when asked" rules
@@ -36,7 +36,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 - [ ] `/write-plan` holds the approval gate on the change surface
 - [ ] `/implement` requires `status: approved`, watches each test fail, reconciles docs, records gate results
 - [ ] `/write-docs` documents the skip-cleanly condition
-- [ ] `/open-pr` opens drafts and never marks them ready
+- [ ] `/open-pr` opens drafts and marks them ready only once its own tests pass
 
 ## Spec scaffold
 

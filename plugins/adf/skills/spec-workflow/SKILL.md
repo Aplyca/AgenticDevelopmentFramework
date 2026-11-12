@@ -47,8 +47,8 @@ implementation; invest in them early.
    stop: the spec and the approval gate come first.
 7. **Local check** — when the change alters something a person can see or use, run it on the local
    environment and walk the changed flow yourself.
-8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`); the human review and
-   QC are the gate.
+8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`), marked ready once your
+   own tests pass; the human review and QC are the gate.
 
 ## Workflow 2: Feature or behavior change (full lane)
 
@@ -63,7 +63,7 @@ implementation; invest in them early.
 | 7 | Reconcile + verify | `/adf:implement`, `/adf:review` | Docs updated; `tasks.md` § Gate results | `docs:` |
 | 8 | Local check | The agent, on the local environment | The flow walked | — |
 | 9 | Deliver (once the local check passes) | `/adf:open-pr` | Draft pull request | — |
-| 10 | Keep the requester informed — started after triage, in review once the draft opens, delivered | `/adf:stakeholder-update` | The update's draft and the task's status, posted on the developer's yes | — |
+| 10 | Keep the requester informed — started after triage, in review once the pull request is ready, delivered | `/adf:stakeholder-update` | The update's draft and the task's status, posted on the developer's yes | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change

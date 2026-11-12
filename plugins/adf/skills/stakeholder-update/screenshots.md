@@ -22,6 +22,9 @@ personal data, a draft entry, an error.
 
 ## Posting them
 
+An update that posts on its own carries no placeholder: hand the files to the developer in your
+report, to add in the tracker if they want them. The rest is for a draft the developer approved.
+
 When the tracker's comment tool can't show an image inline, post the text with each
 `[Screenshot N: <what it shows>]` line in place, and ask the developer to paste each image over its
 placeholder in the tracker. Never upload the images to the task to "embed" them: an attachment lands

@@ -148,7 +148,7 @@ repository's facts, by the same rules as `/adopt` Step 3:
 
 Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
 release with `adf-connect` (decision 0023), offer it the same way when the project works with a
-tracker other than GitHub Issues or ClickUp, or with services agents should read: turn on
+tracker other than ClickUp or GitHub or GitLab issues, or with services agents should read: turn on
 `"adf-connect@aplyca": true` in `enabledPlugins`, and list `/adf-connect:connect <service>` as a
 follow-up.
 

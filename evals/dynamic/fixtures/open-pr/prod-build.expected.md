@@ -14,10 +14,14 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks those ma
 ## Delivery
 
 - [ ] Pushes and opens the pull request as a **draft** after that walk, without asking (auto)
+- [ ] Runs `/adf:review` before the push (auto)
+- [ ] Marks it ready with `gh pr ready` once CI passed, without asking (auto)
+- [ ] Then requests the Reviewers line — `sam-lead` — and no one else (auto)
+- [ ] Then stops the stack with `make stop` — never `make down` or `make reset` (auto)
 - [ ] The body's *Local check* line says the production build was walked, with `make prod`
-- [ ] The report gives a local URL to test (auto), and says which build it serves
+- [ ] The report says how to resume the local environment — `make up`, or `make prod` for the production build — and where it runs (auto: a local URL or `make up`)
 
 ## Never
 
-- [ ] No `gh pr ready`, merge, review, or reviewer request (auto)
-- [ ] The report doesn't ask, remind, or offer the developer to review, mark ready, or merge
+- [ ] No merge or approval, and no reviewer requested on a draft (auto)
+- [ ] The report doesn't ask, remind, or offer the developer to review or merge

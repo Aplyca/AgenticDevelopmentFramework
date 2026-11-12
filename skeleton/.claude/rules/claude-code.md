@@ -7,14 +7,14 @@
 - **Skills** (`/`) — the workflow playbooks (`/triage`, `/write-spec`, `/implement`, `/open-pr`, and more), run in this conversation: the cheapest option.
 - **Agents** (`@`) — isolated specialists with their own model and context: an independent second opinion, restricted tools (reviewers can't edit), or work alongside yours. `@spec-analyzer` checks a spec folder before the approval gate.
 - **Workflows** (`/deep-…`) — multi-agent fan-outs with adversarial verification (`/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`), several times the cost of the skill they extend: for high-stakes changes and broad sweeps.
-- **The local environment's URL** — `LOCAL_URL` in `.claude/hooks/config.sh`, a worktree's `READY_URL` (parallel-agents), or `make urls` (docker module); in Claude Desktop the Browser lists the running app. Give it to the developer in the local check.
+- **The local environment's URL** — `LOCAL_URL` in `.claude/hooks/config.sh`, a worktree's `READY_URL` (parallel-agents), or `make urls` (docker module); in Claude Desktop the Browser lists the running app. It's yours, for the local check; the developer reviews on the preview.
 
 ## Guardrails enforced by configuration
 
 Hooks and permissions hold whatever the instructions say; their values live in `.claude/hooks/config.sh` and `.claude/settings.json`:
 
-- **Ask first:** readying, merging, or reviewing a pull request, releases, `push --tags`, `git config`, `gh auth`, secrets, and `gh api` writes.
-- **No prompt:** commits, the work branch's push, and its draft — and keeping that draft current. They are a standing go-ahead: never ask for them, in a reply or in the desktop app's next-step box.
+- **Ask first:** merging or reviewing a pull request, releases, `push --tags`, `git config`, `gh auth`, secrets, and `gh api` writes.
+- **No prompt:** commits, the work branch's push, its draft, and marking it ready once your own tests pass — and keeping that pull request current. They are a standing go-ahead: never ask for them, in a reply or in the desktop app's next-step box.
 - **Never:** `--no-verify`; a commit, push, or force-push on a protected branch; a pull request that isn't a draft; a hand edit to generated files or append-only history; reading secret env files.
 - **Stops once, as a reminder:** a session's first edit or new branch with no lane stated in your replies; the first edit in a sensitive area; with parallel-agents, any edit in the main checkout (`/dispatch` first).
 - **Tells you:** the branch, worktree role, and spec folder at session start; when this branch's pull request merges or closes (offer `/wrap-up`, or ask whether the task is dropped); an environment variable missing from the env template.
@@ -41,7 +41,7 @@ Lane definitions are in `AGENTS.md` § How work flows; in Claude Code:
 
 | Lane | Workflow | Model |
 |---|---|---|
-| Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit` | `sonnet` |
+| Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit` → `/review` | `sonnet` |
 | Careful | Fast, plus the area's checklist; `@security-reviewer` for authorization, personal data, or payments | `sonnet`, high effort |
 | Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus`, high effort, up to the gate; then `/compact` and `sonnet` in the same session |
 | Bug, cause unknown | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |

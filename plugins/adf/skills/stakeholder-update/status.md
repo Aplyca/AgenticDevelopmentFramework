@@ -6,20 +6,26 @@ carry the same rules in their own step.
 
 - **The task's own statuses decide.** Read them with the tracker's tools (§ Project settings), and use
   the one `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to the moment. A status the task
-  doesn't have is a question for the developer, not a guess.
+  doesn't have is a question for the developer, not a guess. On GitHub or GitLab issues the status
+  is a label, and delivered closes the issue (§ Issues as the tracker); a label the repository lacks
+  is a question too — never create one.
+- **Three moves are yours:** in progress, in review, delivered. Every status between review and
+  delivered — quality control, acceptance testing, release — is the developer's.
+- **Delivered means live.** Move to it only once the change is verified live (`SKILL.md` § Live), or
+  an answer is delivered — never at the merge alone.
 - **Forward only.** A task already at or past the target — a developer moved it by hand, or it's
   waiting on the requester — stays where it is. Never move it back.
-- **Only the developer's tasks.** A task the developer isn't assigned to stays as it is, unless they
-  say so.
+- **The session's own task.** The task the developer handed this session is theirs to move, assigned
+  to them or not. Any other task stays as it is, unless they say so.
 - **The status only.** The assignee, priority, due date, and time entries still need a yes
   (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
-- **Say it in one line** — "Moved the task to In Progress" — so the developer can correct it. With
-  no tracker tool connected, say which status the developer should set, and go on.
+- **Say it in one line** — "Moved the task to In Progress" — so the developer can correct it.
 - **The tracker's own prompt still applies.** The status move is a write; where the project leaves
   it off the allowlist, the permission prompt is the developer's say, not the skill's to skip.
-- **Through the project's server, as the developer,** like the post (`/adf:stakeholder-update`
-  step 6). With only a tracker connector built into the host app, say which status the developer
-  should set.
+- **Through the project's tracker tool, as the developer,** like the post (`/adf:stakeholder-update`
+  step 6): its server, or `gh` or `glab` for issues.
+- **Can't write** — no tracker tool, or only a connector built into the host app: open your report
+  with the status the developer should set, and go on. Don't leave it for the end.
 
 ## Rationalizations (do not accept these)
 
@@ -27,7 +33,10 @@ carry the same rules in their own step.
 |---|---|
 | "The task is at Review already — I'll set it to In progress anyway" | Forward only. A task past the target stays where it is. |
 | "I'm moving the status, so I'll change the assignee too" | Status moves on its own; the assignee, priority, due date, and time entries still need a yes. |
+| "It merged — I'll move it to done" | Delivered means live. Between review and delivered, the statuses are the developer's. |
+| "The repository has no 'in review' label — I'll create it" | Labels are the team's vocabulary. Ask which one to use. |
 
 ## Red flags (stop and reassess)
 
-- A status move that goes backward, or onto a task the developer isn't assigned to.
+- A status move that goes backward, or onto a task that isn't this session's.
+- A move to delivered for a change that merged but isn't live, or to a quality-control, acceptance, or release status.

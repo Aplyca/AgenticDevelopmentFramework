@@ -47,7 +47,7 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - **Performance / SEO / Analytics / Localization** — targets that differ from project defaults?
    - **Constraints & prior decisions** — business rules, compliance, existing ADRs or PDRs to respect?
    - **Testing** — anything beyond "every AC has a test" (accessibility scans, visual regression, manual passes)?
-   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)? With the `end-user-docs` module in the stamp: does the feature change what end users see or do, and which page of the end-user doc covers it (End-user docs)?
+   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)? For a tracker task: will the requester use what it delivers — and so need a usage guide (Usage guide)? With the `end-user-docs` module in the stamp: does the feature change what end users see or do, and which page of the end-user doc covers it (End-user docs)?
    - **Observability / Deployment** — logs, metrics, alerts; env vars, migrations, rollout, rollback?
 
    **Ask in rounds** (`AGENTS.md` § Working economically). A round holds every question that doesn't
@@ -128,13 +128,21 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - [ ] Functional has at least one numbered acceptance criterion
    - [ ] Out of scope has at least one item, or says "nothing intentionally excluded for this iteration"
    - [ ] Security and Testing are filled
-   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable — and End-user docs too when the stamp names `end-user-docs`
+   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable — Usage guide too, for a tracker task: its text, or Not applicable — and End-user docs when the stamp names `end-user-docs`
    - [ ] Clarifications exists (may be empty)
    - [ ] `feature-type: ui | mixed` → Accessibility filled; `personal-data: yes` → Privacy filled
 
    **If any is empty, refuse to hand off to planning.** Name the gaps and offer to walk through them.
    Also read the spec against `docs/CONSTITUTION.md`: flag any conflict, and don't proceed until it's
    resolved or an explicit exception is recorded in the spec.
+
+   **The usage guide is written now, with the spec** — for a tracker task whose requester will use
+   what it delivers: how they'll do it, step by step, in their terms and their language, as
+   *Documentation › Usage guide*. It's the requester's docs-first: approved with the spec at the
+   gate, then posted on the task as a draft (`/adf:stakeholder-update guide`), so they can say
+   "that's not how we'd use it" before the build. Nothing they'll use — a fix that restores what
+   worked, an internal change — is `Not applicable`, with the reason. With the `end-user-docs`
+   module, the doc tool's page is the guide: say so here, and fill End-user docs.
 
 10. **Requirements review (optional).** For client-facing work the requester may want to agree the
     ACs before planning: set `status: in-review` and offer to share them. Posting to the tracker is a

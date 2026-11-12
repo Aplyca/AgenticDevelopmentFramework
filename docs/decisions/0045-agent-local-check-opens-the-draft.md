@@ -1,6 +1,6 @@
 # 0045: The agent's own local check opens the draft, and the developer tests after it, locally and on the preview
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0070](0070-the-agent-marks-its-pull-request-ready.md) — the agent marks its pull request ready once its own tests pass, and tests on the preview what only a shared service has; amended by [0071](0071-stop-the-local-environment-once-ready.md) — the agent stops the local environment once the pull request is ready, keeping everything to resume it; amended by [0072](0072-agents-implement-and-review-humans-decide.md) — `/review` runs in every lane, and the developer reviews on the preview
 - **Date:** 2026-10-18
 - **Amends:** [0022](0022-local-check-before-the-pull-request.md) — what opens the draft pull request;
   [0039](0039-check-locally-then-on-the-preview.md) — the agent's local check becomes the gate

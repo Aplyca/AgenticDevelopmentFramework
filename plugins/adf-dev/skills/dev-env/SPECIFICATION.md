@@ -67,7 +67,8 @@ a project misses. A project that departs from one on purpose records it, with th
   | Task | Must |
   |---|---|
   | `up` | Start the local environment and **return** once the app answers, then print where each service is. Running it twice changes nothing |
-  | `down` | Stop what `up` started. Data stays |
+  | `stop` | Stop what `up` started — its processes and containers end, freeing memory and CPU — and remove nothing: containers, volumes, and data stay, and `up` starts it again (C12) |
+  | `down` | Stop what `up` started and remove its containers. Data stays |
   | `build` | Prepare what `up` runs: rebuild the images (Docker) or install the app's dependencies on the host (native) |
   | `ps` | Show what runs, its state, and its health |
   | `logs` | Print the last lines — 100 — of every log, or of one service's (`s=<service>`). **Never follow** |
@@ -85,7 +86,7 @@ a project misses. A project that departs from one on purpose records it, with th
   its one-line description (`<task>: … ## <description>`).
 - **C5.** `env` creates `.env` from `.env.example`, readable only by its owner, and leaves an
   existing `.env` alone.
-- **C6.** `up`, `down`, `services`, and `reset` run `guard` first (P6).
+- **C6.** `up`, `stop`, `down`, `services`, and `reset` run `guard` first (P6).
 - **C7.** The make files run on GNU make 3.81, which macOS ships: no `.ONESHELL`, `!=`, or `$(file …)`.
   They never `include .env`, never use a bare `export` or `.EXPORT_ALL_VARIABLES`, and never export a
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
@@ -112,10 +113,23 @@ a project misses. A project that departs from one on purpose records it, with th
   - **Native mode:** `NATIVE_PROD_CMD`, the production build and server listening on `$APP_PORT`,
     runs through `native.sh` in place of the dev server, on its port, until the next `make up`.
   - `make urls` shows it, `make logs` prints its log (`s=<APP>-prod` in Docker mode), and
-    `make down` stops it.
+    `make stop` and `make down` stop it.
 
   A project without a production-like run deletes the task, the service, and the stage. Then an
   agent that needs one says so, and asks (C10).
+- **C12.** **One word for each state of the local environment** — Docker's own — in the tasks, the
+  docs, and what an agent says ([decision 0071](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0071-stop-the-local-environment-once-ready.md)):
+
+  | Word | What happens | What stays | Back with | Task, and who runs it |
+  |---|---|---|---|---|
+  | **Stop** | The processes and containers end, after a graceful shutdown: memory and CPU are freed | Containers and the files in them, volumes, data, images, dependencies | `make up`, in seconds; a port Docker picked can change | `make stop` — the agent, once its pull request is ready |
+  | **Pause** | Docker's `pause`: the processes freeze in place — CPU is freed, memory is still held | Everything, ports included | `docker compose unpause` | None: it frees no memory |
+  | **Down** | Stop, then the containers and networks are removed | Named volumes — the data — images, dependencies; files written inside a container are lost | `make up`, which recreates the containers | `make down` — `/adf:wrap-up` after the merge, or the developer |
+  | **Kill** | The processes end at once, with no graceful shutdown | Containers and volumes, but a database can lose unsaved writes | `make up` | None: an agent kills only a process it started that ignores a stop |
+  | **Remove** | Containers, networks, and volumes are deleted: the data is gone. Images stay | Images, dependencies, the code | `make up` from scratch — rebuild, re-seed, re-migrate | `make reset` (remove, then start fresh), and a worktree's `STOP_CMD`, which removes despite its name, when `/adf:wrap-up` removes the worktree — only on the developer's yes |
+
+  Native mode's app takes the same words: `stop` and `down` end its process group, and the backing
+  services follow the rows above.
 
 ## Local modes — `M`
 
@@ -140,8 +154,9 @@ a project misses. A project that departs from one on purpose records it, with th
   ports there, which the app reads; `SERVICES=none` means native mode needs no Docker at all.
 - **M6.** Native `up` starts the backing services in `SERVICES`, then the app **in the background**,
   in a process group of its own, with every port variable exported (P4). It waits until `APP_PORT`
-  answers. If the app exits first, `up` fails and prints the end of the app's log. Native `down` stops
-  the whole process group.
+  answers. If the app exits first, `up` fails and prints the end of the app's log. Native `stop` and
+  `down` stop the whole process group; `stop` leaves the backing services' containers in place, and
+  `down` removes them.
 - **M7.** While the app runs on the host, `ops/native/.run/app.env` holds exactly `PID=<pid>` and
   `APP_PORT=<port>`, and `ops/native/.run/app.log` its output. The band above the prompt reads
   `APP_PORT` from that file. `ops/native/.run/app.kind` holds `prod` while the production build runs
@@ -193,8 +208,8 @@ a project misses. A project that departs from one on purpose records it, with th
   - **The row:** an attach entry, named `<service> · http://localhost:<port>`, with that `url` and
     `port` and no command. A localhost `url` can't carry a path, so a page inside an app is never a
     row.
-  - **When:** `ops/docker/launch-json.sh` makes the rows match what runs. `up`, `prod`, `down`, and
-    native mode's `services` run it, and so does `native.sh` when it starts or stops the app. A
+  - **When:** `ops/docker/launch-json.sh` makes the rows match what runs. `up`, `prod`, `stop`, `down`,
+    and native mode's `services` run it, and so does `native.sh` when it starts or stops the app. A
     stopped service loses its row, so a port Docker later hands to another checkout is never listed
     here.
   - **How:** only where git ignores the file (L7). It keeps the developer's own entries and settings —
@@ -270,9 +285,10 @@ A stack conforms when every requirement holds. `/adf-dev:dev-env` checks a stack
 each gap as the requirement's ID, what the project has, and the change:
 
 1. **Layout:** L1–L7.
-2. **Command surface:** C1–C11, and the mode files define every task in C3, and `prod` in both or
+2. **Command surface:** C1–C12, and the mode files define every task in C3, and `prod` in both or
    in neither.
-3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, and `make down` in
+3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, `make stop`, `make up`
+   again, and `make down` in
    the configured mode, and by reading the other mode's file against them — never by running it
    (M10); M10 by the deny rules.
 4. **Ports, Compose, variables:** P1–P8, D1–D4, V1–V4.

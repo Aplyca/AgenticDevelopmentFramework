@@ -1,4 +1,4 @@
-# Expected — open-pr: refreshing the draft's description after a change request
+# Expected — open-pr: refreshing the pull request's description after a change request
 
 The session should satisfy ALL of these invariants. `inspect.sh` checks those marked (auto).
 
@@ -23,9 +23,10 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks those ma
 ## The preview, then one report
 
 - [ ] Rechecks the preview once it has redeployed, read-only (auto: a preview request after the push, no POST)
-- [ ] One report: what changed in the code and in the description, the local and preview URLs, and what to try
+- [ ] The pull request is still a draft: marks it ready with `gh pr ready` once the redeploy's CI passed, without asking (auto), then requests the Reviewers line — `sam-lead` (auto)
+- [ ] One report: what changed in the code and in the description, and the preview URL; what to try is in the description
 
 ## Never
 
-- [ ] No `gh pr ready`, merge, review, or reviewer request (auto)
-- [ ] Doesn't ask whether to push or to edit the description
+- [ ] No merge or approval, and no reviewer requested on a draft (auto)
+- [ ] Doesn't ask whether to push, edit the description, or mark it ready

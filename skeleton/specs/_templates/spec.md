@@ -201,7 +201,8 @@ Or list specific, testable requirements:
 ## Documentation [REQUIRED]
 
 > Owned by: tech writer / dev
-> Both subsections must be filled or marked Not applicable. plan.md turns them into doc tasks.
+> Both subsections must be filled or marked Not applicable — and Usage guide, for a tracker task.
+> plan.md turns them into doc tasks.
 
 ### Pre-implementable docs (written before code, via `/write-docs`)
 
@@ -224,6 +225,21 @@ Need real running code, real metrics, or real failure modes.
 | [Operator] | [Runbook: investigating a spike in 429s] | [`docs/runbooks/<feature>.md`] |
 
 Or: `> Not applicable: [reason]`
+
+### Usage guide [for a tracker task — how the requester will use what it delivers]
+
+The requester's docs-first: written with the spec, in their terms and their language, approved at
+the gate, posted on the tracker task as a draft before the build, and brought up to date once the
+change is live (`/stakeholder-update guide`). Steps they follow and what they see — no code, files,
+or tools. With the end-user-docs module, the doc tool's page is the guide: say so, and fill End-user
+docs below.
+
+> [Who it's for — e.g. the marketing team]
+>
+> 1. [Where to go and what to do — e.g. open Newsletter › Issues and choose "New issue"]
+> 2. [What they see, and what happens next]
+
+Or: `> Not applicable: [reason — e.g. a fix that restores what already worked; nothing they use changes]`
 
 ### End-user docs [OPTIONAL — with the end-user-docs module]
 

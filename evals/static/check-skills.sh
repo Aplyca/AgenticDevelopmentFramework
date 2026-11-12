@@ -308,7 +308,7 @@ def matches(rules, command):
 def verdict(command):
     return "ask" if matches(ask_rules, command) else "allow" if matches(allow_rules, command) else "prompt"
 expected = {
-    # The draft pull request and its upkeep, and local git work, run (0022, 0033, 0038).
+    # The draft pull request, its upkeep and promotion to ready, and local git work, run (0022, 0033, 0038, 0070).
     "git push": "allow", "git push -u origin feat/newsletter-signup": "allow",
     "gh pr create --draft --title x": "allow", "gh pr edit 12 --body-file b.md": "allow",
     "gh pr comment 12 --body x": "allow", "gh pr view 12": "allow", "gh run view 99": "allow",
@@ -316,7 +316,7 @@ expected = {
     "git commit --amend --no-edit": "allow", "git switch -c feat/x": "allow", "git rebase main": "allow",
     "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
     # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
-    "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
+    "gh pr ready 12": "allow", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
     "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
     "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
     "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
@@ -454,8 +454,8 @@ check_workflow_integrity() {
         && pass "/implement: records gate results" || fail "/implement: missing gate results"
     file_contains "$SKILLS_DIR/write-docs/SKILL.md" '[Ss]kip cleanly' \
         && pass "/write-docs: documents the skip-clean condition" || fail "/write-docs: missing skip-clean condition"
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '[Dd]raft' && file_contains "$SKILLS_DIR/open-pr/SKILL.md" '[Nn]ever marks' \
-        && pass "/open-pr: opens drafts and never marks them ready" || fail "/open-pr: missing draft / never-ready rule"
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'gh pr create --draft' && file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Mark it ready once your own tests pass' \
+        && pass "/open-pr: opens a draft and marks it ready once its own tests pass" || fail "/open-pr: missing draft / ready-once-tested rule (0070)"
 }
 
 # ─── Spec templates ────────────────────────────────────────────────────────
@@ -767,8 +767,8 @@ check_practices() {
     file_contains "$MODULES_DIR/end-user-docs/files/docs/END-USER-DOCS.md" '^## Page structure' || missing+=("end-user-docs module: docs/END-USER-DOCS.md has the page structure (0048)")
     file_contains "$TEMPLATES/spec.md" '^### End-user docs' || missing+=("spec template: Documentation › End-user docs (0048)")
     file_contains "$SKILLS_DIR/wrap-up/modules.md" '`end-user-docs` module, the pull request merged' || missing+=("/wrap-up: offers to publish end-user docs only with the end-user-docs module (0048)")
-    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'The draft shown in chat is the' || missing+=("/stakeholder-update: the draft in chat is the deliverable (0053)")
-    ! grep -rqE 'gh pr comment|For the team' "$SKILLS_DIR/stakeholder-update" || missing+=("/stakeholder-update: posts nothing on the pull request (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'The review and delivered updates post on their own' || missing+=("/stakeholder-update: outcome updates post on their own; a message that asks the requester for something is a draft (0073)")
+    ! grep -rqE 'gh pr comment|glab mr note' "$SKILLS_DIR/stakeholder-update" || missing+=("/stakeholder-update: posts nothing on the pull request (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '\[Screenshot N: <what it shows>\]' || missing+=("/stakeholder-update: a placeholder where an image the tracker can't inline goes (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/screenshots.md" 'Never upload the images to the task' || missing+=("/stakeholder-update: never attaches images to the task to embed them (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/screenshots.md" 'accept or decline cookies' || missing+=("/stakeholder-update: hides consent banners, never accepts or declines cookies (0053)")
@@ -777,9 +777,9 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'can be read more than one way' || missing+=("/triage: a stakeholder reply open to more than one reading is confirmed first (0053)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Moments' || missing+=("/stakeholder-update: three moments — started, in review, delivered (0053)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'gets its started update' || missing+=("/triage: a tracker task's turn ends with the started update's draft (0053)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'draft the review update' || missing+=("/open-pr: the report ends with the review update's draft (0053)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '\*\*The review update\*\* \(`/(adf:)?stakeholder-update review`\)' || missing+=("/open-pr: posts the review update once the pull request is ready (0053, 0073)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Status moves' || missing+=("/stakeholder-update: the task's status moves on its own at each moment (0059)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'maps to `delivered`' || missing+=("/wrap-up: the task moves to done once merged (0059)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'maps to `delivered`' || missing+=("/wrap-up: the task moves to delivered once live (0059, 0073)")
     file_contains "$AGENTS_MD" 'its status moves on your own' && ! file_contains "$AGENTS_MD" 'before changing task state' || missing+=("AGENTS.md: the status moves on its own; messages still need a yes (0059)")
     for name in triage open-pr wrap-up; do
         file_contains "$SKILLS_DIR/$name/SKILL.md" 'no skill to load' && file_contains "$SKILLS_DIR/$name/SKILL.md" 'forward only; the status alone' \
@@ -787,7 +787,7 @@ check_practices() {
         ! file_contains "$SKILLS_DIR/$name/SKILL.md" 'stakeholder-update status' || missing+=("/$name: loads /stakeholder-update only to draft a message, never for a status move (0063)")
     done
     file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Status at each moment:\*\*' || missing+=("TRACKER-INTEGRATION.md: the task status for each moment (0053)")
-    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" "Write only through the project's server" || missing+=("TRACKER-INTEGRATION.md: writes go through the project's server, never a host connector (0064)")
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" "Write only through the project's tracker tool" || missing+=("TRACKER-INTEGRATION.md: writes go through the project's server, never a host connector (0064)")
     file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Editing posted text:\*\*' || missing+=("TRACKER-INTEGRATION.md: what an edit to posted text keeps (0064)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'say which account will post' || missing+=("/stakeholder-update: says which account will post before the first post (0064)")
     file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'the developer edits the comment in the tracker' || missing+=("/stakeholder-update: a correction an edit would damage is the developer's (0064)")
@@ -803,7 +803,10 @@ check_practices() {
     file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Close with their next step, once" || missing+=("/open-pr: the report names the developer's next step once, with no reminders (0039, 0047)")
-    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, readying, and merging are the developer' || missing+=("git-workflow rule: no nudges to review, ready, or merge (0039)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, approving, and merging are people' || missing+=("git-workflow rule: no nudges to review or merge (0039, 0070, 0072)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Ready once your own tests' || missing+=("git-workflow rule: the agent marks its pull request ready once its tests pass (0070)")
+    file_contains "$AGENTS_MD" 'Mark it ready yourself' || missing+=("AGENTS.md: the agent marks its pull request ready once its tests pass (0070)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'only a shared service has' || missing+=("/open-pr: a criterion only a shared service has is walked on the preview (0070)")
     file_contains "$AGENTS_MD" "End every turn with what's next" || missing+=("AGENTS.md: every turn ends with who acts next (0047)")
     file_contains "$AGENTS_MD" "the team's standing go-ahead: never ask for them" || missing+=("AGENTS.md: commits, the push, and the draft need no yes, in every lane (0049)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Careful lane: no stop before the push" || missing+=("/open-pr: the careful lane pushes without a yes (0049)")
@@ -818,7 +821,48 @@ check_practices() {
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'session-title hook does' || missing+=("/triage: in a terminal, the session-title hook names the session")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*.*the gate for the push' || missing+=("/open-pr: stops without the agent's own local check (0022, 0045)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Report — once, after the preview walk' || missing+=("/open-pr: one report, after the preview walk (0045)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Leave the environment running' || missing+=("/open-pr: leaves the local environment running for the developer (0045)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Once it.s ready, stop the local environment you started' || missing+=("/open-pr: stops the local environment once the pull request is ready (0071)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Never `make down`, `make reset`' || missing+=("/open-pr: the stop never downs, kills, or removes (0071)")
+    file_contains "$AGENTS_MD" 'Agents implement and review; humans decide' || missing+=("AGENTS.md: agents implement and review; humans decide (0072)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Run `/(adf:)?review`, in every lane' || missing+=("/open-pr: /adf:review before the push, in every lane (0072)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Then request the reviewers' || missing+=("/open-pr: requests the project's reviewers once ready (0072)")
+    file_contains "$SKILLS_DIR/open-pr/preview.md" 'Then \*\*review\*\* what a person sees' || missing+=("/open-pr: reviews what a person sees on the preview (0072)")
+    file_contains "$SKELETON/CONTRIBUTING.md" '^- \*\*Reviewers:\*\*' || missing+=("CONTRIBUTING.md: the Reviewers line (0072)")
+    file_contains "$HOOKS_DIR/guard-git.sh" 'glab mr create' || missing+=("guard-git.sh: a GitLab merge request opens only as a draft (0072)")
+    # The ticket is for stakeholders, the pull request for the developer (0073).
+    file_contains "$AGENTS_MD" 'The ticket is for business communication with stakeholders' || missing+=("AGENTS.md: the ticket for stakeholders, the pull request for the developer (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Live' || missing+=("/stakeholder-update: delivered means live (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'Between review and delivered, the task is the developer' || missing+=("/stakeholder-update: the statuses between review and delivered are the developer's (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'second message' || missing+=("/stakeholder-update: questions for the requester are a second message, a draft (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Delivered means live' || missing+=("/stakeholder-update status.md: delivered only once live (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'never create one' || missing+=("/stakeholder-update status.md: a missing label is a question (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/review.md" 'For reference, the change is in this' || missing+=("/stakeholder-update review.md: the pull request, for reference (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/guide.md" 'Usage guide \(draft\)' || missing+=("/stakeholder-update guide.md: the usage guide's draft on the task (0073)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Write the review instructions first' || missing+=("/open-pr: the review instructions go in the description before ready (0073)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## How to review and test' || missing+=("/open-pr: the description's How to review and test section (0073)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '`Refs #N`, never `Closes`' || missing+=("/open-pr: a requester's issue is referenced, never closed by the merge (0073)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'Merged, not live yet' || missing+=("/wrap-up: merged but not live posts nothing and moves nothing (0073)")
+    for name in triage open-pr wrap-up; do
+        file_contains "$SKILLS_DIR/$name/SKILL.md" 'assigned to them or not' || missing+=("/$name: the session's own task needs no assignment check (0073)")
+    done
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'The usage guide is written now' || missing+=("/write-spec: the usage guide is written with the spec (0073)")
+    file_contains "$SKELETON/specs/_templates/spec.md" '^### Usage guide' || missing+=("spec template: Documentation › Usage guide (0073)")
+    file_contains "$REPO_ROOT/plugins/adf/docs/SPEC-MODEL.md" 'Documentation › Usage guide' || missing+=("SPEC-MODEL.md: Documentation › Usage guide (0073)")
+    file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## How to review and test' || missing+=("pull request template: How to review and test (0073)")
+    for setting in 'Updates post' 'Live when' 'Usage guide'; do
+        file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" "^- \*\*$setting:\*\*" || missing+=("TRACKER-INTEGRATION.md: the $setting setting (0073)")
+    done
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '^## Issues as the tracker' || missing+=("TRACKER-INTEGRATION.md: issues as the tracker (0073)")
+    # Every tracker action has its gh and glab command (0073).
+    for action in 'gh issue view' 'glab issue view' 'gh issue edit' 'glab issue update' 'gh issue comment' 'glab issue note' 'gh issue close' 'glab issue close' 'Refs #<n>' 'Related to #<n>'; do
+        grep -qF -- "$action" "$SKELETON/docs/TRACKER-INTEGRATION.md" 2>/dev/null || missing+=("TRACKER-INTEGRATION.md § Issues as the tracker: no \`$action\` (0073)")
+    done
+    # Every host action /open-pr takes has its glab command (0072).
+    for action in 'glab mr create --draft' 'glab ci status --wait' 'glab mr view <n> --output json' \
+                  'glab mr update <n> --description-file' 'glab mr update <n> --ready' \
+                  'glab mr update <n> --reviewer +' '/request_review'; do
+        grep -qF -- "$action" "$SKILLS_DIR/open-pr/gitlab.md" 2>/dev/null || missing+=("/open-pr gitlab.md: no \`$action\` (0072)")
+    done
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" ', so it lacks ' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")

@@ -703,13 +703,16 @@ Every changed file is inside the change surface approved in `plan.md` on 2026-06
 the content type in Contentful `master`, and the two Mailchimp variables in Vercel for Preview and
 Production — order and rollback in `plan.md` § Rollout & deployment.
 
-## How to verify
-1. On the preview (it reads Contentful `sandbox`, which has a published entry), open any article:
-   the section sits below the body.
+## How to review and test
+**Where:** the preview (it reads Contentful `sandbox`, which has a published entry).
+
+1. Open any article: the section sits below the body.
 2. Subscribe with a `+test` address you control; it appears in the Mailchimp audience.
 3. Submit the same address again: the "already subscribed" message.
 4. Submit `not-an-email`: an inline error, with focus on the field.
 5. With VoiceOver: the inline error and the messages are announced.
+
+**Look at:** the server action — the only code that holds the Mailchimp key — and the rate limit.
 
 **Tests:** 7 new Vitest files (39 tests) and `e2e/newsletter-signup.spec.ts` (10 tests), mapped AC
 by AC in `plan.md` § Test strategy.
@@ -729,8 +732,9 @@ Sam approved the local check, so the agent pushes and runs `gh pr create --draft
 prompt. The pull request opens as a **draft**: #142. The agent records it in `spec.md`
 and commits locally — `spec: link newsletter-signup pull request`, which goes up with the next
 push. It offers to post the PR link on MKT-412, showing the exact text; that's a write
-Dana would see, so it waits for a yes (Sam preferred to post it by hand). It ends with what to QC before
-the PR is marked ready: the Vercel variables, a real signup on the preview, and the VoiceOver pass.
+Dana would see, so it waits for a yes (Sam preferred to post it by hand). It leaves the pull request
+a draft and says what holds it: a real signup on the preview, which its read-only walk doesn't make,
+the Vercel variables, and the VoiceOver pass.
 
 **The human QC paid off.** On the preview the next morning, Sam's first test signup showed the
 error message: the Mailchimp variables were set for Production only. Sam added them for Preview,
@@ -739,9 +743,9 @@ job — the agent said plainly what it couldn't see. Then:
 
 > **Sam:** QC done. Push the link commit and mark it ready.
 
-The agent ran `git push` and `gh pr ready 142`, each confirmed again at the prompt. An agent marks a
-pull request ready only when a person who has exercised it asks. A teammate reviewed it, and it was
-squash-merged on 2026-06-15.
+The agent ran `git push` and `gh pr ready 142`. With every criterion tested, it marks a pull request
+ready on its own; here, what it couldn't test held the draft until a person had. A teammate reviewed
+it, and it was squash-merged on 2026-06-15.
 
 ---
 
@@ -754,7 +758,9 @@ The task came from the tracker, so the requester hears back in their own terms:
 ```
 
 The skill verifies each claim — the merged PR, production's article pages (no section yet, as
-planned), the draft entry in Contentful `master` — and shows the full draft in chat:
+planned), the draft entry in Contentful `master`. The merge to `main` deploys, so the change is
+live: the delivered update posts on its own, the task moves to delivered, and the agent's report
+shows the text it posted:
 
 > Hi Dana,
 >
@@ -775,18 +781,26 @@ planned), the draft entry in Contentful `master` — and shows the full draft in
 >   list.** That's what you asked for, and our security lead is comfortable with it — let us know if
 >   your privacy team would rather everyone saw the same message.
 >
-> 1 question for you:
+> Thanks!
+
+No code, no branch names, no pull request links, nothing about how it was tested — pages and the
+CMS entry Dana will use. That's the ticket: business communication with the requester. The review
+instructions and the tests stayed in the pull request, for Sam.
+
+One thing needed an answer from Dana, and a message that asks the requester for something is the
+developer's to send. So it's a second message, a draft in chat:
+
+> Hi Dana,
+>
+> 1 question on the newsletter signup form:
 >
 > 1. **Launch:** will you publish the entry yourselves on the 22nd, or would you like us to do it at
 >    a time you choose?
 >
 > Thanks!
 
-No code, no branch names, no pull request links — pages and the CMS entry Dana will use. The draft
-in chat is the deliverable: Sam approved it and pasted it into the tracker by hand, so the agent
-posted nothing, on the task or on the pull request. Had Sam asked the agent to post it, the same yes
-would have named the assignee — Dana, since the update asks Dana a question — and the agent would
-have read the comment back after posting.
+Sam approved the text and the assignee — Dana, since it asks Dana a question — and the agent posted
+it and read the comment back.
 
 ---
 

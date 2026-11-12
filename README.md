@@ -26,7 +26,7 @@ Most of what's here was proven in real client projects first — some built on t
 - **21 workflow skills** — triage, spec, plan, tests, docs, implement, review, commit, draft PR, the stakeholder update, handoff, wrap-up after the merge, decision records, context and drift audits, and more — plus `/dispatch` with the `parallel-agents` module, `/dev-env` with `docker`, `/e2e` with `e2e`, `/unit` with `unit`, `/track-time` with `time-tracking`, and `/end-user-docs` with `end-user-docs`. ([Catalog](docs/SKILLS-REFERENCE.md))
 - **8 specialized agents**, each on the model its work needs — reviewers on `sonnet`; `@spec-analyzer` (which adversarially checks a spec folder before the gate) and `@architect` on `opus`. ([Catalog](docs/AGENTS-REFERENCE.md))
 - **4 dynamic workflows** — `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`: deterministic multi-agent fan-outs whose findings are independently verified or cross-checked, each step on a pinned model.
-- **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. Ten hooks tell each session its checkout, branch, and spec folder; name the session after its task; say when the branch's pull request merged (offer `/wrap-up`) or closed; remind the agent once to state the triage before its first edit or branch; stop the first edit in each sensitive area once, to confirm the lane; keep the main checkout edit-free when it's the hub (parallel-agents) and approve a session's move into its worktree; block `--no-verify`, commits and pushes on protected branches, and a pull request that isn't a draft; block hand-edits to generated files and existing migrations; and report undeclared env vars. Commits, the work branch's push, and its draft pull request run without a prompt; readying, merging, or reviewing a pull request, releases, and `gh api` writes ask a human first. `.env` files are never read. ([Hooks](plugins/adf/hooks/README.md))
+- **Guardrail hooks and permissions** — the rules that must hold every time are configuration, not prose. Ten hooks tell each session its checkout, branch, and spec folder; name the session after its task; say when the branch's pull request merged (offer `/wrap-up`) or closed; remind the agent once to state the triage before its first edit or branch; stop the first edit in each sensitive area once, to confirm the lane; keep the main checkout edit-free when it's the hub (parallel-agents) and approve a session's move into its worktree; block `--no-verify`, commits and pushes on protected branches, and a pull request that isn't a draft; block hand-edits to generated files and existing migrations; and report undeclared env vars. Commits, the work branch's push, its draft pull request, and marking it ready once the agent's own tests pass run without a prompt; merging or reviewing a pull request, releases, and `gh api` writes ask a human first. `.env` files are never read. ([Hooks](plugins/adf/hooks/README.md))
 - **9 engineering standards** — code quality (including "write almost no comments"), testing (with test tiers — `@smoke` ⊂ `@critical` ⊂ regression — and feature suites), security, git workflow, plus customizable architecture, UI/UX, deployment, performance, observability.
 - **Process records** — a constitution that gates every spec and review, Process Decision Records for how the team works, ADRs for the application, and on-demand code-level reference pages.
 - **Optional modules** — `github` (PR template with the lane, traceability, and constitution gates; issue forms, secret scan, base-branch policy), `git-hooks` (tool-agnostic `pre-push`), `clickup` (ClickUp's MCP server, so `/triage` reads tasks directly; a read-only allowlist, and each developer signs in with OAuth), `parallel-agents` (one worktree, branch, and session per task — plus its own port when the app runs locally; the main checkout only dispatches), `docker` (`/dev-env` writes or migrates a Docker Compose local environment — `compose.yaml` and a `Makefile` at the root, operational code in `ops/`, ports Docker picks — runs it natively or one stack per worktree, diagnoses it, and safely resets it; destructive docker commands ask first), `e2e` (`/e2e` sets up Playwright end-to-end tests to a specification — `make e2e` and `make smoke` against the checkout's own stack, one smoke test per critical flow, written test first), `unit` (`/unit` sets up Vitest unit and integration tests to a specification, run by tier — `@smoke`, `@critical`, regression — and by feature suite), `time-tracking` (`/track-time` logs each day of a task in the tracker, in whole units: the AI-assisted time or a senior developer's estimate without AI, as the developer picks, each entry saying what the day delivered in business terms), `end-user-docs` (`/end-user-docs` writes a feature's user, editorial, or administrative guide in the doc tool its readers use — ClickUp Docs, Confluence, Notion — drafted before implementation where they can't see it, published once the feature ships). ([Modules](modules/README.md))
@@ -232,8 +232,8 @@ Every task starts with `/triage`. In its first message, before any branch or fil
 the task is, picks the **lane** — how much process the change gets — and names the **model**. A
 tracker link works as the task: with a tracker MCP server (the `clickup` module, or your Git host's),
 `/triage` reads the task and its comments directly. The lane follows risk and uncertainty, not size:
-the steps that find defects (a test that proves the change, the hooks, CI, a reviewed draft pull
-request, the human QC) run in every lane; what changes is how much is written down and approved
+the steps that find defects (a test that proves the change, the hooks, CI, the agent's review
+locally and on the preview, a person's review before the merge) run in every lane; what changes is how much is written down and approved
 before the code exists.
 
 ### Triage — every task
@@ -305,20 +305,22 @@ sequenceDiagram
     participant Agent
     participant PR as Pull request
     participant Tracker as Tracker task
-    Agent->>Agent: /review in the full lane, or with nothing to run — the lane, the spec, constitution, security, tests, docs
+    Note over Agent,Dev: agents implement and review; humans decide
     Agent->>Agent: runs it on the local environment and walks the changed flow
+    Agent->>Agent: /review, in every lane — the lane, the spec, constitution, security, tests, docs
     Agent->>PR: /open-pr once it works — a draft with the lane, the evidence, the local check, and what was not verified
-    Agent->>PR: walks the same flow on the preview, read-only
-    Agent->>Dev: where to test it — the local URL, the preview's, and what to try
-    Agent->>Tracker: moves the task to in review, on its own
-    Agent->>Dev: the review update's draft — the preview, what to test, the pull request
-    opt only on a yes to the exact text and the assignee
-        Agent->>Tracker: posts the update, then reads it back
+    Agent->>PR: tests and reviews it on the preview, read-only — the flow, the page at two widths, copy, console, accessibility
+    Agent->>PR: writes the review instructions into the description — where, what to try, what was tested
+    Agent->>PR: marks it ready once that and CI pass, then requests the reviewers CONTRIBUTING.md names
+    Agent->>Agent: stops the local environment it started — containers and data kept
+    Agent->>Tracker: moves the task to in review and posts the outcome, on its own — what changes, the preview, what to test, the pull request for reference
+    Agent->>Dev: where to review it — the preview — and the text it posted on the task
+    opt a question for the requester — only on a yes to the exact text and the assignee
+        Agent->>Tracker: posts it, then reads it back
     end
-    Dev->>PR: tests it by hand, locally and on the preview, then marks it ready
-    Dev->>PR: reviews and merges — CI is a signal, the review is the gate
-    Agent->>Tracker: /wrap-up moves the task to done, on its own
-    Agent->>Dev: the delivered update's draft, in the client's terms — posted the same way, on a yes
+    Dev->>PR: reviews it on the preview, approves, and merges — CI is a signal, the review is the gate
+    Note over Dev,Tracker: quality control, acceptance testing, and release statuses are the developer's
+    Agent->>Tracker: once it's live, /wrap-up posts the delivered update, updates the usage guide, and moves the task to delivered
     Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, starts the follow-ups in their own sessions, removes the worktree and branch
 ```
 
@@ -364,7 +366,7 @@ flowchart TD
 | Production is broken | **Careful**, without delay — root cause → regression test → fix → draft PR → ship; then backfill the spec folder | `sonnet`, high effort | [Hotfix](docs/scenarios/hotfix.md) |
 | Refactor | `/refactor`: characterization tests first, one green `refactor:` commit per step; full lane or an ADR for a structure others must follow | `sonnet` | [Refactor](docs/scenarios/refactor.md) |
 | Investigation, impact analysis, estimate | No lane — `/triage` → the answer, where the task asks for it | `sonnet`; `opus` for architecture-level questions | [Answer-only task](docs/scenarios/answer-only-task.md) |
-| The requester needs an update on a task | The task's status follows the work on its own, forward only: `/triage` moves it to in progress, `/open-pr` to in review, `/wrap-up` to done. `/stakeholder-update` drafts the message — at three moments: started (only when it's worth sending), in review (the preview, what to test, the pull request), and delivered — or when you ask ("update the client"). In the client's terms, with screenshots when they help, shown in chat — the draft is the deliverable; it's posted on the tracker, through the project's own server, only on your yes to the exact text and the assignee, then read back — never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
+| The requester needs an update on a task | The ticket is for business communication with stakeholders — a ClickUp task, a GitHub or GitLab issue — and the pull request for technical communication with the developer. The task's status follows the work on its own, forward only: `/triage` moves it to in progress, `/open-pr` to in review, `/wrap-up` to delivered once the change is live; the statuses between are yours. `/stakeholder-update` writes the message at three moments — started (a draft, only when it's worth sending), in review (what changes, the preview, what to test, the pull request for reference), and delivered — or when you ask ("update the client"). In the client's terms, every claim verified: the review and delivered updates post on their own, through the project's tracker tool, are read back, and are shown to you; anything that asks the requester for something posts only on your yes to the exact text and the assignee — never on the pull request | `sonnet` | [Tracker integration](skeleton/docs/TRACKER-INTEGRATION.md) |
 | Logging the time a task took — at a milestone or after the merge (`time-tracking` module) | `/track-time` — one entry per day, in whole units: the AI-assisted time (the sessions plus the work outside them) next to a senior developer's estimate without AI, each described by what the day delivered, in business terms; you pick one number per entry, and only the approved entries go to the tracker | `sonnet` | [time-tracking module](modules/time-tracking/MODULE.md) |
 | Stakeholders (users, editors, administrators) need a guide to a feature, in the doc tool they read (`end-user-docs` module) | `/end-user-docs` — the feature's end-user page, drafted before implementation where end users can't see it and published once it ships; you approve each page's exact text | `sonnet` | [end-user-docs module](modules/end-user-docs/MODULE.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
@@ -403,10 +405,11 @@ per session, short tool output, and the model:
 `/cost-report` shows what your own sessions cost. In the routing evals, Sonnet triaged as accurately
 as Opus at about half the cost.
 
-What holds in every workflow: nothing leaves the machine unless a human asks — except the work
-branch's push and its draft pull request after the local check, keeping that draft current, and the
-tracker task's status moves. No push to another branch, no pull request readied, merged, or
-reviewed, no release, tracker comment, or message goes out on its own, and the hooks and permissions
+What holds in every workflow: agents implement and review; humans decide. Nothing leaves the
+machine unless a human asks — except the work branch's push and its draft pull request after the
+local check, marking it ready once the agent's own tests and review pass, requesting the reviewers
+the project names, keeping it current, and the tracker task's status moves and outcome updates. No push to another branch,
+no pull request merged or reviewed, no release, and no message that asks the requester for something goes out on its own, and the hooks and permissions
 enforce the rules that must hold every time. The full reference is the `/spec-workflow` skill and
 [`skeleton/specs/README.md`](skeleton/specs/README.md).
 

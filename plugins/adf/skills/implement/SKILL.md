@@ -21,7 +21,7 @@ plan is the contract for **where** code goes (the change surface); the tests are
 - The spec folder is committed (`spec:`).
 - If `plan.md` lists pre-implementable docs, they're committed (`docs:`) and their Phase 1 tasks
   are ticked. If not, run `/adf:write-docs` first — and `/adf:end-user-docs` for an end-user page's
-  draft.
+  draft, `/adf:stakeholder-update guide` for the spec's usage guide.
 - The environment the tests need is up — start it now if triage deferred it — and host
   dependencies are installed so the git hooks can run on commit.
 
@@ -114,8 +114,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 
 ## Phase 3: Finish
 
-11. **Reconcile and backfill** — the Phase 5 tasks: committed docs, and an end-user page's draft,
-    checked claim by claim against what was built; post-implementable docs (runbooks,
+11. **Reconcile and backfill** — the Phase 5 tasks: committed docs, the spec's usage guide, and an
+    end-user page's draft, checked claim by claim against what was built; post-implementable docs (runbooks,
     troubleshooting) written now. One that can't be written yet — it needs production, or a decision
     still to come — is a follow-up: strike its task through in `tasks.md` with
     `— follow-up: <why>`, and `/adf:open-pr` lists it under Follow-ups.

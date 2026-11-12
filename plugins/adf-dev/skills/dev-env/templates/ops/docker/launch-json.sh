@@ -9,7 +9,7 @@
 #   - in native mode, the app on the host while it runs (ops/native/.run/app.env), named APP.
 #
 # A stopped service loses its row, so a port Docker later hands to another checkout is never listed
-# here. ops/docker/Makefile runs it in `up`, `prod`, and `down`, and ops/native/native.sh when it
+# here. ops/docker/Makefile runs it in `up`, `prod`, `stop`, and `down`, and ops/native/native.sh when it
 # starts or stops the app. Reads APP and COMPOSE from its environment.
 #
 # The file is this checkout's, so it's written only where git ignores it (L7). The developer's own

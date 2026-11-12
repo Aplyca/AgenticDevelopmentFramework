@@ -446,9 +446,10 @@ changed file is inside the CR 1 change surface approved on 2026-09-17. Deploy or
 and field in Contentful `master` before merging; do **not** remove `alreadySubscribedMessage` until
 this is live — the current code needs it.
 
-## How to verify
-1. On the preview (Contentful `sandbox` has three topics), open an article: three unchecked topics
-   under "Topics (optional)".
+## How to review and test
+**Where:** the preview (Contentful `sandbox` has three topics).
+
+1. Open an article: three unchecked topics under "Topics (optional)".
 2. Pick two and subscribe with a `+test` address; in Mailchimp, the member has those two groups.
 3. Submit the same address with a third topic: the same success message; the member now has three.
 4. Remove the topics from the `sandbox` entry: within 5 minutes, the form has no topic group.
@@ -467,8 +468,9 @@ From the local Playwright run at 375 px and 1280 px: the form with three topics;
 ```
 
 The agent records #187 in `spec.md` (`spec: link newsletter-signup CR 1 pull request`) — a second
-line under `pull-requests:`, below #142. Sam QC'd the preview the next working day, VoiceOver
-included, and asked the agent to push the link commit and mark the pull request ready. It merged on
+line under `pull-requests:`, below #142. The real Mailchimp update and the VoiceOver pass held it a
+draft. Sam QC'd the preview the next working day, VoiceOver included, and asked the agent to push the
+link commit and mark the pull request ready. It merged on
 2026-09-21.
 
 ---
@@ -478,6 +480,9 @@ included, and asked the agent to push the link commit and mark the pull request 
 ```
 /stakeholder-update MKT-412 187
 ```
+
+The change is live, so the delivered update posts on its own and the task moves to delivered; the
+agent's report shows the text:
 
 > Hi Dana and Lee,
 >
@@ -500,7 +505,14 @@ included, and asked the agent to push the link commit and mark the pull request 
 > - **The "Already subscribed message" field** in the entry is no longer shown. Please leave it in
 >   place for now — we'll let you know when it can go.
 >
-> 1 question for you:
+> Thanks!
+
+The question for Dana and Lee is a second message — a draft, posted on Sam's yes to its text and
+its assignee:
+
+> Hi Dana and Lee,
+>
+> 1 question on newsletter topics:
 >
 > 1. **Setting up topics:** each topic needs its group ID from Mailchimp, which Mailchimp doesn't
 >    show on screen. Shall we create Tech, Business, and Culture for you as drafts, ready for you to

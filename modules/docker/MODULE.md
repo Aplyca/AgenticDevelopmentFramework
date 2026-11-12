@@ -77,7 +77,8 @@ fills these from what it verifies, for you to review:
    `make urls` with the services, § 6 the two modes, the command surface, and § Troubleshooting for
    problems actually met. Packaged: `/adf-dev:dev-env` joins the key commands under § AI-assisted
    development.
-2. **`AGENTS.md` § Quick reference** — `make up`, `make down`, and `make urls`, and `make prod` for
+2. **`AGENTS.md` § Quick reference** — `make up`, `make stop` (keeps containers and data),
+   `make down` (removes containers; data stays), and `make urls`, and `make prod` for
    the production build (or "none"); the local check before the pull request starts the stack from
    there.
    **`.claude/hooks/config.sh`** — `LOCAL_URL='http://localhost:${APP_PORT}'`.
@@ -90,12 +91,17 @@ fills these from what it verifies, for you to review:
 
 ## Good to know
 
+- **Stop, down, and remove are different states** (the specification's C12): `make stop` frees
+  memory and CPU and keeps everything — the agent runs it once its pull request is ready; `make down`
+  removes the containers and keeps the data — `/wrap-up` runs it after the merge; `make reset`
+  removes the data too, and asks first. There's no pause or kill task: a pause frees no memory, and
+  a kill can lose a database's unsaved writes.
 - **A port Docker picked changes** each time its service starts. `make urls` and Claude Desktop's Browser always show
   the current one; pin it in `.env` when something outside the app has to know it.
 - **Claude Desktop's Browser lists the running web services** on a new tab, one row each —
   `web · http://localhost:55123` — and one click opens it. A service is listed when `compose.yaml`
   labels it `claude.browser: "true"`: the template labels the app and its production build. `make up`,
-  `make prod`, and `make down` keep the rows in `.claude/launch.json` matching what runs
+  `make prod`, `make stop`, and `make down` keep the rows in `.claude/launch.json` matching what runs
   ([decision 0056](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0056-the-running-app-in-claude-desktops-browser.md)).
   The file is each checkout's own, so git ignores it, and nothing is written where it doesn't. The
   developer's own entries stay.
