@@ -69,7 +69,7 @@ projects.
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
 | [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted; refined by 0068 |
 | [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
-| [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063, 0070, 0073 |
+| [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063, 0070, 0073, 0075 |
 | [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
 | [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) | The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up | accepted |
 | [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted |
@@ -83,7 +83,8 @@ projects.
 | [0070](0070-the-agent-marks-its-pull-request-ready.md) | The agent marks its pull request ready once its own tests pass — locally first, on the preview for what only a shared service has, and CI green | accepted; amended by 0072 |
 | [0071](0071-stop-the-local-environment-once-ready.md) | The agent stops the local environment once its pull request is ready — stop, which keeps containers and data; never down, kill, or remove | accepted |
 | [0072](0072-agents-implement-and-review-humans-decide.md) | Agents implement and review; humans decide: `/review` in every lane, the agent tests and reviews on the preview, and requests the project's reviewers at ready, on GitHub and GitLab | accepted; amended by 0073 |
-| [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) | The ticket is for business communication with stakeholders, the pull request for technical communication with the developer: outcome updates post on their own, delivered means live, and GitHub and GitLab issues are trackers too | accepted |
+| [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) | The ticket is for business communication with stakeholders, the pull request for technical communication with the developer: outcome updates post on their own, delivered means live, and GitHub and GitLab issues are trackers too | accepted; amended by 0075 |
+| [0075](0075-a-status-only-tracker-update-needs-no-prompt.md) | A tracker update that changes only the task's status needs no prompt: a hook approves that call and leaves every post, and any other edit, to the prompt | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

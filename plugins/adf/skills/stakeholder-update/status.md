@@ -20,8 +20,10 @@ carry the same rules in their own step.
 - **The status only.** The assignee, priority, due date, and time entries still need a yes
   (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
 - **Say it in one line** — "Moved the task to In Progress" — so the developer can correct it.
-- **The tracker's own prompt still applies.** The status move is a write; where the project leaves
-  it off the allowlist, the permission prompt is the developer's say, not the skill's to skip.
+- **Send the status alone, in a call of its own.** Where the project names the tracker's status
+  tool in `APPROVE_STATUS_MOVE` (`.claude/hooks/config.sh`), a call that carries only the task and
+  its status passes without a prompt; any other field in the same call brings the prompt back.
+  Where it names none, the move prompts: that is the developer's say, not the skill's to skip.
 - **Through the project's tracker tool, as the developer,** like the post (`/adf:stakeholder-update`
   step 6): its server, or `gh` or `glab` for issues.
 - **Can't write** — no tracker tool, or only a connector built into the host app: open your report

@@ -222,7 +222,7 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
   development by their full names (`/adf:triage`, `@adf:code-reviewer`); a module
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
-- **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
+- **`.claude/hooks/config.sh`** — `APPROVE_STATUS_MOVE` (the tracker tool that moves a task's status, when the tracker has an MCP server), `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the developer
   opens for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the

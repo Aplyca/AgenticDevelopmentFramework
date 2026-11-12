@@ -27,6 +27,8 @@ HUB_READONLY=""
 APPROVE_WORKTREE_MOVE="1"
 PR_STATE="1"
 SESSION_TITLE="1"
+APPROVE_STATUS_MOVE=""
+STATUS_MOVE_FIELDS="task_id status"
 SPECS_DIR="specs"
 # in_words <word> <space-separated list> — exact membership.
 in_words() {
@@ -72,7 +74,8 @@ worktree_settings() {
 for config in "${CLAUDE_PLUGIN_ROOT}/hooks/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
   if [ -n "$config" ] && [ -f "$config" ]; then
     read_settings "$config" PROTECTED_BRANCHES APPEND_ONLY_GLOBS GENERATED_GLOBS CAREFUL_GLOBS TRIAGE_FIRST \
-      HUB_READONLY APPROVE_WORKTREE_MOVE PR_STATE SESSION_TITLE ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
+      HUB_READONLY APPROVE_WORKTREE_MOVE PR_STATE SESSION_TITLE APPROVE_STATUS_MOVE STATUS_MOVE_FIELDS ENV_TEMPLATE ENV_IGNORE \
+      ENV_CHECK_EXCLUDE SPECS_DIR
     break
   fi
 done
@@ -89,6 +92,15 @@ json_get() {
   else
     echo "$(basename "$0"): install jq or python3 to enable this hook" >&2
     exit 1
+  fi
+}
+
+# tool_input_keys — print the top-level field names of the tool call's input, one per line.
+tool_input_keys() {
+  if command -v jq >/dev/null 2>&1; then
+    printf '%s' "$HOOK_INPUT" | jq -r -f "${CLAUDE_PLUGIN_ROOT}/hooks/tool-input-keys.jq" 2>/dev/null
+  elif command -v python3 >/dev/null 2>&1; then
+    printf '%s' "$HOOK_INPUT" | python3 "${CLAUDE_PLUGIN_ROOT}/hooks/tool-input-keys.py"
   fi
 }
 

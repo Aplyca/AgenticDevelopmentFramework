@@ -888,6 +888,12 @@ check_practices() {
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
     grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
     file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
+    # A status-only tracker update needs no prompt (0075): the hook, its settings, and the rule that keeps the call status-only.
+    grep -q 'approve-status-move.sh' "$SETTINGS" || missing+=("settings.json: approve-status-move hook (0075)")
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_STATUS_MOVE=""' || missing+=("config.sh: APPROVE_STATUS_MOVE, empty in the skeleton (0075)")
+    file_contains "$HOOKS_DIR/config.sh" '^STATUS_MOVE_FIELDS=' || missing+=("config.sh: STATUS_MOVE_FIELDS (0075)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Send the status alone' || missing+=("/stakeholder-update status.md: the status goes alone, in a call of its own (0075)")
+    file_contains "$MODULES_DIR/clickup/MODULE.md" 'APPROVE_STATUS_MOVE="mcp__clickup__clickup_update_task"' || missing+=("clickup module: names its status tool for APPROVE_STATUS_MOVE (0075)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
