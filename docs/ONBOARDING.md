@@ -122,7 +122,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
 | `/stakeholder-update` starts from a plain request ("update the client"); a message that asks the requester for something posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
-| Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
+| Secret scan and base-branch policy — advisory until a ruleset (GitHub) or *Pipelines must succeed* (GitLab) requires them | [`github`](../modules/github/MODULE.md) or [`gitlab`](../modules/gitlab/MODULE.md) module |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
 
 Everything above the module rows is Claude Code configuration; Cursor, Copilot, and other tools get

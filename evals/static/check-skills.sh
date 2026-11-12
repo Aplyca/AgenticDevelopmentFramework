@@ -1144,6 +1144,37 @@ PY
     fi
 }
 
+check_host_templates() {
+    # The gitlab module's merge request template is the github module's pull request template in
+    # GitLab's words (decision 0075): the same sections, agent-owned markers, labels, and checklist,
+    # in the same order, so /adf:open-pr fills either one the same way.
+    local report
+    report=$(python3 - "$MODULES_DIR/github/files/.github/pull_request_template.md" \
+        "$MODULES_DIR/gitlab/files/.gitlab/merge_request_templates/Default.md" <<'PY'
+import re, sys
+shape = re.compile(r"^(## .*|<!-- /?adf:[a-z-]+ -->|\*\*[^*]+:\*\*|- \[ \] .*|- [A-Z][a-z ]+:|\d+\.)\s*(?:<!--.*)?$")
+def skeleton(path):
+    try:
+        lines = open(path, encoding="utf-8").read().split("\n")
+    except FileNotFoundError:
+        return None
+    return [m.group(1).rstrip() for m in map(shape.match, lines) if m]
+github, gitlab = skeleton(sys.argv[1]), skeleton(sys.argv[2])
+if github is None or gitlab is None:
+    print("a template is missing"); sys.exit()
+if github != gitlab:
+    for a, b in zip(github + [""] * len(gitlab), gitlab + [""] * len(github)):
+        if a != b:
+            print(f"pull request template has '{a}' where the merge request template has '{b}'"); break
+PY
+)
+    if [ -z "$report" ]; then
+        pass "templates: the gitlab module's merge request template has the github pull request template's sections, markers, and checklist (0075)"
+    else
+        fail "templates: the merge request template differs from the pull request template" "$report"
+    fi
+}
+
 check_packaged_plugin() {
     # The plugins are the machinery's source (decision 0028); build-plugins.sh generates the parts that
     # can't be kept by hand — the module commands in bin/; the spec model, the agents' checklists, and
@@ -1699,6 +1730,7 @@ check_found_along_the_way
 check_plugin
 check_skill_reference_files
 check_host_parity
+check_host_templates
 check_dev_env_templates
 check_upgrade
 check_no_tracked_junk
