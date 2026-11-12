@@ -11,6 +11,43 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.8.0 — 2026-11-12 — A tested pull request, a ticket for stakeholders, and smaller test runs
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. Two behaviors change on upgrade, and both can be kept as they were (steps 1 and 3
+below).
+
+- **Agents implement and review; humans decide** (0070, 0072). Once its own tests, review, local
+  check, preview, and CI pass, the agent marks its pull request ready and requests the project's
+  **Reviewers**. People review, accept, and merge. `/adf:open-pr` works on GitLab merge requests too.
+- **The agent stops the local environment once its pull request is ready** (0071), keeping its
+  containers and data: a stop, never a down.
+- **The ticket is for stakeholders, the pull request for the developer** (0073). The task moves to
+  in progress, in review, and delivered on its own; the review and delivered updates post on their
+  own and carry the pull request's link; delivered means live. The pull request's *How to review and
+  test* tells the reviewer where to look. A usage guide is written with the spec. GitHub and GitLab
+  issues work as trackers.
+- **A test run is as small as its question** (0069): the task's tests by name, the feature suite once
+  per phase, the full gate once.
+
+**Upgrading from v2.7.0:**
+
+1. **Before you upgrade, decide who approves ticket posts.** The review and delivered updates now post
+   without a yes. To keep the approval, add `- **Updates post:** on the developer's yes` to
+   `docs/TRACKER-INTEGRATION.md` § Stakeholder updates.
+2. **Run `/adf:upgrade`.** One draft pull request merges the changed lines in `AGENTS.md`,
+   `CONTRIBUTING.md`, `.claude/settings.json` (drops `gh pr ready` from `permissions.ask`),
+   `.claude/rules/git-workflow.md`, `.claude/rules/claude-code.md`, `.claude/rules/testing.md`, the
+   Cursor rules, `specs/README.md`, the spec, plan, and tasks templates, `docs/TRACKER-INTEGRATION.md`,
+   `docs/getting-started/DEV-SETUP.md`, and, with the github module, `.github/pull_request_template.md`;
+   in a committed install, it writes the release's machinery.
+3. **A team that wants a person to mark every pull request ready** says so in `AGENTS.md` § Delivery
+   rules and keeps `gh pr ready` in `permissions.ask`.
+4. **After the merge, by hand:** fill in `CONTRIBUTING.md`'s **Reviewers** line; set **Live when** in
+   `docs/TRACKER-INTEGRATION.md`, and move "delivered" off any pre-release status; on GitHub or
+   GitLab issues, name and create the in-progress and in-review labels. With the docker module, run
+   `/adf-dev:dev-env` to add the `stop` target its audit now finds missing.
+
 - **The ticket is for stakeholders, the pull request for the developer — and GitHub and GitLab
   issues are trackers too**
   ([decision 0073](docs/decisions/0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md),

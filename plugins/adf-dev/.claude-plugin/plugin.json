@@ -1,7 +1,7 @@
 {
   "name": "adf-dev",
   "description": "The Agentic Development Framework's development plugin: skills for building, running, and checking the code. /adf-dev:dev-env sets up, diagnoses, and safely resets a Docker Compose local environment (the docker module), /adf-dev:e2e sets up Playwright end-to-end tests and their smoke suite (the e2e module), and /adf-dev:unit sets up Vitest unit and integration tests, run by tier and by feature suite (the unit module); like every module skill, each acts only in a packaged project that installed its module.",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "author": {
     "name": "Aplyca",
     "email": "dev@aplyca.com"
