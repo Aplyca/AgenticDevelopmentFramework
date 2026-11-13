@@ -9,9 +9,8 @@
 #   - it says nothing when that call is followed by a pipe, a redirect, or another command, which
 #     leaves the whole line to the permission rules;
 #   - it asks before every other `make … run`: native mode, a mode it can't read, a `run` task of
-#     another form, make pointed elsewhere (`cd`, `-C`, a leading assignment), a value the host's
-#     shell or make would expand (`$`, a backquote), or one that names `env` or a `.env` file, as
-#     the module's rules ask before a `docker compose exec` that does.
+#     another form, make pointed elsewhere (`cd`, `-C`, a leading assignment), or a value the
+#     host's shell or make would expand (`$`, a backquote).
 # The mode is read as the root Makefile reads it (M1): DEV_MODE in the environment, then in .env —
 # that one line, never printed — then DEFAULT_MODE. Without the module — no ops/docker/ or
 # ops/native/ Makefile, and a stamp that doesn't name docker — it does nothing. Empty
@@ -115,11 +114,9 @@ bare='[A-Za-z0-9_./:=@%+,-]+'
 value="'([^'\$]|[\$][\$])*'|\"[^\"\$\`\\\\]*\"|$bare"
 other="([[:space:]]+[a-z][a-z0-9_]*=$bare)*"
 own="^[[:space:]]*make[[:space:]]+run$other[[:space:]]+cmd=($value)$other"
-names_env='(^|[^A-Za-z0-9_.-])(printenv|env)([^A-Za-z0-9_.=-]|$)|\.env([^A-Za-z0-9_]|$)'
 if [[ $command_text =~ $own ]]; then
   call="${BASH_REMATCH[0]}"
   rest="${command_text#"$call"}"
-  [[ $call =~ $names_env ]] && decide ask "The command names env or a .env file, which can print credentials"
   [ -n "${rest//[[:space:]]/}" ] || decide allow "In Docker mode make run runs its command in the app's container"
   operator='^[[:space:]]*([|&;<>]|[0-9]+[<>])'
   if [[ $rest =~ $operator ]] && ! [[ "$(blank_quotes "$rest")" =~ $goal_run ]]; then

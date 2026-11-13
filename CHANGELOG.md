@@ -11,14 +11,50 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Docker and make commands run without a prompt — the docker module asks before none**
+  ([decision 0078](docs/decisions/0078-docker-and-make-run-without-a-prompt.md), amending 0038,
+  0032, and 0077).
+  - **What:**
+    - **The docker module adds no ask rule.** It allowed `docker *` and `make *` and asked by name
+      before 18 exceptions: what deletes data (`compose down -v`, `rm`, `rmi`, `prune`,
+      `make reset`), `docker push`, and what prints secrets (`docker inspect`, a bare
+      `compose config`, an `exec` that names `env`). All of them now run without a prompt.
+    - **The one prompt left is `make run` in native mode,** which the approve-container-run hook
+      asks (0077). The hook no longer asks about a command that names `env` or a `.env` file.
+    - **The developer's yes in chat still comes first** before anything that deletes data:
+      `/adf-dev:dev-env` and the specification (C9, C12) say so, and that no prompt backs it.
+    - **A project task that deletes data** is named in `DEV-SETUP.md` instead of getting an ask
+      rule.
+    - **The mode denies stay:** an agent still can't set `DEV_MODE` or `SERVICES`, or edit `.env`.
+  - **Where:** `modules/docker/` (`settings-fragment.json`, `install.sh`, `MODULE.md`);
+    `plugins/adf-dev/skills/dev-env/` (`SPECIFICATION.md`, `SKILL.md`);
+    `plugins/adf/hooks/approve-container-run.sh`, `README.md`;
+    `plugins/adf/skills/upgrade/SKILL.md`, `adopt/SKILL.md`; `skeleton/.claude/hooks/config.sh`;
+    `scripts/migrations/unreleased/02-docker-asks.py`; `README.md`, `modules/README.md`,
+    onboarding; the hook, module, and upgrade tests and the static checks.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** with the `docker` module, once the rules are removed: no `docker` or
+    `make` command prompts. That includes `make reset` and `docker compose down -v`, which delete
+    this stack's data; `docker system prune`, `docker rm`, and `docker volume rm`, which reach
+    other projects on the machine; `docker push`; and commands that print a resolved secret. An
+    agent still asks in chat before it deletes data. Without the module, none.
+  - **Overwrite:** committed install: `.claude/hooks/approve-container-run.sh` and
+    `.claude/skills/dev-env/`, as `/adf:upgrade` writes them; packaged, they come with the plugins.
+  - **Merge:** in `.claude/hooks/config.sh`, the comment above `APPROVE_CONTAINER_RUN`.
+  - **Migration:** scripted — `scripts/migrations/unreleased/02-docker-asks.py` removes from
+    `permissions.ask` the rules the docker module added, by their exact text, and leaves a rule the
+    project wrote; the upgrade report lists each under Permission changes, for the developer's
+    approval. By hand: a team that wants a prompt for one of them — `Bash(make *reset*)`,
+    `Bash(docker * prune *)` — keeps or adds that rule, which still wins over the allow.
+
 - **In Docker mode `make run` needs no prompt — the container is the boundary**
   ([decision 0077](docs/decisions/0077-the-container-is-the-boundary-for-make-run.md), amending
   0038 and 0032).
   - **What:**
     - **`make run cmd='<command>'` runs any command in the app's container without a prompt** in a
       checkout whose mode is Docker: tests, linters, the package manager, a one-off script. In
-      native mode, where it runs on the host, it still asks. `make reset`, and any task that
-      deletes data, still asks.
+      native mode, where it runs on the host, it still asks.
     - **A new hook, `approve-container-run.sh`, decides it.** A rule can't read the mode, and an
       ask rule wins over a hook's approval. The hook approves the call written on its own when the
       mode is Docker, the `run` task in `ops/docker/Makefile` hands `"$$cmd"` to Compose as one

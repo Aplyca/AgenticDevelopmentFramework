@@ -93,13 +93,15 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** Every task runs without a prompt except the ones that delete data, and `run` where its
-  command runs on the host (C10). `.claude/settings.json` allows `Bash(make *)` and asks before each
-  task that deletes data — an ask rule wins over any allow rule, and over a hook's approval. The
-  docker module adds the allow and the ask for `reset` (`Bash(make *reset*)`). A project task that
-  deletes data under another name (`db-drop`, a `clean` that removes volumes) gets an ask rule of
-  its own, `Bash(make <task>*)`. No task waits for input or never returns — `logs` with `--tail`,
-  never `-f` or `--follow` — so an agent that runs one is never left waiting.
+- **C9.** Every task runs without a prompt, except `run` where its command runs on the host
+  (C10). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
+  adds no ask rule: both act on this project's local stack, whose data comes back from the seed
+  ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)).
+  A prompt isn't what protects data: an agent deletes it — `reset`, a project's `db-drop` — only
+  on the developer's yes in chat (C12). A project that wants a prompt for a task adds its own ask
+  rule, `Bash(make <task>*)`, which wins over the allow. No task waits for input or never returns
+  — `logs` with `--tail`, never `-f` or `--follow` — so an agent that runs one is never left
+  waiting.
 - **C10.** **`run` is the one task that runs a command it's given, and the way an agent runs a
   command no task covers:** `make run cmd='<command>'`
   ([decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md)).
@@ -118,8 +120,8 @@ a project misses. A project that departs from one on purpose records it, with th
     `ops/docker/Makefile`, and the call. It approves `make run cmd='<command>'` written on its own,
     in Docker mode, with the recipe above and a value neither the host's shell nor `make` expands.
     It asks before any other: native mode, a mode it can't read, a recipe of another form, `make`
-    pointed at another folder or given another setting, a `$` or a backquote the host would expand,
-    a command that names `env` or a `.env` file. A call followed by a pipe or another command is
+    pointed at another folder or given another setting, a `$` or a backquote the host would expand.
+    A call followed by a pipe or another command is
     left to the permission rules. Empty `APPROVE_CONTAINER_RUN` in `.claude/hooks/config.sh` keeps
     the ask in every mode.
   - **What the container bounds:** the host outside the checkout — the home directory, other
@@ -136,10 +138,10 @@ a project misses. A project that departs from one on purpose records it, with th
 
     So the boundary limits a mistake to this checkout and its local data, and protects no secret
     in `.env`: keep production credentials out of it. The rules that hold on the host hold in the
-    container, where no hook reads past the `env` check: no command prints a secret (V4), changes
+    container, where no hook reads the command: none prints a secret (V4), changes
     the mode (M10), or commits or pushes.
-  - **Any other task that runs a command it's given** (`make exec`, `make sh c=…`) is for people,
-    and gets an ask rule: `Bash(make <task>*)`.
+  - **Any other task that runs a command it's given on the host** (`make exec`, `make sh c=…`) is
+    for people, and gets an ask rule: `Bash(make <task>*)`.
   - A command agents keep running through `run` is worth a task of its own: a reviewer reads a
     task's name, and it takes `t=` or `f=` (C3).
 - **C11.** **A production-like run, when the project has one, is the optional task `prod`, in every

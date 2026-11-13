@@ -54,8 +54,8 @@ manual procedure (Steps 1–6) is for what it refuses.
      release's structure (Step 5, Bucket 2).
    - **Clean merges:** read each one the report lists with its hunk count — a clean merge can still be
      wrong, a section added twice.
-   - **New ask rules:** with `docker`, read the project's `Makefile` and mode files for a task C9 or
-     C10 names (Step 1), and propose its ask rule.
+   - **Tasks to fix:** with `docker`, read the project's `Makefile` and mode files for a task C9 or
+     C10 names (Step 1), and propose its fix.
    - **Files to decide** and **Migrations** that need the developer: the choices they list.
    - **Each new module's** `MODULE.md` § Customize steps; an install switch with its PDR (Step 2).
 7. **One approval** covers the conflict resolutions, the permission changes — each rule the report or
@@ -86,10 +86,10 @@ For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
 `docker`, `e2e`, and `unit`, rerun `modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, and
 `modules/unit/install.sh <repo>` the same way, besides their file changes. From v2.3.0 the docker installer adds `Bash(make *)`, so every
-task runs without a prompt but the ones its ask rules name (`reset`, `run`). Before it does, read
-the project's `Makefile` and mode files for a task that deletes data under another name, or that
-follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan:
-the plan adds its ask rule, `Bash(make <task>*)`, in the same change, or fixes the task.
+task runs without a prompt, `reset` included; only `make run` asks, where it runs on the host
+(decisions 0077, 0078). Before it does, read the project's `Makefile` and mode files for a task that
+follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan, which
+fixes the task in the same change.
 
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.

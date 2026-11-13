@@ -390,10 +390,10 @@ container_run allow "$(run_event "make run cmd='npm test -- signup 2>&1 | tail -
 container_run allow "$(run_event "make run cmd='echo \$\$HOME'")" "Docker mode: approves a \$ doubled for make, which the container's shell reads"
 container_run allow "$(run_event "make run s=worker cmd='npm ci'")" "Docker mode: approves it with another variable that is a bare word"
 container_run silent "$(run_event 'make reset')" "says nothing about make reset"
-if python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if "Bash(make *reset*)" in p["ask"] and not any(r.startswith("Bash(make run") for r in p["ask"] + p["deny"]) else 1)' "$REPO_ROOT/modules/docker/settings-fragment.json"; then
-    PASS=$((PASS+1)); echo "✓ approve-container-run.sh: make reset still asks by the module's rule, and no rule decides make run in the hook's place"
+if python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if p["ask"] == [] and not any(r.startswith("Bash(make run") for r in p["deny"]) else 1)' "$REPO_ROOT/modules/docker/settings-fragment.json"; then
+    PASS=$((PASS+1)); echo "✓ approve-container-run.sh: the module asks before no docker or make command, so no rule decides make run in the hook's place (0078)"
 else
-    FAIL=$((FAIL+1)); echo "✘ approve-container-run.sh: the docker module must ask before make reset and carry no rule for make run, which would win over the hook"
+    FAIL=$((FAIL+1)); echo "✘ approve-container-run.sh: the docker module carries an ask rule, or a deny for make run, which would win over the hook"
 fi
 container_run silent "$(run_event 'make test t="should run fast"')" "says nothing about another task, whatever its quoted text says"
 container_run silent "$(run_event 'npm run build && make run-migrations')" "says nothing about npm run, or a task whose name starts with run"
@@ -406,9 +406,7 @@ container_run ask "$(run_event 'make run cmd="echo $HOME"')" "asks about a \$ th
 container_run ask "$(run_event "make run cmd='\$(shell id)'")" "asks about a \$ make would expand, on the host"
 container_run ask "$(run_event 'make run cmd="echo `id`"')" "asks about a backquote the host's shell would run"
 container_run ask "$(run_event "make run cmd='npm ci' s='web; id'")" "asks about another variable that isn't a bare word"
-container_run ask "$(run_event 'make run cmd="cat .env"')" "asks about a command that names a .env file"
-container_run ask "$(run_event "make run cmd='printenv'")" "asks about a command that prints the environment"
-container_run allow "$(run_event "make run cmd='npx jest --env=jsdom'")" "doesn't take --env=, or a name that only contains env, for the environment"
+container_run allow "$(run_event "make run cmd='printenv HOME'")" "Docker mode: doesn't read what the command does — no docker or make command asks (0078)"
 container_run ask "$(run_event 'make run')" "asks about make run with no command"
 container_run ask "$(run_event 'make run cmd="npm test"' "$STACK/ops")" "asks from a folder that isn't the stack's root"
 printf 'DEV_MODE=native  # mine\nMAILCHIMP_API_KEY=topsecret\n' > "$STACK/.env"

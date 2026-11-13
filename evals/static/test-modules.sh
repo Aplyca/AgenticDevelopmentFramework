@@ -296,7 +296,7 @@ ALLOWS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["a
 ASKS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["ask"])')
 DENIES=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["deny"])')
 "$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1; c=$?
-check "docker install: creates .claude/settings.json with the allows, the destructive asks, and the mode denies" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"]), len(d[\"permissions\"][\"deny\"])')\" = \"($ALLOWS, $ASKS, $DENIES)\" ]"
+check "docker install: creates .claude/settings.json with the allows, no ask rule, and the mode denies" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"]), len(d[\"permissions\"][\"deny\"])')\" = \"($ALLOWS, $ASKS, $DENIES)\" ]"
 check "docker install: no MCP server and nothing enabled" "[ ! -e '$DF/.mcp.json' ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'sorted(d)')\" = \"['permissions']\" ]"
 "$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1
 check "docker install: a second run adds nothing" "[ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"])')\" = \"($ALLOWS, $ASKS)\" ]"
@@ -333,30 +333,28 @@ def verdict(command):
         return "ask"
     return "allow" if all(matches(perms["allow"], p) for p in parts) else "prompt"
 cases = {
-    "docker compose down -v": "ask", "docker compose down --volumes": "ask",
-    "docker compose -f compose.yaml down -v": "ask", "docker compose down --rmi all": "ask",
-    "cd app && docker compose down -v": "ask", "docker volume rm newsletter_redis-data": "ask",
-    "docker system prune -af": "ask", "docker volume prune": "ask", "docker image prune -a": "ask",
-    "docker rm -f web": "ask", "docker rmi redis:7": "ask", "docker compose rm -f web": "ask",
+    "docker compose down -v": "allow", "docker compose down --volumes": "allow",
+    "docker compose -f compose.yaml down -v": "allow", "docker compose down --rmi all": "allow",
+    "cd app && docker compose down -v": "prompt", "docker volume rm newsletter_redis-data": "allow",
+    "docker system prune -af": "allow", "docker volume prune": "allow", "docker image prune -a": "allow",
+    "docker rm -f web": "allow", "docker rmi redis:7": "allow", "docker compose rm -f web": "allow",
     "docker compose ps": "allow", "docker compose logs --tail 100 --no-color web": "allow",
     "docker compose config --quiet": "allow", "docker compose config --services": "allow",
     "docker compose port web 3000": "allow", "docker system df": "allow",
-    # Docker broadly too (decision 0038): what this project's stack does runs; what deletes, reaches
-    # other projects' containers or the host, leaves the machine, or prints secrets asks.
+    # Docker broadly (decisions 0038, 0078): no docker command asks, whatever it deletes or prints.
     "docker compose up -d --wait": "allow", "docker compose down": "allow", "docker compose build": "allow",
     "docker compose stop web": "allow", "docker compose restart web": "allow", "docker compose pull": "allow",
     "docker images": "allow", "docker stats --no-stream": "allow", "docker version": "allow",
-    "docker compose config": "ask", "docker inspect web": "ask", "docker run --rm alpine true": "allow",
-    "docker run --rm -v \"$PWD/e2e:/suite\" node:22 npm install": "allow", "docker push registry.example.com/site:1": "ask",
+    "docker compose config": "allow", "docker inspect web": "allow", "docker run --rm alpine true": "allow",
+    "docker run --rm -v \"$PWD/e2e:/suite\" node:22 npm install": "allow", "docker push registry.example.com/site:1": "allow",
     "docker stop web": "allow", "docker kill web": "allow", "docker login": "allow",
-    "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
-    "docker compose run --rm web env": "ask",
-    # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
-    # containers' commands, but reset deletes the stack's volumes. make run has no rule: an ask rule
-    # would win over the approve-container-run hook, which decides it by the mode (C10, decision 0077).
-    "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
-    "make urls && make reset": "ask", 'make run cmd="yarn test"': "allow", "make run": "allow",
-    "make run cmd='git reset --hard'": "ask",
+    "docker compose exec web printenv": "allow", "docker compose exec -T web cat .env": "allow",
+    "docker compose run --rm web env": "allow",
+    # Every make task runs, reset included (SPECIFICATION.md C9, decision 0078). make run has no rule
+    # either: the approve-container-run hook decides it by the mode (C10, decision 0077).
+    "make reset": "allow", "make logs reset": "allow", "make -C site reset": "allow",
+    "make urls && make reset": "allow", 'make run cmd="yarn test"': "allow", "make run": "allow",
+    "make run cmd='git reset --hard'": "allow",
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
     "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
     "make lint f=src/a.ts": "allow",
@@ -372,7 +370,7 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "docker rules: destructive commands ask, read-only ones run, secret-printing ones aren't allowed" "[ -z \"\$verdicts\" ]"
+check "docker rules: every docker and make command runs without a prompt, and a mode override is denied" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 
 # ─── docker: the stack /dev-env writes from its templates (decision 0032) ──
@@ -622,7 +620,7 @@ def verdict(command):
 cases = {
     "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
     "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
-    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "allow",
     "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
 }
 for command, expected in cases.items():
@@ -630,7 +628,7 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "e2e rules: the suite runs without a prompt, beside the docker module's, and reset still asks" "[ -z \"\$verdicts\" ]"
+check "e2e rules: the suite runs without a prompt, beside the docker module's, which asks before no make task (0078)" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 # The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
 HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"

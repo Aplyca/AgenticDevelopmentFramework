@@ -242,6 +242,37 @@ check "make run: a committed project without the hook keeps the rule, and is tol
 check "make run: a project without the docker module is left alone" \
     "grep -qx \"no module: ('done', 'done', \['Bash(make \*reset\*)', 'Bash(make run \*)'\])\" '$WORK/make-run.out'"
 
+# ─── the docker module's ask rules leave, a project's own stay (0078) ───────
+python3 - "$REPO_ROOT" "$R" > "$WORK/docker-asks.out" 2>&1 <<'PY'
+import importlib.util, json, os, sys
+root, r = sys.argv[1:]
+spec = importlib.util.spec_from_file_location("upgrade", root + "/scripts/upgrade.py")
+u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
+migration = u.load_migration(root + "/scripts/migrations/unreleased/02-docker-asks.py")
+settings_path = os.path.join(r, ".claude", "settings.json")
+old = json.loads(u.run(["git", "-C", root, "show", "v2.8.0:modules/docker/settings-fragment.json"]).stdout)["permissions"]["ask"]
+
+def migrate(modules, ask):
+    json.dump({"permissions": {"ask": ask}}, open(settings_path, "w"))
+    class Fake:  # just enough of an Upgrade for a migration's context
+        pass
+    f = Fake()
+    f.ws = u.Workspace(r, False); f.repo = r; f.install = "packaged"; f.modules = modules
+    f.dry = False; f.touched = set(); f.history = root; f.add_follow_up = lambda *a: None
+    f.old = u.Release(root, "v2.8.0", "v2.8.0"); f.new = u.Release(root, "HEAD", "v2.8.0")
+    status, _ = migration.run(u.MigrationContext(f))
+    again, _ = migration.run(u.MigrationContext(f))
+    return status, again, json.load(open(settings_path))["permissions"]["ask"]
+
+own = ["Bash(gh pr merge *)", "Bash(make db-drop*)"]
+print("v2.8.0's rules:", migrate(["docker"], own[:1] + old + own[1:]))
+print("no module:", migrate(["github"], old)[:2], len(migrate(["github"], old)[2]) == len(old))
+PY
+check "docker asks: every rule v2.8.0's module added leaves but make run's, a project's own stay, and a second run changes nothing" \
+    "grep -qx \"v2.8.0's rules: ('applied', 'done', \['Bash(gh pr merge \*)', 'Bash(make run \*)', 'Bash(make db-drop\*)'\])\" '$WORK/docker-asks.out' || { cat '$WORK/docker-asks.out'; false; }"
+check "docker asks: a project without the docker module is left alone" \
+    "grep -qx \"no module: ('done', 'done') True\" '$WORK/docker-asks.out'"
+
 # ─── a Contentful server is profiled once it's named after its project (0068) ─
 X="$WORK/contentful"; mkdir -p "$X/.claude"
 python3 - "$REPO_ROOT" "$X" > "$WORK/contentful.out" 2>&1 <<'PY'

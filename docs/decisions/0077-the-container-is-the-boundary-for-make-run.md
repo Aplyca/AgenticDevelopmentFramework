@@ -1,6 +1,6 @@
 # 0077: In Docker mode the container is the boundary — `make run` needs no prompt there
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0078](0078-docker-and-make-run-without-a-prompt.md) — no `docker` or `make` command keeps an ask rule, `make reset` included, and the hook no longer asks about a command that names `env`
 - **Date:** 2026-11-12
 - **Amends:** [0038](0038-fewer-prompts-for-tasks-and-local-git.md) — `make run` is no longer "for
   people": the specification's C9 and C10; [0032](0032-local-environment-layout.md) — the docker
