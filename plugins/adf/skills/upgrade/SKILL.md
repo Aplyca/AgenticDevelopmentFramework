@@ -133,8 +133,8 @@ repository's facts, by the same rules as `/adopt` Step 3:
 - `docker` — the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the team
   wants a containerized local environment: `/dev-env` writes the stack or moves it to the
   conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), runs the app
-  natively, gives each worktree its own stack, and diagnoses or resets it; destructive docker
-  commands ask first
+  natively, gives each worktree its own stack, and diagnoses or resets it; docker and make
+  commands run without a prompt
 - `e2e` — people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in `e2e/`,
   run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per
   critical flow (decision 0037). An existing suite (`playwright.config.*`, `cypress/`) is good
