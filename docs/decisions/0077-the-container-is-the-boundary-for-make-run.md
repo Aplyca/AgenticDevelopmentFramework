@@ -65,7 +65,9 @@
     environment, or the network.
 - **`/adf-dev:dev-env` says where commands run:** in Docker mode, a named task or `make run`, never
   the host.
-- **No always-loaded text changes.** `make help` names the task, and `/adf-dev:dev-env` its use.
+- **One clause of always-loaded text.** The Claude Code rule's "Use the project's tasks" bullet
+  names `make run cmd='<command>'` for what no task covers, so a session that never runs
+  `/adf-dev:dev-env` or `make help` still knows the way. The rest stays in the skill.
 
 ## Consequences
 

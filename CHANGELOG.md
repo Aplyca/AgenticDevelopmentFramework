@@ -33,11 +33,14 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - **`/adf-dev:dev-env`** says that in Docker mode commands run through a named task or
       `make run`, never on the host, and audits the `run` task and D5.
     - **`APPROVE_CONTAINER_RUN="1"`** in `.claude/hooks/config.sh`; empty asks in every mode.
+    - **The Claude Code rule names the task:** § Commands that run without a prompt lists
+      `make run cmd='<command>'` for what no task covers, in its "Use the project's tasks" bullet.
   - **Where:** `plugins/adf/hooks/` (new `approve-container-run.sh`; `_lib.sh`, `hooks.json`,
     `README.md`); `plugins/adf-dev/skills/dev-env/` (`SPECIFICATION.md`, `SKILL.md`,
     `templates/compose.yaml`, `templates/ops/docker/Makefile`, `templates/ops/native/Makefile`);
     `modules/docker/` (`settings-fragment.json`, `install.sh`, `MODULE.md`);
-    `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/settings.json`;
+    `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/settings.json`,
+    `skeleton/.claude/rules/claude-code.md`;
     `scripts/migrations/unreleased/01-make-run-by-mode.py`; onboarding; the hook, module, and
     upgrade tests and the static checks.
 
@@ -51,7 +54,8 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `_lib.sh` — and `.claude/skills/dev-env/`, as `/adf:upgrade` writes them; packaged, they come
     with the plugins, wiring included.
   - **Merge:** committed install: the `hooks` block of `.claude/settings.json` —
-    `approve-container-run.sh` on `Bash`.
+    `approve-container-run.sh` on `Bash`. `.claude/rules/claude-code.md` § Commands that run
+    without a prompt — the "Use the project's tasks" bullet.
   - **Additive:** in `.claude/hooks/config.sh`, the `APPROVE_CONTAINER_RUN` block.
   - **Migration:** scripted — `scripts/migrations/unreleased/01-make-run-by-mode.py` removes
     `Bash(make run *)` from `permissions.ask` in a project with the `docker` module, once the hook
