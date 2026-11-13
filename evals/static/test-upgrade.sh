@@ -206,7 +206,7 @@ import importlib.util, json, os, sys
 root, r = sys.argv[1:]
 spec = importlib.util.spec_from_file_location("upgrade", root + "/scripts/upgrade.py")
 u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
-migration = u.load_migration(root + "/scripts/migrations/unreleased/01-make-run-by-mode.py")
+migration = u.load_migration(root + "/scripts/migrations/v2.9.0/01-make-run-by-mode.py")
 settings_path = os.path.join(r, ".claude", "settings.json")
 hook = os.path.join(r, ".claude", "hooks", "approve-container-run.sh")
 wiring = {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": '"$CLAUDE_PROJECT_DIR"/.claude/hooks/approve-container-run.sh'}]}]}
@@ -248,7 +248,7 @@ import importlib.util, json, os, sys
 root, r = sys.argv[1:]
 spec = importlib.util.spec_from_file_location("upgrade", root + "/scripts/upgrade.py")
 u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
-migration = u.load_migration(root + "/scripts/migrations/unreleased/02-docker-asks.py")
+migration = u.load_migration(root + "/scripts/migrations/v2.9.0/02-docker-asks.py")
 settings_path = os.path.join(r, ".claude", "settings.json")
 old = json.loads(u.run(["git", "-C", root, "show", "v2.8.0:modules/docker/settings-fragment.json"]).stdout)["permissions"]["ask"]
 

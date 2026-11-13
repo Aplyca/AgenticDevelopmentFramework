@@ -11,6 +11,48 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.9.0 — 2026-11-13 — GitLab alongside GitHub, fewer prompts, and lanes without a file count
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. Two behaviors change on upgrade, and both can be kept as they were (steps 1 and 3
+below).
+
+- **GitHub and GitLab alike** (0074, 0075). The pull-request hook, the skills, and the permissions
+  work with `glab`, and a new `gitlab` module ships the merge request and issue templates, the
+  secret scan, and the branch policy as a CI include.
+- **Fewer prompts.** With the `docker` module, `docker` and `make` commands run without a prompt
+  (0078), and `make run cmd='<command>'` runs any command in the app's container; only native mode
+  asks (0077). A tracker update that changes nothing but the status needs no prompt, once the
+  project names its tool (0076).
+- **The lane depends on whether there is something to decide** (0079): no file count in the fast or
+  the full lane. `/adf:implement`'s baseline runs the tests the task touches, and the agent widens
+  the run when the task calls for it.
+- **Instruction text audited.** Stale facts, drifted copies of a rule, and self-contradictions are
+  fixed across the skills, agents, rules, and reference docs; the critical tier runs before the
+  local check and on every pull request.
+
+**Upgrading from v2.8.0:**
+
+1. **Before you upgrade, with the `docker` module, decide which commands should still ask.** The
+   upgrade removes the module's ask rules, so `make reset`, `docker compose down -v`,
+   `docker system prune`, and `docker push` run without a prompt; an agent still asks in chat before
+   it deletes data. To keep a prompt, keep or add that rule in `permissions.ask` after the upgrade:
+   it still wins over the allow.
+2. **Run `/adf:upgrade`.** One draft pull request merges the changed lines in `AGENTS.md`,
+   `specs/README.md`, `.claude/settings.json` (the `glab` rules; the docker module's ask rules go,
+   each listed under Permission changes for your approval), `.claude/hooks/config.sh` (the
+   `APPROVE_CONTAINER_RUN`, `APPROVE_STATUS_MOVE`, and `STATUS_MOVE_FIELDS` blocks), the rules
+   `claude-code.md`, `git-workflow.md`, `testing.md`, `code-quality.md`, and `deployment.md`, the
+   Cursor rules, `docs/TRACKER-INTEGRATION.md`, and, with the github or gitlab module, its pull
+   request template; in a committed install, it writes the release's machinery and wires the two
+   new hooks.
+3. **A team that wants a size limit on the fast lane** keeps its own line in `AGENTS.md` § Lanes.
+4. **After the merge, by hand:** on a tracker with an MCP server, set `APPROVE_STATUS_MOVE` in
+   `.claude/hooks/config.sh` to the tool that moves a task's status. With the docker module, run
+   `/adf-dev:dev-env set up` to add the `run` task its audit now finds missing, and keep production
+   credentials out of `.env`. On GitLab, install the `gitlab` module as its `MODULE.md` says. Where
+   CI can start the stack, run `make e2e tier=critical` on every pull request.
+
 - **No file count in the lanes** ([0079](docs/decisions/0079-no-file-count-in-the-lanes.md)) — the
   lane depends on whether there is something to decide.
   - **What:** the fast lane drops "about 3 files or fewer", and "more than ~3 files" is no longer a
@@ -213,7 +255,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `plugins/adf-dev/skills/dev-env/` (`SPECIFICATION.md`, `SKILL.md`);
     `plugins/adf/hooks/approve-container-run.sh`, `README.md`;
     `plugins/adf/skills/upgrade/SKILL.md`, `adopt/SKILL.md`; `skeleton/.claude/hooks/config.sh`;
-    `scripts/migrations/unreleased/02-docker-asks.py`; `README.md`, `modules/README.md`,
+    `scripts/migrations/v2.9.0/02-docker-asks.py`; `README.md`, `modules/README.md`,
     onboarding; the hook, module, and upgrade tests and the static checks.
 
   **Upgrade impact:**
@@ -225,7 +267,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Overwrite:** committed install: `.claude/hooks/approve-container-run.sh` and
     `.claude/skills/dev-env/`, as `/adf:upgrade` writes them; packaged, they come with the plugins.
   - **Merge:** in `.claude/hooks/config.sh`, the comment above `APPROVE_CONTAINER_RUN`.
-  - **Migration:** scripted — `scripts/migrations/unreleased/02-docker-asks.py` removes from
+  - **Migration:** scripted — `scripts/migrations/v2.9.0/02-docker-asks.py` removes from
     `permissions.ask` the rules the docker module added, by their exact text, and leaves a rule the
     project wrote; the upgrade report lists each under Permission changes, for the developer's
     approval. By hand: a team that wants a prompt for one of them — `Bash(make *reset*)`,
@@ -260,7 +302,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `modules/docker/` (`settings-fragment.json`, `install.sh`, `MODULE.md`);
     `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/settings.json`,
     `skeleton/.claude/rules/claude-code.md`;
-    `scripts/migrations/unreleased/01-make-run-by-mode.py`; onboarding; the hook, module, and
+    `scripts/migrations/v2.9.0/01-make-run-by-mode.py`; onboarding; the hook, module, and
     upgrade tests and the static checks.
 
   **Upgrade impact:**
@@ -276,7 +318,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `approve-container-run.sh` on `Bash`. `.claude/rules/claude-code.md` § Commands that run
     without a prompt — the "Use the project's tasks" bullet.
   - **Additive:** in `.claude/hooks/config.sh`, the `APPROVE_CONTAINER_RUN` block.
-  - **Migration:** scripted — `scripts/migrations/unreleased/01-make-run-by-mode.py` removes
+  - **Migration:** scripted — `scripts/migrations/v2.9.0/01-make-run-by-mode.py` removes
     `Bash(make run *)` from `permissions.ask` in a project with the `docker` module, once the hook
     is there (a committed install's settings must wire it); the upgrade report lists it under
     Permission changes, for the developer's approval. By hand, after it: run

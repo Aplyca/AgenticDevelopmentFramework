@@ -153,12 +153,14 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.8.0** (2026-11-12), is a minor release: the agent tests and reviews its own pull
+The latest, **v2.9.0** (2026-11-13), is a minor release: the framework works on GitLab as it does
+on GitHub, with a new `gitlab` module; with the `docker` module, `docker` and `make` commands run
+without a prompt, and `make run` runs any command in the app's container; a status-only tracker
+update needs no prompt; and the lane depends on whether there is something to decide, not on a file
+count. **v2.8.0** (2026-11-12), also a minor release: the agent tests and reviews its own pull
 request, marks it ready, and stops its local environment, while people review and merge; the ticket
 speaks to stakeholders and the pull request to the developer; and a test run is only as large as its
-question. **v2.7.0** (2026-11-05), also a minor release: a task stays in one session named after
-it, its tracker status follows the work, tests run by tier and feature suite with a new `unit`
-module, and `/adf-connect:connect` has read-only profiles for Vercel and Contentful. This README describes `main`: what has landed
+question. This README describes `main`: what has landed
 since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
 one.
 
