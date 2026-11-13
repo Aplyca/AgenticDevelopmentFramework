@@ -121,7 +121,7 @@ any code exists. Step by step:
 
 By default, adopted repositories use the **packaged** install: the skills, agents, workflows, hook
 scripts, and the framework's reference docs come from the `adf` plugin, pinned to a release,
-and the repository commits only its own layer — about 50 fewer files. A team that also uses other AI tools, or Claude Code's cloud
+and the repository commits only its own layer. A team that also uses other AI tools, or Claude Code's cloud
 sessions, chooses the **committed** install: plain files every AI tool can read, with or without the
 plugin, which then only installs and maintains them. `/adf:adopt` asks which one.
 ([Packaged install](docs/SETUP.md#packaged-install-claude-code-only) · [why](docs/decisions/0016-packaged-install.md) · [the default](docs/decisions/0018-packaged-by-default.md))

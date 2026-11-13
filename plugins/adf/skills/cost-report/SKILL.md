@@ -36,8 +36,8 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
      prices. Where the session's work had a clear spec and a way to check it — the fast and careful
      lanes, bug fixes, reviews, an approved plan — Sonnet fits: pick it in the desktop app's model
      picker or with `/model`, since the picker overrides the project's `"model"` setting. Cache reads
-     cost the same on Sonnet and Opus 5.5 — not on Fable or older Opus — so in long Opus sessions
-     the context is as large a lever.
+     cost the same on Sonnet, Opus 5.5, and Fable 5.2 — not on older Opus or Fable — so in long
+     sessions on those the context is as large a lever.
    - **`long-context`** — one task per session, `/clear` between tasks; a 1M-context model lets
      routine sessions grow far past what they need. Check that `.claude/settings.json` caps them
      with `"autoCompactWindow"` (the skeleton sets 300000).

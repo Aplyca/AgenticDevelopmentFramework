@@ -206,7 +206,7 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 Configure models with these aliases everywhere Claude Code takes one: `.claude/settings.json` (`"model": "sonnet"`), agent frontmatter (`model: haiku`), and `/model`. They're version-less — each resolves to the current model of its tier and moves forward as Claude Code updates, so keep Claude Code current with `claude update` (Sonnet 5.5 needs v2.1.284+, Opus 5.5 v2.1.280+, Haiku 5.5 v2.1.293+). On Amazon Bedrock, Google Cloud, and Microsoft Foundry an alias can resolve to an older model (e.g. `sonnet` → Sonnet 4.5); pin the provider's model ID there with `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Pin a full model ID (e.g. `claude-sonnet-5-5`) only when your team needs a fixed version.
 
-> **Pricing changes** — ratios are from list prices per million input / output tokens as of October 2026: Haiku 5.5 $0.10 / $0.50 for prompts up to 100k tokens ($0.50 / $2.50 beyond), Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Cache reads cost $0.20 / MTok on both Sonnet 5.5 and Opus 5.5, so in cache-heavy sessions the Sonnet–Opus difference is in output, uncached input, and cache writes — 1.25× input for the 5-minute cache, 2× for the 1-hour one. `fable` (Fable 5.1, $10 / $50, 10× Haiku) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
+> **Pricing changes** — ratios are from list prices per million input / output tokens as of October 2026: Haiku 5.5 $0.10 / $0.50 for prompts up to 100k tokens ($0.50 / $2.50 beyond), Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Cache reads cost $0.20 / MTok on both Sonnet 5.5 and Opus 5.5, so in cache-heavy sessions the Sonnet–Opus difference is in output, uncached input, and cache writes — 1.25× input for the 5-minute cache, 2× for the 1-hour one. `fable` (Fable 5.2, $8 / $40, 80× Haiku; cache reads $0.20) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
 
 ### Decision rules
 
@@ -245,7 +245,8 @@ Skills run in your conversation, on its model. A skill could name its own model,
 | `/adf:evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
 | `/adf:orchestrate` | Session model | Plans and synthesizes here; the agents it spawns carry their own model |
 | `/adf:dispatch`, `/adf:wrap-up` | Session model | A few git and app calls, where the context already is |
-| `/adf:cost-report`, `/adf:track-time` | Session model | A script measures; the skill presents the numbers |
+| `/adf:cost-report` | Sonnet, in a fork | A script measures; the skill presents the numbers, out of the session's context |
+| `/adf:track-time` | Session model | A script measures; the skill presents the numbers |
 | `/adf:end-user-docs` | Sonnet | Drafting from the spec and what was built — the same work as `/adf:write-docs` |
 | `/adf:adopt`, `/adf:upgrade` | Sonnet | Many files and merges under clear rules; Opus for a merge that needs judgment |
 | `/adf:spec-workflow` | n/a | Reference doc, no AI invocation |

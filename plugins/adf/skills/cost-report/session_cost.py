@@ -24,6 +24,8 @@ import sys
 # first match wins. A cache write costs 1.25× input for the 5-minute lifetime, 2× for the 1-hour one.
 # Keep in step with docs/COST-MODEL.md; the report is an estimate, not an invoice.
 PRICES = (
+    ("fable-5-2", (8.00, 40.00, 0.20)),
+    ("mythos-5-2", (8.00, 40.00, 0.20)),
     ("fable-5-1", (10.00, 50.00, 0.25)),
     ("mythos-5-1", (10.00, 50.00, 0.25)),
     ("fable", (10.00, 50.00, 1.00)),
