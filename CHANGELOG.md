@@ -11,6 +11,28 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Stale facts outside the skills** — seen in passing during the prompt audits.
+  - **What:**
+    - **`/adf:cost-report` prices Fable 5.2 and Mythos 5.2** at $8 / $40, cache reads $0.20. They
+      had no row, so such a session was priced at the generic Fable rate ($10 / $50, cache reads
+      $1.00). The cost model's Fable line and the skill's cache-read sentence say the same.
+    - **The cost model lists `/adf:cost-report` as Sonnet, in a fork,** as the skill has pinned it
+      since 0055; it shared a "Session model" row with `/adf:track-time`.
+    - **`deployment.md`'s command surface names `stop` and `run`,** which the local environment
+      specification (C3) requires in every mode.
+    - **"About 50 fewer files"** leaves `README.md` and the plugin's README, as it left
+      `/adf:adopt`: a committed install writes 68 today.
+  - **Where:** `plugins/adf/skills/cost-report/` (`session_cost.py`, `SKILL.md`);
+    `plugins/adf/docs/COST-MODEL.md`; `skeleton/.claude/rules/deployment.md`; `README.md`,
+    `plugins/adf/README.md`.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** `/adf:cost-report` shows a lower estimate for Fable 5.2 sessions.
+  - **Overwrite:** committed install: `docs/COST-MODEL.md`; packaged, it comes with the plugin, as
+    `/adf:cost-report` does in either install.
+  - **Merge:** `.claude/rules/deployment.md` § Command surface — the task list gains `stop` and
+    `run` (`cmd=`).
+
 - **Stale copies and self-contradictions fixed across the other skills** — from a prompt audit of
   the 25 skills the first audit didn't cover. Each copy now says what its source already says.
   - **What:**

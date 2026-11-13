@@ -13,7 +13,7 @@ The [Agentic Development Framework](../../README.md)'s plugin for Claude Code. I
 
 By default, an adopting repository uses the **packaged** install
 ([decision 0018](../../docs/decisions/0018-packaged-by-default.md)): the machinery comes from this
-plugin, pinned to a release, and the repository commits only its own layer — about 50 fewer files
+plugin, pinned to a release, and the repository commits only its own layer
 ([docs/SETUP.md § Packaged install](../../docs/SETUP.md#packaged-install-claude-code-only)). A team that
 also uses other AI tools — Cursor, Copilot, Antigravity, Windsurf, Aider — or Claude Code's cloud
 sessions chooses the **committed** install: the framework as files in the repository (the
