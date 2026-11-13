@@ -1,6 +1,6 @@
 ---
 name: stakeholder-update
-description: Write the requester's update on a tracker task (a ClickUp task, a GitHub or GitLab issue) in their terms, at three moments — started, in review (what changes for them, the preview, what to test, the pull request for reference), delivered once the change is live. The review and delivered updates post on their own; a message that asks the requester for something posts only on the developer's yes; nothing goes on the pull request. Use when /adf:triage, /adf:open-pr, or /adf:wrap-up reaches its moment, when a merged change goes live, or when asked to update the client, stakeholder, or requester, to reply on the tracker task, or to tell the client what was done. `guide` posts or updates the task's usage guide.
+description: Write the requester's update on a tracker task (a ClickUp task, a GitHub or GitLab issue) in their terms, at three moments — started, in review, and delivered once the change is live. Use when /adf:triage, /adf:open-pr, or /adf:wrap-up reaches its moment, when a merged change goes live, or when asked to update or reply to the client, stakeholder, or requester on a task. `guide` posts or updates the task's usage guide.
 argument-hint: "[started | review | delivered | guide] [status] [tracker task link or ID] [pull request number]"
 ---
 
@@ -197,7 +197,7 @@ moves) — no draft, no message — and stop.
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll draft the review update and wait for a yes, to be safe" | That's what left tickets empty. An outcome report, verified, posts on its own, and the report shows its text. Only a message that asks the requester for something waits. |
+| "I'll draft the review update and wait for a yes, to be safe" | A drafted outcome report leaves the ticket empty until someone says yes. Verified, it posts on its own, and the report shows its text. Only a message that asks the requester for something waits. |
 | "It has one question, so I'll post it all and assign it" | A question or an assignment is the developer's call. Post the outcome; the question is a second message, a draft. |
 | "I'll also put it on the pull request, so the team has it" | The pull request is for the developer: review instructions and tests. A second copy of the client's text drifts from the one they read. |
 | "I'll add how I tested it, so they trust the result" | That's technical communication, and it lives in the pull request. The ticket says what changes for them and what to try. |

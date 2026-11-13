@@ -11,6 +11,30 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Skill text: stale facts and dead branches removed, two descriptions shortened** — from a prompt
+  audit of the six longest skills. No rule changes.
+  - **What:**
+    - **`/adf:adopt`** drops "about 50 fewer files" for the packaged install (a committed install
+      writes 68 today) and three branches for a framework with no release yet.
+    - **`/adf:upgrade` and `/adf:adopt`** drop "on a release that carries…" conditions, which always
+      hold since an upgrade targets the newest release, and two "From vX.Y.Z" openers.
+      `/adf:upgrade` points at `docs/UPGRADING.md` for the rationale instead of telling the agent to
+      read it.
+    - **`/adf:open-pr` and `/adf:stakeholder-update`** have shorter descriptions — what the skill
+      does and when to use it. The posting rules and the pull request's contents stay in the body.
+    - An issue number left `/adf:upgrade` and `/adf:wrap-up`'s follow-ups file, a past-tense aside
+      left `/adf:stakeholder-update`, and a doubled word left `/adf:adopt`.
+  - **Where:** `plugins/adf/skills/` — `adopt/SKILL.md`, `upgrade/SKILL.md`, `open-pr/SKILL.md`,
+    `stakeholder-update/SKILL.md`, `wrap-up/follow-ups.md`.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** none intended; the two shorter descriptions are what Claude Code reads
+    to decide when to offer those skills.
+  - **Overwrite:** committed install: `.claude/skills/open-pr/SKILL.md`,
+    `.claude/skills/stakeholder-update/SKILL.md`, and `.claude/skills/wrap-up/follow-ups.md`, as
+    `/adf:upgrade` writes them; packaged, they come with the plugin. `/adf:adopt` and `/adf:upgrade`
+    come with the plugin in either install.
+
 - **A tracker update that changes only the status needs no prompt**
   ([decision 0076](docs/decisions/0076-a-status-only-tracker-update-needs-no-prompt.md), amending
   0059 and 0073).

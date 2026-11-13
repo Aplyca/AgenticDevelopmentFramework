@@ -5,8 +5,8 @@ description: Upgrade a repository that adopted the framework to a newer release 
 
 # Upgrade an adopted repository to a newer skeleton version
 
-Automates `docs/UPGRADING.md` from the framework repo. Read that document for the full rationale;
-this skill is the executable procedure. The upgrade is deliberate and file-by-file — there is no
+Automates `docs/UPGRADING.md` from the framework repo, which holds the full rationale; this skill
+is the executable procedure. The upgrade is deliberate and file-by-file — there is no
 blind sync.
 
 ## Ground rules
@@ -29,7 +29,7 @@ blind sync.
 
 ## The scripted upgrade
 
-From v2.0.0 the deterministic part is a script (decision 0046): `adf-upgrade`, on the Bash tool's PATH
+The deterministic part is a script (decision 0046): `adf-upgrade`, on the Bash tool's PATH
 while `adf` is on, fetches a framework checkout and runs the new release's own `scripts/upgrade.py`. A
 committed project, where the command may not be on the path, runs
 `python3 <framework-root>/scripts/upgrade.py <repo>` from a checkout at the release. Use it first; the
@@ -66,7 +66,7 @@ manual procedure (Steps 1–6) is for what it refuses.
    person and how it was resolved, each clean merge with its hunk count, the migrations, the dropped
    rules, the checks — and push the draft. Give the developer **On each machine** as the report lists
    it.
-   - **Follow-ups ride in the PR body** (issue #89): copy the report's `## Follow-ups` section into it
+   - **Follow-ups ride in the PR body:** copy the report's `## Follow-ups` section into it
      as it stands, the heading and one `- [ ] \`<command>\` — <why> (<source>)` line per item, or
      `- none`. The merged PR is what survives the upgrade branch, and `/adf:wrap-up` reads it from there
      after the merge to offer each one in its own session. Don't rename the heading or reword the lines,
@@ -85,7 +85,7 @@ e2e rules in `.claude/settings.json`).
 For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
 `docker`, `e2e`, and `unit`, rerun `modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, and
-`modules/unit/install.sh <repo>` the same way, besides their file changes. From v2.3.0 the docker installer adds `Bash(make *)`, so every
+`modules/unit/install.sh <repo>` the same way, besides their file changes. The docker installer adds `Bash(make *)`, so every
 task runs without a prompt but the ones its ask rules name (`reset`, `run`). Before it does, read
 the project's `Makefile` and mode files for a task that deletes data under another name, or that
 follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan:
@@ -148,8 +148,8 @@ repository's facts, by the same rules as `/adopt` Step 3:
   Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
   implementation and publishes it once the feature ships (decision 0048)
 
-Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
-release with `adf-connect` (decision 0023), offer it the same way when the project works with a
+Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. Offer
+`adf-connect` (decision 0023) the same way when the project works with a
 tracker other than ClickUp or GitHub or GitLab issues, or with services agents should read: turn on
 `"adf-connect@aplyca": true` in `enabledPlugins`, and list `/adf-connect:connect <service>` as a
 follow-up.
@@ -343,8 +343,7 @@ version), so the reviewer knows where to look; they need no plan row.
 
   Worktrees branched before the merge keep `scripts/agent/` until they merge; the commands and hooks
   read either folder, so nothing breaks meanwhile.
-- With the parallel-agents module, on a release whose plugin carries its guide
-  (`<framework-root>/plugins/adf/docs/PARALLEL-AGENTS.md`, decision 0044), while the project's
+- With the parallel-agents module (decision 0044), while the project's
   `docs/PARALLEL-AGENTS.md` is still its own copy — it has an `owner:` line and § Shared services —
   split it, in either install, before Bucket 1 copies the guide into a committed one:
   1. Write `docs/SHARED-SERVICES.md` from the module's files at NEW_SHA, and carry over the copy's
@@ -368,7 +367,7 @@ version), so the reviewer knows where to look; they need no plan row.
   once the change merges, every teammate's installed plugins move to the pin in their next session. In a packaged project that one line upgrades the plugin's skills, agents,
   workflows, hooks, and reference docs; in a committed one it keeps the plugin's copies at the same
   release as the committed files.
-- Packaged, on a release that carries the reference docs: run
+- Packaged: run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged v<X.Y.Z>`. It points the
   files that name a reference doc at the new release, and lists the other files that still name one
   and the reference docs still in `docs/`. A copy unchanged since OLD_SHA goes; one the team edited
@@ -377,12 +376,10 @@ version), so the reviewer knows where to look; they need no plan row.
   `.claude/settings.json` if it isn't there: the plugin's skills and agents read the docs from its
   folder, and Claude Code asks first without it. Add the last sentence of `docs/SETUP.md`'s names
   note to the project's, if it lacks it.
-- Packaged, with the parallel-agents module, on a release whose plugin carries `/dispatch`
-  (`<framework-root>/plugins/adf/skills/dispatch/`): delete the committed
+- Packaged, with the parallel-agents module: delete the committed
   `.claude/skills/dispatch/` when it's unchanged since OLD_SHA. One the team edited is the
   developer's call — under a name of its own, or upstream as a change to the framework.
-- Packaged, with the parallel-agents module, on a release whose plugin carries its scripts as
-  commands (`<framework-root>/plugins/adf/bin/adf-worktree-new`, decision 0027): delete
+- Packaged, with the parallel-agents module (decision 0027): delete
   `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from `ops/agent/`
   when none of them changed since OLD_SHA, and keep `worktree.conf`. If the team edited one, the four
   stay together — each script loads `_worktree-lib.sh` from beside it — and the developer decides, as
