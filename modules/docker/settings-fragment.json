@@ -4,27 +4,7 @@
       "Bash(docker *)",
       "Bash(make *)"
     ],
-    "ask": [
-      "Bash(docker compose down *-v*)",
-      "Bash(docker compose * down *-v*)",
-      "Bash(docker compose down *--rmi*)",
-      "Bash(docker compose * down *--rmi*)",
-      "Bash(docker-compose down *-v*)",
-      "Bash(docker compose rm)",
-      "Bash(docker compose rm *)",
-      "Bash(docker rm *)",
-      "Bash(docker rmi *)",
-      "Bash(docker * rm *)",
-      "Bash(docker * prune)",
-      "Bash(docker * prune *)",
-      "Bash(docker push *)",
-      "Bash(docker inspect *)",
-      "Bash(docker compose config)",
-      "Bash(docker *exec *env*)",
-      "Bash(docker compose run *env*)",
-      "Bash(make *reset*)",
-      "Bash(make run *)"
-    ],
+    "ask": [],
     "deny": [
       "Bash(make *DEV_MODE=*)",
       "Bash(make *SERVICES=*)",

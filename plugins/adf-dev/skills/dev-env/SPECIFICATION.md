@@ -77,11 +77,12 @@ a project misses. A project that departs from one on purpose records it, with th
   | `lint` | Run the linters, where the mode runs the app. `f=<files>` lints only those |
   | `format` | Rewrite files to the project's formatting, where the mode runs the app; `f=<files>` formats only those. A stack with no formatter keeps the task, saying so |
   | `typecheck` | Run the type checker, where the mode runs the app. A stack with none keeps the task, saying so |
+  | `run` | Run the command in `cmd`, where the mode runs the app: in the app's container (Docker), on the host (native). The command reaches that shell as one argument (C10) |
   | `reset` | **The only task that deletes data:** remove this checkout's containers and volumes, then `up` |
 
   A mode may add tasks of its own — Docker mode's `shell`, native mode's `services` — and `help`
   lists whatever the loaded file defines. The filters mean an agent runs the one test or file it
-  changed through a task, never through a command of its own (C10).
+  changed through a task; a command no task covers goes through `run` (C10).
 - **C4.** `help` names the mode in force and its file on its first line, then lists each task with
   its one-line description (`<task>: … ## <description>`).
 - **C5.** `env` creates `.env` from `.env.example`, readable only by its owner, and leaves an
@@ -92,16 +93,57 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** Every task runs without a prompt except the ones that delete data or run a command
-  they're given. `.claude/settings.json` allows `Bash(make *)` and asks before each exception — an
-  ask rule wins over any allow rule. The docker module adds the allow and the asks for `reset`
-  (`Bash(make *reset*)`) and `run` (`Bash(make run *)`, C10). A project task that deletes data under
-  another name (`db-drop`, a `clean` that removes volumes) gets an ask rule of its own,
-  `Bash(make <task>*)`. No task waits for input or never returns — `logs` with `--tail`, never `-f`
-  or `--follow` — so an agent that runs one is never left waiting.
-- **C10.** A task that runs a command it's given — `make run cmd="…"`, `make exec` — is for people.
-  `.claude/settings.json` asks before it (`Bash(make run *)`), and agents use the named tasks. A
-  command agents keep needing that no task covers is a gap: it becomes a task of its own.
+- **C9.** Every task runs without a prompt, except `run` where its command runs on the host
+  (C10). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
+  adds no ask rule: both act on this project's local stack, whose data comes back from the seed
+  ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)).
+  A prompt isn't what protects data: an agent deletes it — `reset`, a project's `db-drop` — only
+  on the developer's yes in chat (C12). A project that wants a prompt for a task adds its own ask
+  rule, `Bash(make <task>*)`, which wins over the allow. No task waits for input or never returns
+  — `logs` with `--tail`, never `-f` or `--follow` — so an agent that runs one is never left
+  waiting.
+- **C10.** **`run` is the one task that runs a command it's given, and the way an agent runs a
+  command no task covers:** `make run cmd='<command>'`
+  ([decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md)).
+  - **Docker mode runs it in the app's container, without a prompt:**
+    `$(COMPOSE) exec -T $(APP) sh -c "$$cmd"`. Tests, linters, the package manager, a one-off
+    script: in Docker mode an agent runs them through a named task or through `run`, never on the
+    host, whose runtime and dependencies aren't the project's.
+  - **Native mode runs it on the host, and asks first,** every time.
+  - **The command reaches its shell as one argument.** The recipe passes the environment's `cmd` —
+    `"$$cmd"` — and never pastes `$(cmd)`, which hands the command's quotes and separators to the
+    host's shell. `make` still expands a `$` in the value, so one meant for the command is written
+    `$$`, inside single quotes: `make run cmd='echo $$HOME'`.
+  - **A hook decides, not a rule.** An ask rule can't read the checkout's mode, and it wins over a
+    hook's approval, so `.claude/settings.json` has no rule for `make run`. The
+    approve-container-run hook reads the mode as M1 resolves it, the `run` recipe in
+    `ops/docker/Makefile`, and the call. It approves `make run cmd='<command>'` written on its own,
+    in Docker mode, with the recipe above and a value neither the host's shell nor `make` expands.
+    It asks before any other: native mode, a mode it can't read, a recipe of another form, `make`
+    pointed at another folder or given another setting, a `$` or a backquote the host would expand.
+    A call followed by a pipe or another command is
+    left to the permission rules. Empty `APPROVE_CONTAINER_RUN` in `.claude/hooks/config.sh` keeps
+    the ask in every mode.
+  - **What the container bounds:** the host outside the checkout — the home directory, other
+    repositories and worktrees, SSH keys, the Docker daemon — as long as `compose.yaml` hands the
+    app's service none of it (D5).
+  - **What it doesn't bound:**
+    - the checkout, mounted with its `.git` and its `.env`: a command can change or delete any file
+      in it;
+    - the credentials: `.env` is readable from inside, and so is the container's environment;
+    - local data: the backing services answer on the stack's network, so a command can change or
+      drop it without `make reset`;
+    - the network: a command reaches whatever a credential in `.env` authorizes, and can send
+      anything out.
+
+    So the boundary limits a mistake to this checkout and its local data, and protects no secret
+    in `.env`: keep production credentials out of it. The rules that hold on the host hold in the
+    container, where no hook reads the command: none prints a secret (V4), changes
+    the mode (M10), or commits or pushes.
+  - **Any other task that runs a command it's given on the host** (`make exec`, `make sh c=…`) is
+    for people, and gets an ask rule: `Bash(make <task>*)`.
+  - A command agents keep running through `run` is worth a task of its own: a reviewer reads a
+    task's name, and it takes `t=` or `f=` (C3).
 - **C11.** **A production-like run, when the project has one, is the optional task `prod`, in every
   local mode.** It builds the app the way a deploy does, serves it, and returns once it answers,
   then prints where it is. It's for what only the production build shows — a bug the preview has
@@ -116,7 +158,7 @@ a project misses. A project that departs from one on purpose records it, with th
     `make stop` and `make down` stop it.
 
   A project without a production-like run deletes the task, the service, and the stage. Then an
-  agent that needs one says so, and asks (C10).
+  agent that needs one says so, and asks.
 - **C12.** **One word for each state of the local environment** — Docker's own — in the tasks, the
   docs, and what an agent says ([decision 0071](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0071-stop-the-local-environment-once-ready.md)):
 
@@ -224,6 +266,12 @@ a project misses. A project that departs from one on purpose records it, with th
 - **D3.** A service another one waits for has a `healthcheck:`, and the one that waits uses
   `depends_on` with `condition: service_healthy`.
 - **D4.** Data lives in named volumes.
+- **D5.** The app's service gets nothing of the host but the checkout. Its volumes are the checkout
+  and named volumes — never the Docker socket, the home directory, or another path outside the
+  checkout — and it isn't `privileged`, with no `pid: host` or `network_mode: host`. `make run`
+  runs any command there without a prompt (C10), so what the service reaches is what an agent
+  reaches. A project whose app needs one of those sets `APPROVE_CONTAINER_RUN=""`
+  (`.claude/hooks/config.sh`) and records the exception. No hook checks this: the audit does.
 
 ## Variables — `V`
 
@@ -266,6 +314,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | The tasks people and agents run | the `Makefile` and the mode's file (`make help`) |
 | Each mode's commands | `ops/docker/Makefile`, `ops/native/Makefile` |
 | The project's default mode; this checkout's | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` in `.env` |
+| Whether `make run` needs a prompt | the checkout's mode and the `run` recipe in `ops/docker/Makefile`, which the approve-container-run hook reads; `APPROVE_CONTAINER_RUN` in `.claude/hooks/config.sh` (C10) |
 | Every variable's name | `.env.example` |
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
 | Where the services are now | `make urls` |
@@ -291,7 +340,7 @@ each gap as the requirement's ID, what the project has, and the change:
    again, and `make down` in
    the configured mode, and by reading the other mode's file against them — never by running it
    (M10); M10 by the deny rules.
-4. **Ports, Compose, variables:** P1–P8, D1–D4, V1–V4.
+4. **Ports, Compose, variables:** P1–P8, D1–D5, V1–V4.
 5. **Worktrees,** with parallel-agents: W1–W3.
 6. **Deployment targets:** T1–T2.
 
