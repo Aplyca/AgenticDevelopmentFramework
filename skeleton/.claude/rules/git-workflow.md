@@ -73,6 +73,6 @@ pull request, and merge — never rebase or force-push pushed history. The steps
 
 ## What NOT to commit
 
-Generated files, build output, and dependency directories (unless vendoring is the convention);
+Build output and dependency directories (unless vendoring is the convention);
 `.env` and any file with credentials; test artifacts the project doesn't track; personal editor
 settings.

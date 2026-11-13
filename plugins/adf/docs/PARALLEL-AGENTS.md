@@ -78,7 +78,7 @@ starts the environment only when a step needs it.
 its worktree option, or `claude --worktree` — sit at the app's worktree location (inside the main
 checkout by default), on a generated branch, with no port or setup. A session that starts in one
 moves to the task's worktree beside the main checkout before its work. One already
-on a task branch, from before, stays a worker, and the session-context hook names what it lacks. `.worktreeinclude` copies the env file into
+on a task branch the scripts didn't create stays a worker, and the session-context hook names what it lacks. `.worktreeinclude` copies the env file into
 them; keep it in step with `ENV_FILE`. The desktop app removes its own worktrees when a session is
 archived — or once the pull request merges, with auto-archive on; `adf-worktree-rm` removes the
 scripts'.
@@ -172,7 +172,7 @@ would be wrong by the time anyone read it.
 
 Claude Code also creates worktrees for subagents with `isolation: worktree` and for background
 sessions, under `.claude/worktrees/`. Those are its own, short-lived ones; `.claude/worktrees/` stays
-in `.gitignore` and `.claudeignore`. A task worktree from the desktop app or `claude --worktree`
-lands there too, unless the app's **Worktree location** setting moves it: wherever it is, it's a
-worker (§ How a task gets its worktree). Archive sessions you're done with, so their worktrees don't pile up —
+in `.gitignore` and `.claudeignore`. A session the desktop app or `claude --worktree` starts in a worktree of its own
+lands there too, unless the app's **Worktree location** setting moves it: wherever it is, the session
+moves to its task's worktree before its work (§ How a task gets its worktree). Archive sessions you're done with, so their worktrees don't pile up —
 `adf-worktree-ls` flags the ones left on a generated branch or a detached HEAD.

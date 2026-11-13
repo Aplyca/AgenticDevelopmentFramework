@@ -82,4 +82,4 @@ where the project's conventions call for it.
 
 - Concise commit messages in imperative mood: the subject says what changed; the body says *why* when the diff doesn't (`.claude/rules/git-workflow.md`).
 - One logical change per commit. Don't mix unrelated changes.
-- Don't commit generated files, build artifacts, or dependency directories.
+- Don't commit build artifacts or dependency directories.

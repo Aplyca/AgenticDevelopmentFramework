@@ -40,23 +40,33 @@ never re-specified in a new folder. Read `docs/GLOSSARY.md` for terminology.
    content, "Standard project [area] applies", or "Not applicable: [reason]".
 5. **Optional sections only when relevant** — Design, Performance, SEO, Analytics, Localization,
    Constraints & prior decisions, Observability, Deployment. Leave the heading out otherwise.
-6. **Documentation split** — Pre-implementable (written before code) and Post-implementable
-   (backfilled); both filled or marked Not applicable.
+6. **Documentation** — Pre-implementable (written before code) and Post-implementable (backfilled),
+   each filled or marked Not applicable; for a tracker task, the Usage guide too — how the requester
+   will use what the task delivers, in their terms — or Not applicable; End-user docs when the
+   project's stamp names `end-user-docs`.
 7. **WHAT and WHY only** — no components, file paths, or code. A constraint on HOW goes in
    *Constraints & prior decisions* with its reason; design goes in `plan.md`.
 8. **Numbered, testable acceptance criteria** (`AC1`, `AC2`…) that keep their numbers for life:
    concrete, observable behavior — "the user sees X", "the form shows error W when the field is empty".
 9. **Edge cases** — empty states, errors, concurrency, missing data, service failures.
 10. **Link the tracker task** in frontmatter; never copy its text into the spec.
-11. **Status `draft`** (or `in-review` when the requester is reviewing ACs). Never `approved` — the
-    developer approves at the gate, after the plan exists.
+11. **Status `draft`** for a new spec (or `in-review` when the requester is reviewing ACs). Never
+    `approved` — the developer approves at the gate, after the plan exists.
+12. **Roles, not names** — attribute every decision to a role (requester, developer, tech lead,
+    legal) with its date; never a person's name or a quote from the tracker.
 
 ## Change requests
 
-Compare the request now against what the spec records as delivered, plus the comments since the spec
-last changed. Append a `CR N` section (intent and a Delivered → Change table), add new ACs tagged
-`(CR N)`, strike through retired ones, and update only the sections the change touches. If the delta
-can't be recovered, say so and ask — never reconstruct the old requirement from the code.
+Two weights (`specs/README.md` § Change requests):
+- **Light** — a precise adjustment already decided: append `# CR N — <title> (date) · light` with
+  the request's link, the Delivered → Change row, and any AC it adds or changes tagged `(CR N)`. The
+  status stays as it is.
+- **Full** — something to decide: compare the request against what the spec records as delivered,
+  plus the comments since the spec last changed. Append a `CR N` section (where it was requested and
+  by which role, the intent, a Delivered → Change table), add new ACs tagged `(CR N)`, strike through
+  retired ones, update only the sections the change touches, and set `status: in-review`.
+
+If the delta can't be recovered, say so and ask — never reconstruct the old requirement from the code.
 
 ## Mandatory section enforcement
 

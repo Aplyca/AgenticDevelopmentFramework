@@ -32,7 +32,7 @@ paths:
 
 ## External service mocking
 - Mock every external API response. Use your framework's mocking approach (route interception, MSW, test doubles, dependency injection, etc.).
-- Never rely on real external services (databases, APIs, email servers) during tests.
+- Never rely on a third party's real service (an API, an email server) during tests. The checkout's own stack, its database included, is not external.
 - Mock responses must return realistic data structures matching actual API contracts.
 - **Mock only at the system boundary** — external services, the clock, randomness. Your own modules run for real: a test that mocks internal collaborators breaks on every refactor and proves only the wiring.
 
@@ -42,21 +42,9 @@ paths:
 - **Assert the behavior the spec names**, not that the code ran: "the 11th signup in a minute is rejected", not "no error was thrown".
 
 ## File organization
-- One test file per feature suite or module.
+- One test file per module or flow, small enough to run in seconds; a feature suite is their folder (§ Tiers and feature suites).
 - Name test files after the feature they verify.
-- Group related tests with describe/context blocks.
 - Use descriptive test names that read as behavior: `'submitting with empty email shows validation error'`.
-
-## Test structure
-- **Arrange → Act → Assert** in every test.
-- Set up shared mocks in `beforeEach` / setup blocks.
-- Clean up state in `afterEach` / teardown blocks when needed.
-
-## What to test
-- User flows matching spec acceptance criteria.
-- Edge cases listed in specs.
-- View transitions, form submissions, navigation.
-- Error states and empty states.
 
 ## What NOT to test
 - Implementation details or internal state.

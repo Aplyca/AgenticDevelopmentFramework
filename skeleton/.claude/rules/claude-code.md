@@ -22,7 +22,8 @@ Hooks and permissions hold whatever the instructions say; their values live in `
 ## Commands that run without a prompt
 
 An allow rule matches a command as written; Claude Code asks about anything it can't check.
-- **Use the project's tasks:** `make test t=<file>`, `make lint f=<file>`, `make logs s=web`, and
+- **Use the project's tasks** (`AGENTS.md` § Quick reference). With the docker module, `make` runs
+  without a prompt: `make test t=<file>`, `make lint f=<file>`, `make logs s=web`, and
   `make run cmd='<command>'` for what no task covers — a variable goes after the task, never as a
   leading `VAR=value`.
 - **Run them in the configured mode.** With the docker module, only the developer changes the mode:

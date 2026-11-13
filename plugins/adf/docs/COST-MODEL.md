@@ -114,7 +114,7 @@ a way to check the result?**
 
 - **One task per session, one session per task; `/clear` before the next.** A cleared conversation
   starts at ~60k tokens; a long one can carry 200k+ on every call.
-- **Cap the conversation: `"autoCompactWindow": 300000`.** Opus and Sonnet now run with a 1M
+- **Cap the conversation: `"autoCompactWindow": 300000`.** Opus and Sonnet run with a 1M
   window, and Claude Code compacts them by default only near it (about 967k tokens), so routine
   sessions grow far past what the task needs — and every call pays for it. On one adopting project,
   calls carried about 289k tokens on average, and re-reading and re-caching that context was 83% of
@@ -260,7 +260,7 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 | Agent | Current frontmatter | Why |
 |---|---|---|
 | `@adf:spec-writer` | `model: sonnet` | Drafts in its own context from the requirements it's given; the clarifying questions and decisions — what the full lane pays Opus for — stay in the session running `/adf:write-spec`. Override it to `opus` (§ Agent model overrides) to draft from raw requirements |
-| `@adf:code-reviewer` | `model: sonnet` | Review is well-defined, repeatable work — where Anthropic's guidance places Sonnet; it costs about twice Haiku per token, a few cents per review |
+| `@adf:code-reviewer` | `model: sonnet` | Review is well-defined, repeatable work — where Anthropic's guidance places Sonnet |
 | `@adf:security-reviewer` | `model: sonnet` | Security review in the careful lane needs real reasoning about data flow; escalate to Opus for novel attack surfaces |
 | `@adf:test-runner` | `model: sonnet` | Test writing requires understanding the spec and matching patterns |
 | `@adf:architect` | `model: opus` | Architecture review weighs trade-offs across the system — judgment work; it runs rarely |
@@ -318,7 +318,7 @@ Anthropic's prompt caching can reduce input cost by ~90% on cache hits (a 5-minu
 - **Avoid putting per-feature volatile content in AGENTS.md.** That belongs in the feature's spec or in memory. AGENTS.md should describe the project's stable identity.
 - **Memory entries are great for project-specific gotchas** that change occasionally — they evolve without busting the cache of the always-loaded instructions.
 - **Subagents have their own cache.** A subagent invocation doesn't bust the parent's cache. Use them for anything that loads a lot of one-off context.
-- **Long conversations get compacted automatically.** Cleared tool outputs cost nothing on subsequent turns. You don't need to manage compaction by hand, but be aware that it can change cache prefix length.
+- **A compaction changes the cache prefix.** The summary replaces the conversation, so the next call writes it to the cache again: compact at a phase boundary (§ Between phases), not mid-phase.
 
 ### Verifying cache behavior
 
@@ -348,7 +348,7 @@ Use an **AI gateway** (Helicone, LiteLLM) that routes by client and tags every r
 | **[Helicone](https://helicone.ai)** | Open-source LLM gateway. Per-request cost tracking, dashboards, custom properties for tagging. Free tier suitable for small teams. | ~30 min — proxy your Anthropic base URL through Helicone |
 | **[LiteLLM](https://litellm.ai)** | Multi-provider proxy with budget enforcement, alerts, and routing rules. Open-source. | ~1 hour — deploy as a service, point clients at it |
 | **[Braintrust](https://braintrust.dev)** | Eval-focused but tracks per-run cost. Good if you're already running dynamic evals (see `evals/`). | ~1 hour |
-| **Custom (Anthropic API direct)** | Full control. Read `usage` from response headers, log to your own DB. | Variable |
+| **Custom (Anthropic API direct)** | Full control. Read `usage` from each response, log to your own DB. | Variable |
 
 For a typical consultancy or agency running AI-assisted work across several client projects, the recommended stack is:
 - **Anthropic Console** for high-level monthly visibility (free, built-in)
