@@ -84,7 +84,7 @@ and skip the steps below.
    - The description you're about to write claims nothing the diff doesn't do, and omits nothing it
      does.
 
-4. **Write the title and body.** Title: a commit-style subject under 70 characters. Body: follow
+4. **Write the title and body.** Title: a commit-style subject under 72 characters. Body: follow
    `.github/pull_request_template.md` when it exists; otherwise:
 
    ```markdown

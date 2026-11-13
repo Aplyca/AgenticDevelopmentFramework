@@ -41,11 +41,11 @@ You can't run git: review the diff and the commit list (`git log --oneline <base
 
 ### Framework conventions
 - Does the code follow the framework patterns established in the project? (check `AGENTS.md` and the rules)
-- Are there SSR/hydration safety issues? (browser-only APIs in render, state initializers reading client storage)
+- Does the code run safely in every environment the stack runs it in? (a framework that renders on both server and client, a worker, a build step: no API used where it doesn't exist)
 - Is state managed according to project conventions?
 
 ### Code quality
-- TypeScript: no `any`, explicit types at API boundaries, proper use of `unknown` for external data.
+- Types: no escape hatches from the language's type system, explicit types at API boundaries, external data validated before it's trusted.
 - Naming: follows project conventions (check rules for naming table).
 - No premature abstraction — three similar lines are better than a wrapper used once.
 - No speculative features — only what the spec requires.

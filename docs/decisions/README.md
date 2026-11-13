@@ -21,7 +21,7 @@ projects.
 | [0008](0008-dispatcher-and-worker-worktrees.md) | The main checkout dispatches; worktrees do the work (optional module) | accepted; amended by 0015, 0020, 0032, 0042, 0044 |
 | [0009](0009-optional-modules.md) | Host- and team-specific harness ships as optional modules | accepted; amended by 0016, 0023 |
 | [0010](0010-model-aliases.md) | Configure models with version-less aliases | accepted |
-| [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted; partly superseded by 0014; refined by 0050 |
+| [0011](0011-lanes-ceremony-follows-risk.md) | Three lanes — ceremony follows risk and uncertainty, not size | accepted; partly superseded by 0014; refined by 0050; amended by 0079 |
 | [0012](0012-choose-the-model-by-the-work.md) | Choose the model by the work — Sonnet for well-specified work, Opus for judgment | accepted; amended by 0062 |
 | [0013](0013-adapt-practices-not-a-second-workflow.md) | Adapt practices from other skill collections into our skills — never a second workflow | accepted; amended by 0062 |
 | [0014](0014-test-first-in-every-lane.md) | Test first in every lane | accepted |
@@ -89,6 +89,7 @@ projects.
 | [0076](0076-a-status-only-tracker-update-needs-no-prompt.md) | A tracker update that changes only the task's status needs no prompt: a hook approves that call and leaves every post, and any other edit, to the prompt | accepted |
 | [0077](0077-the-container-is-the-boundary-for-make-run.md) | In Docker mode the container is the boundary: `make run` runs any command in the app's container without a prompt, a hook asks wherever it would run on the host, and the specification says what the container doesn't protect | accepted; amended by 0078 |
 | [0078](0078-docker-and-make-run-without-a-prompt.md) | Docker and make commands run without a prompt: the docker module adds no ask rule, `make reset` included, and the developer's yes in chat is what protects local data | accepted |
+| [0079](0079-no-file-count-in-the-lanes.md) | No file count in the lanes: the fast lane is a precise request in one layer however many files it touches, and "more than ~3 files" no longer sends a change to the full lane | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

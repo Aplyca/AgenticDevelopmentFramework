@@ -32,9 +32,9 @@ lane changes is how much gets written down and approved *before* the code exists
 
 | Lane | When | What happens |
 | --- | --- | --- |
-| **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. About 3 files or fewer, in one layer, and no escalation trigger | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test) → edit until it passes → `/commit`. When it changes what a spec records as delivered, add a [light change request](#change-requests) in the same commit; a fix that restores documented behavior needs none |
+| **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. In one layer, with no escalation trigger — however many files it touches | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test) → edit until it passes → `/commit`. When it changes what a spec records as delivered, add a [light change request](#change-requests) in the same commit; a fix that restores documented behavior needs none |
 | **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the pull request names the risky part — the area, what the checklist found, what was walked locally — where the developer's test starts. The push and the draft need no yes. Still no spec folder: a light change request when it changes recorded behavior, a regression test for a bug |
-| **Full** | Something to decide: a requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves the design to us. Also a new feature, a new dependency, or work across layers or more than ~3 files | A spec folder and the [flow](#flow) below: spec → plan → tasks → approval gate → docs first → one red → green commit per task → review |
+| **Full** | Something to decide: a requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves the design to us. Also a new feature, a new dependency, or work across layers | A spec folder and the [flow](#flow) below: spec → plan → tasks → approval gate → docs first → one red → green commit per task → review |
 
 Answers (investigations, impact analyses, estimates) and changes to how the team works (PDRs in
 `docs/process/`) take no lane.
@@ -44,7 +44,7 @@ Answers (investigations, impact analyses, estimates) and changes to how the team
 | Trigger | Lane, at least |
 | --- | --- |
 | A requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves a design choice to us | Full |
-| A new feature or module, a new dependency, or a change across layers or more than ~3 files | Full |
+| A new feature or module, a new dependency, or a change across layers | Full |
 | A migration or schema change; authentication, authorization, or row-level security; personal data; payments; a public API or contract; code that other features use; infrastructure, CI, or deploy configuration | Careful |
 | A path in the project's sensitive areas — `AGENTS.md` § Sensitive areas, mirrored in `CAREFUL_GLOBS` (`.claude/hooks/config.sh`) | Careful |
 

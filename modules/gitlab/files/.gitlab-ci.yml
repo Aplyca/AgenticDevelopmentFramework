@@ -26,5 +26,6 @@ include:
   - local: .gitlab/ci/adf.yml
 
 # CUSTOMIZE: your stack's quality jobs — lint, typecheck, unit tests — and a dependency audit that
-# reports without blocking until the existing backlog is triaged (`allow_failure: true`). Keep jobs
-# that need services (integration, end-to-end) on demand (`when: manual`).
+# reports without blocking until the existing backlog is triaged (`allow_failure: true`). Jobs that
+# need services (integration, end-to-end) run on every merge request too, where the runner can start
+# the stack — the end-to-end suite at its critical tier.

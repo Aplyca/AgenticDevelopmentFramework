@@ -13,7 +13,7 @@ alwaysApply: false
 
 ## Before the first task
 1. Read `spec.md` (every filled section, not just Functional), `plan.md` (change surface, test strategy, assumptions), `tasks.md`, and the committed docs
-2. Run the existing tests to know the baseline
+2. Run the tests the task touches to know the baseline; widen the run when the task calls for it
 
 ## For each task in tasks.md, in order
 1. Write the test the task names
