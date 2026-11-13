@@ -32,12 +32,11 @@ Two modes:
 
 If `plan.md` § Documentation plan lists no pre-implementable docs (or spec § Documentation marks
 Pre-implementable as Not applicable), say so, confirm the post-implementable docs are listed for
-later, and hand off to `/adf:implement` — or to `/adf:end-user-docs` first, when the plan lists an
-end-user page. Don't manufacture docs a feature doesn't need.
+later, and hand off to `/adf:implement` — or first to `/adf:end-user-docs`, when the plan lists an
+end-user page, and `/adf:stakeholder-update guide`, when the spec has a usage guide. Don't manufacture docs a feature doesn't need.
 
 Pre-implementable docs typically include operator guides, API contracts (OpenAPI, GraphQL
-schemas), help and copy defaults seeded into a CMS, public READMEs or SDK docs, and
-architecture sketches for non-trivial features. Post-implementable docs — runbooks with real
+schemas), help and copy defaults seeded into a CMS, and public READMEs or SDK docs. Post-implementable docs — runbooks with real
 metrics, tutorials with real screenshots, troubleshooting from real failures — are not this phase's
 job; they're Phase 5 tasks.
 
@@ -63,8 +62,9 @@ job; they're Phase 5 tasks.
 4. **Validate** — every claim backed by an AC, an edge case, or a planned test; nothing contradicts
    the spec; no implementation details that aren't defined yet; glossary terms used.
 
-5. **Tick the Phase 1 tasks and commit:** `docs: add <audience> docs for <slug>`. Hand off to
-   `/adf:end-user-docs` when the plan lists an end-user page, then to `/adf:implement`.
+5. **Tick the Phase 1 tasks for the docs you wrote and commit:** `docs: add <audience> docs for
+   <slug>`. Hand off to `/adf:end-user-docs` when the plan lists an end-user page and
+   `/adf:stakeholder-update guide` when the spec has a usage guide, then to `/adf:implement`.
 
 ## Update mode
 

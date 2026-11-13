@@ -50,7 +50,7 @@ writing.
 | Linear | Tracker | `"url": "https://mcp.linear.app/mcp"` | OAuth | — | [linear.app/docs/mcp](https://linear.app/docs/mcp) |
 | Jira, Confluence | Tracker, wiki | `"url": "https://mcp.atlassian.com/v2/mcp"` | OAuth. It reaches every Atlassian product the developer can | The site | [Atlassian's MCP server guide](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/) |
 | ClickUp | Tracker | Use the framework's `clickup` module: `modules/clickup/install.sh <repo>` writes this and its allow list | — | — | The module's `MODULE.md` |
-| GitHub | Git host and tracker | None needed: the `gh` CLI, with the permissions already in `.claude/settings.json` | `gh api` reaches the whole API, and the skeleton's `ask` rules make each `gh` write prompt. GitHub's MCP server would add its tools to every session, and a second way to write that those rules don't see | — | — |
+| GitHub | Git host and tracker | None needed: the `gh` CLI, with the permissions already in `.claude/settings.json` | `gh api` reaches the whole API, and the skeleton's `ask` rules make each `gh api` write prompt, with merging, reviewing, releases, and secrets. GitHub's MCP server would add its tools to every session, and a second way to write that those rules don't see | — | — |
 
 **Not in the catalog?** Find the vendor's official MCP documentation, confirm the endpoint and how
 it signs in, and follow the same steps.

@@ -143,7 +143,7 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "The test passed first, but the typecheck fails until I make the change — that's my red" | A type error shows the code doesn't build, not that the behavior is missing. Keep the test as a pin: break the behavior on purpose and watch it fail. |
 | "I'll rerun the whole test file after each task, to be safe" | A file can hold a feature's every test. Run the task's tests by name; the feature suite runs once at the phase's end, and the full gate once before delivery. |
 | "I'll batch several tasks into one commit" | One task, one commit — that's what makes the history reviewable and each step revertible. |
-| "This file isn't in the change surface, but it's a tiny edit" | Change surface growth goes back to the developer. Tiny edits to shared code are how regressions ship. |
+| "This file isn't in the change surface, but it's a tiny edit" | Record it: `plan.md` in the same commit, and the pull request's description. Growth into risk — a new layer, a new dependency, an escalation trigger such as shared code — stops for the developer's re-confirmation. |
 | "The tests are too strict — I'll loosen them" | Tests are the contract. Fix the implementation; fix a test only when it's genuinely wrong, and say so. |
 | "I'll clean up this nearby code while I'm here" | Not in the spec, not in this branch. Report it and make it a follow-up — its own task, with its own review. |
 | "It's unrelated to this task, so I won't mention it" | An unrelated bug is still a bug. Report it with `file:line` and record the follow-up; the developer decides when. |
@@ -166,17 +166,17 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 - [ ] Every task went red (for the right reason) then green — a test-only task or a pin by breaking the behavior on purpose, never by a type error — and landed as its own commit (docs-first tasks share one)
 - [ ] Each task ran its own tests by name; each phase ran its feature suite once, at its end
 - [ ] Every task in `tasks.md` is ticked, or struck through as a follow-up with why, and `spec.md` reads `status: implemented`
-- [ ] All changes are inside the approved change surface — or the extension was re-confirmed
+- [ ] Every change is inside the approved change surface, or recorded in `plan.md` and the pull request — and re-confirmed where it grew into risk
 - [ ] Every filled spec section (Security, Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment) is addressed
 - [ ] Committed docs match what was built; post-implementable docs written, or struck through as follow-ups
 - [ ] The full gate ran; `tasks.md` § Gate results records evidence and what was not run
 - [ ] Deployment needs (env vars, migrations, ordering) are listed for whoever ships it
-- [ ] Nothing was pushed
+- [ ] Nothing was pushed before the local check passed; the push and the draft are `/adf:open-pr`'s
 
 ## Principles
 
 - One task, one red → green cycle, one commit.
 - A test that never failed proves nothing.
-- The change surface is a contract; growing it is the developer's call.
+- The change surface is a contract; growth is recorded, and growth into risk is the developer's call.
 - Keep the plan and the docs true to what is built.
-- Evidence, not claims — and never outward actions unasked.
+- Evidence, not claims — and nothing leaves this machine before the local check.

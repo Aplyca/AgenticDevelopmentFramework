@@ -1,7 +1,7 @@
 ---
 name: orchestrate
 description: Run several specialized agents in parallel for a review or investigation, and synthesize what they find. Use for thorough pre-merge reviews, multi-perspective investigations, or any analytical task where independent agents add value.
-argument-hint: "[review | investigate | pre-commit | custom <description>]"
+argument-hint: "[review | investigate | pre-commit | pre-gate | custom <description>]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/orchestrate/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -22,12 +22,12 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 ## When NOT to use
 
 - **Trivial changes** — running 3 agents on a 1-line fix is waste (token cost > benefit). Use `/adf:review` (single-context) for small diffs.
-- **Phase progression** — this skill does NOT auto-run `/adf:write-plan` → `/adf:write-docs` → `/adf:implement`. The approval gate and the per-task loop are deliberate human checkpoints. Use the explicit skills for those.
+- **Phase progression** — this skill doesn't run `/adf:write-plan` → `/adf:write-docs` → `/adf:implement`: the approval gate is the developer's, and the phases after it have their own skills.
 - **When you need a quick answer** — orchestration trades latency for thoroughness. Sequential is faster for simple tasks.
 
 ## What this is NOT
 
-- **Not a "build the whole feature" command.** Each workflow phase has its own gate for a reason. Orchestration is for analytical/review work, not auto-progression.
+- **Not a "build the whole feature" command.** The approval gate comes before any code, and this skill never crosses it. Orchestration is for analytical and review work.
 - **Not a replacement for `/adf:review`.** `/adf:review` is a single-context multi-perspective review (lighter, faster). `/adf:orchestrate review` dispatches separate agents (heavier, more thorough). Pick based on diff size and stakes.
 - **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
 
@@ -93,7 +93,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 |---|---|
 | "I'll run them sequentially since it's simpler" | Sequential defeats the purpose of orchestration. If you wanted sequential, use `/adf:review`. Parallel is the point — both for speed and for context isolation. |
 | "I'll skip the plan and just dispatch" | The plan is the gate. The user needs to approve which agents and what scope before tokens are spent on multi-agent invocation. |
-| "I'll auto-run /adf:implement after the review passes" | NO. Phase progression is intentionally manual. This skill ends with a report, not action. |
+| "I'll auto-run /adf:implement after the review passes" | This skill ends with a report. What follows it goes through the normal workflow. |
 | "I'll add `@adf:spec-writer` to the review since it 'might catch something'" | Speculative agent inclusion is waste. Dispatch only the agents whose perspective is genuinely needed. Each agent costs tokens. |
 | "I'll invoke the same agent twice for different angles" | If you need two perspectives, use two different agents. If only one agent applies, run it once. Re-invoking doesn't add signal; it just costs tokens. |
 | "I'll synthesize by picking the agent I trust most and ignoring the others" | Disagreements between agents are signal. Surface them; let the user judge. The synthesis combines, it doesn't filter. |
@@ -127,4 +127,4 @@ Orchestration costs more than `/adf:review`, which runs in this conversation and
 - **Synthesize, don't filter.** Combine all findings; surface disagreements; let the user judge.
 - **Stop at the report.** This skill ends with findings. Action goes through the normal workflow.
 - **Trust the agent defaults.** Each agent's `model:` is set deliberately — don't override casually.
-- **No auto-progression.** The approval gate and the per-task loop are human checkpoints; orchestration is analytical, not progressive.
+- **No auto-progression.** The approval gate is the developer's; orchestration is analytical, not progressive.

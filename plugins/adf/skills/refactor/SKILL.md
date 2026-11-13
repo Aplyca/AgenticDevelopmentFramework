@@ -24,8 +24,8 @@ safety net; a refactor without them is a gamble.
 
 ## Steps
 
-1. **Check the safety net.** Find the tests that cover the code you'll touch, and run the whole
-   suite: everything must pass before you start. Where coverage is missing, write
+1. **Check the safety net.** Find the tests that cover the code you'll touch and run them:
+   they must pass before you start. Where coverage is missing, write
    **characterization tests** that pin today's behavior — then prove each one can fail by breaking
    the code it covers on purpose (and putting it back). Commit them first (`test:`), green.
 
@@ -37,7 +37,8 @@ safety net; a refactor without them is a gamble.
 3. **One step at a time.** Each step is small enough to understand at a glance, leaves the tests
    green, and is reversible.
 
-4. **Run the tests after every step.** A failure means the last step changed behavior: fix it or
+4. **Run those tests after every step** — by name or path; the full gate runs once, before
+   delivery (`.claude/rules/testing.md` § Verification budget). A failure means the last step changed behavior: fix it or
    revert it before going on. Never edit an assertion to get back to green — a refactor that needs
    a test changed isn't one.
 
@@ -78,7 +79,7 @@ safety net; a refactor without them is a gamble.
 
 ## Verification
 
-- [ ] The suite passed before the first change and after every step — show the output
+- [ ] The covering tests passed before the first change and after every step, and the full gate once before delivery — show the output
 - [ ] Missing coverage was pinned with characterization tests first, each seen failing once
 - [ ] No test assertion was changed to get to green
 - [ ] Public interfaces unchanged (inputs, outputs, errors, side effects)

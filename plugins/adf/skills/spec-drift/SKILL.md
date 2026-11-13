@@ -84,10 +84,10 @@ This workflow enforces consistency at *write time* (spec and plan before docs be
    ✓ AC1 (form renders with Contentful copy) — code matches, test in place
    ✓ AC2 (success message after valid submission) — matches
    ✘ AC3 (inline error for invalid email) — DRIFT
-       Spec says: "focus moves to the input"
-       Code: focus does not move (commit a1b2c3d removed the focus management
-             "for accessibility refactor"; spec was not updated)
-       Recommendation: update spec to reflect new behavior, OR restore focus management
+       Spec says: nothing about disposable-email domains
+       Code: rejects them with the same inline error (commit a1b2c3d "block
+             disposable domains"; spec was not updated)
+       Recommendation: add the rule to the spec (change request), OR remove the check
    ✘ Edge case "Mailchimp 5xx → retry-able error" — MISSING
        Test was removed in commit d4e5f6g; code still has the path but no test
        Recommendation: restore the test (it's a real edge case)

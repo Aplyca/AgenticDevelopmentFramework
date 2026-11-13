@@ -27,7 +27,7 @@ A project that departs from one on purpose records it, with the reason, in
 ## The engine
 
 **Vitest**, in TypeScript, for a JavaScript or TypeScript app. A project on another stack keeps its
-own runner and follows T and A below; the module doesn't apply, and a departure is recorded.
+own runner and follows T and U below; the module doesn't apply, and a departure is recorded.
 
 ## Suite layout — `S`
 
@@ -66,7 +66,7 @@ own runner and follows T and A below; the module doesn't apply, and a departure 
   - `test:smoke` — `vitest run -t @smoke`;
   - `test:critical` — `vitest run -t "@smoke|@critical"`;
   - `test:regression` — `vitest run`, so a pipeline names the tier it means;
-  - `test:watch` — `unit`, for a developer.
+  - `test:watch` — `vitest`, for a developer.
 
   With the `docker` module, `make test` takes `tier=<smoke|critical|regression>` and `suite=<name>`
   and runs these in the configured mode, so an agent never needs to know which one.

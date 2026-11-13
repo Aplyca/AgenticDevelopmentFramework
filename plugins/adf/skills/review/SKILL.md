@@ -87,7 +87,7 @@ instead: separate reviewers per dimension, each finding independently verified.
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "The code looks fine, no issues found" | Every change has something worth noting. At minimum, state spec compliance, change-surface compliance, and what you checked. |
+| "The code looks fine, no issues found" | A clean result still says what was checked: spec or request compliance, change surface, and what you did not review. |
 | "It's a small change, a quick look is enough" | Small changes cause big bugs. An injection is one line. Review every changed line. |
 | "It doesn't touch user input, so I'll skip security" | Data flows through layers; trace it. A component that renders data can be the injection point. |
 | "The tests pass, so it's correct" | Tests verify behavior, not conventions, security, scope, or missing edge cases. Green is necessary, not sufficient. |

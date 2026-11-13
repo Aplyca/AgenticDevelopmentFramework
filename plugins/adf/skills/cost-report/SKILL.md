@@ -27,14 +27,17 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
 2. **Present the result:** totals, the most expensive sessions, the size bands, the model line, and
    the flags.
 
-3. **Explain the drivers** with the cost model — `docs/COST-MODEL.md` in a committed project, the
-   plugin's `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` in a packaged one:
+3. **Explain the drivers.** The lines below are enough for the report; open the cost model
+   (`docs/COST-MODEL.md` in a committed project, the plugin's
+   `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` in a packaged one) only when the developer asks why a
+   price or ratio is what it is:
    - **Calls × context** — cost grows with the number of steps and with how much each step re-reads.
    - **The model** — the `on sonnet` column re-prices an Opus or Fable session's tokens at Sonnet's
      prices. Where the session's work had a clear spec and a way to check it — the fast and careful
      lanes, bug fixes, reviews, an approved plan — Sonnet fits: pick it in the desktop app's model
      picker or with `/model`, since the picker overrides the project's `"model"` setting. Cache reads
-     cost the same on both, so in long sessions the context is as large a lever.
+     cost the same on Sonnet and Opus 5.5 — not on Fable or older Opus — so in long Opus sessions
+     the context is as large a lever.
    - **`long-context`** — one task per session, `/clear` between tasks; a 1M-context model lets
      routine sessions grow far past what they need. Check that `.claude/settings.json` caps them
      with `"autoCompactWindow"` (the skeleton sets 300000).

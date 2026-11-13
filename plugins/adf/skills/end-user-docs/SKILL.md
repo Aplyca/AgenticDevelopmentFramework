@@ -34,7 +34,7 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
    Unless its `modules:` list names `end-user-docs`, say "this project doesn't keep end-user docs in
    a doc tool — the end-user-docs module isn't installed" and stop: its end-user docs, if any, are
    repository docs for `/adf:write-docs`. Then read `docs/END-USER-DOCS.md`: the doc tool, the
-   end-user doc, the drafts location, the tools, the end users, the language and voice, screenshots,
+   end-user doc, the drafts location, the tools, the audiences, the language and voice, screenshots,
    when to publish, and § Page structure. Placeholders left in it are questions for the developer
    before going on.
 

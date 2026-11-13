@@ -23,7 +23,7 @@ The developer can raise the lane at any time; lowering it never silently drops a
 
 ## Workflow 1: Project setup (once)
 
-`/adf:init-project` (or the framework's `/adopt`): fill `AGENTS.md`, the constitution, the customizable
+`/adf:init-project` (or `/adf:adopt`, which runs it end to end): fill `AGENTS.md`, the constitution, the customizable
 rules, the hook configuration, and the initial docs — `docs/ARCHITECTURE.md`,
 `docs/security/SECURITY.md`, `docs/infrastructure/OVERVIEW.md`, `docs/GLOSSARY.md`, and reference
 pages for the most complex subsystems. Agents read these before every design review and
@@ -63,7 +63,7 @@ implementation; invest in them early.
 | 7 | Reconcile + verify | `/adf:implement`, `/adf:review` | Docs updated; `tasks.md` § Gate results | `docs:` |
 | 8 | Local check | The agent, on the local environment | The flow walked | — |
 | 9 | Deliver (once the local check passes) | `/adf:open-pr` | Draft pull request | — |
-| 10 | Keep the requester informed — started after triage, in review once the pull request is ready, delivered | `/adf:stakeholder-update` | The update's draft and the task's status, posted on the developer's yes | — |
+| 10 | Keep the requester informed — started after triage, in review once the pull request is ready, delivered | `/adf:stakeholder-update` | The task's status, moved on your own; the review and delivered updates, posted on their own; the started message, on the developer's yes | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change
