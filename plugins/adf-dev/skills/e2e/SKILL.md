@@ -119,7 +119,7 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
    - `docs/getting-started/DEV-SETUP.md`: how to run the suite, and in native mode what the host
      needs (Node, and the browser `make build` installs).
 
-   CI that can start the stack runs `make smoke` on every pull request (K3): propose the job to the
+   CI that can start the stack runs `make e2e tier=critical` on every pull request (K3, K6): propose the job to the
    developer. The framework's CI files carry no test job.
 8. **Commit** with `/adf:commit`, in two commits. First `chore:` for the suite's groundwork: the
    folder, the configuration, the service, and the tasks. Then `test:` for the smoke tests, green,

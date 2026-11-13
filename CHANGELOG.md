@@ -11,6 +11,24 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The critical tier, not the smoke suite alone, runs before the local check and in CI** — the
+  older lines catch up with 0069.
+  - **What:** `testing.md` § Tiers says `@critical` runs before the local check and on every pull
+    request, and that it holds every smoke test. Four older lines still gave that place to the smoke
+    suite: `testing.md`'s end-to-end section, the `e2e` specification's K3, `/adf-dev:e2e`'s CI
+    step, and the `e2e` module's guide. They now say the smoke suite runs after a change to shared
+    code, configuration, or the stack, and inside the critical tier; the CI job to propose is
+    `make e2e tier=critical`.
+  - **Where:** `skeleton/.claude/rules/testing.md`; `plugins/adf-dev/skills/e2e/`
+    (`SPECIFICATION.md`, `SKILL.md`); `modules/e2e/MODULE.md`.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** `/adf-dev:e2e set up` proposes `make e2e tier=critical` for CI, where
+    it proposed `make smoke`. A project whose CI runs `make smoke` keeps working; widen it when the
+    suite has `@critical` tests.
+  - **Overwrite:** `.claude/rules/testing.md`; committed install: `.claude/skills/e2e/`; packaged,
+    it comes with `adf-dev`.
+
 - **Stale copies and contradictions fixed in the agents, the rules, and the reference docs** — from
   a prompt audit of the files the two skill audits didn't cover.
   - **What:**
