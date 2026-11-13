@@ -243,7 +243,7 @@ flowchart TD
     task(["A task: a request, a tracker link, a bug report"]) --> triage["/triage<br/>reads the task in full, looks for prior work,<br/>states deliverable · kind · lane · model<br/>before any branch or file;<br/>names the session, moves a tracker task to in progress"]
     dev(["The developer: 'full lane on this' · 'just a quick fix'"]) -.->|raising is always honored;<br/>lowering keeps a risk checklist| triage
     triage -->|asks for an answer| answer["Investigate read-only and deliver the answer<br/>no lane · no spec · no environment"]
-    triage -->|precise request, about 3 files,<br/>no risk trigger| fast["FAST lane<br/>sonnet"]
+    triage -->|precise request, nothing to decide,<br/>no risk trigger| fast["FAST lane<br/>sonnet"]
     triage -->|the same, in a risk area<br/>or a sensitive area| careful["CAREFUL lane<br/>sonnet, high effort"]
     triage -->|something to decide| full["FULL lane<br/>opus up to the gate"]
     triage -->|a bug, cause unknown| debug["/debug<br/>then the lane the fix needs"]

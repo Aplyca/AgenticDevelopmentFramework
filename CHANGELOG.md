@@ -11,6 +11,15 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **No file count in the lanes** ([0079](docs/decisions/0079-no-file-count-in-the-lanes.md)) — the
+  lane depends on whether there is something to decide.
+  - **What:** the fast lane drops "about 3 files or fewer", and "more than ~3 files" is no longer a
+    trigger for the full lane. A precise request in one layer, with no escalation trigger, is fast
+    however many files it touches; the other triggers and the risk areas are unchanged. Changed in
+    `AGENTS.md` § Lanes, `specs/README.md` § Lanes and its trigger table, and `/adf:spec-workflow`.
+  - **Upgrade impact:** merge for `AGENTS.md` and `specs/README.md`; overwrite for the plugin. A
+    team that wants a size limit keeps its own line.
+
 - **Four open rules, decided** — the baseline run, the title length, stack-neutral review items, and
   GitLab's service jobs.
   - **What:** `/adf:implement` step 3 runs the tests the task touches for its baseline, and the

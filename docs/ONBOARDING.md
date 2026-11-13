@@ -27,7 +27,7 @@ wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
 
 **The lane follows risk and uncertainty, not size** ([decision 0011](decisions/0011-lanes-ceremony-follows-risk.md)):
 
-- **Fast** — a precise request (or a bug with a clear cause), a few files, no risk trigger: restate it
+- **Fast** — a precise request (or a bug with a clear cause), nothing to decide, no risk trigger: restate it
   with "done when…", the test first (watch it fail), then the edit, `/commit`. On delivered work, a light `CR N` entry.
 - **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
   contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist, and

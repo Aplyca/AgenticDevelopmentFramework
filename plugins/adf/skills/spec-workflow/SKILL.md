@@ -15,7 +15,7 @@ follows risk and uncertainty, not size (`specs/README.md` § Lanes):
 
 | Lane | When | Workflow |
 |---|---|---|
-| **Fast** | A precise request (or a bug with a clear cause), about 3 files or fewer, no escalation trigger | Workflow 2a |
+| **Fast** | A precise request (or a bug with a clear cause), in one layer, no escalation trigger | Workflow 2a |
 | **Careful** | The same, touching a risk area or a sensitive area | Workflow 2a plus the area's checklist |
 | **Full** | Something to decide, a new feature, or work across layers | Workflow 2 |
 
