@@ -50,6 +50,27 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/workflows/deep-drift-sweep.js`, as `/adf:upgrade` writes them; packaged, they come with
     the plugins.
 
+- **Two rule copies catch up with their source** — found by scanning the instruction files for
+  sentences repeated across them.
+  - **What:**
+    - **Docker prompts:** `/adf:upgrade`'s module list and `docs/SETUP.md` still said "destructive
+      docker commands ask first". Both now say docker and make commands run without a prompt, as
+      `/adf:adopt` and decision 0078 do.
+    - **The status move:** `/adf:triage`, `/adf:open-pr`, and `/adf:wrap-up` carry the status rules
+      in their own step and said only "the status alone". They now say what
+      `/adf:stakeholder-update`'s rules say (0076): in a call of its own, since any other field in
+      the same call brings the permission prompt back.
+  - **Where:** `plugins/adf/skills/` — `upgrade/SKILL.md`, `triage/SKILL.md`, `open-pr/SKILL.md`,
+    `wrap-up/SKILL.md`; `docs/SETUP.md`.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** none where the status move already goes alone; where an agent sent
+    another field with it, the move stops prompting once it doesn't.
+  - **Overwrite:** committed install: `.claude/skills/triage/SKILL.md`,
+    `.claude/skills/open-pr/SKILL.md`, and `.claude/skills/wrap-up/SKILL.md`, as `/adf:upgrade`
+    writes them; packaged, they come with the plugin. `/adf:upgrade` comes with the plugin in either
+    install.
+
 - **Skill text: stale facts and dead branches removed, two descriptions shortened** — from a prompt
   audit of the six longest skills. No rule changes.
   - **What:**
