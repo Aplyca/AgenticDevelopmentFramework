@@ -99,7 +99,8 @@ the close-up only once it resumes and ends.
      needed, and no skill to load for the move. Use the status § Stakeholder updates maps to `delivered`, from the task's own statuses
      (one it lacks is a question; an issue is closed, § Issues as the tracker), written as its
      § Rules for agents says — through the project's tracker tool, as the developer, and read back;
-     forward only; the status alone. The task the developer handed this session is theirs to move,
+     forward only; the status alone, in a call of its own: any other field in the same call brings
+     the permission prompt back. The task the developer handed this session is theirs to move,
      assigned to them or not. One line says so.
    - **Merged, not live yet:** post nothing and move nothing. Quality control, acceptance testing,
      and release are the developer's statuses. Say once, in one line, that the delivered step waits

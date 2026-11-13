@@ -126,7 +126,8 @@ not a research project.
    and no skill to load. Use the status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to
    the moment, from the task's own statuses (one it lacks is a question; on issues it's a label,
    § Issues as the tracker), written as its § Rules for agents says — through the project's tracker
-   tool, as the developer, and read back; forward only; the status alone. The task the developer
+   tool, as the developer, and read back; forward only; the status alone, in a call of its own:
+   any other field in the same call brings the permission prompt back. The task the developer
    handed this session is theirs to move, assigned to them or not. One line says so. With no
    tracker tool, or only one built into the host app, you can't write: open your message with the
    status for the developer to set. Then a message (`/adf:stakeholder-update started`), only when
