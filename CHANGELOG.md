@@ -33,7 +33,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       write goes through the tool's own prompt, with the status-only move as the one exception,
       where they said every such write waits for a yes (0073, 0076); `dev-env`'s C9 names the
       second prompting case C10 already had, a project's own task that runs a command on the
-      host; `/adf:dispatch`'s red flag and checklist allow a command that hands itself over with
+      host, and decision 0078 and the docker module's guide say so too; `/adf:dispatch`'s red flag and checklist allow a command that hands itself over with
       its branch; `/adf:debug`'s checklist allows the plain-cause shortcut its intro gives.
     - **Smaller:** `/adf:spec-drift`'s example is a true DRIFT; `/adf:cost-report` no longer sends
       the agent to the cost model first; `/adf:evaluate` loses its example invocations, a canned
@@ -41,7 +41,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       asks for a finding.
   - **Where:** 19 skill and specification files under `plugins/adf/skills/`,
     `plugins/adf-dev/skills/`, and `plugins/adf-connect/skills/`; `plugins/adf/workflows/deep-drift-sweep.js`
-    (generated).
+    (generated); `modules/docker/MODULE.md`; decision 0078.
 
   **Upgrade impact:**
   - **Behavior on upgrade:** agents run fewer whole-suite test runs in `/adf:refactor` and
