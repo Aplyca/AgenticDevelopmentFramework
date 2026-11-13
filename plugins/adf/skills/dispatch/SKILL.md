@@ -112,13 +112,13 @@ it names, and then runs in the worktree as the developer typed it.
 
 - You're about to edit, commit, or create a branch in the main checkout, or the protect-hub hook
   stopped an edit.
-- You created a worktree before the triage was on the page.
+- You created a worktree before the triage was on the page, and no command handed itself here with its branch.
 - You renamed Claude Code's generated branch, or committed in its worktree.
 - This session already has a task, and you started working on another.
 
 ## Verification
 
-- [ ] The triage came first, and named the branch
+- [ ] The triage came first and named the branch — or a command that stopped in the main checkout named it
 - [ ] A change — or an answer that needed an environment — got its own worktree beside the main checkout before any edit, and `pwd` showed the session there
 - [ ] An answer that only read stayed where it was and changed nothing
 - [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own

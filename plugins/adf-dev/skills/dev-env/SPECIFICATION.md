@@ -93,8 +93,8 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** Every task runs without a prompt, except `run` where its command runs on the host
-  (C10). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
+- **C9.** Every task runs without a prompt, except `run` where its command runs on the host, and
+  a project's own task that does the same (C10). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
   adds no ask rule: both act on this project's local stack, whose data comes back from the seed
   ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)).
   A prompt isn't what protects data: an agent deletes it — `reset`, a project's `db-drop` — only

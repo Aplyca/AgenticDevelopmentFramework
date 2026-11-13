@@ -29,6 +29,12 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - **Facts:** `/adf-dev:unit`'s specification names section `U` and `vitest`; `/adf-dev:e2e`'s
       names `e2e/tests/<suite>/`, `suite=<name>`, and the spec's Testing section;
       `/adf-connect:connect` says which `gh` writes prompt; `/adf:end-user-docs` says "audiences".
+    - **Four the maintainer decided:** `/adf:end-user-docs` and `/adf-connect:connect` say a tracker
+      write goes through the tool's own prompt, with the status-only move as the one exception,
+      where they said every such write waits for a yes (0073, 0076); `dev-env`'s C9 names the
+      second prompting case C10 already had, a project's own task that runs a command on the
+      host; `/adf:dispatch`'s red flag and checklist allow a command that hands itself over with
+      its branch; `/adf:debug`'s checklist allows the plain-cause shortcut its intro gives.
     - **Smaller:** `/adf:spec-drift`'s example is a true DRIFT; `/adf:cost-report` no longer sends
       the agent to the cost model first; `/adf:evaluate` loses its example invocations, a canned
       closing line, and three generic research bullets; `/adf:review`'s clean-result row no longer
