@@ -11,6 +11,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Skill text: stale facts and dead branches removed, two descriptions shortened** — from a prompt
+  audit of the six longest skills. No rule changes.
+  - **What:**
+    - **`/adf:adopt`** drops "about 50 fewer files" for the packaged install (a committed install
+      writes 68 today) and three branches for a framework with no release yet.
+    - **`/adf:upgrade` and `/adf:adopt`** drop "on a release that carries…" conditions, which always
+      hold since an upgrade targets the newest release, and two "From vX.Y.Z" openers.
+      `/adf:upgrade` points at `docs/UPGRADING.md` for the rationale instead of telling the agent to
+      read it.
+    - **`/adf:open-pr` and `/adf:stakeholder-update`** have shorter descriptions — what the skill
+      does and when to use it. The posting rules and the pull request's contents stay in the body.
+    - **`/adf:open-pr`'s closing principle** matches its steps: once the pull request is ready, the
+      reviewer request, the task's status move, and the review update need no yes in chat (0070,
+      0073, 0076). It still said every outward action but the draft and ready waits for a person.
+    - An issue number left `/adf:upgrade` and `/adf:wrap-up`'s follow-ups file, a past-tense aside
+      left `/adf:stakeholder-update`, and a doubled word left `/adf:adopt`.
+  - **Where:** `plugins/adf/skills/` — `adopt/SKILL.md`, `upgrade/SKILL.md`, `open-pr/SKILL.md`,
+    `stakeholder-update/SKILL.md`, `wrap-up/follow-ups.md`.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** none intended; the two shorter descriptions are what Claude Code reads
+    to decide when to offer those skills.
+  - **Overwrite:** committed install: `.claude/skills/open-pr/SKILL.md`,
+    `.claude/skills/stakeholder-update/SKILL.md`, and `.claude/skills/wrap-up/follow-ups.md`, as
+    `/adf:upgrade` writes them; packaged, they come with the plugin. `/adf:adopt` and `/adf:upgrade`
+    come with the plugin in either install.
+
 - **Docker and make commands run without a prompt — the docker module asks before none**
   ([decision 0078](docs/decisions/0078-docker-and-make-run-without-a-prompt.md), amending 0038,
   0032, and 0077).
@@ -2054,7 +2081,6 @@ Each entry below lists its own **Upgrade impact**.
     - In `ops/native/native.sh`, `app_port` reads the running app's port first.
     - In the `Makefile`, `help`'s pattern is `/^[a-z][a-z0-9-]*:.*## /`.
 
-
 - **A dispatched session moves into its task's worktree without a prompt**
   ([decision 0035](docs/decisions/0035-move-into-the-worktree-without-a-prompt.md)). In the desktop
   app, the new `approve-worktree-move.sh` hook approves `change_directory` when the folder is a
@@ -2739,7 +2765,6 @@ the skeleton has no `CLAUDE.md` any more:
   4. Delete `CLAUDE.md`.
   5. Each developer removes a `CLAUDE.md` above the repository or a `CLAUDE.local.md` in it, or sets
      **Project instructions** to `claude-md-and-agents-md` in `/config`.
-
 
 ### `adf-connect`: connect a tracker or a service with `/connect`
 

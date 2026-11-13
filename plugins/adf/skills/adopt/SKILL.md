@@ -42,8 +42,7 @@ Adopt from a release, never from whatever commit a checkout is at: the project p
 
 You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
 Record the release (the tag), its commit (`git -C <framework-root> rev-parse --short HEAD`), and the
-commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`). With no release tag yet,
-use the default branch's head and say so.
+commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`).
 
 **Already adopted?** If the first line of the target's `AGENTS.md` — or of `CLAUDE.md`, in a project
 adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
@@ -113,11 +112,9 @@ Present the table before going further. Wrong facts here poison every file downs
 - **Ask how to install** (decisions 0016, 0018), with your recommendation:
   - **Packaged** — the default. The skills, agents, workflows, hook scripts, and the framework's
     reference docs come from the `adf` plugin, pinned to a release tag, and the repository
-    commits only its own layer and its modules: about 50 fewer files. People type
+    commits only its own layer and its modules. People type
     `/adf:triage`. Claude Code's cloud sessions don't load it, and CI installs it first. It
-    pins a release tag, v1.0.0 or later
-    (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`); with none
-    yet, say so and install committed.
+    pins the release from Step 1.
   - **Committed** — recommend it instead when the team also uses another AI tool for the framework's
     skills (Cursor, Copilot, Gemini or Antigravity) or needs Claude Code's cloud sessions. The
     machinery is written into the repository too: every AI tool reads it, and nothing depends on a
@@ -223,7 +220,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `AGENTS.md`. Leave the stamp on `AGENTS.md`'s first line for step 5. Packaged: add the names note
   from `docs/SETUP.md` § Packaged install.
 - **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
-  development by their full names (`/adf:triage`, `@adf:code-reviewer`); a module
+  development by their full names (`/adf:triage`, `@adf:code-reviewer`); a
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
 - **`.claude/hooks/config.sh`** — `APPROVE_STATUS_MOVE` (the tracker tool that moves a task's status, when the tracker has an MCP server), `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
@@ -292,7 +289,7 @@ Present the table before going further. Wrong facts here poison every file downs
   install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
   skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
   project then gets the plugin's copies at the same release as its own files, and a packaged one gets
-  its machinery from that release. With no release yet, leave the entry unpinned. Add
+  its machinery from that release. Add
   `"autoUpdate": true` to the same entry, so a pin that later moves updates every teammate's plugins
   on its own.
 
@@ -303,9 +300,9 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
-- [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
+- [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
-- [ ] Packaged, with `parallel-agents`, on a release whose plugin carries the commands: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
+- [ ] Packaged, with `parallel-agents`: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
 - [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
 - [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke`
 - [ ] With `unit`: `.claude/settings.json` parses and its `allow` list holds `npm test` and `npm run test:smoke`

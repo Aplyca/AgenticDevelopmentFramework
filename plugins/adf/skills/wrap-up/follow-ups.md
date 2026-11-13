@@ -7,7 +7,7 @@ listed follow-ups, or the merge left the record short (step 3).
 
 Each unchecked line under `## Follow-ups`, up to the next heading, is one:
 - `- [ ] \`<command>\` — <why> (<source>)` — work the merge made necessary; `/adf:upgrade` writes
-  them (issue #89). Offered only after a merge: an abandoned task's merge never happened.
+  them. Offered only after a merge: an abandoned task's merge never happened.
 - `- [ ] <task> — <why> (found in <file:line>)` — a bug or an improvement found along the way
   (`specs/README.md` § Found along the way). Offered after any ending: it doesn't depend on this
   task's code.
