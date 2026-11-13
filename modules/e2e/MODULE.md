@@ -23,8 +23,9 @@ writes its own suite to it, and its runs prove it. In short:
   image, so the host needs no Node, and native mode runs it on the host against the app's port.
   Without the module, `npm --prefix e2e test` is the command, with `-- --grep @smoke` for the smoke
   suite.
-- **One smoke test per critical flow,** which the team names in `e2e/README.md`, run before the local
-  check and in CI.
+- **One smoke test per critical flow,** which the team names in `e2e/README.md`. They run after a change to
+  shared code, configuration, or the stack, and inside the critical tier, which runs before the
+  local check and in CI.
 - **Tests own their data and never reach a real third party.** They find elements by role and name,
   and wait with assertions, never sleeps. Flaky is broken.
 - **Tiers and feature suites:** `@smoke` ⊂ `@critical` ⊂ everything, and a folder per feature suite under `e2e/tests/`;
@@ -78,7 +79,7 @@ approve, and fills these from what it verifies, for you to review:
 4. **`docs/getting-started/DEV-SETUP.md`** — how to run the suite, and what native mode needs on the
    host.
 
-CI that can start the stack runs `make smoke` on every pull request: `/e2e set up` proposes the job,
+CI that can start the stack runs `make e2e tier=critical` on every pull request: `/e2e set up` proposes the job,
 and you add it. The framework ships no pipeline file.
 
 ## Prerequisites

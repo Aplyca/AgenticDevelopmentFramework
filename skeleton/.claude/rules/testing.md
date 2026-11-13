@@ -117,7 +117,7 @@ They're the slowest tests, so there are few of them.
 - **Each test owns its data,** with values no other test uses, and runs alone, in any order, in parallel. It never relies on what another test or a person left.
 - **No real third party:** stub what the browser calls; point the server at a stub or a sandbox. A flow that can't be kept local goes to the human check.
 - **Flaky is broken:** fix it, or mark it skipped with the reason and a tracker link — never rerun it until it passes, and never add a retry or a sleep to hide it.
-- **Smoke tests:** one per critical flow, along its happy path, tagged so they run on their own — before the local check and in CI.
+- **Smoke tests:** one per critical flow, along its happy path, tagged so they run on their own — after a change to shared code, configuration, or the stack, and inside the critical tier, which runs before the local check and in CI.
 - **A failure is diagnosed from what it kept** — the error, the page's state, the screenshot, the trace — not by rerunning.
 
 With the `e2e` module, the suite follows its specification (`/e2e`); `e2e/README.md` lists the critical flows and their smoke tests. This project's commands, and anything it does differently from the specification, with why:

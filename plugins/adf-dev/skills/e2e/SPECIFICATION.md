@@ -167,9 +167,10 @@ departure (§ Conformance), recorded with its reason.
 - **K2.** Each critical flow has one smoke test, tagged `@smoke` (`test('…', { tag: '@smoke' }, …)`):
   its happy path end to end — the page loads, the main action completes, the result shows. Edge
   cases belong to other tests.
-- **K3.** The smoke suite runs in about a minute. It's what runs before the local check (`AGENTS.md`
-  § Delivery rules), after `/adf-dev:dev-env` changes the stack, and in CI on every pull request
-  where the pipeline can start the stack.
+- **K3.** The smoke suite runs in about a minute. It runs after a phase that changed shared code,
+  configuration, or the stack, after `/adf-dev:dev-env` changes the stack, and inside the critical
+  tier (K6), which runs before the local check (`AGENTS.md` § Delivery rules) and in CI on every
+  pull request where the pipeline can start the stack.
 - **K4.** A delivered feature that creates a critical flow adds it to the list, and its smoke test
   lands with the feature.
 - **K6.** **Tiers and feature suites** follow `.claude/rules/testing.md` § Tiers and feature suites
