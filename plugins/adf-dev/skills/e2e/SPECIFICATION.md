@@ -52,7 +52,7 @@ departure (§ Conformance), recorded with its reason.
   | `e2e/package.json`, `e2e/package-lock.json` | The engine and the suite's few dependencies, and its `test` script |
   | `e2e/playwright.config.ts` | The configuration (S3) |
   | `e2e/fixtures.ts` | The suite's own `test` and `expect`, with the fixtures every test shares (S4) |
-  | `e2e/<feature>.spec.ts` | One file per feature feature suite, named after the feature (`e2e/newsletter-signup.spec.ts`) |
+  | `e2e/tests/<suite>/<feature>.spec.ts` | One file per feature, in its feature suite's folder (`e2e/tests/newsletter/newsletter-signup.spec.ts`) |
   | `e2e/README.md` | The critical flows and their smoke tests (K1), and how to run the suite |
 
   Steps that several tests repeat go in a fixture or a helper in `e2e/fixtures.ts`, and a page
@@ -61,7 +61,7 @@ departure (§ Conformance), recorded with its reason.
   - **`baseURL` from `E2E_BASE_URL`.** When it's missing, the config stops with a message to run the
     suite with `make e2e`. A test names paths (`page.goto('/signup')`), never a host or a port.
   - **No `webServer`.** The suite tests the stack the checkout already runs (R2).
-  - **One project, Chromium.** Another browser only when the spec's Compatibility section asks for
+  - **One project, Chromium.** Another browser only when the spec's Testing section asks for
     it.
   - **`fullyParallel: true`.** Tests run in parallel and in any order (A3).
   - **Retries:** none locally, two in CI. **`forbidOnly`** in CI.
@@ -178,7 +178,7 @@ departure (§ Conformance), recorded with its reason.
   (`test('…', { tag: '@critical' }, …)`); tests in `e2e/tests/<suite>/`, with `@suite:<name>` for a
   flow that spans feature suites, the feature suites listed in `docs/TEST-SUITES.md`.
   `make e2e` takes `tier=<smoke|critical|regression>` and `suite=<name>`: `tier=critical` runs
-  `--grep "@smoke|@critical"`, and `feature suite` filters by folder or `@suite:<name>`. `make smoke` is
+  `--grep "@smoke|@critical"`, and `suite=<name>` filters by folder or `@suite:<name>`. `make smoke` is
   `make e2e tier=smoke`; without the `docker` module, `npm --prefix e2e test -- --grep "@smoke|@critical"`.
 - **K5.** A smoke test for behavior that already exists is a characterization test: committed green
   with `test:` after proving it can fail — break its assertion, watch it fail, restore it.

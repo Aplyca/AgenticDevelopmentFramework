@@ -11,6 +11,45 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Stale copies and self-contradictions fixed across the other skills** — from a prompt audit of
+  the 25 skills the first audit didn't cover. Each copy now says what its source already says.
+  - **What:**
+    - **Test runs (0069):** `/adf:refactor` runs the covering tests, not the whole suite, before and
+      after each step; `/adf:write-tests` runs one end-to-end test by name, proves a test that
+      passes first by breaking the behavior, and commits a bug's regression test with its fix.
+    - **Who acts (0047, 0070, 0072, 0073, 0076):** `/adf:spec-workflow`'s table says the status and
+      the outcome updates go out on their own; `/adf:implement`'s closing sections match its steps
+      on change-surface growth and on the push; `/adf:commit` names `/adf:review` in every lane;
+      `/adf:orchestrate` names the one approval gate and lists `pre-gate` in its hint.
+    - **Phase 1:** `/adf:write-plan` and `/adf:write-docs` count the usage guide's draft; architecture
+      sketches leave `/adf:write-docs`'s list, as its own red flag says.
+    - **The local environment:** `/adf-dev:dev-env` and its specification drop the removed band
+      (0060), say only the developer changes the mode (M10), and let a task marked "for people" wait
+      for input (C9).
+    - **Facts:** `/adf-dev:unit`'s specification names section `U` and `vitest`; `/adf-dev:e2e`'s
+      names `e2e/tests/<suite>/`, `suite=<name>`, and the spec's Testing section;
+      `/adf-connect:connect` says which `gh` writes prompt; `/adf:end-user-docs` says "audiences".
+    - **Four the maintainer decided:** `/adf:end-user-docs` and `/adf-connect:connect` say a tracker
+      write goes through the tool's own prompt, with the status-only move as the one exception,
+      where they said every such write waits for a yes (0073, 0076); `dev-env`'s C9 names the
+      second prompting case C10 already had, a project's own task that runs a command on the
+      host, and decision 0078 and the docker module's guide say so too; `/adf:dispatch`'s red flag and checklist allow a command that hands itself over with
+      its branch; `/adf:debug`'s checklist allows the plain-cause shortcut its intro gives.
+    - **Smaller:** `/adf:spec-drift`'s example is a true DRIFT; `/adf:cost-report` no longer sends
+      the agent to the cost model first; `/adf:evaluate` loses its example invocations, a canned
+      closing line, and three generic research bullets; `/adf:review`'s clean-result row no longer
+      asks for a finding.
+  - **Where:** 19 skill and specification files under `plugins/adf/skills/`,
+    `plugins/adf-dev/skills/`, and `plugins/adf-connect/skills/`; `plugins/adf/workflows/deep-drift-sweep.js`
+    (generated); `modules/docker/MODULE.md`; decision 0078.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** agents run fewer whole-suite test runs in `/adf:refactor` and
+    `/adf:write-tests`; nothing else changes a rule.
+  - **Overwrite:** committed install: the skills above under `.claude/skills/` and
+    `.claude/workflows/deep-drift-sweep.js`, as `/adf:upgrade` writes them; packaged, they come with
+    the plugins.
+
 - **Two rule copies catch up with their source** — found by scanning the instruction files for
   sentences repeated across them.
   - **What:**

@@ -120,7 +120,7 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
      needs (Node, and the browser `make build` installs).
 
    CI that can start the stack runs `make smoke` on every pull request (K3): propose the job to the
-   developer. The framework ships no pipeline file.
+   developer. The framework's CI files carry no test job.
 8. **Commit** with `/adf:commit`, in two commits. First `chore:` for the suite's groundwork: the
    folder, the configuration, the service, and the tasks. Then `test:` for the smoke tests, green,
    with how each was seen failing in the body.

@@ -114,7 +114,7 @@ it fail, and go on to the fix.
 ## Verification
 
 - [ ] A command that fails on this bug was run and shown — or the developer was told why none could be built, and what would help
-- [ ] Hypotheses were ranked; each disproven one is reported with its evidence
+- [ ] Hypotheses were ranked, each disproven one reported with its evidence — or the cause was plain and its regression test failed first
 - [ ] Root cause identified — specific file, line, and condition — and it explains ALL observed symptoms
 - [ ] Suggested fix addresses the root cause, not a symptom
 - [ ] "How to verify" names the signal and the regression test

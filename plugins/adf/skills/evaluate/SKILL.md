@@ -18,9 +18,6 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
    - Read relevant project files (AGENTS.md, specs, existing code, rules)
    - Read `docs/ARCHITECTURE.md` and `docs/architecture/decisions/` for existing design decisions and constraints
    - Read `docs/security/SECURITY.md` and `docs/infrastructure/OVERVIEW.md` if the decision affects those areas
-   - Search for established patterns, best practices, and prior art
-   - Consider what professional teams do in similar situations
-   - Look for data, benchmarks, or case studies when available
 
 3. **Identify options** — List at least 2-3 viable approaches. For each option:
    - **Description**: what it is and how it works
@@ -41,7 +38,7 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
    - Under what conditions your recommendation would change
    - What to watch out for during implementation
 
-6. **Invite challenge** — End with: "This is my assessment based on [what I researched]. If you have context I'm missing, let me know — it could change the recommendation."
+6. **Invite challenge** — say what the assessment rests on and what missing context would change it.
 
 ## Rationalizations (do not accept these)
 
@@ -67,13 +64,3 @@ Perform a thorough analysis of a question, proposal, or decision. Research befor
 - **Challenge the premise.** If the question itself is flawed or the developer's proposal has a fundamental issue, say so respectfully. "Have you considered that the real problem might be X rather than Y?"
 - **No false balance.** If one option is clearly better, say so. Don't artificially inflate weaker options to seem thorough.
 - **Acknowledge uncertainty.** If you don't have enough information to make a confident recommendation, say what you'd need to know to decide.
-
-## Example invocations
-
-```
-/adf:evaluate Should we use PostgreSQL or MongoDB for this project?
-/adf:evaluate Is it better to implement auth with NextAuth or a custom JWT solution?
-/adf:evaluate The team wants to split the monolith into microservices — is that the right call?
-/adf:evaluate I'm thinking of adding Redis for caching — what do you think?
-/adf:evaluate Should we write unit tests or stick with e2e only for this PoC?
-```

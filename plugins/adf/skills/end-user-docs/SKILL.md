@@ -34,7 +34,7 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
    Unless its `modules:` list names `end-user-docs`, say "this project doesn't keep end-user docs in
    a doc tool — the end-user-docs module isn't installed" and stop: its end-user docs, if any, are
    repository docs for `/adf:write-docs`. Then read `docs/END-USER-DOCS.md`: the doc tool, the
-   end-user doc, the drafts location, the tools, the end users, the language and voice, screenshots,
+   end-user doc, the drafts location, the tools, the audiences, the language and voice, screenshots,
    when to publish, and § Page structure. Placeholders left in it are questions for the developer
    before going on.
 
@@ -98,8 +98,8 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
         developer's, in the tool.
      4. **Report** the published link. The delivered update links it (`/adf:stakeholder-update`).
         When that update already went out, offer a one-line reply on the tracker task with the link.
-        Either is a write the requester can see: confirm it first (`docs/TRACKER-INTEGRATION.md`
-        § Rules for agents).
+        Either is a write the requester can see: it goes through the project's tracker tool, whose
+        own prompt shows it first (`docs/TRACKER-INTEGRATION.md` § Rules for agents).
    - **Publish without a feature** (at a release): list the drafts location's unretired drafts, and
      publish the ones whose features shipped, one approval per page.
 

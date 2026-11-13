@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Create one clean, well-prefixed commit — an approved spec folder, a docs-first doc, one TDD task, or a fast-lane change — staging files by name and never bypassing hooks. Local only: /adf:open-pr pushes. Use when work is ready to commit.
+description: Create one clean, well-prefixed commit — an approved spec folder, a docs-first doc, one TDD task, or a fast- or careful-lane change. Local only: /adf:open-pr pushes. Use when work is ready to commit.
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/commit/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -70,7 +70,7 @@ Pushing is **not** part of committing. It happens in `/adf:open-pr`, once the ch
 | "The hook is slow / flaky — `--no-verify` just this once" | Hooks catch real mistakes, and the git guard blocks it anyway. Fix the cause. |
 | "I'll amend the previous commit to keep history tidy" | Amending rewrites history and can destroy work. New commit, unless asked. |
 | "I'll leave the debug log in and remove it later" | Debug code doesn't belong in commits. Remove it now. |
-| "Committed — I'll push too, it's the next step" | The push is `/adf:open-pr`'s, after your own local check — or, with nothing to run, the full gate and `/adf:review`. |
+| "Committed — I'll push too, it's the next step" | The push is `/adf:open-pr`'s, after your own local check — or, with nothing to run, the full gate — and `/adf:review`, in every lane. |
 
 ## Red flags (stop and reassess)
 

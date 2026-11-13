@@ -43,7 +43,9 @@
 ## Consequences
 
 - **Positive:**
-  - With the module, one prompt is left for docker and make: `make run` in native mode.
+  - With the module, one prompt is left for docker and make: `make run` in native mode. A
+    project's own task that runs a command it's given on the host keeps the ask rule
+    `/adf-dev:dev-env` gives it (C10): that rule is the project's, not the module's.
   - The settings are short: two allows and the mode denies.
   - Resetting a stack, rebuilding without a cache, or cleaning up after a test run doesn't stop to
     ask.

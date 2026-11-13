@@ -110,7 +110,8 @@ fills these from what it verifies, for you to review:
   which reaches other projects' stopped containers and unused images. What holds an agent back is
   instruction: `/dev-env` and `AGENTS.md` say it removes data only on the developer's yes in chat,
   touches this project only, and never prints a resolved config. A team that wants a prompt for one
-  of them adds its own rule to `permissions.ask`; an ask rule wins over the allow. `Bash(make *)`
+  of them adds its own rule to `permissions.ask`; an ask rule wins over the allow. `/dev-env` adds
+  one for a project's own task that runs a command it's given on the host (C10). `Bash(make *)`
   trusts the project's Makefile, so review a Makefile change as code that runs without a prompt.
 - **`make run cmd='<command>'` runs any command in the app's container, with no prompt, in Docker
   mode;** in native mode it runs on the host and asks. A hook decides, since a rule can't read the

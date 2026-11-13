@@ -31,7 +31,7 @@ test that never failed proves nothing: it may test something that already exists
 2. **Read the test conventions** — `.claude/rules/testing.md` (framework, ports, mocking,
    organization, and § End-to-end for a test that needs the whole stack) — and the existing tests
    in the area. Don't duplicate; extend. With the `e2e` module, an end-to-end test goes in `e2e/`,
-   uses its fixtures, and runs with `make e2e t=<file>`.
+   uses its fixtures, and runs by name with `make e2e t=<file> g="<title>"`.
 
 3. **Present the test plan** — requirement → test, grouped by source section:
    ```
@@ -54,14 +54,16 @@ test that never failed proves nothing: it may test something that already exists
 5. **Run them — every new test must fail, for the right reason**: the assertion about the missing
    behavior, not an import error, a typo, or a broken fixture. Keep the failure output — it's the
    red half of the evidence in `tasks.md` § Gate results.
-   A test that **passes** now is testing something that already exists (fine in a change request,
-   if intended — say so) or testing the wrong thing (fix it).
+   A test that **passes** now is either wrong — fix it until it fails for the right reason — or
+   pins behavior that already exists (coverage of existing code, an unchanged path in a change
+   request): say so in one line, break the behavior on purpose, watch the test fail, restore it,
+   and record that in the gate results. A type or compile error is never the red.
 
    **An end-to-end test is red first too, and only on a local stack.** It never runs against a
    preview, staging, or production: a preview can share real backends, and the tests write data.
    Get its red one of two ways:
    - **Before the code** — the usual way. Write or update the test, run it on this checkout's stack
-     (`make e2e t=<file>` with the `e2e` module), and watch it fail on the missing behavior.
+     (`make e2e t=<file> g="<title>"` with the `e2e` module), and watch it fail on the missing behavior.
    - **Against the base branch's code,** when the code came first — a test added after the change,
      or one the review asked for. Put the base branch in a second worktree with a stack of its own:
      with the parallel-agents module, `adf-worktree-new chore/<slug>-red --no-start`, which seeds its
@@ -77,7 +79,7 @@ test that never failed proves nothing: it may test something that already exists
 6. **Hand off:**
    - **Task mode** — back to `/adf:implement` to write the code, reach green, and commit both together.
    - **Acceptance mode** — commit the red tests: `test: add <slug> acceptance tests (red — pending implementation)`. `/adf:implement` turns them green task by task.
-   - **Standalone** — commit `test:`; for a bug, the fix follows in its own commit.
+   - **Standalone** — commit `test:`; a bug's regression test is committed with its fix (`fix:`), once green.
 
 ## Rationalizations (do not accept these)
 
@@ -104,7 +106,7 @@ test that never failed proves nothing: it may test something that already exists
 - [ ] Every AC and edge case in scope has at least one test
 - [ ] Every testable requirement in the filled non-functional sections is covered
 - [ ] Every explicit ask in the spec's Testing section is covered
-- [ ] Every new test was run and failed for the right reason — the output is kept for the gate results
+- [ ] Every new test was seen failing for the right reason — before the code, or by breaking the behavior it pins — and the output is kept for the gate results
 - [ ] All external services are mocked; test data is fake
 - [ ] Test names read as behavior; organization follows the project's conventions
 

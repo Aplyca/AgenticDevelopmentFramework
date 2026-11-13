@@ -93,15 +93,15 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** Every task runs without a prompt, except `run` where its command runs on the host
-  (C10). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
+- **C9.** Every task runs without a prompt, except `run` where its command runs on the host, and
+  a project's own task that does the same (C10). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
   adds no ask rule: both act on this project's local stack, whose data comes back from the seed
   ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)).
   A prompt isn't what protects data: an agent deletes it — `reset`, a project's `db-drop` — only
   on the developer's yes in chat (C12). A project that wants a prompt for a task adds its own ask
-  rule, `Bash(make <task>*)`, which wins over the allow. No task waits for input or never returns
-  — `logs` with `--tail`, never `-f` or `--follow` — so an agent that runs one is never left
-  waiting.
+  rule, `Bash(make <task>*)`, which wins over the allow. No task an agent runs waits for input or never
+  returns — `logs` with `--tail`, never `-f` or `--follow` — so an agent that runs one is never left
+  waiting; a task that does, such as Docker mode's `shell`, says "for people" in its description.
 - **C10.** **`run` is the one task that runs a command it's given, and the way an agent runs a
   command no task covers:** `make run cmd='<command>'`
   ([decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md)).
@@ -200,8 +200,8 @@ a project misses. A project that departs from one on purpose records it, with th
   `down` stop the whole process group; `stop` leaves the backing services' containers in place, and
   `down` removes them.
 - **M7.** While the app runs on the host, `ops/native/.run/app.env` holds exactly `PID=<pid>` and
-  `APP_PORT=<port>`, and `ops/native/.run/app.log` its output. The band above the prompt reads
-  `APP_PORT` from that file. `ops/native/.run/app.kind` holds `prod` while the production build runs
+  `APP_PORT=<port>`, and `ops/native/.run/app.log` its output. `ops/docker/launch-json.sh` reads
+  `APP_PORT` from that file (P8). `ops/native/.run/app.kind` holds `prod` while the production build runs
   (C11), and is absent for the dev server. A state file whose process has gone is removed by the
   next command.
 - **M8.** Switching modes needs no cleanup: each mode's `up` stops what the other mode runs for the

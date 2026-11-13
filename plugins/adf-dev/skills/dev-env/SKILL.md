@@ -196,8 +196,8 @@ Where the app runs is a setting, not a different command. The root `Makefile` lo
 `ops/native/Makefile` runs the app on the host with the stack's own dev command, its backing
 services in Docker. Both define the same tasks.
 
-1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, a change to the
-   stack that goes through triage. A checkout's own choice is `DEV_MODE` in its `.env` — the
+1. **Choose the mode.** The project's default is `DEFAULT_MODE` in the `Makefile`, which only the
+   developer changes once the stack exists (M10). A checkout's own choice is `DEV_MODE` in its `.env` — the
    developer's file, which they edit; never read it into the conversation. A single command can
    override both — `make up DEV_MODE=native` — and that override is for people. Only the developer
    changes the mode: an agent runs every task in the configured mode, and when asked for another, it
@@ -229,7 +229,7 @@ services in Docker. Both define the same tasks.
    and native `make up` stops the app's container.
 5. **Verify:** `make ps` shows the app on the host and only the backing services in Docker; the app
    answers on the URL `make urls` gives; the quickest test that needs the stack passes with
-   `make test`. The band above the prompt reads the app's port from `ops/native/.run/app.env`.
+   `make test`. `ops/docker/launch-json.sh` reads the app's port from `ops/native/.run/app.env` (P8).
 
 ## Mode: diagnose
 
@@ -311,7 +311,7 @@ reset in the main checkout of a hub.
 - A command names no project but would touch every project
 - You're following logs, or about to read `.env` or a resolved config
 - You're about to publish a fixed host port, or one on every interface
-- You're about to set `DEV_MODE` or `SERVICES` the developer didn't ask for
+- You're about to set `DEV_MODE` or `SERVICES`, or change `DEFAULT_MODE` — even when asked (M10)
 - You're editing `compose.yaml`, the `Makefile`, or `ops/` before triage
 - The fix you're about to run deletes something, and the developer hasn't said yes
 
@@ -327,7 +327,7 @@ reset in the main checkout of a hub.
 - [ ] In Docker mode `make run cmd='<command>'` runs in the app's container with no prompt, and the app's service mounts nothing of the host but the checkout (C10, D5)
 - [ ] `make test t=<file>` and `make lint f=<file>` run just that file
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
-- [ ] With a dev command for the host: in native mode `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it
+- [ ] In a checkout configured for native mode: `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it. In any other, native mode's file was read against M4–M8 and reported as not run (M10)
 - [ ] After a fix or a reset, the failing signal passes
 
 ## Principles

@@ -51,7 +51,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
 
 5. **Break the plan into commit-sized tasks** in dependency order, using `specs/_templates/tasks.md`:
    - Phase 0 — the approval itself (T000).
-   - Phase 1 — docs first (one task per pre-implementable doc, and per end-user page draft). Omit when there are none.
+   - Phase 1 — docs first (one task per pre-implementable doc, per end-user page draft, and for posting the usage guide's draft). Omit when there are none.
    - Phase 2 — foundation: migrations, shared types, configuration.
    - Phase 3 — stories: each task names its test (`test: <path> · "<name>"`) and the ACs it serves.
    - Phase 4 — acceptance tests encoding the ACs end to end. Written after the stories, they pass on
@@ -75,7 +75,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
 7. **Check the folder for consistency** before showing it to anyone:
    - every AC → at least one task → a named test; every task → an AC, or a stated reason (foundation, docs);
    - every testable requirement in the filled non-functional sections → a test;
-   - every pre-implementable doc and end-user page → a doc task;
+   - every pre-implementable doc, end-user page, and usage guide → a Phase 1 task;
    - every file named in a task appears in the change surface;
    - no conflict with the constitution, and no contradiction between spec and plan;
    - assumptions listed; open questions empty.
