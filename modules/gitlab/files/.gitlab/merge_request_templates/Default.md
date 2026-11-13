@@ -1,4 +1,4 @@
-<!-- Title: a commit-style subject under 70 characters — e.g. "feat: add newsletter signup" -->
+<!-- Title: a commit-style subject under 72 characters — e.g. "feat: add newsletter signup" -->
 <!-- The agent rebuilds the text between each "adf:<section>" marker and its "/adf:<section>" when
      it refreshes this description after a later push (/open-pr refresh). Write your own notes
      outside those pairs: they're kept as they are. -->

@@ -11,6 +11,19 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Four open rules, decided** — the baseline run, the title length, stack-neutral review items, and
+  GitLab's service jobs.
+  - **What:** `/adf:implement` step 3 runs the tests the task touches for its baseline, and the
+    agent widens the run (neighboring suites, a tier, the whole suite) when the task calls for it;
+    the Cursor rule says the same. A pull request title is under 72 characters, like a commit
+    subject (`/adf:open-pr`, `git-workflow.md`, both templates said 70). `@adf:code-reviewer`'s two
+    TypeScript and SSR items name no stack. The `gitlab` module's guide and `.gitlab-ci.yml` comment
+    say jobs that need services run on every merge request where the runner can start the stack,
+    not on demand — what `testing.md` § Tiers already says.
+  - **Upgrade impact:** overwrite for the plugins' files; merge for `git-workflow.md`, the Cursor
+    rule, the two templates, and `.gitlab-ci.yml` (comments only). A project whose end-to-end job is
+    `when: manual` decides whether its runner can start the stack on every merge request.
+
 - **The critical tier, not the smoke suite alone, runs before the local check and in CI** — the
   older lines catch up with 0069.
   - **What:** `testing.md` § Tiers says `@critical` runs before the local check and on every pull

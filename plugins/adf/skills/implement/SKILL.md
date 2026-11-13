@@ -37,7 +37,10 @@ plan is the contract for **where** code goes (the change surface); the tests are
    If this session is on Opus and still carries the whole planning conversation, suggest the gate's
    switch, in this session: compact, pick Sonnet, send this command again (`/adf:write-plan` step 12).
    Never start another session for it. Keep Opus for a task that turns out genuinely hard.
-3. **Run the existing suite** to know the baseline. Pre-existing failures are recorded in the gate
+3. **Run the tests the task touches** to know the baseline — a run as small as its question
+   (`.claude/rules/testing.md` § Tiers and feature suites). Widen it — neighboring suites, a tier,
+   the whole suite — when the task calls for it: shared code, configuration, a migration, or a
+   change whose reach you can't name. Pre-existing failures are recorded in the gate
    results and reported — not silently fixed, and not mistaken for yours.
 
 ## Phase 2: The loop — for each task, in order

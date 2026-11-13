@@ -61,7 +61,7 @@ branch's own pull request, and its tracker task's status moves and outcome updat
   on a draft — and again after a fix that answers their review.
 - **Reviewing, approving, and merging are people's, on their schedule.** Don't remind them or offer
   to merge.
-- **Title:** a commit-style subject under 70 characters. The body follows the repository's template
+- **Title:** a commit-style subject under 72 characters. The body follows the repository's template
   and matches what the diff does.
 - A CI failure the reviewer accepts is explained in the pull request.
 

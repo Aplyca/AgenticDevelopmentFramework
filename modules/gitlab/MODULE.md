@@ -51,9 +51,10 @@ The jobs run in the `test` stage. If your `stages:` has none, set each job's sta
    then passes every merge request.
 5. **Quality gates** — add your stack's lint, typecheck, and unit-test jobs to `.gitlab-ci.yml` (this
    module stays stack-agnostic), and a dependency audit (`npm audit`, `pip-audit`, …) that reports
-   without blocking until the existing backlog is triaged (`allow_failure: true`). Keep layers that
-   need services (integration, end-to-end) on demand (`when: manual`). Don't give a gating job a
-   `changes:` rule: a required check that never runs is not a gate.
+   without blocking until the existing backlog is triaged (`allow_failure: true`). Layers that
+   need services (integration, end-to-end) run on every merge request too, where the runner can
+   start the stack — the end-to-end suite at its critical tier (`make e2e tier=critical`). Don't
+   give a gating job a `changes:` rule: a required check that never runs is not a gate.
 
 The secret scan runs in the `zricethezav/gitleaks` image, and the branch policy in `alpine`: both
 need a runner that runs Docker images — GitLab.com's shared runners do. A shell runner ignores
