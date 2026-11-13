@@ -24,7 +24,7 @@ NATIVE_PROD_CMD = echo "CUSTOMIZE: set NATIVE_PROD_CMD in ops/native/Makefile to
 export NATIVE_CMD NATIVE_PROD_CMD
 NATIVE_SH = SERVICES='$(SERVICES)' COMPOSE='$(COMPOSE)' APP='$(APP)' ops/native/native.sh
 
-.PHONY: up stop down build ps logs urls prod services test lint format typecheck reset
+.PHONY: up stop down build ps logs urls prod services test lint format typecheck run reset
 
 up: env guard services ## Start the app on the host, wait until it answers, and show where it is
 	@$(COMPOSE) stop $(APP) >/dev/null 2>&1 || true
@@ -78,6 +78,11 @@ format: ## Rewrite files to the project's formatting, on the host; f=<files> for
 
 typecheck: ## Run the type checker on the host
 	@echo "CUSTOMIZE: the type checker, e.g. npx tsc --noEmit — or say the stack has none" >&2; exit 1
+
+# On the host, so it asks an agent first (C10). The command comes from the environment, as in Docker mode.
+run: services ## Run a command on the host, with the services' ports exported: make run cmd='npm ci' — a $ for the command is written $$
+	@[ -n "$$cmd" ] || { echo "make run needs a command: make run cmd='<command>'" >&2; exit 1; }
+	@eval "$$($(NATIVE_SH) env)" && sh -c "$$cmd"
 
 reset: env guard ## DESTRUCTIVE: delete the services' containers and volumes, then start again
 	@$(NATIVE_SH) stop

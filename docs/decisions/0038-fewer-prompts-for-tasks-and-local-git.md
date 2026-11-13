@@ -1,6 +1,6 @@
 # 0038: Allow broadly, ask by name: make, docker, git, and gh
 
-- **Status:** accepted; amended by [0074](0074-github-and-gitlab-alike.md) — `glab` is allowed broadly and asked by name the same way, in the skeleton's settings
+- **Status:** accepted; amended by [0074](0074-github-and-gitlab-alike.md) — `glab` is allowed broadly and asked by name the same way, in the skeleton's settings; and by [0077](0077-the-container-is-the-boundary-for-make-run.md) — `make run` has no ask rule: a hook approves it in Docker mode, where it runs in the app's container, and asks in native mode; and by [0078](0078-docker-and-make-run-without-a-prompt.md) — the docker module asks before no `docker` or `make` command
 - **Date:** 2026-10-15
 - **Amends:** [0032](0032-local-environment-layout.md) — the docker module's `make` allows;
   [0033](0033-pull-request-upkeep-without-prompts.md) — which git commands run without a prompt

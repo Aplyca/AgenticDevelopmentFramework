@@ -164,7 +164,7 @@ Present the table before going further. Wrong facts here poison every file downs
     team wants a containerized local environment: `/dev-env` writes the stack from its templates or
     moves an existing one to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`,
     ports Docker picks, decision 0032), runs the app natively, gives each worktree its own stack with
-    `parallel-agents`, and diagnoses or resets it; destructive docker commands ask first. A
+    `parallel-agents`, and diagnoses or resets it; docker and make commands run without a prompt. A
     `.devcontainer/` alone is worth mentioning, not recommending
   - `e2e` — when people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in
     `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the

@@ -38,6 +38,96 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `/adf:upgrade` writes them; packaged, they come with the plugin. `/adf:adopt` and `/adf:upgrade`
     come with the plugin in either install.
 
+- **Docker and make commands run without a prompt — the docker module asks before none**
+  ([decision 0078](docs/decisions/0078-docker-and-make-run-without-a-prompt.md), amending 0038,
+  0032, and 0077).
+  - **What:**
+    - **The docker module adds no ask rule.** It allowed `docker *` and `make *` and asked by name
+      before 18 exceptions: what deletes data (`compose down -v`, `rm`, `rmi`, `prune`,
+      `make reset`), `docker push`, and what prints secrets (`docker inspect`, a bare
+      `compose config`, an `exec` that names `env`). All of them now run without a prompt.
+    - **The one prompt left is `make run` in native mode,** which the approve-container-run hook
+      asks (0077). The hook no longer asks about a command that names `env` or a `.env` file.
+    - **The developer's yes in chat still comes first** before anything that deletes data:
+      `/adf-dev:dev-env` and the specification (C9, C12) say so, and that no prompt backs it.
+    - **A project task that deletes data** is named in `DEV-SETUP.md` instead of getting an ask
+      rule.
+    - **The mode denies stay:** an agent still can't set `DEV_MODE` or `SERVICES`, or edit `.env`.
+  - **Where:** `modules/docker/` (`settings-fragment.json`, `install.sh`, `MODULE.md`);
+    `plugins/adf-dev/skills/dev-env/` (`SPECIFICATION.md`, `SKILL.md`);
+    `plugins/adf/hooks/approve-container-run.sh`, `README.md`;
+    `plugins/adf/skills/upgrade/SKILL.md`, `adopt/SKILL.md`; `skeleton/.claude/hooks/config.sh`;
+    `scripts/migrations/unreleased/02-docker-asks.py`; `README.md`, `modules/README.md`,
+    onboarding; the hook, module, and upgrade tests and the static checks.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** with the `docker` module, once the rules are removed: no `docker` or
+    `make` command prompts. That includes `make reset` and `docker compose down -v`, which delete
+    this stack's data; `docker system prune`, `docker rm`, and `docker volume rm`, which reach
+    other projects on the machine; `docker push`; and commands that print a resolved secret. An
+    agent still asks in chat before it deletes data. Without the module, none.
+  - **Overwrite:** committed install: `.claude/hooks/approve-container-run.sh` and
+    `.claude/skills/dev-env/`, as `/adf:upgrade` writes them; packaged, they come with the plugins.
+  - **Merge:** in `.claude/hooks/config.sh`, the comment above `APPROVE_CONTAINER_RUN`.
+  - **Migration:** scripted — `scripts/migrations/unreleased/02-docker-asks.py` removes from
+    `permissions.ask` the rules the docker module added, by their exact text, and leaves a rule the
+    project wrote; the upgrade report lists each under Permission changes, for the developer's
+    approval. By hand: a team that wants a prompt for one of them — `Bash(make *reset*)`,
+    `Bash(docker * prune *)` — keeps or adds that rule, which still wins over the allow.
+
+- **In Docker mode `make run` needs no prompt — the container is the boundary**
+  ([decision 0077](docs/decisions/0077-the-container-is-the-boundary-for-make-run.md), amending
+  0038 and 0032).
+  - **What:**
+    - **`make run cmd='<command>'` runs any command in the app's container without a prompt** in a
+      checkout whose mode is Docker: tests, linters, the package manager, a one-off script. In
+      native mode, where it runs on the host, it still asks.
+    - **A new hook, `approve-container-run.sh`, decides it.** A rule can't read the mode, and an
+      ask rule wins over a hook's approval. The hook approves the call written on its own when the
+      mode is Docker, the `run` task in `ops/docker/Makefile` hands `"$$cmd"` to Compose as one
+      argument, and the value holds nothing the host's shell or `make` would expand. It asks before
+      any other `make … run`, and leaves a call followed by a pipe to the permission rules.
+    - **The docker module no longer adds `Bash(make run *)` to `permissions.ask`.**
+    - **`run` is a task every mode defines** (the specification's C3), and the templates gain it in
+      both mode files. C9 and C10 are rewritten; C10 says what the container bounds — the host
+      outside the checkout — and what it doesn't: the checkout, the stack's local data, the
+      credentials in `.env`, the network. New D5: the app's service mounts nothing of the host but
+      the checkout.
+    - **`/adf-dev:dev-env`** says that in Docker mode commands run through a named task or
+      `make run`, never on the host, and audits the `run` task and D5.
+    - **`APPROVE_CONTAINER_RUN="1"`** in `.claude/hooks/config.sh`; empty asks in every mode.
+    - **The Claude Code rule names the task:** § Commands that run without a prompt lists
+      `make run cmd='<command>'` for what no task covers, in its "Use the project's tasks" bullet.
+  - **Where:** `plugins/adf/hooks/` (new `approve-container-run.sh`; `_lib.sh`, `hooks.json`,
+    `README.md`); `plugins/adf-dev/skills/dev-env/` (`SPECIFICATION.md`, `SKILL.md`,
+    `templates/compose.yaml`, `templates/ops/docker/Makefile`, `templates/ops/native/Makefile`);
+    `modules/docker/` (`settings-fragment.json`, `install.sh`, `MODULE.md`);
+    `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/settings.json`,
+    `skeleton/.claude/rules/claude-code.md`;
+    `scripts/migrations/unreleased/01-make-run-by-mode.py`; onboarding; the hook, module, and
+    upgrade tests and the static checks.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** with the `docker` module, once the ask rule is removed: `make run`
+    stops asking in Docker mode when the project's `run` task has the specification's form, and
+    keeps asking in native mode and for a `run` task of any other form. A command in the container
+    can read `.env` and reach the stack's data: keep production credentials out of `.env`. Without
+    the module, none.
+  - **Overwrite:** committed install: `.claude/hooks/` — the new `approve-container-run.sh`, and
+    `_lib.sh` — and `.claude/skills/dev-env/`, as `/adf:upgrade` writes them; packaged, they come
+    with the plugins, wiring included.
+  - **Merge:** committed install: the `hooks` block of `.claude/settings.json` —
+    `approve-container-run.sh` on `Bash`. `.claude/rules/claude-code.md` § Commands that run
+    without a prompt — the "Use the project's tasks" bullet.
+  - **Additive:** in `.claude/hooks/config.sh`, the `APPROVE_CONTAINER_RUN` block.
+  - **Migration:** scripted — `scripts/migrations/unreleased/01-make-run-by-mode.py` removes
+    `Bash(make run *)` from `permissions.ask` in a project with the `docker` module, once the hook
+    is there (a committed install's settings must wire it); the upgrade report lists it under
+    Permission changes, for the developer's approval. By hand, after it: run
+    `/adf-dev:dev-env set up`, which audits the stack — add or fix the `run` task in both mode
+    files (C3, C10), and check what the app's service mounts (D5). A project that doesn't want
+    commands in the container without a prompt sets `APPROVE_CONTAINER_RUN=""`.
+
 - **A tracker update that changes only the status needs no prompt**
   ([decision 0076](docs/decisions/0076-a-status-only-tracker-update-needs-no-prompt.md), amending
   0059 and 0073).
@@ -1991,7 +2081,6 @@ Each entry below lists its own **Upgrade impact**.
     - In `ops/native/native.sh`, `app_port` reads the running app's port first.
     - In the `Makefile`, `help`'s pattern is `/^[a-z][a-z0-9-]*:.*## /`.
 
-
 - **A dispatched session moves into its task's worktree without a prompt**
   ([decision 0035](docs/decisions/0035-move-into-the-worktree-without-a-prompt.md)). In the desktop
   app, the new `approve-worktree-move.sh` hook approves `change_directory` when the folder is a
@@ -2676,7 +2765,6 @@ the skeleton has no `CLAUDE.md` any more:
   4. Delete `CLAUDE.md`.
   5. Each developer removes a `CLAUDE.md` above the repository or a `CLAUDE.local.md` in it, or sets
      **Project instructions** to `claude-md-and-agents-md` in `/config`.
-
 
 ### `adf-connect`: connect a tracker or a service with `/connect`
 

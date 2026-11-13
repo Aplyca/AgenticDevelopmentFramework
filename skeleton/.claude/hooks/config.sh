@@ -47,6 +47,13 @@ APPROVE_STATUS_MOVE=""
 # The only fields such a call may carry: the task's identifier, then the status field, last.
 STATUS_MOVE_FIELDS="task_id status"
 
+# With the docker module, `make run cmd='…'` runs a command it's given. "1" approves it in Docker
+# mode, where it runs in the app's container, and asks in native mode, where it runs on the host.
+# The container bounds the host outside the checkout, not the checkout, its local data, or the
+# credentials in .env. It is the docker module's one prompt: no docker or make command has an ask
+# rule. Without the module it has no effect. Empty asks in every mode.
+APPROVE_CONTAINER_RUN="1"
+
 # A session hears once when its branch's pull request merged (offer /wrap-up) or closed without
 # merging (ask whether the task is dropped). "1" asks gh, or glab on GitLab, at session start and at
 # most every five minutes after, on a work branch only; without either it does nothing. Empty disables.
