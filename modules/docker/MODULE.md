@@ -6,7 +6,8 @@ proposes the move — runs the app natively when
 the developer prefers, gives each worktree a stack of its own when the project runs agents in
 parallel, diagnoses a stack that won't start the way `/debug` diagnoses a bug, and resets one without
 touching anything else on the machine. Docker and `make` commands run without a prompt; a command
-that deletes data, leaves the machine, or prints secrets asks first.
+that deletes data, leaves the machine, or prints secrets asks first, and so does `make run` where
+it runs on the host.
 
 ## The conventions
 
@@ -21,7 +22,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
   `native.sh`), the parallel-agents module in `ops/agent/`, and any deployment target the project
   adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
 - **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
-  `logs`, `urls`, `test`, `lint`, `reset`, and the optional `prod`: the production build, served
+  `logs`, `urls`, `test`, `lint`, `run`, `reset`, and the optional `prod`: the production build, served
   beside the dev server in Docker mode, so no agent builds and serves it on the host
   ([decision 0052](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0052-production-build-in-the-configured-mode.md)).
 - **One file per mode:** the root `Makefile` loads `ops/docker/Makefile` or `ops/native/Makefile` —
@@ -39,7 +40,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt. `permissions.ask` for what must always prompt: what deletes data (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, any `make` command that names `reset`); what leaves the machine (`docker push`); what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec` or `compose run` that names `env`); and `permissions.deny` for what would change the local mode, which only the developer does (M10): a `make` command or a leading assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, and an edit to `.env`; and `make run`, which runs a command it's given (`SPECIFICATION.md` C9, C10). An ask rule wins over any allow rule. `/dev-env set up` adds an ask rule for each project task that deletes data under another name |
+| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt. `permissions.ask` for what must always prompt: what deletes data (`compose down -v` or `--rmi`, `compose rm`, `docker rm`, `rmi`, `volume rm`, every `prune`, any `make` command that names `reset`); what leaves the machine (`docker push`); what prints secrets (`docker inspect`, a bare `docker compose config`, an `exec` or `compose run` that names `env`); and `permissions.deny` for what would change the local mode, which only the developer does (M10): a `make` command or a leading assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, and an edit to `.env` (`SPECIFICATION.md` C9). An ask rule wins over any allow rule, and over a hook's approval, so `make run` has no rule: the `approve-container-run.sh` hook, which the `adf` plugin carries, decides it by the checkout's mode (C10, [decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md)). `/dev-env set up` adds an ask rule for each project task that deletes data under another name |
 | `.claude/skills/dev-env/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the
@@ -112,6 +113,16 @@ fills these from what it verifies, for you to review:
   before anything destructive. `Bash(make *)` trusts the project's Makefile: a task that deletes data
   under a new name needs its own ask rule (C9), so review a Makefile change as code that runs without
   a prompt.
+- **`make run cmd='<command>'` runs any command in the app's container, with no prompt, in Docker
+  mode;** in native mode it runs on the host and asks. A hook decides, since a rule can't read the
+  mode: it approves the call written on its own, with nothing the host's shell or `make` would
+  expand — a `$` for the container is written `$$`, in single quotes — and a `run` task that hands
+  the command to Compose as one argument. Anything else asks. The container keeps a command off the
+  host outside the checkout. It doesn't protect the checkout, the stack's local data, or the
+  credentials in `.env`, which a command inside can read and use: keep production credentials out
+  of `.env`. `APPROVE_CONTAINER_RUN=""` in `.claude/hooks/config.sh` asks in every mode — set it
+  when the app's service mounts the Docker socket or a path outside the checkout (D5). A command
+  that names `reset` still asks, by the `make *reset*` rule.
 - **In `dontAsk` mode an ask rule denies instead of prompting;** in every other mode, auto and
   bypass included, it prompts.
 - **Two commands print secrets:** `docker compose config` without `--quiet` or `--services`, and
@@ -124,7 +135,9 @@ fills these from what it verifies, for you to review:
 - `python3 -m json.tool .claude/settings.json` parses, and its `ask` list holds the docker rules.
 - In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps`,
   `make up`, and `make test` run without a prompt; asking the agent to remove the stack's volumes, or
-  to run `make reset` or `make run`, prompts.
+  to run `make reset`, prompts.
+- In Docker mode `make run cmd='pwd'` runs in the app's container without a prompt. With
+  `DEV_MODE=native` in `.env`, the same command prompts.
 
 ## Requirements
 

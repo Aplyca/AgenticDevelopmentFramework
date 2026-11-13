@@ -22,8 +22,7 @@
       "Bash(docker compose config)",
       "Bash(docker *exec *env*)",
       "Bash(docker compose run *env*)",
-      "Bash(make *reset*)",
-      "Bash(make run *)"
+      "Bash(make *reset*)"
     ],
     "deny": [
       "Bash(make *DEV_MODE=*)",

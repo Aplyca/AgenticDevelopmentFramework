@@ -8,7 +8,7 @@ ifndef MODE_FILE
 $(error run make from the repository root: this file is the $(notdir $(CURDIR)) mode, which the root Makefile loads)
 endif
 
-.PHONY: up stop down build ps logs urls prod shell test lint format typecheck reset
+.PHONY: up stop down build ps logs urls prod shell test lint format typecheck run reset
 
 up: env guard ## Start the stack, wait until it's healthy, and show where it is
 	@APP='$(APP)' COMPOSE='$(COMPOSE)' ops/native/native.sh stop
@@ -59,6 +59,12 @@ format: ## Rewrite files to the project's formatting, in the app's container; f=
 
 typecheck: ## Run the type checker in the app's container
 	@echo "CUSTOMIZE: the type checker, e.g. $(COMPOSE) exec -T $(APP) <type check command> — or say the stack has none" >&2; exit 1
+
+# The command reaches the container's shell as one argument, from the environment (C10): never
+# the make variable pasted into the recipe, where the host's shell would read its quotes.
+run: ## Run a command in the app's container, for what no task covers: make run cmd='npm ci' — a $ for the container is written $$
+	@[ -n "$$cmd" ] || { echo "make run needs a command: make run cmd='<command>'" >&2; exit 1; }
+	$(COMPOSE) exec -T $(APP) sh -c "$$cmd"
 
 reset: env guard ## DESTRUCTIVE: delete the stack's containers and volumes, then start it again
 	$(COMPOSE) --profile prod down -v --remove-orphans

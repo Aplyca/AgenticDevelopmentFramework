@@ -352,9 +352,11 @@ cases = {
     "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
     "docker compose run --rm web env": "ask",
     # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
-    # containers' commands, but reset deletes the stack's volumes and run runs any command it's given.
+    # containers' commands, but reset deletes the stack's volumes. make run has no rule: an ask rule
+    # would win over the approve-container-run hook, which decides it by the mode (C10, decision 0077).
     "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
-    "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
+    "make urls && make reset": "ask", 'make run cmd="yarn test"': "allow", "make run": "allow",
+    "make run cmd='git reset --hard'": "ask",
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
     "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
     "make lint f=src/a.ts": "allow",
@@ -406,7 +408,7 @@ out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
 out=$(stack make help 2>&1)
 check "make help: the default target lists every task of the mode" \
-    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up stop down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up stop down build ps logs urls shell test lint run reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
     "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'guard.sh'"
@@ -417,7 +419,7 @@ check "make logs: the last lines, never followed" \
 # nothing, and never follow a log.
 c9=""
 for mode in docker native; do
-    for task in help env up stop down build ps logs urls prod test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+    for task in help env up stop down build ps logs urls prod test lint format typecheck run $( [ "$mode" = native ] && echo services ); do
         out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
         while IFS= read -r line; do
             case "$line" in
@@ -429,6 +431,21 @@ for mode in docker native; do
 done
 check "C9: the templates' tasks but reset exist in both modes, delete nothing, and never follow a log" "[ -z \"$c9\" ]"
 [ -z "$c9" ] || echo "    $c9"
+# C10: run hands the command to its shell as one argument, from the environment: the host's shell
+# reads none of its quotes or separators. The stub prints each argument it gets in brackets.
+cat > "$DS/bin/docker-args" <<'STUB'
+#!/bin/sh
+printf 'docker'; for a in "$@"; do printf ' [%s]' "$a"; done; printf '\n'
+STUB
+chmod +x "$DS/bin/docker-args"
+out=$(stack make run COMPOSE="docker-args compose" DEV_MODE=docker cmd='echo "it'"'"'s"; ls | head -1 && echo $$HOME' 2>&1)
+check "C10: make run, docker mode: the command reaches the app's container as one argument" \
+    "echo \"\$out\" | grep -qF '[compose] [exec] [-T] [web] [sh] [-c] [echo \"it'\"'\"'s\"; ls | head -1 && echo \$HOME]'"
+out=$(stack make run DEV_MODE=docker 2>&1); code=$?
+check "C10: make run with no command stops, saying how to give one" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"make run cmd='<command>'\""
+out=$(stack make -n run DEV_MODE=native SERVICES=none cmd='npm ci' 2>&1)
+check "C10: make run, native mode: on the host, with the services' ports exported, and never through Compose" \
+    "echo \"\$out\" | grep -q 'native.sh env)\" && sh -c \"\$cmd\"\$' && ! echo \"\$out\" | grep -q 'exec -T'"
 out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
 check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
 out=$(stack make -n urls 2>&1)

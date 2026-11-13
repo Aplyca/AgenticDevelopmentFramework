@@ -199,6 +199,49 @@ PY
 check "migrations: a second run returns done for each" "! grep -qv ': done$' '$WORK/twice.out' && [ -s '$WORK/twice.out' ]"
 check "migrations: the tree is unchanged after them" "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
 
+# ─── make run's ask rule leaves once the hook decides it (0077) ─────────────
+R="$WORK/make-run"; mkdir -p "$R/.claude/hooks"
+python3 - "$REPO_ROOT" "$R" > "$WORK/make-run.out" 2>&1 <<'PY'
+import importlib.util, json, os, sys
+root, r = sys.argv[1:]
+spec = importlib.util.spec_from_file_location("upgrade", root + "/scripts/upgrade.py")
+u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
+migration = u.load_migration(root + "/scripts/migrations/unreleased/01-make-run-by-mode.py")
+settings_path = os.path.join(r, ".claude", "settings.json")
+hook = os.path.join(r, ".claude", "hooks", "approve-container-run.sh")
+wiring = {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": '"$CLAUDE_PROJECT_DIR"/.claude/hooks/approve-container-run.sh'}]}]}
+
+def migrate(install, modules, ask, hooks=None, script=False):
+    json.dump({"permissions": {"ask": ask}, "hooks": hooks or {}}, open(settings_path, "w"))
+    if os.path.exists(hook):
+        os.remove(hook)
+    if script:
+        open(hook, "w").close()
+    class Fake:  # just enough of an Upgrade for a migration's context
+        pass
+    f = Fake()
+    f.ws = u.Workspace(r, False); f.repo = r; f.install = install; f.modules = modules
+    f.dry = False; f.touched = set(); f.history = root; f.add_follow_up = lambda *a: None
+    f.old = u.Release(root, "v2.8.0", "v2.8.0"); f.new = u.Release(root, "HEAD", "v2.8.0")
+    status, _ = migration.run(u.MigrationContext(f))
+    again, _ = migration.run(u.MigrationContext(f))
+    return status, again, json.load(open(settings_path))["permissions"]["ask"]
+
+rules = ["Bash(make *reset*)", "Bash(make run *)"]
+print("packaged:", migrate("packaged", ["docker"], rules))
+print("committed, wired:", migrate("committed", ["docker"], rules, wiring, True))
+print("committed, not wired:", migrate("committed", ["docker"], rules))
+print("no module:", migrate("packaged", ["github"], rules))
+PY
+check "make run: a packaged project loses the ask rule, keeps make reset's, and a second run changes nothing" \
+    "grep -qx \"packaged: ('applied', 'done', \['Bash(make \*reset\*)'\])\" '$WORK/make-run.out' || { cat '$WORK/make-run.out'; false; }"
+check "make run: a committed project loses it once its settings wire the hook" \
+    "grep -qx \"committed, wired: ('applied', 'done', \['Bash(make \*reset\*)'\])\" '$WORK/make-run.out'"
+check "make run: a committed project without the hook keeps the rule, and is told" \
+    "grep -qx \"committed, not wired: ('needs', 'needs', \['Bash(make \*reset\*)', 'Bash(make run \*)'\])\" '$WORK/make-run.out'"
+check "make run: a project without the docker module is left alone" \
+    "grep -qx \"no module: ('done', 'done', \['Bash(make \*reset\*)', 'Bash(make run \*)'\])\" '$WORK/make-run.out'"
+
 # ─── a Contentful server is profiled once it's named after its project (0068) ─
 X="$WORK/contentful"; mkdir -p "$X/.claude"
 python3 - "$REPO_ROOT" "$X" > "$WORK/contentful.out" 2>&1 <<'PY'

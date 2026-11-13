@@ -4,6 +4,9 @@
 # overwrites: existing rules keep their order, and only missing ones are added. Docker commands and
 # the project's tasks run without a prompt; commands that delete containers, volumes, or images
 # always ask; and nothing an agent runs changes the local mode, which only the developer sets.
+# `make run` has no rule here: an ask rule would win over the approve-container-run hook, which
+# approves it in Docker mode and asks in native mode (decision 0077). An upgrade's migration takes
+# out the `Bash(make run *)` ask rule this script once added; this script only ever adds.
 # Safe to run again (an upgrade picks up new rules the same way).
 #
 # Usage: modules/docker/install.sh [path/to/repository]    (default: the current directory)

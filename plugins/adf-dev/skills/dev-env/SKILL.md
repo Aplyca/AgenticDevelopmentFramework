@@ -40,6 +40,12 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
   is `docker compose down -v`. The module's ask rules prompt as well; if `.claude/settings.json`
   doesn't have them, ask in chat anyway.
 - **Published ports bind to `127.0.0.1`**, never every interface.
+- **In Docker mode, commands run in the container, never on the host.** Tests, linters, the package
+  manager, a one-off script: a named task first (`make test t=<file>`, `make lint f=<file>`), and
+  `make run cmd='<command>'` for what no task covers. It runs in the app's container without a
+  prompt, written on its own, in single quotes, with a `$` for the container as `$$`; a pipe goes
+  inside the quotes (C10). The host's runtime and dependencies aren't the project's. In native mode
+  `make run` runs on the host and asks.
 
 ## Steps
 
@@ -111,8 +117,11 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - no `DEV_MODE`: a `Makefile` with its own `native` or `dev` targets beside the Docker ones, which
      the two mode files replace;
    - a `test` without `t=`, or a `lint` without `f=`, so agents reach for a command of their own;
-   - a task that runs a command it's given (`make run cmd="…"`) without an ask rule, or one agents
-     use for something a named task should do (C10) — each such use becomes a task;
+   - no `run` task, or one that pastes `$(cmd)` into the recipe or runs it anywhere but the app's
+     container in Docker mode (C10): until it meets C10, `make run` asks every time;
+   - another task that runs a command it's given (`make exec`) without an ask rule (C10);
+   - an app service that mounts the Docker socket or a path outside the checkout, or runs
+     `privileged` (D5): `make run` would reach the host from it;
    - a task that deletes data under a name other than `reset` (`db-drop`, a `clean` that removes
      volumes) with no ask rule, while `Bash(make *)` allows it (C9);
    - a task that waits for input or never returns, such as a `logs` that follows (C9): an agent that
@@ -141,8 +150,10 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      § Docker any convention the project adds;
    - `.claude/settings.json`: in `permissions.ask`, `Bash(make <task>*)` for each project task that
      deletes data under a name other than `reset`, or runs a command it's given under a name other
-     than `run` (C9, C10). The docker module already allows `Bash(make *)` and asks before `reset`
-     and `run`. It's a permission change: name it in the change the developer approves.
+     than `run` (C9, C10). The docker module already allows `Bash(make *)` and asks before `reset`;
+     `run` gets no rule, since the approve-container-run hook decides it by the mode, and an ask
+     rule would win over the hook. It's a permission change: name it in the change the developer
+     approves.
 
    § Troubleshooting gets only problems you actually met. For example, the newsletter site: `web`
    (the Next.js app, on container port 3000) and `redis` (the signup rate limiter), started with
@@ -285,7 +296,10 @@ reset in the main checkout of a hub.
 | "A fixed `container_name` makes it predictable" | It makes a second worktree's stack fail to start. The checkout's folder names the project. |
 | "`env_file: .env` passes everything at once" | Every container gets every variable, credentials included, and nothing says which service needs what. Each service's `environment:` names what it gets. |
 | "`make *` is allowed, so any task is safe to run" | The allow trusts the project's Makefile; only the ask rules stop a task. A task that deletes data under another name, or a `logs` that follows, needs fixing or its own ask rule (C9). Check the task (`make -n <task>`) before you run one you haven't read. |
-| "`make run cmd=\"yarn test src/x.test.ts\"` is the quickest way to run one test" | It's a command of your own through the developer's escape hatch, so it asks every time. `make test t=src/x.test.ts` runs the same thing through the task. When no task does what you need, that's a gap to add (C10). |
+| "`make run cmd='yarn test src/x.test.ts'` is the quickest way to run one test" | `make test t=src/x.test.ts` runs the same thing through the task, in every mode, and a reviewer can read it. `make run` is for what no task covers (C10). |
+| "The stack is in Docker, but `npm ci` on the host is quicker" | The host's runtime and dependencies aren't the project's, and the command prompts. `make run cmd='npm ci'` runs it in the app's container, with no prompt (C10). |
+| "I'll write it as `cd app && make run cmd=\"echo $VAR\"`" | A `cd`, or a `$` the host's shell would expand, asks: the hook approves only a call it can read. Run it from the checkout's root, in single quotes, with a `$` for the container as `$$`. |
+| "`make run cmd='cat .env'` shows what the app sees" | It prints credentials into the conversation, on the host or in the container (V4), and the hook asks. `.env.example` names the variables. |
 | "It's quicker to run the tests with `DEV_MODE=native`" | The mode is the developer's choice (M10). Run every task in the configured mode; if one can't run there, say what it needs and ask. |
 | "The bug only shows in the production build, so I'll run the build and start commands on the host" | That runs a third environment, outside the configured mode, with the host's runtime and variables. `make prod` builds and serves it in the mode this checkout uses (C11), and `make urls` says where. With no `prod` task, say what you need and ask. |
 | "`make reset` will fix the migration error" | It's `docker compose down -v`: it deletes the data. It's the last step, not the first; find the cause, and reset only as far as it needs. |
@@ -309,7 +323,8 @@ reset in the main checkout of a hub.
 - [ ] No secret was printed: no unfiltered `config`, no `inspect` of the environment, no `.env`
 - [ ] Every destructive step was scoped to this project, named what it removed, and had the developer's yes
 - [ ] `make urls` shows each published service, answering
-- [ ] Every task that deletes data or runs a command it's given has an ask rule, and no task waits for input or follows (C9, C10)
+- [ ] Every task that deletes data has an ask rule, and so does any task but `run` that runs a command it's given; no task waits for input or follows (C9, C10)
+- [ ] In Docker mode `make run cmd='<command>'` runs in the app's container with no prompt, and the app's service mounts nothing of the host but the checkout (C10, D5)
 - [ ] `make test t=<file>` and `make lint f=<file>` run just that file
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
 - [ ] With a dev command for the host: in native mode `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it

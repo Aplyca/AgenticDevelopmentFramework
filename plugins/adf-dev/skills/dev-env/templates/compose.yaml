@@ -31,7 +31,9 @@ services:
       # A credential passes through from .env, e.g.
       # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
     volumes:
-      # CUSTOMIZE: the source, for reloads — keep dependency and build folders out of the mount
+      # CUSTOMIZE: the source, for reloads — keep dependency and build folders out of the mount.
+      # The checkout and named volumes only, never the Docker socket or a path outside the checkout
+      # (D5): `make run` runs any command in this container without a prompt.
       - .:/app
     depends_on:
       redis:

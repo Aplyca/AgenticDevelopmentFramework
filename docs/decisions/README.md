@@ -42,13 +42,13 @@ projects.
 | [0029](0029-workflows-carry-agent-checklists.md) | A workflow carries the agent checklists its lenses follow | accepted; amended by 0030 |
 | [0030](0030-workflows-carry-skill-steps.md) | A workflow carries the skill steps its agents follow | accepted |
 | [0031](0031-agent-model-overrides-in-the-project-rule.md) | A project changes an agent's model in its own rule, which the session passes when it spawns the agent | accepted |
-| [0032](0032-local-environment-layout.md) | A project's local environment: `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks | accepted; amended by 0034, 0038, 0071 |
+| [0032](0032-local-environment-layout.md) | A project's local environment: `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks | accepted; amended by 0034, 0038, 0071, 0077 |
 | [0033](0033-pull-request-upkeep-without-prompts.md) | An agent pushes, opens, edits, and comments on its draft pull request without a prompt | accepted; amended by 0038, 0053, 0070 |
 | [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted; amended 2026-10-15, 2026-10-16 |
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted; amended by 0055, 0061, 0067 |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted; amended 2026-10-16 |
-| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted; amended by 0074 |
+| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted; amended by 0074, 0077 |
 | [0039](0039-check-locally-then-on-the-preview.md) | An agent checks a change locally first, then on the pull request's preview | accepted; amended by 0045, 0072 |
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted; amended by 0042 |
 | [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted |
@@ -87,6 +87,7 @@ projects.
 | [0074](0074-github-and-gitlab-alike.md) | GitHub and GitLab alike: the PR-state hook asks `glab` on GitLab, every skill's `gh` command has its `glab` one, and the skeleton's settings ship the `glab` rules | accepted |
 | [0075](0075-the-gitlab-module.md) | The `gitlab` module: GitHub's harness in GitLab's terms — a `Default.md` merge request template, the tracker redirect in the default issue template, and the gates as one framework-owned CI include with the team's settings in `.gitlab-ci.yml` | accepted |
 | [0076](0076-a-status-only-tracker-update-needs-no-prompt.md) | A tracker update that changes only the task's status needs no prompt: a hook approves that call and leaves every post, and any other edit, to the prompt | accepted |
+| [0077](0077-the-container-is-the-boundary-for-make-run.md) | In Docker mode the container is the boundary: `make run` runs any command in the app's container without a prompt, a hook asks wherever it would run on the host, and the specification says what the container doesn't protect | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
