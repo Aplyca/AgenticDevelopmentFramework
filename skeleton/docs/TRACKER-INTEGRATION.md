@@ -195,7 +195,7 @@ the project names (§ Stakeholder updates › Status at each moment), and **deli
 | Action | GitHub issues (`gh`) | GitLab issues (`glab`) |
 |---|---|---|
 | Read the task and its comments | `gh issue view <n> --comments` | `glab issue view <n> --comments` |
-| Who is signed in | `gh api user --jq .login` | `glab auth status` |
+| Who is signed in | `gh api user --jq .login` | `glab api user` — its `username` |
 | The labels the repository has | `gh label list` | `glab label list` |
 | Move the status | `gh issue edit <n> --add-label "<new>" --remove-label "<old>"` | `glab issue update <n> --label "<new>" --unlabel "<old>"` |
 | Post an update | `gh issue comment <n> --body-file <file>` | `glab issue note <n> < <file>` |

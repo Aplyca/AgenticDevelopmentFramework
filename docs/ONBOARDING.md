@@ -108,7 +108,7 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Rule | Enforced by |
 |---|---|
 | Claude Code loads `AGENTS.md` — a `CLAUDE.md` or `CLAUDE.local.md` would replace it | The session-context hook warns when one is in the project or above it |
-| A session hears once when its branch's pull request merged (it offers the wrap-up) or closed (it asks whether the task is dropped) | `pr-state.sh` hook — `gh` at session start and at most every five minutes after |
+| A session hears once when its branch's pull request merged (it offers the wrap-up) or closed (it asks whether the task is dropped) | `pr-state.sh` hook — `gh`, or `glab` on GitLab, at session start and at most every five minutes after |
 | A session is named after its task once the triage is stated, as `/triage` does in the desktop app — in a terminal, and in the desktop app when the triage was made without `/triage`; a title you set stays | `session-title.sh` hook |
 | No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
@@ -117,13 +117,13 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
 | A session's move into a worktree of this repository passes Claude Code's permission check in the desktop app; any other folder still asks. The app's own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `approve-worktree-move.sh` hook |
 | A tracker update that changes only the task's status passes without a prompt, once `APPROVE_STATUS_MOVE` names the tracker's tool; a comment, or an update that also touches an assignee, a date, or the description, still asks | `approve-status-move.sh` hook |
-| `git` and `gh` run without a prompt, except `git config`, pushing tags, merging or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. With `docker`, Docker and make commands run without a prompt; deleting data, `docker push`, commands that print secrets, and `make run` ask | `permissions.allow` · `permissions.ask` |
-| A person confirms merges, reviews, releases, GitHub API writes. Keeping the pull request current — pushing, editing it, commenting on it, marking it ready once the agent's own tests pass — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
+| `git`, `gh`, and `glab` run without a prompt, except `git config`, pushing tags, merging, approving, or reviewing a pull request, releases, deleting the repository, secrets (`gh secret`, `glab variable`), `gh auth`, `glab auth` and `glab token`, and API writes. With `docker`, Docker and make commands run without a prompt; deleting data, `docker push`, commands that print secrets, and `make run` ask | `permissions.allow` · `permissions.ask` |
+| A person confirms merges, reviews, releases, GitHub and GitLab API writes. Keeping the pull request current — pushing, editing it, commenting on it, marking it ready once the agent's own tests pass — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once it has checked the change locally | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
 | `/stakeholder-update` starts from a plain request ("update the client"); a message that asks the requester for something posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
-| Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
+| Secret scan and base-branch policy — advisory until a ruleset (GitHub) or *Pipelines must succeed* (GitLab) requires them | [`github`](../modules/github/MODULE.md) or [`gitlab`](../modules/gitlab/MODULE.md) module |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
 
 Everything above the module rows is Claude Code configuration; Cursor, Copilot, and other tools get

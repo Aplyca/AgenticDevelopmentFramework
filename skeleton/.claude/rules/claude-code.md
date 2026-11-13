@@ -13,7 +13,7 @@
 
 Hooks and permissions hold whatever the instructions say; their values live in `.claude/hooks/config.sh` and `.claude/settings.json`:
 
-- **Ask first:** merging or reviewing a pull request, releases, `push --tags`, `git config`, `gh auth`, secrets, and `gh api` writes.
+- **Ask first:** merging, approving, or reviewing a pull request, releases, `push --tags`, `git config`, `gh auth` and `glab auth`, secrets, and `gh api` and `glab api` writes.
 - **No prompt:** commits, the work branch's push, its draft, and marking it ready once your own tests pass — and keeping that pull request current. They are a standing go-ahead: never ask for them, in a reply or in the desktop app's next-step box.
 - **Never:** `--no-verify`; a commit, push, or force-push on a protected branch; a pull request that isn't a draft; a hand edit to generated files or append-only history; reading secret env files.
 - **Stops once, as a reminder:** a session's first edit or new branch with no lane stated in your replies; the first edit in a sensitive area; with parallel-agents, any edit in the main checkout (`/dispatch` first).

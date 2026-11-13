@@ -83,6 +83,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | Module | When |
 |---|---|
 | `github` | The repository is on GitHub — PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy |
+| `gitlab` | The repository is on GitLab — the same as `github`: a merge request template, issue templates, and the secret scan and base-branch policy as a CI include; merge its blocks into an existing `.gitlab-ci.yml` ([decision 0075](decisions/0075-the-gitlab-module.md)) |
 | `git-hooks` | You want a `pre-push` gate for every git client, not only Claude Code |
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
 | `parallel-agents` | Several agent sessions work at once, each needing a running app |
@@ -138,7 +139,7 @@ on conflict, so the two must agree — especially about branches and merge targe
   auto-detected, `LOCAL_URL` (the URL the agent walks in the local check, and the developer tests on).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
   the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
-  On GitLab, add the `glab` equivalents of the `gh` rules.
+  The `glab` rules sit beside the `gh` ones, so a GitLab project needs nothing added.
 - **`.claude/rules/`** — update the `<!-- CUSTOMIZE -->` sections and the `paths:` frontmatter of
   `architecture`, `ui-ux`, `deployment`, `performance`, `observability`; delete rules that can't apply.
   `code-quality`, `testing`, `security`, and `git-workflow` are universal.

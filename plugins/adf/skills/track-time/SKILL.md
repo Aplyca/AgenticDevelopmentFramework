@@ -57,7 +57,9 @@ what's already logged, so it can run at each milestone without logging a day twi
    `docs/TIME-TRACKING.md` — understanding the task, research and investigation, debugging, manual
    testing, code review, task management, reporting and stakeholder communication, meetings:
    - Look for each activity's evidence: the tracker task's comments and status changes, the pull
-     request's reviews and comments (`gh pr view --json reviews,comments`), commits outside every block
+     request's reviews and comments (`gh pr view --json reviews,comments`; on GitLab,
+     `glab mr view <n> --comments --output json`, whose discussions carry the approvals as system
+     notes), commits outside every block
      (`git log --format='%h %ad %s' --date=iso-local`), the local and preview checks the developer
      approved, stakeholder updates, and what the developer said in the sessions.
    - Estimate the activities the evidence shows, in whole units, rounded up. An activity with no

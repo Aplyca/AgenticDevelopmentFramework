@@ -298,8 +298,8 @@ for event, entries in settings.get("hooks", {}).items():
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
 # Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
-# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
-# still prompt is asked by name (decisions 0022, 0033, 0038).
+# command, and an ask rule wins over any allow rule. git, gh, and glab are allowed broadly, and what
+# must still prompt is asked by name (decisions 0022, 0033, 0038, 0074).
 allow_rules = settings.get("permissions", {}).get("allow", [])
 ask_rules = settings.get("permissions", {}).get("ask", [])
 def matches(rules, command):
@@ -328,6 +328,20 @@ expected = {
     "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
     "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
     "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+    # GitLab, the same split (0074): the draft merge request, its upkeep, ready, reviewers, issues, reads.
+    "glab mr create --draft --target-branch main --title x": "allow",
+    "glab mr update 12 --description-file b.md": "allow", "glab mr update 12 --ready": "allow",
+    "glab mr update 12 --reviewer +a": "allow", "glab mr note create 12 --message x": "allow",
+    "glab mr view 12 --output json": "allow", "glab ci status --wait": "allow", "glab mr close 12": "allow",
+    "glab issue note 3 --message x": "allow", "glab issue update 3 --label x": "allow",
+    "glab api user": "allow", "glab api projects/:id/protected_branches": "allow",
+    # Merging, approving, releases, the repository, secrets (CI/CD variables, secure files), auth, API writes.
+    "glab mr merge": "ask", "glab mr merge 12": "ask", "glab mr accept 12": "ask",
+    "glab mr approve": "ask", "glab mr approve 12": "ask", "glab mr revoke 12": "ask",
+    "glab mr unapprove 12": "ask", "glab release create v1": "ask", "glab repo delete x": "ask",
+    "glab variable get X": "ask", "glab var list": "ask", "glab securefile download 1": "ask",
+    "glab auth status": "ask", "glab token create t": "ask", "glab api projects/:id -X PUT": "ask",
+    "glab api projects/:id/notes -f body=x": "ask", "glab api projects/:id/uploads --form file=@a.png": "ask",
 }
 for command, want in expected.items():
     if verdict(command) != want:
@@ -336,7 +350,7 @@ print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git, gh, and glab allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -888,12 +902,12 @@ check_practices() {
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
     grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
     file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
-    # A status-only tracker update needs no prompt (0075): the hook, its settings, and the rule that keeps the call status-only.
-    grep -q 'approve-status-move.sh' "$SETTINGS" || missing+=("settings.json: approve-status-move hook (0075)")
-    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_STATUS_MOVE=""' || missing+=("config.sh: APPROVE_STATUS_MOVE, empty in the skeleton (0075)")
-    file_contains "$HOOKS_DIR/config.sh" '^STATUS_MOVE_FIELDS=' || missing+=("config.sh: STATUS_MOVE_FIELDS (0075)")
-    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Send the status alone' || missing+=("/stakeholder-update status.md: the status goes alone, in a call of its own (0075)")
-    file_contains "$MODULES_DIR/clickup/MODULE.md" 'APPROVE_STATUS_MOVE="mcp__clickup__clickup_update_task"' || missing+=("clickup module: names its status tool for APPROVE_STATUS_MOVE (0075)")
+    # A status-only tracker update needs no prompt (0076): the hook, its settings, and the rule that keeps the call status-only.
+    grep -q 'approve-status-move.sh' "$SETTINGS" || missing+=("settings.json: approve-status-move hook (0076)")
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_STATUS_MOVE=""' || missing+=("config.sh: APPROVE_STATUS_MOVE, empty in the skeleton (0076)")
+    file_contains "$HOOKS_DIR/config.sh" '^STATUS_MOVE_FIELDS=' || missing+=("config.sh: STATUS_MOVE_FIELDS (0076)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Send the status alone' || missing+=("/stakeholder-update status.md: the status goes alone, in a call of its own (0076)")
+    file_contains "$MODULES_DIR/clickup/MODULE.md" 'APPROVE_STATUS_MOVE="mcp__clickup__clickup_update_task"' || missing+=("clickup module: names its status tool for APPROVE_STATUS_MOVE (0076)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
@@ -1102,6 +1116,68 @@ PY
         pass "skills' reference files: each named by a step of its SKILL.md, each one named there present, none relying on \${CLAUDE_PLUGIN_ROOT} (0063)"
     else
         fail "skills' reference files" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
+check_host_parity() {
+    # The framework works on GitHub and GitLab (decision 0074): a skill whose folder names a `gh`
+    # command names the `glab` one too — in its steps or a reference file beside them — and so does
+    # each agent, workflow, hook script, and skeleton file that names one. The github module is GitHub's own.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+gh = re.compile(r"(?<![\w-])gh (pr|issue|api|run|release|repo|label|auth|secret|workflow|search|browse|cache|variable)\b")
+glab = re.compile(r"(?<![\w-])glab\b")
+units = [(os.path.relpath(d, root) + "/", sorted(glob.glob(os.path.join(d, "*.md"))))
+         for d in sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*"))) if os.path.isdir(d)]
+singles = glob.glob(os.path.join(root, "plugins", "*", "agents", "**", "*.md"), recursive=True) \
+    + glob.glob(os.path.join(root, "plugins", "*", "workflows", "**", "*"), recursive=True) \
+    + glob.glob(os.path.join(root, "plugins", "*", "hooks", "*.sh")) \
+    + glob.glob(os.path.join(root, "skeleton", "**", "*.md"), recursive=True) \
+    + glob.glob(os.path.join(root, "skeleton", "**", "*.mdc"), recursive=True)
+units += [(os.path.relpath(f, root), [f]) for f in sorted(singles) if os.path.isfile(f)]
+for rel, files in units:
+    text = "".join(open(f, encoding="utf-8", errors="replace").read() for f in files)
+    if gh.search(text) and not glab.search(text):
+        print(f"{rel}: names a gh command and no glab one")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "GitHub and GitLab: every skill, agent, workflow, hook, and skeleton file that names a gh command names its glab one (0074)"
+    else
+        fail "GitHub and GitLab: a gh command without its glab one" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
+check_host_templates() {
+    # The gitlab module's merge request template is the github module's pull request template in
+    # GitLab's words (decision 0075): the same sections, agent-owned markers, labels, and checklist,
+    # in the same order, so /adf:open-pr fills either one the same way.
+    local report
+    report=$(python3 - "$MODULES_DIR/github/files/.github/pull_request_template.md" \
+        "$MODULES_DIR/gitlab/files/.gitlab/merge_request_templates/Default.md" <<'PY'
+import re, sys
+shape = re.compile(r"^(## .*|<!-- /?adf:[a-z-]+ -->|\*\*[^*]+:\*\*|- \[ \] .*|- [A-Z][a-z ]+:|\d+\.)\s*(?:<!--.*)?$")
+def skeleton(path):
+    try:
+        lines = open(path, encoding="utf-8").read().split("\n")
+    except FileNotFoundError:
+        return None
+    return [m.group(1).rstrip() for m in map(shape.match, lines) if m]
+github, gitlab = skeleton(sys.argv[1]), skeleton(sys.argv[2])
+if github is None or gitlab is None:
+    print("a template is missing"); sys.exit()
+if github != gitlab:
+    for a, b in zip(github + [""] * len(gitlab), gitlab + [""] * len(github)):
+        if a != b:
+            print(f"pull request template has '{a}' where the merge request template has '{b}'"); break
+PY
+)
+    if [ -z "$report" ]; then
+        pass "templates: the gitlab module's merge request template has the github pull request template's sections, markers, and checklist (0075)"
+    else
+        fail "templates: the merge request template differs from the pull request template" "$report"
     fi
 }
 
@@ -1659,6 +1735,8 @@ check_spec_records
 check_found_along_the_way
 check_plugin
 check_skill_reference_files
+check_host_parity
+check_host_templates
 check_dev_env_templates
 check_upgrade
 check_no_tracked_junk

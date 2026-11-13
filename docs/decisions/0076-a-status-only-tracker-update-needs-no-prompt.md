@@ -1,4 +1,4 @@
-# 0075: A tracker update that changes only the status needs no prompt
+# 0076: A tracker update that changes only the status needs no prompt
 
 - **Status:** accepted
 - **Date:** 2026-11-12

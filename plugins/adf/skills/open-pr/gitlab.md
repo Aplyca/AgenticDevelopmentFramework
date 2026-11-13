@@ -25,7 +25,9 @@ everything else in the steps holds as written.
 - **CI and the preview are one pipeline.** A review app deploys as one of its jobs, so
   `glab ci status --wait` returns once both are done. Its URL is the merge request's environment,
   or where `AGENTS.md` § Quick reference says previews deploy.
+- **The description's template:** `.gitlab/merge_request_templates/Default.md` when it exists (the
+  `gitlab` module ships it, with the same sections), in place of `.github/pull_request_template.md`.
 - **A requester's issue** is referenced in the description with `Related to #<n>`, never
   `Closes #<n>`: GitLab closes the issue at the merge, before the change is live.
-- **Permissions:** `/adf:adopt` adds the `glab` equivalents of the `gh` rules; marking a merge
+- **Permissions:** the project's settings carry the `glab` rules beside the `gh` ones; marking a merge
   request ready and requesting its reviewers need no prompt, and merging or approving one asks.

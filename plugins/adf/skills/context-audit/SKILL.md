@@ -48,8 +48,10 @@ agent tool, not only Claude Code.
    workflows themselves ("pre-push runs the unit tests" — does it?). Hook configuration
    (`PROTECTED_BRANCHES`, append-only paths) matches the documented branching and migration rules.
 5. **Enforcement claims** — statements like "CI must pass before merge" or "the branch is
-   protected": check what you can (with `gh`, read-only: `gh api repos/{owner}/{repo}/rulesets`). What
-   you can't check from here is reported as UNVERIFIED, never assumed.
+   protected": check what you can with the host's CLI, read-only —
+   `gh api repos/{owner}/{repo}/rulesets`, or on GitLab `glab api projects/:id/protected_branches`
+   and `glab api projects/:id` for `only_allow_merge_if_pipeline_succeeds`. What you can't check
+   from here is reported as UNVERIFIED, never assumed.
 6. **Versions and environment** — runtime versions in docs match the version files and manifests;
    environment variables in docs match the env template.
 

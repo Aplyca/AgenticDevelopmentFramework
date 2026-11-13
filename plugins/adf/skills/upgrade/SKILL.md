@@ -123,6 +123,8 @@ that aren't installed — a project adopted before modules existed has none — 
 repository's facts, by the same rules as `/adopt` Step 3:
 
 - `github` — the repository is on GitHub
+- `gitlab` — the repository is on GitLab (an existing `.gitlab-ci.yml` takes the module's three
+  blocks as a merge)
 - `git-hooks` — the team wants local gates that every git client runs
 - `clickup` — requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests, commits,
   or the README; a `clickup` server in `.mcp.json`)
@@ -282,8 +284,8 @@ and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, 
 
 | Bucket | Typical contents | Action |
 |---|---|---|
-| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`, and the parallel-agents guide, `PARALLEL-AGENTS.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, `docs/SHARED-SERVICES.md`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`, and the parallel-agents guide, `PARALLEL-AGENTS.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts and gate jobs (`secret-scan.yml`, `.gitlab/ci/adf.yml`) | Copy verbatim from the new version |
+| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, `docs/SHARED-SERVICES.md`, the PR or MR template, `branch-policy.yml`, `.gitlab-ci.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
@@ -404,7 +406,7 @@ version), so the reviewer knows where to look; they need no plan row.
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
    gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
-   exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
+   exists (`github`); the MR template exists and `.gitlab-ci.yml` includes `.gitlab/ci/adf.yml` (`gitlab`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
    `.claude/settings.json` parses, and its `ask` list holds the docker rules and one for each
    project task that deletes data (`docker`), and its `allow` list holds `make e2e` and `make smoke` (`e2e`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
