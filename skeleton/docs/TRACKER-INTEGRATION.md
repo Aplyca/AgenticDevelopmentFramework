@@ -128,6 +128,11 @@ List the server's tools (`/mcp` in Claude Code), then allow only the read-only o
 
 Leave every write tool off the allow list, so each one prompts. <!-- CUSTOMIZE: adjust the prefixes to your server's real tool names. -->
 
+One write needs no prompt: the status move, which is the agent's own at three moments. Name the tool
+that moves a task's status in `APPROVE_STATUS_MOVE` (`.claude/hooks/config.sh`), and a call that
+carries only the task and its status passes. Every post still asks, and so does an update that
+also touches an assignee, a date, or the description.
+
 ## Stakeholder updates
 
 `/stakeholder-update` writes the requester's update at three moments, and the task's status moves

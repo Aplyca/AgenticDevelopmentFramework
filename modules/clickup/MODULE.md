@@ -40,10 +40,14 @@ In `docs/TRACKER-INTEGRATION.md`:
      move to; `/stakeholder-update` uses it before proposing a status change. **Status at each
      moment** names the list's own statuses for started (in progress), in review, and delivered (once the
      change is live) — leave out the ones between, such as acceptance testing or ready for release,
-     which people set. `clickup_update_task` moves the task and `clickup_create_comment` posts the
-     review and delivered updates, and both prompt: the agent does these on its own at each moment,
-     so allow the two tools in your own `.claude/settings.local.json` if you don't want the prompts
-     (`clickup_update_task` also edits assignees and dates, which the agent still asks about).
+     which people set. `clickup_update_task` moves the task: set
+     `APPROVE_STATUS_MOVE="mcp__clickup__clickup_update_task"` in `.claude/hooks/config.sh`, and a
+     call that changes only the status passes without a prompt, while one that also edits an
+     assignee, a date, or the description still asks. If a status-only move still prompts, the
+     call carries a field `STATUS_MOVE_FIELDS` doesn't list: add the task identifier's name there.
+     `clickup_create_comment` posts the review and delivered updates, and prompts: the prompt shows
+     the text before it goes out. A developer who doesn't want that prompt allows the tool in
+     their own `.claude/settings.local.json`.
    - **Usage guide:** a comment on the task — `clickup_create_comment` posts the draft, and
      `clickup_update_comment` brings it up to date once the change is live, which is safe while the
      guide holds no mention, link preview, or pasted image.

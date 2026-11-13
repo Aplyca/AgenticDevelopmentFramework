@@ -1,6 +1,6 @@
 # 0073: The ticket is for stakeholders, the pull request for the developer
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0076](0076-a-status-only-tracker-update-needs-no-prompt.md) — a status-only move can pass the tracker tool's prompt
 - **Date:** 2026-11-12
 - **Amends:** [0053](0053-stakeholder-updates-at-three-moments.md) — the review and delivered updates
   post on their own, and the delivered moment is when the change is live;

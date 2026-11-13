@@ -127,6 +127,15 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/approve-worktree-move.sh"
           }
         ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/approve-status-move.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [

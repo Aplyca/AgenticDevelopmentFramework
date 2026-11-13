@@ -339,6 +339,37 @@ echo 'APPROVE_WORKTREE_MOVE=""' >> "$T/.claude/hooks/config.sh"
 moves silent "$(move_event "$WORK/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
 git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
 
+# approve-status-move — a tracker update that changes only the status needs no prompt (0076)
+status_event() { printf '{"tool_name":"%s","cwd":"%s","tool_input":%s}' "$1" "$T" "$2"; }
+status_move() { # status_move <allow|silent> <event-json> <description>
+    local out code
+    out=$(printf '%s' "$2" | "$H/approve-status-move.sh" 2>&1)
+    code=$?
+    if [ "$code" = 0 ] && { { [ "$1" = allow ] && echo "$out" | grep -q '"permissionDecision":"allow"'; } || { [ "$1" = silent ] && [ -z "$out" ]; }; }; then
+        PASS=$((PASS+1)); echo "✓ approve-status-move.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ approve-status-move.sh: $3 (exit $code, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+update_tool="mcp__clickup__clickup_update_task"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in progress"}')" "does nothing until APPROVE_STATUS_MOVE names a tool"
+echo "APPROVE_STATUS_MOVE=\"$update_tool\"" >> "$T/.claude/hooks/config.sh"
+status_move allow "$(status_event "$update_tool" '{"task_id":"86a1","status":"in progress"}')" "approves an update that carries only the task and its status"
+status_move allow "$(status_event "$update_tool" '{"status":"in review","task_id":"86a1"}')" "approves it whatever the order of the fields"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in review","assignees":["42"]}')" "leaves an update that also sets an assignee to the prompt"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in review","description":"New text"}')" "leaves an update that also edits the description to the prompt"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","due_date":"2026-12-01"}')" "leaves an update with no status to the prompt"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":""}')" "leaves an empty status to the prompt"
+status_move silent "$(status_event "mcp__clickup__clickup_create_task_comment" '{"task_id":"86a1","comment_text":"Ready for review"}')" "leaves a comment to the prompt — every post asks"
+status_move silent "$(status_event "mcp__clickup__clickup_update_task_extra" '{"task_id":"86a1","status":"done"}')" "matches the tool's whole name, not its start"
+status_move silent "$(status_event "$update_tool" '"not an object"')" "leaves an input it can't read to the prompt"
+printf '%s\n' 'APPROVE_STATUS_MOVE="mcp__tracker__update_issue mcp__tracker__move_issue"' 'STATUS_MOVE_FIELDS="id team state"' >> "$T/.claude/hooks/config.sh"
+status_move allow "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","state":"In Review"}')" "takes several tools, and the project's own field names"
+status_move silent "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","team":"mkt"}')" "needs the status field — the last one listed"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in progress"}')" "stops approving a tool the setting no longer names"
+echo 'APPROVE_STATUS_MOVE=""' >> "$T/.claude/hooks/config.sh"
+status_move silent "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","state":"In Review"}')" "does nothing when APPROVE_STATUS_MOVE is empty"
+
 # Packaged install (decision 0016): the plugin's generated scripts, with no config.sh of their own,
 # load _lib.sh from CLAUDE_PLUGIN_ROOT and read the project's .claude/hooks/config.sh through
 # CLAUDE_PROJECT_DIR — both set by Claude Code.

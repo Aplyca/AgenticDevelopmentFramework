@@ -15,6 +15,7 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `triage-first.sh` | PreToolUse · Edit/Write, Bash | A nudge: if the session's reply text states no lane yet, the first file edit or new branch (`git switch -c`, `git checkout -b`, `git branch <name>`, `git worktree add`) is stopped once with a reminder to write the triage where the developer can read it (`AGENTS.md` § Triage first). Subagents are exempt. Empty `TRIAGE_FIRST` turns it off |
 | `protect-hub.sh` | PreToolUse · Edit/Write | With the parallel-agents module installed, stops every file edit in the main checkout, so each task moves to its own worktree first, and lets edits in worktrees through. Without the module it does nothing. Empty `HUB_READONLY` turns it off. Writes made through Bash aren't seen |
 | `approve-worktree-move.sh` | PreToolUse · the desktop app's `change_directory` | Approves a session's move into a linked worktree of the same repository — a session's move from the main checkout into its task's worktree (`/adf:dispatch`) — so Claude Code's permission check doesn't ask. Any other folder still prompts. The app's own folder-trust check isn't a permission, and no hook answers it: see [Moving into a worktree](#moving-into-a-worktree). Empty `APPROVE_WORKTREE_MOVE` turns it off |
+| `approve-status-move.sh` | PreToolUse · MCP tools | Approves a call to the tracker tool `APPROVE_STATUS_MOVE` names when it carries nothing but the fields in `STATUS_MOVE_FIELDS` — the task's identifier and its status — so the status moves the agent makes on its own (in progress, in review, delivered) don't prompt (decision 0076). Says nothing about any other call, which still prompts: a comment or any other post, and an update that also touches an assignee, a date, or the description. It reads the call, not whose task it is or which way the status moves. Empty `APPROVE_STATUS_MOVE` turns it off |
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
 
 Pushing a work branch, and opening, editing, commenting on, or marking ready its pull request, run
@@ -25,7 +26,7 @@ confirm each one.
 ## Configure
 
 Edit **`config.sh`** — protected branches, append-only and generated paths, sensitive paths, the
-env template, ignored variables. The scripts read it on every run, as data: one `KEY="value"` line per
+tracker's status tool, the env template, ignored variables. The scripts read it on every run, as data: one `KEY="value"` line per
 setting, and nothing in it runs. You don't edit the scripts (they are framework-owned and replaced on
 upgrade), nor their helpers: `_lib.sh`, and `json-get`, `transcript-text`, and `session-title`, which
 read the event and the session transcript, and write the session's title, with `jq` (`.jq`) or, without

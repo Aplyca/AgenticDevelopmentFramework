@@ -71,6 +71,15 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/approve-worktree-move.sh\""
           }
         ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/approve-status-move.sh\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

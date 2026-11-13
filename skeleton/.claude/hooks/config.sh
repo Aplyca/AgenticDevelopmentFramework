@@ -37,6 +37,16 @@ HUB_READONLY="1"
 # asks until you trust the folder that holds the main checkout and its worktrees. Empty disables.
 APPROVE_WORKTREE_MOVE="1"
 
+# CUSTOMIZE: a tracker task's status moves on the agent's own — in progress, in review, delivered —
+# but a tracker's write tools stay off the allow list, so each move prompts. Name the tool that
+# moves a task's status here — e.g. "mcp__clickup__clickup_update_task" — and a call to it that
+# carries nothing but STATUS_MOVE_FIELDS passes without a prompt. Every other call still asks: a
+# comment or any other post, and an update that also touches an assignee, a date, or the description.
+# Several tools: separate them with spaces. Empty disables.
+APPROVE_STATUS_MOVE=""
+# The only fields such a call may carry: the task's identifier, then the status field, last.
+STATUS_MOVE_FIELDS="task_id status"
+
 # A session hears once when its branch's pull request merged (offer /wrap-up) or closed without
 # merging (ask whether the task is dropped). "1" asks gh, or glab on GitLab, at session start and at
 # most every five minutes after, on a work branch only; without either it does nothing. Empty disables.

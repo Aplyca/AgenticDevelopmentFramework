@@ -11,6 +11,46 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A tracker update that changes only the status needs no prompt**
+  ([decision 0076](docs/decisions/0076-a-status-only-tracker-update-needs-no-prompt.md), amending
+  0059 and 0073).
+  - **What:**
+    - **A new hook, `approve-status-move.sh`,** approves a call to the tracker tool
+      `APPROVE_STATUS_MOVE` names when it carries nothing but the fields in `STATUS_MOVE_FIELDS` —
+      the task's identifier and its status. The three status moves an agent makes on its own — in
+      progress, in review, delivered — prompted each time on a tracker with an MCP server, though
+      the process says they need no yes; on GitHub and GitLab issues they never did.
+    - **Every other call still prompts:** a comment or any other post, and an update that also
+      touches an assignee, a date, or the description. The hook approves or stays silent; it never
+      blocks.
+    - **Off until the project names its tool.** The skeleton ships `APPROVE_STATUS_MOVE=""`. The
+      `clickup` module's guide gives its value, and no longer suggests allowing the whole update
+      tool in `settings.local.json`.
+    - **`/adf:stakeholder-update`'s status rules** say to send the status alone, in a call of its own.
+  - **Where:** `plugins/adf/hooks/` (new `approve-status-move.sh`, `tool-input-keys.jq`,
+    `tool-input-keys.py`; `_lib.sh`, `hooks.json`, `README.md`);
+    `plugins/adf/skills/stakeholder-update/status.md`, `plugins/adf/skills/adopt/SKILL.md`;
+    `skeleton/.claude/hooks/config.sh`, `skeleton/.claude/settings.json`,
+    `skeleton/docs/TRACKER-INTEGRATION.md`; `modules/clickup/MODULE.md`; onboarding; the hook tests
+    and the static checks.
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** none until the project sets `APPROVE_STATUS_MOVE`.
+  - **Overwrite:** committed install: `.claude/hooks/` — the new `approve-status-move.sh`,
+    `tool-input-keys.jq`, and `tool-input-keys.py`, and `_lib.sh` — and
+    `.claude/skills/stakeholder-update/status.md`, as `/adf:upgrade` writes them; packaged, they
+    come with the plugin, wiring included.
+  - **Merge:** committed install: the `hooks` block of `.claude/settings.json` —
+    `approve-status-move.sh` on `mcp__.*`. `docs/TRACKER-INTEGRATION.md` § Permissions — the
+    paragraph on the status move.
+  - **Additive:** in `.claude/hooks/config.sh`, the `APPROVE_STATUS_MOVE` and `STATUS_MOVE_FIELDS`
+    block.
+  - **Migration:** by hand — set `APPROVE_STATUS_MOVE` to the tool that moves a task's status: with
+    the `clickup` module, `"mcp__clickup__clickup_update_task"`. Then move one task: if it still
+    prompts, the call carries a field `STATUS_MOVE_FIELDS` doesn't list — add the task identifier's
+    name there. A developer who allowed the whole update tool in `.claude/settings.local.json` can
+    remove that rule, so assignee and date edits ask again.
+
 - **The `gitlab` module — the `github` module's harness for GitLab**
   ([decision 0075](docs/decisions/0075-the-gitlab-module.md), extending 0009 and 0074).
   - **What:**
