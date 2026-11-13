@@ -22,6 +22,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       read it.
     - **`/adf:open-pr` and `/adf:stakeholder-update`** have shorter descriptions — what the skill
       does and when to use it. The posting rules and the pull request's contents stay in the body.
+    - **`/adf:open-pr`'s closing principle** matches its steps: once the pull request is ready, the
+      reviewer request, the task's status move, and the review update need no yes in chat (0070,
+      0073, 0076). It still said every outward action but the draft and ready waits for a person.
     - An issue number left `/adf:upgrade` and `/adf:wrap-up`'s follow-ups file, a past-tense aside
       left `/adf:stakeholder-update`, and a doubled word left `/adf:adopt`.
   - **Where:** `plugins/adf/skills/` — `adopt/SKILL.md`, `upgrade/SKILL.md`, `open-pr/SKILL.md`,

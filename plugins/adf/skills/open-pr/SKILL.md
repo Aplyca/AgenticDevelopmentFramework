@@ -299,7 +299,7 @@ and skip the steps below.
 
 ## Principles
 
-- The draft opens once your own local check passes, and turns ready once your own tests pass — locally, on the preview, and CI. Review, merge, and every other outward action wait for a person.
+- The draft opens once your own local check passes, and turns ready once your own tests pass — locally, on the preview, and CI. Once it's ready, the reviewer request, the task's status move, and the review update need no yes in chat. Reviewing, approving, merging, and any message that asks the requester for something wait for a person.
 - Agents implement and review; humans decide. Local is yours to build, test, and review; the preview is yours to test and review, and the developer's to review, approve, and merge.
 - A draft while you're testing or blocked; ready once your tests pass.
 - Say what you verified and what you could not — evidence, not confidence.
