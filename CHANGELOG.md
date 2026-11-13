@@ -11,6 +11,40 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Stale copies and contradictions fixed in the agents, the rules, and the reference docs** — from
+  a prompt audit of the files the two skill audits didn't cover.
+  - **What:**
+    - **`AGENTS.md`** loses two bullets that changed nothing ("Research before acting",
+      "Right-size responses") and a leftover sentence in the careful lane; the push rule is stated
+      once, in § Delivery rules.
+    - **`testing.md`:** a third party's service is what tests never rely on — the checkout's own
+      database is not external; a test file is a module or flow and a feature suite is their folder
+      (0069); the generic § Test structure and § What to test go.
+    - **`claude-code.md`** says `make` runs without a prompt with the docker module, not always.
+      **`git-workflow.md` and `code-quality.md`** no longer say "don't commit generated files":
+      lockfiles are generated, and committed.
+    - **Agents:** `@adf:spec-writer` knows the usage guide (0073), the light change request, the
+      status a full one sets, and roles in place of names (0050); `@adf:test-runner` runs the tests
+      it wrote, by name (0069); `@adf:code-reviewer` is told it can't run git and reviews what its
+      caller hands it, checks Analytics and Localization, and says "before the push".
+    - **Reference docs:** the cost model no longer prices Sonnet at "about twice Haiku" or says
+      compaction needs no hand; the parallel-agents guide matches its own section on app-created
+      worktrees; the memory strategy's links resolve in a packaged install.
+  - **Where:** `skeleton/AGENTS.md`; `skeleton/.claude/rules/` (`testing.md`, `claude-code.md`,
+    `git-workflow.md`, `code-quality.md`); `plugins/adf/agents/` (`spec-writer.md`,
+    `test-runner.md`, `code-reviewer.md`); `plugins/adf/docs/` (`COST-MODEL.md`,
+    `PARALLEL-AGENTS.md`, `MEMORY-STRATEGY.md`, `MCP-INTEGRATION.md`).
+
+  **Upgrade impact:**
+  - **Behavior on upgrade:** `@adf:test-runner` runs fewer tests per call; nothing else changes a
+    rule.
+  - **Overwrite:** committed install: the three agents under `.claude/agents/`, the four reference
+    docs, and the universal rules `testing.md`, `git-workflow.md`, and `code-quality.md`; packaged,
+    the agents and docs come with the plugin.
+  - **Merge:** `AGENTS.md` — remove the two bullets under § Working economically and the last
+    sentence of the careful lane; `.claude/rules/claude-code.md` § Commands that run without a
+    prompt — the first bullet's opening.
+
 - **Stale facts outside the skills** — seen in passing during the prompt audits.
   - **What:**
     - **`/adf:cost-report` prices Fable 5.2 and Mythos 5.2** at $8 / $40, cache reads $0.20. They

@@ -34,10 +34,10 @@ This project uses TDD at task granularity: each task in a spec folder's `tasks.m
 
 ## Workflow
 
-1. **Map spec to tests** — identify each AC, edge case, and testable requirement from the sections above. Each one becomes at least one test.
+1. **Map spec to tests** — identify each AC, edge case, and testable requirement from the sections above. Each one gets a test, once, at the cheapest layer that proves it (`.claude/rules/testing.md` § Strategy).
 2. **Check existing coverage** — don't duplicate tests that already exist. Update them if behavior changed.
 3. **Write tests** — follow the project's established patterns for structure, mocking, and assertions. Tests describe EXPECTED behavior — the implementation may not exist yet.
-4. **Run tests** — execute and verify the expected state. In the red phase every new test must fail **for the right reason** (the missing behavior, not an import or fixture error). After implementation, all tests should pass.
+4. **Run tests** — the tests you wrote or changed, by name, or their file when it runs in seconds; a wider run only when the caller asks for one (`.claude/rules/testing.md` § Verification budget). In the red phase every new test fails **for the right reason**: the missing behavior, not an import, fixture, type, or compile error. After the implementation, the same tests pass.
 5. **Report evidence** — the red failure and the green result per test, the commands run with their counts, and anything you could not run and why — the input for `tasks.md` § Gate results.
 6. **Diagnose failures** — if tests fail unexpectedly, determine whether it's a test issue or an implementation bug. Fix the test if the test is wrong. Report to the user if the implementation doesn't match the spec.
 

@@ -43,7 +43,7 @@ A small task gets one line: `Fast lane — <the request in your words>; done whe
 Every lane gets the tests, the hooks, CI, your local check and `/review` before the pull request — `/review` reads in proportion to the lane — your test and review on the preview, and the developer's review after it. Definitions, triggers, and checklists: `specs/README.md` § Lanes.
 
 - **Fast** — the requester already decided what they want (or a bug with a clear cause restores intended behavior), about 3 files or fewer in one layer, no escalation trigger. Search every use of what you change; write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test); edit until it passes; `/commit`.
-- **Careful** — the same, touching a risk area: a migration or schema change, authentication or authorization, personal data, payments, a public API or contract, code other features use, infrastructure, CI, or deploy configuration, or a sensitive area below. Add that area's checklist, and name the risky part — the area, what the checklist found, what you walked — first in the pull request and your report. The push needs no yes.
+- **Careful** — the same, touching a risk area: a migration or schema change, authentication or authorization, personal data, payments, a public API or contract, code other features use, infrastructure, CI, or deploy configuration, or a sensitive area below. Add that area's checklist, and name the risky part — the area, what the checklist found, what you walked — first in the pull request and your report.
 - **Full** — something to decide, a new feature or dependency, or work across layers or more than ~3 files: the flow in § 3.
 
 **Move up a lane** when the diff grows past the files you stated, a test outside the area fails, or no test can prove the change — keep what's done and say so; into full, stop for the spec and the gate. **The developer can set the lane:** raising is always honored; lowering is honored for size, but a risk trigger keeps its checklist unless they explicitly accept the risk (say so in the pull request).
@@ -117,11 +117,9 @@ Every call re-reads the whole conversation, so cost and time grow with how long 
 
 ## AI interaction rules
 
-- **Research before acting** — read existing code, specs, and rules before proposing changes.
 - **Evaluate honestly** — assess the developer's proposed approach critically; flag concerns and suggest a better path when you see one.
 - **Flag risks proactively** — security risks, breaking changes, tech debt, blast radius — even when not asked.
 - **Report what you find along the way** — a bug or an improvement, related to the task or not: say it in that turn's report with `file:line`, and route it (`specs/README.md` § Found along the way): this branch's own bug is fixed in the task, an improvement to it is the developer's call, anything else is a follow-up in the pull request. Never drop it, never fix it in passing.
-- **Right-size responses** — simple task → just do it; clear spec → follow it; design decision → options with trade-offs; "deeply research" → thorough multi-perspective analysis.
 - **End every turn with what's next.** After your report — what you did and found, options, your recommendation — say who acts next: you, carrying on (never asking for a step already authorized); the developer, with the decision, approval, or test the work waits on, named once rather than every turn; or something outside — CI, a deploy — and how you'll know. Ask a person only at a gate. When the task's work is done, offer the step that closes it.
 
 ## Coding conventions
