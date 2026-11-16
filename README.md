@@ -169,14 +169,13 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.9.0** (2026-11-13), is a minor release: the framework works on GitLab as it does
-on GitHub, with a new `gitlab` module; with the `docker` module, `docker` and `make` commands run
-without a prompt, and `make run` runs any command in the app's container; a status-only tracker
-update needs no prompt; and the lane depends on whether there is something to decide, not on a file
-count. **v2.8.0** (2026-11-12), also a minor release: the agent tests and reviews its own pull
-request, marks it ready, and stops its local environment, while people review and merge; the ticket
-speaks to stakeholders and the pull request to the developer; and a test run is only as large as its
-question. This README describes `main`: what has landed
+The latest, **v2.10.0** (2026-11-16), is a minor release: with the `docker` module, Docker mode
+needs nothing on the host but Docker, git, and make; task worktrees sit under `.claude/worktrees/`,
+and the session moves there with `EnterWorktree`; follow-ups found along the way are filed as
+issues; and a merge wakes an idle session to wrap up. **v2.9.0** (2026-11-13), also a minor release:
+the framework works on GitLab as it does on GitHub, with a new `gitlab` module; with the `docker`
+module, `docker` and `make` commands run without a prompt; a status-only tracker update needs no
+prompt; and the lane depends on whether there is something to decide, not on a file count. This README describes `main`: what has landed
 since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
 one.
 

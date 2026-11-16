@@ -26,6 +26,44 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/skills/record-decision/`, and `.claude/skills/framework-feedback/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
     writes with the other reference docs.
 
+## v2.10.0 — 2026-11-16 — Docker mode with nothing on the host, worktrees under `.claude/worktrees/`, and follow-ups filed as issues
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. Some behaviors change on upgrade: with the `docker` module, a host test command
+prompts; with the `parallel-agents` module, new worktrees sit under `.claude/worktrees/`; with the
+`github` or `gitlab` module, follow-ups are filed as issues; and every tag push asks.
+
+- **Docker mode needs nothing on the host but Docker, git, and make** (0084). A `tools` service runs
+  `make test`, `lint`, `format`, `typecheck`, `deps`, and `run`, dependencies live in volumes, and
+  the main checkout's containers no longer reach the worktrees nested in it.
+- **A task's worktree sits under `.claude/worktrees/`** (0083), and the session moves there with
+  `EnterWorktree`, in the desktop app too (0085).
+- **Follow-ups found along the way are filed as issues** (0082), and adopting projects report the
+  framework's own problems with `/adf:framework-feedback` (0080).
+- **The session follows its pull request.** A merge wakes an idle session to offer the wrap-up
+  (0087); a pull request turns ready once CI goes green under the desktop app's Auto-fix; an answer
+  in the main checkout closes up there (0081).
+- **An audit of the framework against itself.** The git guard no longer fails open on quoted paths,
+  asks on every tag push, and reads a heredoc's body as data; stale text, drifted rules, and script
+  bugs are fixed across the hooks, modules, skills, and skeleton.
+
+**Upgrading from v2.9.0:**
+
+1. **Run `/adf:upgrade`.** One draft pull request merges the changed lines in `AGENTS.md`,
+   `specs/README.md`, `.claude/settings.json`, `.claude/hooks/config.sh` (`PR_WATCH_HOURS`,
+   `ENV_IGNORE`), the rules `claude-code.md`, `architecture.md`, `deployment.md`, and `ui-ux.md`,
+   `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, and, by module,
+   `.githooks/pre-push`, the pull or merge request template, and `ops/agent/worktree.conf`
+   (`WORKTREE_PARENT` goes). With the docker module, the unit and e2e host test commands leave
+   `.claude/settings.json`, each listed under Permission changes; add back any you want to keep.
+   In a committed install, it writes the release's machinery and wires the `Stop` hook and the
+   `EnterWorktree` matcher.
+2. **With the `docker` module, run `/adf-dev:dev-env`** to audit the stack against M11 and D5–D8:
+   it proposes the `tools` service, the dependency and cache volumes, `make deps`, and the `tmpfs`
+   over `.claude/worktrees` as a careful-lane task. Until then, `make run` keeps working as it did.
+3. **With the `parallel-agents` module,** check that `.gitignore` lists `.claude/worktrees/`.
+   Worktrees beside the main checkout keep working until their tasks wrap up.
+
 - **A merge wakes an idle session** ([decision 0087](docs/decisions/0087-a-merge-wakes-an-idle-session.md)).
   The `pr-state.sh` hook now also runs at `Stop`, in the background with `asyncRewake`. While the
   session sits idle with an open pull request, it asks `gh` (or `glab`) every five minutes for
