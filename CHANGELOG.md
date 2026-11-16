@@ -11,6 +11,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A pull request turns ready once CI goes green under the desktop app's Auto-fix**
+  ([#150](https://github.com/aplyca/AgenticDevelopmentFramework/issues/150)).
+  - **What:** the Claude desktop app's Auto-fix tells the agent not to poll CI, and wakes it for a
+    failing check, never a green one. Agents skipped `/adf:open-pr`'s background watch, so a pull
+    request whose CI was still running at the end of the turn stayed a draft: nothing brought the
+    agent back to mark it ready, request the reviewers, stop the environment, move the task, or post
+    the review update. Step 8 now says the watch runs even when the host watches the pull request,
+    and starts again after a fix; a turn that ends before the watch exits says the pull request
+    stays a draft until then (step 10), never that it turns ready on its own. A rationalization
+    names the case.
+  - **Upgrade impact:** overwrite for the plugin; committed install: `.claude/skills/open-pr/`.
+
 ## v2.9.0 — 2026-11-13 — GitLab alongside GitHub, fewer prompts, and lanes without a file count
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
