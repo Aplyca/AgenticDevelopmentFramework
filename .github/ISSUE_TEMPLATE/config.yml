@@ -1,0 +1,9 @@
+# Field reports and proposals have templates; maintainers' own issues can still start blank. Security
+# problems never go to a public issue (SECURITY.md).
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem
+    url: https://github.com/aplyca/AgenticDevelopmentFramework/security/advisories/new
+    about: >-
+      Anything in the framework that could make an adopting project less safe. Report it privately,
+      never in a public issue.
