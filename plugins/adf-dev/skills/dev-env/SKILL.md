@@ -134,6 +134,9 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - an app or tools service that mounts the Docker socket or a path outside the checkout, or runs
      `privileged` (D5): `make run` would reach the host from it. A CLI that needs the socket gets a
      service of its own, and its command-taking task an ask rule (D8);
+   - an app or tools service that mounts the checkout without the empty `tmpfs` over
+     `/app/.claude/worktrees` (D5): in the main checkout, `make run` reaches every nested worktree's
+     files and `.env`;
    - a task that deletes data under a name other than `reset` (`db-drop`, a `clean` that removes
      volumes), which `DEV-SETUP.md` doesn't name as one: `Bash(make *)` runs it without a prompt
      (C9), so an agent has to know to ask in chat first;
@@ -350,7 +353,7 @@ reset in the main checkout of a hub.
 - [ ] Every destructive step was scoped to this project, named what it removed, and had the developer's yes
 - [ ] `make urls` shows each published service, answering
 - [ ] Every task that deletes data is named as one in `DEV-SETUP.md`; a task other than `run` that runs a command it's given on the host has an ask rule; no task waits for input or follows (C9, C10)
-- [ ] In Docker mode `make run cmd='<command>'` runs in the tools container with no prompt, and neither the app's service nor `tools` mounts anything of the host but the checkout (C10, D5, D6)
+- [ ] In Docker mode `make run cmd='<command>'` runs in the tools container with no prompt, and neither the app's service nor `tools` mounts anything of the host but the checkout, with its nested worktrees hidden (C10, D5, D6)
 - [ ] In Docker mode `make deps`, `make lint`, `make typecheck`, and `make test` pass with the stack down and only `docker`, `git`, and `make` on the `PATH` (M11)
 - [ ] `make test t=<file>` and `make lint f=<file>` run just that file
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports

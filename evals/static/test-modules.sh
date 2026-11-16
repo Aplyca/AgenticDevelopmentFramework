@@ -474,6 +474,8 @@ check "compose.yaml: the tools service is in the tools profile, built from the D
     "grep -A1 '^  tools:' '$TPL/compose.yaml' | grep -q 'profiles: \\[tools\\]' && grep -q 'target: tools' '$TPL/compose.yaml' && grep -q '^FROM dev AS tools' '$TPL/ops/docker/web/Dockerfile'"
 check "compose.yaml: neither the app nor the tools service gets the Docker socket or the host's network (D5)" \
     "! grep -qE 'docker\\.sock|network_mode|privileged|pid: host' '$TPL/compose.yaml'"
+check "compose.yaml: the app and the tools hide the worktrees nested in the checkout behind an empty tmpfs (D5)" \
+    "[ \$(grep -c '^    tmpfs:\$' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - /app/.claude/worktrees\$' '$TPL/compose.yaml') -eq 2 ]"
 check "compose.yaml: the app and the tools mount this checkout's dependency volume; only the tools mount the shared cache, which has a fixed name (D7)" \
     "[ \$(grep -c '^      - deps:' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - deps-cache:' '$TPL/compose.yaml') -eq 1 ] && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    name: '"
 out=$(stack make -n urls 2>&1)

@@ -11,6 +11,21 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **With the `docker` module, the main checkout's containers no longer reach the worktrees nested in
+  it** (decisions [0083](docs/decisions/0083-task-worktrees-under-claude-worktrees.md) and
+  [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
+  - **What:** worktrees now sit under the main checkout's `.claude/worktrees/` (0083), and the app's
+    and the tools service mount the whole checkout. So in the main checkout, `make run`, which runs
+    any command without a prompt, reached every worktree's files and `.env`, though C10 says the
+    container keeps other worktrees out. The templates mount an empty `tmpfs` over
+    `/app/.claude/worktrees` in both services: inside, the folder is empty and what's written there
+    stays in memory. Where the folder doesn't exist, Docker creates it, empty, on the host, where
+    git ignores it. D5 and C10 say so, `/adf-dev:dev-env`'s audit names the gap, and the
+    parallel-agents guide notes it.
+  - **Upgrade impact:** merge, with the docker module: in `compose.yaml`, add to each service that
+    mounts the checkout a `tmpfs:` entry at the folder `.claude/worktrees` maps to inside it
+    (`/app/.claude/worktrees` when the checkout is at `/app`). Overwrite for the plugins; committed
+    install: `.claude/skills/dev-env/`, and with the parallel-agents module, its guide in `docs/`.
 - **With the `docker` module, Docker mode needs nothing on the host but Docker, git, and make**
   ([#149](https://github.com/aplyca/AgenticDevelopmentFramework/issues/149), second part; decision
   [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).

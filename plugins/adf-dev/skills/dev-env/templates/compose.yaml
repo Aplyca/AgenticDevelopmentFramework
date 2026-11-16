@@ -40,6 +40,10 @@ services:
       # This checkout's dependencies, which the tools service shares (D7). CUSTOMIZE: the folder the
       # install writes — e.g. node_modules for the newsletter site's Node.js app
       - deps:/app/node_modules
+    tmpfs:
+      # The worktrees nested in this checkout, hidden behind an empty folder: in the main checkout,
+      # this container reaches no other worktree's files or .env (D5)
+      - /app/.claude/worktrees
     depends_on:
       redis:
         condition: service_healthy
@@ -65,6 +69,9 @@ services:
       - .:/app
       - deps:/app/node_modules
       - deps-cache:/cache
+    tmpfs:
+      # As in the app's service: no nested worktree (D5)
+      - /app/.claude/worktrees
     depends_on:
       # CUSTOMIZE: the backing services the tests reach. make deps, lint, format, and typecheck
       # start none (--no-deps).
