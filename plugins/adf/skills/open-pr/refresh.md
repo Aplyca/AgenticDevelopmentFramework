@@ -22,8 +22,8 @@ Editing your own pull request's description is upkeep: it takes no prompt.
      what this pull request now delivers, with what the latest `CR N` changed. In the fast and
      careful lanes, the light `CR N` and the gate you just ran.
    - **Everything outside the markers stays byte for byte:** the traceability lines, checked boxes,
-     a reviewer's notes, screenshots. *Follow-ups* only gains a line for something new you found;
-     never tick or remove one.
+     a reviewer's notes, screenshots. *Follow-ups* only gains a line for something new you found, or
+     a tick and link for one the developer had filed as an issue; never remove one.
    - **A body without the markers** — opened before the template had them, or rewritten by hand — is
      all the people's: show the sections you'd replace, and apply only on the developer's yes.
 5. **Show the description's diff** before you apply it, old against new:

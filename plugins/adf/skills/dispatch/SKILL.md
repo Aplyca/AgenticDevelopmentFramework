@@ -24,7 +24,7 @@ isn't installed and stop.
 |---|---|---|
 | Has no task yet: in the main checkout, or in Claude Code's own worktree on a generated branch or a detached HEAD | A change, in any lane, or an answer whose triage needs an environment | **Move here** |
 | The same | An answer that only reads — code, docs, the tracker | None. Answer from where you are, and edit nothing. A change the answer recommends moves once the developer approves it |
-| Has a task: in a worktree on a task branch, or one already done in this conversation | Another task — one the developer brings, or one found along the way | **A new session** |
+| Has a task: in a worktree on a task branch, or one already done in this conversation | Another task — one the developer brings, or one found along the way | **A new session** — except a finding, when the stamp on `AGENTS.md`'s first line names `github` or `gitlab`: it's a follow-up the close-up files as an issue, and gets a session only when the developer wants it now |
 
 A session on a task branch that wasn't created by the scripts (an old Claude Code worktree) has its
 task: it stays a worker, and the session-context hook names what it lacks.
@@ -105,6 +105,7 @@ it names, and then runs in the worktree as the developer typed it.
 | "This session is free now — I'll take the next task here" | One task per session, worktree, branch, and pull request. Another task in this session mixes their context and their history. Offer it a new session. |
 | "The plan is approved — I'll start a fresh session for the docs and implementation" | That's a phase of this task, not another task: it stays in this session. Two sessions on one branch split the context, and the waiting one wakes on every turn the other ends. Compact and switch the model here (`/adf:write-plan` step 12). |
 | "I'll ask whether to open a new session for it" | The chip is that question. Asking first makes the developer answer twice. |
+| "I found an unrelated bug, so it gets a chip now" | With the `github` or `gitlab` module, a finding is filed as an issue at the close-up, where the team decides when it's done. A session now is the developer's call. |
 | "I'll triage the other task here so its session gets a head start" | Its session triages it where it can check what it reads. Analysis here drifts in the hand-off. |
 | "The other part's session will work out the interface from the code" | Its branch was cut from a base without the provider's change. A contract written in both specs, and carried in the prompt, is the only one both sides read. |
 
@@ -121,7 +122,7 @@ it names, and then runs in the worktree as the developer typed it.
 - [ ] The triage came first and named the branch — or a command that stopped in the main checkout named it
 - [ ] A change — or an answer that needed an environment — got its own worktree beside the main checkout before any edit, and `pwd` showed the session there
 - [ ] An answer that only read stayed where it was and changed nothing
-- [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own
+- [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own — a finding, with the `github` or `gitlab` module, only when the developer wanted it now
 - [ ] A part of a split feature got the contract in its prompt, and where a change to it is recorded
 - [ ] Nothing was edited or committed in the main checkout or in Claude Code's own worktree
 
