@@ -1,6 +1,6 @@
 # 0040: A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout
 
-- **Status:** accepted; amended by [0042](0042-each-session-moves-to-its-task-worktree.md) (the branch is the one triage names, and `/adf:dispatch` makes the move); amended by [0083](0083-task-worktrees-under-claude-worktrees.md) (the task's worktree sits under `.claude/worktrees/` too; the session leaves the app's worktree because the app reuses that folder)
+- **Status:** accepted; amended by [0042](0042-each-session-moves-to-its-task-worktree.md) (the branch is the one triage names, and `/adf:dispatch` makes the move); amended by [0083](0083-task-worktrees-under-claude-worktrees.md) (the task's worktree sits under `.claude/worktrees/` too; the session leaves the app's worktree because the app reuses that folder); amended by [0085](0085-the-session-moves-with-enterworktree.md) (the session moves with `EnterWorktree`: the app refuses `change_directory` from its own worktree)
 - **Date:** 2026-10-15
 - **Amends:** [0021](0021-sibling-worktree-and-chip.md) — where a chip's session opens;
   [0015](0015-tool-worktrees-are-workers.md) — a worker in Claude Code's own worktree renames its

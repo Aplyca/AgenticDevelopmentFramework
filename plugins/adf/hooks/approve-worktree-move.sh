@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: mcp__ccd_directory__change_directory). A session that takes a task creates
-# its worktree under the main checkout's .claude/worktrees/ and moves there with the desktop app's
-# change_directory (/adf:dispatch, decisions 0042 and 0083). Claude Code asks the developer to approve
-# that call, after they already gave the session its task (decision 0035). This approves a move into a
-# linked worktree of the session's own repository, and says nothing about any other folder, which
-# still prompts. It clears Claude Code's permission check only: the app also asks before it moves a
-# session into a folder outside every folder the developer trusted, and no hook answers that — the
-# task's worktree sits inside the main checkout, which they trust. Empty APPROVE_WORKTREE_MOVE turns
-# it off.
+# PreToolUse hook (matcher: EnterWorktree and the desktop app's mcp__ccd_directory__change_directory).
+# A session that takes a task creates its worktree under the main checkout's .claude/worktrees/ and
+# moves there with EnterWorktree, in the desktop app too: the app refuses change_directory for a
+# session in its own worktree (/adf:dispatch, decisions 0042, 0083, and 0085). Claude Code may ask the
+# developer to approve that move, after they already gave the session its task (decision 0035). This
+# approves a move into a linked worktree of the session's own repository, by either tool, and says
+# nothing about any other folder, which still prompts. It clears Claude Code's permission check only:
+# for change_directory the app also asks before it moves a session into a folder outside every folder
+# the developer trusted, and no hook answers that. Empty APPROVE_WORKTREE_MOVE turns it off.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 

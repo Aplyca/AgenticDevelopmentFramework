@@ -95,6 +95,7 @@ projects.
 | [0082](0082-follow-ups-found-along-the-way-are-filed-as-issues.md) | Follow-ups found along the way are filed as issues, not started as sessions: with the `github` or `gitlab` module, on the developer's yes at the close-up or as the improvement question's answer, with no chip at once | accepted |
 | [0083](0083-task-worktrees-under-claude-worktrees.md) | A task's worktree sits under the main checkout's `.claude/worktrees/`, named after its branch: no worktree beside the main checkout and no `WORKTREE_PARENT`; one from an older release is reused where it is, and the parallel-agents guide names the three ways a tool in a nested worktree can reach the main checkout's files | accepted |
 | [0084](0084-docker-mode-needs-nothing-on-the-host.md) | Docker mode needs nothing on the host but Docker, git, and make: a `tools` service in Compose's `tools` profile runs the checks, `make deps`, and `make run` with the stack up or not; dependencies live in volumes; a tool that needs the Docker socket gets its own service and an ask rule | accepted; amended 2026-11-16 |
+| [0085](0085-the-session-moves-with-enterworktree.md) | A session moves to its task's worktree with `EnterWorktree`, in the desktop app too: the app refuses `change_directory` from its own worktree, and the approve-worktree-move hook answers `EnterWorktree` as well; the app keeps showing the session in the folder it started in | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

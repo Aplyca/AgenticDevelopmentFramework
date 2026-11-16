@@ -239,7 +239,7 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
     fi
 }
 check_ctx "in the main checkout: triage first, then the task's own worktree, with /dispatch" "$T" "Triage the task first. A change, or an answer that runs the app, the tests, or the database, then gets its own worktree: /dispatch" "DISPATCHER"
-check_ctx "the task's worktree goes under .claude/worktrees/, from the base branch, and this session moves" "$T" "under .claude/worktrees/, on a new branch from main, and moves this session there" "Route:"
+check_ctx "the task's worktree goes under .claude/worktrees/, from the base branch, and this session moves" "$T" "under .claude/worktrees/, on a new branch from main, and moves this session there with EnterWorktree" "Route:"
 check_ctx "in the main checkout: an answer that only reads stays, and another task goes to a new session" "$T" "An answer that only reads stays here. Once this session has a task, another one goes to a new session"
 # A base branch behind origin's, as the last fetch left it: told to pull before branching.
 B="$WORK/behind"; mkdir -p "$B" && git -C "$B" init -q -b main
@@ -256,6 +256,7 @@ check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK
 # there creates the task's worktree (decision 0083) and moves, and never renames the branch.
 check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree under .claude/worktrees/ and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task gets a worktree of its own, named after its branch: triage the task, then /dispatch creates it under .claude/worktrees/" "git branch -m"
 check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task gets a worktree of its own" "git switch -c"
+check_ctx "worker in Claude Code's worktree: moves with EnterWorktree, which the app allows from there (0085)" "$T/.claude/worktrees/eager-lamport" "moves this session there with EnterWorktree (the app refuses change_directory from here)"
 check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somewhere-else" "Role: WORKER" "generated\|No .env\|Not set up"
 git -C "$T/.claude/worktrees/eager-lamport" branch -q -m feat/renamed
 check_ctx "an app worktree already on a task branch keeps its notes: the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here" "A task gets a worktree of its own"
@@ -337,6 +338,12 @@ moves silent "$(move_event "$WORK/no-module")" "leaves another repository to the
 moves silent "$(move_event "$WORK/plain-folder")" "leaves a folder outside any repository to the prompt"
 moves silent "$(move_event "$WORK/missing")" "leaves a folder that doesn't exist to the prompt"
 moves silent "$(move_event "feat-hub-check")" "leaves a relative path to the prompt"
+# The move is EnterWorktree, in the desktop app too: the app refuses change_directory from its own worktree (0085).
+enter_event() { printf '{"tool_name":"EnterWorktree","cwd":"%s","tool_input":%s}' "$2" "$1"; }
+moves allow "$(enter_event "{\"path\":\"$T/.claude/worktrees/feat-hub-check\"}" "$T/.claude/worktrees/calm-hopper")" "approves EnterWorktree from the app's worktree into a task worktree"
+moves allow "$(enter_event "{\"path\":\"$T/.claude/worktrees/feat-hub-check\"}" "$T")" "approves EnterWorktree from the main checkout into a task worktree"
+moves silent "$(enter_event "{\"path\":\"$T\"}" "$T/.claude/worktrees/calm-hopper")" "leaves EnterWorktree into the main checkout to the prompt"
+moves silent "$(enter_event '{"name":"scratch"}' "$T")" "leaves EnterWorktree creating a worktree of its own to its own check"
 echo 'APPROVE_WORKTREE_MOVE=""' >> "$T/.claude/hooks/config.sh"
 moves silent "$(move_event "$T/.claude/worktrees/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
 git -C "$T" worktree remove --force "$T/.claude/worktrees/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"

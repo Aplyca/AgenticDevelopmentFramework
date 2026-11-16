@@ -52,10 +52,11 @@ Right after the triage, `/dispatch`:
    branch, and the env file seeded from the main checkout's, with the worktree's own Compose project
    name. No port is reserved: the newsletter site's stack runs in Docker, which picks each worktree's
    ports when it starts. `--no-start` because the task's own steps decide what runs.
-2. **Moves the session into it** — `change_directory` to the path the script printed, in the desktop
-   app (a hook approves a worktree of this repository, so no prompt asks), or `EnterWorktree` in a
-   terminal. `pwd` confirms it. If the move is refused, the session gives you the worktree's path and
-   stops: open a session on that folder.
+2. **Moves the session into it** — `EnterWorktree` with the path the script printed, in the desktop
+   app and in a terminal alike (a hook approves a worktree of this repository, so no prompt asks).
+   `pwd` confirms it. The desktop app keeps showing the session in the folder it started in, and the
+   pull request reaches its PR bar when the session opens it. If the move is refused, the session
+   gives you the worktree's path and stops: open a session on that folder.
 
 The session carries on there from where its triage left off. Until the move it edits nothing — the
 protect-hub hook stops any edit in the main checkout. Hooks don't run again after the move, so the

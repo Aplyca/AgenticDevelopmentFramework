@@ -46,15 +46,17 @@ where they choose whether the other task starts.
    (`.claude/worktrees/feat-newsletter-signup-topics`), on a new branch from `BASE_BRANCH`, with the
    env file seeded from the main checkout's and, when worktrees run a server, a port reserved.
    Nothing starts.
-3. **Move this session into it,** to the path the script printed:
-   - **Desktop app:** `change_directory`. The approve-worktree-move hook approves a worktree of this
-     repository, so Claude Code's permission check doesn't ask.
-   - **Terminal:** `EnterWorktree` with `path`.
+3. **Move this session into it** with `EnterWorktree`, `path` set to the path the script printed,
+   in the desktop app and in a terminal alike. The approve-worktree-move hook approves a worktree of
+   this repository, so Claude Code's permission check doesn't ask. Not `change_directory`: the app
+   refuses it for a session in its own worktree, which every chip's is, or in a folder another
+   session shares.
 
    If the move is refused, give the developer the path and stop: they open a session on that folder.
 4. **Confirm with `pwd`, and carry on with the task** where the triage left it. The triage stands;
    don't repeat it. Session-start hooks don't run again after the move, so look for the branch's
-   spec folder yourself (`ls specs/`).
+   spec folder yourself (`ls specs/`). The desktop app keeps showing this session in the folder it
+   started in; the pull request still reaches its PR bar when `/adf:open-pr` opens it.
 
 Until the move, run nothing but the script, and edit and commit nothing. In Claude Code's own
 worktree, never rename its generated branch: the app reuses that folder for a later session once
@@ -98,6 +100,7 @@ it names, and then runs in the worktree as the developer typed it.
 |---|---|
 | "It's a one-line fix — I'll just do it here" | The main checkout is shared, and its base branch takes no commits. A change in any lane gets its worktree first. |
 | "I'll make the worktree before triage, to save time" | The triage names the branch, and an answer that only reads needs no worktree at all. |
+| "The app refused `change_directory`, so I'll give the developer the path" | The app refuses it from its own worktree, whatever the folder. `EnterWorktree` reaches the task's worktree from there: stop only if that's refused too. |
 | "The app already gave this session a worktree, so it can work there" | The app's worktree is on a generated branch, without the env file, the setup, or a name after the branch, and the app reuses its folder for a later session — with whatever this task left in it, its stack included. Create the task's worktree, and move. |
 | "This session is free now — I'll take the next task here" | One task per session, worktree, branch, and pull request. Another task in this session mixes their context and their history. Offer it a new session. |
 | "The plan is approved — I'll start a fresh session for the docs and implementation" | That's a phase of this task, not another task: it stays in this session. Two sessions on one branch split the context, and the waiting one wakes on every turn the other ends. Compact and switch the model here (`/adf:write-plan` step 12). |

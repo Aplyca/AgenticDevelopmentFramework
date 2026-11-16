@@ -68,7 +68,7 @@
         ]
       },
       {
-        "matcher": "mcp__ccd_directory__change_directory",
+        "matcher": "EnterWorktree|mcp__ccd_directory__change_directory",
         "hooks": [
           {
             "type": "command",

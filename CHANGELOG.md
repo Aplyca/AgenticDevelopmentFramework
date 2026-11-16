@@ -11,6 +11,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **With the `parallel-agents` module, a session moves to its task's worktree with `EnterWorktree`,
+  in the desktop app too** (decision
+  [0085](docs/decisions/0085-the-session-moves-with-enterworktree.md)).
+  - **What:** the desktop app now refuses `change_directory` for a session in its own worktree,
+    which every chip's is, or in a folder another session shares. `/adf:dispatch` gave the developer
+    the path and stopped. A probe found that `EnterWorktree` reaches the task's worktree from the
+    app's with no prompt and keeps the session there.
+    - **`/adf:dispatch`** moves with `EnterWorktree` and the path the script printed, in the desktop
+      app and a terminal alike. It stops only if that's refused too.
+    - **The approve-worktree-move hook answers `EnterWorktree` too,** with the same check, so
+      Claude Code's permission check doesn't ask in any mode. It still answers `change_directory`.
+    - **`/adf:wrap-up`:** Claude Code refuses git in the main checkout from a session that entered a
+      worktree, so the close-up leaves it first, with `ExitWorktree` and `keep`, once what the task
+      started is stopped.
+    - **The session-context hook** names the move in the main checkout and in the app's worktree.
+      The parallel-agents guide, the hooks' README, the scenario, and `config.sh`'s comment say so,
+      and that the app keeps showing the session in the folder it started in.
+  - **Upgrade impact:** overwrite for the plugins. Committed install: overwrite
+    `.claude/skills/dispatch/`, `.claude/skills/wrap-up/`, and `.claude/hooks/` (the
+    approve-worktree-move and session-context scripts and the README), and with the parallel-agents
+    module, its guide in `docs/`. Merge `.claude/settings.json`: the approve-worktree-move entry's
+    `matcher` becomes `EnterWorktree|mcp__ccd_directory__change_directory`. In
+    `.claude/hooks/config.sh`, only the comment above `APPROVE_WORKTREE_MOVE` changed.
 - **With the `docker` module, the main checkout's containers no longer reach the worktrees nested in
   it** (decisions [0083](docs/decisions/0083-task-worktrees-under-claude-worktrees.md) and
   [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
