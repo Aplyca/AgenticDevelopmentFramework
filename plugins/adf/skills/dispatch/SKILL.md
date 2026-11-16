@@ -88,7 +88,7 @@ it names, and then runs in the worktree as the developer typed it.
 3. **Offer it:**
    - **Desktop app:** a task chip for this repository, with the prompt, titled with the task's title
      alone (`Show the chosen topics after signup`). The new session's triage moves it to its own
-     worktree, and the app then shows that folder, named after the branch.
+     worktree.
    - **Terminal:** one command to run in a new terminal, in the main checkout: `claude "<prompt>"`.
 4. **Carry on with this session's own task.** The other one needs nothing more from this
    conversation. One found along the way is also a line in this pull request's `## Follow-ups`

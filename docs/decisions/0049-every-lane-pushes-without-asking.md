@@ -1,6 +1,6 @@
 # 0049: Every lane commits, pushes, and opens its draft without asking — a standing go-ahead
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0070](0070-the-agent-marks-its-pull-request-ready.md) (the agent marks its pull request ready once its own tests pass; this record left ready to the developer)
 - **Date:** 2026-10-22
 - **Amends:** [0047](0047-sessions-move-to-done.md) — the careful lane's yes before the push is
   dropped, and is no longer one of the gates

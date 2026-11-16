@@ -31,8 +31,8 @@ Users → CDN → Load Balancer → App Instances (PaaS) → Database (Managed)
 | Environment | Purpose | URL | Branch | Auto-deploy? |
 |---|---|---|---|---|
 | Development | Local development | `localhost`, on the port each checkout's stack gets (`make urls`) | Any | No |
-| Staging | Pre-production validation | [staging URL] | `main` | Yes |
-| Production | Live | [production URL] | Release tag | Manual approval |
+| Staging | Pre-production validation | [staging URL] | [e.g., `main`, or `staging`] | [Yes / No] |
+| Production | Live | [production URL] | [e.g., `main`, or a release tag] | [e.g., Manual approval] |
 
 ## Environment variables
 
@@ -69,6 +69,8 @@ Users → CDN → Load Balancer → App Instances (PaaS) → Database (Managed)
 | Cache | [Fixed] | [1 instance] | [1 instance] | [N/A] |
 
 ## CI/CD pipeline
+
+[Replace with your pipeline, as `CONTRIBUTING.md`'s branching model has it — e.g.:]
 
 ```
 Push to main

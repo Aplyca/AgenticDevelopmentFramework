@@ -120,7 +120,7 @@ files the project customized. Summarize for the user what the upgrade brings bef
 
 **Offer the modules the project doesn't have.** List the modules at NEW_SHA (`modules/README.md`)
 that aren't installed — a project adopted before modules existed has none — and recommend from the
-repository's facts, by the same rules as `/adopt` Step 3:
+repository's facts, by the same rules as `/adf:adopt` Step 3:
 
 - `github` — the repository is on GitHub
 - `gitlab` — the repository is on GitLab (an existing `.gitlab-ci.yml` takes the module's three
@@ -129,7 +129,7 @@ repository's facts, by the same rules as `/adopt` Step 3:
 - `clickup` — requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests, commits,
   or the README; a `clickup` server in `.mcp.json`)
 - `parallel-agents` — several agent sessions may work on the repository at once: each task gets its
-  own worktree, branch, pull request, and session, and the main checkout only dispatches
+  own worktree, branch, pull request, and session, and the main checkout takes no edits
 - `docker` — the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the team
   wants a containerized local environment: `/dev-env` writes the stack or moves it to the
   conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), runs the app
@@ -156,10 +156,11 @@ follow-up.
 
 **If the developer chooses `parallel-agents`,** do the whole upgrade in a worktree of its own, created
 with plain git since the module's script isn't there yet:
-`git worktree add -b chore/skeleton-upgrade-<NEW_SHA> ../chore-skeleton-upgrade-<NEW_SHA> <base>`.
-Edit files under that path and run git with `-C <that path>`. Once the module is installed, the
-protect-hub hook stops edits in the main checkout, so the main checkout stays a clean hub from the
-first commit.
+`git worktree add -b chore/skeleton-upgrade-<NEW_SHA> .claude/worktrees/chore-skeleton-upgrade-<NEW_SHA> <base>`,
+where the module puts every task's worktree (add `.claude/worktrees/` to `.gitignore` first when it
+isn't ignored yet). Edit files under that path and run git with `-C <that path>`. Once the module is
+installed, the protect-hub hook stops edits in the main checkout, so the main checkout stays clean
+from the first commit.
 
 Uncommitted changes in the main checkout don't follow into the worktree. Check `git status` there
 before creating it. The usual one is the plugin setting the install left in `.claude/settings.json`:
@@ -298,7 +299,7 @@ out, and the plugin its `module.json` names, when that isn't `adf`, is turned on
 `permissions.allow`. Each module's
 `MODULE.md` § Customize steps join the plan's
 checklist — for `parallel-agents`, `worktree.conf` (only `BASE_BRANCH` and `SETUP_CMD` unless worktrees
-run a server) and the dispatcher line in `AGENTS.md` § Delivery rules; for `docker`, `/dev-env set up`
+run a server) and the "Parallel sessions" line in `AGENTS.md` § Delivery rules; for `docker`, `/dev-env set up`
 as a follow-up in a new session once the stamp names the module. A project that already has `docker`
 gets the same follow-up whenever the release changed the local environment specification
 (`dev-env`'s `SPECIFICATION.md`; the CHANGELOG names it): `/dev-env set up` audits the stack against
@@ -310,7 +311,7 @@ is `/unit set up`, and `/unit audit` when the release changed its `SPECIFICATION
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the
-skeleton because the Claude Directory accepts no symlinks, and `/adopt` now creates it. Files that moved
+skeleton because the Claude Directory accepts no symlinks, and `/adf:adopt` now creates it. Files that moved
 (`R` in `--name-status`, e.g. `specs/_template.md` → `specs/_templates/`, or the parallel-agents
 module's `scripts/agent/` → `ops/agent/`) follow the changelog's migration notes.
 
@@ -397,15 +398,16 @@ version), so the reviewer knows where to look; they need no plan row.
 
 ## Step 6 — Verify and deliver
 
-1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
+1. Run the verification from `/adf:adopt` Step 6: settings JSON valid with nested hook entries; hook
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
    `CLAUDE_PLUGIN_ROOT` and `CLAUDE_PROJECT_DIR` exported: the hooks use `set -u`); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
    gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
    exists (`github`); the MR template exists and `.gitlab-ci.yml` includes `.gitlab/ci/adf.yml` (`gitlab`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
-   `.claude/settings.json` parses, and its `ask` list holds the docker rules and one for each
-   project task that deletes data (`docker`), and its `allow` list holds `make e2e` and `make smoke` (`e2e`). Packaged, for
+   `.claude/settings.json` parses, its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its
+   `deny` list holds the mode-change rules, and its `ask` list holds no docker or make rule of the
+   module's (`docker`), and its `allow` list holds `make e2e` and `make smoke`, or the `Bash(make *)` that covers them (`e2e`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.

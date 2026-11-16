@@ -148,7 +148,7 @@ upgrade "$P" > "$WORK/run.md" 2>"$WORK/run.err"; rc=$?
 check "run: exits 0" "[ $rc -eq 0 ] || { cat '$WORK/run.err'; false; }"
 check "run: AGENTS.md keeps the team's notes" "grep -q 'The newsletter service owns the subscriber list' '$P/AGENTS.md'"
 check "run: restamped, packaged, with the modules" \
-    "head -1 '$P/AGENTS.md' | grep -q \"Skeleton source: $(git -C "$REPO_ROOT" rev-parse --short=7 HEAD) .* modules: parallel-agents, docker · install: packaged — update on every\""
+    "head -1 '$P/AGENTS.md' | grep -Eq \"Skeleton source: (v[0-9.]+ · )?$(git -C "$REPO_ROOT" rev-parse --short=7 HEAD) .* modules: parallel-agents, docker · install: packaged — update on every\""
 check "run: the customized rule keeps its line" "grep -q 'newsletter pipeline' '$P/.claude/rules/deployment.md'"
 check "run: settings.json parses and has no hooks block" \
     "python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); sys.exit(\"hooks\" in s)' '$P/.claude/settings.json'"
@@ -344,8 +344,13 @@ check "refuses a dirty working tree (exit 2)" "[ $rc -eq 2 ]"
 git -C "$D" checkout -q -- README.md
 upgrade "$WORK/dirty" > /dev/null 2>&1; rc=$?
 check "refuses the default branch (exit 2)" "[ $rc -eq 2 ]"
-python3 "$UPGRADE" "$D" --history "$REPO_ROOT" > /dev/null 2>"$WORK/rel.err"; rc=$?
-check "refuses a tree that isn't a release without --unreleased" "[ $rc -eq 2 ] && grep -q 'unreleased' '$WORK/rel.err'"
+# On the commit a release tag names, the tree is that release: there is nothing to refuse.
+if git -C "$REPO_ROOT" describe --tags --exact-match HEAD >/dev/null 2>&1; then
+    echo "(skipped: HEAD is a release tag, so the tree is a release)"
+else
+    python3 "$UPGRADE" "$D" --history "$REPO_ROOT" > /dev/null 2>"$WORK/rel.err"; rc=$?
+    check "refuses a tree that isn't a release without --unreleased" "[ $rc -eq 2 ] && grep -q 'unreleased' '$WORK/rel.err'"
+fi
 python3 "$UPGRADE" "$D" --history "$REPO_ROOT" --protocol 9 > /dev/null 2>&1; rc=$?
 check "refuses a wrapper protocol it doesn't speak" "[ $rc -eq 2 ]"
 new_project "$WORK/old" packaged ""

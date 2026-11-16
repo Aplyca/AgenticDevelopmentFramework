@@ -79,6 +79,7 @@ not a research project.
    - Kind: change request on specs/007-newsletter-signup/ (delivered in <PR link>; this changes AC3)
    - Lane: full — the request leaves open who receives the confirmation (source: triggers)
    - Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
+   - Branch: feat/newsletter-signup-second-email
    - Environment: needed later, for the TDD loop — not for planning
    - Open questions: 1) Is the second email optional? 2) Does it receive the confirmation email?
    - Next: /adf:write-spec (CR 2), then /adf:write-plan
@@ -86,6 +87,10 @@ not a research project.
 
    For the careful lane, name the trigger and its checklist: `Lane: careful — adds a migration
    (trigger); checklist: new file, fresh-database run, compatible with the running code`.
+
+   The `Branch:` line is for a change with the parallel-agents module, where `/adf:dispatch`
+   creates the task's worktree on it; the one-line form ends with it too (`branch:
+   fix/signup-company-optional`). Without the module, leave it out.
 
    When the session runs on the other model, say so in that line: `model: sonnet — this session is
    on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; after
@@ -191,6 +196,7 @@ one a new session (`/adf:dispatch` too).
 - [ ] Prior work was searched when the task points at a feature, a tracker task, or delivered work; for new behavior, whether it already exists or was declined before
 - [ ] The first message states the deliverable and, for a change, the lane with its reason and source, and the model
 - [ ] A fast-lane change states its request, its "done when", and its files
+- [ ] With the parallel-agents module, a change's triage names its branch (`Branch: <type>/<slug>`)
 - [ ] Nothing — no branch, file, spec folder, or environment — was created before the triage was stated
 - [ ] Every task — answers and the fast lane too — got a descriptive session name before any other step; in the desktop app, the session's title names the task; in a terminal, the triage line opens with it, for the session-title hook
 - [ ] The session's model and effort fit the lane — switched in the desktop app unless the developer chose them or the task was nearly done; named in a terminal

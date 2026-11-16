@@ -17,7 +17,7 @@ wants it to behave differently:
 - Nothing delivered yet → a new feature: the flow in [`specs/README.md`](../../skeleton/specs/README.md), worked end to end in the [newsletter-signup example](../examples/newsletter-signup/).
 - The code doesn't do what the spec says → a bug: [Debugging](debugging.md) — regression test and fix, no spec change.
 - Production is broken now → [Hotfix](hotfix.md).
-- A typo or a change the spec doesn't record → the fast lane, no change request: edit, test, `/commit`. Copy that lives in the CMS isn't a code change at all.
+- A typo or a change the spec doesn't record → the fast lane, no change request: test first, edit, `/commit`. Copy that lives in the CMS isn't a code change at all.
 
 ## Why it has its own playbook
 
@@ -47,7 +47,7 @@ but the wording is given, it touches one component and its test, and no trigger 
 ```
 Fast lane — the email field's label reads "Your email" instead of "Email address"; done when the form
 shows it and the label test asserts it; files: NewsletterForm.client.tsx, NewsletterForm.test.tsx,
-specs/007-newsletter-signup/spec.md (light CR 3).
+specs/007-newsletter-signup/spec.md (light CR 3); model: sonnet.
 ```
 
 `spec.md` gains, in the same commit as the change (`feat: label the newsletter email field "Your
@@ -170,6 +170,8 @@ been missed."*
 Triage — Newsletter signup: show the chosen topics after signing up (https://tracker.example.com/t/MKT-412)
 - Deliverable: change
 - Kind: change request on specs/007-newsletter-signup/ — CR 1 recorded a generic success message as the requester's decision
+- Lane: full — the copy's home and the empty case are open (source: triggers)
+- Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
 - Environment: needed later, for the TDD loop — not for planning
 - Spec folder: amend specs/007-newsletter-signup/ as CR 2
 - Open questions: 1) Is the lead-in ("You'll hear about:") editable in Contentful like the rest of the copy?

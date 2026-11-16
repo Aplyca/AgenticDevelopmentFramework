@@ -30,7 +30,7 @@ You can't run git: review the diff and the commit list (`git log --oneline <base
 - Is error handling present? (API endpoints catch errors and return proper status codes; frontend handles fetch failures gracefully)
 
 ### Scope and evidence
-- Is every changed file inside the plan's change surface (or is the extension recorded and re-confirmed)? In the fast and careful lanes: inside the files the triage stated, with no escalation trigger the lane didn't account for (`specs/README.md` § Lanes)?
+- Is every changed file inside the plan's change surface (or is the extension recorded in the plan, and re-confirmed where it grew into risk)? In the fast and careful lanes: inside the files the triage stated, with no escalation trigger the lane didn't account for (`specs/README.md` § Lanes)?
 - Does each commit correspond to one task, with its test?
 - Does `tasks.md` § Gate results show red-then-green evidence and say what wasn't run?
 - Does any change conflict with a constitution principle?

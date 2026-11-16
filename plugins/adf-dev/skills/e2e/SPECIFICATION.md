@@ -173,6 +173,8 @@ departure (§ Conformance), recorded with its reason.
   pull request where the pipeline can start the stack.
 - **K4.** A delivered feature that creates a critical flow adds it to the list, and its smoke test
   lands with the feature.
+- **K5.** A smoke test for behavior that already exists is a characterization test: committed green
+  with `test:` after proving it can fail — break its assertion, watch it fail, restore it.
 - **K6.** **Tiers and feature suites** follow `.claude/rules/testing.md` § Tiers and feature suites
   ([decision 0058](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)):
   `@smoke` ⊂ `@critical` ⊂ the whole suite, a test tagged with its lowest tier only
@@ -181,8 +183,6 @@ departure (§ Conformance), recorded with its reason.
   `make e2e` takes `tier=<smoke|critical|regression>` and `suite=<name>`: `tier=critical` runs
   `--grep "@smoke|@critical"`, and `suite=<name>` filters by folder or `@suite:<name>`. `make smoke` is
   `make e2e tier=smoke`; without the `docker` module, `npm --prefix e2e test -- --grep "@smoke|@critical"`.
-- **K5.** A smoke test for behavior that already exists is a characterization test: committed green
-  with `test:` after proving it can fail — break its assertion, watch it fail, restore it.
 
 ## Test first — `F`
 

@@ -29,7 +29,7 @@ move — and, in a worktree the scripts didn't set up, what it lacks: a task bra
 file, or the scripts' setup. The core `protect-hub.sh`
 hook stops file edits in the main checkout once the module is there, and the core
 `approve-worktree-move.sh` hook lets a session move into a worktree of the repository without a
-prompt in the desktop app. The core `/handoff` skill
+prompt, in the desktop app and a terminal alike. The core `/handoff` skill
 covers passing work in progress on.
 
 The module's guide, `PARALLEL-AGENTS.md` — one task per session and worktree, the scripts, a server

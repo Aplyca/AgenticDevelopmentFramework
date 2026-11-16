@@ -181,6 +181,7 @@ default fixture stays topic-free.
 | --- | --- | --- | --- |
 | `docs/admin/newsletter.md` — "Managing topics"; the "Already subscribed message" field marked as no longer shown | Site administrators (marketing) | pre | T101 |
 | `docs/copy/newsletter-defaults.md` — a success message for new and existing subscribers alike | Marketing (copy) | pre | T102 |
+| Usage guide, on the tracker task — a step for adding topics | The requester (marketing) | usage guide | T103 |
 | `docs/runbooks/newsletter.md` — looking up a group ID; checking a subscriber's topics; a wrong group ID | Operators / on-call | post | T141 |
 
 ## Rollout & deployment

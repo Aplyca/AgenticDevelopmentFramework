@@ -28,6 +28,10 @@ target_dir="$(git -C "$target" rev-parse --path-format=absolute --git-dir)"
 target_common="$(git -C "$target" rev-parse --path-format=absolute --git-common-dir)"
 [ "$target_dir" != "$target_common" ] || exit 0
 session_common="$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || exit 0
-[ "$(cd "$target_common" && pwd -P)" = "$(cd "$session_common" && pwd -P)" ] || exit 0
+# A git older than 2.31 doesn't know --path-format and prints nothing usable: an empty result on
+# either side is no match, never two equal blanks.
+target_real="$(cd "$target_common" 2>/dev/null && pwd -P)" || exit 0
+session_real="$(cd "$session_common" 2>/dev/null && pwd -P)" || exit 0
+[ -n "$target_real" ] && [ "$target_real" = "$session_real" ] || exit 0
 
 printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"The folder is a worktree of this repository, where this session works on its task (approve-worktree-move hook)."}}'

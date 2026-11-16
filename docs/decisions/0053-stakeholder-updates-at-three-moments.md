@@ -1,6 +1,6 @@
 # 0053: The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request
 
-- **Status:** accepted; amended by [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) — the review and delivered updates post on their own, and delivered means live
+- **Status:** accepted; amended by [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) — the review and delivered updates post on their own, and delivered means live; amended by [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) (the status is no longer part of the message's approval) and [0064](0064-tracker-writes-through-the-projects-server.md) (the read-back checks the author, and a correction no longer always edits the comment)
 - **Date:** 2026-10-23
 - **Amends:** [0033](0033-pull-request-upkeep-without-prompts.md) — `/stakeholder-update` no longer
   comments on the pull request, so "requester-visible text is still confirmed, in chat" covers only

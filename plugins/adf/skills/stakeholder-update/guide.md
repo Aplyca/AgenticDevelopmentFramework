@@ -12,7 +12,8 @@ approved at the gate; this puts it where the requester reads it.
 3. **Before the build — once the gate approved the spec:** post the text as it is in the spec, under
    a first line that says what it is: `**Usage guide (draft) — how this will work once it's
    delivered.**` It posts on its own: the developer approved its text with the spec. With **Updates
-   post: on the developer's yes**, show it and ask first.
+   post: on the developer's yes**, show it and ask first. Tick its Phase 1 task in `tasks.md` with
+   the comment's link, and commit the tick.
 4. **At delivered — the change is live:** update the guide where it lives, from the spec's text as
    it merged — the same comment, edited, with the first line now `**Usage guide**` — and link it
    from the delivered update. The spec's text was reconciled with what the build changed before the
@@ -22,6 +23,13 @@ approved at the gate; this puts it where the requester reads it.
    developer; read it back. A description is rewritten whole, so where it holds something an edit
    would lose — a mention, a link preview (§ Stakeholder updates) — the guide goes in a comment
    instead. Never touch the rest of the description.
+
+**A change request** (`CR N`) that changes how the requester uses it: the guide already posted
+stays as it is — it describes what is live. Post what the CR changes as a new comment, first line
+`**Usage guide (draft, CR N) — what changes once it's delivered.**`, and tick the CR's Phase 1 task
+with its link. At delivered, edit the existing guide from the spec's text as it merged (step 4), and
+change the CR draft's first line to `**Usage guide (draft, CR N) — now in the usage guide.**`, with
+its link. A CR on a task of its own posts there, as step 3 does.
 
 **No spec folder** — the fast and careful lanes: there's no draft. A guide the change needs is a
 short "how to use it" paragraph in the delivered update.

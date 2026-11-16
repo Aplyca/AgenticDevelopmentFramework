@@ -15,6 +15,8 @@
       AC4, AC5, AC6)
 - [x] T002 — Copy defaults `docs/copy/newsletter-defaults.md`: suggested text for the six fields
       (→ AC1, AC2, AC4, AC6)
+- [x] T003 — Post the usage guide's draft on the tracker task (→ Documentation) — comment:
+      https://tracker.example.com/t/MKT-412?comment=COMMENT_ID
 
 ## Phase 2 — Foundation
 
@@ -58,7 +60,7 @@
 
 ## Phase 5 — Reconcile & polish
 
-- [x] T040 — Reconcile committed docs with what was built (→ Documentation)
+- [x] T040 — Reconcile committed docs and the usage guide with what was built (→ Documentation)
 - [x] T041 — Post-implementable docs: operator runbook `docs/runbooks/newsletter.md` (→ Documentation)
 - [x] T042 — Record gate results below
 
@@ -99,7 +101,8 @@ exported signature existed with no behavior behind it.
 
 **Docs.** T040: the 14 claims in the admin guide and the copy defaults were checked against the
 build; 13 held and 1 was rewritten (Contentful won't publish an entry with an empty required field —
-see the `docs:` commit). T041: the runbook was written from the built log events and error mapping.
+see the `docs:` commit). The usage guide's four steps hold as written. T041: the runbook was
+written from the built log events and error mapping.
 
 **Full gate** (`pnpm verify`):
 

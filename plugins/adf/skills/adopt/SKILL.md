@@ -47,7 +47,7 @@ commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`).
 **Already adopted?** If the first line of the target's `AGENTS.md` — or of `CLAUDE.md`, in a project
 adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
-stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
+stamp) or point to `/adf:upgrade`. When the parallel-agents module is already installed, the main
 checkout takes no edits: started there, run `/adf:dispatch` with `chore/add-modules` as the branch,
 without asking first. It creates the task's worktree under `.claude/worktrees/` and moves this session
 there, where you go on.
@@ -159,7 +159,7 @@ Present the table before going further. Wrong facts here poison every file downs
   - `git-hooks` — when the team wants local gates for every git client
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
-  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches, every task through `/dispatch` (ports and start commands only if each worktree runs a server)
+  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout takes no edits: the session that takes a task moves to its worktree with `/dispatch` (ports and start commands only if each worktree runs a server)
   - `docker` — when the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the
     team wants a containerized local environment: `/dev-env` writes the stack from its templates or
     moves an existing one to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`,
@@ -226,8 +226,8 @@ Present the table before going further. Wrong facts here poison every file downs
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
 - **`.claude/hooks/config.sh`** — `APPROVE_STATUS_MOVE` (the tracker tool that moves a task's status, when the tracker has an MCP server), `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
-  areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the developer
-  opens for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
+  areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the agent
+  walks for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
   parallel-agents module, or leave it empty there and let `READY_URL` serve).
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions, the `glab` ones beside the `gh` ones on either host.
@@ -274,7 +274,7 @@ Present the table before going further. Wrong facts here poison every file downs
 
 - First line of `AGENTS.md`:
   `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
-  The release, its commit, and the date are the ones Step 1 recorded. Without the stamp, `/upgrade` has
+  The release, its commit, and the date are the ones Step 1 recorded. Without the stamp, `/adf:upgrade` has
   no baseline to diff against. Packaged: `· install: packaged` follows the modules — it's what turns
   the plugin's skills, agents, and hooks on in this project.
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
@@ -286,7 +286,7 @@ Present the table before going further. Wrong facts here poison every file downs
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
   and `"enabledPlugins": {"adf@aplyca": true}` into `.claude/settings.json`: keep both when
   merging the skeleton's settings, so they're committed with the adoption and teammates get the
-  plugin and `/upgrade`. If they're missing — a user- or local-scope install — offer to add them
+  plugin and `/adf:upgrade`. If they're missing — a user- or local-scope install — offer to add them
   (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
   install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
   skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
@@ -305,9 +305,9 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
 - [ ] Packaged, with `parallel-agents`: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
-- [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
-- [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke`
-- [ ] With `unit`: `.claude/settings.json` parses and its `allow` list holds `npm test` and `npm run test:smoke`
+- [ ] With `docker`: `.claude/settings.json` parses, its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its `deny` list holds the module's `DEV_MODE` and `SERVICES` rules, and its `ask` list holds no docker or make rule of the module's
+- [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke` — or, with `docker`, the `Bash(make *)` that covers them
+- [ ] With `unit`: `.claude/settings.json` parses and, without `docker`, its `allow` list holds `npm test` and `npm run test:smoke`; with `docker`, neither is allowed and `make test` runs them
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question

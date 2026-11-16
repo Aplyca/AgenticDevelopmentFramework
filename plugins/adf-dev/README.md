@@ -1,7 +1,7 @@
 # adf-dev
 
 The development plugin of the [Agentic Development Framework](https://github.com/aplyca/AgenticDevelopmentFramework):
-the skills and agents for building, running, and checking the code. Each one comes from an optional
+the skills for building, running, and checking the code. Each one comes from an optional
 module, and acts only in a packaged project that installed that module. Anywhere else it says so and
 stops.
 
@@ -23,7 +23,7 @@ modules: `"adf-dev@aplyca": true` in `enabledPlugins`, and
 copies of the modules' skills instead, which `scripts/build-committed.py` writes from here, and leaves
 it off.
 
-Everything here is written by hand ([decision 0028](../../docs/decisions/0028-plugins-are-the-source.md)):
+Everything here is written by hand ([decision 0028](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0028-plugins-are-the-source.md)):
 `skills/` holds the source of each development module's skill, in the form a packaged project loads it
 — a Step 0 that names its module, and `/adf-dev:dev-env`, `/adf-dev:e2e`, `/adf-dev:unit` — and the module's `module.json` names it.
 `scripts/build-plugins.sh` only keeps the version equal to `adf`'s.

@@ -137,6 +137,16 @@ that the module's script created under `.claude/worktrees/`. `adf-worktree-new` 
 The location holds. The move out of the app's worktree is the open problem, for a decision of its
 own.
 
+## Found later (2026-11-15) — the main checkout's containers
+
+With the `docker` module, the app's service and the tools service mount the whole checkout. Nested
+under the main checkout, every worktree's files and `.env` were therefore inside the main
+checkout's containers, where `make run` runs any command without a prompt
+([0077](0077-the-container-is-the-boundary-for-make-run.md)). "The container mounts only the
+worktree" held for a worktree's stack, not for the main checkout's. The templates now mount an
+empty `tmpfs` over the folder `.claude/worktrees` maps to in both services (the local environment
+specification's D5 and C10), so the main checkout's containers see it empty.
+
 ## Alternatives considered
 
 - **Nested by default, beside the main checkout as an opt-in.** Two locations to explain and test,
@@ -145,4 +155,4 @@ own.
   reuses an archived session's folder for a later session, with that folder's ignored files and
   Compose project. It also keeps recording the generated branch after a switch.
 - **A `WorktreeCreate` hook that places Claude Code's worktrees.** It is told only a generated name,
-  and it turns off `.worktreeinclude` (0021).
+  and it turns off `.worktreeinclude` (0015).

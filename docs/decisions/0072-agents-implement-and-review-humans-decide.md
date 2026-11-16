@@ -6,7 +6,8 @@
   preview too, and requests the project's reviewers; [0045](0045-agent-local-check-opens-the-draft.md)
   and [0070](0070-the-agent-marks-its-pull-request-ready.md) — `/review` runs in every lane, and the
   developer reviews on the preview, not the local environment. Also v2.6.0's rule that `/review`
-  runs before the draft in the full lane only, and in the fast and careful lanes when asked
+  runs before the draft in the full lane only, and in the fast and careful lanes when asked.
+  And [0047](0047-sessions-move-to-done.md) — ready requests the reviewers, where it requested none
 
 ## Context
 

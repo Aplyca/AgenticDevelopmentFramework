@@ -62,7 +62,9 @@ and skip the steps below.
      push to see it on the preview skips the gate.
    - **A criterion needs something only a shared service has** — a payment sandbox, a CMS webhook:
      walk every other criterion here, then push, and walk that one on the preview (step 7) before
-     the pull request is ready. With no preview, stop before pushing and say what blocks it.
+     the pull request is ready. With no preview, stop before pushing and say what blocks it. A walk
+     that writes beyond a test sandbox — it reaches a person or real shared data — waits for the
+     developer's yes (`preview.md` § Read-only).
    - **Keep the environment running until the pull request is ready** (step 8): the preview walk or
      CI can still send you back to fix the change.
 

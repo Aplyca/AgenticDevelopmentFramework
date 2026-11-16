@@ -97,6 +97,8 @@ Fix forward.
 Triage — Every newsletter signup fails since 09:12 (on-call alert)
 - Deliverable: change
 - Kind: hotfix — production broken now; no deploy since Tuesday, so a rollback won't help
+- Lane: careful — a hotfix, without delay
+- Model: sonnet, high effort
 - Environment: needed now — the regression test runs against the signup route
 - Spec folder: none now; backfill specs/007-newsletter-signup/ afterwards
 - Open questions: 1) While the limiter's store is unavailable, accept signups without rate limiting

@@ -23,6 +23,7 @@ import sys
 
 IDLE_CAP = 300    # seconds; a longer gap counts as this much (reading the reply), as in /cost-report
 BLOCK_GAP = 1800  # seconds; a longer break between active stretches starts a new block
+GENERATED_PREFIXES = ("claude/", "worktree-")  # the branches Claude Code names its own worktrees
 
 
 def parse_time(value):
@@ -78,15 +79,15 @@ def session_times(path, branch, base):
     # Between the first and last event on the branch: the branch's events and those with none.
     counted = [t for t, b in events[first:last + 1] if b in (branch, None)]
     # Before it, the work that led to the move, back to another task's branch. A session in Claude
-    # Code's own worktree, on the branch the app generated (claude/<name>), is this task's from its
+    # Code's own worktree, on the branch the app generated (claude/<name>, worktree-<name>), is this task's from its
     # start (decision 0042). On the base branch, only the run just before the move counts, back to the
     # first break longer than BLOCK_GAP: a long-lived session there did other work before.
     before = [b for _, b in events[:first] if b and b != "HEAD"]
-    generated = bool(before) and before[-1].startswith("claude/")
+    generated = bool(before) and before[-1].startswith(GENERATED_PREFIXES)
     i = first
     while i > 0:
         previous = events[i - 1][1]
-        if previous not in (base, None, "HEAD") and not (generated and previous.startswith("claude/")):
+        if previous not in (base, None, "HEAD") and not (generated and previous.startswith(GENERATED_PREFIXES)):
             break
         if not generated and (events[i][0] - events[i - 1][0]).total_seconds() > BLOCK_GAP:
             break

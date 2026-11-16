@@ -261,6 +261,10 @@ EXISTING=""
 if [ -n "$existing" ] && [ -f "$existing/.git" ]; then
   WORKTREE_DIR="$existing"
   EXISTING=1
+  # Named after its folder, as worktree-rm and worktree-ls name it: a reused worktree's folder may
+  # not be its branch's slug, and STOP_CMD must expand the ${PROJECT} that START_CMD did.
+  SLUG="$(basename "$WORKTREE_DIR")"
+  PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
   [ -z "$FROM_REF" ] || echo "Note: '$BRANCH' already has a worktree — --from is ignored." >&2
   echo "==> Worktree exists: $WORKTREE_DIR (branch left as it is)"
 else
@@ -315,7 +319,13 @@ marker="$(git -C "$WORKTREE_DIR" rev-parse --absolute-git-dir)/agent-worktree"
 # The env files are the registry; the lock, in the repository's shared git directory, makes
 # check-then-claim atomic.
 LOCK_DIR="$(git -C "$MAIN_CHECKOUT" rev-parse --path-format=absolute --git-common-dir)/agent-worktree-ports.lock"
-release_lock() { rm -rf "$LOCK_DIR" 2>/dev/null || true; }
+# Only a run that took the lock releases it: a rerun for an existing worktree never takes it.
+LOCKED=""
+release_lock() {
+  [ -n "$LOCKED" ] || return 0
+  rm -rf "$LOCK_DIR" 2>/dev/null || true
+  LOCKED=""
+}
 
 WRITE_ENV=""
 if [ -n "$ENV_FILE" ] && { [ -z "$EXISTING" ] || [ -n "$REFRESH_ENV" ]; }; then
@@ -328,13 +338,15 @@ if [ -n "$WRITE_ENV" ] && [ "${PORT_SLOTS:-0}" -gt 0 ]; then
     owner="$(cat "$LOCK_DIR/pid" 2>/dev/null || true)"
     if [ -n "$owner" ] && ! kill -0 "$owner" 2>/dev/null; then
       echo "==> Clearing a stale port lock left by PID $owner"
-      rm -rf "$LOCK_DIR"
+      # Still that owner's: another waiter may have cleared it and taken the lock meanwhile.
+      [ "$(cat "$LOCK_DIR/pid" 2>/dev/null || true)" != "$owner" ] || rm -rf "$LOCK_DIR"
       continue
     fi
     sleep 1
     waited=$((waited + 1))
     [ "$waited" -lt 60 ] || die "timed out waiting for the port lock at $LOCK_DIR (remove it if no other run is active)."
   done
+  LOCKED=1
   trap release_lock EXIT
   echo $$ >"$LOCK_DIR/pid"
 

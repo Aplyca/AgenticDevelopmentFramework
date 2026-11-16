@@ -1,7 +1,7 @@
 ---
 name: stakeholder-update
 description: Write the requester's update on a tracker task (a ClickUp task, a GitHub or GitLab issue) in their terms, at three moments — started, in review, and delivered once the change is live. Use when /adf:triage, /adf:open-pr, or /adf:wrap-up reaches its moment, when a merged change goes live, or when asked to update or reply to the client, stakeholder, or requester on a task. `guide` posts or updates the task's usage guide.
-argument-hint: "[started | review | delivered | guide] [status] [tracker task link or ID] [pull request number]"
+argument-hint: "[status] [started | review | delivered] | guide [tracker task link or ID] [pull request number]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/stakeholder-update/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -159,7 +159,8 @@ moves) — no draft, no message — and stop.
    - **Show what you posted:** the text, in your report, with the comment's link — "Posted on the
      task:" — so the developer reads what went out under their name.
    - **Status:** already moved at its moment (§ Status moves). If it wasn't — the tracker wasn't
-     connected then, or the release came after the wrap-up — move it now, by `status.md`.
+     connected then, or the release came after the wrap-up — move it now, by `status.md`. At
+     delivered, when `/adf:wrap-up` called this, leave the move to it: it makes it after this post.
    - **At delivered,** bring the usage guide up to date when the task has one (`guide.md`).
 
 ## Style rules

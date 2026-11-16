@@ -1,6 +1,6 @@
 # 0047: Sessions move to done — each turn ends with what's next, fewer stops, and a close-up for every ending
 
-- **Status:** accepted; amended by [0049](0049-every-lane-pushes-without-asking.md) (the careful lane pushes without a yes) and [0081](0081-answers-in-the-main-checkout-close-up-there.md) (an answer in the main checkout closes up there, without touching a branch)
+- **Status:** accepted; amended by [0049](0049-every-lane-pushes-without-asking.md) (the careful lane pushes without a yes) and [0081](0081-answers-in-the-main-checkout-close-up-there.md) (an answer in the main checkout closes up there, without touching a branch); amended by [0070](0070-the-agent-marks-its-pull-request-ready.md) (the agent marks its pull request ready once its own tests pass) and [0072](0072-agents-implement-and-review-humans-decide.md) (ready requests the project's reviewers)
 - **Date:** 2026-10-18
 - **Amends:** [0011](0011-lanes-ceremony-follows-risk.md) — when the careful lane's yes comes, and
   what moving up a lane stops for; [0039](0039-check-locally-then-on-the-preview.md) and

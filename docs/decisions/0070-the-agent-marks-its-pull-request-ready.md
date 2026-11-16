@@ -6,7 +6,8 @@
   ready means; [0033](0033-pull-request-upkeep-without-prompts.md) — `gh pr ready` no longer prompts;
   [0045](0045-agent-local-check-opens-the-draft.md) — a criterion only a shared service can run is
   tested on the preview; [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) — the
-  review status moves when the pull request is ready
+  review status moves when the pull request is ready; [0047](0047-sessions-move-to-done.md) and
+  [0049](0049-every-lane-pushes-without-asking.md) — readying is no longer the developer's
 
 ## Context
 

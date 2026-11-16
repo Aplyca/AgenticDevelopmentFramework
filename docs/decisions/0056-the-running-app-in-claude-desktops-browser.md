@@ -1,6 +1,6 @@
 # 0056: Claude Desktop's Browser lists each checkout's running web services, from an untracked `.claude/launch.json`
 
-- **Status:** accepted
+- **Status:** accepted; point 9, the band, superseded by [0060](0060-retire-the-local-environment-band.md)
 - **Date:** 2026-10-25
 - **Builds on:** [0026](0026-display-only-mods.md) — the band above the prompt shows the local URL;
   [0032](0032-local-environment-layout.md) — ports Docker picks;

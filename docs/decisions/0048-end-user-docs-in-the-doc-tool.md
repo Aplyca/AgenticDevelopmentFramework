@@ -1,6 +1,6 @@
 # 0048: End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module)
 
-- **Status:** accepted; scope clarified in 0059 — the pages are stakeholder guides (user, editorial, and administrative), not only public help
+- **Status:** accepted; scope clarified in [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) — the pages are stakeholder guides (user, editorial, and administrative), not only public help; amended by [0064](0064-tracker-writes-through-the-projects-server.md) (its writes name the server and the account)
 - **Date:** 2026-10-22
 
 ## Context

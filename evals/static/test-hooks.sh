@@ -59,7 +59,7 @@ run guard-git.sh 0 "$(bash_event 'ls -la && echo done')" "ignores non-git comman
 run guard-git.sh 2 "$(bash_event 'git commit -m "wip"')" "blocks a commit on main"
 run guard-git.sh 2 "$(bash_event 'git push')" "blocks a bare push from main"
 run guard-git.sh 2 "$(bash_event 'git push origin HEAD')" "blocks pushing HEAD from main"
-run guard-git.sh 0 "$(bash_event 'git push --tags')" "allows a tags-only push"
+run guard-git.sh 0 "$(bash_event 'git push --tags')" "doesn't block a tags-only push (it asks: below)"
 run guard-git.sh 0 "$(bash_event 'git pull --ff-only')" "allows pull"
 run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing')" "allows creating a work branch"
 # Decision 0022: the agent opens the pull request on its own, so the draft rule lives here.
@@ -73,6 +73,17 @@ run guard-git.sh 0 "$(bash_event 'glab mr create --draft --target-branch main --
 run guard-git.sh 0 "$(bash_event 'glab mr new --wip --fill')" "allows a GitLab draft by --wip, and mr new"
 run guard-git.sh 2 "$(bash_event 'glab mr create -d "notes" --fill')" "doesn't take glab's -d (--description) for --draft"
 run guard-git.sh 0 "$(bash_event 'gh pr view 12 --json state')" "ignores other gh commands"
+run guard-git.sh 2 "$(bash_event 'gh pr new --title "Add signup" --fill')" "blocks gh pr new, the alias of create, without --draft"
+run guard-git.sh 2 "$(bash_event 'gh -R acme/app pr create --title "Add signup"')" "sees gh pr create after a --repo flag"
+# Quoted text is blanked as data, but not the folder a command runs in or the branch it pushes.
+run guard-git.sh 2 "$(bash_event "cd \"$T\" && git commit -m \"wip\"")" "follows a quoted cd"
+run guard-git.sh 2 "$(bash_event "git -C \"$T\" commit -m wip")" "follows a quoted git -C"
+run guard-git.sh 2 "$(bash_event 'git -C "$SOMEWHERE/else" commit -m wip')" "falls back to the session's folder for a path it can't read"
+run guard-git.sh 2 "$(bash_event 'git push origin "main"')" "blocks a push to a quoted main"
+run guard-git.sh 2 "$(bash_event 'if true; then git commit -m wip; fi')" "sees a command after a shell keyword"
+run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing && git commit -m "feat: add signup"')" "allows a commit chained to the work branch's creation"
+run guard-git.sh 2 "$(bash_event 'git switch -c feat/new-thing; git commit -m "feat: add signup"')" "doesn't trust a switch that && doesn't chain"
+run guard-git.sh 2 "$(bash_event 'git checkout README.md && git commit -m wip')" "doesn't take a checked-out path for a branch"
 
 git -C "$T" switch -q -c feat/newsletter-signup
 # guard-git — on a work branch
@@ -82,6 +93,8 @@ heredoc=$'git commit -m "$(cat <<\'EOF\'\nfeat: add signup\n\nDon\'t use -n; git
 run guard-git.sh 0 "$(bash_event "$heredoc")" "ignores a heredoc commit message"
 run guard-git.sh 2 "$(bash_event 'git commit --no-verify -m x')" "blocks --no-verify"
 run guard-git.sh 2 "$(bash_event 'git commit -nm x')" "blocks -n folded into short flags"
+run guard-git.sh 0 "$(bash_event 'git commit -uno -m x')" "doesn't take -uno (--untracked-files=no) for -n"
+run guard-git.sh 2 "$(bash_event 'git switch main && git commit -m x')" "blocks a commit chained to a switch to main"
 run guard-git.sh 2 "$(bash_event 'git merge --no-verify feat/x')" "blocks --no-verify on merge"
 run guard-git.sh 0 "$(bash_event 'git push -u origin feat/newsletter-signup')" "allows pushing the work branch (after the local check, decision 0022)"
 run guard-git.sh 2 "$(bash_event 'git push origin main')" "blocks a push to main"
@@ -96,6 +109,31 @@ run guard-git.sh 0 "$(bash_event 'echo "git push origin main is forbidden"')" "i
 run guard-git.sh 0 "$(bash_event "echo 'done; git push origin main'")" "ignores a single-quoted mention with a separator"
 run guard-git.sh 2 "$(bash_event "git commit -m 'subject' -m \"body; more\" --no-verify")" "sees a flag after quoted messages"
 run guard-git.sh 0 "$(bash_event 'git log --oneline -n 5')" "allows git log -n"
+# A heredoc's body is data: an apostrophe in it no longer pairs with a later quote and hides a command.
+run guard-git.sh 2 "$(bash_event $'cat <<EOF\nIt\'s ready\nEOF\ngit push origin \'main\'')" "sees a command after a heredoc body with an apostrophe"
+run guard-git.sh 2 "$(bash_event $'cat <<-\'EOF\'\n\tdon\'t\n\tEOF\ngit push origin main')" "ends a <<- heredoc at its tab-indented delimiter"
+run guard-git.sh 0 "$(bash_event $'cat <<EOF\ngit push origin main\nEOF')" "ignores a command inside a heredoc body"
+run guard-git.sh 0 "$(bash_event $'cat <<< "it\'s"\ngit status')" "doesn't take a here-string for a heredoc"
+# A tag push asks, whatever form it takes: a tag is a release (0038).
+git -C "$T" tag v1.0.0
+run_ask() { # run_ask <yes|no> <command> <description>
+    local out code got=no
+    out=$(printf '%s' "$(bash_event "$2")" | "$H/guard-git.sh" 2>&1)
+    code=$?
+    case "$out" in *'"permissionDecision":"ask"'*) got=yes ;; esac
+    if [ "$code" = 0 ] && [ "$got" = "$1" ]; then
+        PASS=$((PASS+1)); echo "✓ guard-git.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ guard-git.sh: $3 (exit $code, asks: $got, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+run_ask yes 'git push --tags' "asks before pushing every tag"
+run_ask yes 'git push origin v1.0.0' "asks before pushing a tag by its name"
+run_ask yes 'git push origin refs/tags/v1.0.0' "asks before pushing a tag by its ref"
+run_ask yes 'git push origin tag v1.0.0' "asks before git push … tag <name>"
+run_ask yes 'git push origin :v1.0.0' "asks before deleting a remote tag"
+run_ask yes 'git switch -c feat/x && git push --follow-tags origin feat/x' "asks before --follow-tags"
+run_ask no 'git switch -c feat/x && git push -u origin feat/x' "a branch push doesn't ask"
 
 # protect-paths
 run protect-paths.sh 2 "$(file_event Edit "$T/package-lock.json")" "blocks hand-editing a lockfile"

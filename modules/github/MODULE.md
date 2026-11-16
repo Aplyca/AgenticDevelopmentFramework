@@ -19,14 +19,15 @@ them.
 1. **Pull request template** — make the quality checklist list your real commands, and the
    constitution checklist mirror your `docs/CONSTITUTION.md` (one box per principle).
 2. **`config.yml`** — set the contact link to your tracker's requirement intake.
-3. **`bug-report.yml`** — adjust the environments and affected areas to your app.
+3. **`bug-report.yml`** — adjust the environments to your app.
 4. **`branch-policy.yml`** — set `GUARDED_BASE` and either `ALLOWED_HEADS` (integration-branch model:
    only `staging` and `hotfix/*` may target `main`) or `FORBIDDEN_HEADS` (trunk model: the
    integration branch `dev` must never target `main`). Delete the workflow if neither applies.
 5. **Quality gates** — add your stack's lint, typecheck, and unit-test job (this module stays
    stack-agnostic), and a dependency audit (`npm audit`, `pip-audit`, …) that reports without
-   blocking until the existing backlog is triaged. Keep layers that need services (integration,
-   end-to-end) in a separate, on-demand workflow. Don't put a `paths:` filter on a workflow you'll
+   blocking until the existing backlog is triaged. Layers that need services (integration,
+   end-to-end) run on every pull request too, where the runner can start the stack — the
+   end-to-end suite at its critical tier (`make e2e tier=critical`). Don't put a `paths:` filter on a workflow you'll
    require: a required check that never runs is not a gate.
 
 ## Optional: a stable preview address per pull request

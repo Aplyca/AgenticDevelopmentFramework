@@ -2,8 +2,8 @@
 # Keeps a worktree off the main checkout's stack. A worktree whose .env was copied from the main
 # checkout's — Claude Code copies it through .worktreeinclude — carries the same COMPOSE_PROJECT_NAME
 # or pinned ports. There, `make up` would take over the main checkout's stack, and `make reset`
-# (docker compose down -v) would delete its volumes. The mode Makefiles run this before up, down,
-# services, and reset; it passes in the main checkout and in a worktree with its own values.
+# (docker compose down -v) would delete its volumes. The mode Makefiles run this before every
+# task that starts, stops, or creates containers (C6); it passes in the main checkout and in a worktree with its own values.
 #
 # Of either .env, it reads only COMPOSE_PROJECT_NAME and the *_PORT lines, and prints only their
 # names — never a value. bash 3.2 or later.

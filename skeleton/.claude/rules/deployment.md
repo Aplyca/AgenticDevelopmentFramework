@@ -28,7 +28,7 @@ paths:
 ## Command surface
 - A `Makefile` at the root holds the common tasks, for people and agents alike; `make help` lists
   them. A task the team runs often gets a target instead of a command copied around.
-- In every mode: `env`, `up`, `stop`, `down`, `build`, `ps`, `logs`, `urls`, `test` (`t=`), `lint`
+- In every mode: `env`, `up`, `stop`, `down`, `build`, `deps`, `ps`, `logs`, `urls`, `test` (`t=`), `lint`
   (`f=`), `format`, `typecheck`, `run` (`cmd=`), and `reset` — the only one that deletes data. `logs` shows the last lines
   and never follows.
 - One file per mode: the root `Makefile` loads `ops/<DEV_MODE>/Makefile` — `ops/docker/Makefile`, or

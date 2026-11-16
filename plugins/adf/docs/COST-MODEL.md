@@ -187,7 +187,7 @@ going as is.
 ## Measuring
 
 - **`/cost`** in Claude Code shows the current session.
-- **The framework plugin's `/cost-report`** reads Claude Code's local transcripts for a project and
+- **The framework plugin's `/adf:cost-report`** reads Claude Code's local transcripts for a project and
   reports each session's calls, active time, tokens, and estimated cost, with the patterns above
   flagged (long context, many waits, browser loops). Run it after a few weeks on a new lane setup
   to see what changed.
@@ -224,7 +224,7 @@ Configure models with these aliases everywhere Claude Code takes one: `.claude/s
 
 ## Per-skill recommendations
 
-Skills run in your conversation, on its model. A skill could name its own model, but a switch mid-session re-reads the whole context uncached on the new model — so for skills the lever is the **session's** model: Sonnet for fast- and careful-lane sessions, Opus when a session is planning or debugging something hard.
+Skills run in your conversation, on its model — except the three that fork onto Sonnet, out of the session's context (`/adf:context-audit`, `/adf:spec-drift`, `/adf:cost-report`). A skill could name its own model, but a switch mid-session re-reads the whole context uncached on the new model — so for skills the lever is the **session's** model: Sonnet for fast- and careful-lane sessions, Opus when a session is planning or debugging something hard.
 
 | Skill | Recommended tier | Why |
 |---|---|---|
@@ -241,12 +241,14 @@ Skills run in your conversation, on its model. A skill could name its own model,
 | `/adf:commit` | Session model | A few short calls; switching to Haiku for them would re-read the whole context uncached |
 | `/adf:handoff` | Session model | A short message of pointers, written where the context already is |
 | `/adf:open-pr`, `/adf:stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
-| `/adf:record-decision`, `/adf:context-audit`, `/adf:spec-drift` | Sonnet | Reading and comparing many files; precision matters more than depth |
+| `/adf:record-decision` | Sonnet | Reading and comparing many files; precision matters more than depth |
+| `/adf:context-audit`, `/adf:spec-drift` | Sonnet, in a fork | The same reading and comparing, out of the session's context |
 | `/adf:evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
 | `/adf:orchestrate` | Session model | Plans and synthesizes here; the agents it spawns carry their own model |
 | `/adf:dispatch`, `/adf:wrap-up` | Session model | A few git and app calls, where the context already is |
 | `/adf:cost-report` | Sonnet, in a fork | A script measures; the skill presents the numbers, out of the session's context |
 | `/adf:track-time` | Session model | A script measures; the skill presents the numbers |
+| `/adf:framework-feedback` | Session model | A short report, written where the evidence already is |
 | `/adf:end-user-docs` | Sonnet | Drafting from the spec and what was built — the same work as `/adf:write-docs` |
 | `/adf:adopt`, `/adf:upgrade` | Sonnet | Many files and merges under clear rules; Opus for a merge that needs judgment |
 | `/adf:spec-workflow` | n/a | Reference doc, no AI invocation |

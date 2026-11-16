@@ -20,8 +20,8 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
   and each service's image and config in `ops/docker/<service>/`), `ops/native/` (its make file and
   `native.sh`), the parallel-agents module in `ops/agent/`, and any deployment target the project
   adds, such as `ops/vercel/` or `ops/ecs/`. A file a tool reads from a fixed place stays there.
-- **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `down`, `build`, `ps`,
-  `logs`, `urls`, `test`, `lint`, `run`, `reset`, and the optional `prod`: the production build, served
+- **A `Makefile` for the common tasks** — `make help` lists them: `env`, `up`, `stop`, `down`, `build`,
+  `deps`, `ps`, `logs`, `urls`, `test`, `lint`, `format`, `typecheck`, `run`, `reset`, and the optional `prod`: the production build, served
   beside the dev server in Docker mode, so no agent builds and serves it on the host
   ([decision 0052](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0052-production-build-in-the-configured-mode.md)).
 - **One file per mode:** the root `Makefile` loads `ops/docker/Makefile` or `ops/native/Makefile` —
@@ -73,7 +73,7 @@ Run `/dev-env set up` (packaged: `/adf-dev:dev-env set up`) once the module is i
 or proposes moving the existing one to the conventions — a careful-lane change you approve — and
 fills these from what it verifies, for you to review:
 
-1. **`docs/getting-started/DEV-SETUP.md`** — the Docker prerequisite, § 3 `make env`, § 4 `make up` and
+1. **`docs/getting-started/DEV-SETUP.md`** — the Docker prerequisite, § 2 `make deps`, § 3 `make env`, § 4 `make up` and
    `make urls` with the services, § 6 the two modes, the command surface, and § Troubleshooting for
    problems actually met. Packaged: `/adf-dev:dev-env` joins the key commands under § AI-assisted
    development.
@@ -86,7 +86,8 @@ fills these from what it verifies, for you to review:
    `.env.example`, and § Docker holds any convention the project adds.
 4. **With `parallel-agents`** — `/dev-env worktrees` proposes the `worktree.conf` values that give
    each worktree its own stack (`PORT_SLOTS=0`, `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`,
-   `START_CMD="make up"`, `STOP_CMD`, `ENV_INFO_CMD="make urls"`), and records what worktrees share in
+   `SETUP_CMD="make deps"`, `START_CMD="make up"`, `STOP_CMD`, an empty `READY_URL`,
+   `ENV_INFO_CMD="make urls"`), and records what worktrees share in
    `docs/SHARED-SERVICES.md`.
 
 ## Good to know

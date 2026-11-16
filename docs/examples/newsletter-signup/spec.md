@@ -221,6 +221,18 @@ WCAG 2.1 AA (`.claude/rules/ui-ux.md`), plus:
 | --- | --- | --- |
 | Operator / on-call | Runbook: the signup log events, telling a Mailchimp outage from a rate-limit spike, checking Mailchimp connectivity, what readers see when Contentful is down | `docs/runbooks/newsletter.md` |
 
+### Usage guide [for a tracker task — how the requester will use what it delivers]
+
+> For the marketing team.
+>
+> 1. To turn the form on, open the **Newsletter Signup** entry in Contentful and publish it. The
+>    form appears below every article within 5 minutes.
+> 2. To change the wording — the heading, the text, the button, and the messages readers see —
+>    edit the entry and publish it. The site shows the new text within 5 minutes; there's no need
+>    to ask the web team.
+> 3. New subscribers appear in your Mailchimp audience as soon as they sign up.
+> 4. To take the form down, unpublish the entry. Articles go back to how they were.
+
 ## Deployment [OPTIONAL — fill if non-default infra or configuration]
 
 > Owned by: devops

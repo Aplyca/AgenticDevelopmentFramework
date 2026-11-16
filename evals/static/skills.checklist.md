@@ -2,7 +2,7 @@
 
 The same checks as `check-skills.sh`, expressed as a checklist for when you can't run the scripts —
 reviewing the framework in conversation, or having an AI agent verify it without shell access. The
-behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no checklist substitute.
+behavioral suites (`test-hooks.sh`, `test-modules.sh`, `test-plugin.sh`, `test-upgrade.sh`) need a shell; there is no checklist substitute.
 
 ## Per skill (every skill a committed install carries — `plugins/adf/skills/*` and the modules' skills)
 
@@ -13,7 +13,7 @@ behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no
 
 Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-docs`, `implement`,
 `review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
-`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`,
+`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `unit`, `wrap-up`, `track-time`, `end-user-docs`,
 `framework-feedback`.
 
 - [ ] `/open-pr` opens a draft once the agent's own local check and `/review` pass, tests and reviews it on the preview, marks it ready once that and CI pass, and requests the reviewers `CONTRIBUTING.md` names — on GitHub or GitLab (decisions 0022, 0045, 0070, 0072); `/track-time`, `/end-user-docs`, and `/framework-feedback` show the draft and ask before posting, and so does `/stakeholder-update` for anything that asks the requester for something — its review and delivered updates post on their own (decision 0073)
@@ -26,7 +26,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 ## Settings, hooks, instruction files
 
 - [ ] `settings.json` is valid JSON; `model` is an alias; every hook entry nests `{"type": "command", "command": …}` inside a `hooks` array; no `$CLAUDE_FILE_PATH`; every referenced `.claude/hooks/*.sh` exists and is executable
-- [ ] `permissions.allow` names `Bash(git *)`, `Bash(gh *)`, and `Bash(glab *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge` and `glab mr merge`, reviews and approvals, releases, deleting the repository, secrets, `gh auth`, `glab auth` and `glab token`, `gh api` and `glab api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070, 0074)
+- [ ] `permissions.allow` names `Bash(git *)`, `Bash(gh *)`, and `Bash(glab *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge` and `glab mr merge`, reviews and approvals, releases, deleting the repository, secrets, `gh auth`, `glab auth` and `glab token`, `gh api` and `glab api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070, 0074); the git guard hook asks before any other tag push — `--follow-tags`, a tag by name or ref (0038)
 - [ ] Every skill, agent, workflow, hook, and skeleton file that names a `gh` command names its `glab` one (decision 0074)
 - [ ] The `gitlab` module's merge request template has the `github` module's pull request template's sections, `adf:` markers, and checklist, in order (decision 0075)
 - [ ] No `CLAUDE.md`; `AGENTS.md`'s first line is the `Skeleton source:` stamp; `.claude/rules/claude-code.md` has no `paths:`

@@ -16,8 +16,8 @@ skill's `SKILL.md` by hand. Paths are the ones in your project; links go to the 
 Each discipline prevents a different mistake: **specs written from every perspective** (business,
 security, accessibility, privacy, testing, docs…) prevent building the wrong thing; **a plan approved
 on its change surface** prevents touching the wrong files; **tests that fail first** prevent false
-confidence; **docs first** prevent shipping what nobody can use; **guardrails** keep pushing,
-publishing, and posting waiting for a person.
+confidence; **docs first** prevent shipping what nobody can use; **guardrails** keep merging,
+releasing, and messages to the requester waiting for a person.
 
 **Every task starts with triage** (`/triage`): read the task in full, check for prior work, and state
 the deliverable (an answer or a change), the kind, the **lane**, and whether an environment is needed.
@@ -38,7 +38,7 @@ What finds defects — a test that proves the change, the hooks, CI, review, you
 runs in every lane. **Your intuition sets the lane too:** "full lane on this" or "be careful here" is
 always honored; "just a quick fix" never silently drops a risk area's checklist. Other ways to ask for
 more effort — questions first, `/evaluate`, a higher effort level or model, `/deep-review` — and what
-each costs are in the skeleton's `docs/COST-MODEL.md` § Effort.
+each costs are in [`COST-MODEL.md` § Effort](../plugins/adf/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
 
 The full lane flows:
 
@@ -84,7 +84,7 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 
 | The task is… | Lane | Do this | Spec folder |
 |---|---|---|---|
-| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` when it changes recorded behavior |
+| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | The test first, seen failing → edit → `/commit` | None — or a light `CR N` when it changes recorded behavior |
 | The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + the risky part named for your test | None — or a light `CR N` |
 | A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
 | A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
@@ -110,19 +110,19 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Claude Code loads `AGENTS.md` — a `CLAUDE.md` or `CLAUDE.local.md` would replace it | The session-context hook warns when one is in the project or above it |
 | A session hears once when its branch's pull request merged (it offers the wrap-up) or closed (it asks whether the task is dropped) | `pr-state.sh` hook — `gh`, or `glab` on GitLab, at session start and at most every five minutes after |
 | A session is named after its task once the triage is stated, as `/triage` does in the desktop app — in a terminal, and in the desktop app when the triage was made without `/triage`; a title you set stays | `session-title.sh` hook |
-| No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
+| No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them; a tag push asks first | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
-| A session's move into a worktree of this repository passes Claude Code's permission check in the desktop app; any other folder still asks. The app's own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `approve-worktree-move.sh` hook |
+| A session's move into a worktree of this repository passes Claude Code's permission check, in the desktop app and a terminal alike; any other folder still asks. For the app's `change_directory`, its own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `approve-worktree-move.sh` hook |
 | A tracker update that changes only the task's status passes without a prompt, once `APPROVE_STATUS_MOVE` names the tracker's tool; a comment, or an update that also touches an assignee, a date, or the description, still asks | `approve-status-move.sh` hook |
 | With `docker`, `make run cmd='…'` runs its command in the tools container without a prompt in Docker mode, and asks in native mode, where it runs on the host — the one docker-module prompt. The container bounds the host outside the checkout, not the checkout, its local data, or the credentials in `.env` | `approve-container-run.sh` hook |
 | `git`, `gh`, and `glab` run without a prompt, except `git config`, pushing tags, merging, approving, or reviewing a pull request, releases, deleting the repository, secrets (`gh secret`, `glab variable`), `gh auth`, `glab auth` and `glab token`, and API writes. With `docker`, every Docker and make command runs without a prompt, `make reset` included: the agent asks in chat before it deletes data | `permissions.allow` · `permissions.ask` |
 | A person confirms merges, reviews, releases, GitHub and GitLab API writes. Keeping the pull request current — pushing, editing it, commenting on it, marking it ready once the agent's own tests pass — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once it has checked the change locally | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/stakeholder-update` starts from a plain request ("update the client"); a message that asks the requester for something posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
+| `/stakeholder-update` starts from a plain request ("update the client"); a message that asks the requester for something posts only after you approve the draft in chat | The skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
 | Secret scan and base-branch policy — advisory until a ruleset (GitHub) or *Pipelines must succeed* (GitLab) requires them | [`github`](../modules/github/MODULE.md) or [`gitlab`](../modules/gitlab/MODULE.md) module |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
@@ -133,8 +133,9 @@ none of it. Hooks match the command text an agent writes, so they stop mistakes,
 **Conventions** — written in `AGENTS.md`, checked by reviewers, but nothing stops a skip: triage first;
 choosing the lane (outside the sensitive areas, `/review` checks it after the fact);
 **the approval gate** (`/implement` refuses without `status: approved`, so reviewers check the
-`approvals:` line); red before green; one task per commit; docs first; never marking a pull request
-ready; confirming tracker writes (mechanical only while the tracker's write tools stay off
+`approvals:` line); red before green; one task per commit; docs first; marking a pull request
+ready only once the agent's own tests, review, and CI pass; a message that asks the requester for
+something waiting for your yes (mechanical only while the tracker's write tools stay off
 `permissions.allow`); human review before merge, unless the host requires it. Write your project's
 honest version in `CONTRIBUTING.md` § What's enforced.
 
@@ -192,7 +193,8 @@ release, and the originals are linked below:
    lockfile by hand — blocked too.
 3. On a work branch, ask for a server file that reads `process.env.MAILCHIMP_API_KEY`. The env hook
    reports it; the agent adds the name, without a value, to `.env.example`.
-4. Ask it to push. Claude Code asks you first — decline.
+4. Ask it to push to `main` — the git guard blocks it. Then ask it to push the tags
+   (`git push --tags`, or one tag by name): Claude Code asks you first — decline.
 5. Discuss which of these a teammate on Cursor would get.
 
 ### Day 2: Triage (1 hour)
@@ -337,7 +339,7 @@ worktree, folder, branch, and pull request.** Start a new session for each task,
 checkout, and give it the task. It triages from there; then a change — or an answer that runs the
 app — goes to `/dispatch`, which creates the task's worktree under `.claude/worktrees/` with the
 scripts (named after the branch, on a new branch, with the env file and, when the project needs one,
-a port) and moves the session into it, with no prompt in the desktop app. An answer that only reads
+a port) and moves the session into it, with no prompt. An answer that only reads
 stays in the main checkout. The main checkout takes no edits — one there collides with every other
 session — and a session that already has a task offers another one a new session: a task chip you
 start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.

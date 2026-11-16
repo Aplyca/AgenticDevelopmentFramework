@@ -3,7 +3,7 @@
 # Static evals — structural checks of the framework's skills, agents, rules, workflows, hooks,
 # settings, templates, and links. Zero AI invocation. Runs in seconds. Exit 0 on all-pass.
 #
-# Usage: ./check-skills.sh [--verbose]
+# Usage: ./check-skills.sh
 #
 
 set -uo pipefail
@@ -819,8 +819,8 @@ check_practices() {
     file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Close with their next step, once" || missing+=("/open-pr: the report names the developer's next step once, with no reminders (0039, 0047)")
-    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, approving, and merging are people' || missing+=("git-workflow rule: no nudges to review or merge (0039, 0070, 0072)")
-    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Ready once your own tests' || missing+=("git-workflow rule: the agent marks its pull request ready once its tests pass (0070)")
+    file_contains "$AGENTS_MD" "Don't remind them or offer to merge it" || missing+=("AGENTS.md: no nudges to review or merge (0039, 0070, 0072)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'follows `AGENTS.md` § Delivery rules' || missing+=("git-workflow rule: the work branch's pull request follows AGENTS.md § Delivery rules, not a copy of them (0065)")
     file_contains "$AGENTS_MD" 'Mark it ready yourself' || missing+=("AGENTS.md: the agent marks its pull request ready once its tests pass (0070)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'only a shared service has' || missing+=("/open-pr: a criterion only a shared service has is walked on the preview (0070)")
     file_contains "$AGENTS_MD" "End every turn with what's next" || missing+=("AGENTS.md: every turn ends with who acts next (0047)")
@@ -883,7 +883,7 @@ check_practices() {
         grep -qF -- "$action" "$SKILLS_DIR/open-pr/gitlab.md" 2>/dev/null || missing+=("/open-pr gitlab.md: no \`$action\` (0072)")
     done
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
-    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'opened after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" ', so it lacks ' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")
     [ -f "$MODULES_DIR/parallel-agents/files/.worktreeinclude" ] || missing+=("parallel-agents: .worktreeinclude")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: creates the task's worktree with the scripts (0021)")
@@ -1454,14 +1454,14 @@ check_english() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
     # This check names the words it looks for, so it skips its own file.
-    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | python3 -c '
-import re, sys
+    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | REPO_ROOT="$REPO_ROOT" python3 -c '
+import os, re, sys
 spanish = re.compile(r"[áíóúñÁÍÓÚÑ¿¡]|\b(también|según|además|herramienta|desarrollo|cómo|qué|está|nuestr[oa]s?)\b", re.I)
 for path in sys.stdin.read().split("\0"):
     if not path:
         continue
     try:
-        lines = open(path, encoding="utf-8").read().split("\n")
+        lines = open(os.path.join(os.environ["REPO_ROOT"], path), encoding="utf-8").read().split("\n")
     except (OSError, UnicodeDecodeError):
         continue
     for number, line in enumerate(lines, 1):

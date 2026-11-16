@@ -46,7 +46,8 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
      longer cache (a subscription's main conversation) — whose writes cost twice the input price.
    - **Forked, resumed, or moved sessions** — a call copied into a later transcript counts once, in
      the session that made it.
-   - **`browser`** — agent browser loops; prefer tests and leave visual QC to the human check.
+   - **`browser`** — agent browser loops; walk the changed flow once locally and once on the
+     preview, and let tests cover the rest.
    - **`spec-heavy`** — a small change with more spec edits than code edits: was the full lane
      needed, or was it a fast-lane change with a light change request?
 

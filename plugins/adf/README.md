@@ -84,7 +84,7 @@ claude plugin install adf@aplyca --scope project
 ```
 
 Always pass `--scope`: without it, Claude Code installs at `user` scope, which turns the plugin on in
-every project on your machine and offers `/adopt` in sessions that have nothing to do with the
+every project on your machine and offers `/adf:adopt` in sessions that have nothing to do with the
 framework.
 
 | Scope | Recorded in | Who gets the plugin |
@@ -117,8 +117,8 @@ made with the commands above works there too. To install from the app instead:
 
 **+ → Plugins → Manage plugins** enables, disables, or uninstalls it later. Worktree sessions the app
 creates load a project-scope plugin (Claude Code 2.1.200 or later). Plugins don't load in WSL
-sessions, and cloud sessions don't install the plugins a repository's settings declare — run `/adopt`
-and `/upgrade` in a local session.
+sessions, and cloud sessions don't install the plugins a repository's settings declare — run `/adf:adopt`
+and `/adf:upgrade` in a local session.
 
 **Installed `aplyca-framework` before?** That was this plugin's name until v1.0.0. Install
 `adf` with the prompt above, then remove the old one — from the project, and from user scope
@@ -136,12 +136,12 @@ claude plugin marketplace remove aplyca --scope user
 
 | Skill | Purpose |
 |---|---|
-| `/adf:adopt` | Bootstrap a repo: inspect it (stack, commands, branching model, tracker, Git host), choose the install (committed or packaged), copy the skeleton and the [optional modules](../../modules/README.md) you choose, fill placeholders from verified repo facts, configure the guardrail hooks, record the adoption as PDR-0001, stamp the release and modules, verify (settings schema, hook smoke tests, the `@AGENTS.md` import), and prepare a draft adoption PR. On an already-adopted repo it adds modules. Automates [docs/SETUP.md](../../docs/SETUP.md). |
+| `/adf:adopt` | Bootstrap a repo: inspect it (stack, commands, branching model, tracker, Git host), choose the install (committed or packaged), copy the skeleton and the [optional modules](../../modules/README.md) you choose, fill placeholders from verified repo facts, configure the guardrail hooks, record the adoption as PDR-0001, stamp the release and modules, verify (settings schema, hook smoke tests, no `CLAUDE.md`), and prepare a draft adoption PR. On an already-adopted repo it adds modules. Automates [docs/SETUP.md](../../docs/SETUP.md). |
 | `/adf:upgrade` | Sync an adopted repo — skeleton and installed modules — to a newer release via the three-bucket taxonomy, OLD → NEW diff discipline, and the changelog's migration steps; bump a packaged project's pinned release; offer the modules it doesn't have yet and a switch between the two installs. Automates [docs/UPGRADING.md](../../docs/UPGRADING.md). |
 | `/adf:cost-report` | What agent sessions on a project cost — calls, active time, context size, tokens, estimated cost — from Claude Code's local transcripts, with what Opus sessions would have cost on Sonnet and the expensive patterns flagged (long context, pauses past the cache lifetime, browser loops, spec-heavy small changes). Read-only; nothing leaves the machine. See [COST-MODEL.md](docs/COST-MODEL.md). |
 
 `/adf:adopt` and `/adf:upgrade` work branch-and-PR only — they never commit to a default
-branch, and never push without explicit approval. `/adf:cost-report` only reads.
+branch (a new repository's first commit aside), and never push without explicit approval. `/adf:cost-report` only reads.
 
 **In a packaged project,** the rest of the framework comes from here too: the workflow skills
 (`/adf:triage`, `/adf:write-spec`, `/adf:implement`, `/adf:review`, …), the
