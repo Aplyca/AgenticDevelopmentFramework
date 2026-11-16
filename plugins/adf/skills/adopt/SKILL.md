@@ -188,7 +188,9 @@ Present the table before going further. Wrong facts here poison every file downs
   the three blocks its `MODULE.md` § Install names. `docker` has no files to copy: `modules/docker/install.sh <repo>`
   merges its permission rules into `.claude/settings.json`, and `/dev-env set up` writes the stack;
   `e2e` has none either: `modules/e2e/install.sh <repo>` merges its rules, and `/e2e set up` writes
-  the suite; likewise `unit`: `modules/unit/install.sh <repo>`, and `/unit set up`.
+  the suite; likewise `unit`: `modules/unit/install.sh <repo>`, and `/unit set up`. Run `docker`'s
+  installer before theirs: with its rules in place, they leave out the commands that run tests on
+  the host.
   A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
   and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020; `/track-time`, decision 0043; `/end-user-docs`, decision 0048), `adf-dev` for
   development (`docker`'s `/dev-env`, `e2e`'s `/e2e`, `unit`'s `/unit`). A committed install writes them with `build-committed.py`
