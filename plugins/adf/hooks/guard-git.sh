@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: Bash). Makes four delivery rules mechanical instead of advisory:
+# PreToolUse hook (matcher: Bash). Makes these delivery rules mechanical instead of advisory:
 #   1. never bypass git hooks (--no-verify, or -n on commit)
 #   2. never commit on a protected branch
 #   3. never push to, force-push to, or delete a protected branch
 #   4. a pull request opens as a draft (gh pr create needs --draft; glab mr create, --draft or --wip)
 #   5. pushing a tag asks first: a tag is a release (decision 0038), whatever form the push takes
+#   6. changing git config asks first, since core.hooksPath can switch the hooks off; reading it
+#      doesn't (decision 0088). A permission rule can't tell the two apart.
 # Protected branches come from PROTECTED_BRANCHES in config.sh. An agent pushes its work branch and
 # opens the draft pull request on its own once it has checked the change locally (decisions 0022,
 # 0045), so rule 4 holds the draft rule that a confirmation prompt used to. The draft is where the
@@ -21,7 +23,7 @@ cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="$PWD"
 gitdir="$cwd"
 event_cwd="$cwd"
-switched_branch="" switched_dir="" tag_push=""
+switched_branch="" switched_dir="" tag_push="" config_write=""
 quoted_paths=()
 
 # resolve_path <token> — the folder a cd or -C token names: a quoted one comes back from its
@@ -148,6 +150,40 @@ check_push() {
   done
 }
 
+# check_config <args of git config> — a read is a get or list form, or a single name with no value;
+# anything else (a name and a value, --unset, --add, --edit, a section rename, the set or unset
+# subcommands) changes the config. A flag this doesn't know counts as taking no value, so a value
+# after it counts as a second word: an unknown form asks rather than passes.
+check_config() {
+  local token skip_next="" reading="" words=0
+  for token in "$@"; do
+    if [ -n "$skip_next" ]; then
+      skip_next=""
+      continue
+    fi
+    case "$token" in
+      --get | --get-all | --get-regexp | --get-urlmatch | --get-color | --get-colorbool | -l | --list) reading=1 ;;
+      --unset | --unset-all | --add | --replace-all | --rename-section | --remove-section | -e | --edit)
+        config_write=1 && return 0 ;;
+      -f | --file | --blob | --type | --default) skip_next=1 ;;
+      -*) ;;
+      # A redirect isn't a word: 2>/dev/null, or > and the file after it.
+      [0-9]\>* | \>* | [0-9]\<* | \<*) [[ $token =~ ^[0-9]*[\<\>]+$ ]] && skip_next=1 ;;
+      *)
+        if [ "$words" -eq 0 ]; then
+          case "$token" in
+            get | list) reading=1 ;;
+            set | unset | edit | rename-section | remove-section) config_write=1 && return 0 ;;
+          esac
+        fi
+        words=$((words + 1))
+        ;;
+    esac
+  done
+  [ -n "$reading" ] || [ "$words" -le 1 ] || config_write=1
+  return 0
+}
+
 check_pr_create() {
   local cli="$1" token
   shift
@@ -225,6 +261,7 @@ analyze_segment() {
     commit) check_commit "${rest[@]+"${rest[@]}"}" ;;
     push) check_push "${rest[@]+"${rest[@]}"}" ;;
     switch | checkout) note_switch "${rest[@]+"${rest[@]}"}" ;;
+    config) check_config "${rest[@]+"${rest[@]}"}" ;;
     merge | rebase | cherry-pick | revert | am | pull) check_no_verify "${rest[@]+"${rest[@]}"}" ;;
   esac
 }
@@ -283,8 +320,14 @@ while IFS= read -r segment; do
   analyze_segment "$segment"
 done <<<"$unquoted"
 
-# Every block has had its turn: a tag push that broke no rule still asks.
-if [ -n "$tag_push" ]; then
-  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"Pushing a tag publishes a release (decision 0038): the developer confirms it (guard-git hook)."}}'
+# Every block has had its turn: a tag push or a config change that broke no rule still asks.
+reason=""
+[ -z "$tag_push" ] || reason="Pushing a tag publishes a release (decision 0038)"
+if [ -n "$config_write" ]; then
+  [ -z "$reason" ] || reason="$reason; "
+  reason="${reason}Changing git config can switch off the git hooks (decision 0088)"
+fi
+if [ -n "$reason" ]; then
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s: the developer confirms it (guard-git hook)."}}\n' "$reason"
 fi
 exit 0
