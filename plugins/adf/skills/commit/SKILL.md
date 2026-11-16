@@ -75,7 +75,7 @@ Pushing is **not** part of committing. It happens in `/adf:open-pr`, once the ch
 ## Red flags (stop and reassess)
 
 - `.env`, credentials, or keys among the staged files.
-- More than ~10 files for one task — the task may really be two.
+- More than ~5 files for one task — the task may really be two.
 - A task commit without its test, or a test that was never seen failing.
 - Untracked files that weren't part of the task.
 - You're on a protected branch.

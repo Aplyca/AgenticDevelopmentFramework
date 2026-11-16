@@ -16,7 +16,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 `docs/CONSTITUTION.md` holds the non-negotiable principles and **overrides this file** on conflict. Day to day:
 
 - **Don't invent requirements.** When the task or spec leaves something open — a missing criterion, a field that doesn't exist, two requirements that conflict — stop and ask. If you must proceed, state the assumption and surface it in the pull request.
-- **Nothing leaves this machine unless a human asks** — except your work branch's push and its draft pull request, after the local check (§ Delivery rules), marking it ready once your own tests pass, keeping it current, and the tracker task's status moves and outcome updates (§ Requirements & traceability). No push to another branch, no pull request merged or reviewed, no tag, release, or chat message, and no tracker message that asks the requester for something.
+- **Nothing leaves this machine unless a human asks** — except your work branch's push and its draft pull request, after the local check (§ Delivery rules), marking it ready once your own tests pass and requesting its reviewers, keeping it current, and the tracker task's status moves and outcome updates (§ Requirements & traceability). No push to another branch, no pull request merged or reviewed, no tag, release, or chat message, and no tracker message that asks the requester for something.
 - **Never bypass the gates** — git hooks (`--no-verify`), lint, typecheck, tests, secret scanning.
 - **Agents implement and review; humans decide.** The local environment is yours, to build, test, and review; the preview is yours to test and review, and the developer's to review, approve, and merge.
 - **Never commit secrets.** Every environment variable the code reads is declared, without its value, in [`.env.example`].
@@ -62,7 +62,7 @@ Every lane gets the tests, the hooks, CI, your local check and `/review` before 
 
 Not a new feature: find its `specs/NNN-<slug>/` and compare the request with what the spec records as delivered. A precise adjustment takes the fast or careful lane with a **light** `CR N` entry in the same commit; one with something to decide is a **full** `CR N` with plan, tasks, and the gate. After the merge it gets a fresh branch (`<type>/<slug>-<change>`) and pull request — never the merged branch; before it, it rides the open draft's branch (`specs/README.md` § Before the merge). If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
 
-### 5. No lane
+### 5. Answers, hotfixes, and process changes
 
 - **Answers** — deliver the analysis where the task asks for it. A change it recommends gets a lane once someone approves that change.
 - **Hotfix** (production is broken) — the careful lane, without delay: find the root cause, fix it, add a regression test, ship; backfill the spec if behavior changed.

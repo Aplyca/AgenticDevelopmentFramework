@@ -267,7 +267,7 @@ def main():
         print("  long-context  average call carried >150k tokens — one task per session, /clear between tasks")
         print("  pauses        3+ waits longer than the cache lifetime (5 min, or 1 h where the session had it)")
         print("                — each one re-wrote the whole context")
-        print("  browser       >30 browser calls — prefer tests; leave visual QC to the human check")
+        print("  browser       >30 browser calls — walk the changed flow once locally, once on the preview; tests cover the rest")
         print("  spec-heavy    spec edits outnumber code edits on a small change — was the full lane needed?")
 
 

@@ -1,6 +1,6 @@
 # 0054: What an agent finds along the way is reported and routed — never dropped, never fixed in passing
 
-- **Status:** accepted; amended by [0082](0082-follow-ups-found-along-the-way-are-filed-as-issues.md) — with the `github` or `gitlab` module, a follow-up found along the way is filed as an issue, not started as a session
+- **Status:** accepted; amended by [0082](0082-follow-ups-found-along-the-way-are-filed-as-issues.md) — with the `github` or `gitlab` module, a follow-up found along the way is filed as an issue, not started as a session; refined by [0080](0080-framework-feedback-from-adopting-projects.md) (a lane for a problem in the framework itself)
 - **Date:** 2026-10-23
 - **Refines:** [0050](0050-spec-records-name-roles-and-contracts.md) — change requests before the
   merge come from the requester; this record covers what the agent finds on its own

@@ -61,10 +61,11 @@ you to choose and fills these, for you to review:
    the specification with its reason.
 3. **`AGENTS.md` § Quick reference** — the tier and feature suite commands.
 
-CI runs `test:critical` on every pull request and `test:regression` nightly; `/unit set up`
-proposes the jobs, and you add them. The framework ships no pipeline file.
+CI runs `test:critical` on every pull request and `test:regression` nightly: add the jobs to your
+pipeline. The framework's CI files carry no test job.
 
 ## Prerequisites
 
-Node.js 20 or later, and a JavaScript or TypeScript app. For another stack, keep your runner and
+A JavaScript or TypeScript app; in native mode, or without the `docker` module, Node.js 20 or
+later on the host. For another stack, keep your runner and
 follow the tiers and feature suites in `.claude/rules/testing.md`.

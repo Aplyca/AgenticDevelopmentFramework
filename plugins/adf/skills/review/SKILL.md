@@ -36,8 +36,9 @@ instead: separate reviewers per dimension, each finding independently verified.
 
 4. **Scope and traceability:**
    - Every changed file is inside the approved change surface — or the extension is recorded in
-     `plan.md` with a re-confirmation in `approvals:`. Fast and careful lanes: inside the files the
-     triage stated.
+     `plan.md` and the pull request, with a re-confirmation in `approvals:` where it grew into risk
+     (a new layer, a new dependency, an escalation trigger). Fast and careful lanes: inside the
+     files the triage stated.
    - Commits map to tasks (one task, one commit); nothing unrelated is bundled in.
    - The spec folder and tracker task are linked; for a change request, the `CR N` section exists.
 
@@ -91,7 +92,7 @@ instead: separate reviewers per dimension, each finding independently verified.
 | "It's a small change, a quick look is enough" | Small changes cause big bugs. An injection is one line. Review every changed line. |
 | "It doesn't touch user input, so I'll skip security" | Data flows through layers; trace it. A component that renders data can be the injection point. |
 | "The tests pass, so it's correct" | Tests verify behavior, not conventions, security, scope, or missing edge cases. Green is necessary, not sufficient. |
-| "These extra files are harmless" | Files outside the approved change surface are a finding until the plan records them and the developer re-confirms. |
+| "These extra files are harmless" | Files outside the approved change surface are a finding until the plan records them — and, where they grow the change into risk, until the developer re-confirms. |
 | "The comments are helpful, leave them" | Comments that restate code drift from it. Keep only the invisible *why*. |
 
 ## Red flags (stop and reassess)

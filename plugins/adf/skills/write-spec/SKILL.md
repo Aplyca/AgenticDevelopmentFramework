@@ -32,7 +32,7 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 
    | Always required | Conditionally required | Common optional (ask) |
    |---|---|---|
-   | Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications | Accessibility (if `ui` or `mixed`), Privacy (if `personal-data: yes`) | Design, Performance, SEO, Analytics, Localization, Constraints & prior decisions, Observability, Deployment |
+   | Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications | Accessibility (if `ui` or `mixed`), Privacy (if `personal-data: yes`), Documentation › Usage guide (if the spec has a `tracker:` task), Documentation › End-user docs (with the `end-user-docs` module) | Design, Performance, SEO, Analytics, Localization, Constraints & prior decisions, Observability, Deployment |
 
    For optional sections, ask which apply. Don't fill speculative sections — an absent optional
    section is a feature.

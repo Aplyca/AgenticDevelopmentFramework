@@ -86,7 +86,7 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | `gitlab` | The repository is on GitLab — the same as `github`: a merge request template, issue templates, and the secret scan and base-branch policy as a CI include; merge its blocks into an existing `.gitlab-ci.yml` ([decision 0075](decisions/0075-the-gitlab-module.md)) |
 | `git-hooks` | You want a `pre-push` gate for every git client, not only Claude Code |
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
-| `parallel-agents` | Several agent sessions work at once, each needing a running app |
+| `parallel-agents` | Several agent sessions work at once — each with its own port and running app only where the project configures them |
 | `docker` | The local stack runs on Docker Compose — `/dev-env` writes it from its templates or moves it to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks — [decision 0032](decisions/0032-local-environment-layout.md)), runs it natively or per worktree, and diagnoses or resets it; docker and make commands run without a prompt (run `modules/docker/install.sh .`, which merges its permission rules; it copies no files) |
 | `e2e` | People use the app in a browser — `/e2e` sets up Playwright end-to-end tests in `e2e/` to its specification, run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per critical flow ([decision 0037](decisions/0037-end-to-end-tests.md)) (run `modules/e2e/install.sh .`, which merges its permission rules; it copies no files) |
 | `unit` | A JavaScript or TypeScript app — `/unit` sets up Vitest unit and integration tests to its specification, run by tier (`@smoke`, `@critical`, regression) and by feature suite, the tiers `e2e` uses too ([decision 0058](decisions/0058-test-tiers-and-feature-suites-with-vitest.md)) (run `modules/unit/install.sh .`, which merges its permission rules; it copies no files) |
@@ -136,9 +136,9 @@ on conflict, so the two must agree — especially about branches and merge targe
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (e.g. migrations), `GENERATED_GLOBS` (add generated types), `CAREFUL_GLOBS` (the sensitive areas you
   list in `AGENTS.md` — any change there takes at least the careful lane), `ENV_TEMPLATE` if not
-  auto-detected, `LOCAL_URL` (the URL the agent walks in the local check, and the developer tests on).
+  auto-detected, `LOCAL_URL` (the URL the agent walks in the local check).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
-  the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
+  the `ask` rules (merging and reviewing a pull request, releases, tag pushes, and API writes need a human) and the `deny` rules (`.env` reads).
   The `glab` rules sit beside the `gh` ones, so a GitLab project needs nothing added.
 - **`.claude/rules/`** — update the `<!-- CUSTOMIZE -->` sections and the `paths:` frontmatter of
   `architecture`, `ui-ux`, `deployment`, `performance`, `observability`; delete rules that can't apply.
@@ -310,9 +310,13 @@ claude plugin install adf-dev@aplyca --scope project
 
 ## Updating
 
-Update the plugins from the adopted repository's folder, restart Claude Code, then run `/upgrade`
-there — it plans the update from the baseline stamp, keeps your customizations, and prepares a draft
-pull request. Update every plugin the project turns on, not only `adf`: each one updates on its own.
+Run `/adf:upgrade` in the adopted repository — it plans the update from the baseline stamp, keeps
+your customizations, and prepares a draft pull request. A project pinned to a release needs nothing
+first: the pinned plugin fetches the new release and runs that release's own upgrade script, and the
+marketplace never goes past the pin until the upgrade's pull request moves it
+([UPGRADING.md § The scripted upgrade](./UPGRADING.md#the-scripted-upgrade)). Only a project that isn't
+pinned updates the plugins first, from its folder — every plugin it turns on, not only `adf` — and
+restarts Claude Code:
 
 ```bash
 claude plugin marketplace update aplyca

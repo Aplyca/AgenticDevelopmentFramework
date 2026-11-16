@@ -22,8 +22,10 @@ plan is the contract for **where** code goes (the change surface); the tests are
 - If `plan.md` lists pre-implementable docs, they're committed (`docs:`) and their Phase 1 tasks
   are ticked. If not, run `/adf:write-docs` first — and `/adf:end-user-docs` for an end-user page's
   draft, `/adf:stakeholder-update guide` for the spec's usage guide.
-- The environment the tests need is up — start it now if triage deferred it — and host
-  dependencies are installed so the git hooks can run on commit.
+- The environment the tests need is up — start it now if triage deferred it — and what the git
+  hooks run on commit is set up (the worktree's `SETUP_CMD`, or the project's install step). With
+  the `docker` module in Docker mode, nothing is installed on the host: the test and lint tasks
+  start their own container.
 
 ## Phase 1: Prepare
 
@@ -65,9 +67,10 @@ plan is the contract for **where** code goes (the change surface); the tests are
    break — is expected to pass, and proves itself the same way: break, fail, restore, record.
 7. **Write the smallest code that makes it pass**, inside the plan's change surface, matching the
    existing patterns. Handle the edge cases the spec lists; validate at system boundaries.
-8. **Run it to green** — the tests this task wrote or changed, by name, with quiet output, and the
-   static checks on the files it changed (`.claude/rules/testing.md` § Verification budget). Not
-   their whole file or feature suite: that runs once, when the phase ends. Tidy the code while
+8. **Run it to green** — the tests this task wrote or changed, by name (or their file, when it runs
+   in seconds), with quiet output, and the static checks on the files it changed
+   (`.claude/rules/testing.md` § Verification budget). Not a slow file or the feature suite: that
+   runs once, when the phase ends. Tidy the code while
    everything stays green.
 9. **Tick the task and commit** test, code, and the tick together — one commit:
    `feat: <what the task delivers>` (or `fix:`, `refactor:`; `test:` for a test-only task). Stage
@@ -145,7 +148,7 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "I'll write all the code, then the tests" | Then no test ever failed — and a test that never failed proves nothing. One red → green cycle per task. |
 | "The test failed with an import error — that counts as red" | Red means the assertion failed because the behavior is missing. Fix the scaffolding until it fails for the right reason. |
 | "The test passed first, but the typecheck fails until I make the change — that's my red" | A type error shows the code doesn't build, not that the behavior is missing. Keep the test as a pin: break the behavior on purpose and watch it fail. |
-| "I'll rerun the whole test file after each task, to be safe" | A file can hold a feature's every test. Run the task's tests by name; the feature suite runs once at the phase's end, and the full gate once before delivery. |
+| "I'll rerun the whole test file after each task, to be safe" | A file can hold a feature's every test. Run the task's tests by name, or their file when it runs in seconds; the feature suite runs once at the phase's end, and the full gate once before delivery. |
 | "I'll batch several tasks into one commit" | One task, one commit — that's what makes the history reviewable and each step revertible. |
 | "This file isn't in the change surface, but it's a tiny edit" | Record it: `plan.md` in the same commit, and the pull request's description. Growth into risk — a new layer, a new dependency, an escalation trigger such as shared code — stops for the developer's re-confirmation. |
 | "The tests are too strict — I'll loosen them" | Tests are the contract. Fix the implementation; fix a test only when it's genuinely wrong, and say so. |

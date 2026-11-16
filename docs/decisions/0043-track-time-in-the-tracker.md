@@ -1,6 +1,6 @@
 # 0043: A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module)
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) (the wrap-up asks about the time instead of offering it), [0064](0064-tracker-writes-through-the-projects-server.md) (its writes name the server and the account), and [0066](0066-time-entries-describe-outcomes.md) (what an entry's description says)
 - **Date:** 2026-10-17
 
 ## Context

@@ -1,9 +1,10 @@
 # Worked example: newsletter signup (a new feature)
 
 This walkthrough follows one feature through the whole workflow, from the tracker task to the
-draft pull request and the message back to the requester: **triage → spec folder → plan with its
+merged pull request and the message back to the requester: **triage → spec folder → plan with its
 change surface → an independent check → one approval gate → docs first → one TDD commit per task →
-reconciled docs → gate results → review → draft PR → stakeholder update.**
+reconciled docs → gate results → review → local check → draft PR, marked ready → stakeholder
+updates → wrap-up.**
 
 The project is a marketing site built with **Next.js (App Router) + Contentful + Vercel**;
 subscribers go to **Mailchimp**. The feature is small enough to read in one sitting, yet it touches a
@@ -20,7 +21,7 @@ the spec folder.
 | --- | --- |
 | [spec.md](spec.md) | WHAT and WHY — the multi-perspective spec, `status: implemented` |
 | [plan.md](plan.md) | HOW — constitution check, approach, change surface, contracts, test strategy, docs, rollout, risks, assumptions |
-| [tasks.md](tasks.md) | Fifteen tasks, one commit each, all ticked, with the gate results |
+| [tasks.md](tasks.md) | Sixteen tasks, one commit each, all ticked, with the gate results |
 
 The templates they were copied from: [`skeleton/specs/_templates/`](../../../skeleton/specs/_templates/spec.md).
 The process they follow: [`skeleton/specs/README.md`](../../../skeleton/specs/README.md).
@@ -57,16 +58,19 @@ anything:
 Triage — Newsletter signup on article pages (https://tracker.example.com/t/MKT-412)
 - Deliverable: change — a signup form on article pages; copy from Contentful; subscribers to Mailchimp
 - Kind: new feature — no spec folder mentions newsletters or MKT-412; no branch or open PR touches it
+- Lane: full — a new feature with plenty to decide: failure behavior, rate limiting, personal data
+  (source: triggers)
+- Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
 - Environment: not yet — the spec and the plan only read code; tests start with /implement
-- Spec folder: new — specs/007-newsletter-signup/ (001–006 are taken). There is plenty to decide:
-  failure behavior, rate limiting, personal data
 - Open questions (for /write-spec's clarification round): 1) An address already on the list — its
   own message? 2) Mailchimp down — what does the reader see? 3) Contentful down — hide the form?
   4) A rate limit, and how strict?
-- Next: /write-spec, then /write-plan
+- Next: /write-spec — a new folder, specs/007-newsletter-signup/ (001–006 are taken) — then
+  /write-plan
 ```
 
-Triage is stated, not approved: the agent carries on, and Sam can redirect it. The session-start
+Triage is stated, not approved: the agent carries on, and Sam can redirect it. It moves MKT-412 to
+in progress on its own — a status move needs no yes; a message to Dana would. The session-start
 hook had already reported that the checkout was on `main`, a protected branch, so `/write-spec`
 starts by creating `feat/newsletter-signup` — the branch slug matches the folder slug, which is how
 branch, folder, and pull request find each other.
@@ -114,8 +118,8 @@ record of *why* the spec says what it says.
 Before handing the spec to planning, the skill checks the required sections:
 
 > **AI:** Business ✓ · Functional ✓ (6 ACs, 5 edge cases) · Out of scope ✓ (6 items) ·
-> Accessibility ✓ · Security ✓ · Privacy ✓ · Testing ✓ · Documentation ✓ (pre and post) ·
-> Clarifications ✓ (10). Optional sections filled: Design, Constraints & prior decisions,
+> Accessibility ✓ · Security ✓ · Privacy ✓ · Testing ✓ · Documentation ✓ (pre, post, and the
+> usage guide for marketing) · Clarifications ✓ (10). Optional sections filled: Design, Constraints & prior decisions,
 > Deployment. Constitution: no conflicts. Status stays `draft` — approval happens at the gate, once
 > the plan exists.
 
@@ -155,7 +159,7 @@ and the test setup in `tests/`. It writes two files:
   touched (the shared Contentful client, the contact form, `middleware.ts`). The **test strategy**
   maps every AC, edge case, and testable requirement to a named test. **Assumptions** are written
   down one by one, because an unstated assumption is how an invented requirement slips in.
-- **[tasks.md](tasks.md)** — fifteen tasks in dependency order. Each implementation task names its
+- **[tasks.md](tasks.md)** — sixteen tasks in dependency order. Each implementation task names its
   test and the ACs it serves; each will be one red → green cycle and one commit.
 
 ---
@@ -241,8 +245,8 @@ is only known once the plan exists. The agent stops and shows:
 > **Verification.** Every AC and requirement maps to a named test — unit, component, and end to
 > end, including an axe scan. The VoiceOver pass is manual, on the preview.
 >
-> **Docs first.** The admin guide and the copy defaults for marketing. After the code: the runbook
-> and a paragraph in `docs/ARCHITECTURE.md`.
+> **Docs first.** The admin guide and the copy defaults for marketing, and the usage guide's draft
+> on MKT-412. After the code: the runbook and a paragraph in `docs/ARCHITECTURE.md`.
 >
 > No implementation code until you approve. Reply with changes, or approve.
 
@@ -255,8 +259,8 @@ Sam read the change surface and the assumptions, and corrected two things:
 > features. The runbook is enough.
 
 > **AI:** Updated. `plan.md`: A4 rewritten and Rollout reordered — deploy first, Sam seeds the
-> entry as a draft, marketing publishes on 2026-06-22. `spec.md`: Deployment and a new
-> clarification. T001 gains "Turning the form on and off". T041 is the runbook only, and
+> entry as a draft, marketing publishes on 2026-06-22. `spec.md`: Deployment, a new
+> clarification, and the usage guide's first step. T001 gains "Turning the form on and off". T041 is the runbook only, and
 > `docs/ARCHITECTURE.md` moved to "Not touched". Nothing else in the change surface changed.
 > Approve?
 >
@@ -279,6 +283,17 @@ git commit -m "spec: approve newsletter-signup scope and plan"
 
 The `spec:` commit records intent **and** the approved change surface. Every later diff is reviewed
 against it.
+
+The rest runs in this same session, on another model and from a compacted conversation. Planning
+needed Opus; an approved plan with named tests is work for Sonnet, and the committed folder now
+carries what the long planning conversation held. The agent can't compact itself or change its own
+model, so it names three steps for Sam, in order — compact, pick Sonnet, send the next command,
+which opens Step 5:
+
+```
+/compact Keep the lane, the approved spec folder specs/007-newsletter-signup/, the gate's decisions and open questions, and the next step: /write-docs, then /implement
+/model sonnet
+```
 
 ---
 
@@ -318,6 +333,17 @@ are ticked, and both docs land in one commit, as `/write-docs` does:
 git commit -m "docs: add marketing docs for newsletter-signup"
 ```
 
+Dana has a docs-first of her own: the spec's **Usage guide** — four steps in marketing's terms,
+approved with the spec at the gate. `/write-docs` hands off to `/stakeholder-update guide`, which
+posts it on MKT-412 as a comment that opens **Usage guide (draft) — how this will work once it's
+delivered.** It posts on its own — Sam approved its text at the gate — so Dana can say "that's not
+how we'd use it" before anything is built. T003 is ticked with the comment's link, in a commit of
+its own:
+
+```bash
+git commit -m "docs: post the newsletter-signup usage guide draft"
+```
+
 ---
 
 ## Step 6 — Implement, one task at a time
@@ -344,7 +370,7 @@ The test comes first:
 
 ```ts
 // lib/newsletter/__tests__/validate-email.test.ts
-import { describe, expect, it } from 'unit';
+import { describe, expect, it } from 'vitest';
 import { validateEmail } from '../validate-email';
 
 describe('validateEmail', () => {
@@ -602,7 +628,8 @@ built (T040). Fourteen claims in the admin guide and the copy defaults, one at a
 git commit -m "docs: update newsletter admin guide for Contentful's required fields"
 ```
 
-Reconciliation is routine, not a failure: docs written first are living documents. Then T041, the
+Reconciliation is routine, not a failure: docs written first are living documents. The spec's
+usage guide is checked the same way; its four steps hold. Then T041, the
 post-implementable runbook, written from the built code — the real log event names, the real error
 mapping, how to tell a Mailchimp outage from a rate-limit spike:
 `docs: add newsletter runbook for operators`.
@@ -644,7 +671,7 @@ git commit -m "docs: record newsletter-signup gate results"
 ```
 
 > **AI:** **Scope.** 26 files changed: the 23 in `plan.md`'s change surface, plus the spec folder.
-> 14 commits for 15 tasks — T001 and T002 share the docs-first commit; every other task has its
+> 15 commits for 16 tasks — T001 and T002 share the docs-first commit; every other task has its
 > own. Tracker task linked.
 >
 > **Spec compliance.** AC1–AC6 implemented. Every Security, Privacy, and Accessibility requirement
@@ -672,16 +699,23 @@ Sam left both as they are — the first is a recorded decision, the second is st
 
 ---
 
-## Step 10 — Draft pull request
+## Step 10 — Local check, then the pull request
 
-Nothing has left the machine yet. Delivery happens only when Sam asks:
+Nothing has left the machine yet, and what lets it leave is the agent's own local check, not a
+question to Sam. The agent starts the app on this checkout and walks AC1–AC6 in a browser, with
+the project's mock layer standing in for Contentful and Mailchimp: the section below an article, a
+signup and its success message, the "already subscribed" message, the inline error with focus back
+on the field, an article with no section when the entry can't be loaded, the error message with
+the address kept. All six work. A real signup needs the shared Mailchimp audience, so that one
+waits for the preview. Then, without being asked — commits, the work branch's push, and its draft
+are the team's standing go-ahead:
 
 ```
 /open-pr
 ```
 
 The skill checks the branch and the evidence, verifies that the description matches the diff, and
-shows the title and body before anything is sent:
+writes the title and body from the repository's template (its checklist is left out here):
 
 ```markdown
 feat: add newsletter signup to article pages
@@ -689,6 +723,8 @@ feat: add newsletter signup to article pages
 ## Traceability
 **Spec:** `specs/007-newsletter-signup/`
 **Tracker task:** https://tracker.example.com/t/MKT-412
+**Lane:** full — a new feature with decisions to make: failure behavior, rate limiting, personal
+data; set by the triggers
 
 ## What changed and why
 Marketing wants readers to subscribe from article pages, and to edit the form's copy without a
@@ -704,7 +740,8 @@ the content type in Contentful `master`, and the two Mailchimp variables in Verc
 Production — order and rollback in `plan.md` § Rollout & deployment.
 
 ## How to review and test
-**Where:** the preview (it reads Contentful `sandbox`, which has a published entry).
+**Where:** the preview — pending until it deploys (it reads Contentful `sandbox`, which has a
+published entry).
 
 1. Open any article: the section sits below the body.
 2. Subscribe with a `+test` address you control; it appears in the Mailchimp audience.
@@ -712,7 +749,8 @@ Production — order and rollback in `plan.md` § Rollout & deployment.
 4. Submit `not-an-email`: an inline error, with focus on the field.
 5. With VoiceOver: the inline error and the messages are announced.
 
-**Look at:** the server action — the only code that holds the Mailchimp key — and the rate limit.
+**Look at:** `lib/newsletter/mailchimp.ts` — the only code that holds the Mailchimp key — and the
+rate limit, applied in the Route Handler (`app/api/newsletter/route.ts`).
 
 **Tests:** 7 new Vitest files (39 tests) and `e2e/newsletter-signup.spec.ts` (10 tests), mapped AC
 by AC in `plan.md` § Test strategy.
@@ -720,47 +758,78 @@ by AC in `plan.md` § Test strategy.
 ## Verified / not verified
 - Verified: lint, typecheck, and build; Vitest 48 files / 251 tests; Playwright on Chromium, 24
   tests including the axe scan; every task went red, then green — `tasks.md` § Gate results.
+  `/review`: approve with two nits.
+- Local check: AC1–AC6 walked in a browser on the local environment, against the mock layer — the
+  section, a signup, the already-subscribed message, the inline error and its focus, the hidden
+  section, the error with the address kept. All as the spec says.
+- Preview: pending: deploying.
 - Not verified: the VoiceOver pass; a real Mailchimp signup and a real Contentful read (tests mock
   both); whether the Mailchimp variables are set for Preview and Production in Vercel; WebKit and
-  Firefox (CI only).
+  Firefox (CI only). The two review nits stay, at the developer's call: a risk `plan.md` accepts,
+  and a label written twice.
+
+## Merge danger
+**Reversible:** yes — reverting the merge removes the section and the endpoint. Addresses already
+sent to Mailchimp stay there; nothing else is stored.
+**Blast radius:** every article page (about 1,300) — the shared template renders the new section.
+Production shows nothing until marketing publishes the entry.
+
+## Follow-ups
+- none
 
 ## Screenshots
 From the local Playwright run at 375 px and 1280 px: default, inline error, success.
 ```
 
-Sam approved the local check, so the agent pushes and runs `gh pr create --draft` without a
-prompt. The pull request opens as a **draft**: #142. The agent records it in `spec.md`
-and commits locally — `spec: link newsletter-signup pull request`, which goes up with the next
-push. It offers to post the PR link on MKT-412, showing the exact text; that's a write
-Dana would see, so it waits for a yes (Sam preferred to post it by hand). It leaves the pull request
-a draft and says what holds it: a real signup on the preview, which its read-only walk doesn't make,
-the Vercel variables, and the VoiceOver pass.
+The local check passed, so the agent pushes and runs `gh pr create --draft` — no prompt, no
+question. The pull request opens as a **draft**: #142. The agent records it in `spec.md`, commits
+— `spec: link newsletter-signup pull request` — and pushes that commit to the same branch. A draft
+posts nothing on MKT-412: the task stays in progress.
+
+The draft is where the agent keeps testing. It waits in the background for the preview's deploy
+and for CI (`gh pr checks 142 --watch`), then tests and reviews the preview — read-only, in a
+browser: the section under an article at a phone's width and a desktop's, its copy from Contentful
+`sandbox`, the console, labels and focus. CI is green, WebKit and Firefox included. But the preview
+writes to the shared Mailchimp audience, so the agent doesn't submit the form there. It records
+what it saw in the description's *Preview* line, leaves the pull request a draft, and reports once,
+saying what holds it: a real signup on the preview, which its read-only walk doesn't make, the
+Vercel variables, and the VoiceOver pass.
 
 **The human QC paid off.** On the preview the next morning, Sam's first test signup showed the
 error message: the Mailchimp variables were set for Production only. Sam added them for Preview,
 redeployed, and everything passed, VoiceOver included. That is the "not verified" list doing its
 job — the agent said plainly what it couldn't see. Then:
 
-> **Sam:** QC done. Push the link commit and mark it ready.
+> **Sam:** QC done — the real signup and the VoiceOver pass both work on the preview.
 
-The agent ran `git push` and `gh pr ready 142`. With every criterion tested, it marks a pull request
-ready on its own; here, what it couldn't test held the draft until a person had. A teammate reviewed
-it, and it was squash-merged on 2026-06-15.
+That cleared what held the draft, and the rest needed no asking. The agent rebuilt the
+description's *How to review and test* and *Verified / not verified* sections with what had now
+been tested, and by whom; ran `gh pr ready 142`; and requested the reviewers `CONTRIBUTING.md`
+names — never Sam, the author. It stopped the local app it had kept running for fixes. On the
+tracker, it moved MKT-412 to in review, and the review update posted on its own
+(`/stakeholder-update review`): what readers will get, the preview and what Dana can try there,
+and the pull request for reference — its text shown in the agent's report. With every criterion
+tested, the agent marks a pull request ready on its own, with nobody asking; here, what it couldn't
+test held the draft until a person had. A teammate reviewed it, and it was squash-merged on
+2026-06-15.
 
 ---
 
 ## Step 11 — Close the loop
 
-The task came from the tracker, so the requester hears back in their own terms:
+Sam tells the agent the pull request merged, and the agent closes up the task:
 
 ```
-/stakeholder-update MKT-412 142
+/wrap-up
 ```
 
-The skill verifies each claim — the merged PR, production's article pages (no section yet, as
-planned), the draft entry in Contentful `master`. The merge to `main` deploys, so the change is
-live: the delivered update posts on its own, the task moves to delivered, and the agent's report
-shows the text it posted:
+Its check comes first — nothing uncommitted, every task ticked, `status: implemented` — and finds
+nothing left. The task came from the tracker, so the requester hears back in their own terms: the
+delivered step, `/stakeholder-update delivered`. The skill verifies each claim — the merged PR,
+production's article pages (no section yet, as planned), the draft entry in Contentful `master`.
+The merge to `main` deploys, so the change is live: the delivered update posts on its own, the
+usage guide's comment is brought up to date from the spec — it now opens **Usage guide**, no longer
+a draft — the task moves to delivered, and the agent's report shows the text it posted:
 
 > Hi Dana,
 >
@@ -773,7 +842,9 @@ shows the text it posted:
 >
 > The form is live but switched off: it appears within five minutes of publishing that entry, and
 > disappears if you unpublish it. The [entry](https://app.contentful.com/spaces/SPACE_ID/entries/ENTRY_ID)
-> is ready as a draft with our suggested text, for the 22nd.
+> is ready as a draft with our suggested text, for the 22nd. The steps for switching it on and
+> changing the wording are in the
+> [usage guide](https://tracker.example.com/t/MKT-412?comment=COMMENT_ID) on this task.
 >
 > We noticed one thing along the way:
 >
@@ -802,6 +873,10 @@ developer's to send. So it's a second message, a draft in chat:
 Sam approved the text and the assignee — Dana, since it asks Dana a question — and the agent posted
 it and read the comment back.
 
+Then the close-up itself. Sam's "merged" ended the task, the check found nothing left, and there
+was nothing to choose, so the agent didn't ask again: it switched to `main` and pulled the merge,
+deleted `feat/newsletter-signup` — here and on origin — and said the session was done.
+
 ---
 
 ## The history
@@ -821,6 +896,7 @@ c3a9d14 feat: add the newsletter subscribe endpoint                      T021
 f19d6c2 feat: add the Mailchimp client for newsletter signups            T012
 6ad3b70 feat: add a per-IP rate limiter for newsletter signups           T011
 0e7c5a9 feat: add email validation for newsletter signups                T010
+b5c20e7 docs: post the newsletter-signup usage guide draft               T003
 a2f84d1 docs: add marketing docs for newsletter-signup                   T001, T002
 3d9b6e8 spec: approve newsletter-signup scope and plan                   T000
 ```
@@ -836,7 +912,8 @@ subscribed" message exists in `spec.md` § Clarifications.
 ## What this example leaves out
 
 - **Most of the code.** Only the parts that show the workflow; the rest is ordinary Next.js.
-- **Real credentials, URLs, and IDs.** `<org>`, `SPACE_ID`, and `ENTRY_ID` are placeholders;
+- **Real credentials, URLs, and IDs.** `<org>`, `SPACE_ID`, `ENTRY_ID`, and `COMMENT_ID` are
+  placeholders;
   `tracker.example.com` stands in for whichever tracker you use (ClickUp, Jira, Linear, GitHub
   Issues…).
 - **A perfectly smooth session.** Real sessions have more back-and-forth than shown — but the

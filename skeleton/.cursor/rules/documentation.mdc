@@ -39,10 +39,10 @@ Doc updates during implementation are **normal**, not exceptional. As the chosen
 
 | Pre-implementable (write before code) | Post-implementable (backfill after code) |
 |---|---|
-| Admin / operator guides | Code-level JSDoc / inline comments |
-| API contracts (OpenAPI, GraphQL, type signatures) | Runbooks with real metrics / dashboards |
-| End-user copy / microcopy defaults | Tutorials with screenshots |
-| Public-facing READMEs / SDK docs | Troubleshooting guides built from real failure modes |
+| Admin / operator guides | Runbooks with real metrics / dashboards |
+| API contracts (OpenAPI, GraphQL, type signatures) | Tutorials with screenshots |
+| End-user copy / microcopy defaults | Troubleshooting guides built from real failure modes |
+| Public-facing READMEs / SDK docs | |
 | Architecture sketches for non-trivial features | |
 
 ## Rules

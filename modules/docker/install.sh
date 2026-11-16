@@ -5,7 +5,8 @@
 # the project's tasks run without a prompt, with no ask rule: they act on this project's local
 # stack (decision 0078). Nothing an agent runs changes the local mode, which only the developer sets.
 # `make run` is the approve-container-run hook's: it asks where the command runs on the host (0077).
-# An upgrade's migrations take out the ask rules this script once added; this script only ever adds.
+# An upgrade's migrations take out the ask rules this script once added; this script only adds, and
+# moves a rule it now denies out of the ask list.
 # Safe to run again (an upgrade picks up new rules the same way).
 #
 # Usage: modules/docker/install.sh [path/to/repository]    (default: the current directory)

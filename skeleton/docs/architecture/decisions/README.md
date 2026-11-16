@@ -8,8 +8,8 @@ An Architecture Decision Record documents a decision that has a significant impa
 
 ## When to write an ADR
 
-Write an ADR when you:
-
+Write an ADR when a decision is hard to reverse, surprising without its context, and a real
+trade-off — all three (`/record-decision`). Typically, when you:
 - Choose a framework, language, database, or major library
 - Define a communication pattern between services
 - Select a deployment platform or infrastructure approach

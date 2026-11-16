@@ -4,7 +4,7 @@
 
 Decisions about **how we work**: the workflow, review gates, the requirements pipeline, how agents
 hand off work, tooling conventions. "Why does every pull request open as a draft?", "Why is there one
-approval gate after the plan?", "Why can't an agent push?"
+approval gate after the plan?", "Why does an agent mark its own pull request ready?"
 
 Same shape as an ADR — context, decision, consequences, alternatives — and the same discipline:
 short, dated, **append-only**. Process decisions get re-argued as often as architectural ones, and

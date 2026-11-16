@@ -38,7 +38,7 @@ is done when its runs prove it. Name the requirement's ID whenever you report a 
 2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
    and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, this is the main checkout,
    which takes no edits. Say so in a line, read nothing more, and run `/adf:dispatch` now with
-   `test/unit` as the branch, without asking first.
+   `chore/unit` as the branch, without asking first.
 3. **Read the facts, running nothing yet:** the app's `package.json`, any test runner already
    there (`jest.config.*`, `vitest.config.*`, `mocha`), where tests live now, the `Makefile` and
    `ops/` when the stamp names `docker`, `.claude/rules/testing.md`, and `AGENTS.md`. A project

@@ -61,6 +61,8 @@ stop: the spec and the approval gate come before more code.
   denied case as well as the allowed one.
 - **Personal data** — what's collected, stored, or exposed changes only as the request says; nothing
   new reaches logs, analytics, or the browser.
+- **Payments** — the authorization and personal-data checklists both apply; amounts and who is
+  charged change only as the request says, with a test for the failed or declined case.
 - **Shared code** — list the code's other consumers and run their tests.
 - **Public API or contract** — existing callers keep working (an additive change), or the developer
   agrees to the break.

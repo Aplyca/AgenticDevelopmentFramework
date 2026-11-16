@@ -2,7 +2,7 @@
 
 The same checks as `check-skills.sh`, expressed as a checklist for when you can't run the scripts —
 reviewing the framework in conversation, or having an AI agent verify it without shell access. The
-behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no checklist substitute.
+behavioral suites (`test-hooks.sh`, `test-modules.sh`, `test-plugin.sh`, `test-upgrade.sh`) need a shell; there is no checklist substitute.
 
 ## Per skill (every skill a committed install carries — `plugins/adf/skills/*` and the modules' skills)
 
@@ -13,7 +13,7 @@ behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no
 
 Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-docs`, `implement`,
 `review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
-`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`,
+`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `unit`, `wrap-up`, `track-time`, `end-user-docs`,
 `framework-feedback`.
 
 - [ ] `/open-pr` opens a draft once the agent's own local check and `/review` pass, tests and reviews it on the preview, marks it ready once that and CI pass, and requests the reviewers `CONTRIBUTING.md` names — on GitHub or GitLab (decisions 0022, 0045, 0070, 0072); `/track-time`, `/end-user-docs`, and `/framework-feedback` show the draft and ask before posting, and so does `/stakeholder-update` for anything that asks the requester for something — its review and delivered updates post on their own (decision 0073)

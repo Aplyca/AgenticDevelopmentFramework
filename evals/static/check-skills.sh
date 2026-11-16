@@ -3,7 +3,7 @@
 # Static evals — structural checks of the framework's skills, agents, rules, workflows, hooks,
 # settings, templates, and links. Zero AI invocation. Runs in seconds. Exit 0 on all-pass.
 #
-# Usage: ./check-skills.sh [--verbose]
+# Usage: ./check-skills.sh
 #
 
 set -uo pipefail
@@ -1454,14 +1454,14 @@ check_english() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
     # This check names the words it looks for, so it skips its own file.
-    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | python3 -c '
-import re, sys
+    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | REPO_ROOT="$REPO_ROOT" python3 -c '
+import os, re, sys
 spanish = re.compile(r"[áíóúñÁÍÓÚÑ¿¡]|\b(también|según|además|herramienta|desarrollo|cómo|qué|está|nuestr[oa]s?)\b", re.I)
 for path in sys.stdin.read().split("\0"):
     if not path:
         continue
     try:
-        lines = open(path, encoding="utf-8").read().split("\n")
+        lines = open(os.path.join(os.environ["REPO_ROOT"], path), encoding="utf-8").read().split("\n")
     except (OSError, UnicodeDecodeError):
         continue
     for number, line in enumerate(lines, 1):

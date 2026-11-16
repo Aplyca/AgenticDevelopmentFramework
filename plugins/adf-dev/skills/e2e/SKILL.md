@@ -52,7 +52,7 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
 2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
    and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, this is the main checkout,
    which takes no edits. Say so in a line, read nothing more, and run `/adf:dispatch` now with
-   `test/e2e` as the branch, without asking first: it moves this session to the task's worktree,
+   `chore/e2e` as the branch, without asking first: it moves this session to the task's worktree,
    where this command runs as the developer typed it.
 
 3. **Read the facts, running nothing yet:**
@@ -80,7 +80,8 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
    - **`package.json`** with `@playwright/test` at the newest version released at least two weeks
      ago (`npm view @playwright/test time --json`), exactly. Check that Playwright's image has the
      same tag (`docker manifest inspect mcr.microsoft.com/playwright:v<version>-noble`).
-   - **The lockfile:** `npm install --prefix e2e --no-audit --no-fund`. Without Node on the host,
+   - **The lockfile:** `npm install --prefix e2e --no-audit --no-fund`. With the `docker` module
+     in Docker mode, or without Node on the host, never on the host:
      `docker run --rm -v "$PWD/e2e:/suite" -w /suite node:<lts> npm install --no-audit --no-fund`.
    - **`playwright.config.ts`** to S3, and **`fixtures.ts`** to S4: a unique id per test (B1), a stub
      for each third party the browser calls (B2), and, with sign-in, the setup project and its

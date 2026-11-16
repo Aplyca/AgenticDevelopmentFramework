@@ -70,7 +70,7 @@ SESSION_TITLE="1"
 ENV_TEMPLATE=""
 
 # Variables the runtime or platform provides — never expected in the env template.
-ENV_IGNORE="NODE_ENV CI HOME PATH PWD USER SHELL TERM TZ LANG"
+ENV_IGNORE="NODE_ENV CI HOME PATH PWD USER SHELL TERM TZ LANG MODE DEV PROD SSR BASE_URL"
 
 # Files never checked for undeclared environment variables.
 ENV_CHECK_EXCLUDE="*.test.* *.spec.* *_test.* test_*.py tests/* */tests/* */__tests__/* docs/* *.md"
@@ -78,8 +78,8 @@ ENV_CHECK_EXCLUDE="*.test.* *.spec.* *_test.* test_*.py tests/* */tests/* */__te
 # Where spec folders live (used for session context).
 SPECS_DIR="specs"
 
-# CUSTOMIZE: the local environment's URL — what the agent walks and the developer opens for the local
-# check before the pull request. ${APP_PORT} is the env file's when it pins one. Empty: the agent uses
+# CUSTOMIZE: the local environment's URL — what the agent walks for the local check before the pull
+# request. Agents read it; no hook does. ${APP_PORT} is the env file's when it pins one. Empty: the agent uses
 # READY_URL from ops/agent/worktree.conf, or `make urls`.
 # E.g. 'http://localhost:${APP_PORT}', or "http://localhost:3000" for a fixed port.
 LOCAL_URL=""

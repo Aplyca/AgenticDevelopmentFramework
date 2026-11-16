@@ -47,7 +47,7 @@ implementation; invest in them early.
    stop: the spec and the approval gate come first.
 7. **Local check** — when the change alters something a person can see or use, run it on the local
    environment and walk the changed flow yourself.
-8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`), marked ready once your
+8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`, which runs `/adf:review` first, in every lane), marked ready once your
    own tests pass; the human review and QC are the gate.
 
 ## Workflow 2: Feature or behavior change (full lane)
@@ -110,8 +110,8 @@ quoting it (`specs/README.md` § Records name roles).
 ## Workflow 4: Answer-only task (investigation, impact analysis, estimate)
 
 No spec folder, no environment unless a step must run something. Read the code, docs, and history;
-deliver the answer where the task asks for it. A recommended change gets its spec once someone
-approves the change.
+deliver the answer where the task asks for it. A recommended change gets a lane once someone
+approves it.
 
 ## Workflow 5: Bugs and hotfixes
 
@@ -148,7 +148,8 @@ the way): a bug in this branch's own work is fixed in the task; an improvement t
 developer's call, a change request if taken or, with the `github` or `gitlab` module, an issue;
 anything else is a follow-up in the pull request's `## Follow-ups`, which `/adf:wrap-up` files as
 an issue with either module, or offers to start in a session (at once, too, with the
-parallel-agents module); what can't wait goes to the developer first.
+parallel-agents module); what can't wait goes to the developer first. A problem in the framework
+itself isn't this project's task: offer `/adf:framework-feedback`, and never run it unasked.
 
 **When the base branch moves under an open draft,** run `/adf:open-pr sync`: only for a reason, a merge commit and never a rebase, then re-run only what
 the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).

@@ -34,7 +34,6 @@
       "Bash(glab api *--raw-field *)",
       "Bash(glab api *--form *)",
       "Bash(glab api *--input *)",
-      "Bash(gh pr merge)",
       "Bash(gh pr merge *)",
       "Bash(gh pr review *)",
       "Bash(gh release *)",

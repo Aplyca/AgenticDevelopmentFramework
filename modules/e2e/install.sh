@@ -59,11 +59,15 @@ allow = permissions.setdefault("allow", [])
 # With the docker module (its Bash(make *) rule), make tasks run the tests in either local mode, and
 # Docker mode installs nothing on the host: the commands that run them on the host stay unallowed, so
 # an agent that reaches for one gets a prompt. A rerun takes out the ones an earlier install added.
-host = [] if "Bash(make *)" not in allow else [r for r in fragment["allow"] if not r.startswith("Bash(make ")]
+# Its Bash(make *) already allows the make tasks, so they get no rule of their own: an upgrade would
+# drop each one as covered.
+covered = "Bash(make *)" in allow
+host = [] if not covered else [r for r in fragment["allow"] if not r.startswith("Bash(make ")]
 removed = [r for r in allow if r in host]
 allow[:] = [r for r in allow if r not in host]
-allowed = append_missing(allow, [r for r in fragment["allow"] if r not in host])
+allowed = append_missing(allow, [] if covered else fragment["allow"])
 save(settings_path, settings)
 print(f".claude/settings.json: {len(allowed)} end-to-end test command(s) allowed"
+      + (": the docker module's Bash(make *) covers the make tasks" if covered else "")
       + (f", {len(removed)} host command(s) removed: the docker module's make tasks run them" if removed else ""))
 PY

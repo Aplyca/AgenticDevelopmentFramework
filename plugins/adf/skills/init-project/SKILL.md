@@ -52,7 +52,7 @@ alone: it changes only through its amendment process (`/adf:record-decision`). S
 
 6. **Configure the hooks** — `.claude/hooks/config.sh`: protected branches, sensitive areas
    (`CAREFUL_GLOBS`, matching `AGENTS.md` § Sensitive areas — ask the team), append-only paths
-   (migrations), generated files, the env template, and `LOCAL_URL` — the URL the developer opens
+   (migrations), generated files, the env template, and `LOCAL_URL` — the URL the agent walks
    for the local check, from the dev server and port in Quick reference (its comment covers
    worktrees). Extend `permissions` in `.claude/settings.json` with this repository's routine
    read-only commands.

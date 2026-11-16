@@ -10,8 +10,9 @@ FAST_CHECKS=""
 # e.g. FAST_CHECKS="npm run lint
 # npx tsc --noEmit
 # npm run test:unit"
-# With the docker module, the make tasks, which run where the local mode runs the app, so the host
-# needs nothing installed (in Docker mode, the stack must be up; tier= comes with the unit module):
+# With the docker module, the make tasks, which run where the local mode runs its tools, so the host
+# needs nothing installed (in Docker mode they start the tools container themselves; tier= comes
+# with the unit module):
 # FAST_CHECKS="make lint
 # make typecheck
 # make test tier=smoke"
@@ -19,10 +20,19 @@ FAST_CHECKS=""
 root="$(git rev-parse --show-toplevel)" || exit 1
 
 PROTECTED_BRANCHES="main master"
-# One source of truth with the Claude Code guard hook, when it is installed.
+# One source of truth with the Claude Code guard hook, when it is installed. The file is read as
+# data, never run, as the hooks read it: the last PROTECTED_BRANCHES="…" line wins.
 if [ -f "$root/.claude/hooks/config.sh" ]; then
-  # shellcheck disable=SC1091
-  . "$root/.claude/hooks/config.sh"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in PROTECTED_BRANCHES=*) ;; *) continue ;; esac
+    value="${line#*=}"
+    case "$value" in
+      \"*) value="${value#\"}" && value="${value%%\"*}" ;;
+      \'*) value="${value#\'}" && value="${value%%\'*}" ;;
+      *) value="${value%%[[:space:]]*}" ;;
+    esac
+    PROTECTED_BRANCHES="$value"
+  done <"$root/.claude/hooks/config.sh"
 fi
 
 fail() {

@@ -142,7 +142,7 @@ Monday morning, three tasks arrive for the newsletter site:
 
 | Task | Its session |
 |---|---|
-| "Show the chosen topics after signing up" — feedback on delivered work | `feat/newsletter-signup` — reuses the feature's slug |
+| "Show the chosen topics after signing up" — feedback on delivered work | `feat/newsletter-signup-success-topics` — the feature's slug, plus the change |
 | "Every signup fails since 09:12" | `fix/newsletter-rate-limit-outage` |
 | "What would it take to switch email providers?" | An answer that only reads: stays in the main checkout |
 
@@ -150,16 +150,18 @@ The main checkout is `/home/dev/code/newsletter-site`. You start three sessions 
 triages a change request, and `/dispatch` creates its worktree:
 
 ```
-$ ops/agent/worktree-new.sh feat/newsletter-signup --no-start
+$ ops/agent/worktree-new.sh feat/newsletter-signup-success-topics --no-start
 ==> Fetching origin
-==> Creating 'feat/newsletter-signup' from origin/main
+==> Creating 'feat/newsletter-signup-success-topics' from origin/main
 ==> Writing .env from the main checkout's
 
-==> Worktree ready: /home/dev/code/newsletter-site/.claude/worktrees/feat-newsletter-signup
-    Branch:  feat/newsletter-signup
-    Project: newsletter-site-feat-newsletter-signup
+==> Worktree ready: /home/dev/code/newsletter-site/.claude/worktrees/feat-newsletter-signup-success-topics
+    Branch:  feat/newsletter-signup-success-topics
+    Project: newsletter-site-feat-newsletter-signup-success-topics
 
---no-start: the environment is left down. The worker starts it when a step needs it.
+--no-start: the environment is left down. When a step needs it, run from the worktree:
+  ops/agent/worktree-new.sh feat/newsletter-signup-success-topics                # set up and start
+  ops/agent/worktree-new.sh feat/newsletter-signup-success-topics --setup-only   # only what the git hooks and tests need
 ```
 
 The two changes' sessions move into their worktrees; the estimate's stays. An hour later:
@@ -167,12 +169,12 @@ The two changes' sessions move into their worktrees; the estimate's stays. An ho
 ```
 $ ops/agent/worktree-ls.sh --info
 
-  BRANCH                               CHANGES  PATH
-  main                                 0        /home/dev/code/newsletter-site (main checkout)
-  feat/newsletter-signup               0        /home/dev/code/newsletter-site/.claude/worktrees/feat-newsletter-signup
-  fix/newsletter-rate-limit-outage     0        /home/dev/code/newsletter-site/.claude/worktrees/fix-newsletter-rate-limit-outage
+  BRANCH                                 CHANGES  PATH
+  main                                   0        /home/dev/code/newsletter-site (main checkout)
+  feat/newsletter-signup-success-topics  0        /home/dev/code/newsletter-site/.claude/worktrees/feat-newsletter-signup-success-topics
+  fix/newsletter-rate-limit-outage       0        /home/dev/code/newsletter-site/.claude/worktrees/fix-newsletter-rate-limit-outage
 
-  feat/newsletter-signup
+  feat/newsletter-signup-success-topics
       ○ web        not running  (APP_PORT)
       ○ redis      not running  (REDIS_PORT)
   fix/newsletter-rate-limit-outage

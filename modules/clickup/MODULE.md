@@ -79,9 +79,11 @@ In `docs/TRACKER-INTEGRATION.md`:
 
      So a fix to a comment that holds a mention, a preview, or an image, or to a description that
      holds a mention or a preview, is the developer's, in ClickUp.
-4. **Link back** — where pull request links go on a task: a "Links" section in the description, or a
-   comment. Adding the link rewrites the whole description, so where the description holds a mention
-   or a link preview (step 3, Editing posted text), the link goes in a comment instead.
+4. **Link back** — the review update carries the pull request link, in a comment
+   (`docs/TRACKER-INTEGRATION.md` § Rules for agents). A "Links" section in the description as well
+   is an extra, and asks first: adding the link rewrites the whole description, so where the
+   description holds a mention or a link preview (step 3, Editing posted text), the comment is the
+   only place for it.
 5. **Time tracking** — with the `time-tracking` module, `docs/TIME-TRACKING.md` names ClickUp's
    time-tracking tools, which read and write a task's time entries, and the tag that marks the number
    each entry carries. Reading them falls under the read-only allowlist; writing one prompts, after

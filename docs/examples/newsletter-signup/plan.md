@@ -224,6 +224,7 @@ stories.
 | --- | --- | --- | --- |
 | `docs/admin/newsletter.md` | Site administrators (marketing) | pre | T001 |
 | `docs/copy/newsletter-defaults.md` | Marketing (copy) | pre | T002 |
+| Usage guide, on the tracker task | The requester (marketing) | usage guide | T003 |
 | `docs/runbooks/newsletter.md` | Operators / on-call | post | T041 |
 
 ## Rollout & deployment

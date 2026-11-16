@@ -10,7 +10,7 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | [`gitlab/`](gitlab/MODULE.md) | The same harness for GitLab: a merge request template (the pull request template's sections), issue templates that redirect requirements to the tracker, and the secret scan and base-branch policy as one CI include (`.gitlab/ci/adf.yml`) with `.gitlab-ci.yml` to hold the branch model, `.gitleaks.toml` | The repository lives on GitLab, GitLab.com or self-managed |
 | [`git-hooks/`](git-hooks/MODULE.md) | A tool-agnostic `pre-push` hook that refuses pushes to protected branches and runs the fast checks | You want local gates that apply to every git client, not only to Claude Code |
 | [`clickup/`](clickup/MODULE.md) | ClickUp's official MCP server in `.mcp.json` and a read-only permission allowlist, so agents read tasks freely and every write prompts | Requirements arrive as ClickUp tasks |
-| [`parallel-agents/`](parallel-agents/MODULE.md) | Worktree scripts (`worktree-new`, `-rm`, `-ls`) that give every task its own worktree, branch, env file, and port; the `/dispatch` skill, which moves each task's session to its worktree; the process doc | Several agent sessions work on the same repository at once, and each needs a running app |
+| [`parallel-agents/`](parallel-agents/MODULE.md) | Worktree scripts (`worktree-new`, `-rm`, `-ls`) that give every task its own worktree, branch, env file, and port; the `/dispatch` skill, which moves each task's session to its worktree; the process doc | Several agent sessions work on the same repository at once — with a port and a running app per worktree only where the project configures them |
 | [`docker/`](docker/MODULE.md) | The `/dev-env` skill — write or migrate a Docker Compose local environment to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), run it natively or per worktree, diagnose it, and safely reset it — and permission rules that let docker and make commands run without a prompt. Packaged, the skill comes from the development plugin, `adf-dev` | The local stack runs on Docker Compose, or the team wants a containerized local environment |
 | [`e2e/`](e2e/MODULE.md) | The `/e2e` skill — set up Playwright end-to-end tests in `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the checkout's own stack (in Docker or on the host), with one smoke test per critical flow; audit a suite, and diagnose a failing or flaky test — and permission rules that let the suite run without a prompt. Packaged, the skill comes from `adf-dev` | People use the app in a browser, and its critical flows should be checked end to end |
 | [`unit/`](unit/MODULE.md) | The `/unit` skill — set up Vitest unit and integration tests to the specification it carries, run by tier (`@smoke` ⊂ `@critical` ⊂ regression) and by feature suite (a folder per feature, listed in `docs/TEST-SUITES.md`), with `npm test` and its tier scripts or `make test tier= suite=`; audit a suite — and permission rules that let the tiers run without a prompt. Packaged, the skill comes from `adf-dev` | A JavaScript or TypeScript app whose tests should run in steps and by feature |
@@ -28,11 +28,12 @@ cp -R modules/<module>/files/. /path/to/your-repo/
 
 Nothing is overwritten that you didn't mean to — check `git status` and merge any file that already
 existed (a pull request template, or the `gitlab` module's `.gitlab-ci.yml`, for example). The `clickup` module is the exception: it changes
-files every repository already has (`.mcp.json`, `.claude/settings.json`), so it installs with
+files a repository usually has already (`.mcp.json`, `.claude/settings.json`), so it installs with
 `modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module has no
 files to copy: `modules/docker/install.sh <repo>` merges its permission rules, and `/dev-env set up`
 writes the stack from the skill's templates; `e2e` likewise, with `modules/e2e/install.sh <repo>`, and
-`/e2e set up` writes the suite to its specification. Then follow the module's customization steps and
+`/e2e set up` writes the suite to its specification; and `unit`, with `modules/unit/install.sh <repo>`
+and `/unit set up`. Run `docker`'s installer before theirs. Then follow the module's customization steps and
 record the module in the `Skeleton source` line at the top of `AGENTS.md`
 (`· modules: github, clickup`) so `/upgrade` knows to update it.
 

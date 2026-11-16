@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the gitlab
-# module's branch-policy job, the parallel-agents worktree scripts, and the clickup and docker install scripts. Builds throwaway repositories (with a bare "origin") in a temp
+# module's branch-policy job, the parallel-agents worktree scripts, the clickup, docker, e2e, and unit install scripts, and the dev-env stack's templates. Builds throwaway repositories (with a bare "origin") in a temp
 # directory. No AI invocation, no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
 #
 set -uo pipefail

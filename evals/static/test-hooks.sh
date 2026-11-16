@@ -73,6 +73,17 @@ run guard-git.sh 0 "$(bash_event 'glab mr create --draft --target-branch main --
 run guard-git.sh 0 "$(bash_event 'glab mr new --wip --fill')" "allows a GitLab draft by --wip, and mr new"
 run guard-git.sh 2 "$(bash_event 'glab mr create -d "notes" --fill')" "doesn't take glab's -d (--description) for --draft"
 run guard-git.sh 0 "$(bash_event 'gh pr view 12 --json state')" "ignores other gh commands"
+run guard-git.sh 2 "$(bash_event 'gh pr new --title "Add signup" --fill')" "blocks gh pr new, the alias of create, without --draft"
+run guard-git.sh 2 "$(bash_event 'gh -R acme/app pr create --title "Add signup"')" "sees gh pr create after a --repo flag"
+# Quoted text is blanked as data, but not the folder a command runs in or the branch it pushes.
+run guard-git.sh 2 "$(bash_event "cd \"$T\" && git commit -m \"wip\"")" "follows a quoted cd"
+run guard-git.sh 2 "$(bash_event "git -C \"$T\" commit -m wip")" "follows a quoted git -C"
+run guard-git.sh 2 "$(bash_event 'git -C "$SOMEWHERE/else" commit -m wip')" "falls back to the session's folder for a path it can't read"
+run guard-git.sh 2 "$(bash_event 'git push origin "main"')" "blocks a push to a quoted main"
+run guard-git.sh 2 "$(bash_event 'if true; then git commit -m wip; fi')" "sees a command after a shell keyword"
+run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing && git commit -m "feat: add signup"')" "allows a commit chained to the work branch's creation"
+run guard-git.sh 2 "$(bash_event 'git switch -c feat/new-thing; git commit -m "feat: add signup"')" "doesn't trust a switch that && doesn't chain"
+run guard-git.sh 2 "$(bash_event 'git checkout README.md && git commit -m wip')" "doesn't take a checked-out path for a branch"
 
 git -C "$T" switch -q -c feat/newsletter-signup
 # guard-git — on a work branch
@@ -82,6 +93,8 @@ heredoc=$'git commit -m "$(cat <<\'EOF\'\nfeat: add signup\n\nDon\'t use -n; git
 run guard-git.sh 0 "$(bash_event "$heredoc")" "ignores a heredoc commit message"
 run guard-git.sh 2 "$(bash_event 'git commit --no-verify -m x')" "blocks --no-verify"
 run guard-git.sh 2 "$(bash_event 'git commit -nm x')" "blocks -n folded into short flags"
+run guard-git.sh 0 "$(bash_event 'git commit -uno -m x')" "doesn't take -uno (--untracked-files=no) for -n"
+run guard-git.sh 2 "$(bash_event 'git switch main && git commit -m x')" "blocks a commit chained to a switch to main"
 run guard-git.sh 2 "$(bash_event 'git merge --no-verify feat/x')" "blocks --no-verify on merge"
 run guard-git.sh 0 "$(bash_event 'git push -u origin feat/newsletter-signup')" "allows pushing the work branch (after the local check, decision 0022)"
 run guard-git.sh 2 "$(bash_event 'git push origin main')" "blocks a push to main"

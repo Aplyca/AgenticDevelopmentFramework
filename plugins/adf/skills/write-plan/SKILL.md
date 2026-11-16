@@ -68,7 +68,7 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    done, a test — is struck through, not deleted. Tests the CR changes or retires are named in its
    test strategy, each with the task that touches it.
 
-6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference — one test by name, a feature suite, and the full gate: what runs while iterating is the task's tests, never a whole file of them.
+6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference — one test by name, a feature suite, and the full gate: what runs while iterating is the task's tests — or their file, when it runs in seconds — never a slow file or a suite of them.
 
 ## Phase 3: Analyze (read-only)
 

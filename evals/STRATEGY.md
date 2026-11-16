@@ -19,7 +19,7 @@ Is the thing you're checking visible from a static read of files?
 - **Specific.** "The `/write-spec` SKILL.md contains `## Rationalizations (do not accept these)` followed by a table with at least 5 rows" beats "the skill has anti-rationalization content".
 - **Self-contained.** Can be checked with `grep`, `awk`, or simple structural tools. No AI invocation.
 - **Atomic.** One check per assertion. A failing eval should point at exactly one missing thing.
-- **Fast.** The whole static suite should run in <5 seconds. If it's slower, you've over-specified.
+- **Fast.** The structural checks (`check-skills.sh`) should run in about 5 seconds. If they're slower, you've over-specified. The functional suites start real repositories and take longer.
 
 Bad static eval:
 > "The skill produces good specs."
@@ -84,12 +84,12 @@ This is identical to TDD for application code. The eval suite grows from real si
 
 ### Static
 ```bash
-./skeleton/evals/static/check-skills.sh
+./evals/static/check-skills.sh
 ```
 Returns exit 0 if all checks pass, non-zero on any failure. Suitable for CI.
 
 ### Dynamic (manual)
-1. Open the fixture: `skeleton/evals/dynamic/fixtures/write-spec/simple-feature.input.md`
+1. Open the fixture: `evals/dynamic/fixtures/write-spec/api-only-feature.input.md`
 2. Paste the input into your AI tool (Claude Code, Cursor, etc.)
 3. Run the relevant skill
 4. Compare the output against `simple-feature.expected.md`
@@ -102,7 +102,7 @@ See `dynamic/run-dynamic.md` for SDK-based patterns (Anthropic, Braintrust, Deep
 
 - **Treat eval failures as bugs.** Don't silence; fix the skill or update the eval (with explicit reasoning).
 - **Review the suite quarterly.** Remove evals for behavior that's changed by design. Document why each eval exists.
-- **Keep total runtime bounded.** Static suite <5s, dynamic suite <5min for nightly run.
+- **Keep total runtime bounded.** The structural checks in about 5 seconds, the whole static run in about two minutes, the dynamic suite <5min for a nightly run.
 - **Capture regressions in commit messages.** "added eval for X — reproduces the bug from PR #123 where /write-spec dropped the Privacy section"
 
 ## Tools (optional, for automated dynamic evals)

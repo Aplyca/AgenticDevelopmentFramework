@@ -920,8 +920,13 @@ class Upgrade:
                         sample.update(tool_name="Edit", tool_input={"file_path": os.path.join(self.repo, "README.md")})
                     else:
                         sample.update(tool_name=matcher.split("|")[0], tool_input={})
-                    result = subprocess.run(["bash", script], input=json.dumps(sample).encode(), capture_output=True,
-                                            cwd=self.repo, env=env, timeout=60)
+                    try:
+                        result = subprocess.run(["bash", script], input=json.dumps(sample).encode(),
+                                                capture_output=True, cwd=self.repo, env=env, timeout=60)
+                    except subprocess.TimeoutExpired:
+                        checks.append({"check": f"hook {name} ({event})", "ok": False,
+                                       "note": "no answer in 60 seconds: run it by hand"})
+                        continue
                     err = result.stderr.decode(errors="replace")
                     ok = result.returncode in (0, 2) and "unbound variable" not in err and "command not found" not in err
                     checks.append({"check": f"hook {name} ({event})", "ok": ok,

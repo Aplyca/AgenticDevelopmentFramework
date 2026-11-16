@@ -64,7 +64,7 @@
 
 <!-- Bugs and improvements found along the way, outside this change (specs/README.md § Found along
      the way): one "- [ ] <task> — <why> (found in <file:line>)" line each, or "- none". The agent
-     adds lines; tick or delete one to drop it. /wrap-up offers to start each one left. -->
+     adds lines; tick or delete one to drop it. /wrap-up files each one left as an issue, or offers to start it. -->
 
 - none
 

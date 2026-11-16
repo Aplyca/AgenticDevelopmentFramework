@@ -93,7 +93,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/process/README.md`, `docs/reference/README.md` | Framework prose around your own index |
 | `docs/TRACKER-INTEGRATION.md` | Your tracker, MCP setup, allowlist |
 | `docs/getting-started/DEV-SETUP.md` | Your prerequisites, setup steps, commands, and troubleshooting |
-| Module configuration | `ops/agent/worktree.conf`, `.worktreeinclude`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.github/ISSUE_TEMPLATE/*`, `.gitlab/merge_request_templates/Default.md`, `.gitlab/issue_templates/*`, `.gitlab-ci.yml` (the `gitlab` module's include, `ADF_` variables, and `workflow:` rules beside your own jobs), `.gitleaks.toml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module), `docs/END-USER-DOCS.md` (the `end-user-docs` module) |
+| Module configuration | `ops/agent/worktree.conf`, `.worktreeinclude`, `.github/pull_request_template.md`, `.github/workflows/branch-policy.yml`, `.github/ISSUE_TEMPLATE/*`, `.gitlab/merge_request_templates/Default.md`, `.gitlab/issue_templates/*`, `.gitlab-ci.yml` (the `gitlab` module's include, `ADF_` variables, and `workflow:` rules beside your own jobs), `.gitleaks.toml`, `.githooks/pre-push`, `.mcp.json` (the `clickup` module — rerun `modules/clickup/install.sh`, which merges), the docker rules in `.claude/settings.json` (the `docker` module — rerun `modules/docker/install.sh`, which merges), the e2e rules there (the `e2e` module — rerun `modules/e2e/install.sh`), the unit rules there (the `unit` module — rerun `modules/unit/install.sh`), `docs/SHARED-SERVICES.md` (the `parallel-agents` module), `docs/TIME-TRACKING.md` (the `time-tracking` module), `docs/END-USER-DOCS.md` (the `end-user-docs` module) |
 | `.claude/rules/architecture.md` | Has `<!-- CUSTOMIZE -->` markers for paths and patterns |
 | `.claude/rules/ui-ux.md` | Customize for your UI framework |
 | `.claude/rules/deployment.md` | Customize for your infra |
@@ -383,7 +383,7 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.
 - **Turn on the plugin that carries an installed module's skills** when it isn't `adf`
-  ([decision 0023](decisions/0023-plugins-by-concern.md)) — `adf-dev` for `docker` and `e2e`: `"adf-dev@aplyca": true` in
+  ([decision 0023](decisions/0023-plugins-by-concern.md)) — `adf-dev` for `docker`, `e2e`, and `unit`: `"adf-dev@aplyca": true` in
   `enabledPlugins`, its read rule, and no committed copy of the module's skills. The same pin covers
   it.
 
@@ -398,10 +398,10 @@ Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade`
 you don't have and recommends the ones your repository's facts support — `parallel-agents` when
 several agent sessions may work at once (each task gets its own worktree, branch, pull request, and
 session; the main checkout takes no edits), `clickup` when requirements arrive as ClickUp tasks,
-`docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `time-tracking` when the team measures the time its tasks take, `end-user-docs` when end users read the product's documentation in a doc tool, `github` on GitHub, `gitlab` on GitLab, `git-hooks` for local
+`docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `unit` for a JavaScript or TypeScript app's unit and integration tests, `time-tracking` when the team measures the time its tasks take, `end-user-docs` when end users read the product's documentation in a doc tool, `github` on GitHub, `gitlab` on GitLab, `git-hooks` for local
 gates. The ones you choose join the same upgrade pull
 request, with their customize steps. Choosing `parallel-agents` moves the upgrade itself into a
-worktree, so the main checkout starts as a clean hub. By hand: `cp -R modules/<name>/files/.` (no
+worktree, so the main checkout stays clean from the start. By hand: `cp -Rn modules/<name>/files/.` (no
 overwrite) and follow its `MODULE.md`.
 
 ### "I just want one new skill" (e.g. `/triage`)
@@ -451,7 +451,7 @@ Treat as a deliberate framework decision. Read the commit message. If a skill wa
 
 ## What this guide doesn't cover
 
-- **Automated upgrade tooling** — out of scope. Manual or AI-assisted is the current bar. If the framework adopts a release CLI someday, this guide will be replaced.
+- **A scripted upgrade below v2.0.0** — the script starts at v2.0.0 (§ The scripted upgrade); a project below it follows the manual procedure in this guide.
 - **Releases before v1.0.0** — they have no tags; their SHAs are the version.
 - **Breaking-change detection** — read [`CHANGELOG.md`](../CHANGELOG.md) for per-entry upgrade impact, then commit messages between OLD_SHA and NEW_SHA for anything not yet captured there.
 - **Forking the framework** — if your team has diverged so far that upgrading is no longer cost-effective, you've effectively forked. Document the divergence and stop tracking upstream.

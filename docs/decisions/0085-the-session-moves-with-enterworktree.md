@@ -89,7 +89,7 @@ added with git under the main checkout's `.claude/worktrees/`, on a branch of th
     there; no other prompt was seen.
   - **A moved session runs no git in the main checkout** until it leaves the worktree. Only the
     close-up needs to, and it leaves first. The same holds for a terminal session, which has moved
-    with `EnterWorktree` since 0042.
+    with `EnterWorktree` since 0021.
   - **Whether `CLAUDE_PROJECT_DIR` follows the move wasn't observed.** A committed install's hooks run
     from it. If it stays on the folder the session started in, they run that folder's copies, from
     the same release.

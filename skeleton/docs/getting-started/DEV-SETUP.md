@@ -101,7 +101,7 @@ All tests should pass. If not, see [Troubleshooting](#troubleshooting) below.
 Once your environment is working, try this to build confidence:
 
 1. [e.g., Pick an issue labeled "good first issue"]
-2. [e.g., Create a branch: `git checkout -b your-name/first-task`]
+2. [e.g., Create a branch: `git switch -c docs/first-task`]
 3. [e.g., Make the change, write a test, open a PR]
 
 ## IDE setup

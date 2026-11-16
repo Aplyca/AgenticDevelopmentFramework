@@ -3,7 +3,8 @@
 - **Status:** accepted
 - **Date:** 2026-10-28
 - **Supersedes:** [0026](0026-display-only-mods.md) — the only mod; [0032](0032-local-environment-layout.md)'s
-  `docker compose port` exception for it
+  `docker compose port` exception for it (its point 7); what the band read in
+  [0034](0034-local-environment-modes.md) (point 8) and [0056](0056-the-running-app-in-claude-desktops-browser.md) (point 9)
 
 ## Context
 
