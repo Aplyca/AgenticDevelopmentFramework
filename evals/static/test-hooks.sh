@@ -239,7 +239,7 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
     fi
 }
 check_ctx "in the main checkout: triage first, then the task's own worktree, with /dispatch" "$T" "Triage the task first. A change, or an answer that runs the app, the tests, or the database, then gets its own worktree: /dispatch" "DISPATCHER"
-check_ctx "the task's worktree sits beside the main checkout, from the base branch, and this session moves" "$T" "beside this checkout, on a new branch from main, and moves this session there" "Route:"
+check_ctx "the task's worktree goes under .claude/worktrees/, from the base branch, and this session moves" "$T" "under .claude/worktrees/, on a new branch from main, and moves this session there" "Route:"
 check_ctx "in the main checkout: an answer that only reads stays, and another task goes to a new session" "$T" "An answer that only reads stays here. Once this session has a task, another one goes to a new session"
 # A base branch behind origin's, as the last fetch left it: told to pull before branching.
 B="$WORK/behind"; mkdir -p "$B" && git -C "$B" init -q -b main
@@ -253,12 +253,12 @@ git -C "$B" switch -q main && git -C "$B" merge -q --ff-only origin/main
 check_ctx "on the base branch, up to date: no base-branch line" "$B" "branch main" "behind origin/main"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 # The desktop app gives every chip's session a worktree of its own (decision 0040): a worker that starts
-# there creates the task's worktree beside the main checkout and moves, and never renames the branch.
-check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree beside the main checkout and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task's worktree sits beside the main checkout: triage the task, then /dispatch creates it" "git branch -m"
-check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task's worktree sits beside the main checkout" "git switch -c"
+# there creates the task's worktree (decision 0083) and moves, and never renames the branch.
+check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree under .claude/worktrees/ and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task gets a worktree of its own, named after its branch: triage the task, then /dispatch creates it under .claude/worktrees/" "git branch -m"
+check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task gets a worktree of its own" "git switch -c"
 check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somewhere-else" "Role: WORKER" "generated\|No .env\|Not set up"
 git -C "$T/.claude/worktrees/eager-lamport" branch -q -m feat/renamed
-check_ctx "an app worktree already on a task branch keeps its notes: the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here" "sits beside the main checkout"
+check_ctx "an app worktree already on a task branch keeps its notes: the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here" "A task gets a worktree of its own"
 cp "$T/.env" "$T/.claude/worktrees/eager-lamport/.env"
 check_ctx "a renamed branch with its env file needs nothing more" "$T/.claude/worktrees/eager-lamport" "Role: WORKER" "generated\|No .env\|Not set up"
 printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf"
@@ -301,13 +301,13 @@ if command -v jq >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
 fi
 
 # protect-hub — with the module, the main checkout takes no edits: each task moves to its own worktree
-git -C "$T" worktree add -q -b feat/hub-check "$WORK/feat-hub-check"
+git -C "$T" worktree add -q -b feat/hub-check "$T/.claude/worktrees/feat-hub-check"
 git -C "$T" worktree add -q -b claude/calm-hopper "$T/.claude/worktrees/calm-hopper"
 mkdir -p "$WORK/no-module" && git -C "$WORK/no-module" init -q
 edit_event() { printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s"}}' "$T" "$1"; }
 run protect-hub.sh 2 "$(edit_event "$T/src/app.ts")" "stops an edit in the main checkout"
 run protect-hub.sh 2 "$(edit_event "$T/src/new/file.ts")" "stops a new file in the main checkout"
-run protect-hub.sh 0 "$(edit_event "$WORK/feat-hub-check/src/app.ts")" "lets edits in a task worktree through"
+run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/feat-hub-check/src/app.ts")" "lets edits in a task worktree through"
 run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")" "lets edits in Claude Code's own worktrees through"
 run protect-hub.sh 0 "$(edit_event "$WORK/no-module/src/app.ts")" "does nothing in a repository without the module"
 echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
@@ -326,18 +326,21 @@ moves() { # moves <allow|silent> <event-json> <description> — "allow" prints t
     fi
 }
 mkdir -p "$WORK/plain-folder"
-moves allow "$(move_event "$WORK/feat-hub-check")" "approves a move from the main checkout into a task worktree beside it"
+git -C "$T" worktree add -q -b feat/legacy "$WORK/feat-legacy"
+moves allow "$(move_event "$T/.claude/worktrees/feat-hub-check")" "approves a move from the main checkout into a task worktree under .claude/worktrees/"
+moves allow "$(move_event "$WORK/feat-legacy")" "approves a move into a worktree beside the main checkout, from an older release"
 moves allow "$(move_event "$T/.claude/worktrees/calm-hopper")" "approves a move into Claude Code's own worktree"
-moves allow "$(move_event "$WORK/feat-hub-check" "$T/.claude/worktrees/calm-hopper")" "approves a move from one worktree to another of the same repository"
+moves allow "$(move_event "$T/.claude/worktrees/feat-hub-check" "$T/.claude/worktrees/calm-hopper")" "approves a move from one worktree to another of the same repository"
 moves silent "$(move_event "$T")" "leaves a move into the main checkout to the prompt"
-moves silent "$(move_event "$WORK/feat-hub-check/src")" "leaves a folder inside a worktree to the prompt"
+moves silent "$(move_event "$T/.claude/worktrees/feat-hub-check/src")" "leaves a folder inside a worktree to the prompt"
 moves silent "$(move_event "$WORK/no-module")" "leaves another repository to the prompt"
 moves silent "$(move_event "$WORK/plain-folder")" "leaves a folder outside any repository to the prompt"
 moves silent "$(move_event "$WORK/missing")" "leaves a folder that doesn't exist to the prompt"
 moves silent "$(move_event "feat-hub-check")" "leaves a relative path to the prompt"
 echo 'APPROVE_WORKTREE_MOVE=""' >> "$T/.claude/hooks/config.sh"
-moves silent "$(move_event "$WORK/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
-git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
+moves silent "$(move_event "$T/.claude/worktrees/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
+git -C "$T" worktree remove --force "$T/.claude/worktrees/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
+git -C "$T" worktree remove --force "$WORK/feat-legacy"
 
 # approve-status-move — a tracker update that changes only the status needs no prompt (0076)
 status_event() { printf '{"tool_name":"%s","cwd":"%s","tool_input":%s}' "$1" "$T" "$2"; }
@@ -523,13 +526,13 @@ fi
 # plugin's hooks name the plugin's skill for the move to the task's worktree.
 mkdir -p "$PROJ/ops/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/ops/agent/worktree.conf"
 echo 'HUB_READONLY="1"' >> "$PROJ/.claude/hooks/config.sh"
-step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it beside this checkout")
+step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it under .claude/worktrees/")
 hub=$(printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s/src/app.ts"}}' "$PROJ" "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/protect-hub.sh" 2>&1 >/dev/null; echo "exit=$?")
 rm -rf "$PROJ/ops"
 # Decision 0032: a project that hasn't moved the module's settings to ops/agent/ yet keeps them in
 # scripts/agent/, and the hooks still find them there.
 mkdir -p "$PROJ/scripts/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/scripts/agent/worktree.conf"
-legacy_step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it beside this checkout")
+legacy_step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it under .claude/worktrees/")
 legacy_hub=$(printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s/src/app.ts"}}' "$PROJ" "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/protect-hub.sh" 2>&1 >/dev/null; echo "exit=$?")
 rm -rf "$PROJ/scripts" && echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 if [ "$step" = 1 ] && echo "$hub" | grep -q 'exit=2' && echo "$hub" | grep -q -F "run /adf:dispatch, which creates the worktree"; then

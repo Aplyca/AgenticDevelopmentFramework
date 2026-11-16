@@ -892,7 +892,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'An answer that only reads' || missing+=("/dispatch: an answer that only reads needs no worktree (0042)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" '^### A new session' || missing+=("/dispatch: another task gets a new session (0042)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" "never rename its generated branch" || missing+=("/dispatch: a session in the app's worktree moves to the task's, never renaming its branch (0040)")
-    file_contains "$HOOKS_DIR/session-context.sh" 'started in Claude Code.s own worktree' || missing+=("session-context.sh: a session in the app's worktree is sent to the task's worktree beside the main checkout (0040)")
+    file_contains "$HOOKS_DIR/session-context.sh" 'started in Claude Code.s own worktree' || missing+=("session-context.sh: a session in the app's worktree is sent to the task's worktree under .claude/worktrees/ (0040, 0083)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Triage the task first' || missing+=("session-context.sh: in the main checkout, triage first, then the task's worktree (0042)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'the task gets its own worktree first' || missing+=("/triage: with the module, a change moves to its own worktree right after the triage (0042)")

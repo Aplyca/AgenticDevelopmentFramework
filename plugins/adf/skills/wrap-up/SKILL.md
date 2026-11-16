@@ -12,7 +12,7 @@ A task ends one of three ways: its pull request **merged**, its **answer deliver
 request), or its pull request **closed** and the developer drops the task (**abandoned**). Each leaves
 things behind:
 - its branch, locally and on the host;
-- its worktree, beside the main checkout;
+- its worktree, under `.claude/worktrees/`;
 - whatever it started: containers, a server on the host, a background command;
 - its session in the app's sidebar;
 - a base branch in the main checkout that is now behind origin's.

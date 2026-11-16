@@ -389,7 +389,7 @@ flowchart TD
 | Stakeholders (users, editors, administrators) need a guide to a feature, in the doc tool they read (`end-user-docs` module) | `/end-user-docs` — the feature's end-user page, drafted before implementation where end users can't see it and published once it ships; you approve each page's exact text | `sonnet` | [end-user-docs module](modules/end-user-docs/MODULE.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | `sonnet` | — |
-| Several tasks at once | Each task in its own session and worktree (`parallel-agents` module): a new session per task, which triages it and moves to the task's worktree beside the main checkout with `/dispatch`; another task gets a new session, a one-click task chip in the desktop app | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
+| Several tasks at once | Each task in its own session and worktree (`parallel-agents` module): a new session per task, which triages it and moves to the task's worktree under `.claude/worktrees/` with `/dispatch`; another task gets a new session, a one-click task chip in the desktop app | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
 | High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | each agent its own | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 
 ### Effort, model, and cost

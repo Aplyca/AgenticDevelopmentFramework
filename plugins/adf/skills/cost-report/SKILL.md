@@ -20,8 +20,8 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
    python3 <this skill's base directory>/session_cost.py <project path> --days 30
    ```
 
-   - `--siblings` also counts sibling worktrees (`../<type>-<slug>`, from the parallel-agents
-     module); worktrees under `.claude/worktrees/` are always included.
+   - Worktrees under `.claude/worktrees/` are always included. `--siblings` also counts the folders
+     beside the project, where the parallel-agents module put its worktrees before decision 0083.
    - `--days 0` reads every session; `--top N` lists more; `--json` gives every session's numbers.
 
 2. **Present the result:** totals, the most expensive sessions, the size bands, the model line, and
