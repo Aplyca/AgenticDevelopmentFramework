@@ -102,7 +102,8 @@ own runner and follows T and U below; the module doesn't apply, and a departure 
   integration test; the whole stack in a browser, an end-to-end test (`/adf-dev:e2e`, F2).
 - **F3.** **Run what you change** (`.claude/rules/testing.md` § Verification budget): the tests you
   wrote or changed while iterating, by name (`npx --no-install vitest run <file> -t "<name>"`) or their
-  file when it runs in seconds; the feature suite once when a phase ends; `test:critical` before the
+  file when it runs in seconds — with the `docker` module, through `make test t=<file>`, which runs
+  them in the configured mode, never on the host; the feature suite once when a phase ends; `test:critical` before the
   local check; `test` once before delivery.
 - **F4.** **Evidence:** `tasks.md` § Gate results records each tier run, its command and counts, and
   the red seen before the green.

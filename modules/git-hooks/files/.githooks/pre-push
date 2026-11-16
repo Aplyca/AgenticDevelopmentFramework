@@ -10,6 +10,11 @@ FAST_CHECKS=""
 # e.g. FAST_CHECKS="npm run lint
 # npx tsc --noEmit
 # npm run test:unit"
+# With the docker module, the make tasks, which run where the local mode runs the app, so the host
+# needs nothing installed (in Docker mode, the stack must be up; tier= comes with the unit module):
+# FAST_CHECKS="make lint
+# make typecheck
+# make test tier=smoke"
 
 root="$(git rev-parse --show-toplevel)" || exit 1
 

@@ -33,7 +33,7 @@ fi
 # Usage: adf-worktree-new <type>/<slug> [--no-start | --setup-only] [--refresh-env] [--from <ref>]
 #   (default)      create the worktree if needed, run SETUP_CMD and START_CMD, wait for READY_URL
 #   --no-start     create the worktree and its env file only — what /adf:dispatch uses
-#   --setup-only   create if needed and run SETUP_CMD (e.g. host dependencies the git hooks need)
+#   --setup-only   create if needed and run SETUP_CMD (what the git hooks and tests need)
 #   --refresh-env  rewrite an existing worktree's env file from the main checkout and re-claim its port
 #   --from <ref>   start a NEW branch from <ref> instead of BASE_BRANCH (e.g. a release tag for a hotfix)
 # Rerunning for an existing worktree never touches its branch; without --no-start it sets the
@@ -445,7 +445,7 @@ if [ "$MODE" = "none" ]; then
     echo
     echo "--no-start: the environment is left down. When a step needs it, run from the worktree:"
     [ -z "$START_CMD" ] || echo "  adf-worktree-new $BRANCH                # set up and start"
-    [ -z "$SETUP_CMD" ] || echo "  adf-worktree-new $BRANCH --setup-only   # only what the git hooks need"
+    [ -z "$SETUP_CMD" ] || echo "  adf-worktree-new $BRANCH --setup-only   # only what the git hooks and tests need"
   fi
   exit 0
 fi

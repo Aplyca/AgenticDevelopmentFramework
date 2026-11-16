@@ -277,7 +277,9 @@ where the marketplace folder is the `installLocation` of `aplyca` in
 `claude plugin marketplace list --json`. And in a new session, `/adf:triage` is offered — and, with
 the parallel-agents module, `adf-worktree-ls` lists the main checkout.
 
-Each teammate gets the plugin, and the read rule, once they trust the folder. A machine nobody opens a
+Each teammate gets the plugin, and the read rule, once they trust the folder — unless their copy of
+the `aplyca` marketplace is older than the project's release; the README's
+[joining note](../README.md#install-in-a-project) has the commands for that. A machine nobody opens a
 session on — CI — installs it first, from the repository's folder; a headless run (`claude -p`) never
 trusts the folder, so pass the read rule with `--allowedTools` if it uses the plugin's skills:
 

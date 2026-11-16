@@ -118,15 +118,18 @@ triage; a dispatched session always creates its worktree with `--no-start`.
   Otherwise a worker that spawns another worktree would copy its own local experiments, and each hop
   would drift further from the real configuration. Keep secrets correct in the main checkout's env
   file; every worktree inherits them. A project with no env file gets none.
-- **Host dependencies** (`SETUP_CMD`): git hooks run on the host. A worker that never needed anything
-  else still runs `adf-worktree-new <branch> --setup-only` before its first commit, or the hooks fail —
-  and agents never bypass hooks.
+- **What the git hooks need** (`SETUP_CMD`): git hooks run on the host. A worker that never needed
+  anything else still runs `adf-worktree-new <branch> --setup-only` before its first commit, or the
+  hooks fail — and agents never bypass hooks. With the `docker` module, `SETUP_CMD` installs nothing
+  on the host: the hooks run make tasks, and in Docker mode those run in the app's container, so a
+  worker whose hooks run checks starts its environment (`adf-worktree-new <branch>`) before it pushes.
 - **A task's worktree sits inside the main checkout** (decision 0082), so a tool that looks in parent
   folders can reach the main checkout's files. Most stop at the worktree's own configuration. Three
   don't, and each has a fix:
   - Packages and commands: a worktree without its own dependencies uses the main checkout's, because
     Node resolves packages, and `npm run` finds commands, in every parent folder. Run the tools in the
-    container (the docker module), or install in the worktree (`SETUP_CMD`, `--setup-only`).
+    container (the docker module), or, without it, install in the worktree (`SETUP_CMD`,
+    `--setup-only`).
   - TypeScript before 6.0 adds every parent folder's `node_modules/@types` to a project: list them in
     `compilerOptions.types`, or upgrade.
   - ESLint's `.eslintrc` merges the configs of parent folders: set `"root": true`, or move to the flat
@@ -173,6 +176,11 @@ start that copy in `START_CMD` under the worktree's own name (`${PROJECT}`), sto
 data in `STOP_CMD`, and point the worktree at it through `ENV_OVERRIDES`. Each copy costs memory and
 startup time per worktree. The project records what it shares, what a task may copy, and what one
 copy costs in its own `docs/SHARED-SERVICES.md`.
+
+A shared service that mounts files from a checkout — a local backend serving the project's functions
+or migrations — reads them from the checkout that started it. Start it from the main checkout, which
+no task removes: started from a worktree, it serves an empty folder once that worktree is removed, and
+another task's edits never reach it.
 
 ## Seeing your environments
 

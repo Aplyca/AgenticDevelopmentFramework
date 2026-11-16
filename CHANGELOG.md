@@ -11,6 +11,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Joining a project says what to run when trusting the folder didn't download the plugin**
+  ([#80](https://github.com/aplyca/AgenticDevelopmentFramework/issues/80)).
+  - **What:** the README, the plugin's README, `docs/SETUP.md`, and the skeleton's `DEV-SETUP.md`
+    said a teammate needs no install step: trusting the folder downloads the plugins the project
+    turns on. On a machine with an older copy of the `aplyca` marketplace — Claude Code keeps one for
+    every project — it didn't, and nothing named the fix. Each now gives the commands, from the
+    project's folder: `claude plugin marketplace update aplyca`, then
+    `claude plugin install <plugin>@aplyca --scope project` for each plugin the settings turn on.
+    `DEV-SETUP.md` drops "Don't install it yourself" and keeps the rule against user scope; the
+    README names the command that removes a leftover `aplyca-adf@aplyca`. A static check holds the
+    commands in the README's joining note and in `DEV-SETUP.md`.
+  - **Upgrade impact:** merge for `docs/getting-started/DEV-SETUP.md` (§ AI-assisted development:
+    the "Claude Code usually needs no install step" paragraph and the new commands after it). No
+    other project file changes.
 - **A pull request turns ready once CI goes green under the desktop app's Auto-fix**
   ([#150](https://github.com/aplyca/AgenticDevelopmentFramework/issues/150)).
   - **What:** the Claude desktop app's Auto-fix tells the agent not to poll CI, and wakes it for a
@@ -50,6 +64,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     ends there.
   - **Upgrade impact:** overwrite for the plugin; committed install: `.claude/skills/wrap-up/`, and
     with the parallel-agents module, its guide in `docs/`.
+- **With the `docker` module, the modules stop assuming tools installed on the host**
+  ([#149](https://github.com/aplyca/AgenticDevelopmentFramework/issues/149), first part).
+  - **What:** dev-env's C10 already keeps an agent's tests, linters, and package manager off the
+    host in Docker mode, but several modules still pointed at the host.
+    - **`unit` and `e2e`:** with the docker module's `Bash(make *)` in the settings, their installers
+      leave out the commands that run tests on the host (`npm test`, `npm run test:*`,
+      `npx --no-install vitest run`, `npm --prefix e2e test`), and a rerun takes out the ones an
+      earlier install added: `make test` and `make e2e` run them in either local mode, and a host
+      command now prompts instead of running silently on the host. `/adf:adopt` runs the docker
+      module's installer first. The unit specification's F3 names `make test t=<file>`.
+    - **`parallel-agents`:** `worktree.conf` and the guide say that with the docker module
+      `SETUP_CMD` is empty or a make task (`make build`), never a host install; `--setup-only` is
+      "what the git hooks and tests need", no longer "host dependencies". The guide's § Shared
+      services adds that a shared service mounting files from a checkout starts from the main
+      checkout: started from a worktree, it serves an empty folder once that worktree is removed.
+    - **`docker`:** dev-env's W2 names `SETUP_CMD`, and `/adf-dev:dev-env worktrees` proposes it.
+    - **`git-hooks`:** the docs and the `pre-push` example run the docker module's make tasks.
+  - **Upgrade impact:** merge.
+    - `.claude/settings.json`, with the docker module: `/adf:upgrade` reruns the unit and e2e
+      installers, which take out their host test commands; list them under Permission changes. To
+      keep one, add it back after the upgrade.
+    - `ops/agent/worktree.conf`: with the docker module, replace a host install in `SETUP_CMD`
+      (`npm ci`) with nothing or `make build`.
+    - `.githooks/pre-push`: with the docker module, point `FAST_CHECKS` at the make tasks.
+    - Overwrite for the plugins; committed install: `ops/agent/worktree-new.sh`,
+      `.claude/skills/dev-env/`, `.claude/skills/unit/`, `.claude/skills/adopt/`, and
+      `docs/PARALLEL-AGENTS.md`.
 - **A task's worktree sits under `.claude/worktrees/`, never beside the main checkout**
   ([#153](https://github.com/aplyca/AgenticDevelopmentFramework/issues/153), decision
   [0082](docs/decisions/0082-task-worktrees-under-claude-worktrees.md)).

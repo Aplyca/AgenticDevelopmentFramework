@@ -162,7 +162,9 @@ installed another way). They work like a package manifest: a teammate who opens 
 accepts the prompt to trust the folder gets the plugin with no install command. Claude Code fetches
 the marketplace at the pinned release and loads the plugin from it, because the marketplace lists
 the plugin by a relative path. A machine where nobody trusts the folder — CI — installs it first
-([SETUP.md](../../docs/SETUP.md)).
+([SETUP.md](../../docs/SETUP.md)). On a machine whose copy of the `aplyca` marketplace is older than
+the project's release, the plugin may not download; the README's
+[joining note](../../README.md#install-in-a-project) has the commands that fetch it.
 
 ```json
 {

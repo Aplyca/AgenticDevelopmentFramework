@@ -38,7 +38,7 @@ writes its own suite to it, and its runs prove it. In short:
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for running the suite: `make e2e`, `make smoke`, and `npm --prefix e2e test`, so a test-first loop reruns a test without a prompt |
+| `.claude/settings.json` (merged) | `permissions.allow` for running the suite: `make e2e`, `make smoke`, and `npm --prefix e2e test`, so a test-first loop reruns a test without a prompt. With the `docker` module, only the make tasks: the npm one would run the suite on the host — install `docker` first; a rerun takes out the rule an earlier install added |
 | `.claude/skills/e2e/` | **Committed install only:** the skill and its `SPECIFICATION.md`. A packaged project gets `/adf-dev:e2e` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/e2e set up` writes the suite to the specification —
