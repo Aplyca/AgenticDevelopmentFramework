@@ -135,7 +135,8 @@ and skip the steps below.
    didn't do or deleting the line. **Follow-ups** lists every bug or improvement this session found
    outside the task (`specs/README.md` § Found along the way) — gathered from your reports, not from
    memory of the last one; on the open draft, add a line when you find one, and never tick or remove
-   one: the developer does. **Merge danger** is the reviewer's first read on risk: a
+   one: the developer does. One the developer had filed as an issue is written ticked, with its link
+   (`→ #<n>`). **Merge danger** is the reviewer's first read on risk: a
    migration that drops or rewrites data, a sent email, a published URL or API contract, or a
    changed external integration is not undone by a revert — say what isn't.
 

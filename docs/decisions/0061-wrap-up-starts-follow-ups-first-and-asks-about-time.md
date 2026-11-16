@@ -1,6 +1,6 @@
 # 0061: The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0082](0082-follow-ups-found-along-the-way-are-filed-as-issues.md) — the close-up files the follow-ups found along the way as issues before it starts the sessions
 - **Date:** 2026-10-28
 - **Amends:** [0036](0036-wrap-up-after-the-merge.md) — the close-up's order;
   [0043](0043-track-time-in-the-tracker.md) — the wrap-up asks about the time instead of offering it

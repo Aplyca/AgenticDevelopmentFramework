@@ -1057,8 +1057,12 @@ check_found_along_the_way() {
     file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'survives a chip nobody started' || missing+=("/dispatch: a found task is also a follow-up")
+    file_contains "$SKELETON/specs/README.md" 'files it as an issue in this repository' || missing+=("specs/README.md: a finding is filed as an issue with github or gitlab (0082)")
+    file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'gh issue create' || missing+=("/wrap-up: files the findings as issues (0082)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'File as issues in' || missing+=("/wrap-up: the close-up lists the issues to file (0082)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'files as an issue' || missing+=("/dispatch: no chip at once for a finding with github or gitlab (0082)")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up (0054)"
+        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up, filed as issues with github or gitlab (0054, 0082)"
     else
         fail "found along the way: missing" "${missing[*]}"
     fi

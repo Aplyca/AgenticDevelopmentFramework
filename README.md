@@ -339,7 +339,7 @@ sequenceDiagram
     Dev->>PR: reviews it on the preview, approves, and merges — CI is a signal, the review is the gate
     Note over Dev,Tracker: quality control, acceptance testing, and release statuses are the developer's
     Agent->>Tracker: once it's live, /wrap-up posts the delivered update, updates the usage guide, and moves the task to delivered
-    Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, starts the follow-ups in their own sessions, removes the worktree and branch
+    Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, files the follow-ups as issues or starts them in their own sessions, removes the worktree and branch
 ```
 
 ### Change requests — amend the delivered spec

@@ -8,7 +8,7 @@ them.
 | File | Purpose |
 |---|---|
 | `.github/pull_request_template.md` | Traceability (spec folder + tracker task), what changed and why, how to review and test — the review instructions — **verified / not verified**, and quality and constitution checklists — unchecked boxes are explained, never deleted |
-| `.github/ISSUE_TEMPLATE/config.yml` | Issues are a queue for engineering-originated work; a contact link redirects business requirements to the tracker |
+| `.github/ISSUE_TEMPLATE/config.yml` | Issues are a queue for engineering-originated work — where `/adf:wrap-up` files the follow-ups agents find along the way ([decision 0082](../../docs/decisions/0082-follow-ups-found-along-the-way-are-filed-as-issues.md)); a contact link redirects business requirements to the tracker |
 | `.github/ISSUE_TEMPLATE/bug-report.yml` | A bug form with the fields that matter (reproduction, expected vs actual, environment, severity) and a PII warning |
 | `.github/workflows/secret-scan.yml` | Scans only the commits a pull request adds, with the open-source gitleaks binary — new secrets are blocked without failing on old history |
 | `.github/workflows/branch-policy.yml` | Flags a pull request that targets the wrong base branch, and comments how to fix it |

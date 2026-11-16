@@ -64,14 +64,14 @@ projects.
 | [0051](0051-agent-owned-sections-of-the-pull-request.md) | The agent owns marked sections of its pull request's description and refreshes them from the record; syncing with the base branch is a merge, by a procedure in the git rules | accepted; amended by 0055 |
 | [0052](0052-production-build-in-the-configured-mode.md) | A production-like run is the optional `make prod` task, in the configured mode (docker module) | accepted |
 | [0053](0053-stakeholder-updates-at-three-moments.md) | The requester hears at three moments — started, in review, delivered — on the tracker task, on a yes, never on the pull request | accepted; amended by 0059, 0064, 0073 |
-| [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted; refined by 0080 |
+| [0054](0054-found-along-the-way.md) | What an agent finds along the way is reported and routed — never dropped, never fixed in passing | accepted; refined by 0080; amended by 0082 |
 | [0055](0055-lean-context-and-acting-model-routing.md) | The always-loaded files carry rules, not procedures; triage fits the session's model; the developer's "merged" closes up | accepted; amended by 0062 |
 | [0056](0056-the-running-app-in-claude-desktops-browser.md) | Claude Desktop's Browser lists each checkout's running web services — those `compose.yaml` labels — from an untracked `.claude/launch.json` that `make up` and `adf-worktree-new` keep | accepted |
 | [0057](0057-read-only-profiles-for-connected-services.md) | `/connect` carries fixed read-only profiles for Vercel and Contentful, denies reads that return secrets, and leaves GitHub to `gh` | accepted; refined by 0068 |
 | [0058](0058-test-tiers-and-feature-suites-with-vitest.md) | Tests run by tier and by feature suite; Vitest is the preferred engine for unit and integration tests | accepted |
 | [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063, 0070, 0073, 0076 |
 | [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
-| [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) | The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up | accepted |
+| [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) | The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up | accepted; amended by 0082 |
 | [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted |
 | [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) | A skill's case-only steps load from reference files beside its `SKILL.md`, and the skill that reaches a moment moves the task's status itself | accepted; amended by 0073 |
 | [0064](0064-tracker-writes-through-the-projects-server.md) | Tracker writes go through the project's server as the developer, and a correction an edit would damage is the developer's | accepted; amended by 0073 |
@@ -92,6 +92,7 @@ projects.
 | [0079](0079-no-file-count-in-the-lanes.md) | No file count in the lanes: the fast lane is a precise request in one layer however many files it touches, and "more than ~3 files" no longer sends a change to the full lane | accepted |
 | [0080](0080-framework-feedback-from-adopting-projects.md) | Adopting projects report the framework's problems as issues with `/framework-feedback`: in the framework's terms, checked by a script for anything naming the project, posted only on the developer's yes; a problem in the framework is a lane of its own | accepted |
 | [0081](0081-answers-in-the-main-checkout-close-up-there.md) | Answers in the main checkout close up there: `/adf:wrap-up` checks what the session made, delivers a tracker answer, and archives it, without switching, pulling, or deleting the branch checked out there | accepted |
+| [0082](0082-follow-ups-found-along-the-way-are-filed-as-issues.md) | Follow-ups found along the way are filed as issues, not started as sessions: with the `github` or `gitlab` module, on the developer's yes at the close-up or as the improvement question's answer, with no chip at once | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
