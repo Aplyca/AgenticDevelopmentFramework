@@ -159,7 +159,10 @@ and skip the steps below.
 
 8. **Mark it ready once your own tests pass.** CI is awaited in the background with the preview's
    deploy — `gh pr checks <n> --watch`, run as a background command, never a polling loop; with no
-   preview to check, start it right after step 6. Then, once all of these hold, write the review
+   preview to check, start it right after step 6. Run it even when the host app watches the pull
+   request and says not to poll CI, as the Claude desktop app's Auto-fix does: that wakes you for a
+   failing check, never a green one, so only this command's exit brings you back to mark it ready. A
+   failure both wake you for is one fix. Then, once all of these hold, write the review
    instructions (below) and run `gh pr ready <n>` — no prompt, no question:
    - the full gate passed since the last commit (step 2);
    - every acceptance criterion, or the "done when", worked on a test environment — locally, and on
@@ -170,9 +173,9 @@ and skip the steps below.
    - nothing a criterion depends on is listed under *Not verified*.
 
    Until then it stays a draft. A failing check or criterion that's yours to fix: fix it on the
-   branch, walk the flow locally again, push, refresh the description (`/adf:open-pr refresh`), and
-   check again. One you can't test or fix — a preview that won't deploy, a difference from local
-   only the developer can explain — keeps it a draft, and the report says what holds it. When
+   branch, walk the flow locally again, push, refresh the description (`/adf:open-pr refresh`),
+   start the watch again, and check again. One you can't test or fix — a preview that won't deploy,
+   a difference from local only the developer can explain — keeps it a draft, and the report says what holds it. When
    `AGENTS.md` § Delivery rules says a person marks pull requests ready, leave the draft: it's
    theirs.
 
@@ -218,8 +221,10 @@ and skip the steps below.
    - **Can't write** — no tracker tool, or only one built into the host app: the report opens with
      the status to set and the update's text to paste.
 
-10. **Report — once, after the preview walk and CI** (step 8): the pull request URL, and that it is
-   **ready for review** — or still a **draft**, and what holds it — in the careful lane, the risky
+10. **Report — once, after the preview walk and CI** (step 8). A turn that ends while the watch
+   still runs isn't the report: say in a line that the pull request stays a draft until the checks
+   finish and the watch's exit brings you back — never that it turns ready on its own. The report:
+   the pull request URL, and that it is **ready for review** — or still a **draft**, and what holds it — in the careful lane, the risky
    part first — and who was requested to review it, or that no one was. Then where the developer
    reviews it: the preview's URL, and that the review instructions — what to try, what to look at,
    what you tested — are in the description (*How to review and test*); don't repeat them here. The
@@ -260,6 +265,7 @@ and skip the steps below.
 | "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, and the place for what only a shared service has — not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy and CI wait in the background, so waiting costs them nothing: report once, with both URLs and the pull request's state. |
+| "The host app says not to poll CI — I'll mark it ready the next time I'm here" | Its watch wakes you for a failing check, not a green one, so nothing brings you back and the draft stalls. One `gh pr checks <n> --watch` in the background isn't a poll: its exit is what wakes you. |
 | "The status is only bookkeeping; it can go in after the merge" | After the merge, bookkeeping needs a pull request of its own. Everything the task changes in the repository rides this one. |
 | "I'll put what changes for the client in the description too" | That's the ticket's. The description is for the developer: how to review and test it, and what you tested. |
 | "The report already says what to try — the description can keep its first draft" | Reviewers open the pull request, not this chat. The review instructions go in the description, rebuilt just before ready. |
