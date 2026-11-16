@@ -26,6 +26,26 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/skills/record-decision/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
     writes with the other reference docs.
 
+- **The audit's minor findings, fixed.**
+  - **When to extract.** `.claude/rules/code-quality.md` said extract only when shared;
+    `architecture.md` also extracted a component from a file past ~300 lines. Now a component is
+    extracted when shared, and a file past ~300 lines is split along its own seams — structure, not
+    a new abstraction; both rules and Cursor's `architecture-review.mdc` say so.
+  - **Hooks.** `protect-paths.sh`, `careful-paths.sh`, and `check-env-declared.sh` find a file's
+    repository through one `_lib.sh` helper, `repo_relative`, which also reads a relative path from
+    the event's folder, as only `protect-paths.sh` did.
+  - **The scripted upgrade's hook smoke test** runs with `gh` and `glab` stubbed, so `pr-state.sh`
+    no longer reaches the network or the developer's account. The v2.9.0 `make run` migration's
+    message says the command runs in a container — the tools service's, or an older stack's app's.
+  - Framework-internal: `ONBOARDING.md`'s title names the framework; `AgenticDevelopmentGuide.md`
+    shows the skeleton's layout and phases and names the skills behind each SDD phase; the decision
+    index says how a status line changes; a dead check loop leaves `check-skills.sh`.
+  - **Upgrade impact:** overwrite for the plugins. Committed install: overwrite `.claude/hooks/`
+    (`_lib.sh` and the three hooks together) and `.claude/rules/code-quality.md`; with Cursor,
+    `.cursor/rules/architecture-review.mdc`.
+    - **Merge:** `.claude/rules/architecture.md` (the extraction line in § Component guidelines; a project
+      that set its own threshold keeps it).
+
 - **The audit's six open findings, settled.**
   - **Every tag push asks** (amends [0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)).
     The `git push *--tags*` ask rule missed `--follow-tags` and a tag pushed by name or ref

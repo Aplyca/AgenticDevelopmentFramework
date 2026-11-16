@@ -3,7 +3,8 @@
 Why the framework works the way it does. Each record follows the PDR shape the framework teaches
 adopting teams (`skeleton/docs/process/`): context with evidence, the decision, its consequences
 including the cost, and — where the record weighed any — the alternatives that were rejected. Records are append-only: a decision
-that changes is superseded by a new record.
+that changes is superseded or amended by a new record. The one line that changes is the old
+record's status, which names each later record that amends, refines, or supersedes it and how.
 
 Most of these decisions came from running the framework — and practices that grew alongside it — in
 real client projects, then generalizing what held up. The evidence is described without naming the

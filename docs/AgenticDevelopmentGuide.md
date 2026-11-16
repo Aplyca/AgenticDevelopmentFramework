@@ -84,6 +84,8 @@ constitution → specify → (clarify) → (checklist) → plan → tasks → (a
 | **Analyze** (gate) | consistency report | A read-only analysis: coverage gaps, ambiguities, duplications, constitution violations, *before* implementing. |
 | **Implement** | code | The agent carries out the tasks; the developer verifies at every checkpoint. |
 
+In this framework: the constitution is `docs/CONSTITUTION.md`; `/adf:write-spec` specifies and clarifies, `/adf:write-plan` writes `plan.md` and `tasks.md` (contracts and data model live in the plan), `@adf:spec-analyzer` is the analyze gate, and `/adf:implement` implements.
+
 > **Adoption levels** (from least to most radical): *spec-first* (the spec generates, the code is maintained), *spec-anchored* (spec and code coexist), and *spec-as-source* (the spec is the only artifact). Most teams start with spec-first.
 >
 
@@ -143,22 +145,25 @@ AI isn't only for "generating code": it runs through the whole cycle. See sectio
 
 ### 6.1 Minimal file structure
 
+The framework's skeleton, trimmed to what this guide relies on:
+
 ```
 repo/
-├── README.md                 # For people: what it is, how to run it, how to contribute
-├── AGENTS.md                 # For agents: the "agent's README" (see 6.2)
-├── .claude/rules/claude-code.md  # Optional: the Claude Code layer (no CLAUDE.md)
-├── /docs                     # Technical and end-user documentation
-│   ├── architecture.md
-│   └── decisions/            # ADRs (architecture decision records)
-├── /specs                    # Versioned specifications (SDD's source of truth)
+├── README.md                     # For people: what it is, how to run it, how to contribute
+├── AGENTS.md                     # For agents: the "agent's README" (see 6.2)
+├── .claude/rules/                # The Claude Code layer (claude-code.md) and the area rules; no CLAUDE.md
+├── docs/
+│   ├── CONSTITUTION.md           # The project's non-negotiable principles
+│   ├── ARCHITECTURE.md
+│   ├── architecture/decisions/   # ADRs (architecture decision records)
+│   └── process/                  # PDRs (process decision records)
+├── specs/                        # Versioned specifications (SDD's source of truth)
+│   ├── README.md                 # The process: lanes, gate, change requests
+│   ├── _templates/
 │   └── 001-feature-x/
 │       ├── spec.md
 │       ├── plan.md
-│       ├── tasks.md
-│       └── contracts/
-├── /.specify
-│   └── memory/constitution.md  # The project's non-negotiable principles
+│       └── tasks.md
 └── (the project's code, with nested AGENTS.md files where they help)
 ```
 
@@ -189,7 +194,7 @@ repo/
 3. **Generate the plan** (how) and check that it respects the constitution.
 4. **Break it down into tasks**, atomic and ordered by dependency.
 5. **Run the consistency analysis** (a read-only gate) before implementing: coverage gaps, contradictions, constitution violations.
-6. **Implement in phases** (Setup → Foundation → User stories → Tests → Polish). For large features, validate the core before adding incrementally, so as not to saturate the agent's context.
+6. **Implement in phases** (Docs first → Foundation → Stories, test first → Acceptance → Reconcile & polish). For large features, validate the core before adding incrementally, so as not to saturate the agent's context.
 7. **Verify at every checkpoint**: run it, read the tests, review security, performance, and accessibility.
 8. **Human review + automated checks** before the merge (section 7).
 9. **Update the specs and docs** if the implementation revealed changes: the spec stays alive.
