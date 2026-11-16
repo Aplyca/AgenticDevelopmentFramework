@@ -5,7 +5,9 @@
 # it wins over a hook's approval. So the module has no rule for `make run`, and this hook decides
 # (decision 0077):
 #   - it approves `make run cmd='<command>'` written on its own, when the checkout's mode is Docker
-#     and the `run` task in ops/docker/Makefile hands the command to Compose as one argument;
+#     and the `run` task in ops/docker/Makefile hands the command, as one argument, to the tools
+#     service (`$(COMPOSE) run --rm tools`, D6) or an older stack's app (`$(COMPOSE) exec -T $(APP)`),
+#     with no other option and no other line that uses it;
 #   - it says nothing when that call is followed by a pipe, a redirect, or another command, which
 #     leaves the whole line to the permission rules;
 #   - it asks before every other `make … run`: native mode, a mode it can't read, a `run` task of
@@ -15,8 +17,8 @@
 # that one line, never printed — then DEFAULT_MODE. Without the module — no ops/docker/ or
 # ops/native/ Makefile, and a stamp that doesn't name docker — it does nothing. Empty
 # APPROVE_CONTAINER_RUN keeps the ask in every mode. It reads the command, the mode, and the task's
-# recipe; what that container can reach is compose.yaml's (D5), and no hook checks that
-# (decision 0084).
+# recipe; what those two services reach is compose.yaml's (D5), and no hook checks that
+# (decision 0084). A service outside D5 (D8) never takes `make run`'s command.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
@@ -57,11 +59,14 @@ dev_mode() {
   printf '%s' "$mode"
 }
 
-# runs_in_container <mode file> — its `run` task hands the command to Compose's run (the tools
-# service) or exec (an older stack's app) as one argument, from the environment ("$$cmd"), and
-# nowhere pastes $(cmd) into the host's shell (C10).
+# runs_in_container <mode file> — its `run` task hands the command, as one argument from the
+# environment ("$$cmd"), to the tools service or an older stack's app and nothing else: no other
+# service, no option that adds to what the container reaches (`-v`, `--privileged`), no other line
+# that runs it, and no $(cmd) pasted into the host's shell (C10, D5).
 runs_in_container() {
-  local line in_task="" handed="" pasted='\$[({]cmd[)}]' compose='^[[:space:]]+@?\$\(COMPOSE\) (exec|run) .*"\$\$cmd"[[:space:]]*$'
+  local line in_task="" handed="" pasted='\$[({]cmd[)}]' uses='\$\$cmd'
+  local check='^[[:space:]]+@?\[ -n "\$\$cmd" \] \|\| \{ echo "[^"$`\\]*" >&2; exit 1; \}[[:space:]]*$'
+  local compose='^[[:space:]]+@?\$\(COMPOSE\) (run --rm( --no-deps)? tools|exec -T \$\(APP\)) sh -c "\$\$cmd"[[:space:]]*$'
   [ -f "$1" ] || return 1
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
@@ -69,7 +74,11 @@ runs_in_container() {
       [[:space:]]*)
         [ -n "$in_task" ] || continue
         [[ $line =~ $pasted ]] && return 1
-        [[ $line =~ $compose ]] && handed=1
+        if [[ $line =~ $compose ]]; then
+          handed=1
+        elif [[ $line =~ $uses ]] && ! [[ $line =~ $check ]]; then
+          return 1
+        fi
         ;;
       "" | "#"*) ;;
       *) in_task="" ;;
