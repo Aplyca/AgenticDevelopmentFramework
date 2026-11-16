@@ -4,6 +4,7 @@
 #   2. never commit on a protected branch
 #   3. never push to, force-push to, or delete a protected branch
 #   4. a pull request opens as a draft (gh pr create needs --draft; glab mr create, --draft or --wip)
+#   5. pushing a tag asks first: a tag is a release (decision 0038), whatever form the push takes
 # Protected branches come from PROTECTED_BRANCHES in config.sh. An agent pushes its work branch and
 # opens the draft pull request on its own once it has checked the change locally (decisions 0022,
 # 0045), so rule 4 holds the draft rule that a confirmation prompt used to. The draft is where the
@@ -20,7 +21,7 @@ cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="$PWD"
 gitdir="$cwd"
 event_cwd="$cwd"
-switched_branch="" switched_dir=""
+switched_branch="" switched_dir="" tag_push=""
 quoted_paths=()
 
 # resolve_path <token> — the folder a cd or -C token names: a quoted one comes back from its
@@ -67,6 +68,16 @@ note_switch() {
   return 0
 }
 
+# is_tag <ref> — a ref the push sends or deletes is a tag: refs/tags/…, or a name git knows as a
+# tag and not as a branch.
+is_tag() {
+  local ref="${1#+}"
+  case "$ref" in refs/tags/*) return 0 ;; refs/* | "" | HEAD) return 1 ;; esac
+  [ -d "$gitdir" ] || return 1
+  git -C "$gitdir" show-ref --verify -q "refs/tags/$ref" 2>/dev/null \
+    && ! git -C "$gitdir" show-ref --verify -q "refs/heads/$ref" 2>/dev/null
+}
+
 is_protected() {
   [ -n "$1" ] && in_words "$1" "$PROTECTED_BRANCHES"
 }
@@ -107,7 +118,8 @@ check_push() {
     case "$token" in
       --all | --mirror) block "'git push $token' would push protected branches. Push the work branch by name." ;;
       -n | --dry-run) return 0 ;;
-      --tags) tags_only=1 ;;
+      --tags) tags_only=1 && tag_push=1 ;;
+      --follow-tags) tag_push=1 ;;
       --repo=*) remote="${token#--repo=}" ;;
       -o | --push-option | --receive-pack | --exec) skip_next=1 ;;
       -*) ;;
@@ -127,6 +139,7 @@ check_push() {
     token="${token#+}"
     src="${token%%:*}"
     if [[ $token == *:* ]]; then dst="${token#*:}"; else dst="$src"; fi
+    if [ "$token" = "tag" ] || is_tag "$src" || is_tag "$dst"; then tag_push=1; fi
     [ "$dst" = "HEAD" ] && dst="$branch"
     dst="${dst#refs/heads/}"
     if is_protected "$dst"; then
@@ -216,12 +229,36 @@ analyze_segment() {
   esac
 }
 
-# Quoted text (commit messages, heredoc bodies, echo arguments) is data, not flags or refspecs:
+# A heredoc's body is data: drop it, keeping the line that opens it, so an apostrophe in the body
+# can't pair with a quote on a later command and hide it. <<- strips leading tabs from the line
+# that closes it; <<< is a here-string, not a heredoc.
+heredoc='(^|[^<])<<(-?)[[:space:]]*\\?["'"'"']?([A-Za-z_][A-Za-z0-9_]*)'
+delims=() dashes=() stripped="" rest="" tab=$'\t'
+while IFS= read -r line || [ -n "$line" ]; do
+  if [ ${#delims[@]} -gt 0 ]; then
+    closing="$line"
+    [ -z "${dashes[0]}" ] || closing="${line#"${line%%[!$tab]*}"}"
+    if [ "$closing" = "${delims[0]}" ]; then
+      delims=("${delims[@]:1}")
+      dashes=("${dashes[@]:1}")
+    fi
+    continue
+  fi
+  stripped+="$line"$'\n'
+  rest="$line"
+  while [[ $rest =~ $heredoc ]]; do
+    delims+=("${BASH_REMATCH[3]}")
+    dashes+=("${BASH_REMATCH[2]}")
+    rest="${rest#*"${BASH_REMATCH[0]}"}"
+  done
+done <<<"$command_text"
+
+# Quoted text (commit messages, echo arguments) is data, not flags or refspecs:
 # blank it out across line breaks before splitting the command into simple commands. Two kinds of
 # quoted text are kept, since blanking them would hide where a command runs or what it pushes: the
 # folder after cd or -C, as a placeholder resolve_path reads back, and a quoted single word that
 # isn't a flag ("main", '/path/to/repo'), unwrapped.
-unquoted="$command_text"
+unquoted="$stripped"
 double_quoted='"[^"]*"' single_quoted="'[^']*'" newline=$'\n' kept="" chained=""
 quoted_folder='(^|[[:space:];&|(])(cd|-C)[[:space:]]+("([^"]*)"|'"'([^']*)'"')'
 quoted_word='("([A-Za-z0-9_/.~][A-Za-z0-9_./~:@%+=-]*)"|'"'([A-Za-z0-9_/.~][A-Za-z0-9_./~:@%+=-]*)'"')'
@@ -246,4 +283,8 @@ while IFS= read -r segment; do
   analyze_segment "$segment"
 done <<<"$unquoted"
 
+# Every block has had its turn: a tag push that broke no rule still asks.
+if [ -n "$tag_push" ]; then
+  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"Pushing a tag publishes a release (decision 0038): the developer confirms it (guard-git hook)."}}'
+fi
 exit 0

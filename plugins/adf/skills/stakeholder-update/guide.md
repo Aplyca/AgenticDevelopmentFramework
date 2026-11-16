@@ -24,6 +24,13 @@ approved at the gate; this puts it where the requester reads it.
    would lose — a mention, a link preview (§ Stakeholder updates) — the guide goes in a comment
    instead. Never touch the rest of the description.
 
+**A change request** (`CR N`) that changes how the requester uses it: the guide already posted
+stays as it is — it describes what is live. Post what the CR changes as a new comment, first line
+`**Usage guide (draft, CR N) — what changes once it's delivered.**`, and tick the CR's Phase 1 task
+with its link. At delivered, edit the existing guide from the spec's text as it merged (step 4), and
+change the CR draft's first line to `**Usage guide (draft, CR N) — now in the usage guide.**`, with
+its link. A CR on a task of its own posts there, as step 3 does.
+
 **No spec folder** — the fast and careful lanes: there's no draft. A guide the change needs is a
 short "how to use it" paragraph in the delivered update.
 

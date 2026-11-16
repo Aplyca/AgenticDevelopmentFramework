@@ -36,6 +36,7 @@ whole spec folder: `spec.md` (every section, including any `CR N` change request
 - Every task maps to an AC, or states why it doesn't (foundation, docs).
 - Every testable requirement in the filled Security, Accessibility, Privacy, Performance, Analytics, and Localization sections maps to a test.
 - Every pre-implementable doc in the spec has a doc task.
+- A filled *Documentation › Usage guide* (a tracker task's) has a Phase 1 task to post its draft and a Phase 5 task to reconcile it; with `Not applicable`, neither. On a change request that changes how the requester uses it, the CR's tasks carry the same two.
 
 ### 2. Change surface (search the code — this is where plans are most often wrong)
 - Grep for the entities, routes, components, tables, and functions the plan changes. Find callers, shared components, configuration, migrations, policies, and tests the plan does not list.

@@ -105,7 +105,8 @@ whole team shares the configuration: <!-- CUSTOMIZE: ClickUp teams get this sect
   Its tools carry their own prefix, so the allow list below doesn't cover them. It may read; writes go
   through the project's server (§ Rules for agents).
 - GitHub and GitLab issues need no MCP server: agents use the `gh` or `glab` CLI, signed in as the
-  developer (§ Issues as the tracker).
+  developer (§ Issues as the tracker). A GitLab MCP server (`/adf-connect:connect`) is only for
+  what `glab` doesn't reach, and adds nothing for issues.
 - Pre-approving the server for the team: `"enabledMcpjsonServers": ["tracker"]` in
   `.claude/settings.json` (it applies once each teammate trusts the folder).
 

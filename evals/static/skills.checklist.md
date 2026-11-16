@@ -26,7 +26,7 @@ Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-d
 ## Settings, hooks, instruction files
 
 - [ ] `settings.json` is valid JSON; `model` is an alias; every hook entry nests `{"type": "command", "command": …}` inside a `hooks` array; no `$CLAUDE_FILE_PATH`; every referenced `.claude/hooks/*.sh` exists and is executable
-- [ ] `permissions.allow` names `Bash(git *)`, `Bash(gh *)`, and `Bash(glab *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge` and `glab mr merge`, reviews and approvals, releases, deleting the repository, secrets, `gh auth`, `glab auth` and `glab token`, `gh api` and `glab api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070, 0074)
+- [ ] `permissions.allow` names `Bash(git *)`, `Bash(gh *)`, and `Bash(glab *)`, and the desktop app's `get_session` and `set_session_title`; `permissions.ask` names what must still prompt — `gh pr merge` and `glab mr merge`, reviews and approvals, releases, deleting the repository, secrets, `gh auth`, `glab auth` and `glab token`, `gh api` and `glab api` writes, `git config`, and `git push --tags` (decisions 0022, 0033, 0038, 0070, 0074); the git guard hook asks before any other tag push — `--follow-tags`, a tag by name or ref (0038)
 - [ ] Every skill, agent, workflow, hook, and skeleton file that names a `gh` command names its `glab` one (decision 0074)
 - [ ] The `gitlab` module's merge request template has the `github` module's pull request template's sections, `adf:` markers, and checklist, in order (decision 0075)
 - [ ] No `CLAUDE.md`; `AGENTS.md`'s first line is the `Skeleton source:` stamp; `.claude/rules/claude-code.md` has no `paths:`

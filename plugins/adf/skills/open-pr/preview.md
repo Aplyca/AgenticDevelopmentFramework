@@ -22,6 +22,11 @@ fix goes under *Not verified*, with why. Both, test and review:
 - **Read-only.** The preview is shared and may reach real services: don't submit what reaches a
   person or shared data unless the developer asks. Use a browser, not the end-to-end suite, which
   creates data and runs only against the local stack.
+- **A criterion only a shared service can run, whose walk writes:** a write that stays in a test
+  sandbox — a payment provider's test mode, a CMS sandbox environment — runs, with test data. One
+  that reaches a person or real shared data — a real mailing list, published content — waits for
+  the developer's yes: ask once, naming the write and the test data. Until it's walked, it goes
+  under *Not verified*, and the pull request stays a draft (step 8).
 - **Record it** in the body's *Preview* line (`gh pr edit <n> --body-file <file>`, from the
   current body, never from what you wrote last).
 - **A difference from local** — it works here, not there — goes to the developer with what

@@ -11,6 +11,42 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The audit's six open findings, settled.**
+  - **Every tag push asks** (amends [0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)).
+    The `git push *--tags*` ask rule missed `--follow-tags` and a tag pushed by name or ref
+    (`git push origin v3.0.0`, `refs/tags/…`, `tag <name>`, a deleted remote tag). No permission
+    pattern can tell a tag's name from a branch's, so `guard-git.sh` reads each ref against the
+    repository's tags and asks — after its blocks, which still win.
+  - **A heredoc's body is data to the git guard.** `guard-git.sh` drops a heredoc's body before
+    it reads the command, so an apostrophe in it can no longer pair with a later quote and hide a
+    `git commit` or `git push` that follows. `<<-` and quoted delimiters are handled; `<<<` is not
+    taken for a heredoc.
+  - **One home for the pull request rules.** `.claude/rules/git-workflow.md` no longer restates
+    `AGENTS.md` § Delivery rules (open, ready, reviewers, no nudges), which 0065 made the source;
+    it points there. `AGENTS.md` gains the one difference: request the reviewers again after a fix
+    that answers their review.
+  - **A shared-service criterion whose walk writes.** `/adf:open-pr` walks a criterion only a
+    shared service can run on the preview; the preview walk is read-only. A write that stays in a
+    test sandbox runs, with test data; one that reaches a person or real shared data waits for the
+    developer's yes, and the draft waits with it (`AGENTS.md`, `/adf:open-pr`, its `preview.md`).
+  - **The usage guide in the plan and on a change request.** `@adf:spec-analyzer` and
+    `/adf:deep-spec-analysis` check that a
+    filled usage guide has its Phase 1 and Phase 5 tasks, a CR's too. `/adf:stakeholder-update
+    guide` posts what a CR changes as a new draft comment, leaving the live guide as it is until
+    delivered.
+  - **GitLab needs no MCP server for issues or merge requests.** `/adf-connect:connect`'s catalog
+    says `glab` covers them, as `gh` does for GitHub, and connects GitLab's server only for a need
+    `glab` doesn't meet, read tools only; `TRACKER-INTEGRATION.md` says the same.
+  - **Upgrade impact:** overwrite for the plugins. Committed install: overwrite
+    `.claude/hooks/guard-git.sh` and the hooks' README, `.claude/agents/spec-analyzer/`,
+    `.claude/skills/open-pr/`, `.claude/skills/stakeholder-update/`, `.claude/workflows/`, and
+    `.claude/rules/git-workflow.md` (a project that edited its § Pull requests reapplies only what
+    isn't in `AGENTS.md`).
+    - **Merge:** `AGENTS.md` (§ Delivery rules: the shared-service walk's sentence, and "again
+      after a fix that answers their review"), `.claude/rules/claude-code.md` ("pushing a tag" in
+      **Ask first**), `docs/TRACKER-INTEGRATION.md` (one sentence on GitLab's server).
+    - `.claude/settings.json` keeps its `Bash(git push *--tags*)` rule; nothing to change.
+
 - **An audit of the framework against itself: contradictions, stale text, and script bugs fixed.**
   No decision changes; each fix brings a text or a script in line with the decision that already
   settles it.

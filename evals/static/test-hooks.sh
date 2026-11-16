@@ -59,7 +59,7 @@ run guard-git.sh 0 "$(bash_event 'ls -la && echo done')" "ignores non-git comman
 run guard-git.sh 2 "$(bash_event 'git commit -m "wip"')" "blocks a commit on main"
 run guard-git.sh 2 "$(bash_event 'git push')" "blocks a bare push from main"
 run guard-git.sh 2 "$(bash_event 'git push origin HEAD')" "blocks pushing HEAD from main"
-run guard-git.sh 0 "$(bash_event 'git push --tags')" "allows a tags-only push"
+run guard-git.sh 0 "$(bash_event 'git push --tags')" "doesn't block a tags-only push (it asks: below)"
 run guard-git.sh 0 "$(bash_event 'git pull --ff-only')" "allows pull"
 run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing')" "allows creating a work branch"
 # Decision 0022: the agent opens the pull request on its own, so the draft rule lives here.
@@ -109,6 +109,31 @@ run guard-git.sh 0 "$(bash_event 'echo "git push origin main is forbidden"')" "i
 run guard-git.sh 0 "$(bash_event "echo 'done; git push origin main'")" "ignores a single-quoted mention with a separator"
 run guard-git.sh 2 "$(bash_event "git commit -m 'subject' -m \"body; more\" --no-verify")" "sees a flag after quoted messages"
 run guard-git.sh 0 "$(bash_event 'git log --oneline -n 5')" "allows git log -n"
+# A heredoc's body is data: an apostrophe in it no longer pairs with a later quote and hides a command.
+run guard-git.sh 2 "$(bash_event $'cat <<EOF\nIt\'s ready\nEOF\ngit push origin \'main\'')" "sees a command after a heredoc body with an apostrophe"
+run guard-git.sh 2 "$(bash_event $'cat <<-\'EOF\'\n\tdon\'t\n\tEOF\ngit push origin main')" "ends a <<- heredoc at its tab-indented delimiter"
+run guard-git.sh 0 "$(bash_event $'cat <<EOF\ngit push origin main\nEOF')" "ignores a command inside a heredoc body"
+run guard-git.sh 0 "$(bash_event $'cat <<< "it\'s"\ngit status')" "doesn't take a here-string for a heredoc"
+# A tag push asks, whatever form it takes: a tag is a release (0038).
+git -C "$T" tag v1.0.0
+run_ask() { # run_ask <yes|no> <command> <description>
+    local out code got=no
+    out=$(printf '%s' "$(bash_event "$2")" | "$H/guard-git.sh" 2>&1)
+    code=$?
+    case "$out" in *'"permissionDecision":"ask"'*) got=yes ;; esac
+    if [ "$code" = 0 ] && [ "$got" = "$1" ]; then
+        PASS=$((PASS+1)); echo "✓ guard-git.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ guard-git.sh: $3 (exit $code, asks: $got, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+run_ask yes 'git push --tags' "asks before pushing every tag"
+run_ask yes 'git push origin v1.0.0' "asks before pushing a tag by its name"
+run_ask yes 'git push origin refs/tags/v1.0.0' "asks before pushing a tag by its ref"
+run_ask yes 'git push origin tag v1.0.0' "asks before git push … tag <name>"
+run_ask yes 'git push origin :v1.0.0' "asks before deleting a remote tag"
+run_ask yes 'git switch -c feat/x && git push --follow-tags origin feat/x' "asks before --follow-tags"
+run_ask no 'git switch -c feat/x && git push -u origin feat/x' "a branch push doesn't ask"
 
 # protect-paths
 run protect-paths.sh 2 "$(file_event Edit "$T/package-lock.json")" "blocks hand-editing a lockfile"
