@@ -148,6 +148,27 @@ repo_root_for() {
   git -C "$dir" rev-parse --show-toplevel 2>/dev/null
 }
 
+# repo_relative <file path> — set file_path (absolute and physical; a relative one is read from
+# the event's cwd), root (its git toplevel, physical), and relative (the path inside root). Fails
+# outside a repository.
+repo_relative() {
+  local cwd
+  file_path="$1"
+  case "$file_path" in
+    /*) ;;
+    *)
+      cwd="$(json_get '.cwd')"
+      [ -d "$cwd" ] || cwd="$PWD"
+      file_path="$cwd/$file_path"
+      ;;
+  esac
+  file_path="$(physical_path "$file_path")"
+  root="$(repo_root_for "$file_path")"
+  [ -n "$root" ] || return 1
+  root="$(physical_path "$root")"
+  relative="${file_path#"$root"/}"
+}
+
 # block <reason> — stop the call. The hook is named, not its path: the scripts run from .claude/hooks/
 # in a committed install and from the adf plugin in a packaged one.
 block() {

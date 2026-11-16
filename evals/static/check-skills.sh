@@ -654,7 +654,6 @@ decided = {"docker": {"Bash(make *)", "Bash(docker *)"},
            # Fixed test scripts and unit's run mode: they read the code and write only reports (0058).
            "unit": {"Bash(npm run test:smoke)", "Bash(npm run test:smoke *)", "Bash(npm run test:critical)",
                       "Bash(npm run test:critical *)", "Bash(npx --no-install vitest run *)"}}
-decided_asks = {}
 # Only the developer changes the local mode (dev-env's M10): what would change it is denied.
 decided_denies = {"docker": {"Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)", "Bash(DEV_MODE=*)", "Bash(SERVICES=*)",
                              "Bash(export DEV_MODE*)", "Bash(export SERVICES*)", "Edit(.env)", "Write(.env)"}}
@@ -663,8 +662,6 @@ try:
     allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
-for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
-    out.append(f"allows broadly, so must ask before {ask} (0038)")
 if module == "docker" and (permissions.get("ask") or any(r.startswith("Bash(make run") for r in permissions.get("deny", []))):
     out.append("asks before no docker or make command (0078), and a rule for make run would win over the approve-container-run hook (0077)")
 for deny in sorted(decided_denies.get(module, set()) - set(permissions.get("deny", []))):

@@ -14,7 +14,7 @@ When reviewing architecture and design, read the relevant spec folder — `plan.
 - Are credentials isolated in server-side code?
 
 ## Component boundaries
-- Are components extracted only when genuinely shared?
+- Are components extracted only when genuinely shared, and a file past ~300 lines split along its own seams?
 - Is page-specific logic staying in the page file?
 - Is state owned by the right component?
 
