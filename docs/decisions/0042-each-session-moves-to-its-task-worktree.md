@@ -1,6 +1,6 @@
 # 0042: Each task's session moves to its own worktree; the main checkout hands nothing out
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0083](0083-task-worktrees-under-claude-worktrees.md) (the task's worktree sits under `.claude/worktrees/`, not beside the main checkout)
 - **Date:** 2026-10-16
 - **Amends:** [0008](0008-dispatcher-and-worker-worktrees.md) — the main checkout as a dispatcher;
   [0020](0020-every-task-through-dispatch.md) — every task through `/dispatch` in the main checkout;

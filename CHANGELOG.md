@@ -60,7 +60,39 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - `ops/agent/worktree.conf`: `SETUP_CMD="make deps"`, or leave it empty.
     - `.claude/hooks/config.sh`: the comment on `APPROVE_CONTAINER_RUN` names the tools container;
       the value is unchanged.
-
+- **Follow-ups found along the way are filed as issues, not started as sessions** (0082,
+  [#155](https://github.com/aplyca/AgenticDevelopmentFramework/issues/155)).
+  - **What:** with the `github` or `gitlab` module, a bug or an improvement an agent finds outside
+    its task goes to the repository's issues, the queue for engineering work, instead of a new
+    session. `/adf:wrap-up`'s close-up lists those follow-ups under "File as issues in
+    `<repository>`, as `<account>`", in the same yes, and files them with `gh` or `glab` before it
+    starts the sessions. Each issue carries the line's task as its title and the why, `file:line`,
+    and the pull request as its body. A matching open issue is named instead of filed again, and
+    `bug` is added only when the repository has the label. `/adf:dispatch` no longer offers a chip
+    at once for a finding, unless the developer wants it now. The question about an improvement to
+    the branch also offers an issue, filed at once. A follow-up the developer had filed during the
+    task is ticked in the pull request with its link. Without either module, nothing changes. The
+    commands an upgrade writes still start as sessions.
+  - **Upgrade impact:** overwrite for the plugin; committed install:
+    `.claude/skills/{wrap-up,implement,spec-workflow,open-pr}/` and, with `parallel-agents`,
+    `.claude/skills/dispatch/` and `docs/PARALLEL-AGENTS.md`. Merge for `AGENTS.md` (the parenthesis in "Report what you find
+    along the way"), `specs/README.md` (§ Found along the way: the improvement and "Anything else"
+    rows, the follow-ups paragraph, and the new paragraph on filing an issue), and
+    `docs/TRACKER-INTEGRATION.md` (the *Repository issues* row in § The pipeline).
+- **Joining a project says what to run when trusting the folder didn't download the plugin**
+  ([#80](https://github.com/aplyca/AgenticDevelopmentFramework/issues/80)).
+  - **What:** the README, the plugin's README, `docs/SETUP.md`, and the skeleton's `DEV-SETUP.md`
+    said a teammate needs no install step: trusting the folder downloads the plugins the project
+    turns on. On a machine with an older copy of the `aplyca` marketplace — Claude Code keeps one for
+    every project — it didn't, and nothing named the fix. Each now gives the commands, from the
+    project's folder: `claude plugin marketplace update aplyca`, then
+    `claude plugin install <plugin>@aplyca --scope project` for each plugin the settings turn on.
+    `DEV-SETUP.md` drops "Don't install it yourself" and keeps the rule against user scope; the
+    README names the command that removes a leftover `aplyca-adf@aplyca`. A static check holds the
+    commands in the README's joining note and in `DEV-SETUP.md`.
+  - **Upgrade impact:** merge for `docs/getting-started/DEV-SETUP.md` (§ AI-assisted development:
+    the "Claude Code usually needs no install step" paragraph and the new commands after it). No
+    other project file changes.
 - **A pull request turns ready once CI goes green under the desktop app's Auto-fix**
   ([#150](https://github.com/aplyca/AgenticDevelopmentFramework/issues/150)).
   - **What:** the Claude desktop app's Auto-fix tells the agent not to poll CI, and wakes it for a
@@ -127,6 +159,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     - Overwrite for the plugins; committed install: `ops/agent/worktree-new.sh`,
       `.claude/skills/dev-env/`, `.claude/skills/unit/`, `.claude/skills/adopt/`, and
       `docs/PARALLEL-AGENTS.md`.
+- **A task's worktree sits under `.claude/worktrees/`, never beside the main checkout**
+  ([#153](https://github.com/aplyca/AgenticDevelopmentFramework/issues/153), decision
+  [0083](docs/decisions/0083-task-worktrees-under-claude-worktrees.md)).
+  - **What:** with the parallel-agents module, `adf-worktree-new` creates every task's worktree in the
+    main checkout's `.claude/worktrees/`, named after its branch (`.claude/worktrees/feat-newsletter-signup`),
+    beside Claude Code's own. `WORKTREE_PARENT` is gone, and with the folder beside the main checkout
+    go the parent folder it needed, the desktop app's trust prompt for each worktree, and the
+    terminal's dead end in Claude Code's own worktree: `/adf:dispatch` moves the session with
+    `EnterWorktree` there too. The port lock moves to the shared git directory. A branch's worktree
+    from an older release, beside the main checkout, is reused where it is, and `adf-worktree-rm`
+    removes it as before. The script notes when git doesn't ignore `.claude/worktrees/`. The
+    parallel-agents guide lists the three ways a tool in a nested worktree can reach the main
+    checkout's files — packages and commands it lacks itself, TypeScript before 6.0's `@types`, and
+    ESLint's `.eslintrc` without `root: true` — and the fix for each. A spike behind the decision
+    found tools on current versions behave the same nested, and a container sees only the worktree.
+  - **Upgrade impact:** overwrite for the plugin (its hooks, skills, commands, and the guide);
+    committed install: `ops/agent/worktree-new.sh` and `_worktree-lib.sh`, the hooks in
+    `.claude/hooks/`, `.claude/skills/` (`dispatch`, `triage`, `spec-workflow`, `wrap-up`, `adopt`,
+    `upgrade`, `cost-report`, `track-time`), and with the parallel-agents module, its guide in
+    `docs/`. Merge for `ops/agent/worktree.conf`: delete the `WORKTREE_PARENT` block; a value set
+    there is ignored now. Check that `.gitignore` lists `.claude/worktrees/`. Worktrees already
+    beside the main checkout keep working until their tasks wrap up. A project whose tools hit one of
+    the three cases applies its fix (`PARALLEL-AGENTS.md` § Why the details matter).
 
 ## v2.9.0 — 2026-11-13 — GitLab alongside GitHub, fewer prompts, and lanes without a file count
 

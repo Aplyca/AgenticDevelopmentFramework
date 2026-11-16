@@ -146,7 +146,7 @@ not a research project.
 **With the parallel-agents module, the task gets its own worktree first.** In the main checkout, or
 in Claude Code's own worktree on a generated branch, a change in any lane — or an answer whose
 environment is needed — goes to `/adf:dispatch` right after the triage, before any branch or edit:
-it creates the task's worktree beside the main checkout, on the branch the triage names
+it creates the task's worktree under `.claude/worktrees/`, on the branch the triage names
 (`Branch: <type>/<slug>`), and moves this session there, where the route below continues. An answer
 that only reads stays where it is. A session that already has a task, handed another, offers that
 one a new session (`/adf:dispatch` too).

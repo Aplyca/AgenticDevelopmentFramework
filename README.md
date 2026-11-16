@@ -36,9 +36,25 @@ Most of what's here was proven in real client projects first — some built on t
 
 ## Install in a project
 
-**Joining a project that already uses it?** There's nothing to install. Open the project in Claude
-Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns the
-plugin on, at the release the project pins.
+**Joining a project that already uses it?** Usually there's nothing to install. Open the project in
+Claude Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns
+the plugin on, at the release the project pins. If typing `/adf:` then offers nothing, the plugin
+didn't download. That happens on a machine whose copy of the `aplyca` marketplace is older than the
+project's release: Claude Code keeps one copy for every project. From the project's folder, refresh
+it and install each plugin the project turns on, then start a new session:
+
+```bash
+cd your-project
+claude plugin marketplace update aplyca
+claude plugin install adf@aplyca --scope project
+claude plugin install adf-dev@aplyca --scope project      # when the project turns it on
+claude plugin install adf-connect@aplyca --scope project  # when the project turns it on
+```
+
+They only download what the settings already turn on, so `.claude/settings.json` doesn't change. A
+leftover `aplyca-adf@aplyca` in `claude plugin list` is the plugin's name before v2.0.0, turned off;
+[UPGRADING.md](docs/UPGRADING.md#our-settings-still-turn-on-aplyca-adf--moving-to-v200) has the
+command that removes it.
 
 ### With Claude Code — the installer plugin (recommended)
 
@@ -323,7 +339,7 @@ sequenceDiagram
     Dev->>PR: reviews it on the preview, approves, and merges — CI is a signal, the review is the gate
     Note over Dev,Tracker: quality control, acceptance testing, and release statuses are the developer's
     Agent->>Tracker: once it's live, /wrap-up posts the delivered update, updates the usage guide, and moves the task to delivered
-    Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, starts the follow-ups in their own sessions, removes the worktree and branch
+    Agent->>Dev: asks whether to log the time (time-tracking), then closes up on a yes — stops the environment, updates the base branch, files the follow-ups as issues or starts them in their own sessions, removes the worktree and branch
 ```
 
 ### Change requests — amend the delivered spec
@@ -373,7 +389,7 @@ flowchart TD
 | Stakeholders (users, editors, administrators) need a guide to a feature, in the doc tool they read (`end-user-docs` module) | `/end-user-docs` — the feature's end-user page, drafted before implementation where end users can't see it and published once it ships; you approve each page's exact text | `sonnet` | [end-user-docs module](modules/end-user-docs/MODULE.md) |
 | Passing work on — a teammate, another machine, a fresh session | `/handoff` — the state committed to the record first, then a short message of pointers to it | session model | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 | A change to how the team works | `/record-decision` → a PDR in `docs/process/` | `sonnet` | — |
-| Several tasks at once | Each task in its own session and worktree (`parallel-agents` module): a new session per task, which triages it and moves to the task's worktree beside the main checkout with `/dispatch`; another task gets a new session, a one-click task chip in the desktop app | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
+| Several tasks at once | Each task in its own session and worktree (`parallel-agents` module): a new session per task, which triages it and moves to the task's worktree under `.claude/worktrees/` with `/dispatch`; another task gets a new session, a one-click task chip in the desktop app | per task | [Parallel agents](docs/scenarios/parallel-agents.md) |
 | High stakes or a broad sweep | `/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep` | each agent its own | [Skills catalog](docs/SKILLS-REFERENCE.md) |
 
 ### Effort, model, and cost

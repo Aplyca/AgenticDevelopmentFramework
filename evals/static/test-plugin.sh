@@ -258,22 +258,22 @@ for old, new in (('PORT_SLOTS=0', 'PORT_SLOTS=180'), ("ENV_OVERRIDES=''", "ENV_O
     text = text.replace(old, new, 1)
 open(path, "w").write(text)
 CONF
-printf 'SECRET=\nAPP_PORT=\n' > "$S/.env.example" && printf '.env\n' > "$S/.gitignore" && echo '# Site' > "$S/docs/README.md"
+printf 'SECRET=\nAPP_PORT=\n' > "$S/.env.example" && printf '.env\n.claude/worktrees/\n' > "$S/.gitignore" && echo '# Site' > "$S/docs/README.md"
 git -C "$S" add -A && git -C "$S" commit -qm init && git -C "$S" push -q -u origin main 2>/dev/null
 printf 'SECRET=abc\n' > "$S/.env"
 out=$(cd "$S" && on_path adf-worktree-new feat/newsletter-signup --no-start 2>&1); code=$?
-W1="$WT/feat-newsletter-signup"
-check "adf-worktree-new: creates a sibling worktree in a project that commits only worktree.conf" \
+W1="$S/.claude/worktrees/feat-newsletter-signup"
+check "adf-worktree-new: creates a worktree under .claude/worktrees/ in a project that commits only worktree.conf" \
     "[ $code -eq 0 ] && [ -f '$W1/.git' ] && [ -f \"\$(git -C '$W1' rev-parse --absolute-git-dir)/agent-worktree\" ]"
 check "adf-worktree-new: reads the project's worktree.conf — a port, and the overrides with it" \
     "grep -q '^SECRET=abc$' '$W1/.env' && grep -qE '^SITE_URL=http://localhost:[0-9]+$' '$W1/.env'"
 echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
 out=$(cd "$W1" && on_path adf-worktree-new fix/other-thing --no-start 2>&1); code=$?
-W2="$WT/fix-other-thing"
-check "adf-worktree-new: from inside a worktree, makes a sibling of the main checkout, seeded from it" \
+W2="$S/.claude/worktrees/fix-other-thing"
+check "adf-worktree-new: from inside a worktree, makes it in the main checkout's .claude/worktrees/, seeded from it" \
     "[ $code -eq 0 ] && [ -f '$W2/.git' ] && grep -q '^SECRET=abc$' '$W2/.env' && ! grep -q LOCAL_EXPERIMENT '$W2/.env'"
 out=$(cd "$S/docs" && on_path adf-worktree-new chore/from-docs --no-start 2>&1); code=$?
-check "adf-worktree-new: works from a subdirectory of the checkout" "[ $code -eq 0 ] && [ -f '$WT/chore-from-docs/.git' ]"
+check "adf-worktree-new: works from a subdirectory of the checkout" "[ $code -eq 0 ] && [ -f '$S/.claude/worktrees/chore-from-docs/.git' ]"
 out=$(cd "$S" && on_path adf-worktree-ls 2>&1)
 check "adf-worktree-ls: lists every worktree and marks the main checkout" \
     "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
@@ -285,7 +285,7 @@ check "adf-worktree-new: outside a repository, stops and says so" "[ $code -ne 0
 mkdir -p "$WT/plain" && git -C "$WT/plain" init -q -b main && git -C "$WT/plain" -c user.email=t@e -c user.name=t commit -q --allow-empty -m init
 out=$(cd "$WT/plain" && on_path adf-worktree-new feat/nothing --no-start 2>&1); code=$?
 check "adf-worktree-new: in a project without the module, stops and creates nothing" \
-    "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/feat-nothing' ]"
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/plain/.claude/worktrees/feat-nothing' ]"
 printf '#!/bin/sh\necho "$@" > "%s/handed-over"\n' "$WT" > "$S/ops/agent/worktree-new.sh" && chmod +x "$S/ops/agent/worktree-new.sh"
 out=$(cd "$S" && on_path adf-worktree-new feat/committed --no-start 2>&1); code=$?
 check "adf-worktree-new: in a committed install, runs the project's own script with the same arguments" \
@@ -299,14 +299,14 @@ git -C "$L" config user.email test@example.com && git -C "$L" config user.name t
 mkdir -p "$L/scripts/agent"
 sed -e 's/^PORT_SLOTS=0/PORT_SLOTS=180/' -e "s|^ENV_OVERRIDES=''|ENV_OVERRIDES='FROM=scripts'|" \
     "$REPO_ROOT/modules/parallel-agents/files/ops/agent/worktree.conf" > "$L/scripts/agent/worktree.conf"
-printf 'APP_PORT=\n' > "$L/.env.example" && printf '.env\n' > "$L/.gitignore"
+printf 'APP_PORT=\n' > "$L/.env.example" && printf '.env\n.claude/worktrees/\n' > "$L/.gitignore"
 git -C "$L" add -A && git -C "$L" commit -qm init && git -C "$L" push -q -u origin main 2>/dev/null
 out=$(cd "$L" && on_path adf-worktree-new feat/legacy --no-start 2>&1); code=$?
 check "adf-worktree-new: in a project that still keeps scripts/agent/, reads its settings there" \
-    "[ $code -eq 0 ] && grep -q '^FROM=scripts$' '$LW/feat-legacy/.env' && grep -qE '^APP_PORT=[0-9]+$' '$LW/feat-legacy/.env'"
+    "[ $code -eq 0 ] && grep -q '^FROM=scripts$' '$L/.claude/worktrees/feat-legacy/.env' && grep -qE '^APP_PORT=[0-9]+$' '$L/.claude/worktrees/feat-legacy/.env'"
 mkdir -p "$L/ops/agent" && sed 's/FROM=scripts/FROM=ops/' "$L/scripts/agent/worktree.conf" > "$L/ops/agent/worktree.conf"
 out=$(cd "$L" && on_path adf-worktree-new feat/both --no-start 2>&1); code=$?
-check "adf-worktree-new: with both folders, ops/agent/ wins" "[ $code -eq 0 ] && grep -q '^FROM=ops$' '$LW/feat-both/.env'"
+check "adf-worktree-new: with both folders, ops/agent/ wins" "[ $code -eq 0 ] && grep -q '^FROM=ops$' '$L/.claude/worktrees/feat-both/.env'"
 rm -rf "$L/ops"
 printf '#!/bin/sh\necho "$@" > "%s/legacy-handed-over"\n' "$LW" > "$L/scripts/agent/worktree-new.sh" && chmod +x "$L/scripts/agent/worktree-new.sh"
 out=$(cd "$L" && on_path adf-worktree-new feat/old-committed --no-start 2>&1); code=$?

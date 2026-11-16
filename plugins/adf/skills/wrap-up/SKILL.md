@@ -12,7 +12,7 @@ A task ends one of three ways: its pull request **merged**, its **answer deliver
 request), or its pull request **closed** and the developer drops the task (**abandoned**). Each leaves
 things behind:
 - its branch, locally and on the host;
-- its worktree, beside the main checkout;
+- its worktree, under `.claude/worktrees/`;
 - whatever it started: containers, a server on the host, a background command;
 - its session in the app's sidebar;
 - a base branch in the main checkout that is now behind origin's.
@@ -141,6 +141,7 @@ the close-up only once it resumes and ends.
    PR #<n> merged, and nothing is left in this task. Close up?
    - Stop what it started: <the containers, the app on the host, the background commands>
    - Update <base> in the main checkout to origin's
+   - File as issues in <owner>/<repo>, as <account>: <each follow-up found along the way, its line>
    - Start, each in its own session, from the updated <base>: <the follow-up commands and tasks, with why>
    - Remove the worktree <path> and its branch <type>/<slug> (here and on origin)
    - Archive this session
@@ -150,7 +151,7 @@ the close-up only once it resumes and ends.
    request points at it and can be reopened — so its line reads "its branch <type>/<slug> (here
    only; origin's stays)". Drop a line that doesn't apply. In a terminal, the last line is "end this session (`/exit`)".
    Follow-ups are not unfinished work, so they don't block the close-up: they ride in the same yes,
-   and the developer can drop any of them from it.
+   and the developer can drop any of them from it, or move one between an issue and a session.
    Wait for the yes. A "yes, but keep the session" or "keep the branch" changes only that line.
 
 6. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
@@ -170,9 +171,9 @@ the close-up only once it resumes and ends.
       - **No worktree** (a session in the main checkout of a project without the parallel-agents
         module): `git switch <base> && git pull --ff-only`.
       - **The main checkout with the module:** skip it (step 1).
-   3. **Start the follow-ups,** when the list had any and the developer kept them — all of them
-      before the worktree goes, each in a session of its own, as `follow-ups.md` § Starting them
-      says. Never run one here.
+   3. **File and start the follow-ups,** when the list had any and the developer kept them — the
+      issues first, then each session of its own, all before the worktree goes, as `follow-ups.md`
+      § Filing and starting them says. Never run one here.
    4. **Remove the branch from origin,** if the host didn't delete it on merge
       (`git ls-remote --heads origin <branch>`): `git push origin --delete <branch>`. Skip it for an
       abandoned task, for an answer whose branch was never pushed, and in the main checkout with
@@ -191,7 +192,7 @@ the close-up only once it resumes and ends.
       - **The main checkout with the module:** nothing to remove (step 1).
    6. **Report, then archive.**
       - **Report:** in one short reply, say what was stopped, removed, deleted, and updated, the
-        follow-ups started, and anything that didn't happen and why.
+        issues filed (their URLs) and the follow-ups started, and anything that didn't happen and why.
       - **Archive, in the desktop app:** in the same turn, call the app's `archive_session` with
         `"self"` and the ending as the reason: `PR #<n> merged`, `Answer delivered`, `PR #<n>
         closed, task dropped`, or `Nothing left in this session`. The conversation ends there.
@@ -209,6 +210,7 @@ the close-up only once it resumes and ends.
 | "The developer said 'merged', so I'll skip the check" | "Merged" starts the check. Anything left stops the close-up, whoever said it ended. |
 | "I'll remove the worktree first, then stop its containers" | The stop command runs from the worktree, and Compose names the project after its folder. Stop first, then remove. |
 | "I'll remove the worktree, then start the follow-ups" | A session whose folder is gone can't start another. Update the base branch, start the follow-ups, then remove the worktree. |
+| "Every follow-up gets a session of its own" | With the `github` or `gitlab` module, a finding is filed as an issue, where the team decides when it's done; a session is for one the developer wants now. The commands an upgrade wrote still start as sessions. |
 | "The developer said 'merged', so I'll skip the time question" | With the time-tracking module, the time is asked about before every close-up: once the worktree goes, so does what measures it. Their word answers the close-up, not the time. |
 | "The status is one line; I'll commit it on the merged branch" | The merged branch takes no more pushes, and the base branch is protected. The fix is a pull request of its own, and the miss was the task's pull request's: say so. |
 | "`git branch -d` refused, so the branch isn't merged" | After a squash merge, git can't see it. The merged pull request is the proof; delete it with `-D`. |
@@ -234,7 +236,7 @@ the close-up only once it resumes and ends.
 - [ ] No uncommitted changes, stash, or commits after the pull request's last one; nothing open in `tasks.md` and `status: implemented` — or the miss named and kept as a follow-up; no promise left
 - [ ] The developer said yes once to the full list before anything was stopped or removed — or their own word ended a merged task with nothing left or to choose, and the list opened the report
 - [ ] With the time-tracking module, the developer was asked about logging the time before the close-up, and `/adf:track-time` ran to its end on a yes
-- [ ] The pull request's `## Follow-ups` were offered in the same yes, and each kept one started in its own session, from the updated base branch, before the worktree was removed — never run here
+- [ ] The pull request's `## Follow-ups` were offered in the same yes — with the `github` or `gitlab` module, a finding as an issue — and each kept one was filed, or started in its own session from the updated base branch, before the worktree was removed — never run here
 - [ ] For a tracker task: once the change was live, or the answer delivered, the delivered update was posted and shown, the usage guide brought up to date, and the task moved to the delivered status; merged but not live, nothing was posted or moved, and one line said the delivered step waits
 - [ ] What the task started was stopped before its worktree was removed
 - [ ] In the main checkout with the parallel-agents module: closed up as an answer, with no branch switched, pulled, or deleted; only what this session made counted as left over, and only what it started was stopped

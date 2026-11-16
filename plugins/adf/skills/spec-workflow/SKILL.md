@@ -133,7 +133,7 @@ describes the old way in the same pull request. Constitution amendments get thei
 When several agent sessions run at once, each works in its own git worktree on its own branch —
 never two sessions in one checkout. With the parallel-agents module installed, each task has its own
 session, worktree, branch, and pull request: a session triages its task, and `/adf:dispatch` moves it
-to the task's worktree beside the main checkout, which takes no edits. Another task goes to another
+to the task's worktree under `.claude/worktrees/`; the main checkout takes no edits. Another task goes to another
 session. A task's own phases never move to another session: after the approval gate, the
 conversation is compacted in place (`/adf:write-plan` step 12). Passing work in progress to a
 teammate or another machine or tool is `/adf:handoff`: pointers to the record, never a copy.
@@ -145,9 +145,10 @@ Granularity); the brief `/adf:dispatch` writes for each part carries it.
 A bug or an improvement the agent notices while working — in this task or far from it — is reported
 with `file:line` and routed, never dropped and never fixed in passing (`specs/README.md` § Found along
 the way): a bug in this branch's own work is fixed in the task; an improvement to it is the
-developer's call, a change request if taken; anything else is a follow-up in the pull request's
-`## Follow-ups` (and a new session at once with the parallel-agents module), which `/adf:wrap-up`
-offers to start when the task ends; what can't wait goes to the developer first.
+developer's call, a change request if taken or, with the `github` or `gitlab` module, an issue;
+anything else is a follow-up in the pull request's `## Follow-ups`, which `/adf:wrap-up` files as
+an issue with either module, or offers to start in a session (at once, too, with the
+parallel-agents module); what can't wait goes to the developer first.
 
 **When the base branch moves under an open draft,** run `/adf:open-pr sync`: only for a reason, a merge commit and never a rebase, then re-run only what
 the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).

@@ -892,7 +892,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'An answer that only reads' || missing+=("/dispatch: an answer that only reads needs no worktree (0042)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" '^### A new session' || missing+=("/dispatch: another task gets a new session (0042)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" "never rename its generated branch" || missing+=("/dispatch: a session in the app's worktree moves to the task's, never renaming its branch (0040)")
-    file_contains "$HOOKS_DIR/session-context.sh" 'started in Claude Code.s own worktree' || missing+=("session-context.sh: a session in the app's worktree is sent to the task's worktree beside the main checkout (0040)")
+    file_contains "$HOOKS_DIR/session-context.sh" 'started in Claude Code.s own worktree' || missing+=("session-context.sh: a session in the app's worktree is sent to the task's worktree under .claude/worktrees/ (0040, 0083)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Triage the task first' || missing+=("session-context.sh: in the main checkout, triage first, then the task's worktree (0042)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'the task gets its own worktree first' || missing+=("/triage: with the module, a change moves to its own worktree right after the triage (0042)")
@@ -998,11 +998,13 @@ check_practices() {
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
     file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     file_contains "$SKELETON/docs/getting-started/DEV-SETUP.md" 'needs no install step' || missing+=("DEV-SETUP.md: joining a project needs no install")
+    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin (#80)")
+    grep -A12 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace update aplyca' || missing+=("README.md: joining names the commands when trusting the folder didn't download the plugin (#80)")
     file_contains "$REPO_ROOT/README.md" 'claude plugin marketplace update aplyca' || missing+=("install prompt: refreshes a marketplace added before")
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install, the local environment's conventions (0032)"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install (and the commands when the plugin didn't download), the local environment's conventions (0032)"
     else
         fail "practices: missing" "${missing[*]}"
     fi
@@ -1055,8 +1057,12 @@ check_found_along_the_way() {
     file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'survives a chip nobody started' || missing+=("/dispatch: a found task is also a follow-up")
+    file_contains "$SKELETON/specs/README.md" 'files it as an issue in this repository' || missing+=("specs/README.md: a finding is filed as an issue with github or gitlab (0082)")
+    file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'gh issue create' || missing+=("/wrap-up: files the findings as issues (0082)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'File as issues in' || missing+=("/wrap-up: the close-up lists the issues to file (0082)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'files as an issue' || missing+=("/dispatch: no chip at once for a finding with github or gitlab (0082)")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up (0054)"
+        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up, filed as issues with github or gitlab (0054, 0082)"
     else
         fail "found along the way: missing" "${missing[*]}"
     fi

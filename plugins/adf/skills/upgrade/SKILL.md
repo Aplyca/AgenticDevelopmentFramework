@@ -17,7 +17,7 @@ blind sync.
   (`ops/agent/worktree.conf` exists, or `scripts/agent/worktree.conf` in a project that hasn't moved
   it yet), the main checkout takes no edits: the protect-hub hook stops them. Started there, say so
   and run `/adf:dispatch` with `chore/skeleton-upgrade-<NEW_SHA>` as the branch, without asking
-  first: it creates the task's worktree beside the main checkout and moves this session there, where
+  first: it creates the task's worktree under `.claude/worktrees/` and moves this session there, where
   the upgrade goes on.
 - **Approve what needs a person** (decision 0046). The upgrade changes files only on its own branch,
   and the draft pull request is the full record. Clean merges and scripted steps apply without a plan
@@ -336,8 +336,8 @@ version), so the reviewer knows where to look; they need no plan row.
      any helper the team keeps there.
   2. In `ops/agent/worktree.conf`, any `*_CMD` or `ENV_INFO_CMD` that names `scripts/agent/`.
   3. The comment in `.worktreeinclude`.
-  4. `AGENTS.md` § Quick reference: a committed install names `ops/agent/worktree-new.sh` and its
-     siblings; a packaged one keeps the commands' names (`adf-worktree-new`).
+  4. `AGENTS.md` § Quick reference: a committed install names `ops/agent/worktree-new.sh` and the
+     other two; a packaged one keeps the commands' names (`adf-worktree-new`).
   5. Every other hit of `git grep -n scripts/agent` — docs, CI, settings, a Makefile.
   6. Remove `scripts/` if it's now empty.
 

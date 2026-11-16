@@ -12,7 +12,7 @@ and what its worktrees share in `docs/SHARED-SERVICES.md`.
 
 | | Main checkout | A task's worktree |
 |---|---|---|
-| Where | The clone itself | A sibling the scripts create, named after the branch (`../feat-newsletter-signup`) |
+| Where | The clone itself | A folder the scripts create in its `.claude/worktrees/`, named after the branch (`.claude/worktrees/feat-newsletter-signup`) |
 | A session here | Starts here, triages its task, and answers from here when the answer only reads. Moves to the task's worktree before any change (§ How a task gets its worktree) | Does the task: spec folder, plan, approval gate, TDD, commits, the draft pull request |
 | Never | Edits, commits, or branches | Takes a second, unrelated task |
 
@@ -31,15 +31,13 @@ desktop app opens it, and gives it the task. That session becomes the task's:
 2. **It moves, when the task needs a worktree:** a change, in any lane, or an answer that runs the
    app, the tests, or the database. An answer that only reads stays where it is, and changes nothing.
    `/adf:dispatch` creates the worktree with `adf-worktree-new <type>/<slug> --no-start` — a
-   sibling of the main checkout named after the branch (`feat/newsletter-signup` →
-   `../feat-newsletter-signup`), on a new branch from `BASE_BRANCH`, with the env file seeded from
-   the main checkout's and, when worktrees run a server, a port reserved. Nothing starts. Then it
-   moves the session there:
+   folder in the main checkout's `.claude/worktrees/` named after the branch (`feat/newsletter-signup`
+   → `.claude/worktrees/feat-newsletter-signup`), on a new branch from `BASE_BRANCH`, with the env
+   file seeded from the main checkout's and, when worktrees run a server, a port reserved. Nothing
+   starts. Then it moves the session there:
    - **Desktop app:** `change_directory` to the path the script printed. The approve-worktree-move
      hook approves a worktree of this repository, so Claude Code's permission check doesn't ask, and
-     the app then shows the session in that folder. The app's own folder-trust check still asks,
-     once per worktree, until the developer trusts the folder that holds the main checkout and its
-     worktrees: they open a session on it once and accept the prompt to trust the folder.
+     the app then shows the session in that folder.
    - **Terminal:** `EnterWorktree` with that path.
 
    `pwd` confirms the move. If it's refused, the session gives the developer the worktree's path and
@@ -52,13 +50,14 @@ desktop app opens it, and gives it the task. That session becomes the task's:
 one, or finds one along the way, `/adf:dispatch` offers it a new session — a task chip in the desktop
 app, titled with the task (`Show the chosen topics after signup`), or `claude "<prompt>"` to run in
 the main checkout — whose prompt is the task and "follow `AGENTS.md`, starting with triage". That
-session triages it and moves to its own worktree the same way.
+session triages it and moves to its own worktree the same way. With the `github` or `gitlab` module,
+a finding waits instead: the close-up files it as an issue, unless the developer wants it started now.
 
 **Claude Code's own worktree is only where a session may start.** The desktop app can start a
 session — a chip's always — in a worktree of its own, at its worktree location (`.claude/worktrees/`
 by default), on a generated branch. The session triages there and moves to the task's worktree the
 same way. Until it moves, it edits and commits nothing and never renames the generated branch: the
-app removes that worktree when the session is archived.
+app reuses that folder for a later session once this one is archived.
 
 **While its pull request is open,** the base branch moves on as other tasks merge. When the task
 needs what landed there, or its pull request conflicts, its session brings the base branch in by
@@ -68,7 +67,7 @@ not the desktop app's, so the app's `sync_with_base_branch` tool doesn't reach i
 **When the task's pull request merges,** its session wraps up with `/adf:wrap-up`. It checks that
 nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then — on the developer's own
 word that it merged, or one yes when the merge was only reported — it stops what the task started, updates the base branch here,
-starts the follow-ups the developer keeps, removes the worktree and its branch, and archives the session. If anything is left, it lists it and
+files or starts the follow-ups the developer keeps, removes the worktree and its branch, and archives the session. If anything is left, it lists it and
 removes nothing.
 
 **An answer that only reads ends in the main checkout,** and `/adf:wrap-up` closes its session up
@@ -80,13 +79,13 @@ The worktree can run the app, because the scripts gave it the env file and its p
 starts the environment only when a step needs it.
 
 **Claude Code's own worktrees** — every chip's session in the desktop app, a session started with
-its worktree option, or `claude --worktree` — sit at the app's worktree location (inside the main
-checkout by default), on a generated branch, with no port or setup. A session that starts in one
-moves to the task's worktree beside the main checkout before its work. One already
-on a task branch the scripts didn't create stays a worker, and the session-context hook names what it lacks. `.worktreeinclude` copies the env file into
-them; keep it in step with `ENV_FILE`. The desktop app removes its own worktrees when a session is
-archived — or once the pull request merges, with auto-archive on; `adf-worktree-rm` removes the
-scripts'.
+its worktree option, or `claude --worktree` — sit at the app's worktree location (`.claude/worktrees/`
+by default), on a generated branch, with no port or setup. A session that starts in one moves to the
+task's worktree before its work. One already on a task branch the scripts didn't create stays a
+worker, and the session-context hook names what it lacks. `.worktreeinclude` copies the env file
+into them; keep it in step with `ENV_FILE`. The desktop app takes its own worktrees back when a
+session is archived — or once the pull request merges, with auto-archive on — and reuses their
+folders for later sessions; `adf-worktree-rm` removes the scripts'.
 
 **Why one task, one session.** The main checkout is shared: an edit, a running process, or a
 half-finished change there gets in the way of everyone who starts next, and its base branch takes no
@@ -98,7 +97,7 @@ moves with it. Passing work on later in a task is `/adf:handoff`.
 
 | Command | Does |
 |---|---|
-| `adf-worktree-new <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `../<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
+| `adf-worktree-new <type>/<slug> [--no-start \| --setup-only] [--refresh-env] [--from <ref>]` | Creates `.claude/worktrees/<type>-<slug>` on branch `<type>/<slug>` (from `BASE_BRANCH`, or `--from` a tag for a hotfix) and, when the project has an env file, seeds the worktree's copy from the **main checkout's**. Then runs `SETUP_CMD` and `START_CMD` when the project sets them — unless `--no-start` (create only) or `--setup-only` (just what the git hooks and tests need). Rerunning on an existing worktree never touches its branch, and `--refresh-env` rewrites its env file |
 | `adf-worktree-ls [--info]` | Lists every worktree: branch, uncommitted changes, and — when worktrees run a server — port and whether it's up. Warns when two claim one port, and flags worktrees the scripts didn't set up while they sit on a generated branch or a detached HEAD. `--info` adds what `ENV_INFO_CMD` prints for each |
 | `adf-worktree-rm <type>/<slug> [--force]` | Runs `STOP_CMD` when set, removes the worktree, fast-forwards the main checkout's base branch to origin's (only when it's on that branch with no uncommitted changes), and deletes the branch only if git sees it as merged |
 
@@ -125,6 +124,17 @@ triage; a dispatched session always creates its worktree with `--no-start`.
   hooks fail — and agents never bypass hooks. With the `docker` module, `SETUP_CMD` installs nothing
   on the host: the hooks run make tasks, and in Docker mode those start the tools container
   themselves, so the hooks need neither the environment nor anything installed on the host.
+- **A task's worktree sits inside the main checkout** (decision 0083), so a tool that looks in parent
+  folders can reach the main checkout's files. Most stop at the worktree's own configuration. Three
+  don't, and each has a fix:
+  - Packages and commands: a worktree without its own dependencies uses the main checkout's, because
+    Node resolves packages, and `npm run` finds commands, in every parent folder. Run the tools in the
+    container (the docker module), or, without it, install in the worktree (`SETUP_CMD`,
+    `--setup-only`).
+  - TypeScript before 6.0 adds every parent folder's `node_modules/@types` to a project: list them in
+    `compilerOptions.types`, or upgrade.
+  - ESLint's `.eslintrc` merges the configs of parent folders: set `"root": true`, or move to the flat
+    config (`eslint.config.js`).
 - **A change request after the merge gets a fresh branch** (`feat/newsletter-signup-topics`), never
   the feature's old one (feedback before the merge rides the open branch): a branch kept after a
   squash merge carries pre-merge history. The script warns when it reuses a local branch that is
@@ -147,7 +157,7 @@ one, blank it for worktrees in `ENV_OVERRIDES` (`APP_PORT=`).
 the app read its port from the env file:
 
 - **Ports derive from the branch name** (stable across restarts) and are **reserved under a lock**.
-  "Taken" means listening now *or* reserved in a sibling's env file whose app isn't up yet — checking
+  "Taken" means listening now *or* reserved in another worktree's env file whose app isn't up yet — checking
   only the first is a race when two agents start together, which is the common case.
 - `ENV_OVERRIDES` writes the worktree's own values next to its port — its URL, a per-worktree
   container project name (`${PROJECT}`) — and `READY_URL` makes `adf-worktree-new` wait until the app
@@ -183,8 +193,9 @@ would be wrong by the time anyone read it.
 ## Claude Code's worktrees
 
 Claude Code also creates worktrees for subagents with `isolation: worktree` and for background
-sessions, under `.claude/worktrees/`. Those are its own, short-lived ones; `.claude/worktrees/` stays
-in `.gitignore` and `.claudeignore`. A session the desktop app or `claude --worktree` starts in a worktree of its own
-lands there too, unless the app's **Worktree location** setting moves it: wherever it is, the session
-moves to its task's worktree before its work (§ How a task gets its worktree). Archive sessions you're done with, so their worktrees don't pile up —
+sessions, under `.claude/worktrees/`, beside the tasks' worktrees. Those are its own, short-lived ones;
+`.claude/worktrees/` stays in `.gitignore` and `.claudeignore`. A session the desktop app or
+`claude --worktree` starts in a worktree of its own lands there too, unless the app's **Worktree
+location** setting moves it: wherever it is, the session moves to its task's worktree before its work
+(§ How a task gets its worktree). Archive sessions you're done with, so their worktrees don't pile up —
 `adf-worktree-ls` flags the ones left on a generated branch or a detached HEAD.
