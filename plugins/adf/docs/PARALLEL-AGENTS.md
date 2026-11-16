@@ -125,7 +125,8 @@ triage; a dispatched session always creates its worktree with `--no-start`.
   anything else still runs `adf-worktree-new <branch> --setup-only` before its first commit, or the
   hooks fail — and agents never bypass hooks. With the `docker` module, `SETUP_CMD` installs nothing
   on the host: the hooks run make tasks, and in Docker mode those start the tools container
-  themselves, so the hooks need neither the environment nor anything installed on the host.
+  themselves, so the hooks need neither the environment nor anything installed on the host. `make
+  test` starts the backing services the tests need, which keep running until `make stop`.
 - **A task's worktree sits inside the main checkout** (decision 0083), so a tool that looks in parent
   folders can reach the main checkout's files. Most stop at the worktree's own configuration. Three
   don't, and each has a fix:

@@ -389,6 +389,7 @@ DS="$WORK/docker-stack"; mkdir -p "$DS/site" "$DS/bin"
 cp -R "$TPL/." "$DS/site/"
 cat > "$DS/bin/docker" <<'STUB'
 #!/bin/sh
+[ "$1 $2" = "volume create" ] && { echo "$3"; exit 0; }
 [ "$1 $2" = "compose ps" ] || exit 2
 [ "$3 $4" = "--format json" ] && { printf '%s\n' "${STUB_JSON:-}"; exit 0; }
 for entry in $STUB_PORTS; do
@@ -444,7 +445,7 @@ cat > "$DS/bin/docker-args" <<'STUB'
 printf 'docker'; for a in "$@"; do printf ' [%s]' "$a"; done; printf '\n'
 STUB
 chmod +x "$DS/bin/docker-args"
-out=$(stack make run COMPOSE="docker-args compose" DEV_MODE=docker cmd='echo "it'"'"'s"; ls | head -1 && echo $$HOME' 2>&1)
+out=$(stack make run COMPOSE="docker-args compose" DOCKER=docker-args DEV_MODE=docker cmd='echo "it'"'"'s"; ls | head -1 && echo $$HOME' 2>&1)
 check "C10: make run, docker mode: the command reaches the tools container as one argument" \
     "echo \"\$out\" | grep -qF '[compose] [run] [--rm] [tools] [sh] [-c] [echo \"it'\"'\"'s\"; ls | head -1 && echo \$HOME]'"
 out=$(stack make run DEV_MODE=docker 2>&1); code=$?
@@ -476,8 +477,26 @@ check "compose.yaml: neither the app nor the tools service gets the Docker socke
     "! grep -qE 'docker\\.sock|network_mode|privileged|pid: host' '$TPL/compose.yaml'"
 check "compose.yaml: the app and the tools hide the worktrees nested in the checkout behind an empty tmpfs (D5)" \
     "[ \$(grep -c '^    tmpfs:\$' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - /app/.claude/worktrees\$' '$TPL/compose.yaml') -eq 2 ]"
-check "compose.yaml: the app and the tools mount this checkout's dependency volume; only the tools mount the shared cache, which has a fixed name (D7)" \
-    "[ \$(grep -c '^      - deps:' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - deps-cache:' '$TPL/compose.yaml') -eq 1 ] && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    name: '"
+check "compose.yaml: the app and the tools mount this checkout's dependency volume; only the tools mount the shared cache, external with a fixed name (D7)" \
+    "[ \$(grep -c '^      - deps:' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - deps-cache:' '$TPL/compose.yaml') -eq 1 ] && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    name: ' && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    external: true'"
+# D7: the shared cache is external, so no checkout's down -v removes it and none owns it; each task
+# that starts the tools creates it first, by the name compose.yaml gives it, after the guard (C6).
+d7=""
+for task in deps test lint format typecheck run; do
+    out=$(stack make -n "$task" DEV_MODE=docker cmd=true 2>&1)
+    echo "$out" | grep -q 'guard.sh' || d7="$d7 [$task: no guard]"
+    echo "$out" | grep -q '^docker volume create newsletter-deps-cache >/dev/null$' || d7="$d7 [$task: doesn't create the cache]"
+    [ "$(echo "$out" | grep -n 'guard.sh' | head -1 | cut -d: -f1)" -lt "$(echo "$out" | grep -n 'volume create' | head -1 | cut -d: -f1)" ] 2>/dev/null || d7="$d7 [$task: guard after the cache]"
+done
+check "D7, C6: deps, test, lint, format, typecheck, and run guard the checkout, then create the external cache by compose.yaml's name" "[ -z \"$d7\" ]"
+[ -z "$d7" ] || echo "    $d7"
+NC="$WORK/no-cache-name"; mkdir -p "$NC" && cp -R "$TPL/." "$NC/" && git -C "$NC" init -q -b main
+sed '/^    name: newsletter-deps-cache$/d' "$TPL/compose.yaml" > "$NC/compose.yaml"
+out=$(cd "$NC" && make deps-cache DEV_MODE=docker DOCKER=docker-args 2>&1); code=$?
+check "D7: with no name for the cache in compose.yaml, the tools tasks stop, saying so — never an anonymous volume" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'deps-cache volume no name' && ! echo \"\$out\" | grep -q 'volume'.*'create'"
+check "compose.yaml: the app's variables are one list, which the tools and the production build merge (D6)" \
+    "grep -q '^x-app-environment: &app-environment\$' '$TPL/compose.yaml' && grep -q '^    environment: \*app-environment\$' '$TPL/compose.yaml' && [ \$(grep -c '^      <<: \*app-environment\$' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c 'REDIS_URL' '$TPL/compose.yaml') -eq 1 ]"
 out=$(stack make -n urls 2>&1)
 check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
     "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"

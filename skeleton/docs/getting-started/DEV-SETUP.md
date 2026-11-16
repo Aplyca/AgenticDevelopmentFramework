@@ -202,12 +202,13 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 
 ### [Common issue 3: e.g., Dependencies fail to install]
 
-[e.g., In Docker mode the dependencies are this checkout's Docker volume, `<folder>_deps`. To start
-it over: stop the stack, remove the volume, and install again.]
+[e.g., In Docker mode the dependencies are this checkout's Docker volume, `<project>_deps`, where
+`<project>` is this checkout's name in `docker compose ls` — a worktree's is the one its `.env` sets.
+To start it over: stop the stack, remove the volume, and install again.]
 
 ```bash
 [e.g., make down]
-[e.g., docker volume rm <folder>_deps]
+[e.g., docker volume rm <project>_deps]
 [e.g., make deps]
 ```
 
