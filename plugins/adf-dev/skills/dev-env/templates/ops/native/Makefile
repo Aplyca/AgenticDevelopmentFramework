@@ -24,7 +24,7 @@ NATIVE_PROD_CMD = echo "CUSTOMIZE: set NATIVE_PROD_CMD in ops/native/Makefile to
 export NATIVE_CMD NATIVE_PROD_CMD
 NATIVE_SH = SERVICES='$(SERVICES)' COMPOSE='$(COMPOSE)' APP='$(APP)' ops/native/native.sh
 
-.PHONY: up stop down build ps logs urls prod services test lint format typecheck run reset
+.PHONY: up stop down build deps ps logs urls prod services test lint format typecheck run reset
 
 up: env guard services ## Start the app on the host, wait until it answers, and show where it is
 	@$(COMPOSE) stop $(APP) >/dev/null 2>&1 || true
@@ -41,7 +41,9 @@ down: guard ## Stop the app and the backing services, and remove their container
 	$(if $(SERVICES),$(COMPOSE) down)
 	@$(LAUNCH_JSON)
 
-build: env ## Install the app's dependencies on the host
+build: deps ## Prepare what make up runs: on the host, that's make deps
+
+deps: env ## Install the app's dependencies on the host, from the lockfile
 	@echo "CUSTOMIZE: the install command, e.g. npm ci · composer install · bundle install" >&2; exit 1
 
 ps: ## The app on the host, and the backing services
@@ -80,7 +82,7 @@ typecheck: ## Run the type checker on the host
 	@echo "CUSTOMIZE: the type checker, e.g. npx tsc --noEmit — or say the stack has none" >&2; exit 1
 
 # On the host, so it asks an agent first (C10). The command comes from the environment, as in Docker mode.
-run: services ## Run a command on the host, with the services' ports exported: make run cmd='npm ci' — a $ for the command is written $$
+run: services ## Run a command on the host, with the services' ports exported: make run cmd='npm outdated' — a $ for the command is written $$
 	@[ -n "$$cmd" ] || { echo "make run needs a command: make run cmd='<command>'" >&2; exit 1; }
 	@eval "$$($(NATIVE_SH) env)" && sh -c "$$cmd"
 

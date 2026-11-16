@@ -9,6 +9,10 @@
 | [e.g., Node.js] | [e.g., 20+] | `node --version` |
 | [e.g., Docker] | [e.g., 24+] | `docker --version` |
 | [e.g., Git] | [e.g., 2.40+] | `git --version` |
+| [e.g., make] | [e.g., 3.81+] | `make --version` |
+
+[e.g., In Docker mode, the default here, Docker, Git, and make are all your machine needs: the
+runtime, the dependencies, and every check run in containers. Native mode needs the runtime too.]
 
 **Operating system:** [e.g., macOS 14+, Ubuntu 22.04+, Windows 11 with WSL2]
 
@@ -26,8 +30,12 @@ cd [project-name]
 ### 2. Install dependencies
 
 ```bash
-[e.g., npm install]
+[e.g., make deps  # into this checkout's Docker volume: nothing is installed on your machine]
 ```
+
+[e.g., In Docker mode the dependencies live in a Docker volume, one per checkout, and the package
+manager's cache in another that every checkout shares. The empty `node_modules/` folder in the
+checkout is where the volume mounts: leave it. After a lockfile change, `make deps` again.]
 
 ### 3. Set up environment variables
 
@@ -83,7 +91,7 @@ The app will be available at [e.g., the URL `make up` and `make urls` print].
 ### 7. Verify everything works
 
 ```bash
-[e.g., npm test]
+[e.g., make test  # in the tools container, with the stack up or not]
 ```
 
 All tests should pass. If not, see [Troubleshooting](#troubleshooting) below.
@@ -105,6 +113,10 @@ Once your environment is working, try this to build confidence:
 **Optional settings:**
 - [e.g., Format on save: enabled]
 - [e.g., Default formatter: Prettier]
+
+[e.g., In Docker mode the dependencies aren't on your machine, so the editor resolves no package: no
+autocomplete or library types from them, and no on-save lint or format with the project's own
+tools. Run `make lint f=<file>` and `make format f=<file>` instead.]
 
 ## AI-assisted development
 
@@ -145,14 +157,15 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 | Task | Command |
 |---|---|
 | List the tasks | `[e.g., make help]` |
-| Install | `[command]` |
+| Install | `[e.g., make deps]` |
 | Run / stop / down | `[e.g., make up · make stop (keeps containers and data) · make down (removes containers; data stays)]` |
 | Where it runs | `[e.g., make urls]` |
 | Run on the host | `[e.g., DEV_MODE=native in .env, then make up]` |
 | The production build, locally | `[e.g., make prod — make urls shows it, make logs s=web-prod]` |
 | Logs | `[e.g., make logs]` |
 | Test | `[e.g., make test]` |
-| Lint / typecheck | `[e.g., make lint]` |
+| Lint / format / typecheck | `[e.g., make lint · make format · make typecheck]` |
+| Anything else, in the tools container | `[e.g., make run cmd='<command>']` |
 
 ## Troubleshooting
 
@@ -174,9 +187,13 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 
 ### [Common issue 3: e.g., Dependencies fail to install]
 
+[e.g., In Docker mode the dependencies are this checkout's Docker volume, `<folder>_deps`. To start
+it over: stop the stack, remove the volume, and install again.]
+
 ```bash
-[e.g., rm -rf node_modules package-lock.json]
-[e.g., npm install]
+[e.g., make down]
+[e.g., docker volume rm <folder>_deps]
+[e.g., make deps]
 ```
 
 ### Still stuck?

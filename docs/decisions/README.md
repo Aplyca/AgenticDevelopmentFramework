@@ -44,7 +44,7 @@ projects.
 | [0031](0031-agent-model-overrides-in-the-project-rule.md) | A project changes an agent's model in its own rule, which the session passes when it spawns the agent | accepted |
 | [0032](0032-local-environment-layout.md) | A project's local environment: `compose.yaml` and a `Makefile` at the root, operations in `ops/`, ports Docker picks | accepted; amended by 0034, 0038, 0071, 0077, 0078 |
 | [0033](0033-pull-request-upkeep-without-prompts.md) | An agent pushes, opens, edits, and comments on its draft pull request without a prompt | accepted; amended by 0038, 0053, 0070 |
-| [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted; amended 2026-10-15, 2026-10-16 |
+| [0034](0034-local-environment-modes.md) | The local environment runs in Docker or natively, and `ops/` has one folder per target | accepted; amended 2026-10-15, 2026-10-16, and by 0082 |
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted; amended by 0055, 0061, 0067 |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted; amended 2026-10-16 |
@@ -87,11 +87,12 @@ projects.
 | [0074](0074-github-and-gitlab-alike.md) | GitHub and GitLab alike: the PR-state hook asks `glab` on GitLab, every skill's `gh` command has its `glab` one, and the skeleton's settings ship the `glab` rules | accepted |
 | [0075](0075-the-gitlab-module.md) | The `gitlab` module: GitHub's harness in GitLab's terms — a `Default.md` merge request template, the tracker redirect in the default issue template, and the gates as one framework-owned CI include with the team's settings in `.gitlab-ci.yml` | accepted |
 | [0076](0076-a-status-only-tracker-update-needs-no-prompt.md) | A tracker update that changes only the task's status needs no prompt: a hook approves that call and leaves every post, and any other edit, to the prompt | accepted |
-| [0077](0077-the-container-is-the-boundary-for-make-run.md) | In Docker mode the container is the boundary: `make run` runs any command in the app's container without a prompt, a hook asks wherever it would run on the host, and the specification says what the container doesn't protect | accepted; amended by 0078 |
+| [0077](0077-the-container-is-the-boundary-for-make-run.md) | In Docker mode the container is the boundary: `make run` runs any command in the app's container without a prompt, a hook asks wherever it would run on the host, and the specification says what the container doesn't protect | accepted; amended by 0078, 0082 |
 | [0078](0078-docker-and-make-run-without-a-prompt.md) | Docker and make commands run without a prompt: the docker module adds no ask rule, `make reset` included, and the developer's yes in chat is what protects local data | accepted |
 | [0079](0079-no-file-count-in-the-lanes.md) | No file count in the lanes: the fast lane is a precise request in one layer however many files it touches, and "more than ~3 files" no longer sends a change to the full lane | accepted |
 | [0080](0080-framework-feedback-from-adopting-projects.md) | Adopting projects report the framework's problems as issues with `/framework-feedback`: in the framework's terms, checked by a script for anything naming the project, posted only on the developer's yes; a problem in the framework is a lane of its own | accepted |
 | [0081](0081-answers-in-the-main-checkout-close-up-there.md) | Answers in the main checkout close up there: `/adf:wrap-up` checks what the session made, delivers a tracker answer, and archives it, without switching, pulling, or deleting the branch checked out there | accepted |
+| [0082](0082-docker-mode-needs-nothing-on-the-host.md) | Docker mode needs nothing on the host but Docker, git, and make: a `tools` service in Compose's `tools` profile runs the checks, `make deps`, and `make run` with the stack up or not; dependencies live in volumes; a tool that needs the Docker socket gets its own service and an ask rule | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

@@ -123,8 +123,8 @@ triage; a dispatched session always creates its worktree with `--no-start`.
 - **What the git hooks need** (`SETUP_CMD`): git hooks run on the host. A worker that never needed
   anything else still runs `adf-worktree-new <branch> --setup-only` before its first commit, or the
   hooks fail — and agents never bypass hooks. With the `docker` module, `SETUP_CMD` installs nothing
-  on the host: the hooks run make tasks, and in Docker mode those run in the app's container, so a
-  worker whose hooks run checks starts its environment (`adf-worktree-new <branch>`) before it pushes.
+  on the host: the hooks run make tasks, and in Docker mode those start the tools container
+  themselves, so the hooks need neither the environment nor anything installed on the host.
 - **A change request after the merge gets a fresh branch** (`feat/newsletter-signup-topics`), never
   the feature's old one (feedback before the merge rides the open branch): a branch kept after a
   squash merge carries pre-merge history. The script warns when it reuses a local branch that is

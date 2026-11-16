@@ -1,6 +1,6 @@
 # 0034: The local environment runs in Docker or natively, and `ops/` has one folder per target
 
-- **Status:** accepted; amended 2026-10-15 (an agent runs every task in the configured mode, and overriding it asks); amended 2026-10-16 (only the developer changes the mode, and what would change it is denied)
+- **Status:** accepted; amended 2026-10-15 (an agent runs every task in the configured mode, and overriding it asks); amended 2026-10-16 (only the developer changes the mode, and what would change it is denied); amended by [0082](0082-docker-mode-needs-nothing-on-the-host.md) — the checks run where the mode runs its tools: Docker mode's tools service, or the host
 - **Date:** 2026-10-10
 - **Amends:** [0032](0032-local-environment-layout.md) — point 2, how `ops/` is organized; point 3,
   the command surface; point 6, the native path; and point 7, where the band finds the app's port

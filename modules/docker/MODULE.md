@@ -113,7 +113,7 @@ fills these from what it verifies, for you to review:
   of them adds its own rule to `permissions.ask`; an ask rule wins over the allow. `/dev-env` adds
   one for a project's own task that runs a command it's given on the host (C10). `Bash(make *)`
   trusts the project's Makefile, so review a Makefile change as code that runs without a prompt.
-- **`make run cmd='<command>'` runs any command in the app's container, with no prompt, in Docker
+- **`make run cmd='<command>'` runs any command in the tools container, with no prompt, in Docker
   mode;** in native mode it runs on the host and asks. A hook decides, since a rule can't read the
   mode: it approves the call written on its own, with nothing the host's shell or `make` would
   expand — a `$` for the container is written `$$`, in single quotes — and a `run` task that hands
@@ -121,7 +121,14 @@ fills these from what it verifies, for you to review:
   host outside the checkout. It doesn't protect the checkout, the stack's local data, or the
   credentials in `.env`, which a command inside can read and use: keep production credentials out
   of `.env`. `APPROVE_CONTAINER_RUN=""` in `.claude/hooks/config.sh` asks in every mode — set it
-  when the app's service mounts the Docker socket or a path outside the checkout (D5).
+  when the app's or the tools service mounts the Docker socket or a path outside the checkout (D5).
+  A CLI that needs the socket gets a service of its own, and its command-taking task an ask rule
+  (D8).
+- **In Docker mode the host needs Docker, git, and make, and nothing else** (M11,
+  [decision 0082](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0082-docker-mode-needs-nothing-on-the-host.md)):
+  `make deps`, `make test`, `make lint`, `make format`, `make typecheck`, and `make run` start the
+  tools service, with the stack up or not, and dependencies live in volumes. The cost is the
+  editor's: it resolves no package from the host.
 - **Two commands print secrets:** `docker compose config` without `--quiet` or `--services`, and
   `docker inspect`. Both run without a prompt, so the rule is the guard: `/dev-env` doesn't run them.
 - **A committed install carries the templates** under `.claude/skills/dev-env/templates/`, where an
@@ -133,7 +140,8 @@ fills these from what it verifies, for you to review:
 - In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps`,
   `make up`, and `make test` run without a prompt; asked to reset the stack, the agent names what
   is lost and waits for a yes in chat.
-- In Docker mode `make run cmd='pwd'` runs in the app's container without a prompt. With
+- In Docker mode `make run cmd='pwd'` runs in the tools container without a prompt, with the stack
+  down. With
   `DEV_MODE=native` in `.env`, the same command prompts.
 
 ## Requirements

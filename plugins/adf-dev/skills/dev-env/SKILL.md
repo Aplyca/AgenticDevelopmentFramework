@@ -42,10 +42,11 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
 - **Published ports bind to `127.0.0.1`**, never every interface.
 - **In Docker mode, commands run in the container, never on the host.** Tests, linters, the package
   manager, a one-off script: a named task first (`make test t=<file>`, `make lint f=<file>`), and
-  `make run cmd='<command>'` for what no task covers. It runs in the app's container without a
+  `make run cmd='<command>'` for what no task covers. It runs in the tools container (D6) without a
   prompt, written on its own, in single quotes, with a `$` for the container as `$$`; a pipe goes
-  inside the quotes (C10). The host's runtime and dependencies aren't the project's. In native mode
-  `make run` runs on the host and asks.
+  inside the quotes (C10). The host's runtime and dependencies aren't the project's, and Docker mode
+  needs none (M11): never install a missing tool there. In native mode `make run` runs on the host
+  and asks.
 
 ## Steps
 
@@ -83,13 +84,18 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      pinned, with a healthcheck the app's `depends_on` waits on;
    - every variable the code reads: by name in `.env.example`, and in container form in its
      service's `environment:` — a credential as `${NAME:-}`, passed through from `.env`;
+   - the tools service (D6, D7): the Dockerfile's `tools` stage, the variables the tests read, the
+     backing services they need in its `depends_on`, the folder the install writes as the `deps`
+     volume's mount point in the app's service and in `tools`, the cache volume's `name:` (the
+     repository's), and the variable that points the package manager's cache at `/cache`;
    - in the `Makefile`: `APP` and `DEFAULT_MODE` (`docker` unless the team runs the app on the host);
    - the label `claude.browser: "true"` on each service with pages a person opens — the app, its
      production build, an admin UI, a mail catcher — and on no backing service (P8);
-   - in each mode's `Makefile`, its own commands: in `ops/docker/`, `test`, `lint`, `format`, and
-     `typecheck` in the app's container; in `ops/native/`, `DEFAULT_SERVICES` (the backing services
+   - in each mode's `Makefile`, its own commands: in `ops/docker/`, `deps`, `test`, `lint`,
+     `format`, and `typecheck` in the tools container (`$(COMPOSE) run --rm tools …`, `--no-deps`
+     where no backing service is needed); in `ops/native/`, `DEFAULT_SERVICES` (the backing services
      that stay in Docker), `NATIVE_CMD` (the app's dev command, listening on `$APP_PORT`), and its
-     `build` (installing dependencies on the host), `test`, `lint`, `format`, and `typecheck`. `test`
+     `deps` (installing dependencies on the host), `test`, `lint`, `format`, and `typecheck`. `test`
      passes `t` to the test runner as its filter, and `lint` and `format` pass `f` as the files
      (C3), so an agent runs the one test or file it changed through the task. Each from the project's package manifest,
      README, or docs — never a guess at the stack. A project that never runs natively keeps
@@ -117,11 +123,17 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - no `DEV_MODE`: a `Makefile` with its own `native` or `dev` targets beside the Docker ones, which
      the two mode files replace;
    - a `test` without `t=`, or a `lint` without `f=`, so agents reach for a command of their own;
-   - no `run` task, or one that pastes `$(cmd)` into the recipe or runs it anywhere but the app's
-     container in Docker mode (C10): until it meets C10, `make run` asks every time;
+   - no `run` task, or one that pastes `$(cmd)` into the recipe or runs it anywhere but a container
+     that meets D5 in Docker mode (C10): until it meets C10, `make run` asks every time;
+   - checks that `exec` into the app's container, so they need `make up` and see only what the app
+     mounts, or no tools service (D6);
+   - dependencies on the host — a dependency folder in the checkout that the host filled, a
+     `SETUP_CMD`, git hook, or doc step that installs there — or a task that runs a runtime or CLI
+     on the host (M11);
    - another task that runs a command it's given on the host (`make exec`) without an ask rule (C10);
-   - an app service that mounts the Docker socket or a path outside the checkout, or runs
-     `privileged` (D5): `make run` would reach the host from it;
+   - an app or tools service that mounts the Docker socket or a path outside the checkout, or runs
+     `privileged` (D5): `make run` would reach the host from it. A CLI that needs the socket gets a
+     service of its own, and its command-taking task an ask rule (D8);
    - a task that deletes data under a name other than `reset` (`db-drop`, a `clean` that removes
      volumes), which `DEV-SETUP.md` doesn't name as one: `Bash(make *)` runs it without a prompt
      (C9), so an agent has to know to ask in chat first;
@@ -135,13 +147,22 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
 3. **Start it:** `make env` — it creates `.env` from `.env.example` and names the credentials for the
    developer to fill in — then `docker compose config --quiet`, and `make up`, which waits until
    every service is healthy and prints where each one is. `make ps`: every service is running, and
-   healthy where it has a check. After a Dockerfile change, `make build` first.
+   healthy where it has a check. After a Dockerfile change, `make build` first; after a lockfile
+   change, `make deps`.
 4. **Verify it works:** `curl -fsS` on the app's URL from `make urls` (its health route or home page),
    and the project's quickest test that needs the stack passes against it — in the configured mode
    only (M10). With a dev command for the host, write native mode's file too (Mode: native), read it
    against M4–M8, and report it as not run: the developer runs it once they switch.
+
+   In Docker mode, check M11 with the stack down (`make down`): make a scratch folder, link
+   `docker` into it — with each `docker-credential-*` helper beside it, which pulls need — and `git`
+   and `make`, then run `make deps`, `make lint`, `make typecheck`, and `make test`, each with
+   `PATH=<scratch folder>:/usr/bin:/bin:/usr/sbin:/sbin`. Each passes; a "command not found" is a
+   gap. A runtime the system ships in `/usr/bin` isn't caught this way: read the recipes for one.
 5. **Write down what you verified** — a docs change, so it goes through triage too:
-   - `DEV-SETUP.md`: the Docker row of Prerequisites, § 3 `make env`, § 4 `make up` and `make urls`
+   - `DEV-SETUP.md`: the Docker row of Prerequisites — in Docker mode Docker, git, and make are all
+     the host needs (M11), and § IDE setup says what the editor does without the dependencies —
+     § 2 `make deps`, § 3 `make env`, § 4 `make up` and `make urls`
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
      host — and the command surface;
    - `AGENTS.md` § Quick reference: `make up`, `make stop` (keeps containers and data), `make down`
@@ -174,8 +195,8 @@ before it moved); without it, say so and stop.
    - `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, plus an empty `<NAME>_PORT=` line for each
      port the main checkout pins — each worktree's project gets a clear name, and its ports stay
      Docker's;
-   - `SETUP_CMD` empty, or a task such as `make build` — never a host install (`npm ci`), which
-     Docker mode never uses: its tests and checks run in containers (C10);
+   - `SETUP_CMD` empty, or `make deps` — never a host install (`npm ci`), which Docker mode never
+     uses: its tests and checks run in the tools container (M11);
    - `START_CMD="make up"` — in the worktree's mode, which its `.env` sets — and
      `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`: it stops an app running on the
      host, then removes only this worktree's project, since its `COMPOSE_PROJECT_NAME` is that
@@ -205,7 +226,7 @@ services in Docker. Both define the same tasks.
    changes the mode: an agent runs every task in the configured mode, and when asked for another, it
    names the setting to change and stops (M10). `make help` names the mode and the file in force.
 2. **What native mode needs,** in `ops/native/Makefile`:
-   - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `build`, `test`, and
+   - `NATIVE_CMD` — the app's dev command, listening on `$APP_PORT` — and the `deps`, `test`, and
      `lint` commands on the host, from the package manifest, the README, or the project's docs.
      `NATIVE_PROD_CMD`, when the project has `make prod`: the production build and server, on
      `$APP_PORT`.
@@ -299,7 +320,10 @@ reset in the main checkout of a hub.
 | "`env_file: .env` passes everything at once" | Every container gets every variable, credentials included, and nothing says which service needs what. Each service's `environment:` names what it gets. |
 | "`make *` is allowed, so any task is safe to run" | The allow trusts the project's Makefile, and no prompt stops a task. One that deletes data waits for the developer's yes in chat, and a `logs` that follows needs fixing (C9). Check the task (`make -n <task>`) before you run one you haven't read. |
 | "`make run cmd='yarn test src/x.test.ts'` is the quickest way to run one test" | `make test t=src/x.test.ts` runs the same thing through the task, in every mode, and a reviewer can read it. `make run` is for what no task covers (C10). |
-| "The stack is in Docker, but `npm ci` on the host is quicker" | The host's runtime and dependencies aren't the project's, and the command prompts. `make run cmd='npm ci'` runs it in the app's container, with no prompt (C10). |
+| "The stack is in Docker, but `npm ci` on the host is quicker" | The host's runtime and dependencies aren't the project's, the command prompts, and Docker mode needs nothing on the host (M11). `make deps` installs into this checkout's volume, with no prompt (D7). |
+| "The tool isn't in the container, so I'll install it on the host" | Then the next checkout and the CI don't have it, and the host drifts (M11). Add it to the project's dependencies or the Dockerfile's `tools` stage, through triage, or say what's missing and ask. |
+| "This CLI needs the Docker socket, so I'll mount it in `tools`" | Then `make run` reaches the host's Docker, every project's containers, without a prompt (D5). The CLI gets a service of its own, and its command-taking task an ask rule (D8). |
+| "`make lint` needs the stack, so I'll `make up` first" | The checks start the tools container themselves (D6). A check that needs `make up` is a gap to report. |
 | "I'll write it as `cd app && make run cmd=\"echo $VAR\"`" | A `cd`, or a `$` the host's shell would expand, asks: the hook approves only a call it can read. Run it from the checkout's root, in single quotes, with a `$` for the container as `$$`. |
 | "`make run cmd='cat .env'` shows what the app sees" | It prints credentials into the conversation, on the host or in the container (V4), and no prompt stops it. `.env.example` names the variables. |
 | "It's quicker to run the tests with `DEV_MODE=native`" | The mode is the developer's choice (M10). Run every task in the configured mode; if one can't run there, say what it needs and ask. |
@@ -326,7 +350,8 @@ reset in the main checkout of a hub.
 - [ ] Every destructive step was scoped to this project, named what it removed, and had the developer's yes
 - [ ] `make urls` shows each published service, answering
 - [ ] Every task that deletes data is named as one in `DEV-SETUP.md`; a task other than `run` that runs a command it's given on the host has an ask rule; no task waits for input or follows (C9, C10)
-- [ ] In Docker mode `make run cmd='<command>'` runs in the app's container with no prompt, and the app's service mounts nothing of the host but the checkout (C10, D5)
+- [ ] In Docker mode `make run cmd='<command>'` runs in the tools container with no prompt, and neither the app's service nor `tools` mounts anything of the host but the checkout (C10, D5, D6)
+- [ ] In Docker mode `make deps`, `make lint`, `make typecheck`, and `make test` pass with the stack down and only `docker`, `git`, and `make` on the `PATH` (M11)
 - [ ] `make test t=<file>` and `make lint f=<file>` run just that file
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
 - [ ] In a checkout configured for native mode: `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it. In any other, native mode's file was read against M4–M8 and reported as not run (M10)

@@ -82,7 +82,7 @@ The session follows whichever scenario its triage picked. What's specific to wor
 - **What the git hooks need, before the first commit**, even with no environment —
   `ops/agent/worktree-new.sh <branch> --setup-only`: git hooks run on the host, and an agent
   never bypasses a failing hook. On the newsletter site `SETUP_CMD` is empty: its tests and checks
-  are make tasks, which run in the app's container in Docker mode, so nothing is installed on the
+  are make tasks, which run in the tools container in Docker mode, so nothing is installed on the
   host.
 - **Configuration comes from the main checkout.** Keep secrets right in the main checkout's env file;
   every new worktree inherits them, and `--refresh-env` brings an existing worktree up to date. Don't

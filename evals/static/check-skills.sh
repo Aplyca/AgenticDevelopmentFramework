@@ -952,7 +952,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs without a prompt but run on the host (C9, 0077, 0078)")
-    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: make run runs in the app's container in Docker mode, and a hook decides it (C10, 0077)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: make run runs in a container in Docker mode, and a hook decides it (C10, 0077, 0082)")
     # make run by the mode (0077): the spec's boundary, the hook and its setting, no rule in its way, the task in both modes, the migration.
     file_contains_literal "$SKILLS_DIR/dev-env/SPECIFICATION.md" '**What it doesn'"'"'t bound:**' || missing+=("dev-env's specification: says what the container doesn't protect — the checkout, local data, credentials, the network (C10, 0077)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*D5\.\*\*' || missing+=("dev-env's specification: the app's service gets nothing of the host but the checkout (D5, 0077)")
