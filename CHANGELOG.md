@@ -11,6 +11,25 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Follow-ups found along the way are filed as issues, not started as sessions** (0082,
+  [#155](https://github.com/aplyca/AgenticDevelopmentFramework/issues/155)).
+  - **What:** with the `github` or `gitlab` module, a bug or an improvement an agent finds outside
+    its task goes to the repository's issues, the queue for engineering work, instead of a new
+    session. `/adf:wrap-up`'s close-up lists those follow-ups under "File as issues in
+    `<repository>`, as `<account>`", in the same yes, and files them with `gh` or `glab` before it
+    starts the sessions. Each issue carries the line's task as its title and the why, `file:line`,
+    and the pull request as its body. A matching open issue is named instead of filed again, and
+    `bug` is added only when the repository has the label. `/adf:dispatch` no longer offers a chip
+    at once for a finding, unless the developer wants it now. The question about an improvement to
+    the branch also offers an issue, filed at once. A follow-up the developer had filed during the
+    task is ticked in the pull request with its link. Without either module, nothing changes. The
+    commands an upgrade writes still start as sessions.
+  - **Upgrade impact:** overwrite for the plugin; committed install:
+    `.claude/skills/{wrap-up,implement,spec-workflow,open-pr}/` and, with `parallel-agents`,
+    `.claude/skills/dispatch/` and `docs/PARALLEL-AGENTS.md`. Merge for `AGENTS.md` (the parenthesis in "Report what you find
+    along the way"), `specs/README.md` (§ Found along the way: the improvement and "Anything else"
+    rows, the follow-ups paragraph, and the new paragraph on filing an issue), and
+    `docs/TRACKER-INTEGRATION.md` (the *Repository issues* row in § The pipeline).
 - **Joining a project says what to run when trusting the folder didn't download the plugin**
   ([#80](https://github.com/aplyca/AgenticDevelopmentFramework/issues/80)).
   - **What:** the README, the plugin's README, `docs/SETUP.md`, and the skeleton's `DEV-SETUP.md`
@@ -93,7 +112,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       `docs/PARALLEL-AGENTS.md`.
 - **A task's worktree sits under `.claude/worktrees/`, never beside the main checkout**
   ([#153](https://github.com/aplyca/AgenticDevelopmentFramework/issues/153), decision
-  [0082](docs/decisions/0082-task-worktrees-under-claude-worktrees.md)).
+  [0083](docs/decisions/0083-task-worktrees-under-claude-worktrees.md)).
   - **What:** with the parallel-agents module, `adf-worktree-new` creates every task's worktree in the
     main checkout's `.claude/worktrees/`, named after its branch (`.claude/worktrees/feat-newsletter-signup`),
     beside Claude Code's own. `WORKTREE_PARENT` is gone, and with the folder beside the main checkout

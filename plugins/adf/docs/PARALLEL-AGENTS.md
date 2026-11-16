@@ -50,7 +50,8 @@ desktop app opens it, and gives it the task. That session becomes the task's:
 one, or finds one along the way, `/adf:dispatch` offers it a new session — a task chip in the desktop
 app, titled with the task (`Show the chosen topics after signup`), or `claude "<prompt>"` to run in
 the main checkout — whose prompt is the task and "follow `AGENTS.md`, starting with triage". That
-session triages it and moves to its own worktree the same way.
+session triages it and moves to its own worktree the same way. With the `github` or `gitlab` module,
+a finding waits instead: the close-up files it as an issue, unless the developer wants it started now.
 
 **Claude Code's own worktree is only where a session may start.** The desktop app can start a
 session — a chip's always — in a worktree of its own, at its worktree location (`.claude/worktrees/`
@@ -66,7 +67,7 @@ not the desktop app's, so the app's `sync_with_base_branch` tool doesn't reach i
 **When the task's pull request merges,** its session wraps up with `/adf:wrap-up`. It checks that
 nothing is left: no uncommitted or unpushed work, no stash, nothing open in `tasks.md`. Then — on the developer's own
 word that it merged, or one yes when the merge was only reported — it stops what the task started, updates the base branch here,
-starts the follow-ups the developer keeps, removes the worktree and its branch, and archives the session. If anything is left, it lists it and
+files or starts the follow-ups the developer keeps, removes the worktree and its branch, and archives the session. If anything is left, it lists it and
 removes nothing.
 
 **An answer that only reads ends in the main checkout,** and `/adf:wrap-up` closes its session up
@@ -123,7 +124,7 @@ triage; a dispatched session always creates its worktree with `--no-start`.
   hooks fail — and agents never bypass hooks. With the `docker` module, `SETUP_CMD` installs nothing
   on the host: the hooks run make tasks, and in Docker mode those run in the app's container, so a
   worker whose hooks run checks starts its environment (`adf-worktree-new <branch>`) before it pushes.
-- **A task's worktree sits inside the main checkout** (decision 0082), so a tool that looks in parent
+- **A task's worktree sits inside the main checkout** (decision 0083), so a tool that looks in parent
   folders can reach the main checkout's files. Most stop at the worktree's own configuration. Three
   don't, and each has a fix:
   - Packages and commands: a worktree without its own dependencies uses the main checkout's, because

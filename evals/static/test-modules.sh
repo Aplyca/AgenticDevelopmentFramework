@@ -182,7 +182,7 @@ check "worktree-new: --from starts a new branch at a release tag" "[ $code -eq 0
 git -C "$M" branch -q feat/old-delivery v1.0.0
 out=$(ops/agent/worktree-new.sh feat/old-delivery --no-start 2>&1); code=$?
 check "worktree-new: warns when reusing a local branch that is behind the base" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'behind origin/main'"
-# A worktree from a release before decision 0082, beside the main checkout, is reused where it is.
+# A worktree from a release before decision 0083, beside the main checkout, is reused where it is.
 git -C "$M" worktree add -q -b feat/legacy "$P/feat-legacy" main 2>/dev/null
 out=$(ops/agent/worktree-new.sh feat/legacy --no-start 2>&1); code=$?
 check "worktree-new: reuses a branch's worktree beside the main checkout, from an older release" \

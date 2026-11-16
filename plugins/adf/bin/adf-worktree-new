@@ -256,7 +256,7 @@ APP_PORT=""
 existing="$(worktree_of_branch "$MAIN_CHECKOUT" "$BRANCH")"
 EXISTING=""
 # A linked worktree's .git is a file; the main checkout's is a directory and is never "reused". The
-# branch's worktree is reused wherever it is: one from a release before decision 0082 sits beside
+# branch's worktree is reused wherever it is: one from a release before decision 0083 sits beside
 # the main checkout.
 if [ -n "$existing" ] && [ -f "$existing/.git" ]; then
   WORKTREE_DIR="$existing"

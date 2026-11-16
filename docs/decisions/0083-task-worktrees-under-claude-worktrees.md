@@ -1,4 +1,4 @@
-# 0082: A task's worktree sits under `.claude/worktrees/` — no worktree beside the main checkout (parallel-agents module)
+# 0083: A task's worktree sits under `.claude/worktrees/` — no worktree beside the main checkout (parallel-agents module)
 
 - **Status:** accepted
 - **Date:** 2026-11-15

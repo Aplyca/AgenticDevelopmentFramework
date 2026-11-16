@@ -342,7 +342,7 @@ stays in the main checkout. The main checkout takes no edits — one there colli
 session — and a session that already has a task offers another one a new session: a task chip you
 start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.
 ([decisions 0042](decisions/0042-each-session-moves-to-its-task-worktree.md) and
-[0082](decisions/0082-task-worktrees-under-claude-worktrees.md))
+[0083](decisions/0083-task-worktrees-under-claude-worktrees.md))
 
 **Exercise (module installed):** start one session for the typo and another for the topics
 estimate. The typo's session moves to its worktree after triage; the estimate, an answer that only

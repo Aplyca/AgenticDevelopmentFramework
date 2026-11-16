@@ -50,7 +50,7 @@ The desktop app checks a session's move twice. The approve-worktree-move hook an
 Claude Code's permission check. The second is the app's own: it asks before it moves a session into
 a folder outside every folder you trusted ("This folder isn't in a workspace you've trusted"), and a
 hook can't answer it. A task's worktree sits under `.claude/worktrees/` in the main checkout
-(decision 0082), so trusting the main checkout covers it. A worktree from an older release, beside
+(decision 0083), so trusting the main checkout covers it. A worktree from an older release, beside
 the main checkout, asks once.
 
 ## Disable or extend

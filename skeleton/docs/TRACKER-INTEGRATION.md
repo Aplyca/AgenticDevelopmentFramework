@@ -26,7 +26,7 @@ human review → [integration branch / preview] → production
 | Tracker task | The requester and the team | The business requirement, the conversation, the status the requester sees, and the outcome — in their terms |
 | Spec folder | The team and its agents | User stories, acceptance criteria, decisions and why, change requests, evidence |
 | Pull request | Reviewers | The implementation, how to review and test it, and what was tested |
-| Repository issues | Engineers | A queue for engineering-originated work (bugs, chores, CI) with no tracker task |
+| Repository issues | Engineers | A queue for engineering-originated work (bugs, chores, CI) with no tracker task — the follow-ups agents find along the way among them |
 
 **The ticket is for business communication with stakeholders; the pull request is for technical
 communication with the developer.** Neither carries the other's text: the task gets the outcome and

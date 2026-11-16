@@ -199,7 +199,7 @@ def main():
     parser.add_argument("project", nargs="?", default=os.getcwd())
     parser.add_argument("--days", type=int, default=30, help="sessions active in the last N days (0 = all)")
     parser.add_argument("--top", type=int, default=15, help="sessions to list, most expensive first")
-    parser.add_argument("--siblings", action="store_true", help="also the folders beside the project (worktrees from before decision 0082)")
+    parser.add_argument("--siblings", action="store_true", help="also the folders beside the project (worktrees from before decision 0083)")
     parser.add_argument("--json", action="store_true", help="print every session as JSON")
     parser.add_argument("--projects-dir", default=os.path.join(
         os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude")), "projects"))

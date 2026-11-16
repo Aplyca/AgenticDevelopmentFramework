@@ -145,9 +145,10 @@ Granularity); the brief `/adf:dispatch` writes for each part carries it.
 A bug or an improvement the agent notices while working — in this task or far from it — is reported
 with `file:line` and routed, never dropped and never fixed in passing (`specs/README.md` § Found along
 the way): a bug in this branch's own work is fixed in the task; an improvement to it is the
-developer's call, a change request if taken; anything else is a follow-up in the pull request's
-`## Follow-ups` (and a new session at once with the parallel-agents module), which `/adf:wrap-up`
-offers to start when the task ends; what can't wait goes to the developer first.
+developer's call, a change request if taken or, with the `github` or `gitlab` module, an issue;
+anything else is a follow-up in the pull request's `## Follow-ups`, which `/adf:wrap-up` files as
+an issue with either module, or offers to start in a session (at once, too, with the
+parallel-agents module); what can't wait goes to the developer first.
 
 **When the base branch moves under an open draft,** run `/adf:open-pr sync`: only for a reason, a merge commit and never a rebase, then re-run only what
 the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).

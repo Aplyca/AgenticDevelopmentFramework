@@ -96,7 +96,8 @@ plan is the contract for **where** code goes (the change surface); the tests are
 - **You find something along the way** — a bug or an improvement, in this feature or anywhere else:
   report it with `file:line` and route it (`specs/README.md` § Found along the way). A bug in this
   branch's own work is a regression test and a fix here; an improvement to the feature is the
-  developer's call, a change request if they take it; anything else is a follow-up for the pull
+  developer's call — a change request if they take it, and with the `github` or `gitlab` module an
+  issue filed at once is one of the answers you offer; anything else is a follow-up for the pull
   request, never a change in this branch. What can't wait — a security hole, data at risk — goes to
   the developer now.
 - **A test is genuinely wrong:** fix it in its own commit and say why. Never weaken a test to get

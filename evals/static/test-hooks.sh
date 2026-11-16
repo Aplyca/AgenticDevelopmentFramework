@@ -253,7 +253,7 @@ git -C "$B" switch -q main && git -C "$B" merge -q --ff-only origin/main
 check_ctx "on the base branch, up to date: no base-branch line" "$B" "branch main" "behind origin/main"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 # The desktop app gives every chip's session a worktree of its own (decision 0040): a worker that starts
-# there creates the task's worktree (decision 0082) and moves, and never renames the branch.
+# there creates the task's worktree (decision 0083) and moves, and never renames the branch.
 check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree under .claude/worktrees/ and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task gets a worktree of its own, named after its branch: triage the task, then /dispatch creates it under .claude/worktrees/" "git branch -m"
 check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task gets a worktree of its own" "git switch -c"
 check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somewhere-else" "Role: WORKER" "generated\|No .env\|Not set up"
