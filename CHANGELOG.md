@@ -11,6 +11,55 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **With the `docker` module, Docker mode needs nothing on the host but Docker, git, and make**
+  ([#149](https://github.com/aplyca/AgenticDevelopmentFramework/issues/149), second part; decision
+  [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
+  - **What:** dev-env's specification gains M11 — in Docker mode every task runs in a container, and
+    no task, `SETUP_CMD`, or git hook runs the stack's runtime, package manager, or a CLI on the host.
+    - **A `tools` service (D6):** in Compose's `tools` profile, built from a `tools` stage of the
+      app's Dockerfile, with the whole checkout mounted. `make test`, `lint`, `format`, `typecheck`,
+      the new `make deps`, and `make run` start it with `docker compose run --rm`, so none needs
+      `make up` first, and the checks see every file on disk.
+    - **`make run` runs in the tools container** in Docker mode (C10). D5 now names the tools
+      service beside the app's: no Docker socket, host network, or path outside the checkout. The
+      approve-container-run hook's check is unchanged: it already approved a recipe that hands
+      `"$$cmd"` to Compose's `run` or `exec`, so a stack whose `run` still execs into the app's
+      container keeps its approval.
+    - **Dependencies live in volumes (D7):** this checkout's, `deps`, which the app and the tools
+      mount and `docker compose down -v` removes; and the package manager's cache, one volume with
+      a fixed name that every checkout shares and no task removes.
+    - **`make deps` in every mode (C3):** into the volume (Docker), on the host (native). Docker's
+      `make build` runs it after the images; native's `build` is `deps`. W2's `SETUP_CMD` is empty
+      or `make deps`.
+    - **A tool that needs the Docker socket** gets a service of its own and an ask rule on its
+      command-taking task, `Bash(make <task> *)`; its frequent commands that delete nothing become
+      named tasks (D8).
+    - **The audit checks M11** by running `make deps`, `lint`, `typecheck`, and `test` with the stack
+      down and only `docker`, `git`, and `make` on the `PATH`. `/adf-dev:dev-env`'s gaps,
+      rationalizations, and Verification name the tools service. The deployment rule and
+      `DEV-SETUP.md` say so, with the cost: the editor resolves no package from the host.
+    - The docker and git-hooks modules' docs and the parallel-agents guide no longer say the checks
+      need the stack up.
+  - **Upgrade impact:** merge, with the docker module.
+    - Overwrite for the plugins; committed install: `.claude/skills/dev-env/`,
+      `.claude/hooks/approve-container-run.sh`, and with the parallel-agents module, its guide in
+      `docs/`.
+    - **The stack:** run `/adf-dev:dev-env` to audit it against M11 and D5–D8; it proposes the
+      change as a careful-lane task. From the templates: `compose.yaml` gains the `tools` service,
+      the `deps` volume on the app and the tools, and the cache volume (`name:` the repository's);
+      the app's Dockerfile, a `tools` stage; `ops/docker/Makefile`, `deps`, a `build` that runs it,
+      and `test`, `lint`, `format`, `typecheck`, and `run` through `$(COMPOSE) run --rm tools`;
+      `ops/native/Makefile`, `deps`, with `build` running it. Until then, `make run` keeps working
+      as it did.
+    - Once the volume serves the dependencies, delete the folder a host install filled
+      (`node_modules`, `.venv`): Docker recreates it, empty, as the mount point.
+    - A project CLI that needs the Docker socket: its own service, and `Bash(make <task> *)` in
+      `permissions.ask` in `.claude/settings.json` — list it under Permission changes.
+    - `.claude/rules/deployment.md` (two bullets in § Docker) and
+      `docs/getting-started/DEV-SETUP.md` (the prerequisites, `make deps`, § IDE setup's cost).
+    - `ops/agent/worktree.conf`: `SETUP_CMD="make deps"`, or leave it empty.
+    - `.claude/hooks/config.sh`: the comment on `APPROVE_CONTAINER_RUN` names the tools container;
+      the value is unchanged.
 - **Follow-ups found along the way are filed as issues, not started as sessions** (0082,
   [#155](https://github.com/aplyca/AgenticDevelopmentFramework/issues/155)).
   - **What:** with the `github` or `gitlab` module, a bug or an improvement an agent finds outside

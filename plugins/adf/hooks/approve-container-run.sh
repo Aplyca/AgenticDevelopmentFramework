@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook (matcher: Bash). With the docker module, `make run cmd='…'` runs a command it is
-# given: in the app's container in Docker mode, on the host in native mode (dev-env's specification,
-# C10). An ask rule can't tell the two apart — it matches the command, not the checkout's mode — and
+# given: in a container in Docker mode — the tools service's (D6), or an older stack's app's — on the
+# host in native mode (dev-env's specification, C10). An ask rule can't tell the two apart — it matches the command, not the checkout's mode — and
 # it wins over a hook's approval. So the module has no rule for `make run`, and this hook decides
 # (decision 0077):
 #   - it approves `make run cmd='<command>'` written on its own, when the checkout's mode is Docker
@@ -15,7 +15,8 @@
 # that one line, never printed — then DEFAULT_MODE. Without the module — no ops/docker/ or
 # ops/native/ Makefile, and a stamp that doesn't name docker — it does nothing. Empty
 # APPROVE_CONTAINER_RUN keeps the ask in every mode. It reads the command, the mode, and the task's
-# recipe; what the app's container can reach is compose.yaml's (D5), and no hook checks that.
+# recipe; what that container can reach is compose.yaml's (D5), and no hook checks that
+# (decision 0084).
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
@@ -56,8 +57,9 @@ dev_mode() {
   printf '%s' "$mode"
 }
 
-# runs_in_container <mode file> — its `run` task hands the command to Compose's exec or run as one
-# argument, from the environment ("$$cmd"), and nowhere pastes $(cmd) into the host's shell (C10).
+# runs_in_container <mode file> — its `run` task hands the command to Compose's run (the tools
+# service) or exec (an older stack's app) as one argument, from the environment ("$$cmd"), and
+# nowhere pastes $(cmd) into the host's shell (C10).
 runs_in_container() {
   local line in_task="" handed="" pasted='\$[({]cmd[)}]' compose='^[[:space:]]+@?\$\(COMPOSE\) (exec|run) .*"\$\$cmd"[[:space:]]*$'
   [ -f "$1" ] || return 1
@@ -117,7 +119,7 @@ own="^[[:space:]]*make[[:space:]]+run$other[[:space:]]+cmd=($value)$other"
 if [[ $command_text =~ $own ]]; then
   call="${BASH_REMATCH[0]}"
   rest="${command_text#"$call"}"
-  [ -n "${rest//[[:space:]]/}" ] || decide allow "In Docker mode make run runs its command in the app's container"
+  [ -n "${rest//[[:space:]]/}" ] || decide allow "In Docker mode make run runs its command in a container"
   operator='^[[:space:]]*([|&;<>]|[0-9]+[<>])'
   if [[ $rest =~ $operator ]] && ! [[ "$(blank_quotes "$rest")" =~ $goal_run ]]; then
     exit 0

@@ -12,6 +12,8 @@
 # - Images are pinned, and a service another one waits for has a healthcheck.
 # - A service with pages a person opens is labeled claude.browser: "true". While it runs, Claude
 #   Desktop's Browser lists it on a new tab (ops/docker/launch-json.sh).
+# - The checks and `make run` start the tools service, so the host needs Docker, git, and make and
+#   nothing else; dependencies live in volumes, never in the checkout.
 
 services:
   # CUSTOMIZE: the app — e.g. the newsletter site's web app
@@ -31,11 +33,41 @@ services:
       # A credential passes through from .env, e.g.
       # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
     volumes:
-      # CUSTOMIZE: the source, for reloads — keep dependency and build folders out of the mount.
-      # The checkout and named volumes only, never the Docker socket or a path outside the checkout
-      # (D5): `make run` runs any command in this container without a prompt.
+      # CUSTOMIZE: the source, for reloads — the dependencies are the volume below, and build
+      # folders stay out of the mount. The checkout and named volumes only, never the Docker socket or a path outside the checkout
+      # (D5).
       - .:/app
+      # This checkout's dependencies, which the tools service shares (D7). CUSTOMIZE: the folder the
+      # install writes — e.g. node_modules for the newsletter site's Node.js app
+      - deps:/app/node_modules
     depends_on:
+      redis:
+        condition: service_healthy
+
+  # The tools: what make deps, test, lint, format, typecheck, and run start, one container per
+  # command, removed when it ends — the stack needn't be up (D6). The tools profile keeps `make up`
+  # from starting it. The checkout and named volumes only, never the Docker socket or a path outside
+  # the checkout (D5): `make run` runs any command here without a prompt. A tool that needs the
+  # Docker socket gets a service of its own, and its task an ask rule (D8).
+  tools:
+    profiles: [tools]
+    build:
+      context: .
+      dockerfile: ops/docker/web/Dockerfile
+      target: tools
+    environment:
+      # CUSTOMIZE: what the tests and one-off commands read — the app's variables, in container form
+      REDIS_URL: redis://redis:6379
+      # CUSTOMIZE: point the package manager's cache at the shared volume — e.g. for npm:
+      # npm_config_cache: /cache
+    volumes:
+      # The whole checkout, where the app mounts it, so the checks see every file as it is on disk
+      - .:/app
+      - deps:/app/node_modules
+      - deps-cache:/cache
+    depends_on:
+      # CUSTOMIZE: the backing services the tests reach. make deps, lint, format, and typecheck
+      # start none (--no-deps).
       redis:
         condition: service_healthy
 
@@ -77,3 +109,11 @@ services:
 
 volumes:
   redis-data:
+  # This checkout's dependencies (D7). The app mounts them, so `docker compose down -v` (make reset,
+  # a worktree's STOP_CMD) removes them with the checkout.
+  deps:
+  # The package manager's cache, which every checkout of this repository shares (D7). Compose
+  # creates it on first use; only the tools service mounts it, so no task's `down -v` removes it.
+  deps-cache:
+    # CUSTOMIZE: the repository's name
+    name: newsletter-deps-cache

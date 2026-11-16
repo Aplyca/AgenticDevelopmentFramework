@@ -414,7 +414,7 @@ out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
 out=$(stack make help 2>&1)
 check "make help: the default target lists every task of the mode" \
-    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up stop down build ps logs urls shell test lint run reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up stop down build deps ps logs urls shell test lint run reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
     "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'guard.sh'"
@@ -425,7 +425,7 @@ check "make logs: the last lines, never followed" \
 # nothing, and never follow a log.
 c9=""
 for mode in docker native; do
-    for task in help env up stop down build ps logs urls prod test lint format typecheck run $( [ "$mode" = native ] && echo services ); do
+    for task in help env up stop down build deps ps logs urls prod test lint format typecheck run $( [ "$mode" = native ] && echo services ); do
         out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
         while IFS= read -r line; do
             case "$line" in
@@ -445,8 +445,8 @@ printf 'docker'; for a in "$@"; do printf ' [%s]' "$a"; done; printf '\n'
 STUB
 chmod +x "$DS/bin/docker-args"
 out=$(stack make run COMPOSE="docker-args compose" DEV_MODE=docker cmd='echo "it'"'"'s"; ls | head -1 && echo $$HOME' 2>&1)
-check "C10: make run, docker mode: the command reaches the app's container as one argument" \
-    "echo \"\$out\" | grep -qF '[compose] [exec] [-T] [web] [sh] [-c] [echo \"it'\"'\"'s\"; ls | head -1 && echo \$HOME]'"
+check "C10: make run, docker mode: the command reaches the tools container as one argument" \
+    "echo \"\$out\" | grep -qF '[compose] [run] [--rm] [tools] [sh] [-c] [echo \"it'\"'\"'s\"; ls | head -1 && echo \$HOME]'"
 out=$(stack make run DEV_MODE=docker 2>&1); code=$?
 check "C10: make run with no command stops, saying how to give one" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"make run cmd='<command>'\""
 out=$(stack make -n run DEV_MODE=native SERVICES=none cmd='npm ci' 2>&1)
@@ -454,6 +454,28 @@ check "C10: make run, native mode: on the host, with the services' ports exporte
     "echo \"\$out\" | grep -q 'native.sh env)\" && sh -c \"\$cmd\"\$' && ! echo \"\$out\" | grep -q 'exec -T'"
 out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
 check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
+# M11, D6: in Docker mode the checks and deps start the tools service, never exec into the app's
+# container, so none needs make up; those that reach no backing service pass --no-deps.
+m11=""
+for task in deps test lint format typecheck; do
+    out=$(stack make -n "$task" DEV_MODE=docker 2>&1)
+    echo "$out" | grep -q 'compose run --rm .*tools' || m11="$m11 [$task: not the tools service]"
+    echo "$out" | grep -q 'exec -T' && m11="$m11 [$task: exec into the app's container]"
+    [ "$task" = test ] || echo "$out" | grep -q -- '--no-deps tools' || m11="$m11 [$task: starts the backing services]"
+done
+check "M11: make deps, test, lint, format, and typecheck run in the tools service, with the stack up or not" "[ -z \"$m11\" ]"
+[ -z "$m11" ] || echo "    $m11"
+out=$(stack make -n build DEV_MODE=docker 2>&1)
+check "make build, docker mode: rebuilds the images, the tools' too, then brings the dependencies up to date (C3)" \
+    "echo \"\$out\" | grep -q 'compose --profile tools build\$' && echo \"\$out\" | sed '1,/--profile tools build/d' | grep -q 'deps'"
+out=$(stack make -n build DEV_MODE=native SERVICES=none 2>&1)
+check "make build, native mode: installs the dependencies on the host, as make deps does (C3)" "echo \"\$out\" | grep -q 'CUSTOMIZE: the install command'"
+check "compose.yaml: the tools service is in the tools profile, built from the Dockerfile's tools stage (D6)" \
+    "grep -A1 '^  tools:' '$TPL/compose.yaml' | grep -q 'profiles: \\[tools\\]' && grep -q 'target: tools' '$TPL/compose.yaml' && grep -q '^FROM dev AS tools' '$TPL/ops/docker/web/Dockerfile'"
+check "compose.yaml: neither the app nor the tools service gets the Docker socket or the host's network (D5)" \
+    "! grep -qE 'docker\\.sock|network_mode|privileged|pid: host' '$TPL/compose.yaml'"
+check "compose.yaml: the app and the tools mount this checkout's dependency volume; only the tools mount the shared cache, which has a fixed name (D7)" \
+    "[ \$(grep -c '^      - deps:' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - deps-cache:' '$TPL/compose.yaml') -eq 1 ] && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    name: '"
 out=$(stack make -n urls 2>&1)
 check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
     "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
@@ -662,6 +684,8 @@ check "make help: lists a task whose name has a digit (e2e)" "echo \"\$out\" | g
 if docker compose version >/dev/null 2>&1; then
     check "compose.yaml: valid, with an empty .env and with pinned ports" \
         "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
+    check "compose.yaml: valid with the tools profile, and make up starts no tools service (D6)" \
+        "(cd '$DS/site' && docker compose --profile tools config --quiet) && ! (cd '$DS/site' && docker compose config --services) | grep -qx tools"
 fi
 
 

@@ -374,7 +374,8 @@ echo 'APPROVE_STATUS_MOVE=""' >> "$T/.claude/hooks/config.sh"
 status_move silent "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","state":"In Review"}')" "does nothing when APPROVE_STATUS_MOVE is empty"
 
 # approve-container-run — make run needs no prompt in Docker mode, where its command runs in the
-# app's container, and asks wherever it would run on the host (0077). The stack is dev-env's templates.
+# tools container (0084), and asks wherever it would run on the host (0077). The stack is dev-env's
+# templates.
 STACK="$WORK/stack"; mkdir -p "$STACK" && cp -R "$REPO_ROOT/plugins/adf-dev/skills/dev-env/templates/." "$STACK/"
 git -C "$STACK" init -q -b main
 run_event() { printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":%s}}' "${2:-$STACK}" "$(printf '%s' "$1" | json_string)"; }
@@ -435,8 +436,10 @@ container_run allow "$(run_event 'make run cmd="npm test"')" "a checkout's own D
 PASTED="$WORK/pasted"; mkdir -p "$PASTED" && cp -R "$STACK/." "$PASTED/" && printf 'DEV_MODE=docker\n' > "$PASTED/.env"
 sed 's/sh -c "\$\$cmd"/$(cmd)/' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
 container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the run task pastes \$(cmd) into the host's shell"
-sed 's/^\t\$(COMPOSE) exec -T \$(APP) sh -c "\$\$cmd"$/\tsh -c "$$cmd"/' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
+sed 's/^\t\$(COMPOSE) run --rm tools sh -c "\$\$cmd"$/\tsh -c "$$cmd"/' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
 container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the run task doesn't hand the command to Compose"
+sed 's/ run --rm tools sh -c / exec -T $(APP) sh -c /' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
+container_run allow "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: approves an older stack's run, which execs into the app's container (0084)"
 sed '/^run:/,/^$/d' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
 container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the mode's file has no run task"
 STAMPED="$WORK/stamped"; mkdir -p "$STAMPED" && git -C "$STAMPED" init -q -b main
