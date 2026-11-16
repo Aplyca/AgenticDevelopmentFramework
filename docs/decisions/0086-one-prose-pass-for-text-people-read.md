@@ -5,10 +5,10 @@
 
 ## Context
 
-- **Five skills write text that people read outside the session:** `/adf:stakeholder-update` (the
+- **Six skills write text that people read outside the session:** `/adf:stakeholder-update` (the
   requester's messages), `/adf:end-user-docs` (the end-user page), `/adf:write-docs` (the docs a
-  plan lists), `/adf:open-pr` (the pull request's description), and `/adf:record-decision` (decision
-  records).
+  plan lists), `/adf:open-pr` (the pull request's description), `/adf:record-decision` (decision
+  records), and `/adf:framework-feedback` (an issue the framework's maintainers read).
 - **None of them checked the text for machine-written patterns:** throat-clearing openings,
   "not X but Y" contrasts, hedges on behavior that was verified, a bold lead-in on every bullet,
   one-row tables. Readers who spot them skim, and a requester's update or an end-user page loses
@@ -22,7 +22,7 @@
 - **One list, in a reference doc:** `PROSE-PATTERNS.md`, in `adf`'s `docs/` with the other
   reference docs (decision 0019). Each pattern has an example and what to write instead, in three
   groups: openings and closings, sentences, structure.
-- **Each of the five skills runs the pass on its draft before showing or posting it,** at the step
+- **Each of the six skills runs the pass on its draft before showing or posting it,** at the step
   that writes the text, and checks it in its Verification. The skill names the doc there, so it is
   read only when text is written.
 - **The destination wins:** a template's fixed headings and labels, the voice of the page or docs
@@ -31,7 +31,7 @@
 
 ## Consequences
 
-- **The five skills read one more file** when they write: about 700 tokens, once per draft.
+- **The six skills read one more file** when they write: about 700 tokens, once per draft.
 - **The list is advice, not a gate.** The static checks confirm each skill names the pass; nothing
   can check the prose itself.
 - **A committed project gets `docs/PROSE-PATTERNS.md`,** overwritten at each upgrade like the other
@@ -41,7 +41,7 @@
 
 ## Alternatives considered
 
-- **A pass inside `/adf:write-docs` alone,** as the issue first proposed: the other four skills
+- **A pass inside `/adf:write-docs` alone,** as the issue first proposed: the other five skills
   would keep writing the patterns, and the list would need copying to reach them.
 - **The list in the always-loaded rules:** every session would pay for it, and most never write for
   people.

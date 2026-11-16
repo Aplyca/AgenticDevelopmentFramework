@@ -17,13 +17,13 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   `PROSE-PATTERNS.md`, lists the patterns that make text read as machine-written, each with an
   example and what to write instead: throat-clearing, wrap-ups, "not X but Y", hedges on verified
   behavior, puffery, a bold lead-in on every bullet, one-row tables. `/adf:stakeholder-update`,
-  `/adf:end-user-docs`, `/adf:write-docs`, `/adf:open-pr`, and `/adf:record-decision` run it on each
-  draft before showing or posting it. A template's headings and labels and the destination's own
+  `/adf:end-user-docs`, `/adf:write-docs`, `/adf:open-pr`, `/adf:record-decision`, and
+  `/adf:framework-feedback` run it on each draft before showing or posting it. A template's headings and labels and the destination's own
   voice win over the list, and the pass only cuts.
   - **Upgrade impact:** overwrite for the plugins. Committed install: overwrite
     `.claude/skills/stakeholder-update/`, `.claude/skills/end-user-docs/` (with the end-user-docs
-    module), `.claude/skills/write-docs/`, `.claude/skills/open-pr/`, and
-    `.claude/skills/record-decision/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
+    module), `.claude/skills/write-docs/`, `.claude/skills/open-pr/`,
+    `.claude/skills/record-decision/`, and `.claude/skills/framework-feedback/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
     writes with the other reference docs.
 
 - **The audit's minor findings, fixed.**
