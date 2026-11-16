@@ -15,6 +15,14 @@
 # - The checks and `make run` start the tools service, so the host needs Docker, git, and make and
 #   nothing else; dependencies live in volumes, never in the checkout.
 
+# The app's variables, in container form: the app's service, the tools, and the production build
+# all read them, from this one list (D6).
+x-app-environment: &app-environment
+  # CUSTOMIZE: every variable the app reads, in container form (service names, container ports)
+  REDIS_URL: redis://redis:6379
+  # A credential passes through from .env, e.g.
+  # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
+
 services:
   # CUSTOMIZE: the app — e.g. the newsletter site's web app
   web:
@@ -27,15 +35,11 @@ services:
       - "127.0.0.1:${APP_PORT:-}:3000"
     labels:
       claude.browser: "true"
-    environment:
-      # CUSTOMIZE: every variable the app reads, in container form (service names, container ports)
-      REDIS_URL: redis://redis:6379
-      # A credential passes through from .env, e.g.
-      # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
+    environment: *app-environment
     volumes:
       # CUSTOMIZE: the source, for reloads — the dependencies are the volume below, and build
-      # folders stay out of the mount. The checkout and named volumes only, never the Docker socket or a path outside the checkout
-      # (D5).
+      # folders stay out of the mount. The checkout and named volumes only, never the Docker socket
+      # or a path outside the checkout (D5).
       - .:/app
       # This checkout's dependencies, which the tools service shares (D7). CUSTOMIZE: the folder the
       # install writes — e.g. node_modules for the newsletter site's Node.js app
@@ -60,8 +64,8 @@ services:
       dockerfile: ops/docker/web/Dockerfile
       target: tools
     environment:
-      # CUSTOMIZE: what the tests and one-off commands read — the app's variables, in container form
-      REDIS_URL: redis://redis:6379
+      # The app's variables, so a test or a migration reaches what the app does
+      <<: *app-environment
       # CUSTOMIZE: point the package manager's cache at the shared volume — e.g. for npm:
       # npm_config_cache: /cache
     volumes:
@@ -93,9 +97,9 @@ services:
     labels:
       claude.browser: "true"
     environment:
-      # CUSTOMIZE: what the production build reads, as the app's above — no source mount: it serves
-      # what the image built
-      REDIS_URL: redis://redis:6379
+      # The app's variables. CUSTOMIZE: add what only the production build reads — no source mount:
+      # it serves what the image built
+      <<: *app-environment
     depends_on:
       redis:
         condition: service_healthy
@@ -119,8 +123,10 @@ volumes:
   # This checkout's dependencies (D7). The app mounts them, so `docker compose down -v` (make reset,
   # a worktree's STOP_CMD) removes them with the checkout.
   deps:
-  # The package manager's cache, which every checkout of this repository shares (D7). Compose
-  # creates it on first use; only the tools service mounts it, so no task's `down -v` removes it.
+  # The package manager's cache, which every checkout of this repository shares (D7). External, so
+  # no checkout's `docker compose down -v` removes it and none owns it; the tasks that start the
+  # tools create it first (ops/docker/Makefile's deps-cache), reading its name from here.
   deps-cache:
+    external: true
     # CUSTOMIZE: the repository's name
     name: newsletter-deps-cache

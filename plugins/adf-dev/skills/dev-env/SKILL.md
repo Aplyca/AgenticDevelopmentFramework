@@ -162,6 +162,7 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    and `make`, then run `make deps`, `make lint`, `make typecheck`, and `make test`, each with
    `PATH=<scratch folder>:/usr/bin:/bin:/usr/sbin:/sbin`. Each passes; a "command not found" is a
    gap. A runtime the system ships in `/usr/bin` isn't caught this way: read the recipes for one.
+   Then `make stop`: `make test` started the backing services the tests need.
 5. **Write down what you verified** — a docs change, so it goes through triage too:
    - `DEV-SETUP.md`: the Docker row of Prerequisites — in Docker mode Docker, git, and make are all
      the host needs (M11), and § IDE setup says what the editor does without the dependencies —
@@ -175,9 +176,10 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      § Docker any convention the project adds;
    - `DEV-SETUP.md`: each project task that deletes data under a name other than `reset`, named
      as one. No ask rule goes in for it: docker and make commands run without a prompt (C9), and a
-     team that wants one adds its own. A task that runs a command it's given on the host under a
-     name other than `run` does get one, `Bash(make <task>*)` in `permissions.ask` (C10) — a
-     permission change: name it in the change the developer approves.
+     team that wants one adds its own. A task that runs a command it's given on the host, or in a
+     service outside D5, under a name other than `run` does get them: on the variable that carries
+     its command, `Bash(make *<variable>=*)` and `Bash(<variable>=*)` in `permissions.ask` (C10,
+     D8) — a permission change: name it in the change the developer approves.
 
    § Troubleshooting gets only problems you actually met. For example, the newsletter site: `web`
    (the Next.js app, on container port 3000) and `redis` (the signup rate limiter), started with
@@ -198,8 +200,9 @@ before it moved); without it, say so and stop.
    - `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, plus an empty `<NAME>_PORT=` line for each
      port the main checkout pins — each worktree's project gets a clear name, and its ports stay
      Docker's;
-   - `SETUP_CMD` empty, or `make deps` — never a host install (`npm ci`), which Docker mode never
-     uses: its tests and checks run in the tools container (M11);
+   - `SETUP_CMD="make deps"` — never a host install (`npm ci`), which Docker mode never uses: its
+     tests and checks run in the tools container (M11), and each start brings the worktree's
+     dependency volume up to its lockfile, which a rebase may have changed (D7);
    - `START_CMD="make up"` — in the worktree's mode, which its `.env` sets — and
      `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`: it stops an app running on the
      host, then removes only this worktree's project, since its `COMPOSE_PROJECT_NAME` is that

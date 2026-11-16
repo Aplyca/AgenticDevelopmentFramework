@@ -88,7 +88,8 @@ paths:
 - The app's and the tools service mount the checkout and named volumes only — never the Docker
   socket, a path outside the checkout, or the host's network — since `make run` runs any command in
   the tools service without a prompt. A tool that needs the Docker socket gets a service of its own,
-  and its task that takes a command an ask rule, `Bash(make <task> *)`.
+  and its task that takes a command reads it from a variable of its own, `<task>_cmd`, with two ask
+  rules that match it wherever the call puts it: `Bash(make *<task>_cmd=*)` and `Bash(<task>_cmd=*)`.
 - Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
   backing services in Docker (`DEFAULT_SERVICES` in `ops/native/Makefile`). A developer who runs some
   on the host sets their own `SERVICES` in `.env` (or `none`) and pins those services' ports there. `make up` starts the app in the background and waits until

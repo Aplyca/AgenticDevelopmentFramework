@@ -92,7 +92,9 @@ a project misses. A project that departs from one on purpose records it, with th
   its one-line description (`<task>: … ## <description>`).
 - **C5.** `env` creates `.env` from `.env.example`, readable only by its owner, and leaves an
   existing `.env` alone.
-- **C6.** `up`, `stop`, `down`, `services`, and `reset` run `guard` first (P6).
+- **C6.** `up`, `stop`, `down`, `services`, and `reset` run `guard` first (P6), and so do Docker mode's
+  `deps`, `test`, `lint`, `format`, `typecheck`, and `run`, which create containers in the checkout's
+  Compose project without `up` (D6).
 - **C7.** The make files run on GNU make 3.81, which macOS ships: no `.ONESHELL`, `!=`, or `$(file …)`.
   They never `include .env`, never use a bare `export` or `.EXPORT_ALL_VARIABLES`, and never export a
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
@@ -126,9 +128,10 @@ a project misses. A project that departs from one on purpose records it, with th
     hook's approval, so `.claude/settings.json` has no rule for `make run`. The
     approve-container-run hook reads the mode as M1 resolves it, the `run` recipe in
     `ops/docker/Makefile`, and the call. It approves `make run cmd='<command>'` written on its own,
-    in Docker mode, with a recipe that hands `"$$cmd"` to Compose's `run` or `exec` — the one above,
-    or an older stack's `exec -T $(APP)` into the app's container — and a value neither the host's
-    shell nor `make` expands.
+    in Docker mode, with a recipe that hands `"$$cmd"` to the tools service — the one above, or with
+    `--no-deps` — or to an older stack's app, `$(COMPOSE) exec -T $(APP) sh -c "$$cmd"`, with no other
+    service or option and no other line that uses the command, and a value neither the host's shell
+    nor `make` expands.
     It asks before any other: native mode, a mode it can't read, a recipe of another form, `make`
     pointed at another folder or given another setting, a `$` or a backquote the host would expand.
     A call followed by a pipe or another command is
@@ -152,8 +155,7 @@ a project misses. A project that departs from one on purpose records it, with th
     container, where no hook reads the command: none prints a secret (V4), changes
     the mode (M10), or commits or pushes.
   - **Any other task that runs a command it's given on the host** (`make exec`, `make sh c=…`) is
-    for people, and gets an ask rule: `Bash(make <task>*)`. So does one that runs it in a service
-    outside D5 (D8).
+    for people, and gets ask rules on the variable that carries the command, as D8's task does.
   - A command agents keep running through `run` is worth a task of its own: a reviewer reads a
     task's name, and it takes `t=` or `f=` (C3).
 - **C11.** **A production-like run, when the project has one, is the optional task `prod`, in every
@@ -309,19 +311,26 @@ a project misses. A project that departs from one on purpose records it, with th
     folder the install writes. Docker fills a new one from the image that mounts it first, and
     `deps` brings it up to date with the lockfile. The app's service mounts it, so
     `docker compose down -v` — `make reset`, W2's `STOP_CMD` — removes it with the checkout;
-  - the package manager's cache, in one volume that every checkout of the repository shares: a
-    fixed `name:` in `compose.yaml`, the repository's, mounted only in `tools`, whose `environment:`
-    points the package manager there. Compose creates it on first use, and no task removes it: a
-    `down -v` without the `tools` profile leaves a volume only `tools` mounts;
+  - the package manager's cache, in one volume that every checkout of the repository shares:
+    `external: true` with a fixed `name:` in `compose.yaml`, the repository's, mounted only in
+    `tools`, whose `environment:` points the package manager there. External, so no checkout owns it
+    and no `down -v` removes it — a Compose-created volume belongs to the project that created it,
+    whose `down -v` deletes it with any profile, and every other project warns on each run. The tasks
+    that start the tools create it first when it's missing (`docker volume create`, which changes
+    nothing when it's there), reading its name from `compose.yaml`;
   - the folder on the host where the dependency volume mounts stays, empty: it's the mount point.
 - **D8.** **A tool that needs more of the host than D5 allows** — the Docker socket, host networking,
   a path outside the checkout, such as a local backend's CLI that starts containers of its own —
   gets a service of its own in the `tools` profile, never `tools` itself. `make run` never runs in it.
-  - Its task that takes a command, `make <task> cmd='…'`, gets an ask rule, `Bash(make <task> *)`:
-    the command runs with the host's Docker, which reaches every project's containers and folders.
-  - A command of it that agents run often and that deletes nothing becomes a task of its own, named
-    so the ask rule doesn't match it (`make <task>-status`). It runs without a prompt, like every
-    task (C9): its command is in the `Makefile`, where a reviewer reads it.
+  - Its task that takes a command reads it from a variable of its own, `<task>_cmd` (`-` as `_`),
+    never `run`'s `cmd`, and the variable gets two ask rules, `Bash(make *<task>_cmd=*)` and
+    `Bash(<task>_cmd=*)`: the command runs with the host's Docker, which reaches every project's
+    containers and folders. The rules match the variable wherever the call puts it — after the goal,
+    before it, behind an option, or as a leading assignment — where a rule on the task's name
+    (`Bash(make <task> *)`) misses `make -s <task> …` and `make <task>_cmd=… <task>`.
+  - A command of it that agents run often and that deletes nothing becomes a task of its own
+    (`make <task>-status`), which takes no command and so runs without a prompt, like every task
+    (C9): its command is in the `Makefile`, where a reviewer reads it.
   - A CLI that hands the checkout's paths to the Docker daemon gets the checkout mounted at its path
     on the host, so the daemon finds the folders it names.
 
@@ -344,10 +353,11 @@ a project misses. A project that departs from one on purpose records it, with th
 - **W1.** Each worktree runs its own stack: its folder names its Compose project, and its ports are
   Docker's or its own.
 - **W2.** `ops/agent/worktree.conf`: `PORT_SLOTS=0`; `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`
-  plus an empty `<NAME>_PORT=` for each port the main checkout pins; `SETUP_CMD` empty or `make deps`,
-  never a host install: Docker mode runs the tests and checks in containers (M11); `START_CMD="make up"`;
+  plus an empty `<NAME>_PORT=` for each port the main checkout pins; `SETUP_CMD="make deps"`, never a
+  host install, so each start brings the worktree's dependency volume up to its lockfile, which a
+  rebase may have changed (M11, D7); `START_CMD="make up"`;
   `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`, which removes the worktree's
-  dependency volume too, never the shared cache (D7); `READY_URL` empty;
+  dependency volume too, never the external shared cache (D7); `READY_URL` empty;
   `ENV_INFO_CMD="make urls"`.
 - **W3.** A worktree's mode is its own `DEV_MODE`; `make up` starts it either way (M9).
 
@@ -367,7 +377,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | Images and service config | `ops/docker/<service>/` |
 | What the checks and `make run` run in, in Docker mode | the `tools` service in `compose.yaml`, built from the app Dockerfile's `tools` stage (D6) |
 | This checkout's dependencies; the package cache every checkout shares | the `deps` volume; the cache volume `compose.yaml` names (D7) |
-| A tool that needs the Docker socket, and the ask before its command-taking task | its own service in `compose.yaml`; `Bash(make <task> *)` in `.claude/settings.json` (D8) |
+| A tool that needs the Docker socket, and the ask before its command-taking task | its own service in `compose.yaml`; `Bash(make *<task>_cmd=*)` and `Bash(<task>_cmd=*)` in `.claude/settings.json` (D8) |
 | The tasks people and agents run | the `Makefile` and the mode's file (`make help`) |
 | Each mode's commands | `ops/docker/Makefile`, `ops/native/Makefile` |
 | The project's default mode; this checkout's | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` in `.env` |

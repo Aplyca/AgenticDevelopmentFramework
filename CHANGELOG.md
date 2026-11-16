@@ -26,6 +26,31 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     mounts the checkout a `tmpfs:` entry at the folder `.claude/worktrees` maps to inside it
     (`/app/.claude/worktrees` when the checkout is at `/app`). Overwrite for the plugins; committed
     install: `.claude/skills/dev-env/`, and with the parallel-agents module, its guide in `docs/`.
+- **Docker mode's tools service, corrected after review** (decision
+  [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md), amended).
+  - **What:** four gaps in the tools service merged above, each checked against Docker Compose
+    v5.7.0; the entry above now describes the result.
+    - **The shared cache is external.** A volume Compose creates with a fixed `name:` belongs to
+      the checkout that created it: that checkout's `down -v` deleted it with any profile, so
+      removing a worktree or a `make reset` emptied every checkout's cache, and every other
+      checkout printed a Compose warning on each tools command. `deps`, `test`, `lint`, `format`,
+      `typecheck`, and `run` now create it first (`docker volume create`), by the name
+      `compose.yaml` gives it.
+    - **Those tasks run `guard`** (C6), since they create containers and start backing services
+      without `make up`: a worktree with the main checkout's `COMPOSE_PROJECT_NAME` stops there
+      instead of installing into the main checkout's dependency volume.
+    - **D8's ask rules match the command's variable.** `Bash(make <task> *)` missed
+      `make -s <task> cmd=…` and the variable before the goal; C10's host-command tasks take the
+      same form.
+    - **The approve-container-run hook names the service and the options,** and asks when another
+      line of the `run` task uses the command.
+    - Smaller: W2's `SETUP_CMD` is `make deps`, so a worktree's start refreshes its dependency volume
+      after a rebase; the git-hooks and parallel-agents docs say `make test` leaves the backing
+      services running; `DEV-SETUP.md` names the dependency volume by the Compose project, not the
+      folder; the app's variables are one list in `compose.yaml`; `worktree.conf`'s comment names
+      `make deps`.
+  - **Upgrade impact:** none of its own: no release carries the entry above without these, and its
+    upgrade steps include them.
 - **With the `docker` module, Docker mode needs nothing on the host but Docker, git, and make**
   ([#149](https://github.com/aplyca/AgenticDevelopmentFramework/issues/149), second part; decision
   [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
@@ -37,18 +62,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       `make up` first, and the checks see every file on disk.
     - **`make run` runs in the tools container** in Docker mode (C10). D5 now names the tools
       service beside the app's: no Docker socket, host network, or path outside the checkout. The
-      approve-container-run hook's check is unchanged: it already approved a recipe that hands
-      `"$$cmd"` to Compose's `run` or `exec`, so a stack whose `run` still execs into the app's
-      container keeps its approval.
+      approve-container-run hook approves only a recipe that hands `"$$cmd"` to the tools service
+      (`run --rm [--no-deps] tools`) or, in a stack whose `run` still execs into the app's
+      container, to `exec -T $(APP)`, with no other option and no other line that uses it.
     - **Dependencies live in volumes (D7):** this checkout's, `deps`, which the app and the tools
-      mount and `docker compose down -v` removes; and the package manager's cache, one volume with
-      a fixed name that every checkout shares and no task removes.
+      mount and `docker compose down -v` removes; and the package manager's cache, one external
+      volume with a fixed name that every checkout shares. The tasks that start the tools create it
+      when it's missing, and no `down -v` removes it. Those tasks run `guard` first (C6).
     - **`make deps` in every mode (C3):** into the volume (Docker), on the host (native). Docker's
-      `make build` runs it after the images; native's `build` is `deps`. W2's `SETUP_CMD` is empty
-      or `make deps`.
-    - **A tool that needs the Docker socket** gets a service of its own and an ask rule on its
-      command-taking task, `Bash(make <task> *)`; its frequent commands that delete nothing become
-      named tasks (D8).
+      `make build` runs it after the images; native's `build` is `deps`. W2's `SETUP_CMD` is
+      `make deps`.
+    - **A tool that needs the Docker socket** gets a service of its own. Its command-taking task
+      reads the command from a variable of its own, `<task>_cmd`, with ask rules that match it
+      wherever the call puts it, `Bash(make *<task>_cmd=*)` and `Bash(<task>_cmd=*)`; its frequent
+      commands that delete nothing become named tasks (D8).
     - **The audit checks M11** by running `make deps`, `lint`, `typecheck`, and `test` with the stack
       down and only `docker`, `git`, and `make` on the `PATH`. `/adf-dev:dev-env`'s gaps,
       rationalizations, and Verification name the tools service. The deployment rule and
@@ -61,18 +88,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       `docs/`.
     - **The stack:** run `/adf-dev:dev-env` to audit it against M11 and D5–D8; it proposes the
       change as a careful-lane task. From the templates: `compose.yaml` gains the `tools` service,
-      the `deps` volume on the app and the tools, and the cache volume (`name:` the repository's);
+      the `deps` volume on the app and the tools, and the cache volume (`external: true`, `name:`
+      the repository's), with the app's variables in one `x-app-environment` list;
       the app's Dockerfile, a `tools` stage; `ops/docker/Makefile`, `deps`, a `build` that runs it,
       and `test`, `lint`, `format`, `typecheck`, and `run` through `$(COMPOSE) run --rm tools`;
       `ops/native/Makefile`, `deps`, with `build` running it. Until then, `make run` keeps working
       as it did.
     - Once the volume serves the dependencies, delete the folder a host install filled
       (`node_modules`, `.venv`): Docker recreates it, empty, as the mount point.
-    - A project CLI that needs the Docker socket: its own service, and `Bash(make <task> *)` in
-      `permissions.ask` in `.claude/settings.json` — list it under Permission changes.
+    - A project CLI that needs the Docker socket: its own service, its command in `<task>_cmd`,
+      and `Bash(make *<task>_cmd=*)` and `Bash(<task>_cmd=*)` in `permissions.ask` in
+      `.claude/settings.json` — list them under Permission changes.
     - `.claude/rules/deployment.md` (two bullets in § Docker) and
       `docs/getting-started/DEV-SETUP.md` (the prerequisites, `make deps`, § IDE setup's cost).
-    - `ops/agent/worktree.conf`: `SETUP_CMD="make deps"`, or leave it empty.
+    - `ops/agent/worktree.conf`: `SETUP_CMD="make deps"`.
     - `.claude/hooks/config.sh`: the comment on `APPROVE_CONTAINER_RUN` names the tools container;
       the value is unchanged.
 - **Follow-ups found along the way are filed as issues, not started as sessions** (0082,

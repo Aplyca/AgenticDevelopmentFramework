@@ -1,6 +1,7 @@
 # 0084: Docker mode needs nothing on the host — a tools service runs the checks and `make run`
 
-- **Status:** accepted
+- **Status:** accepted; amended 2026-11-16 (the cache volume is external, the tasks that start the
+  tools run `guard`, D8's ask rules match the command's variable, and the hook names the service)
 - **Date:** 2026-11-15
 - **Amends:** [0077](0077-the-container-is-the-boundary-for-make-run.md) — in Docker mode `make run`
   runs in the tools service's container, not the app's; [0034](0034-local-environment-modes.md) —
@@ -32,9 +33,10 @@
 - **What Compose does** (v5.7.0, checked with throwaway projects):
   - `docker compose run <service>` starts a service in a profile without `--profile`, and builds its
     image when it's missing;
-  - `docker compose down -v` without a profile leaves a volume only that profile's services mount;
-  - a volume with a fixed `name:` is shared by every project that declares it, and only the project
-    that created it removes it, with `down -v` and the profile active.
+  - a volume with a fixed `name:` is shared by every project that declares it, but belongs to the
+    project that created it: that project's `docker compose down -v` removes it, with or without the
+    profile of the services that mount it, and every other project warns on each run that it was
+    created for another (corrected 2026-11-16; see the amendment below).
 - **The issue's three open questions,** settled with the developer:
   1. the rule is the docker module's default, not an opt-in;
   2. the tools image is a stage of the app's Dockerfile, not a generic tools image;
@@ -68,18 +70,18 @@
   - this checkout's, in a named volume, `deps`, that the app's service and `tools` mount over the
     folder the install writes. Docker fills a new one from the image that mounts it first. The app's
     service mounts it, so `docker compose down -v` (`make reset`, W2's `STOP_CMD`) removes it;
-  - the package manager's cache, in one volume with a fixed `name:` that every checkout of the
-    repository shares, mounted only in `tools`: Compose creates it on first use, and no task
-    removes it;
+  - the package manager's cache, in one external volume with a fixed `name:` that every checkout
+    of the repository shares, mounted only in `tools`: the tasks that start the tools create it when
+    it's missing, and no `down -v` removes it;
   - commands stay the project's (C8).
 - **A `deps` task in every mode (C3):** into the dependency volume (Docker), on the host (native).
   Docker's `build` rebuilds the images, then runs `deps`; native's `build` is `deps`. W2's
-  `SETUP_CMD` is empty or `make deps`.
+  `SETUP_CMD` is `make deps`.
 - **A tool that needs more of the host than D5 allows gets its own service (D8)** — the Docker
   socket, host networking, a path outside the checkout, as a local backend's CLI that starts
-  containers of its own does. Its command-taking task gets an ask rule, `Bash(make <task> *)`; its
-  frequent commands that delete nothing become named tasks, which run without a prompt like every
-  task (C9).
+  containers of its own does. Its command-taking task reads the command from a variable of its
+  own, `<task>_cmd`, which gets ask rules wherever the call puts it; its frequent commands that
+  delete nothing become named tasks, which run without a prompt like every task (C9).
 - **The audit checks M11** by running `make deps`, `make lint`, `make typecheck`, and `make test`
   with the stack down and a `PATH` that reaches only `docker`, `git`, and `make` besides the system's
   folders.
@@ -132,11 +134,37 @@
   ways to run the checks.
 - **A generic tools image per stack.** Declined: the tools would drift from the app's runtime, and
   the framework would have to name images.
-- **An external cache volume that `make deps` creates.** Declined: its name would live in both
-  `compose.yaml` and the `Makefile`. A fixed `name:` that only `tools` mounts survives every task's
-  `down -v` without a step to create it.
+- **A Compose-created cache volume with a fixed `name:`.** First chosen, then replaced by the
+  amendment: Compose gives it to the project that created it, whose `down -v` removes it, and
+  warns in every other. The external volume's name lives in `compose.yaml` alone: the `Makefile`
+  reads it from there.
 - **Install before each run** (the issue's `install --frozen-lockfile && exec "$@"`). Left to the
   project: it costs time on every command, and a stack whose package manager checks its lockfile
   doesn't need it.
 - **Host networking by default.** Declined: it's against D5, needs a Docker Desktop setting, and
   P1's published ports already reach the services from the host.
+
+*Amended 2026-11-16:* a review of the merged change found four gaps, each fixed in the
+specification and the templates.
+
+- **The cache volume is external.** The "what Compose does" note above was wrong. Checked again on
+  v5.7.0, a volume with a fixed `name:` belongs to the project that created it. That checkout's
+  `docker compose down -v` deletes it, with any profile: removing a worktree that ran a check first,
+  or a `make reset` there, emptied every checkout's cache. Every other checkout printed a warning on
+  each tools command. `external: true` takes it away from every project; the tasks that start the
+  tools run `docker volume create` first, which changes nothing when it's there. The name stays in
+  `compose.yaml`: `ops/docker/Makefile` reads it from there (D7).
+- **The tasks that start the tools run `guard`** (C6). They create containers and start backing
+  services without `make up`. So a worktree whose `.env` copied the main checkout's
+  `COMPOSE_PROJECT_NAME` would install into the main checkout's dependency volume, which `guard`
+  stops before `up` but nothing stopped before `deps`.
+- **D8's ask rules match the command's variable, not the task's name.** `Bash(make <task> *)` missed
+  `make -s <task> cmd=…` and `make cmd=… <task>`, which the `Bash(make *)` allow then ran with the
+  host's Docker. A variable of its own, `<task>_cmd`, gets `Bash(make *<task>_cmd=*)` and
+  `Bash(<task>_cmd=*)`, as the docker module's deny rules match `DEV_MODE` (M10). C10's host-command
+  tasks take the same form.
+- **The approve-container-run hook names the service.** It approved a `run` recipe handing
+  `"$$cmd"` to any service, with any option, beside any other line. It now approves only
+  `$(COMPOSE) run --rm [--no-deps] tools` and an older stack's `$(COMPOSE) exec -T $(APP)`, and asks
+  when another line of the task uses the command — so `make run` never reaches a D8 service, or a
+  mount the recipe adds, without a prompt.
