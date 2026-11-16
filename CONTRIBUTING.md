@@ -4,7 +4,7 @@ Thanks for helping improve the framework. This repository is not an application 
 
 ## Ways to contribute
 
-- **Report a problem** — open an issue describing what you expected, what the AI or the template did instead, and which tool you used (Claude Code, Cursor, Copilot, Antigravity, …).
+- **Report a problem** — open an issue from the *Field report* template: what the AI or the template did, what you expected, and where you saw it (the release, the install, the modules, the tool — Claude Code, Cursor, Copilot, Antigravity, …). Ideas take the *Proposal* template. In a project that uses the framework, `/adf:framework-feedback` drafts either one in the framework's terms, checks it for anything that names the project, and posts it on your yes ([decision 0080](docs/decisions/0080-framework-feedback-from-adopting-projects.md)). Name the project nowhere: say "an adopting project".
 - **Improve the skeleton** — clearer rules, better skill instructions, missing spec sections, hooks, tool-compatibility fixes.
 - **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's `module.json` names the plugin that carries its skills and agents — `adf` for the process, `adf-dev` for development ([decision 0023](docs/decisions/0023-plugins-by-concern.md)).
 - **Add worked material** — new playbooks in `docs/scenarios/` or end-to-end examples in `docs/examples/`.
@@ -15,7 +15,7 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 ## Ground rules
 
 1. **Keep `skeleton/` and `modules/*/files/` generic.** No project-specific stacks, paths, conventions, company names, or client names — a module may target a named public product (GitHub, ClickUp, Docker), never one project's setup. Agents and skills learn project context from the adopting repo's `AGENTS.md`, `CLAUDE.md`, and rules at runtime — never hardcode it.
-2. **Never include real client, customer, or internal project names** anywhere in the repository, including examples, commit messages, and PR descriptions. Use the fictional newsletter feature from `docs/examples/` when you need a concrete example.
+2. **Never include real client, customer, or internal project names** anywhere in the repository, including examples, commit messages, PR descriptions, and issues — an issue's edit history keeps every version. Use the fictional newsletter feature from `docs/examples/` when you need a concrete example.
 3. **Preserve `<!-- CUSTOMIZE -->` markers** in customizable rules and templates; adopting teams rely on them to find what to tailor.
 4. **Write in the adopting project's voice** inside `skeleton/`. Files copied into a target repo shouldn't narrate "the framework"; that voice belongs in the root `docs/` only.
 5. **Keep always-loaded files lean.** `skeleton/AGENTS.md` and `skeleton/.claude/rules/claude-code.md` load on every turn in every adopting project, so prefer pointers to detail files over adding bulk there (the static checks fail `AGENTS.md` over 200 lines).

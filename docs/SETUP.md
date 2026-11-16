@@ -48,7 +48,7 @@ cp -Rn /path/to/AgenticDevelopmentFramework/skeleton/. .
 python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py .
 ```
 
-The skeleton is the layer the project owns and edits. The machinery — 21 skills, 8 agents, 4
+The skeleton is the layer the project owns and edits. The machinery — 22 skills, 8 agents, 4
 workflows, the hook scripts, and the reference docs in `docs/` (the `parallel-agents` guide only with that module) — has its source in the framework's
 plugins, and `build-committed.py` writes the committed install's copies of it
 ([decision 0028](decisions/0028-plugins-are-the-source.md)). Neither step overwrites a file you already
@@ -198,7 +198,7 @@ Open the pull request as a draft; merge after review like any other change.
 ## Packaged install (Claude Code only)
 
 [Decision 0016](decisions/0016-packaged-install.md). The framework's machinery doesn't enter the
-repository: 21 skills, 8 agents, 4 workflows, the hook scripts, the framework's reference docs
+repository: 22 skills, 8 agents, 4 workflows, the hook scripts, the framework's reference docs
 ([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), and the `parallel-agents`
 module's `/dispatch` ([decision 0020](decisions/0020-every-task-through-dispatch.md)), the `time-tracking` module's `/track-time`, and the `end-user-docs` module's `/end-user-docs` come from the
 `adf` plugin, pinned to a release tag. A development module's skills come the same way from
