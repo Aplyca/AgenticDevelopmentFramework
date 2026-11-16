@@ -43,7 +43,8 @@ added with git under the main checkout's `.claude/worktrees/`, on a branch of th
     worktree, the folder the session must not edit.
 - **The pull request reaches the app's PR bar from the session's commands.** The app binds a pull
   request when the session runs `gh pr create`, or pushes a branch that has one. Neither depends on
-  the folder the app records.
+  the folder the app records: this record's pull request was bound to the session as soon as
+  `gh pr create` ran in the task's worktree.
 - **The hooks see the session's working directory.** Claude Code passes it to every hook as `cwd`,
   and the probe showed it moving with `EnterWorktree`. Not observed in a hook: this repository runs
   none. Session-start hooks don't run at the move, as 0021 found.
