@@ -36,9 +36,25 @@ Most of what's here was proven in real client projects first — some built on t
 
 ## Install in a project
 
-**Joining a project that already uses it?** There's nothing to install. Open the project in Claude
-Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns the
-plugin on, at the release the project pins.
+**Joining a project that already uses it?** Usually there's nothing to install. Open the project in
+Claude Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns
+the plugin on, at the release the project pins. If typing `/adf:` then offers nothing, the plugin
+didn't download. That happens on a machine whose copy of the `aplyca` marketplace is older than the
+project's release: Claude Code keeps one copy for every project. From the project's folder, refresh
+it and install each plugin the project turns on, then start a new session:
+
+```bash
+cd your-project
+claude plugin marketplace update aplyca
+claude plugin install adf@aplyca --scope project
+claude plugin install adf-dev@aplyca --scope project      # when the project turns it on
+claude plugin install adf-connect@aplyca --scope project  # when the project turns it on
+```
+
+They only download what the settings already turn on, so `.claude/settings.json` doesn't change. A
+leftover `aplyca-adf@aplyca` in `claude plugin list` is the plugin's name before v2.0.0, turned off;
+[UPGRADING.md](docs/UPGRADING.md#our-settings-still-turn-on-aplyca-adf--moving-to-v200) has the
+command that removes it.
 
 ### With Claude Code — the installer plugin (recommended)
 

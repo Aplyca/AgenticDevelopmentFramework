@@ -604,10 +604,13 @@ EALLOWS=$(jsonq "$MODULES/e2e/settings-fragment.json" 'len(d["permissions"]["all
 "$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1
 check "e2e install: allows the suite's commands, and a second run adds nothing" \
     "[ $c -eq 0 ] && [ \"\$(jsonq '$EF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$EALLOWS' ]"
-verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" "$MODULES/e2e/settings-fragment.json" <<'PY'
+# With the docker module installed first, e2e's installer leaves out the suite's host command.
+ED="$WORK/e2e-docker"; mkdir -p "$ED"
+"$MODULES/docker/install.sh" "$ED" >/dev/null 2>&1; "$MODULES/e2e/install.sh" "$ED" >/dev/null 2>&1
+verdicts=$(python3 - "$ED/.claude/settings.json" <<'PY'
 import json, re, sys
-docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
-allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
+permissions = json.load(open(sys.argv[1]))["permissions"]
+allow, ask = permissions["allow"], permissions.get("ask", [])
 def matches(rules, command):
     # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
     return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
@@ -619,7 +622,7 @@ def verdict(command):
     return "allow" if all(matches(allow, p) for p in parts) else "prompt"
 cases = {
     "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
-    "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
+    "make smoke": "allow", "npm --prefix e2e test": "prompt", "npm --prefix e2e test -- --grep @smoke": "prompt",
     "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "allow",
     "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
 }
@@ -628,8 +631,21 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "e2e rules: the suite runs without a prompt, beside the docker module's, which asks before no make task (0078)" "[ -z \"\$verdicts\" ]"
+check "e2e rules: the suite runs without a prompt through make, beside the docker module's, which asks before no make task (0078); on the host it prompts" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
+
+# ─── unit: its rules, and none on the host with the docker module (issue 149) ──
+UF="$WORK/unit-fresh"; UD="$WORK/unit-docker"; UB="$WORK/unit-before"; mkdir -p "$UF" "$UD" "$UB"
+UALLOWS=$(jsonq "$MODULES/unit/settings-fragment.json" 'len(d["permissions"]["allow"])')
+"$MODULES/unit/install.sh" "$UF" >/dev/null 2>&1; c=$?
+"$MODULES/unit/install.sh" "$UF" >/dev/null 2>&1
+check "unit install: allows the tiers' commands, and a second run adds nothing" \
+    "[ $c -eq 0 ] && [ \"\$(jsonq '$UF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$UALLOWS' ]"
+"$MODULES/docker/install.sh" "$UD" >/dev/null 2>&1; "$MODULES/unit/install.sh" "$UD" >/dev/null 2>&1
+"$MODULES/unit/install.sh" "$UB" >/dev/null 2>&1; "$MODULES/docker/install.sh" "$UB" >/dev/null 2>&1
+"$MODULES/unit/install.sh" "$UB" >/dev/null 2>&1
+check "unit install, with the docker module: no host test command, and a rerun takes out the ones an earlier install added" \
+    "[ \"\$(jsonq '$UD/.claude/settings.json' 'sorted(d[\"permissions\"][\"allow\"])')\" = \"['Bash(docker *)', 'Bash(make *)']\" ] && [ \"\$(jsonq '$UB/.claude/settings.json' 'sorted(d[\"permissions\"][\"allow\"])')\" = \"['Bash(docker *)', 'Bash(make *)']\" ]"
 # The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
 HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"
 printf '\ne2e: ## Run the end-to-end tests\n\t@true\n' >> "$HD/ops/docker/Makefile"

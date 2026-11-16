@@ -29,6 +29,11 @@ Set `FAST_CHECKS` at the top of `pre-push` to your fast layers only (lint, typec
 integration, end-to-end, and visual tests in CI: a hook slow enough to annoy is a hook people push
 past — and agents are told never to bypass hooks, so a slow one taxes every push.
 
+With the `docker` module, the checks are its make tasks — `make lint`, `make typecheck`,
+`make test` (`tier=smoke` with the `unit` module) — never the package manager on the host: they run
+where the local mode runs the app, so a Docker-mode checkout needs nothing installed for the hook.
+In Docker mode they run in the app's container, so the stack must be up when you push (`make up`).
+
 ## Limits
 
 A local hook is a convenience, not enforcement: anyone can skip it, and it doesn't exist in a fresh

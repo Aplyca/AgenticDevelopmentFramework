@@ -79,9 +79,11 @@ The session follows whichever scenario its triage picked. What's specific to wor
   for the app. On the newsletter site `START_CMD` is `make up`: Compose takes the worktree's project
   name from the env file and Docker picks free ports, so the stack comes up beside every other
   worktree's, and `make urls` says where. A project that runs nothing locally sets neither.
-- **Host dependencies before the first commit**, even with no environment —
+- **What the git hooks need, before the first commit**, even with no environment —
   `ops/agent/worktree-new.sh <branch> --setup-only`: git hooks run on the host, and an agent
-  never bypasses a failing hook.
+  never bypasses a failing hook. On the newsletter site `SETUP_CMD` is empty: its tests and checks
+  are make tasks, which run in the app's container in Docker mode, so nothing is installed on the
+  host.
 - **Configuration comes from the main checkout.** Keep secrets right in the main checkout's env file;
   every new worktree inherits them, and `--refresh-env` brings an existing worktree up to date. Don't
   hand-edit what the script generates — the project name, and a port when the scripts reserve one: it

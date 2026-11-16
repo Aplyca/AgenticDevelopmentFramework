@@ -31,7 +31,7 @@ make test tier=critical suite=billing       # with the docker module, in the con
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for running the tiers: `npm test`, `npm run test:smoke`, `npm run test:critical`, `npx --no-install vitest run`, so a test-first loop reruns a test without a prompt |
+| `.claude/settings.json` (merged) | `permissions.allow` for running the tiers: `npm test`, `npm run test:smoke`, `npm run test:critical`, `npx --no-install vitest run`, so a test-first loop reruns a test without a prompt. With the `docker` module, none: its `make test` runs them in either mode and Docker mode installs nothing on the host, so a host command prompts — install `docker` first; a rerun takes out the rules an earlier install added |
 | `.claude/skills/unit/` | **Committed install only:** the skill and its `SPECIFICATION.md`. A packaged project gets `/adf-dev:unit` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/unit set up` writes Vitest's pinned dependency,

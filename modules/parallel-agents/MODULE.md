@@ -67,7 +67,8 @@ that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops
 ## Customize
 
 1. **`ops/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
-   project has an env file; `SETUP_CMD` for what the git hooks and tests need. Only if each worktree
+   project has an env file; `SETUP_CMD` for what the git hooks and tests need — with the `docker`
+   module, empty or a make task, never a host install. Only if each worktree
    runs a server: `PORT_SLOTS`, `ENV_OVERRIDES`, `START_CMD`, `READY_URL`, `STOP_CMD` — and make the
    app read its port from the env file.
 2. **`AGENTS.md` § Delivery rules** — replace the "Parallel sessions" line with: *"Each task gets

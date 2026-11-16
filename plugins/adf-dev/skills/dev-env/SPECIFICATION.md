@@ -292,7 +292,9 @@ a project misses. A project that departs from one on purpose records it, with th
 - **W1.** Each worktree runs its own stack: its folder names its Compose project, and its ports are
   Docker's or its own.
 - **W2.** `ops/agent/worktree.conf`: `PORT_SLOTS=0`; `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`
-  plus an empty `<NAME>_PORT=` for each port the main checkout pins; `START_CMD="make up"`;
+  plus an empty `<NAME>_PORT=` for each port the main checkout pins; `SETUP_CMD` empty or a task
+  such as `make build`, never a host install: Docker mode runs the tests and checks in containers
+  (C10); `START_CMD="make up"`;
   `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`; `READY_URL` empty;
   `ENV_INFO_CMD="make urls"`.
 - **W3.** A worktree's mode is its own `DEV_MODE`; `make up` starts it either way (M9).

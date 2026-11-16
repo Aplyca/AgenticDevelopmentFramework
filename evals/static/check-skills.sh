@@ -998,11 +998,13 @@ check_practices() {
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
     file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     file_contains "$SKELETON/docs/getting-started/DEV-SETUP.md" 'needs no install step' || missing+=("DEV-SETUP.md: joining a project needs no install")
+    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin (#80)")
+    grep -A12 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace update aplyca' || missing+=("README.md: joining names the commands when trusting the folder didn't download the plugin (#80)")
     file_contains "$REPO_ROOT/README.md" 'claude plugin marketplace update aplyca' || missing+=("install prompt: refreshes a marketplace added before")
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install, the local environment's conventions (0032)"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install (and the commands when the plugin didn't download), the local environment's conventions (0032)"
     else
         fail "practices: missing" "${missing[*]}"
     fi
