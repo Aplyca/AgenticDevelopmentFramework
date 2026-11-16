@@ -16,7 +16,7 @@
 # ops/native/ Makefile, and a stamp that doesn't name docker — it does nothing. Empty
 # APPROVE_CONTAINER_RUN keeps the ask in every mode. It reads the command, the mode, and the task's
 # recipe; what that container can reach is compose.yaml's (D5), and no hook checks that
-# (decision 0082).
+# (decision 0084).
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 

@@ -125,7 +125,7 @@ fills these from what it verifies, for you to review:
   A CLI that needs the socket gets a service of its own, and its command-taking task an ask rule
   (D8).
 - **In Docker mode the host needs Docker, git, and make, and nothing else** (M11,
-  [decision 0082](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0082-docker-mode-needs-nothing-on-the-host.md)):
+  [decision 0084](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)):
   `make deps`, `make test`, `make lint`, `make format`, `make typecheck`, and `make run` start the
   tools service, with the stack up or not, and dependencies live in volumes. The cost is the
   editor's: it resolves no package from the host.

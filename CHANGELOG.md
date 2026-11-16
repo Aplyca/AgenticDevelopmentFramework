@@ -13,7 +13,7 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 - **With the `docker` module, Docker mode needs nothing on the host but Docker, git, and make**
   ([#149](https://github.com/aplyca/AgenticDevelopmentFramework/issues/149), second part; decision
-  [0082](docs/decisions/0082-docker-mode-needs-nothing-on-the-host.md)).
+  [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
   - **What:** dev-env's specification gains M11 — in Docker mode every task runs in a container, and
     no task, `SETUP_CMD`, or git hook runs the stack's runtime, package manager, or a CLI on the host.
     - **A `tools` service (D6):** in Compose's `tools` profile, built from a `tools` stage of the

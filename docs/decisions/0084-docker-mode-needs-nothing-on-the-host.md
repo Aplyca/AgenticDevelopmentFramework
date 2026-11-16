@@ -1,4 +1,4 @@
-# 0082: Docker mode needs nothing on the host — a tools service runs the checks and `make run`
+# 0084: Docker mode needs nothing on the host — a tools service runs the checks and `make run`
 
 - **Status:** accepted
 - **Date:** 2026-11-15

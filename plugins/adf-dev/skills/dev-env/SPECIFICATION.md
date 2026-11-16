@@ -4,7 +4,7 @@ What a project's local environment must look like, and how it behaves, in a proj
 `docker` module ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md),
 [decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md),
 [decision 0056](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0056-the-running-app-in-claude-desktops-browser.md),
-[decision 0082](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0082-docker-mode-needs-nothing-on-the-host.md)).
+[decision 0084](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
 `/adf-dev:dev-env` writes a stack that meets it, audits a stack against it, and `/adf:adopt` and
 `/adf:upgrade` hand a project to `/adf-dev:dev-env` to reach it.
 
