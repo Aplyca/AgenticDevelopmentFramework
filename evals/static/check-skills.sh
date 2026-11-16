@@ -320,14 +320,21 @@ expected = {
     "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
     "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
     "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Releases and secrets ask before a write, not a read (0088).
+    "gh release new v1": "ask", "gh release edit v1 --draft=false": "ask",
+    "gh release upload v1 a.zip": "ask", "gh release delete v1": "ask",
+    "gh release delete-asset v1 a.zip": "ask", "gh secret delete X": "ask", "gh secret remove X": "ask",
+    "gh release list": "allow", "gh release view v1": "allow", "gh release download v1": "allow",
+    "gh secret list": "allow",
     # Rare and recoverable: they run (the shorter list the developer chose).
     "gh pr close 12": "allow", "gh workflow run ci.yml": "allow", "gh label create bug": "allow",
     "gh run cancel 99": "allow", "git stash clear": "allow",
-    # Discarding local work and issue writes run (the developer's choice); hooks switched off and
-    # tags leaving the machine ask.
+    # Discarding local work and issue writes run (the developer's choice); tags leaving the machine
+    # ask. git config has no rule: the git guard hook asks before a change and lets a read run (0088).
     "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
     "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
-    "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+    "git config --get core.hooksPath": "allow", "git config core.hooksPath /dev/null": "allow",
+    "git push origin --tags": "ask",
     # GitLab, the same split (0074): the draft merge request, its upkeep, ready, reviewers, issues, reads.
     "glab mr create --draft --target-branch main --title x": "allow",
     "glab mr update 12 --description-file b.md": "allow", "glab mr update 12 --ready": "allow",
@@ -350,7 +357,7 @@ print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git, gh, and glab allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git, gh, and glab allowed broadly, with what must still prompt asked by name — merging, reviews, release and secret writes, auth, API writes, tags — and their reads running"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
