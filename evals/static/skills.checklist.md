@@ -13,9 +13,10 @@ behavioral suites (`test-hooks.sh`, `test-modules.sh`) need a shell; there is no
 
 Discipline skills: `triage`, `write-spec`, `write-plan`, `write-tests`, `write-docs`, `implement`,
 `review`, `commit`, `refactor`, `debug`, `spec-drift`, `orchestrate`, `open-pr`, `stakeholder-update`,
-`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`.
+`record-decision`, `context-audit`, `dispatch`, `dev-env`, `e2e`, `wrap-up`, `track-time`, `end-user-docs`,
+`framework-feedback`.
 
-- [ ] `/open-pr` opens a draft once the agent's own local check and `/review` pass, tests and reviews it on the preview, marks it ready once that and CI pass, and requests the reviewers `CONTRIBUTING.md` names — on GitHub or GitLab (decisions 0022, 0045, 0070, 0072); `/track-time` and `/end-user-docs` show the draft and ask before posting, and so does `/stakeholder-update` for anything that asks the requester for something — its review and delivered updates post on their own (decision 0073)
+- [ ] `/open-pr` opens a draft once the agent's own local check and `/review` pass, tests and reviews it on the preview, marks it ready once that and CI pass, and requests the reviewers `CONTRIBUTING.md` names — on GitHub or GitLab (decisions 0022, 0045, 0070, 0072); `/track-time`, `/end-user-docs`, and `/framework-feedback` show the draft and ask before posting, and so does `/stakeholder-update` for anything that asks the requester for something — its review and delivered updates post on their own (decision 0073)
 
 ## Agents and workflows
 

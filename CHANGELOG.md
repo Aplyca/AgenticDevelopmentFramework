@@ -22,9 +22,23 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     stays a draft until then (step 10), never that it turns ready on its own. A rationalization
     names the case.
   - **Upgrade impact:** overwrite for the plugin; committed install: `.claude/skills/open-pr/`.
+- **Adopting projects report the framework's problems as issues, with nothing that names them** (0080,
+  [#152](https://github.com/aplyca/AgenticDevelopmentFramework/issues/152)).
+  - **What:** a new skill, `/adf:framework-feedback` (`/framework-feedback` in a committed install),
+    drafts a problem report or an idea for the framework in its own terms and files it in the
+    repository the project's marketplace source names, with `gh` or `glab`, so a fork's projects
+    report to the fork. Its script, `check_report.py`, blocks the draft while it names the project's
+    remotes, folder, name, git user, branches, or local hosts, or has an email address, a home path,
+    or a link to another repository; the skill searches existing issues first, shows the full text,
+    and posts only on the developer's yes. A security problem goes to the private route instead.
+    `specs/README.md` § Found along the way gains a row, and `AGENTS.md`'s line on findings a clause:
+    a problem in the framework itself is offered to `/framework-feedback`.
+  - **Upgrade impact:** additive for the plugin; committed install: `.claude/skills/framework-feedback/`
+    (additive). Merge for `AGENTS.md` (the clause in "Report what you find along the way") and
+    `specs/README.md` (the new row in § Found along the way).
 - **An answer in the main checkout closes up there**
   ([#151](https://github.com/aplyca/AgenticDevelopmentFramework/issues/151), decision
-  [0080](docs/decisions/0080-answers-in-the-main-checkout-close-up-there.md)).
+  [0081](docs/decisions/0081-answers-in-the-main-checkout-close-up-there.md)).
   - **What:** with the parallel-agents module, `/adf:wrap-up` stopped at step 1 for any session in
     the main checkout, wording left over from the dispatcher hub. A read-only answer, which stays
     there, never got its check for leftovers, the delivered update for a tracker task, or its

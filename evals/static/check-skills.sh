@@ -81,11 +81,11 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e unit wrap-up track-time end-user-docs"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e unit wrap-up track-time end-user-docs framework-feedback"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decisions 0022, 0045)
 # Skills that may start from a plain request but post only after showing the draft.
-DRAFT_FIRST_SKILLS="stakeholder-update track-time end-user-docs"
+DRAFT_FIRST_SKILLS="stakeholder-update track-time end-user-docs framework-feedback"
 
 is_discipline_skill() {
     case " $DISCIPLINE_SKILLS " in *" $1 "*) return 0 ;; esac
@@ -830,9 +830,9 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "answer delivered" || missing+=("/wrap-up: an answer delivered closes up (0047)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "origin's stays" || missing+=("/wrap-up: an abandoned task keeps its branch on origin (0047)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "\*\*on hold\*\* isn't ending" || missing+=("/wrap-up: a task on hold isn't closed up (0047)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Close it up as an answer, from here" || missing+=("/wrap-up: a session in the main checkout closes up as an answer (0080)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "switch it, pull it, or delete it, here or on origin" || missing+=("/wrap-up: the main checkout's branch is never switched, pulled, or deleted (0080)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Only what this session made counts" || missing+=("/wrap-up: in the shared main checkout, only what this session made counts as left over (0080)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Close it up as an answer, from here" || missing+=("/wrap-up: a session in the main checkout closes up as an answer (0081)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "switch it, pull it, or delete it, here or on origin" || missing+=("/wrap-up: the main checkout's branch is never switched, pulled, or deleted (0081)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Only what this session made counts" || missing+=("/wrap-up: in the shared main checkout, only what this session made counts as left over (0081)")
     grep -q 'pr-state.sh' "$SETTINGS" || missing+=("settings.json: pr-state hook (0047)")
     file_contains "$HOOKS_DIR/config.sh" '^PR_STATE=' || missing+=("config.sh: PR_STATE (0047)")
     grep -q 'session-title.sh' "$SETTINGS" || missing+=("settings.json: session-title hook")

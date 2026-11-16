@@ -313,6 +313,91 @@ out=$(cd "$L" && on_path adf-worktree-new feat/old-committed --no-start 2>&1); c
 check "adf-worktree-new: runs a committed script still in scripts/agent/" \
     "[ $code -eq 0 ] && [ \"\$(cat '$LW/legacy-handed-over' 2>/dev/null)\" = 'feat/old-committed --no-start' ]"
 
+# ─── /framework-feedback's check_report.py ─────────────────────────────────
+# A project that names itself everywhere: its remotes, folder, heading, git user, branches, and local
+# hosts. A report about the framework passes; each of those in the report blocks it.
+FB="$WORK/fb" && FEEDBACK="$REPO_ROOT/plugins/adf/skills/framework-feedback/check_report.py"
+P="$FB/portal-app" && mkdir -p "$P/.claude" "$P/src/loyalty" "$FB/config"
+git -C "$P" init -q && git -C "$P" symbolic-ref HEAD refs/heads/main
+git -C "$P" config user.name "Dana Tester" && git -C "$P" config user.email dana@acme-corp.test
+git -C "$P" remote add origin git@github.com:acme-corp/acme-portal.git
+git -C "$P" remote add legacy https://git.acme.internal/web/portal-legacy.git
+printf '%s\n' '<!-- Skeleton source: v2.9.0 · abc1234 (2026-11-10) · modules: github, parallel-agents · install: packaged — update on every framework upgrade. -->' \
+    '# Acme Customer Portal' > "$P/AGENTS.md"
+printf '%s' '{"enabledPlugins": {"adf@aplyca": true}, "extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.9.0"}}}}' > "$P/.claude/settings.json"
+printf '%s' '{"mcpServers": {"cms": {"type": "http", "url": "https://cms.acme-corp.test/mcp"}}}' > "$P/.mcp.json"
+printf '%s' '{"configurations": [{"name": "app", "url": "http://portal.localhost:3000"}]}' > "$P/.claude/launch.json"
+echo 'export const points = 1;' > "$P/src/loyalty/points.ts"
+git -C "$P" add -A && git -C "$P" commit -qm init
+git -C "$P" branch feat/loyalty-points && git -C "$P" branch hotfix
+feedback() { CLAUDE_CONFIG_DIR="$FB/config" python3 "$FEEDBACK" "$@"; }
+
+ctx=$(feedback context "$P")
+check "framework-feedback: the target and the Seen in facts come from the project's settings and stamp" \
+    "printf '%s' '$ctx' | python3 -c 'import json,sys; c=json.load(sys.stdin); sys.exit(not (c[\"repo\"]==\"aplyca/AgenticDevelopmentFramework\" and c[\"tool\"]==\"gh\" and c[\"new_issue_url\"].endswith(\"/issues/new\") and c[\"release\"]==\"v2.9.0\" and c[\"install\"]==\"packaged\" and c[\"modules\"]==[\"github\",\"parallel-agents\"]))'"
+
+U="$FB/user-scope" && mkdir -p "$U/.claude" "$FB/config/plugins"
+printf '%s' '{"enabledPlugins": {"adf@forks": true}}' > "$U/.claude/settings.json"
+printf '%s' '{"forks": {"source": {"source": "git", "url": "https://gitlab.com/tools/adf-fork.git"}}}' > "$FB/config/plugins/known_marketplaces.json"
+ctx=$(feedback context "$U")
+check "framework-feedback: with no project entry, reads the marketplace Claude Code knows; a GitLab fork posts with glab" \
+    "printf '%s' '$ctx' | python3 -c 'import json,sys; c=json.load(sys.stdin); sys.exit(not (c[\"repo\"]==\"tools/adf-fork\" and c[\"tool\"]==\"glab\" and c[\"new_issue_url\"]==\"https://gitlab.com/tools/adf-fork/-/issues/new\"))'"
+printf '%s' '{"forks": {"source": {"source": "directory", "path": "/opt/adf"}}}' > "$FB/config/plugins/known_marketplaces.json"
+ctx=$(feedback context "$U")
+check "framework-feedback: a source with no repository names none, for the developer to file by hand" \
+    "printf '%s' '$ctx' | python3 -c 'import json,sys; c=json.load(sys.stdin); sys.exit(not (c[\"repo\"] is None and c[\"tool\"] is None))'"
+
+CLEAN="$FB/clean.md"
+cat > "$CLEAN" <<'MD'
+## What happens
+
+`/adf:wrap-up` stops at step 1 in the main checkout, so an answer session is never archived.
+See `specs/README.md` § Found along the way, aplyca/AgenticDevelopmentFramework#150, and
+https://github.com/aplyca/AgenticDevelopmentFramework/issues/151.
+
+## Seen in
+
+An adopting project (adf v2.9.0, packaged, modules: github, parallel-agents, the desktop app, macOS).
+MD
+out=$(feedback check "$CLEAN" "$P" 2>&1); code=$?
+check "framework-feedback: a report in the framework's terms passes, the target's own links included" \
+    "[ $code -eq 0 ] && ! printf '%s' \"\$out\" | grep -q '^BLOCK'"
+
+blocks() { # blocks <kind> <line added to the clean report>
+    { cat "$CLEAN"; printf '%s\n' "$2"; } > "$FB/draft.md"
+    out=$(feedback check "$FB/draft.md" "$P" 2>&1); code=$?
+    [ $code -eq 1 ] && printf '%s' "$out" | grep -qE "^BLOCK +$1 "
+}
+check "framework-feedback: the remote's repository name blocks" "blocks remote 'Seen in acme-portal.'"
+check "framework-feedback: the remote's owner blocks" "blocks remote 'The acme-corp team saw it.'"
+check "framework-feedback: a self-hosted remote's host blocks" "blocks remote 'Mirrored on git.acme.internal.'"
+check "framework-feedback: the folder's name blocks" "blocks folder 'In portal-app, it failed.'"
+check "framework-feedback: the project name from AGENTS.md blocks" "blocks project-name 'The Acme Customer Portal team.'"
+check "framework-feedback: the git user blocks" "blocks git-user 'Reported by Dana Tester.'"
+check "framework-feedback: any email address blocks" "blocks email 'Contact someone@example.org.'"
+check "framework-feedback: a home-directory path blocks" "blocks home-path 'Ran in /Users/dana/code.'"
+check "framework-feedback: a branch name blocks" "blocks branch 'On feat/loyalty-points it stopped.'"
+check "framework-feedback: a host from .mcp.json blocks" "blocks host 'The server at cms.acme-corp.test.'"
+check "framework-feedback: a host from launch.json blocks" "blocks host 'Opened portal.localhost.'"
+check "framework-feedback: a reference to another repository blocks" "blocks repo-ref 'Seen in someorg/billing#188.'"
+check "framework-feedback: a link to another repository blocks" "blocks repo-ref 'See https://github.com/someorg/billing/pull/3.'"
+
+{ cat "$CLEAN"; echo 'The hotfix branch, and src/loyalty/points.ts, and https://code.claude.com/docs/en/skills.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$P" 2>&1); code=$?
+check "framework-feedback: a one-word branch, the project's file paths, and other URLs only warn" \
+    "[ $code -eq 0 ] && printf '%s' \"\$out\" | grep -qE '^WARN +branch .*hotfix' && printf '%s' \"\$out\" | grep -qE '^WARN +path .*src/loyalty/points.ts' && printf '%s' \"\$out\" | grep -qE '^WARN +url '"
+G="$FB/web" && git init -q "$G" && printf '# web\n' > "$G/AGENTS.md"
+{ cat "$CLEAN"; echo 'The web preview broke.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$G" 2>&1); code=$?
+check "framework-feedback: a project named with a generic word only warns" "[ $code -eq 0 ] && printf '%s' \"\$out\" | grep -qE '^WARN +folder '"
+
+{ cat "$CLEAN"; echo 'On feat/loyalty-points it stopped.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$P" --allow feat/loyalty-points 2>&1); code=$?
+check "framework-feedback: the developer can clear a branch name with --allow" "[ $code -eq 0 ] && printf '%s' \"\$out\" | grep -q '(allowed)'"
+{ cat "$CLEAN"; echo 'Reported by Dana Tester.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$P" --allow 'Dana Tester' 2>&1); code=$?
+check "framework-feedback: the git user can't be cleared" "[ $code -eq 1 ] && printf '%s' \"\$out\" | grep -q \"(can't be allowed)\""
+
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"
 echo ""

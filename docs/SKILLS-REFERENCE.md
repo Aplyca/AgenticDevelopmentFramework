@@ -1,6 +1,6 @@
 # Skills and workflows reference
 
-The Agentic Development Framework ships **twenty-one skills**, four more for modules, and **four dynamic
+The Agentic Development Framework ships **twenty-two skills**, four more for modules, and **four dynamic
 workflows**. Their source is the plugins — `plugins/adf/skills/`, `plugins/adf/workflows/`, and
 `plugins/adf-dev/skills/` ([decision 0028](decisions/0028-plugins-are-the-source.md)). A packaged
 project loads them from there, as `/adf:skill-name`; a committed one keeps copies in `.claude/`, which
@@ -40,6 +40,7 @@ In order, for a change with something to decide. Commits: `spec:` → `docs:` �
 | `/spec-workflow` | The workflow reference: the three lanes, setup, feature (full lane), fast and careful lanes, change requests (light and full; after the merge or on an open pull request), answer-only task, bugs and hotfixes, process changes, parallel work, effort beyond the lane. |
 | `/init-project` | First-time setup from verified facts: `AGENTS.md`, constitution, hooks configuration, rules, core docs, nested `AGENTS.md` template. (The plugin's `/adopt` does this end to end.) |
 | `/record-decision` | Record an ADR (the application) — only when a decision is hard to reverse, surprising without its context, and a real trade-off — or a PDR (how the team works); supersede or correct earlier records without rewriting them; update the docs that describe the decision in the same change; constitution amendments in their own pull request. |
+| `/framework-feedback` | Report a problem in the framework itself, or an idea for it, as an issue in the framework's repository — the one the project's marketplace source names, so a fork's projects report to the fork. Written in the framework's terms (a problem: what happens, why, seen in, expected; an idea: problem, proposal), with nothing pasted from the project; a script blocks the draft while it names the project's remotes, folder, name, git user, branches, local hosts, an email, a home path, or another repository. Searches existing issues first and offers a comment on a match; shows the full text and posts only on the developer's yes, with `gh` or `glab`, or hands over the text to file by hand. A security problem goes to the private route instead ([decision 0080](decisions/0080-framework-feedback-from-adopting-projects.md)). |
 
 ## Quality and analysis skills
 
