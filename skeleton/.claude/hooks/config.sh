@@ -59,6 +59,11 @@ APPROVE_CONTAINER_RUN="1"
 # merging (ask whether the task is dropped). "1" asks gh, or glab on GitLab, at session start and at
 # most every five minutes after, on a work branch only; without either it does nothing. Empty disables.
 PR_STATE="1"
+# While the session sits idle after a turn, the same hook watches an open pull request in the
+# background and wakes the session when it merges or closes, so the wrap-up is offered without a
+# prompt. It asks every five minutes for this many hours after the turn ends. Empty disables the
+# watch; PR_STATE empty disables both.
+PR_WATCH_HOURS="8"
 
 # A session is named after its task, as /triage does in the desktop app. "1" sets the title to the
 # task's title once a reply states the triage, on the next prompt and once per session; a title you

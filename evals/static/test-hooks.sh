@@ -684,6 +684,47 @@ printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
 : >"$WORK/glab-calls"
 out="$(ps UserPromptSubmit "42 MERGED" "$(mr_json closed)")"
 ps_check "gh's answer stands when it gives one, and glab isn't asked" $(echo "$out" | grep -q 'PR #42 .*merged' && [ ! -s "$WORK/glab-calls" ]; echo $?)
+# The idle watch (0087): at Stop, the hook polls an open pull request in the background and exits 2,
+# which wakes the session, when it merges or closes. A fake gh reads its answer from a file.
+mkdir -p "$WORK/fakegh-watch"
+printf '#!/usr/bin/env bash\necho x >>"%s/watch-calls"\ncat "%s/pr-answer"\n' "$WORK" "$WORK" >"$WORK/fakegh-watch/gh"
+printf '#!/usr/bin/env bash\nexit 1\n' >"$WORK/fakegh-watch/glab"
+chmod +x "$WORK/fakegh-watch/gh" "$WORK/fakegh-watch/glab"
+git -C "$PS" remote set-url origin git@github.com:team/app.git
+watch() { # watch → runs the Stop hook in the foreground; its stderr goes to $WORK/watch-err
+    printf '{"cwd":"%s","hook_event_name":"Stop"}' "$PS" | ADF_PR_WATCH_INTERVAL=1 PATH="$WORK/fakegh-watch:$PATH" \
+        "$PS/.claude/hooks/pr-state.sh" 2>"$WORK/watch-err"
+}
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+echo "42 OPEN" >"$WORK/pr-answer"
+( sleep 2; echo "42 MERGED" >"$WORK/pr-answer" ) &
+watch; rc=$?
+ps_check "the idle watch exits 2 once an open pull request merges, to wake the session" $([ "$rc" = 2 ]; echo $?)
+ps_check "the wake names the merge and the wrap-up" $(grep -q 'PR #42 .*merged while the session waited.*wrap-up' "$WORK/watch-err"; echo $?)
+sed -i.bak 's/ [0-9]* MERGED/ 0 MERGED/' "$ps_cache"
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "a merge the watch reported isn't said again on the next prompt" $([ -z "$out" ]; echo $?)
+: >"$WORK/watch-calls"
+watch; rc=$?
+ps_check "a state already reported ends the watch at once, without asking gh" $([ "$rc" = 0 ] && [ ! -s "$WORK/watch-calls" ]; echo $?)
+rm -f "$ps_cache"
+: >"$WORK/pr-answer"
+watch; rc=$?
+ps_check "with no pull request to watch, the watch ends" $([ "$rc" = 0 ]; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+echo "42 OPEN" >"$WORK/pr-answer"
+watch & first=$!
+sleep 1.5
+( sleep 2; echo "42 CLOSED" >"$WORK/pr-answer" ) &
+watch; rc=$?
+wait "$first"; first_rc=$?
+ps_check "a newer turn's watch replaces the older one" $([ "$first_rc" = 0 ]; echo $?)
+ps_check "a pull request closed unmerged wakes the session too" $([ "$rc" = 2 ] && grep -q 'closed without merging while the session waited' "$WORK/watch-err"; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+echo 'PR_WATCH_HOURS=""' >>"$PS/.claude/hooks/config.sh"
+: >"$WORK/watch-calls"
+watch; rc=$?
+ps_check "an empty PR_WATCH_HOURS turns the watch off" $([ "$rc" = 0 ] && [ ! -s "$WORK/watch-calls" ]; echo $?)
 echo 'PR_STATE=""' >>"$PS/.claude/hooks/config.sh"
 out="$(ps SessionStart "42 MERGED")"
 ps_check "an empty PR_STATE turns it off" $([ -z "$out" ]; echo $?)

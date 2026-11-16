@@ -26,6 +26,18 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/skills/record-decision/`, and `.claude/skills/framework-feedback/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
     writes with the other reference docs.
 
+- **A merge wakes an idle session** ([decision 0087](docs/decisions/0087-a-merge-wakes-an-idle-session.md)).
+  The `pr-state.sh` hook now also runs at `Stop`, in the background with `asyncRewake`. While the
+  session sits idle with an open pull request, it asks `gh` (or `glab`) every five minutes for
+  `PR_WATCH_HOURS` (default 8). A merge or close exits 2, which wakes the session to offer
+  `/adf:wrap-up` or ask whether the task is dropped, without waiting for a prompt. One watcher per
+  checkout; a newer turn's replaces it, and a state already reported ends it.
+  - **Upgrade impact:** overwrite for the plugins. **Additive** in `.claude/hooks/config.sh`: the
+    `PR_WATCH_HOURS` block after `PR_STATE` (without it, the default 8 applies; empty turns the watch
+    off). Committed install: overwrite `.claude/hooks/` (`pr-state.sh` and `_lib.sh` together) and
+    **merge** the `hooks` block of `.claude/settings.json`: a `Stop` event with `pr-state.sh`,
+    `"asyncRewake": true`, and `"timeout": 86400`.
+
 - **The audit's minor findings, fixed.**
   - **When to extract.** `.claude/rules/code-quality.md` said extract only when shared;
     `architecture.md` also extracted a component from a file past ~300 lines. Now a component is

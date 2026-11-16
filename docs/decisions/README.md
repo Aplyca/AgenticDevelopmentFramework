@@ -98,6 +98,7 @@ projects.
 | [0084](0084-docker-mode-needs-nothing-on-the-host.md) | Docker mode needs nothing on the host but Docker, git, and make: a `tools` service in Compose's `tools` profile runs the checks, `make deps`, and `make run` with the stack up or not; dependencies live in volumes; a tool that needs the Docker socket gets its own service and an ask rule | accepted; amended 2026-11-16 |
 | [0085](0085-the-session-moves-with-enterworktree.md) | A session moves to its task's worktree with `EnterWorktree`, in the desktop app too: the app refuses `change_directory` from its own worktree, and the approve-worktree-move hook answers `EnterWorktree` as well; the app keeps showing the session in the folder it started in | accepted |
 | [0086](0086-one-prose-pass-for-text-people-read.md) | One prose pass for the text people read: `PROSE-PATTERNS.md`, a reference doc, lists the machine-written patterns to cut; `/stakeholder-update`, `/end-user-docs`, `/write-docs`, `/open-pr`, `/record-decision`, and `/framework-feedback` run it on each draft, and the destination's own conventions win | accepted |
+| [0087](0087-a-merge-wakes-an-idle-session.md) | A merge wakes an idle session: the pr-state hook also runs at Stop with `asyncRewake`, watches an open pull request every five minutes for `PR_WATCH_HOURS`, and exits 2 on a merge or close, which wakes the session to offer the wrap-up | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

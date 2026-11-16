@@ -837,6 +837,8 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Only what this session made counts" || missing+=("/wrap-up: in the shared main checkout, only what this session made counts as left over (0081)")
     grep -q 'pr-state.sh' "$SETTINGS" || missing+=("settings.json: pr-state hook (0047)")
     file_contains "$HOOKS_DIR/config.sh" '^PR_STATE=' || missing+=("config.sh: PR_STATE (0047)")
+    grep -q '"asyncRewake": true' "$SETTINGS" || missing+=("settings.json: the pr-state hook's idle watch at Stop (0087)")
+    file_contains "$HOOKS_DIR/config.sh" '^PR_WATCH_HOURS=' || missing+=("config.sh: PR_WATCH_HOURS (0087)")
     grep -q 'session-title.sh' "$SETTINGS" || missing+=("settings.json: session-title hook")
     file_contains "$HOOKS_DIR/config.sh" '^SESSION_TITLE=' || missing+=("config.sh: SESSION_TITLE")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'session-title hook does' || missing+=("/triage: in a terminal, the session-title hook names the session")
