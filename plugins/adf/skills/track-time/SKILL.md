@@ -51,7 +51,8 @@ what's already logged, so it can run at each milestone without logging a day twi
      move on the base branch. Two of the task's sessions open at once count each minute once.
      Another task's session open at the same time doesn't reduce this one's: each task gets its full time.
    - It prints each day's active time and its working blocks. `--json` gives the same in JSON. Pass
-     `--siblings` when the task's worktree was already removed.
+     `--siblings` for a task whose worktree sat beside the main checkout, as before decision 0082, and
+     was already removed.
 
 4. **Estimate the work outside the sessions,** for each day, activity by activity, from the list in
    `docs/TIME-TRACKING.md` — understanding the task, research and investigation, debugging, manual

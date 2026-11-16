@@ -49,13 +49,9 @@ it, `python3` (`.py`).
 The desktop app checks a session's move twice. The approve-worktree-move hook answers the first,
 Claude Code's permission check. The second is the app's own: it asks before it moves a session into
 a folder outside every folder you trusted ("This folder isn't in a workspace you've trusted"), and a
-hook can't answer it. The worktrees are siblings of the main checkout, so trusting the main checkout
-doesn't cover them, and each new worktree would ask once.
-
-Trust the folder that holds the main checkout and its worktrees, once: open a session on it — in the
-desktop app, or `cd` there and run `claude` — and accept the prompt to trust the folder. Its trust
-covers every worktree created in it from then on. Trust only a folder that holds this project's
-checkouts: everything inside it is trusted too.
+hook can't answer it. A task's worktree sits under `.claude/worktrees/` in the main checkout
+(decision 0082), so trusting the main checkout covers it. A worktree from an older release, beside
+the main checkout, asks once.
 
 ## Disable or extend
 

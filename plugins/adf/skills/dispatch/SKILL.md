@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: With the parallel-agents module: move a triaged task — a change, or anything that runs the app, the tests, or the database — to its own worktree and branch beside the main checkout; a session that already has a task offers another one a new session. Use right after triage, in the main checkout or Claude Code's own worktree, and when a session is handed an unrelated task or finds one along the way.
+description: With the parallel-agents module: move a triaged task — a change, or anything that runs the app, the tests, or the database — to its own worktree and branch under .claude/worktrees/; a session that already has a task offers another one a new session. Use right after triage, in the main checkout or Claude Code's own worktree, and when a session is handed an unrelated task or finds one along the way.
 argument-hint: "[<type>/<slug>, or the other task]"
 ---
 
@@ -10,8 +10,8 @@ argument-hint: "[<type>/<slug>, or the other task]"
 
 **Every task gets its own session, worktree, folder, branch, and pull request.** A developer starts
 a new session for each new task, in the main checkout or wherever the desktop app opens it, and that
-session becomes the task's. Once triage says the task needs a worktree, this skill creates it beside
-the main checkout and moves the session there. The main checkout takes no edits (the protect-hub
+session becomes the task's. Once triage says the task needs a worktree, this skill creates it under
+the main checkout's `.claude/worktrees/` and moves the session there. The main checkout takes no edits (the protect-hub
 hook stops them), so nothing lands on the base branch, and no session sits in it handing tasks out.
 
 This skill needs the `parallel-agents` module: without `ops/agent/worktree.conf` in this
@@ -42,17 +42,14 @@ where they choose whether the other task starts.
    change (`feat/newsletter-signup-topics`). If the session context says the base branch is behind
    origin's, run `git pull --ff-only` in the main checkout first.
 2. **Create the worktree:** `adf-worktree-new <type>/<slug> --no-start` (a hotfix from a release tag
-   adds `--from <tag>`). It's a sibling of the main checkout named after the branch
-   (`../feat-newsletter-signup-topics`), on a new branch from `BASE_BRANCH`, with the env file
-   seeded from the main checkout's and, when worktrees run a server, a port reserved. Nothing starts.
+   adds `--from <tag>`). It's under the main checkout's `.claude/worktrees/`, named after the branch
+   (`.claude/worktrees/feat-newsletter-signup-topics`), on a new branch from `BASE_BRANCH`, with the
+   env file seeded from the main checkout's and, when worktrees run a server, a port reserved.
+   Nothing starts.
 3. **Move this session into it,** to the path the script printed:
    - **Desktop app:** `change_directory`. The approve-worktree-move hook approves a worktree of this
-     repository, so Claude Code's permission check doesn't ask. The app still asks the developer to
-     allow the folder when it's outside every folder they trusted; no hook answers that. After the
-     move, if it asked, tell them once that trusting the folder that holds the main checkout and its
-     worktrees — a session opened on it, the trust prompt accepted — stops it for every later task.
-   - **Terminal:** `EnterWorktree` with `path`. From Claude Code's own worktree it can't reach a
-     folder outside `.claude/worktrees/`: give the developer `cd <path> && claude` and stop.
+     repository, so Claude Code's permission check doesn't ask.
+   - **Terminal:** `EnterWorktree` with `path`.
 
    If the move is refused, give the developer the path and stop: they open a session on that folder.
 4. **Confirm with `pwd`, and carry on with the task** where the triage left it. The triage stands;
@@ -60,8 +57,8 @@ where they choose whether the other task starts.
    spec folder yourself (`ls specs/`).
 
 Until the move, run nothing but the script, and edit and commit nothing. In Claude Code's own
-worktree, never rename its generated branch: the app removes that worktree when the session is
-archived (`/adf:wrap-up`).
+worktree, never rename its generated branch: the app reuses that folder for a later session once
+this one is archived (`/adf:wrap-up`).
 
 A command that stops in the main checkout and hands itself here moves the same way, on the branch
 it names, and then runs in the worktree as the developer typed it.
@@ -101,7 +98,7 @@ it names, and then runs in the worktree as the developer typed it.
 |---|---|
 | "It's a one-line fix — I'll just do it here" | The main checkout is shared, and its base branch takes no commits. A change in any lane gets its worktree first. |
 | "I'll make the worktree before triage, to save time" | The triage names the branch, and an answer that only reads needs no worktree at all. |
-| "The app already gave this session a worktree, so it can work there" | The app's worktree sits at its worktree location — inside the main checkout by default — on a generated branch, without the env file, the setup, or a name after the branch. Tools that walk up find the main checkout's configuration. Create the task's worktree, and move. |
+| "The app already gave this session a worktree, so it can work there" | The app's worktree is on a generated branch, without the env file, the setup, or a name after the branch, and the app reuses its folder for a later session — with whatever this task left in it, its stack included. Create the task's worktree, and move. |
 | "This session is free now — I'll take the next task here" | One task per session, worktree, branch, and pull request. Another task in this session mixes their context and their history. Offer it a new session. |
 | "The plan is approved — I'll start a fresh session for the docs and implementation" | That's a phase of this task, not another task: it stays in this session. Two sessions on one branch split the context, and the waiting one wakes on every turn the other ends. Compact and switch the model here (`/adf:write-plan` step 12). |
 | "I'll ask whether to open a new session for it" | The chip is that question. Asking first makes the developer answer twice. |
@@ -119,7 +116,7 @@ it names, and then runs in the worktree as the developer typed it.
 ## Verification
 
 - [ ] The triage came first and named the branch — or a command that stopped in the main checkout named it
-- [ ] A change — or an answer that needed an environment — got its own worktree beside the main checkout before any edit, and `pwd` showed the session there
+- [ ] A change — or an answer that needed an environment — got its own worktree under `.claude/worktrees/` before any edit, and `pwd` showed the session there
 - [ ] An answer that only read stayed where it was and changed nothing
 - [ ] Another task got a new session, as a chip titled with the task or a `claude "<prompt>"` command, and this session kept to its own
 - [ ] A part of a split feature got the contract in its prompt, and where a change to it is recorded

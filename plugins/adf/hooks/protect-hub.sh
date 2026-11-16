@@ -20,4 +20,4 @@ worktree_settings "$root" >/dev/null || exit 0
 
 [ "$(git -C "$root" rev-parse --git-dir)" = "$(git -C "$root" rev-parse --git-common-dir)" ] || exit 0
 
-block "$root is the main checkout, which takes no edits. Give this task its own worktree first: state the triage if you haven't, then run /adf:dispatch, which creates the worktree beside this checkout on the branch triage names and moves this session there. Make the change from there."
+block "$root is the main checkout, which takes no edits. Give this task its own worktree first: state the triage if you haven't, then run /adf:dispatch, which creates the worktree under .claude/worktrees/ on the branch triage names and moves this session there. Make the change from there."

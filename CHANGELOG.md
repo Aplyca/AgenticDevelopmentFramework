@@ -50,6 +50,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     ends there.
   - **Upgrade impact:** overwrite for the plugin; committed install: `.claude/skills/wrap-up/`, and
     with the parallel-agents module, its guide in `docs/`.
+- **A task's worktree sits under `.claude/worktrees/`, never beside the main checkout**
+  ([#153](https://github.com/aplyca/AgenticDevelopmentFramework/issues/153), decision
+  [0082](docs/decisions/0082-task-worktrees-under-claude-worktrees.md)).
+  - **What:** with the parallel-agents module, `adf-worktree-new` creates every task's worktree in the
+    main checkout's `.claude/worktrees/`, named after its branch (`.claude/worktrees/feat-newsletter-signup`),
+    beside Claude Code's own. `WORKTREE_PARENT` is gone, and with the folder beside the main checkout
+    go the parent folder it needed, the desktop app's trust prompt for each worktree, and the
+    terminal's dead end in Claude Code's own worktree: `/adf:dispatch` moves the session with
+    `EnterWorktree` there too. The port lock moves to the shared git directory. A branch's worktree
+    from an older release, beside the main checkout, is reused where it is, and `adf-worktree-rm`
+    removes it as before. The script notes when git doesn't ignore `.claude/worktrees/`. The
+    parallel-agents guide lists the three ways a tool in a nested worktree can reach the main
+    checkout's files — packages and commands it lacks itself, TypeScript before 6.0's `@types`, and
+    ESLint's `.eslintrc` without `root: true` — and the fix for each. A spike behind the decision
+    found tools on current versions behave the same nested, and a container sees only the worktree.
+  - **Upgrade impact:** overwrite for the plugin (its hooks, skills, commands, and the guide);
+    committed install: `ops/agent/worktree-new.sh` and `_worktree-lib.sh`, the hooks in
+    `.claude/hooks/`, `.claude/skills/` (`dispatch`, `triage`, `spec-workflow`, `wrap-up`, `adopt`,
+    `upgrade`, `cost-report`, `track-time`), and with the parallel-agents module, its guide in
+    `docs/`. Merge for `ops/agent/worktree.conf`: delete the `WORKTREE_PARENT` block; a value set
+    there is ignored now. Check that `.gitignore` lists `.claude/worktrees/`. Worktrees already
+    beside the main checkout keep working until their tasks wrap up. A project whose tools hit one of
+    the three cases applies its fix (`PARALLEL-AGENTS.md` § Why the details matter).
 
 ## v2.9.0 — 2026-11-13 — GitLab alongside GitHub, fewer prompts, and lanes without a file count
 

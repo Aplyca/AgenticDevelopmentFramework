@@ -335,14 +335,14 @@ Each agent session gets its own git worktree — never two in one checkout. With
 [`parallel-agents` module](../modules/parallel-agents/MODULE.md), **each task gets its own session,
 worktree, folder, branch, and pull request.** Start a new session for each task, in the main
 checkout, and give it the task. It triages from there; then a change — or an answer that runs the
-app — goes to `/dispatch`, which creates the task's worktree beside the main checkout with the
+app — goes to `/dispatch`, which creates the task's worktree under `.claude/worktrees/` with the
 scripts (named after the branch, on a new branch, with the env file and, when the project needs one,
 a port) and moves the session into it, with no prompt in the desktop app. An answer that only reads
 stays in the main checkout. The main checkout takes no edits — one there collides with every other
 session — and a session that already has a task offers another one a new session: a task chip you
 start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.
-([decisions 0021](decisions/0021-sibling-worktree-and-chip.md) and
-[0042](decisions/0042-each-session-moves-to-its-task-worktree.md))
+([decisions 0042](decisions/0042-each-session-moves-to-its-task-worktree.md) and
+[0082](decisions/0082-task-worktrees-under-claude-worktrees.md))
 
 **Exercise (module installed):** start one session for the typo and another for the topics
 estimate. The typo's session moves to its worktree after triage; the estimate, an answer that only
