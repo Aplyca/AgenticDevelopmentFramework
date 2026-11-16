@@ -102,10 +102,40 @@ worktree sits.
     TypeScript case, a typecheck passes locally and fails in CI. The guide names each cause, and
     nothing checks for them.
   - **A team that set `WORKTREE_PARENT` loses it.**
-  - **Not verified at runtime yet:**
-    - that `EnterWorktree` moves into `.claude/worktrees/` without a prompt;
-    - that the desktop app's trust of the main checkout covers the nested folder;
-    - that the app never reuses or sweeps a worktree it didn't create.
+  - **Checked at runtime afterwards:** see § Found later. One check found a problem that isn't
+    this decision's: the desktop app no longer lets a session move out of its own worktree.
+
+## Found later (2026-11-15) — the runtime check
+
+Three probe sessions ran in the desktop app on this repository. Their targets were task worktrees
+that the module's script created under `.claude/worktrees/`. `adf-worktree-new` and
+`adf-worktree-rm` ran end to end, and the ignore note stayed quiet where git ignores the folder.
+
+- **The desktop app refuses to move a session out of its own worktree.**
+  - A session the app started in its own worktree called `change_directory` with the task's
+    worktree. The app's own hook refused it before any approval or trust check: the session "can't
+    be moved (it runs in an isolated worktree, shares another session's folder, or runs on a remote
+    host)". The app points at `request_directory` instead.
+  - The refusal doesn't depend on where the target sits, so it isn't this decision's. It stops the
+    move 0040 and 0042 rely on for every session that starts in the app's worktree, which includes
+    every chip's. `/adf:dispatch` falls back to giving the developer the path.
+  - Whether trusting the main checkout covers the nested folder stays unanswered: the move never
+    reached that check.
+- **`EnterWorktree` reaches the task's worktree without a prompt.**
+  - From a session already in a worktree, `EnterWorktree` into `.claude/worktrees/<task>` entered it
+    with no approval asked.
+  - Into a folder outside `.claude/worktrees/`, from the app's worktree, the session waited for the
+    developer's answer before it moved. The documentation's "always asks" holds; its "only under
+    `.claude/worktrees/` from a worktree session" doesn't.
+  - As 0021 found, the app keeps showing the session in its own folder after the move.
+- **The app leaves the scripts' worktrees alone.**
+  - Archiving a session parked only its own worktree, on a detached HEAD, and deleted no branch.
+  - The next new session reused that parked folder, on a new branch.
+  - A task worktree on its branch, in the same folder, stayed as it was through both.
+  - The app's sweep about 30 days after an archive wasn't tested.
+
+The location holds. The move out of the app's worktree is the open problem, for a decision of its
+own.
 
 ## Alternatives considered
 
