@@ -57,7 +57,7 @@ projects.
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
 | [0045](0045-agent-local-check-opens-the-draft.md) | The agent's own local check opens the draft, and the developer tests after it, locally and on the preview | accepted; amended by 0070, 0071, 0072 |
 | [0046](0046-a-scripted-upgrade-from-the-new-release.md) | An upgrade runs a script from the new release, and the developer approves only what needs a person | accepted |
-| [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted; amended by 0049 |
+| [0047](0047-sessions-move-to-done.md) | Sessions move to done: each turn ends with what's next, fewer stops, and a close-up for every ending | accepted; amended by 0049, 0080 |
 | [0048](0048-end-user-docs-in-the-doc-tool.md) | End-user docs live in the doc tool end users read, drafted before the code and published once it ships (end-user-docs module) | accepted |
 | [0049](0049-every-lane-pushes-without-asking.md) | Every lane commits, pushes, and opens its draft without asking — a standing go-ahead | accepted |
 | [0050](0050-spec-records-name-roles-and-contracts.md) | Spec folders name roles, a change request can ride the open pull request, and a split feature shares one written contract | accepted; refined by 0054 |
@@ -90,6 +90,7 @@ projects.
 | [0077](0077-the-container-is-the-boundary-for-make-run.md) | In Docker mode the container is the boundary: `make run` runs any command in the app's container without a prompt, a hook asks wherever it would run on the host, and the specification says what the container doesn't protect | accepted; amended by 0078 |
 | [0078](0078-docker-and-make-run-without-a-prompt.md) | Docker and make commands run without a prompt: the docker module adds no ask rule, `make reset` included, and the developer's yes in chat is what protects local data | accepted |
 | [0079](0079-no-file-count-in-the-lanes.md) | No file count in the lanes: the fast lane is a precise request in one layer however many files it touches, and "more than ~3 files" no longer sends a change to the full lane | accepted |
+| [0080](0080-answers-in-the-main-checkout-close-up-there.md) | Answers in the main checkout close up there: `/adf:wrap-up` checks what the session made, delivers a tracker answer, and archives it, without switching, pulling, or deleting the branch checked out there | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
