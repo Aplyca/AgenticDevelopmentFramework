@@ -26,6 +26,32 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/skills/record-decision/`, and `.claude/skills/framework-feedback/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
     writes with the other reference docs.
 
+- **Reading `git config`, a release, or the secrets' names runs without a prompt**
+  ([decision 0088](docs/decisions/0088-reads-of-git-config-releases-and-secrets-run.md), amends
+  [0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). In two weeks of sessions,
+  40 prompts were for reads: `git config core.hooksPath` before a commit, `gh release list` or
+  `view`, `gh secret list`. `bypassPermissions` wouldn't have removed them, since an ask rule
+  prompts in every mode.
+  - **`git config`:** the `Bash(git config *)` ask rule goes, because no pattern can tell a read
+    from a write. `guard-git.sh` asks before a change (a name and a value, `--unset`, `--add`,
+    `--edit`, a section rename, the `set` and `unset` subcommands) and lets a get or list form, or
+    a name alone, run. A form it can't read asks.
+  - **Releases and secrets:** `Bash(gh release *)` and `Bash(gh secret *)` become rules for the
+    subcommands that write: `gh release create`, `new`, `edit`, `upload`, `delete`, `delete-asset`,
+    and `gh secret set`, `delete`, `remove`. GitLab's rules stay: `glab variable get` prints a value.
+  - `.claude/rules/claude-code.md`'s **Ask first** line names writes and says the reads run.
+  - **Upgrade impact:** overwrite for the plugins. Committed install: overwrite
+    `.claude/hooks/guard-git.sh`.
+    - **Merge:** `.claude/settings.json` — `/adf:upgrade`'s three-way merge drops the three rules
+      and adds the nine, each listed under Permission changes; a project that edited those lines
+      resolves them by hand. `.claude/rules/claude-code.md` — the **Ask first** line.
+    - **Behavior on upgrade:** `git config` reads, `gh release list`/`view`/`download`, and
+      `gh secret list` run without a prompt; a `git config` change still asks, now through the hook.
+  - **Framework docs and records** (framework-internal): the hooks README and `ONBOARDING.md`
+    name the new ask; decision 0038's status and the index name 0088.
+  - **Evals** (framework-internal): `test-hooks.sh` checks 27 `git config` forms, reads and writes;
+    `check-skills.sh` checks the release and secret rules both ways.
+
 ## v2.10.0 — 2026-11-16 — Docker mode with nothing on the host, worktrees under `.claude/worktrees/`, and follow-ups filed as issues
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

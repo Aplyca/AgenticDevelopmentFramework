@@ -49,7 +49,7 @@ projects.
 | [0035](0035-move-into-the-worktree-without-a-prompt.md) | A dispatched session moves into its task's worktree without a prompt | accepted; amended by 0085 |
 | [0036](0036-wrap-up-after-the-merge.md) | After the merge, a task's session wraps itself up with one yes | accepted; amended by 0055, 0061, 0067 |
 | [0037](0037-end-to-end-tests.md) | End-to-end tests follow a specification: Playwright in `e2e/`, against the checkout's own stack | accepted; amended 2026-10-16 |
-| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted; amended by 0074, 0077, 0078 |
+| [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted; amended by 0074, 0077, 0078, 0088 |
 | [0039](0039-check-locally-then-on-the-preview.md) | An agent checks a change locally first, then on the pull request's preview | accepted; amended by 0045, 0047, 0070, 0072 |
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted; amended by 0042, 0083, 0085 |
 | [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted |
@@ -99,6 +99,7 @@ projects.
 | [0085](0085-the-session-moves-with-enterworktree.md) | A session moves to its task's worktree with `EnterWorktree`, in the desktop app too: the app refuses `change_directory` from its own worktree, and the approve-worktree-move hook answers `EnterWorktree` as well; the app keeps showing the session in the folder it started in | accepted |
 | [0086](0086-one-prose-pass-for-text-people-read.md) | One prose pass for the text people read: `PROSE-PATTERNS.md`, a reference doc, lists the machine-written patterns to cut; `/stakeholder-update`, `/end-user-docs`, `/write-docs`, `/open-pr`, `/record-decision`, and `/framework-feedback` run it on each draft, and the destination's own conventions win | accepted |
 | [0087](0087-a-merge-wakes-an-idle-session.md) | A merge wakes an idle session: the pr-state hook also runs at Stop with `asyncRewake`, watches an open pull request every five minutes for `PR_WATCH_HOURS`, and exits 2 on a merge or close, which wakes the session to offer the wrap-up | accepted |
+| [0088](0088-reads-of-git-config-releases-and-secrets-run.md) | Reading `git config`, a release, or the secrets' names runs without a prompt: the git guard hook asks before a `git config` change in place of an ask rule, and the `gh release` and `gh secret` rules name their write subcommands | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
