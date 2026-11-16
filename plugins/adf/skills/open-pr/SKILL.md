@@ -6,6 +6,8 @@ argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md] | refre
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/open-pr/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Open a Pull Request, and Mark It Ready
 
 Pushing and opening a pull request leave this machine. Your own local check is what lets them:
@@ -142,6 +144,9 @@ and skip the steps below.
    migration that drops or rewrites data, a sent email, a published URL or API contract, or a
    changed external integration is not undone by a revert — say what isn't.
 
+   Then run the prose pass on what you wrote, `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`: the
+   template's headings and labels stay.
+
 5. **Push and open the draft.** Don't report yet — the developer hears from you once, in step 10:
    ```bash
    git push -u origin <type>/<slug>
@@ -184,7 +189,8 @@ and skip the steps below.
 
    **Write the review instructions first.** The description is how you talk to the developer who
    reviews it. Just before marking it ready, rebuild two of its sections, as
-   `<this skill's base directory>/refresh.md` steps 3–6 say: *How to review and test* — where (the
+   `<this skill's base directory>/refresh.md` steps 3–6 say, and run the prose pass on them
+   (step 4): *How to review and test* — where (the
    preview), the steps to try and what to expect, what deserves their attention, the tests — and
    *Verified / not verified*, the summary of what you tested and reviewed, and what you couldn't.
    The reviewers you request next find them there.
@@ -301,6 +307,7 @@ and skip the steps below.
 - [ ] "Verified / not verified" matches `tasks.md` § Gate results
 - [ ] Before each push, the spec folder was complete in the branch: every task ticked or struck through as a follow-up, the gate results, `status: implemented`
 - [ ] The description matches the diff — no phantom or missing changes
+- [ ] The prose pass ran on the body, and again on the sections rebuilt before ready
 - [ ] Merge danger says whether a revert undoes the change and what it affects if wrong
 - [ ] The pull request URL is recorded in `spec.md` `pull-requests:`
 - [ ] For a tracker task, once the pull request was ready: the task moved to the review status on its own, and the review update — the business outcome, the preview and what to test there, the pull request for reference — was posted and shown in the report; a requester's issue is referenced with `Refs`, not closed

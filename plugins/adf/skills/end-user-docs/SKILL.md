@@ -6,6 +6,8 @@ argument-hint: "[spec folder or tracker task] [draft | update | publish]"
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/end-user-docs/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # End-User Docs
 
 A feature can need two kinds of documentation, and each has its own home:
@@ -74,6 +76,9 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
    - a draft opens with one line — "Draft — not yet released. Spec: `<spec folder>`" — and the
      published page carries no draft line.
 
+   Then run the prose pass, `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`: the end-user doc's own
+   conventions win over it.
+
 5. **Show the full draft,** as the last text of your turn: the page in full, where it goes, and — for
    an existing page — what changes on it and every edit made in the tool since the draft (step 6).
    Then ask before posting: the yes is to this exact text, every time, even when the developer asked
@@ -131,6 +136,7 @@ spec's § Documentation › End-user docs says. The page follows the feature in 
 - [ ] The spec lists the page — or, with no spec folder, the developer confirmed end users need it
 - [ ] Every step, message, and limit is backed by an AC, an edge case, a test, or the built product; nothing is fabricated
 - [ ] The page follows § Page structure, in the end users' language and the product's labels, with nothing technical
+- [ ] The prose pass ran before the page was shown
 - [ ] The full page was shown, written only on the yes to that text, through the project's server, and read back
 - [ ] A draft went to the drafts location; only a shipped feature's page went to the end-user doc
 - [ ] At publish: the live page's edits were shown first, no placeholder or draft line was left, and the draft was retired
