@@ -135,7 +135,8 @@ a project misses. A project that departs from one on purpose records it, with th
     left to the permission rules. Empty `APPROVE_CONTAINER_RUN` in `.claude/hooks/config.sh` keeps
     the ask in every mode.
   - **What the container bounds:** the host outside the checkout — the home directory, other
-    repositories and worktrees, SSH keys, the Docker daemon — as long as `compose.yaml` hands the
+    repositories and worktrees (those nested in the main checkout too, behind D5's `tmpfs`), SSH
+    keys, the Docker daemon — as long as `compose.yaml` hands the
     tools service none of it (D5).
   - **What it doesn't bound:**
     - the checkout, mounted with its `.git` and its `.env`: a command can change or delete any file
@@ -288,7 +289,9 @@ a project misses. A project that departs from one on purpose records it, with th
 - **D5.** The app's service and the tools service get nothing of the host but the checkout. Their
   volumes are the checkout and named volumes — never the Docker socket, the home directory, or
   another path outside the checkout — and neither is `privileged` or has `pid: host` or
-  `network_mode: host`. `make run` runs any command in the tools service without a prompt (C10),
+  `network_mode: host`. The worktrees nested in the checkout, `.claude/worktrees/`, are hidden
+  behind an empty `tmpfs` mounted over that folder: they're other checkouts, and in the main
+  checkout the mount would hand every one of them, `.env` included, to the container. `make run` runs any command in the tools service without a prompt (C10),
   and the app's code runs in the app's, so what either reaches is what an agent reaches. A project whose app needs one of those sets `APPROVE_CONTAINER_RUN=""`
   (`.claude/hooks/config.sh`) and records the exception. No hook checks this: the audit does.
 - **D6.** **Docker mode's tools run in a service of their own, `tools`:**

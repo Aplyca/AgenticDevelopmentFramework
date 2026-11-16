@@ -135,6 +135,10 @@ triage; a dispatched session always creates its worktree with `--no-start`.
     `compilerOptions.types`, or upgrade.
   - ESLint's `.eslintrc` merges the configs of parent folders: set `"root": true`, or move to the flat
     config (`eslint.config.js`).
+
+  The other way round, the main checkout holds every worktree. With the `docker` module, its
+  containers mount it with `.claude/worktrees/` hidden behind an empty folder, so a command run there
+  reaches no worktree's files or `.env`.
 - **A change request after the merge gets a fresh branch** (`feat/newsletter-signup-topics`), never
   the feature's old one (feedback before the merge rides the open branch): a branch kept after a
   squash merge carries pre-merge history. The script warns when it reuses a local branch that is
