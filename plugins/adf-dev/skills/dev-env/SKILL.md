@@ -174,6 +174,8 @@ before it moved); without it, say so and stop.
    - `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`, plus an empty `<NAME>_PORT=` line for each
      port the main checkout pins — each worktree's project gets a clear name, and its ports stay
      Docker's;
+   - `SETUP_CMD` empty, or a task such as `make build` — never a host install (`npm ci`), which
+     Docker mode never uses: its tests and checks run in containers (C10);
    - `START_CMD="make up"` — in the worktree's mode, which its `.env` sets — and
      `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`: it stops an app running on the
      host, then removes only this worktree's project, since its `COMPOSE_PROJECT_NAME` is that
