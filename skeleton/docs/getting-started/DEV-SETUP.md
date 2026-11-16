@@ -117,12 +117,27 @@ Code would read it instead of `AGENTS.md`.
 claude  # Start Claude Code in the project directory
 ```
 
-**Claude Code needs no install step.** Open a session in the project — in the terminal, the desktop
-app, or an IDE — and accept the prompt to trust the folder. The committed `.claude/settings.json`
-then turns on the hooks, the permissions, and the framework's plugin, `adf`, at the release
-the project pins; Claude Code downloads the plugin, and `/plugin` lists it. Don't install it yourself,
-and never at user scope, which turns it on in every project on your machine. Cloud sessions don't
-load it.
+**Claude Code usually needs no install step.** Open a session in the project — in the terminal, the
+desktop app, or an IDE — and accept the prompt to trust the folder. The committed
+`.claude/settings.json` then turns on the hooks, the permissions, and the framework's plugin, `adf`,
+at the release the project pins; Claude Code downloads the plugin, and `/plugin` lists it. Cloud
+sessions don't load it.
+
+If typing `/adf:` offers nothing, the plugin didn't download — on a machine whose copy of the
+`aplyca` marketplace is older than this project's release, for instance, since Claude Code keeps
+one copy for every project. From the project's folder, refresh it and install each plugin
+`.claude/settings.json` turns on, then start a new session:
+
+```bash
+claude plugin marketplace update aplyca
+claude plugin install adf@aplyca --scope project
+claude plugin install adf-dev@aplyca --scope project      # when the settings turn it on
+claude plugin install adf-connect@aplyca --scope project  # when the settings turn it on
+```
+
+They only download what the settings already turn on, so the file doesn't change. Always pass
+`--scope project`: without it, Claude Code installs at user scope, which turns the plugin on in
+every project on your machine.
 
 Key commands:
 - `/triage [task link]` — read a task in full and decide what it needs, before setting anything up

@@ -11,6 +11,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Joining a project says what to run when trusting the folder didn't download the plugin**
+  ([#80](https://github.com/aplyca/AgenticDevelopmentFramework/issues/80)).
+  - **What:** the README, the plugin's README, `docs/SETUP.md`, and the skeleton's `DEV-SETUP.md`
+    said a teammate needs no install step: trusting the folder downloads the plugins the project
+    turns on. On a machine with an older copy of the `aplyca` marketplace — Claude Code keeps one for
+    every project — it didn't, and nothing named the fix. Each now gives the commands, from the
+    project's folder: `claude plugin marketplace update aplyca`, then
+    `claude plugin install <plugin>@aplyca --scope project` for each plugin the settings turn on.
+    `DEV-SETUP.md` drops "Don't install it yourself" and keeps the rule against user scope; the
+    README names the command that removes a leftover `aplyca-adf@aplyca`. A static check holds the
+    commands in the README's joining note and in `DEV-SETUP.md`.
+  - **Upgrade impact:** merge for `docs/getting-started/DEV-SETUP.md` (§ AI-assisted development:
+    the "Claude Code usually needs no install step" paragraph and the new commands after it). No
+    other project file changes.
 - **A pull request turns ready once CI goes green under the desktop app's Auto-fix**
   ([#150](https://github.com/aplyca/AgenticDevelopmentFramework/issues/150)).
   - **What:** the Claude desktop app's Auto-fix tells the agent not to poll CI, and wakes it for a
