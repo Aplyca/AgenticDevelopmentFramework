@@ -1,6 +1,6 @@
 # 0035: A dispatched session moves into its task's worktree without a prompt
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0085](0085-the-session-moves-with-enterworktree.md) (the hook answers `EnterWorktree` too, the move's tool in the desktop app and a terminal)
 - **Date:** 2026-10-11
 - **Amends:** [0021](0021-sibling-worktree-and-chip.md) — "the move takes one approval of the new folder"
 

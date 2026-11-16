@@ -31,10 +31,11 @@ TRIAGE_FIRST="1"
 # module it has no effect. Empty disables.
 HUB_READONLY="1"
 
-# A session moves from the main checkout into its task's worktree (/dispatch) with the desktop app's
-# change_directory. "1" approves that move in Claude Code's permission check when the folder is a
-# worktree of this repository; any other folder still prompts. The app's own folder-trust check still
-# asks until you trust the folder that holds the main checkout and its worktrees. Empty disables.
+# A session moves into its task's worktree (/dispatch) with EnterWorktree, or the desktop app's
+# change_directory when asked to. "1" approves that move in Claude Code's permission check when the
+# folder is a worktree of this repository; any other folder still prompts. For change_directory, the
+# app's own folder-trust check still asks until you trust the folder that holds the main checkout and
+# its worktrees. Empty disables.
 APPROVE_WORKTREE_MOVE="1"
 
 # CUSTOMIZE: a tracker task's status moves on the agent's own — in progress, in review, delivered —

@@ -156,7 +156,10 @@ the close-up only once it resumes and ends.
 
 6. **On the yes, close up in this order.** Removing the worktree takes away this session's folder,
    and a session without its folder can't start another: the follow-ups start before it, and after
-   it, run nothing but the archive.
+   it, run nothing but the archive. A session that moved to its worktree with `EnterWorktree`
+   (`/adf:dispatch`) leaves it once step 1 is done: Claude Code refuses that session's git commands
+   in the main checkout, which steps 2 and 5 run. `ExitWorktree` with `keep` brings it back to the
+   folder it started in, and leaves the worktree for step 5.
    1. **Stop what the task started.**
       - The background commands this session started.
       - The environment — stopped since the pull request was ready, or still running: `make down`

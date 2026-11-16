@@ -92,8 +92,9 @@ if worktree_conf="$(worktree_settings "$root")"; then
   if [ "$checkout" = "main checkout" ]; then
     # Each task takes the session it starts in (decision 0042): after triage, /adf:dispatch creates the
     # task's worktree under .claude/worktrees/ with the scripts (decision 0083) and moves this session
-    # there. Hooks don't run again after the move, so the route is spelled out here.
-    echo "- Main checkout: sessions start here, and edits are stopped here. Triage the task first. A change, or an answer that runs the app, the tests, or the database, then gets its own worktree: /adf:dispatch creates it under .claude/worktrees/${base_branch:+, on a new branch from $base_branch,} and moves this session there. An answer that only reads stays here. Once this session has a task, another one goes to a new session — /adf:dispatch offers it."
+    # there with EnterWorktree (decision 0085). Hooks don't run again after the move, so the route is
+    # spelled out here.
+    echo "- Main checkout: sessions start here, and edits are stopped here. Triage the task first. A change, or an answer that runs the app, the tests, or the database, then gets its own worktree: /adf:dispatch creates it under .claude/worktrees/${base_branch:+, on a new branch from $base_branch,} and moves this session there with EnterWorktree. An answer that only reads stays here. Once this session has a task, another one goes to a new session — /adf:dispatch offers it."
   else
     echo "- Role: WORKER. One task, in its own worktree — start with triage (/adf:triage). Another task goes to a new session: /adf:dispatch offers it."
     # The scripts mark the worktrees they set up; ones made before the marker are named after their branch.
@@ -107,11 +108,12 @@ if worktree_conf="$(worktree_settings "$root")"; then
       fi
       if [ "$branch" = "detached HEAD" ] || [ -n "$generated" ]; then
         # Claude Code's own worktree, not yet a task's: the desktop app gives every chip's session one, so
-        # a dispatched worker starts here and moves to the task's worktree (decisions 0040 and 0083).
+        # a dispatched worker starts here and moves to the task's worktree (decisions 0040 and 0083),
+        # with EnterWorktree: the app refuses change_directory from its own worktree (decision 0085).
         # The app reuses this folder for a later session, so a task worked here would hand its files
         # and its stack on to that one.
         if [ -n "$generated" ]; then on="a generated branch ($branch)"; else on="a detached HEAD"; fi
-        echo "- This session started in Claude Code's own worktree, on $on. A task gets a worktree of its own, named after its branch: triage the task, then /adf:dispatch creates it under .claude/worktrees/ on the branch triage names and moves this session there. Edit and commit nothing here, and don't rename this branch: the app reuses this folder once the session is archived."
+        echo "- This session started in Claude Code's own worktree, on $on. A task gets a worktree of its own, named after its branch: triage the task, then /adf:dispatch creates it under .claude/worktrees/ on the branch triage names and moves this session there with EnterWorktree (the app refuses change_directory from here). Edit and commit nothing here, and don't rename this branch: the app reuses this folder once the session is archived."
       else
         if [ -n "$env_file" ] && [ -f "$main/$env_file" ] && [ ! -e "$root/$env_file" ]; then
           echo "- No $env_file here. Claude Code copies it into the worktrees it creates when .worktreeinclude lists it."

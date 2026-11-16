@@ -34,14 +34,16 @@ desktop app opens it, and gives it the task. That session becomes the task's:
    folder in the main checkout's `.claude/worktrees/` named after the branch (`feat/newsletter-signup`
    → `.claude/worktrees/feat-newsletter-signup`), on a new branch from `BASE_BRANCH`, with the env
    file seeded from the main checkout's and, when worktrees run a server, a port reserved. Nothing
-   starts. Then it moves the session there:
-   - **Desktop app:** `change_directory` to the path the script printed. The approve-worktree-move
-     hook approves a worktree of this repository, so Claude Code's permission check doesn't ask, and
-     the app then shows the session in that folder.
-   - **Terminal:** `EnterWorktree` with that path.
+   starts. Then it moves the session there with `EnterWorktree` and the path the script printed, in
+   the desktop app and in a terminal alike. The approve-worktree-move hook approves a worktree of
+   this repository, so Claude Code's permission check doesn't ask. The app refuses its own
+   `change_directory` for a session in the app's worktree, which every chip's is, or in a folder
+   another session shares.
 
-   `pwd` confirms the move. If it's refused, the session gives the developer the worktree's path and
-   stops; the developer opens a session on that folder.
+   `pwd` confirms the move. The desktop app keeps showing the session in the folder it started in;
+   the pull request still reaches the session's PR bar when the session opens it. If the move is
+   refused, the session gives the developer the worktree's path and stops; the developer opens a
+   session on that folder.
 3. **It carries on with the task there,** from where the triage left it, to delivery: the task's
    phases never move to another session (`COST-MODEL.md` § Between phases). Session-start hooks
    don't run again after the move, so it reads its spec folder itself.

@@ -907,6 +907,10 @@ check_practices() {
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
     grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
     file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
+    # The app refuses change_directory from its own worktree: the session moves with EnterWorktree (0085).
+    grep -q '"matcher": "EnterWorktree|mcp__ccd_directory__change_directory"' "$SETTINGS" || missing+=("settings.json: approve-worktree-move answers EnterWorktree too (0085)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'Move this session into it\*\* with `EnterWorktree`' || missing+=("/dispatch: the session moves with EnterWorktree, in the desktop app too (0085)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '`ExitWorktree` with `keep`' || missing+=("/wrap-up: a session that entered its worktree leaves it before the main checkout's git steps (0085)")
     # A status-only tracker update needs no prompt (0076): the hook, its settings, and the rule that keeps the call status-only.
     grep -q 'approve-status-move.sh' "$SETTINGS" || missing+=("settings.json: approve-status-move hook (0076)")
     file_contains "$HOOKS_DIR/config.sh" '^APPROVE_STATUS_MOVE=""' || missing+=("config.sh: APPROVE_STATUS_MOVE, empty in the skeleton (0076)")

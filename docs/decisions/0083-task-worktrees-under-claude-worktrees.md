@@ -1,6 +1,6 @@
 # 0083: A task's worktree sits under `.claude/worktrees/` — no worktree beside the main checkout (parallel-agents module)
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0085](0085-the-session-moves-with-enterworktree.md) (the move out of the app's worktree, its § Found later's open problem, is `EnterWorktree`)
 - **Date:** 2026-11-15
 - **Amends:** [0021](0021-sibling-worktree-and-chip.md) — where the scripts put a task's worktree;
   [0040](0040-workers-move-out-of-the-apps-worktree.md) — why a session leaves the desktop app's

@@ -14,7 +14,7 @@ depending on what the model decides. They are wired in `../settings.json`.
 | `careful-paths.sh` | PreToolUse · Edit/Write | The first edit in each sensitive area (`CAREFUL_GLOBS`) is stopped once per session, so the agent confirms the change is in the careful or full lane before going on. Empty `CAREFUL_GLOBS` turns it off |
 | `triage-first.sh` | PreToolUse · Edit/Write, Bash | A nudge: if the session's reply text states no lane yet, the first file edit or new branch (`git switch -c`, `git checkout -b`, `git branch <name>`, `git worktree add`) is stopped once with a reminder to write the triage where the developer can read it (`AGENTS.md` § Triage first). Subagents are exempt. Empty `TRIAGE_FIRST` turns it off |
 | `protect-hub.sh` | PreToolUse · Edit/Write | With the parallel-agents module installed, stops every file edit in the main checkout, so each task moves to its own worktree first, and lets edits in worktrees through. Without the module it does nothing. Empty `HUB_READONLY` turns it off. Writes made through Bash aren't seen |
-| `approve-worktree-move.sh` | PreToolUse · the desktop app's `change_directory` | Approves a session's move into a linked worktree of the same repository — a session's move from the main checkout into its task's worktree (`/adf:dispatch`) — so Claude Code's permission check doesn't ask. Any other folder still prompts. The app's own folder-trust check isn't a permission, and no hook answers it: see [Moving into a worktree](#moving-into-a-worktree). Empty `APPROVE_WORKTREE_MOVE` turns it off |
+| `approve-worktree-move.sh` | PreToolUse · `EnterWorktree`, and the desktop app's `change_directory` | Approves a session's move into a linked worktree of the same repository — a session's move into its task's worktree (`/adf:dispatch`), from the main checkout or the app's own worktree — so Claude Code's permission check doesn't ask. Any other folder still prompts. The app's own folder-trust check isn't a permission, and no hook answers it: see [Moving into a worktree](#moving-into-a-worktree). Empty `APPROVE_WORKTREE_MOVE` turns it off |
 | `approve-status-move.sh` | PreToolUse · MCP tools | Approves a call to the tracker tool `APPROVE_STATUS_MOVE` names when it carries nothing but the fields in `STATUS_MOVE_FIELDS` — the task's identifier and its status — so the status moves the agent makes on its own (in progress, in review, delivered) don't prompt (decision 0076). Says nothing about any other call, which still prompts: a comment or any other post, and an update that also touches an assignee, a date, or the description. It reads the call, not whose task it is or which way the status moves. Empty `APPROVE_STATUS_MOVE` turns it off |
 | `approve-container-run.sh` | PreToolUse · Bash | With the docker module, decides `make run cmd='…'`, which runs a command it's given, by the checkout's mode (decision 0077) — a rule can't read the mode, and an ask rule would win over the hook, so the module has none for it. Approves the call written on its own when the mode is Docker — `DEV_MODE` in the environment, then in `.env`, then `DEFAULT_MODE` — and the `run` task in `ops/docker/Makefile` hands the command to Compose's `run` or `exec` as one argument: it runs in the tools service's container (decision 0084), or an older stack's app container. Asks before any other `make … run`: native mode, where it runs on the host; a mode it can't read; a task of another form; `make` pointed at another folder; a `$` or backquote the host would expand. A call followed by a pipe or another command is left to the permission rules. Without the module it does nothing. Empty `APPROVE_CONTAINER_RUN` asks in every mode |
 | `check-env-declared.sh` | PostToolUse · Edit/Write | After an edit, reports environment variables the file reads that the env template (`.env.example` or similar) doesn't declare, so Claude declares them. With no env template in the repository it does nothing — add one, or set `ENV_TEMPLATE` |
@@ -46,12 +46,16 @@ it, `python3` (`.py`).
 
 ## Moving into a worktree
 
-The desktop app checks a session's move twice. The approve-worktree-move hook answers the first,
-Claude Code's permission check. The second is the app's own: it asks before it moves a session into
-a folder outside every folder you trusted ("This folder isn't in a workspace you've trusted"), and a
-hook can't answer it. A task's worktree sits under `.claude/worktrees/` in the main checkout
-(decision 0083), so trusting the main checkout covers it. A worktree from an older release, beside
-the main checkout, asks once.
+A session moves into its task's worktree with `EnterWorktree`, in the desktop app too: the app
+refuses `change_directory` for a session in its own worktree, which every chip's is, or in a folder
+another session shares (decision 0085). The approve-worktree-move hook answers Claude Code's
+permission check for either tool. `EnterWorktree` enters a task's worktree under `.claude/worktrees/`
+(decision 0083) with no other prompt, and the app keeps showing the session in the folder it started
+in.
+
+`change_directory`, where the app allows it, has a second check of the app's own: it asks before it
+moves a session into a folder outside every folder you trusted ("This folder isn't in a workspace
+you've trusted"), and a hook can't answer it. Trusting the main checkout covers its worktrees.
 
 ## Disable or extend
 
