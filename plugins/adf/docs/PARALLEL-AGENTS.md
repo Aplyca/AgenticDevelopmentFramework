@@ -71,6 +71,11 @@ word that it merged, or one yes when the merge was only reported — it stops wh
 starts the follow-ups the developer keeps, removes the worktree and its branch, and archives the session. If anything is left, it lists it and
 removes nothing.
 
+**An answer that only reads ends in the main checkout,** and `/adf:wrap-up` closes its session up
+there: it checks what that session left — a stash it made, a command it started, a follow-up it
+promised — posts the delivered update for a tracker task, and archives the session. It switches,
+pulls, and deletes no branch, and leaves anything another session or the developer made.
+
 The worktree can run the app, because the scripts gave it the env file and its port; the session
 starts the environment only when a step needs it.
 
