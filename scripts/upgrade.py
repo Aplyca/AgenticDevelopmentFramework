@@ -896,9 +896,23 @@ class Upgrade:
             checks.append({"check": "hook smoke tests", "ok": None, "note": "run on the real run"})
             return
         plugin_root = os.path.join(FRAMEWORK, "plugins", "adf")
+        # The smoke run checks that each hook starts and answers, not what the network says: gh and
+        # glab are stubs that fail at once, so pr-state.sh never reaches the developer's account.
+        stubs = tempfile.mkdtemp(prefix="adf-upgrade-smoke-")
+        for cli in ("gh", "glab"):
+            with open(os.path.join(stubs, cli), "w", encoding="utf-8") as f:
+                f.write("#!/bin/sh\nexit 1\n")
+            os.chmod(os.path.join(stubs, cli), 0o755)
+        env = dict(os.environ, CLAUDE_PLUGIN_ROOT=plugin_root, CLAUDE_PROJECT_DIR=self.repo,
+                   PATH=stubs + os.pathsep + os.environ.get("PATH", ""))
+        try:
+            self.smoke_hooks(plugin_root, env, checks)
+        finally:
+            shutil.rmtree(stubs, ignore_errors=True)
+
+    def smoke_hooks(self, plugin_root, env, checks):
         with open(os.path.join(plugin_root, "hooks", "hooks.json"), encoding="utf-8") as f:
             wiring = json.load(f)["hooks"]
-        env = dict(os.environ, CLAUDE_PLUGIN_ROOT=plugin_root, CLAUDE_PROJECT_DIR=self.repo)
         seen = set()
         for event, groups in wiring.items():
             for group in groups:

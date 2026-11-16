@@ -11,15 +11,7 @@ source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 file_path="$(json_get '.tool_input.file_path')"
 [ -n "$file_path" ] || exit 0
 
-cwd="$(json_get '.cwd')"
-[ -d "$cwd" ] || cwd="$PWD"
-case "$file_path" in /*) ;; *) file_path="$cwd/$file_path" ;; esac
-file_path="$(physical_path "$file_path")"
-
-root="$(repo_root_for "$file_path")"
-[ -n "$root" ] || exit 0
-root="$(physical_path "$root")"
-relative="${file_path#"$root"/}"
+repo_relative "$file_path" || exit 0
 
 if matches_any "$relative" "$GENERATED_GLOBS"; then
   block "$relative is generated. Regenerate it with the tool that owns it (package manager, codegen) instead of editing it by hand."

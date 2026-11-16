@@ -28,6 +28,7 @@ def run(ctx):
     permissions["ask"] = [rule for rule in ask if rule != RULE]
     ctx.save_settings(settings)
     return "applied", (f"removed `{RULE}` from `permissions.ask`: the approve-container-run hook now approves "
-                       "`make run` in Docker mode, where it runs in the app's container, and asks in native "
+                       "`make run` in Docker mode, where it runs in a container (the tools service's, or an older "
+                       "stack's app's), and asks in native "
                        "mode. It asks in Docker mode too until the `run` task in `ops/docker/Makefile` meets "
                        "the specification's C10 (`/dev-env set up` audits it)")

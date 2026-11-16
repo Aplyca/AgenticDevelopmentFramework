@@ -1,4 +1,4 @@
-# AI-Assisted Development Onboarding
+# Agentic Development Framework Onboarding
 
 A two-week path for a team adopting the framework: **multi-perspective spec-driven, test-driven,
 docs-first development, with AI agents working under the same rules as people.** Week 1 takes one

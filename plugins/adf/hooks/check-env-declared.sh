@@ -17,11 +17,7 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
-file_path="$(physical_path "$file_path")"
-root="$(repo_root_for "$file_path")"
-[ -n "$root" ] || exit 0
-root="$(physical_path "$root")"
-relative="${file_path#"$root"/}"
+repo_relative "$file_path" || exit 0
 matches_any "$relative" "$ENV_CHECK_EXCLUDE" && exit 0
 
 template="$ENV_TEMPLATE"
