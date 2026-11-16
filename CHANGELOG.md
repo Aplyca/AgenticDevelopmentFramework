@@ -36,6 +36,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Upgrade impact:** additive for the plugin; committed install: `.claude/skills/framework-feedback/`
     (additive). Merge for `AGENTS.md` (the clause in "Report what you find along the way") and
     `specs/README.md` (the new row in § Found along the way).
+- **An answer in the main checkout closes up there**
+  ([#151](https://github.com/aplyca/AgenticDevelopmentFramework/issues/151), decision
+  [0081](docs/decisions/0081-answers-in-the-main-checkout-close-up-there.md)).
+  - **What:** with the parallel-agents module, `/adf:wrap-up` stopped at step 1 for any session in
+    the main checkout, wording left over from the dispatcher hub. A read-only answer, which stays
+    there, never got its check for leftovers, the delivered update for a tracker task, or its
+    archive. Step 1 now closes such a session up as an answer. It skips the pull request's read,
+    the base update, and both branch deletions, and never switches, pulls, or deletes the branch
+    checked out there. Only what this session made counts as left over and is stopped; anything
+    else in the shared checkout is named once and left. Two rationalizations, the red flag that
+    named the hub, and a Verification line match, and the parallel-agents guide says how an answer
+    ends there.
+  - **Upgrade impact:** overwrite for the plugin; committed install: `.claude/skills/wrap-up/`, and
+    with the parallel-agents module, its guide in `docs/`.
 
 ## v2.9.0 — 2026-11-13 — GitLab alongside GitHub, fewer prompts, and lanes without a file count
 
