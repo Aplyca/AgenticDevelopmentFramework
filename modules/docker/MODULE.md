@@ -5,8 +5,8 @@ to the [local environment specification](https://github.com/aplyca/AgenticDevelo
 proposes the move — runs the app natively when
 the developer prefers, gives each worktree a stack of its own when the project runs agents in
 parallel, diagnoses a stack that won't start the way `/debug` diagnoses a bug, and resets one without
-touching anything else on the machine. Docker and `make` commands run without a prompt; only `make run` asks, where
-it runs on the host.
+touching anything else on the machine. Docker and `make` commands run without a prompt, `make run` included, which
+in native mode runs its command on the host.
 
 ## The conventions
 
@@ -39,7 +39,7 @@ skill's templates are an example that meets it. In short ([decision 0032](https:
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt, and no ask rule names an exception — they act on this project's local stack, whose data comes back from the seed ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)). `permissions.deny` for what would change the local mode, which only the developer does (M10): a `make` command or a leading assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, and an edit to `.env`. `make run` has no rule: the `approve-container-run.sh` hook, which the `adf` plugin carries, decides it by the checkout's mode (C10, [decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md)) |
+| `.claude/settings.json` (merged) | `permissions.allow` for `docker *` and `make *`: the stack's commands and the project's tasks run without a prompt, and no ask rule names an exception — they act on this project's local stack, whose data comes back from the seed ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)). `permissions.deny` for what would change the local mode, which only the developer does (M10): a `make` command or a leading assignment that sets `DEV_MODE` or `SERVICES`, an `export` of either, and an edit to `.env`. `make run` has no rule either, so it runs without a prompt in both modes: see **Native mode runs `make run` on the host** below (C10, [decision 0089](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0089-no-hook-decides-make-run.md)) |
 | `.claude/skills/dev-env/` | **Committed install only:** the skill, its `SPECIFICATION.md`, and its `templates/`. A packaged project gets `/adf-dev:dev-env` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/dev-env set up` writes the stack to the
@@ -114,17 +114,23 @@ fills these from what it verifies, for you to review:
   of them adds its own rule to `permissions.ask`; an ask rule wins over the allow. `/dev-env` adds
   one for a project's own task that runs a command it's given on the host (C10). `Bash(make *)`
   trusts the project's Makefile, so review a Makefile change as code that runs without a prompt.
-- **`make run cmd='<command>'` runs any command in the tools container, with no prompt, in Docker
-  mode;** in native mode it runs on the host and asks. A hook decides, since a rule can't read the
-  mode: it approves the call written on its own, with nothing the host's shell or `make` would
-  expand — a `$` for the container is written `$$`, in single quotes — and a `run` task that hands
-  the command to Compose as one argument. Anything else asks. The container keeps a command off the
-  host outside the checkout. It doesn't protect the checkout, the stack's local data, or the
-  credentials in `.env`, which a command inside can read and use: keep production credentials out
-  of `.env`. `APPROVE_CONTAINER_RUN=""` in `.claude/hooks/config.sh` asks in every mode — set it
-  when the app's or the tools service mounts the Docker socket or a path outside the checkout (D5).
-  A CLI that needs the socket gets a service of its own, and its command-taking task an ask rule
-  (D8).
+- **`make run cmd='<command>'` runs any command without a prompt, in either mode** ([decision
+  0089](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0089-no-hook-decides-make-run.md)). `Bash(make *)` covers it, so the command inside `cmd=` isn't checked on its own:
+  the project's other permission rules, deny rules included, and the git guard don't see it. The
+  session's permission mode is the developer's choice, and it decides `make run` as it decides
+  everything else. `make` reads a single `$` itself, so a `$` for the command is written `$$`, in
+  single quotes.
+  - **In Docker mode it runs in the tools container,** which keeps the command off the host outside
+    the checkout. It doesn't protect the checkout, the stack's local data, or the credentials in
+    `.env`, which a command inside can read and use: keep production credentials out of `.env`.
+  - **Native mode runs `make run` on the host,** with your files, credentials, and other
+    repositories in reach, and no prompt. If you want one there, add `Bash(make run *)` to
+    `permissions.ask` in `.claude/settings.json`: an ask rule wins over the allow, and since a rule
+    can't read the checkout's mode, it prompts in Docker mode too. Add the same rule when the app's
+    or the tools service mounts the Docker socket or a path outside the checkout (D5), where the
+    container no longer keeps the command off the host.
+  - A CLI that needs the socket gets a service of its own, and its command-taking task an ask rule
+    (D8).
 - **In Docker mode the host needs Docker, git, and make, and nothing else** (M11,
   [decision 0084](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)):
   `make deps`, `make test`, `make lint`, `make format`, `make typecheck`, and `make run` start the
@@ -142,8 +148,8 @@ fills these from what it verifies, for you to review:
   `make up`, and `make test` run without a prompt; asked to reset the stack, the agent names what
   is lost and waits for a yes in chat.
 - In Docker mode `make run cmd='pwd'` runs in the tools container without a prompt, with the stack
-  down. With
-  `DEV_MODE=native` in `.env`, the same command prompts.
+  down. With `DEV_MODE=native` in `.env`, the same command runs on the host, also without a prompt
+  unless the project added `Bash(make run *)` to `permissions.ask`.
 
 ## Requirements
 

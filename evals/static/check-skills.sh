@@ -670,7 +670,7 @@ try:
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
 if module == "docker" and (permissions.get("ask") or any(r.startswith("Bash(make run") for r in permissions.get("deny", []))):
-    out.append("asks before no docker or make command (0078), and a rule for make run would win over the approve-container-run hook (0077)")
+    out.append("asks before no docker or make command (0078), make run included: a prompt for it is the project's own rule (0089)")
 for deny in sorted(decided_denies.get(module, set()) - set(permissions.get("deny", []))):
     out.append(f"must deny {deny}: only the developer changes the local mode (M10)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
@@ -961,16 +961,16 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
-    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs without a prompt but run on the host (C9, 0077, 0078)")
-    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: make run runs in a container in Docker mode, and a hook decides it (C10, 0077, 0084)")
-    # make run by the mode (0077): the spec's boundary, the hook and its setting, no rule in its way, the task in both modes, the migration.
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs without a prompt, run included (C9, 0078, 0089)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: make run runs in a container in Docker mode (C10, 0077, 0084)")
+    # make run (0077, 0089): the spec's boundary, no hook, the native-mode note, the task in both modes, the migration.
     file_contains_literal "$SKILLS_DIR/dev-env/SPECIFICATION.md" '**What it doesn'"'"'t bound:**' || missing+=("dev-env's specification: says what the container doesn't protect — the checkout, local data, credentials, the network (C10, 0077)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*D5\.\*\*' || missing+=("dev-env's specification: the app's service gets nothing of the host but the checkout (D5, 0077)")
     file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'In Docker mode, commands run in the container, never on the host.' || missing+=("/dev-env: in Docker mode, a named task or make run, never the host (C10, 0077)")
-    grep -q 'approve-container-run.sh' "$SETTINGS" || missing+=("settings.json: approve-container-run hook (0077)")
-    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_CONTAINER_RUN="1"' || missing+=("config.sh: APPROVE_CONTAINER_RUN (0077)")
+    ! grep -q 'approve-container-run' "$SETTINGS" "$HOOKS_DIR/config.sh" "$REPO_ROOT/plugins/adf/hooks/hooks.json" || missing+=("no hook decides make run: the session's permission mode does (0089)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SPECIFICATION.md" '**In native mode the command runs on the host,**' && file_contains_literal "$MODULES_DIR/docker/MODULE.md" 'add `Bash(make run *)` to' || missing+=("docker module and dev-env's specification: in native mode make run runs on the host without a prompt, and a project adds its own ask rule for one (C10, 0089)")
     for mode in docker native; do file_contains "$SKILLS_DIR/dev-env/templates/ops/$mode/Makefile" '"\$\$cmd"$' && ! grep -q '\$(cmd)' "$SKILLS_DIR/dev-env/templates/ops/$mode/Makefile" || missing+=("dev-env templates: ops/$mode/Makefile's run passes the command from the environment, never \$(cmd) (C10)"); done
-    [ -f "$REPO_ROOT/scripts/migrations/unreleased/01-make-run-by-mode.py" ] || ls "$REPO_ROOT"/scripts/migrations/v*/[0-9][0-9]-make-run-by-mode.py >/dev/null 2>&1 || missing+=("migration: make run's ask rule leaves once the hook decides it (0077)")
+    [ -f "$REPO_ROOT/scripts/migrations/unreleased/01-make-run-by-mode.py" ] || ls "$REPO_ROOT"/scripts/migrations/v*/[0-9][0-9]-make-run-by-mode.py >/dev/null 2>&1 || missing+=("migration: make run's ask rule leaves (0077, 0089)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: names each project task that deletes data, since no prompt stops it (C9, 0078)")
     python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and p["ask"] == [] else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks before none (C9, 0038, 0078)")
     file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'so the yes in chat is the only check' || missing+=("/dev-env: no prompt stops a destructive step, so the developer's yes in chat does (0078)")

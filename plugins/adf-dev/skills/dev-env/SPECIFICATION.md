@@ -100,9 +100,9 @@ a project misses. A project that departs from one on purpose records it, with th
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** Every task runs without a prompt, except `run` where its command runs on the host, a
-  project's own task that does the same (C10), and one that takes a command for a service outside
-  D5 (D8). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
+- **C9.** Every task runs without a prompt, `run` included in both modes (C10), except a project's
+  own task that runs a command it's given on the host (C10) and one that takes a command for a
+  service outside D5 (D8). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
   adds no ask rule: both act on this project's local stack, whose data comes back from the seed
   ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)).
   A prompt isn't what protects data: an agent deletes it — `reset`, a project's `db-drop` — only
@@ -112,31 +112,26 @@ a project misses. A project that departs from one on purpose records it, with th
   waiting; a task that does, such as Docker mode's `shell`, says "for people" in its description.
 - **C10.** **`run` is the one task that runs a command it's given, and the way an agent runs a
   command no task covers:** `make run cmd='<command>'`
-  ([decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md)).
+  ([decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md),
+  [0089](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0089-no-hook-decides-make-run.md)).
   - **Docker mode runs it in the tools service's container, without a prompt:**
     `$(COMPOSE) run --rm tools sh -c "$$cmd"` — a new container over the whole checkout, removed
     when the command ends, with the backing services in the service's `depends_on` started first
     (D6). Tests, linters, the package manager, a one-off script: in Docker mode an agent runs them
     through a named task or through `run`, never on the host, whose runtime and dependencies aren't
     the project's (M11).
-  - **Native mode runs it on the host, and asks first,** every time.
+  - **Native mode runs it on the host,** with the services' ports exported.
   - **The command reaches its shell as one argument.** The recipe passes the environment's `cmd` —
     `"$$cmd"` — and never pastes `$(cmd)`, which hands the command's quotes and separators to the
     host's shell. `make` still expands a `$` in the value, so one meant for the command is written
     `$$`, inside single quotes: `make run cmd='echo $$HOME'`.
-  - **A hook decides, not a rule.** An ask rule can't read the checkout's mode, and it wins over a
-    hook's approval, so `.claude/settings.json` has no rule for `make run`. The
-    approve-container-run hook reads the mode as M1 resolves it, the `run` recipe in
-    `ops/docker/Makefile`, and the call. It approves `make run cmd='<command>'` written on its own,
-    in Docker mode, with a recipe that hands `"$$cmd"` to the tools service — the one above, or with
-    `--no-deps` — or to an older stack's app, `$(COMPOSE) exec -T $(APP) sh -c "$$cmd"`, with no other
-    service or option and no other line that uses the command, and a value neither the host's shell
-    nor `make` expands.
-    It asks before any other: native mode, a mode it can't read, a recipe of another form, `make`
-    pointed at another folder or given another setting, a `$` or a backquote the host would expand.
-    A call followed by a pipe or another command is
-    left to the permission rules. Empty `APPROVE_CONTAINER_RUN` in `.claude/hooks/config.sh` keeps
-    the ask in every mode.
+  - **No rule or hook asks first, in either mode.** `Bash(make *)` covers `make run`, so the
+    session's permission mode — the developer's choice — decides it, and the command inside `cmd=`
+    isn't checked on its own: the project's other permission rules, deny rules included, and the
+    git guard don't see it. **In native mode the command runs on the host,** with the developer's
+    files and credentials in reach. A project that wants a prompt there adds `Bash(make run *)` to
+    `permissions.ask` in `.claude/settings.json`; a rule can't read the mode, so it prompts in
+    Docker mode too.
   - **What the container bounds:** the host outside the checkout — the home directory, other
     repositories and worktrees (those nested in the main checkout too, behind D5's `tmpfs`), SSH
     keys, the Docker daemon — as long as `compose.yaml` hands the
@@ -294,8 +289,8 @@ a project misses. A project that departs from one on purpose records it, with th
   `network_mode: host`. The worktrees nested in the checkout, `.claude/worktrees/`, are hidden
   behind an empty `tmpfs` mounted over that folder: they're other checkouts, and in the main
   checkout the mount would hand every one of them, `.env` included, to the container. `make run` runs any command in the tools service without a prompt (C10),
-  and the app's code runs in the app's, so what either reaches is what an agent reaches. A project whose app needs one of those sets `APPROVE_CONTAINER_RUN=""`
-  (`.claude/hooks/config.sh`) and records the exception. No hook checks this: the audit does.
+  and the app's code runs in the app's, so what either reaches is what an agent reaches. A project whose app needs one of those adds `Bash(make run *)` to
+  `permissions.ask` in `.claude/settings.json` and records the exception. No hook checks this: the audit does.
 - **D6.** **Docker mode's tools run in a service of their own, `tools`:**
   - in Compose's `tools` profile, so `make up` never starts it, built from the app Dockerfile's
     `tools` stage — the app's runtime and dependencies, and whatever only the checks need;
@@ -381,7 +376,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | The tasks people and agents run | the `Makefile` and the mode's file (`make help`) |
 | Each mode's commands | `ops/docker/Makefile`, `ops/native/Makefile` |
 | The project's default mode; this checkout's | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` in `.env` |
-| Whether `make run` needs a prompt | the checkout's mode and the `run` recipe in `ops/docker/Makefile`, which the approve-container-run hook reads; `APPROVE_CONTAINER_RUN` in `.claude/hooks/config.sh` (C10) |
+| Whether `make run` needs a prompt | a `Bash(make run *)` ask rule in `.claude/settings.json`, which the project adds if it wants one, and the session's permission mode (C10) |
 | Every variable's name | `.env.example` |
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
 | Where the services are now | `make urls` |

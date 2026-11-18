@@ -1,7 +1,8 @@
 # 0084: Docker mode needs nothing on the host — a tools service runs the checks and `make run`
 
 - **Status:** accepted; amended 2026-11-16 (the cache volume is external, the tasks that start the
-  tools run `guard`, D8's ask rules match the command's variable, and the hook names the service)
+  tools run `guard`, D8's ask rules match the command's variable, and the hook names the service);
+  amended by [0089](0089-no-hook-decides-make-run.md) — the approve-container-run hook goes
 - **Date:** 2026-11-15
 - **Amends:** [0077](0077-the-container-is-the-boundary-for-make-run.md) — in Docker mode `make run`
   runs in the tools service's container, not the app's; [0034](0034-local-environment-modes.md) —
