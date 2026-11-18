@@ -43,10 +43,10 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
 - **In Docker mode, commands run in the container, never on the host.** Tests, linters, the package
   manager, a one-off script: a named task first (`make test t=<file>`, `make lint f=<file>`), and
   `make run cmd='<command>'` for what no task covers. It runs in the tools container (D6) without a
-  prompt, written on its own, in single quotes, with a `$` for the container as `$$`; a pipe goes
-  inside the quotes (C10). The host's runtime and dependencies aren't the project's, and Docker mode
-  needs none (M11): never install a missing tool there. In native mode `make run` runs on the host
-  and asks.
+  prompt, in single quotes, with a `$` for the container as `$$`; a pipe goes inside the quotes
+  (C10). The host's runtime and dependencies aren't the project's, and Docker mode
+  needs none (M11): never install a missing tool there. In native mode `make run` runs on the host,
+  without a prompt unless the project added `Bash(make run *)` to `permissions.ask`.
 
 ## Steps
 
@@ -124,7 +124,7 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      the two mode files replace;
    - a `test` without `t=`, or a `lint` without `f=`, so agents reach for a command of their own;
    - no `run` task, or one that pastes `$(cmd)` into the recipe or runs it anywhere but a container
-     that meets D5 in Docker mode (C10): until it meets C10, `make run` asks every time;
+     that meets D5 in Docker mode (C10): until it meets C10, `make run` runs some or all of its command on the host, without a prompt;
    - checks that `exec` into the app's container, so they need `make up` and see only what the app
      mounts, or no tools service (D6);
    - dependencies on the host — a dependency folder in the checkout that the host filled, a
@@ -330,7 +330,7 @@ reset in the main checkout of a hub.
 | "The tool isn't in the container, so I'll install it on the host" | Then the next checkout and the CI don't have it, and the host drifts (M11). Add it to the project's dependencies or the Dockerfile's `tools` stage, through triage, or say what's missing and ask. |
 | "This CLI needs the Docker socket, so I'll mount it in `tools`" | Then `make run` reaches the host's Docker, every project's containers, without a prompt (D5). The CLI gets a service of its own, and its command-taking task an ask rule (D8). |
 | "`make lint` needs the stack, so I'll `make up` first" | The checks start the tools container themselves (D6). A check that needs `make up` is a gap to report. |
-| "I'll write it as `cd app && make run cmd=\"echo $VAR\"`" | A `cd`, or a `$` the host's shell would expand, asks: the hook approves only a call it can read. Run it from the checkout's root, in single quotes, with a `$` for the container as `$$`. |
+| "I'll write it as `cd app && make run cmd=\"echo $VAR\"`" | A `cd` points `make` at another folder, which may be another checkout in another mode, and the host's shell expands `$VAR` before `make` reads what's left. Run it from the checkout's root, in single quotes, with a `$` for the container as `$$`. |
 | "`make run cmd='cat .env'` shows what the app sees" | It prints credentials into the conversation, on the host or in the container (V4), and no prompt stops it. `.env.example` names the variables. |
 | "It's quicker to run the tests with `DEV_MODE=native`" | The mode is the developer's choice (M10). Run every task in the configured mode; if one can't run there, say what it needs and ask. |
 | "The bug only shows in the production build, so I'll run the build and start commands on the host" | That runs a third environment, outside the configured mode, with the host's runtime and variables. `make prod` builds and serves it in the mode this checkout uses (C11), and `make urls` says where. With no `prod` task, say what you need and ask. |

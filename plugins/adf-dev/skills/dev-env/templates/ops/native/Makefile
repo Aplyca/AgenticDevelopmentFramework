@@ -81,7 +81,8 @@ format: ## Rewrite files to the project's formatting, on the host; f=<files> for
 typecheck: ## Run the type checker on the host
 	@echo "CUSTOMIZE: the type checker, e.g. npx tsc --noEmit — or say the stack has none" >&2; exit 1
 
-# On the host, so it asks an agent first (C10). The command comes from the environment, as in Docker mode.
+# On the host, with no prompt unless the project adds Bash(make run *) to permissions.ask (C10).
+# The command comes from the environment, as in Docker mode.
 run: services ## Run a command on the host, with the services' ports exported: make run cmd='npm outdated' — a $ for the command is written $$
 	@[ -n "$$cmd" ] || { echo "make run needs a command: make run cmd='<command>'" >&2; exit 1; }
 	@eval "$$($(NATIVE_SH) env)" && sh -c "$$cmd"
