@@ -419,7 +419,9 @@ version), so the reviewer knows where to look; they need no plan row.
    changes settings, not the machines: a plugin this upgrade turned on (`adf-dev`, `adf-connect`)
    may not be installed anywhere yet, and the session that ran the upgrade still runs the old
    release. `autoUpdate` catches up the installed plugins after the merge, a few minutes into a
-   session; these do it at once, from the project's folder, after the merge:
+   session; these do it at once, from the project's folder, after the merge — `install` only for a
+   plugin the merged settings turn on, since for one they don't, it writes `.claude/settings.json`
+   itself:
 
    ```bash
    claude plugin marketplace update aplyca
