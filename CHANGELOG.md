@@ -11,6 +11,52 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Each machine adds the marketplace again at the new pin after an upgrade**
+  ([decision 0090](docs/decisions/0090-each-machine-re-adds-the-marketplace-at-the-pin.md), amends
+  [0041](docs/decisions/0041-the-pin-updates-every-machine.md); fixes
+  [issue 174](https://github.com/aplyca/AgenticDevelopmentFramework/issues/174)). Claude Code
+  registers the `aplyca` marketplace once per machine, at the ref it was first added with.
+  `claude plugin marketplace update`, `claude plugin update`, and `"autoUpdate": true` refresh that
+  ref, so after an upgrade merged, every machine that had registered an earlier release stayed on it,
+  and `claude plugin update` reported that release as the latest.
+  - **The commands for each machine** — in `/adf:upgrade`'s report, its step 6, and
+    `docs/UPGRADING.md` § On each machine, after the merge — add the marketplace at the new pin with
+    `claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project`, which
+    re-points the registration and keeps the plugins installed. Then they install or update each
+    plugin, `git restore .claude/settings.json` (the add and the installs rewrite it, and the add
+    drops `autoUpdate`), and `claude plugin list` shows each plugin's version. The report writes them
+    as one shell block, with the release, the plugins, and the marketplace's own source (a fork's
+    `git` URL) filled in.
+  - **Joining a project:** the README's joining note and `DEV-SETUP.md` add the marketplace at the
+    project's `"ref"` instead of refreshing it, and restore the settings afterwards.
+  - **Docs** stop saying that `autoUpdate` carries a moved pin to each machine: `docs/SETUP.md`, the
+    `adf` plugin's README, and `/adf:adopt`.
+  - **Upgrade impact:** overwrite for the plugins and the scripted upgrade, which the next upgrade
+    runs from its own release, so its report gives the new commands.
+    - **Merge:** `docs/getting-started/DEV-SETUP.md` — the commands when the plugin didn't
+      download.
+    - **Migration:** by hand, on each machine — nothing changes in the project. A machine already
+      upgraded to v2.10.0 or v2.10.1 whose `claude plugin list` shows an older version runs the
+      commands once, from the project's folder, with the project's `"ref"`:
+
+      ```bash
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
+      claude plugin update adf@aplyca
+      claude plugin update adf-dev@aplyca   # when the project turns it on
+      git restore .claude/settings.json
+      claude plugin list
+      ```
+
+      A machine that followed the workaround in issue 174 also has a user-level declaration: from
+      the project's folder, `claude plugin marketplace remove aplyca --scope user` drops it and keeps
+      the plugins installed.
+  - **Framework docs and records** (framework-internal): decision 0041's status and the index name
+    0090.
+  - **Evals** (framework-internal): `test-upgrade.sh` checks the commands `scripts/upgrade.py`
+    writes for a moved pin, a fork, a pin that stays, and a local directory, and the report's shell
+    block; `check-skills.sh` checks the upgrade skill, `UPGRADING.md`, the joining note, and
+    `DEV-SETUP.md` for the add at the pin, and that no doc says `autoUpdate` carries it.
+
 ## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
 
 A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts
