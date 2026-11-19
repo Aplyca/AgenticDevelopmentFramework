@@ -1,7 +1,7 @@
 # Prose patterns
 
-The patterns to cut from text that people read: a requester's update, an end-user page, a doc, a
-pull request's description, a decision record. Each one makes the text longer without telling the
+The patterns to cut from text that people outside the team read: a requester's update, an end-user
+page, a user-facing doc, a public issue. Each one makes the text longer without telling the
 reader anything, and readers who learn to spot it as machine-written start skimming.
 
 The skills that write for people run this pass on a draft before they show it. The patterns hold in
@@ -11,9 +11,9 @@ any language; the examples are English.
 
 1. Read the draft once against each table below.
 2. Cut the pattern; don't reword around it. A sentence with nothing left said nothing.
-3. Keep what the destination does on purpose: a template's fixed headings and labels (`**Where:**`,
-   `## Verified / not verified`), the voice of the page or the docs being updated, and the project's
-   own conventions win over this list.
+3. Keep what the destination does on purpose: a template's fixed headings and labels (an issue's
+   **What happens** and **Seen in**), the voice of the page or the docs being updated, and the
+   project's own conventions win over this list.
 4. The draft comes out shorter. A pass that adds a sentence went wrong.
 
 ## Openings and closings

@@ -6,8 +6,6 @@ argument-hint: "[the decision, in a sentence]"
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/record-decision/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
-> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
-
 # Record a Decision
 
 Decisions get re-argued long after the reasoning is forgotten — process decisions as often as
@@ -55,9 +53,6 @@ people work. Pick one home per project, say so in both indexes, and stay consist
    - **Status** — `proposed` while under discussion; `accepted` once the deciders agree (usually
      when the pull request merges).
 
-   Then run the prose pass, `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`: the template's headings
-   stay.
-
 5. **Supersede, never rewrite.** Accepted records are append-only. When a decision changes, the new
    record says what it supersedes ("Supersedes PDR-0002 rules 1–3"), and the old record gets exactly
    one edit: its status becomes `superseded by PDR-NNNN` (or "partly superseded…").
@@ -103,7 +98,6 @@ people work. Pick one home per project, say so in both indexes, and stay consist
 - [ ] An ADR passes the threshold: hard to reverse, surprising without context, a real trade-off
 - [ ] Uses the template, with the next free number, and is listed in the index
 - [ ] Context cites evidence; consequences include the cost; alternatives explain each rejection
-- [ ] The prose pass ran on the record
 - [ ] Superseded records changed only their status line; corrections are dated notes
 - [ ] Every doc describing the decided behavior was updated in the same change
 - [ ] A constitution amendment, if any, is in its own pull request

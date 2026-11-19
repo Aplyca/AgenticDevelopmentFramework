@@ -5,10 +5,13 @@
 
 ## Context
 
-- **Six skills write text that people read outside the session:** `/adf:stakeholder-update` (the
-  requester's messages), `/adf:end-user-docs` (the end-user page), `/adf:write-docs` (the docs a
-  plan lists), `/adf:open-pr` (the pull request's description), `/adf:record-decision` (decision
-  records), and `/adf:framework-feedback` (an issue the framework's maintainers read).
+- **Four skills write text for readers outside the team:** `/adf:stakeholder-update` (the
+  requester's messages), `/adf:end-user-docs` (the end-user page), `/adf:write-docs` (the
+  user-facing docs a plan lists), and `/adf:framework-feedback` (a public issue the framework's
+  maintainers read). The review and delivered updates post without anyone reading them first.
+- **Two more write for the team:** `/adf:open-pr` (the pull request's description, mostly its
+  template) and `/adf:record-decision` (decision records, already "short, specific, honest"). The
+  developer reads both in the pull request, and `/adf:open-pr` runs on every task.
 - **None of them checked the text for machine-written patterns:** throat-clearing openings,
   "not X but Y" contrasts, hedges on behavior that was verified, a bold lead-in on every bullet,
   one-row tables. Readers who spot them skim, and a requester's update or an end-user page loses
@@ -22,8 +25,8 @@
 - **One list, in a reference doc:** `PROSE-PATTERNS.md`, in `adf`'s `docs/` with the other
   reference docs (decision 0019). Each pattern has an example and what to write instead, in three
   groups: openings and closings, sentences, structure.
-- **Each of the six skills runs the pass on its draft before showing or posting it,** at the step
-  that writes the text, and checks it in its Verification. The skill names the doc there, so it is
+- **The four skills that write for readers outside the team run the pass on each draft** before
+  showing or posting it, at the step that writes the text, and check it in their Verification. The skill names the doc there, so it is
   read only when text is written.
 - **The destination wins:** a template's fixed headings and labels, the voice of the page or docs
   being updated, and the project's conventions stay, whatever the list says.
@@ -31,18 +34,22 @@
 
 ## Consequences
 
-- **The six skills read one more file** when they write: about 700 tokens, once per draft.
+- **The four skills read one more file** when they write: about 700 tokens, once per draft.
 - **The list is advice, not a gate.** The static checks confirm each skill names the pass; nothing
   can check the prose itself.
 - **A committed project gets `docs/PROSE-PATTERNS.md`,** overwritten at each upgrade like the other
   reference docs. A team that wants its own patterns writes them in its own conventions, which win.
-- **Not covered:** `/adf:handoff` and `/adf:track-time`'s descriptions, which are fixed formats of a
-  line or two, and the spec's usage guide, which `/adf:stakeholder-update guide` posts as approved.
+- **Not covered:** `/adf:open-pr` and `/adf:record-decision`, whose readers are the team;
+  `/adf:handoff` and `/adf:track-time`'s descriptions, which are fixed formats of a line or two;
+  and the spec's usage guide, which `/adf:stakeholder-update guide` posts as approved.
 
 ## Alternatives considered
 
-- **A pass inside `/adf:write-docs` alone,** as the issue first proposed: the other five skills
+- **A pass inside `/adf:write-docs` alone,** as the issue first proposed: the other three skills
   would keep writing the patterns, and the list would need copying to reach them.
+- **Every skill that writes prose, the pull request's description and decision records included.**
+  Declined: the team reads those in the pull request, where the developer edits what they don't
+  like, and an unenforced step in `/adf:open-pr` would run on every task.
 - **The list in the always-loaded rules:** every session would pay for it, and most never write for
   people.
 - **A reference file beside one skill, read by the others through its folder:** no skill names
