@@ -55,7 +55,8 @@ manual procedure (Steps 1–6) is for what it refuses.
    - **Clean merges:** read each one the report lists with its hunk count — a clean merge can still be
      wrong, a section added twice.
    - **Tasks to fix:** with `docker`, read the project's `Makefile` and mode files for a task C9 or
-     C10 names (Step 1), and propose its fix.
+     C10 names (Step 1), and propose its fix. A `test` or `lint` that doesn't take C3's `t=` or `f=`
+     is a gap for `/dev-env set up`; meanwhile `AGENTS.md` § Quick reference writes what it takes.
    - **Files to decide** and **Migrations** that need the developer: the choices they list.
    - **Each new module's** `MODULE.md` § Customize steps; an install switch with its PDR (Step 2).
 7. **One approval** covers the conflict resolutions, the permission changes — each rule the report or

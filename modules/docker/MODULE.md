@@ -80,7 +80,8 @@ fills these from what it verifies, for you to review:
 2. **`AGENTS.md` § Quick reference** — `make up`, `make stop` (keeps containers and data),
    `make down` (removes containers; data stays), and `make urls`, and `make prod` for
    the production build (or "none"); the local check before the pull request starts the stack from
-   there.
+   there. The tests and lint lines' one-file commands, as the project's tasks take them (`dev-env`'s
+   C3: `make test t=<file>`, `make lint f=<file>`) — an agent types what this section says.
    **`.claude/hooks/config.sh`** — `LOCAL_URL='http://localhost:${APP_PORT}'`.
 3. **`.claude/rules/deployment.md`** — `paths:` names `compose.yaml`, the `Makefile`, `ops/**`, and
    `.env.example`, and § Docker holds any convention the project adds.
