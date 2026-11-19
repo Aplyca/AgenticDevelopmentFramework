@@ -169,13 +169,14 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.10.0** (2026-11-16), is a minor release: with the `docker` module, Docker mode
-needs nothing on the host but Docker, git, and make; task worktrees sit under `.claude/worktrees/`,
-and the session moves there with `EnterWorktree`; follow-ups found along the way are filed as
-issues; and a merge wakes an idle session to wrap up. **v2.9.0** (2026-11-13), also a minor release:
-the framework works on GitLab as it does on GitHub, with a new `gitlab` module; with the `docker`
-module, `docker` and `make` commands run without a prompt; a status-only tracker update needs no
-prompt; and the lane depends on whether there is something to decide, not on a file count. This README describes `main`: what has landed
+The latest, **v2.10.1** (2026-11-19), is a patch release: no hook decides `make run`, so a chained
+or quoted `make run` line follows the session's permission mode, and in native mode its command runs
+on the host without a prompt unless the project adds `Bash(make run *)` to `permissions.ask`;
+reading `git config`, a release, or the secrets' names runs without a prompt. **v2.10.0**
+(2026-11-16), a minor release: with the `docker` module, Docker mode needs nothing on the host but
+Docker, git, and make; task worktrees sit under `.claude/worktrees/`, and the session moves there
+with `EnterWorktree`; follow-ups found along the way are filed as issues; and a merge wakes an idle
+session to wrap up. This README describes `main`: what has landed
 since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
 one.
 

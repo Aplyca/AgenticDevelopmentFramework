@@ -11,6 +11,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
+
+A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts
+that `bypassPermissions` couldn't remove, with nothing new to adopt. One behavior changes on
+upgrade: with the `docker` module in native mode, `make run cmd='…'` runs its command on the host
+without a prompt. Add `Bash(make run *)` to `permissions.ask` to keep one; it prompts in Docker
+mode too.
+
+- **No hook decides `make run`** (0089, fixes
+  [issue 177](https://github.com/aplyca/AgenticDevelopmentFramework/issues/177)). The
+  approve-container-run hook goes, so a chained, looped, or quoted `make run` line follows the
+  project's rules and the session's permission mode.
+- **Reading `git config`, a release, or the secrets' names runs** (0088). The git guard asks only
+  before a `git config` change, and the release and secret ask rules name only the subcommands that
+  write.
+
+**Upgrading from v2.10.0:** run `/adf:upgrade`. Its draft pull request moves the pin to `v2.10.1`
+and merges the changed lines in `.claude/settings.json` (the `git config`, release, and secret
+rules, each listed under Permission changes), `.claude/hooks/config.sh` (`APPROVE_CONTAINER_RUN`
+goes), and `.claude/rules/claude-code.md` (the **Ask first** line). In a committed install, it also
+deletes `.claude/hooks/approve-container-run.sh` and its entry in `.claude/settings.json`. From
+v2.9.0, one upgrade takes both releases; v2.10.0's steps 2 and 3 still apply.
+
 - **No hook decides `make run`: the developer's permission mode does**
   ([decision 0089](docs/decisions/0089-no-hook-decides-make-run.md), amends
   [0077](docs/decisions/0077-the-container-is-the-boundary-for-make-run.md) and
