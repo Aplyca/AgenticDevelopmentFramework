@@ -1,7 +1,7 @@
 """The docker module asks before no docker or make command, so the rules it added go (decision 0078).
 
 Only the rules the module's installer wrote, by their exact text: a rule the project added itself
-stays. `Bash(make run *)` is the first migration's, which waits for the hook."""
+stays. `Bash(make run *)` is the first migration's."""
 PHASE = "after"
 RULES = (
     "Bash(docker compose down *-v*)",

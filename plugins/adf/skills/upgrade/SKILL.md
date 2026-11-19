@@ -86,8 +86,8 @@ For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
 `docker`, `e2e`, and `unit`, rerun `modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, and
 `modules/unit/install.sh <repo>` the same way, besides their file changes. The docker installer adds `Bash(make *)`, so every
-task runs without a prompt, `reset` included; only `make run` asks, where it runs on the host
-(decisions 0077, 0078). Before it does, read the project's `Makefile` and mode files for a task that
+task runs without a prompt, `reset` and `make run` included, which in native mode runs on the
+host (decisions 0078, 0089). Before it does, read the project's `Makefile` and mode files for a task that
 follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan, which
 fixes the task in the same change.
 

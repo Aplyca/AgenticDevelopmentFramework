@@ -359,7 +359,7 @@ cases = {
     "docker compose exec web printenv": "allow", "docker compose exec -T web cat .env": "allow",
     "docker compose run --rm web env": "allow",
     # Every make task runs, reset included (SPECIFICATION.md C9, decision 0078). make run has no rule
-    # either: the approve-container-run hook decides it by the mode (C10, decision 0077).
+    # either, in any mode: a project that wants a prompt adds its own (C10, decision 0089).
     "make reset": "allow", "make logs reset": "allow", "make -C site reset": "allow",
     "make urls && make reset": "allow", 'make run cmd="yarn test"': "allow", "make run": "allow",
     "make run cmd='git reset --hard'": "allow",

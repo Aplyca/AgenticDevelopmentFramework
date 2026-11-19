@@ -445,100 +445,41 @@ status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"i
 echo 'APPROVE_STATUS_MOVE=""' >> "$T/.claude/hooks/config.sh"
 status_move silent "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","state":"In Review"}')" "does nothing when APPROVE_STATUS_MOVE is empty"
 
-# approve-container-run — make run needs no prompt in Docker mode, where its command runs in the
-# tools container (0084), and asks wherever it would run on the host (0077). The stack is dev-env's
-# templates.
+# make run — no hook decides it (0089): Bash(make *) covers it, and the session's permission mode
+# decides the rest, in either mode. A prompt on a line no hook could read (issue 177's chained sed,
+# grep, or find, a for loop, a $ in the value) would override the project's own rules.
 STACK="$WORK/stack"; mkdir -p "$STACK" && cp -R "$REPO_ROOT/plugins/adf-dev/skills/dev-env/templates/." "$STACK/"
 git -C "$STACK" init -q -b main
-run_event() { printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":%s}}' "${2:-$STACK}" "$(printf '%s' "$1" | json_string)"; }
-container_run() { # container_run <allow|ask|silent> <event-json> <description> — RUN_ENV sets the environment's DEV_MODE
-    local out code
-    out=$(printf '%s' "$2" | env -u DEV_MODE ${RUN_ENV:+"$RUN_ENV"} "$H/approve-container-run.sh" 2>&1)
-    code=$?
-    if [ "$code" = 0 ] && { { [ "$1" = silent ] && [ -z "$out" ]; } || { [ "$1" != silent ] && echo "$out" | grep -q "\"permissionDecision\":\"$1\""; }; }; then
-        PASS=$((PASS+1)); echo "✓ approve-container-run.sh: $3"
-    else
-        FAIL=$((FAIL+1)); echo "✘ approve-container-run.sh: $3 (exit $code, wanted $1)"; [ -n "$out" ] && echo "    $out"
-    fi
+echo '<!-- Skeleton source: v2.10.0 · abc1234 (2026-11-16) · modules: github, docker · install: committed -->' > "$STACK/AGENTS.md"
+bash_hooks=$(python3 -c 'import json,re,sys; print(" ".join(re.search(r"hooks/([\w-]+\.sh)", h["command"]).group(1) for g in json.load(open(sys.argv[1]))["hooks"]["PreToolUse"] if g["matcher"] == "Bash" for h in g["hooks"]))' "$REPO_ROOT/plugins/adf/hooks/hooks.json")
+no_prompt() { # no_prompt <mode> <command> — every Bash hook exits 0 and prints no decision
+    local hook out code event
+    printf 'DEV_MODE=%s\n' "$1" > "$STACK/.env"
+    event=$(printf '{"tool_name":"Bash","cwd":"%s","permission_mode":"default","tool_input":{"command":%s}}' "$STACK" "$(printf '%s' "$2" | json_string)")
+    for hook in $bash_hooks; do
+        out=$(printf '%s' "$event" | env -u DEV_MODE -u CLAUDE_PROJECT_DIR "$H/$hook" 2>&1)
+        code=$?
+        if [ "$code" != 0 ] || echo "$out" | grep -q '"permissionDecision"'; then
+            FAIL=$((FAIL+1)); echo "✘ make run: $hook decided \`$2\` in $1 mode (exit $code)"; [ -n "$out" ] && echo "    $out"
+            return
+        fi
+    done
+    PASS=$((PASS+1)); echo "✓ make run: no hook decides \`$2\` in $1 mode (0089)"
 }
-container_run allow "$(run_event 'make run cmd="npm test"')" "Docker mode: approves make run cmd=\"npm test\""
-container_run allow "$(run_event "make run cmd='npm test -- signup 2>&1 | tail -n 40'")" "Docker mode: approves a single-quoted command, its pipe inside the container"
-container_run allow "$(run_event "make run cmd='echo \$\$HOME'")" "Docker mode: approves a \$ doubled for make, which the container's shell reads"
-container_run allow "$(run_event "make run s=worker cmd='npm ci'")" "Docker mode: approves it with another variable that is a bare word"
-container_run silent "$(run_event 'make reset')" "says nothing about make reset"
+[ -n "$bash_hooks" ] || { FAIL=$((FAIL+1)); echo "✘ make run: no Bash hooks found in hooks.json"; }
+for mode in docker native; do
+    no_prompt "$mode" "make run cmd='npm test'"
+    no_prompt "$mode" "sed -i.bak 's/a/b/' src/app.js && make run cmd='npm run lint'"
+    no_prompt "$mode" "grep -rn signup src; make run cmd='npm test' >/dev/null"
+    no_prompt "$mode" "find . -name '*.test.js' | head && make run cmd='npm test'"
+    no_prompt "$mode" "for p in a b; do make run cmd=\"npm ls \$p\"; done"
+    no_prompt "$mode" "make run cmd='echo \$HOME'"
+done
 if python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if p["ask"] == [] and not any(r.startswith("Bash(make run") for r in p["deny"]) else 1)' "$REPO_ROOT/modules/docker/settings-fragment.json"; then
-    PASS=$((PASS+1)); echo "✓ approve-container-run.sh: the module asks before no docker or make command, so no rule decides make run in the hook's place (0078)"
+    PASS=$((PASS+1)); echo "✓ make run: the docker module asks before no docker or make command, make run included — a prompt is the project's own rule (0078, 0089)"
 else
-    FAIL=$((FAIL+1)); echo "✘ approve-container-run.sh: the docker module carries an ask rule, or a deny for make run, which would win over the hook"
+    FAIL=$((FAIL+1)); echo "✘ make run: the docker module carries an ask rule, or a deny for make run"
 fi
-container_run silent "$(run_event 'make test t="should run fast"')" "says nothing about another task, whatever its quoted text says"
-container_run silent "$(run_event 'npm run build && make run-migrations')" "says nothing about npm run, or a task whose name starts with run"
-container_run silent "$(run_event 'make run cmd="npm test" 2>&1 | tail -n 40')" "Docker mode: leaves the call followed by a pipe to the permission rules"
-container_run ask "$(run_event 'make run cmd="npm ci" && make -C ../other run cmd="npm ci"')" "asks when a second make run follows, pointed at another folder"
-container_run ask "$(run_event 'cd ../other && make run cmd="npm test"')" "asks when the call follows a cd: another checkout has its own mode"
-container_run ask "$(run_event 'make -C ../other run cmd="npm test"')" "asks when make is pointed at another folder"
-container_run ask "$(run_event 'make run COMPOSE=sh cmd="npm test"')" "asks when the call overrides one of the Makefile's settings"
-container_run ask "$(run_event 'make run cmd="echo $HOME"')" "asks about a \$ the host's shell would expand"
-container_run ask "$(run_event "make run cmd='\$(shell id)'")" "asks about a \$ make would expand, on the host"
-container_run ask "$(run_event 'make run cmd="echo `id`"')" "asks about a backquote the host's shell would run"
-container_run ask "$(run_event "make run cmd='npm ci' s='web; id'")" "asks about another variable that isn't a bare word"
-container_run allow "$(run_event "make run cmd='printenv HOME'")" "Docker mode: doesn't read what the command does — no docker or make command asks (0078)"
-container_run ask "$(run_event 'make run')" "asks about make run with no command"
-container_run ask "$(run_event 'make run cmd="npm test"' "$STACK/ops")" "asks from a folder that isn't the stack's root"
-printf 'DEV_MODE=native  # mine\nMAILCHIMP_API_KEY=topsecret\n' > "$STACK/.env"
-container_run ask "$(run_event 'make run cmd="npm test"')" "native mode: asks before make run cmd=\"npm test\", which runs on the host"
-container_run ask "$(run_event 'make run cmd="npm test" | tail -n 40')" "native mode: asks before the call followed by a pipe too"
-container_run silent "$(run_event 'make reset')" "native mode: says nothing about make reset"
-out=$(printf '%s' "$(run_event 'make run cmd="npm test"')" | env -u DEV_MODE "$H/approve-container-run.sh" 2>&1)
-if ! echo "$out" | grep -q 'topsecret'; then
-    PASS=$((PASS+1)); echo "✓ approve-container-run.sh: reads the mode from .env and prints nothing else of it"
-else
-    FAIL=$((FAIL+1)); echo "✘ approve-container-run.sh: printed a value from .env"
-fi
-RUN_ENV="DEV_MODE=docker" container_run allow "$(run_event 'make run cmd="npm test"')" "the environment's DEV_MODE wins over .env's, as in the Makefile (M1)"
-printf 'DEV_MODE=\n' > "$STACK/.env"
-container_run allow "$(run_event 'make run cmd="npm test"')" "an empty DEV_MODE in .env means the project's default (M2)"
-RUN_ENV="DEV_MODE=native" container_run ask "$(run_event 'make run cmd="npm test"')" "asks when the environment's DEV_MODE is native"
-sed 's/^DEFAULT_MODE = docker$/DEFAULT_MODE = native/' "$STACK/Makefile" > "$STACK/Makefile.new" && mv "$STACK/Makefile.new" "$STACK/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"')" "asks when the project's DEFAULT_MODE is native"
-printf 'DEV_MODE=docker\n' > "$STACK/.env"
-container_run allow "$(run_event 'make run cmd="npm test"')" "a checkout's own DEV_MODE=docker wins over a native default"
-# The task's recipe is part of the fact (C10): a run that pastes $(cmd) into the host's shell, or
-# doesn't hand the command to Compose, runs some or all of it on the host.
-PASTED="$WORK/pasted"; mkdir -p "$PASTED" && cp -R "$STACK/." "$PASTED/" && printf 'DEV_MODE=docker\n' > "$PASTED/.env"
-sed 's/sh -c "\$\$cmd"/$(cmd)/' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the run task pastes \$(cmd) into the host's shell"
-sed 's/^\t\$(COMPOSE) run --rm tools sh -c "\$\$cmd"$/\tsh -c "$$cmd"/' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the run task doesn't hand the command to Compose"
-sed 's/ run --rm tools sh -c / exec -T $(APP) sh -c /' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run allow "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: approves an older stack's run, which execs into the app's container (0084)"
-sed 's/ run --rm tools sh -c / run --rm --no-deps tools sh -c /' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run allow "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: approves a run that starts no backing service (--no-deps)"
-sed 's/ run --rm tools sh -c / run --rm local-backend sh -c /' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when run hands the command to another service, which may be outside D5 (D8)"
-sed 's| run --rm tools sh -c | run --rm -v /var/run/docker.sock:/var/run/docker.sock tools sh -c |' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when run adds a mount to the tools container (D5)"
-awk '{ print } /run --rm tools sh -c/ { print "\tsh -c \"$$cmd\"" }' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when run also hands the command to the host's shell"
-sed 's/\[ -n "\$\$cmd" \] || {/[ -n "$$cmd" ] || true; sh -c "$$cmd" || {/' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the empty-command check also runs the command"
-sed '/^run:/,/^$/d' "$STACK/ops/docker/Makefile" > "$PASTED/ops/docker/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$PASTED")" "Docker mode: asks when the mode's file has no run task"
-STAMPED="$WORK/stamped"; mkdir -p "$STAMPED" && git -C "$STAMPED" init -q -b main
-echo '<!-- Skeleton source: v2.8.0 · abc1234 (2026-11-02) · modules: github, docker · install: committed -->' > "$STAMPED/AGENTS.md"
-printf 'run:\n\tsh -c "$$cmd"\n' > "$STAMPED/Makefile"
-container_run ask "$(run_event 'make run cmd="npm test"' "$STAMPED")" "asks in a project with the module whose stack has no mode files yet"
-container_run silent "$(run_event 'make run cmd="npm test"' "$WORK/no-module")" "does nothing in a project without the module"
-NOPARSER="$WORK/no-parser"; mkdir -p "$NOPARSER"
-for tool in bash cat head grep sed tail tr dirname basename git; do ln -s "$(command -v "$tool")" "$NOPARSER/$tool"; done
-out=$(cd "$STACK" && printf '%s' "$(run_event 'make run cmd="npm test"')" | env -u DEV_MODE PATH="$NOPARSER" "$H/approve-container-run.sh" 2>&1)
-if echo "$out" | grep -q '"permissionDecision":"ask"'; then
-    PASS=$((PASS+1)); echo "✓ approve-container-run.sh: asks when it can't read the command, with neither jq nor python3"
-else
-    FAIL=$((FAIL+1)); echo "✘ approve-container-run.sh: without jq or python3 it left make run to the allow rule"; [ -n "$out" ] && echo "    $out"
-fi
-echo 'APPROVE_CONTAINER_RUN=""' >> "$T/.claude/hooks/config.sh"
-container_run ask "$(run_event 'make run cmd="npm test"')" "Docker mode: asks when APPROVE_CONTAINER_RUN is empty"
 
 # Packaged install (decision 0016): the plugin's generated scripts, with no config.sh of their own,
 # load _lib.sh from CLAUDE_PLUGIN_ROOT and read the project's .claude/hooks/config.sh through

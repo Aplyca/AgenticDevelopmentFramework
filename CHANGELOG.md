@@ -26,6 +26,65 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     `.claude/skills/record-decision/`, and `.claude/skills/framework-feedback/`; additive `docs/PROSE-PATTERNS.md`, which `/adf:upgrade`
     writes with the other reference docs.
 
+## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
+
+A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts
+that `bypassPermissions` couldn't remove, with nothing new to adopt. One behavior changes on
+upgrade: with the `docker` module in native mode, `make run cmd='…'` runs its command on the host
+without a prompt. Add `Bash(make run *)` to `permissions.ask` to keep one; it prompts in Docker
+mode too.
+
+- **No hook decides `make run`** (0089, fixes
+  [issue 177](https://github.com/aplyca/AgenticDevelopmentFramework/issues/177)). The
+  approve-container-run hook goes, so a chained, looped, or quoted `make run` line follows the
+  project's rules and the session's permission mode.
+- **Reading `git config`, a release, or the secrets' names runs** (0088). The git guard asks only
+  before a `git config` change, and the release and secret ask rules name only the subcommands that
+  write.
+
+**Upgrading from v2.10.0:** run `/adf:upgrade`. Its draft pull request moves the pin to `v2.10.1`
+and merges the changed lines in `.claude/settings.json` (the `git config`, release, and secret
+rules, each listed under Permission changes), `.claude/hooks/config.sh` (`APPROVE_CONTAINER_RUN`
+goes), and `.claude/rules/claude-code.md` (the **Ask first** line). In a committed install, it also
+deletes `.claude/hooks/approve-container-run.sh` and its entry in `.claude/settings.json`. From
+v2.9.0, one upgrade takes both releases; v2.10.0's steps 2 and 3 still apply.
+
+- **No hook decides `make run`: the developer's permission mode does**
+  ([decision 0089](docs/decisions/0089-no-hook-decides-make-run.md), amends
+  [0077](docs/decisions/0077-the-container-is-the-boundary-for-make-run.md) and
+  [0084](docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md); fixes
+  [issue 177](https://github.com/aplyca/AgenticDevelopmentFramework/issues/177)). The
+  approve-container-run hook asked about every `make … run` line it couldn't parse: a
+  `make run cmd='…'` chained after `sed`, `grep`, or `find`, in a `for` loop, or with a `$` in the
+  value. Its ask overrode the project's own `Bash(make *)` rule, and it prompted in
+  `bypassPermissions` mode too: 15 prompts in 32 calls in one reported session.
+  - **The hook goes,** with its `APPROVE_CONTAINER_RUN` setting and its wiring. `Bash(make *)`
+    covers `make run` in both modes, and the session's permission mode decides the rest.
+  - **Native mode is documented, not guarded:** there `make run` runs its command on the host
+    without a prompt. A project that wants one adds `Bash(make run *)` to `permissions.ask`, which
+    prompts in Docker mode too, since a rule can't read the mode. The docker module's `MODULE.md`,
+    `dev-env`'s specification (C9, C10, D5) and skill, the native `run` task's comment, and
+    `ONBOARDING.md` say so. The same rule replaces an empty `APPROVE_CONTAINER_RUN` for a service
+    that mounts the Docker socket or a path outside the checkout (D5).
+  - **Upgrade impact:** overwrite for the plugins; a packaged project stops running the hook.
+    Committed install: `/adf:upgrade` deletes `.claude/hooks/approve-container-run.sh` (an edited
+    copy is reported) and overwrites `.claude/hooks/_lib.sh`.
+    - **Merge:** `.claude/settings.json` — the three-way merge drops the hook's entry under
+      `PreToolUse` · `Bash` (committed install). `.claude/hooks/config.sh` — drops
+      `APPROVE_CONTAINER_RUN` and its comment. A project that edited those lines resolves them by
+      hand.
+    - **Migration:** scripted — `scripts/migrations/v2.9.0/01-make-run-by-mode.py` no longer waits
+      for the hook: a project upgrading from v2.8.0 or earlier loses the `Bash(make run *)` ask rule
+      its installer added, committed install included, and the report says how to add it back.
+    - **Behavior on upgrade:** `make run` prompts in neither mode, whatever the line around it. In
+      native mode its command runs on the host: add `Bash(make run *)` to `permissions.ask` for a
+      prompt there.
+  - **Framework docs and records** (framework-internal): the hooks README and the top-level
+    `README.md` drop the hook (eleven hooks); decisions 0077 and 0084 and the index name 0089.
+  - **Evals** (framework-internal): `test-hooks.sh` checks that no Bash hook decides issue 177's
+    command shapes in either mode; `check-skills.sh` checks the hook is gone and the native-mode
+    note is there; `test-upgrade.sh` checks the migration without the hook.
+
 - **Reading `git config`, a release, or the secrets' names runs without a prompt**
   ([decision 0088](docs/decisions/0088-reads-of-git-config-releases-and-secrets-run.md), amends
   [0038](docs/decisions/0038-fewer-prompts-for-tasks-and-local-git.md)). In two weeks of sessions,
