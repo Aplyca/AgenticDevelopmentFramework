@@ -56,6 +56,43 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     writes for a moved pin, a fork, a pin that stays, and a local directory, and the report's shell
     block; `check-skills.sh` checks the upgrade skill, `UPGRADING.md`, the joining note, and
     `DEV-SETUP.md` for the add at the pin, and that no doc says `autoUpdate` carries it.
+- **The install adds the marketplace at the newest release**
+  ([decision 0091](docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md),
+  amends [0016](docs/decisions/0016-packaged-install.md)). The install prompt added the `aplyca`
+  marketplace with no ref, so the adopting machine registered the default branch. `/adf:adopt` then
+  pinned a release in the settings, which doesn't move a registration, so the machine kept following
+  `main`, unreleased changes included. `claude plugin list` couldn't show it: between releases,
+  `main` carries the newest release's version.
+  - **The install prompt** (`README.md` and the `adf` plugin's README), **`ADOPT.md`**, and
+    **`docs/SETUP.md`** find the newest tag with `git ls-remote` and add the marketplace at it; the
+    `marketplace update` line goes. The settings the install writes already carry the `"ref"` that
+    `/adf:adopt` pins.
+  - **`/adf:adopt`** Step 6 checks that the machine's copy of the marketplace is at the pin
+    (`claude plugin marketplace list --json`). A machine that isn't gets a GAP with the fix.
+  - **Upgrade impact:** overwrite for the `adf` plugin, which carries `/adf:adopt`. Nothing changes
+    in an adopted project's files.
+    - **Migration:** by hand, on a machine that installed with the earlier commands, when
+      `claude plugin marketplace list --json` shows `aplyca` with no `ref`. From the project's
+      folder, with the project's `"ref"`, add the marketplace at it and reinstall each plugin the
+      settings turn on. `claude plugin update` isn't enough: at the same version it keeps the files
+      it installed from `main`.
+
+      ```bash
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
+      claude plugin uninstall adf@aplyca --scope project
+      claude plugin install adf@aplyca --scope project
+      claude plugin uninstall adf-dev@aplyca --scope project   # when the project turns it on
+      claude plugin install adf-dev@aplyca --scope project     # when the project turns it on
+      git restore .claude/settings.json
+      ```
+
+      Otherwise the next upgrade's commands for each machine (0090) re-point it, and the new
+      release's version replaces the files.
+  - **Framework docs and records** (framework-internal): decision 0016's status and the index name
+    0091.
+  - **Evals** (framework-internal): `check-skills.sh` checks that every documented add of the
+    framework's marketplace names a ref, that the install prompt finds the newest tag and doesn't
+    refresh, and that `/adf:adopt` checks the machine's ref.
 
 ## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
 

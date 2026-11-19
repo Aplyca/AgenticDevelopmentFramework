@@ -101,6 +101,7 @@ projects.
 | [0088](0088-reads-of-git-config-releases-and-secrets-run.md) | Reading `git config`, a release, or the secrets' names runs without a prompt: the git guard hook asks before a `git config` change in place of an ask rule, and the `gh release` and `gh secret` rules name their write subcommands | accepted |
 | [0089](0089-no-hook-decides-make-run.md) | No hook decides `make run`: the approve-container-run hook goes, `Bash(make *)` and the session's permission mode decide it in both modes, and native mode, where it runs on the host, is documented — a project that wants a prompt adds `Bash(make run *)` to `permissions.ask` | accepted |
 | [0090](0090-each-machine-re-adds-the-marketplace-at-the-pin.md) | Each machine adds the marketplace again at the new pin: Claude Code keeps it at the ref it was first added with, so the upgrade's commands for each machine add it at the moved pin, restore the settings they rewrite, and show the installed versions | accepted |
+| [0091](0091-the-install-adds-the-marketplace-at-the-newest-release.md) | The install adds the marketplace at the newest release: added without a ref, a machine's copy follows the default branch and the pin `/adf:adopt` writes doesn't move it, so the install finds the newest tag with `git ls-remote` and adds at it, and `/adf:adopt` checks the machine's ref against the pin | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

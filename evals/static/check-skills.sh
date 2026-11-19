@@ -1012,7 +1012,6 @@ check_practices() {
     ! file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: a refresh keeps the machine's old ref; the joining commands add the marketplace at the pin (0090)")
     grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("README.md: joining adds the marketplace at the pin when trusting the folder didn't download the plugin (#80, 0090)")
     grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'git restore .claude/settings.json' || missing+=("README.md: joining restores the settings the commands rewrite (0090)")
-    file_contains "$REPO_ROOT/README.md" 'claude plugin marketplace update aplyca' || missing+=("install prompt: refreshes a marketplace added before")
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
@@ -1470,6 +1469,39 @@ PY
     fi
 }
 
+check_install_at_release() {
+    # Claude Code keeps a machine's copy of a marketplace at the ref it was first added with, and a
+    # pin written into the settings later doesn't move it. Added without a ref, it follows the
+    # default branch and its unreleased changes, so every documented add names one (decision 0091).
+    local missing=() hits prompt
+    hits=$(grep -rnE 'marketplace add "?aplyca/AgenticDevelopmentFramework([^#]|$)' "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" \
+        "$REPO_ROOT/docs" "$REPO_ROOT/plugins" "$SKELETON" "$MODULES_DIR" 2>/dev/null | grep -v '/docs/decisions/')
+    [ -z "$hits" ] || missing+=("an add of the framework's marketplace names no ref, so the machine follows the default branch: $hits")
+    prompt=$(sed -n '/<!-- install-prompt:/,/^ *```$/p' "$REPO_ROOT/README.md")
+    grep -qF -- "git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'" <<<"$prompt" \
+        || missing+=("install prompt: finds the newest release")
+    grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project' <<<"$prompt" \
+        || missing+=("install prompt: adds the marketplace at the newest release")
+    ! grep -qF 'marketplace update aplyca' <<<"$prompt" || missing+=("install prompt: a refresh keeps the machine's ref; the add at the tag needs none")
+    local doc
+    for doc in README.md plugins/adf/README.md docs/SETUP.md; do
+        file_contains_literal "$REPO_ROOT/$doc" 'claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project' \
+            || missing+=("$doc: the commands add the marketplace at the newest release")
+    done
+    file_contains_literal "$REPO_ROOT/ADOPT.md" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project' \
+        || missing+=("ADOPT.md: adds the marketplace at the newest release")
+    ! file_contains_literal "$REPO_ROOT/ADOPT.md" 'marketplace update aplyca' || missing+=("ADOPT.md: no refresh after the add at the tag")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" "This machine's copy of the marketplace is at the pin" \
+        || missing+=("/adf:adopt: Step 6 checks the machine's ref against the pin")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" "\`claude plugin update\` isn't enough" \
+        || missing+=("/adf:adopt: the fix reinstalls, since an update at the same version keeps the default branch's files")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "the install adds the marketplace at the newest release, and /adf:adopt checks the machine's ref (0091)"
+    else
+        fail "install at a release (decision 0091): ${missing[*]}"
+    fi
+}
+
 check_english() {
     # Everything in the repository is in English (CONTRIBUTING.md § Ground rules): adopting teams of
     # any language read it, and agents follow one language more consistently.
@@ -1776,6 +1808,7 @@ check_plugin_committed_paths
 check_module_plugins
 check_install_scope
 check_install_prompt
+check_install_at_release
 check_lanes
 check_practices
 check_spec_records
