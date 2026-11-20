@@ -47,11 +47,14 @@ it and install each plugin the project turns on, then start a new session:
 cd your-project
 claude plugin marketplace update aplyca
 claude plugin install adf@aplyca --scope project
-claude plugin install adf-dev@aplyca --scope project      # when the project turns it on
-claude plugin install adf-connect@aplyca --scope project  # when the project turns it on
+claude plugin install adf-dev@aplyca --scope project      # only if the settings already turn it on
+claude plugin install adf-connect@aplyca --scope project  # only if the settings already turn it on
 ```
 
-They only download what the settings already turn on, so `.claude/settings.json` doesn't change. A
+They only download what the settings already turn on, so `.claude/settings.json` doesn't change. For
+a plugin they don't turn on, the command isn't a way to turn it on: it writes the `enabledPlugins`
+entry itself and can rewrite the whole file. Turning one on is a one-line change to the committed
+settings, made on a work branch and merged by pull request. A
 leftover `aplyca-adf@aplyca` in `claude plugin list` is the plugin's name before v2.0.0, turned off;
 [UPGRADING.md](docs/UPGRADING.md#our-settings-still-turn-on-aplyca-adf--moving-to-v200) has the
 command that removes it.

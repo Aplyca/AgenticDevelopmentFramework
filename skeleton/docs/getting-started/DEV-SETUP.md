@@ -143,13 +143,15 @@ one copy for every project. From the project's folder, refresh it and install ea
 ```bash
 claude plugin marketplace update aplyca
 claude plugin install adf@aplyca --scope project
-claude plugin install adf-dev@aplyca --scope project      # when the settings turn it on
-claude plugin install adf-connect@aplyca --scope project  # when the settings turn it on
+claude plugin install adf-dev@aplyca --scope project      # only if the settings already turn it on
+claude plugin install adf-connect@aplyca --scope project  # only if the settings already turn it on
 ```
 
-They only download what the settings already turn on, so the file doesn't change. Always pass
-`--scope project`: without it, Claude Code installs at user scope, which turns the plugin on in
-every project on your machine.
+They only download what the settings already turn on, so the file doesn't change. For a plugin they
+don't turn on, the command isn't a way to turn it on: it writes the `enabledPlugins` entry itself and
+can rewrite the whole file. Turning one on is a one-line change to the committed settings, made on a
+work branch and merged by pull request. Always pass `--scope project`: without it, Claude Code
+installs at user scope, which turns the plugin on in every project on your machine.
 
 Key commands:
 - `/triage [task link]` — read a task in full and decide what it needs, before setting anything up
