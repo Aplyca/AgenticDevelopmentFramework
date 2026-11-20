@@ -192,8 +192,9 @@ machinery; in a committed one it keeps the plugin's copies at the same release a
 files, so a skill listed twice never runs a different version. `"autoUpdate": true` carries a new
 pin to every teammate: once it merges, Claude Code updates the plugins installed from `aplyca` in
 their next session, never past the pin. A plugin a release turns on for the first time may still
-need `claude plugin install <plugin>@aplyca --scope project` on each machine; `/adf:upgrade`'s
-report lists the commands.
+need `claude plugin install <plugin>@aplyca --scope project` on each machine, once the merged
+settings turn it on (the command writes `.claude/settings.json` for a plugin they don't);
+`/adf:upgrade`'s report lists the commands.
 
 ## Updating the plugin
 
