@@ -49,13 +49,15 @@ start a new session:
 cd your-project
 claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
 claude plugin install adf@aplyca --scope project
-claude plugin install adf-dev@aplyca --scope project      # when the project turns it on
-claude plugin install adf-connect@aplyca --scope project  # when the project turns it on
+claude plugin install adf-dev@aplyca --scope project      # only if the settings already turn it on
+claude plugin install adf-connect@aplyca --scope project  # only if the settings already turn it on
 git restore .claude/settings.json
 ```
 
 They only download what the settings already turn on. They rewrite `.claude/settings.json`, though,
-so `git restore` puts back the committed file. A
+so `git restore` puts back the committed file. For a plugin the settings don't turn on, the command
+isn't a way to turn it on: it writes the `enabledPlugins` entry itself. Turning one on is a one-line
+change to the committed settings, made on a work branch and merged by pull request. A
 leftover `aplyca-adf@aplyca` in `claude plugin list` is the plugin's name before v2.0.0, turned off;
 [UPGRADING.md](docs/UPGRADING.md#our-settings-still-turn-on-aplyca-adf--moving-to-v200) has the
 command that removes it.

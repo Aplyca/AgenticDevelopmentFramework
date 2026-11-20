@@ -421,7 +421,8 @@ version), so the reviewer knows where to look; they need no plan row.
    `autoUpdate` keep that ref and report the old release as the latest, so each machine adds the
    marketplace again at the new pin. A plugin this upgrade turned on (`adf-dev`, `adf-connect`) may not
    be installed anywhere yet, and the session that ran the upgrade still runs the old release. From
-   the project's folder, after the merge:
+   the project's folder, after the merge — `install` only for a plugin the merged settings turn on,
+   since for one they don't, it writes `.claude/settings.json` itself:
 
    ```bash
    claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project   # the marketplace's source in the settings, at the new pin

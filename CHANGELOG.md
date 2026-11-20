@@ -57,6 +57,25 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     block; `check-skills.sh` checks the upgrade skill, `UPGRADING.md`, the joining note, and
     `DEV-SETUP.md` for the add at the pin, and that no doc says `autoUpdate` carries it.
 
+- **The docs no longer read as if `claude plugin install … --scope project` turns a plugin on**
+  (fixes [issue 176](https://github.com/aplyca/AgenticDevelopmentFramework/issues/176)). The
+  install lines say "only if the settings already turn it on", and each doc that names them says
+  what the command does for a plugin the settings don't enable: it writes the `enabledPlugins`
+  entry itself and can rewrite the whole `.claude/settings.json` in the checkout where it ran — in
+  a project with parallel-agents, an uncommitted change on the base branch that the protect-hub
+  hook can't stop, since it only stops the agent's own edits. Turning a plugin on is a one-line
+  `enabledPlugins` change to the committed settings, made on a work branch and merged by pull
+  request.
+  - **Where:** `plugins/adf-connect/README.md` and `docs/SETUP.md` (how to turn on `adf-connect`),
+    the joining note in `README.md` and `skeleton/docs/getting-started/DEV-SETUP.md` (the install
+    block's comments and the paragraph under it), `plugins/adf/README.md` (the pin's note),
+    `/adf:upgrade`'s per-machine commands, and `plugins/adf/docs/PARALLEL-AGENTS.md` (§ Where a
+    session works).
+  - **Upgrade impact:** overwrite for the plugins (`adf`'s skill and parallel-agents guide; a
+    committed install's `.claude/skills/upgrade/` and `docs/PARALLEL-AGENTS.md` copies).
+    **Merge** in `docs/getting-started/DEV-SETUP.md`: the install block's two comments and the
+    paragraph under it change; keep the project's own text around them. No migration steps.
+
 ## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
 
 A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts

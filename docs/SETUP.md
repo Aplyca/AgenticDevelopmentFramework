@@ -107,6 +107,13 @@ for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca
 with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
 tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
+Turning a plugin on is a one-line change to the committed settings: make it on a work branch
+(`/adf:dispatch` with the parallel-agents module) and merge it by pull request.
+`claude plugin install <plugin>@aplyca --scope project` isn't the way to turn one on: for a plugin
+the settings don't enable, it writes the `enabledPlugins` entry itself and can rewrite the whole
+`.claude/settings.json` in the checkout where you ran it. Run it only once the settings already
+enable the plugin.
+
 ## 3. Fill in AGENTS.md — the file every tool reads
 
 Replace every `[bracketed placeholder]` with facts you can point to in the repository (manifests,
