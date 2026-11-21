@@ -177,8 +177,8 @@ cp -R "$REPO_ROOT/skeleton" "$SITE"
 NAMES='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
 local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/\(skills\|agents\|workflows\|hooks\)/" -e "/docs/[A-Z-]*\.md$"; }
 plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
-check "link-reference-docs: the plugin carries the four reference docs and the parallel-agents guide (got: $plugin_docs)" \
-    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md PARALLEL-AGENTS.md SPEC-MODEL.md ' ]"
+check "link-reference-docs: the plugin carries the five reference docs and the parallel-agents guide (got: $plugin_docs)" \
+    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md PARALLEL-AGENTS.md PROSE-PATTERNS.md SPEC-MODEL.md ' ]"
 first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
 check "link-reference-docs: --packaged links every skeleton file at the release, in the plugin" \
     "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/plugins/adf/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""

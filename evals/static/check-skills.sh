@@ -764,6 +764,11 @@ check_practices() {
     grep -q 'Use whenever tests come before code' "$REPO_ROOT/plugins/adf/skills/write-tests/SKILL.md" || missing+=("/write-tests: its description keeps its trigger")
     grep -q 'Already initialized?' "$REPO_ROOT/plugins/adf/skills/init-project/SKILL.md" || missing+=("/init-project: an initialized project gets only the edit asked for")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
+    for name in stakeholder-update end-user-docs write-docs framework-feedback; do
+        file_contains "$SKILLS_DIR/$name/SKILL.md" 'Then run the prose pass|Run the prose pass\*\* on every message' \
+            && file_contains "$SKILLS_DIR/$name/SKILL.md" 'docs/PROSE-PATTERNS\.md' \
+            || missing+=("/$name: runs the prose pass, docs/PROSE-PATTERNS.md, before the draft is shown (0086)")
+    done
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'time tracking tool is the only record' || missing+=("/track-time: the time tracking tool is the only record (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'names `time-tracking`' || missing+=("/track-time: acts only where the stamp names the time-tracking module (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'whole units, rounded up' || missing+=("/track-time: numbers in whole units, rounded up (0043)")
@@ -1019,7 +1024,7 @@ check_practices() {
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install (and the commands when the plugin didn't download), the local environment's conventions (0032)"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install (and the commands when the plugin didn't download), the local environment's conventions (0032), the prose pass (0086)"
     else
         fail "practices: missing" "${missing[*]}"
     fi
