@@ -227,7 +227,7 @@ fill("AGENTS.md", [
     ("- Install: `[command]`", "- Install: `pnpm install`"),
     ("- Dev server: `[command]` (port [XXXX])", "- Dev server: `pnpm dev` (port 3000)"),
     ("- Tests: `[command]` (port [YYYY])", "- Tests: `pnpm test`"),
-    ("- Lint: `[command]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
+    ("- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or \"none\"]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate before a PR: `[command]`", "- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`"),
 ])
 fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS=""', 'CAREFUL_GLOBS="src/billing/*"'), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])
