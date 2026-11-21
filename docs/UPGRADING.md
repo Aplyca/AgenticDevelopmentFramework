@@ -183,9 +183,17 @@ commands with the release and the plugins filled in. A project whose marketplace
 adds it by the source in its settings: the `repo`, or the `url` of a `git` source.
 
 - **Always pass `--scope project`.** Without it, the add also declares the marketplace in your user
-  settings, at that ref. If you ever added it that way, drop that declaration from the project's
-  folder: `claude plugin marketplace remove aplyca --scope user`. There, the project's own
-  declaration keeps the plugins installed. Run anywhere else, the same command uninstalls them.
+  settings, at that ref. To drop a declaration left that way, first `cd` into a project whose
+  `.claude/settings.json` declares `aplyca`. Run anywhere else, the remove finds no other
+  declaration and uninstalls every plugin from the marketplace, in every project. The guard runs it
+  only where the project declares it:
+
+  ```bash
+  grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user
+  ```
+
+  If the plugins were uninstalled anyway, run the commands above from each project's folder, with
+  `claude plugin install` in place of `update`.
 - **Don't remove the marketplace to re-add it.** `claude plugin marketplace remove aplyca` without
   `--scope` uninstalls every plugin from it, and rewrites the project's committed settings.
 - **One registration per machine.** A machine with two projects pinned to different releases follows
