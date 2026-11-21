@@ -1012,8 +1012,10 @@ check_practices() {
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
     file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     file_contains "$SKELETON/docs/getting-started/DEV-SETUP.md" 'needs no install step' || missing+=("DEV-SETUP.md: joining a project needs no install")
-    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin (#80)")
-    grep -A12 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace update aplyca' || missing+=("README.md: joining names the commands when trusting the folder didn't download the plugin (#80)")
+    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin add the marketplace at the pin (#80, 0090)")
+    ! file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: a refresh keeps the machine's old ref; the joining commands add the marketplace at the pin (0090)")
+    grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("README.md: joining adds the marketplace at the pin when trusting the folder didn't download the plugin (#80, 0090)")
+    grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'git restore .claude/settings.json' || missing+=("README.md: joining restores the settings the commands rewrite (0090)")
     file_contains "$REPO_ROOT/README.md" 'claude plugin marketplace update aplyca' || missing+=("install prompt: refreshes a marketplace added before")
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
@@ -1412,8 +1414,22 @@ check_marketplace_auto_update() {
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'claude plugin install <plugin>@aplyca --scope project' \
         || missing+=("/upgrade's commands for each machine")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'claude plugin update adf-dev@aplyca' || missing+=("SETUP.md § Updating updates adf-dev")
+    # A machine keeps the marketplace at the ref it was first added with: each one adds it again at the
+    # moved pin, restores the settings the commands rewrite, and checks the versions (decision 0090).
+    local doc
+    for doc in plugins/adf/skills/upgrade/SKILL.md docs/UPGRADING.md; do
+        file_contains_literal "$REPO_ROOT/$doc" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' \
+            || missing+=("$doc: each machine adds the marketplace at the new pin (0090)")
+        file_contains_literal "$REPO_ROOT/$doc" 'git restore .claude/settings.json' || missing+=("$doc: restores the settings the commands rewrite (0090)")
+        file_contains_literal "$REPO_ROOT/$doc" 'each plugin shows Version: <X.Y.Z>' || missing+=("$doc: checks the installed versions (0090)")
+    done
+    ! grep -qF 'claude plugin marketplace update aplyca' <(sed -n '/^5\. \*\*Give the developer the commands for each machine/,/^ *```$/p' "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md") \
+        || missing+=("/upgrade's commands for each machine: a refresh keeps the old ref (0090)")
+    ! grep -rqF -e 'carries a new' -e 'move to the pin in their next session' -e 'updates every teammate' \
+        "$REPO_ROOT/docs/SETUP.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
+        || missing+=("a doc still says autoUpdate carries a moved pin to each machine (0090)")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine"
+        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine, which add the marketplace at the new pin (0090)"
     else
         fail "marketplace auto-update (decision 0041) missing in: ${missing[*]}"
     fi

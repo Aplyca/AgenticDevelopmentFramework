@@ -59,6 +59,35 @@ check "prune: Read rules and wildcard prefixes are never touched" \
 check "prune: ask and deny are never touched" \
     "has x 'd[\"ask\"] == [\"Bash(make reset*)\", \"Bash(make *)\"] and d[\"deny\"] == [\"Bash(git push --force *)\"]'"
 
+# ─── the commands for each machine (decision 0090) ──────────────────────────
+out=$(python3 - "$REPO_ROOT/scripts" <<'PY'
+import importlib.util, json, sys
+spec = importlib.util.spec_from_file_location("upgrade", sys.argv[1] + "/upgrade.py")
+u = importlib.util.module_from_spec(spec); spec.loader.exec_module(u)
+github = {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v9.1.0"}
+fork = {"source": "git", "url": "https://git.example.com/tools/adf.git", "ref": "v9.1.0"}
+on = {"adf@aplyca", "adf-dev@aplyca"}
+print(json.dumps({
+    "moved": u.machine_commands({"adf@aplyca"}, on, github, "v9.1.0"),
+    "fork": u.machine_commands({"adf@aplyca"}, {"adf@aplyca"}, fork, "v9.1.0"),
+    "stays": u.machine_commands({"adf@aplyca"}, {"adf@aplyca"}, github, None),
+    "directory": u.machine_commands({"adf@aplyca"}, {"adf@aplyca"}, {"source": "directory", "path": "/x"}, "v9.1.0"),
+    "off": u.machine_commands(set(), set(), github, "v9.1.0")}))
+PY
+)
+check "machines: a moved pin re-adds the marketplace at the new tag, at project scope, before any install" \
+    "has x 'd[\"moved\"][0].startswith(\"claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v9.1.0 --scope project\")'"
+check "machines: never refreshes at the old ref when the pin moved" "has x 'not any(\"marketplace update\" in c for c in d[\"moved\"])'"
+check "machines: installs a plugin the upgrade turned on, updates one already on" \
+    "has x '\"claude plugin install adf-dev@aplyca --scope project\" in d[\"moved\"] and \"claude plugin update adf@aplyca\" in d[\"moved\"]'"
+check "machines: restores the committed settings the commands rewrite, then shows the versions" \
+    "has x 'd[\"moved\"][-2].startswith(\"git restore .claude/settings.json\") and d[\"moved\"][-1].startswith(\"claude plugin list\") and \"Version: 9.1.0\" in d[\"moved\"][-1]'"
+check "machines: a fork's git source is re-added by its URL" \
+    "has x 'd[\"fork\"][0].startswith(\"claude plugin marketplace add https://git.example.com/tools/adf.git#v9.1.0 --scope project\")'"
+check "machines: a pin that stays, or a local directory, only refreshes" \
+    "has x 'd[\"stays\"][0] == d[\"directory\"][0] == \"claude plugin marketplace update aplyca\"'"
+check "machines: nothing when no plugin from aplyca is on" "has x 'd[\"off\"] == []'"
+
 # ─── a project adopted at $FROM ─────────────────────────────────────────────
 FW="$WORK/fw-$FROM"
 mkdir -p "$FW" && git -C "$REPO_ROOT" archive "$FROM" skeleton modules | tar -x -C "$FW"
@@ -167,6 +196,8 @@ check "run: clean merges carry a hunk count" \
 check "run: the report has every section, Follow-ups last" \
     "grep -n '^## ' \"\$(gitdir '$P')/adf-upgrade/report.md\"  | cut -d' ' -f2- | tr '\n' '|' | grep -q '^Releases|Needs you|Applied|Checks|On each machine|Follow-ups|$'"
 check "run: the machines' commands update adf" "grep -q 'claude plugin update adf@aplyca' '$WORK/run.md'"
+check "run: the machines' commands are one bash block, ending with the version check" \
+    "sed -n '/^## On each machine/,/^## Follow-ups/p' '$WORK/run.md' | grep -A12 -x '\`\`\`bash' | grep -q '^claude plugin list'"
 check "run: the docker spec change gives a dev-env follow-up, or none when it didn't change" \
     "report '$P' 'all(set(f) == {\"command\", \"why\", \"source\", \"plugin\", \"when\"} for f in r[\"follow_ups\"])'"
 check "run: Vercel and Contentful servers get /adf-connect:connect follow-ups, found by name and by host (0057)" \

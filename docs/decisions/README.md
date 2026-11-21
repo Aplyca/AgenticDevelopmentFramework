@@ -52,7 +52,7 @@ projects.
 | [0038](0038-fewer-prompts-for-tasks-and-local-git.md) | Allow broadly, ask by name: make, docker, git, and gh | accepted; amended by 0074, 0077, 0078, 0088 |
 | [0039](0039-check-locally-then-on-the-preview.md) | An agent checks a change locally first, then on the pull request's preview | accepted; amended by 0045, 0047, 0070, 0072 |
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted; amended by 0042, 0083, 0085 |
-| [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted |
+| [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted; amended by 0090 |
 | [0042](0042-each-session-moves-to-its-task-worktree.md) | Each task's session moves to its own worktree; the main checkout hands nothing out (parallel-agents module) | accepted; amended by 0083, 0085 |
 | [0043](0043-track-time-in-the-tracker.md) | A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module) | accepted; amended by 0061, 0064, 0066 |
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
@@ -100,6 +100,7 @@ projects.
 | [0087](0087-a-merge-wakes-an-idle-session.md) | A merge wakes an idle session: the pr-state hook also runs at Stop with `asyncRewake`, watches an open pull request every five minutes for `PR_WATCH_HOURS`, and exits 2 on a merge or close, which wakes the session to offer the wrap-up | accepted |
 | [0088](0088-reads-of-git-config-releases-and-secrets-run.md) | Reading `git config`, a release, or the secrets' names runs without a prompt: the git guard hook asks before a `git config` change in place of an ask rule, and the `gh release` and `gh secret` rules name their write subcommands | accepted |
 | [0089](0089-no-hook-decides-make-run.md) | No hook decides `make run`: the approve-container-run hook goes, `Bash(make *)` and the session's permission mode decide it in both modes, and native mode, where it runs on the host, is documented — a project that wants a prompt adds `Bash(make run *)` to `permissions.ask` | accepted |
+| [0090](0090-each-machine-re-adds-the-marketplace-at-the-pin.md) | Each machine adds the marketplace again at the new pin: Claude Code keeps it at the ref it was first added with, so the upgrade's commands for each machine add it at the moved pin, restore the settings they rewrite, and show the installed versions | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

@@ -40,21 +40,24 @@ Most of what's here was proven in real client projects first — some built on t
 Claude Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns
 the plugin on, at the release the project pins. If typing `/adf:` then offers nothing, the plugin
 didn't download. That happens on a machine whose copy of the `aplyca` marketplace is older than the
-project's release: Claude Code keeps one copy for every project. From the project's folder, refresh
-it and install each plugin the project turns on, then start a new session:
+project's release: Claude Code keeps one copy for every project, at the release it was first added
+with, and refreshing it doesn't move it. From the project's folder, add it again at the project's
+release, the `"ref"` in `.claude/settings.json`, and install each plugin the project turns on, then
+start a new session:
 
 ```bash
 cd your-project
-claude plugin marketplace update aplyca
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
 claude plugin install adf@aplyca --scope project
 claude plugin install adf-dev@aplyca --scope project      # only if the settings already turn it on
 claude plugin install adf-connect@aplyca --scope project  # only if the settings already turn it on
+git restore .claude/settings.json
 ```
 
-They only download what the settings already turn on, so `.claude/settings.json` doesn't change. For
-a plugin they don't turn on, the command isn't a way to turn it on: it writes the `enabledPlugins`
-entry itself and can rewrite the whole file. Turning one on is a one-line change to the committed
-settings, made on a work branch and merged by pull request. A
+They only download what the settings already turn on. They rewrite `.claude/settings.json`, though,
+so `git restore` puts back the committed file. For a plugin the settings don't turn on, the command
+isn't a way to turn it on: it writes the `enabledPlugins` entry itself. Turning one on is a one-line
+change to the committed settings, made on a work branch and merged by pull request. A
 leftover `aplyca-adf@aplyca` in `claude plugin list` is the plugin's name before v2.0.0, turned off;
 [UPGRADING.md](docs/UPGRADING.md#our-settings-still-turn-on-aplyca-adf--moving-to-v200) has the
 command that removes it.

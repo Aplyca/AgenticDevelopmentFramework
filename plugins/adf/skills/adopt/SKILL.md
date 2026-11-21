@@ -293,8 +293,8 @@ Present the table before going further. Wrong facts here poison every file downs
   skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
   project then gets the plugin's copies at the same release as its own files, and a packaged one gets
   its machinery from that release. Add
-  `"autoUpdate": true` to the same entry, so a pin that later moves updates every teammate's plugins
-  on its own.
+  `"autoUpdate": true` to the same entry. A pin that later moves reaches each machine through the
+  commands `/adf:upgrade` gives (decision 0090).
 
 ## Step 6 — Verify
 

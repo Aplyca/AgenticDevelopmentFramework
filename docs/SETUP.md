@@ -248,9 +248,10 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    rule: `"adf-dev@aplyca": true` in `enabledPlugins` and
    `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 
-   `"autoUpdate": true` lets the pin move every teammate: once a change to `"ref"` merges, Claude
-   Code updates the plugins installed from `aplyca` in each session, a few minutes after its first
-   message, and says `Run /reload-plugins to apply`. It never goes past the pin.
+   `"autoUpdate": true` lets Claude Code refresh the marketplace and its installed plugins in the
+   background after a session starts. It refreshes at the ref the machine registered the
+   marketplace with, so a pin that later moves reaches each machine through the commands
+   `/adf:upgrade` gives ([UPGRADING.md § On each machine](./UPGRADING.md#on-each-machine-after-the-merge)).
 
    The hooks read `.claude/hooks/config.sh` from the project, so step 5's settings apply unchanged.
    The read rule lets the plugin's skills and agents open its reference docs: Claude Code asks before
@@ -332,11 +333,13 @@ claude plugin update adf-dev@aplyca      # when the project turns it on
 claude plugin update adf-connect@aplyca  # when the project turns it on
 ```
 
-After the upgrade merges, the marketplace's `"autoUpdate": true` updates each teammate's installed
-plugins in their next session. A plugin the upgrade turned on may not be on their machine yet —
+After the upgrade merges, each teammate's machine still has the marketplace at its old ref:
+Claude Code registers it once per machine, and neither `claude plugin update` nor `"autoUpdate": true`
+follows a pin that moved. A plugin the upgrade turned on may not be on their machine yet either —
 `/plugin` lists it under Errors as enabled but not installed. `/adf:upgrade`'s report gives the
-commands that do both at once — `claude plugin install <plugin>@aplyca --scope project` for a plugin
-it turned on, `claude plugin update` for the rest — then `/reload-plugins`.
+commands for each machine: add the marketplace at the new pin, install or update each plugin,
+restore the settings file they rewrite, and check the versions, then `/reload-plugins`
+([UPGRADING.md § On each machine](./UPGRADING.md#on-each-machine-after-the-merge)).
 
 By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's
 **Upgrade impact** in the [CHANGELOG](../CHANGELOG.md) first.

@@ -189,17 +189,19 @@ it.
 Every project pins its release with `"ref"`, and `/adf:adopt` and `/adf:upgrade` keep
 it equal to the release in the project's stamp. In a packaged project the pin chooses the
 machinery; in a committed one it keeps the plugin's copies at the same release as the committed
-files, so a skill listed twice never runs a different version. `"autoUpdate": true` carries a new
-pin to every teammate: once it merges, Claude Code updates the plugins installed from `aplyca` in
-their next session, never past the pin. A plugin a release turns on for the first time may still
-need `claude plugin install <plugin>@aplyca --scope project` on each machine, once the merged
-settings turn it on (the command writes `.claude/settings.json` for a plugin they don't);
-`/adf:upgrade`'s report lists the commands.
+files, so a skill listed twice never runs a different version. A pin that moves doesn't reach a
+machine on its own: Claude Code registers the marketplace once per machine, at the ref it was
+first added with, and `"autoUpdate": true` refreshes that ref. After an upgrade merges, each machine
+adds the marketplace at the new pin and updates or installs each plugin — `install` only once the
+merged settings turn it on, since the command writes `.claude/settings.json` for a plugin they
+don't. `/adf:upgrade`'s report lists the commands
+([UPGRADING.md](../../docs/UPGRADING.md#on-each-machine-after-the-merge)).
 
 ## Updating the plugin
 
 Every project pins a release, so updating the plugin changes nothing until the pin moves.
 `/adf:upgrade` moves it to the newest release and brings the committed files along, in one pull
-request; restart Claude Code after it merges. A project adopted before v1.0.0 isn't pinned and turns
+request; after it merges, run the commands its report gives for each machine, then restart Claude
+Code. A project adopted before v1.0.0 isn't pinned and turns
 on `aplyca-framework`: install `adf` with the [install prompt](#install), then run
 `/adf:upgrade`, which renames the setting and pins the release.
