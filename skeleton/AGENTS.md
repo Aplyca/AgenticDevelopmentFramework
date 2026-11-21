@@ -174,12 +174,12 @@ docs/                Documentation
 
 ## Quick reference
 
-<!-- CUSTOMIZE: the commands an agent can run, exactly as typed. One command surface for humans and agents alike — a Makefile at the root (`make help`), or the stack's own scripts. -->
+<!-- CUSTOMIZE: the commands an agent can run, exactly as typed — a task's variables as its Makefile takes them, since make ignores any other. One command surface for humans and agents alike — a Makefile at the root (`make help`), or the stack's own scripts. -->
 
 - Install: `[command]`
 - Dev server: `[command, e.g. make up]` · stop (keeps containers and data): `[command, e.g. make stop]` · down (removes containers; data stays): `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`
 - Production build, locally: `[command, e.g. make prod — or "none"]` — for what only the production build shows; never the stack's build and start commands run by hand
-- Tests: `[command]` (on their own port) · by tier: `[e.g. npm run test:smoke · test:critical · npm test]` · one feature suite: `[e.g. npm test -- tests/billing]`
-- Lint: `[command]` · Typecheck: `[command]`
+- Tests: `[command]` (on their own port) · one file: `[e.g. npm test -- <file>]` · by tier: `[e.g. npm run test:smoke · test:critical · npm test]` · one feature suite: `[e.g. npm test -- tests/billing]`
+- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or "none"]` · Typecheck: `[command]`
 - Full gate before a PR: `[command]`
 - Preview: `[where each pull request's preview deploys, e.g. the host's comment on the PR — or "none"]`

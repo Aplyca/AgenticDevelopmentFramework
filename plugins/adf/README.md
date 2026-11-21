@@ -198,8 +198,10 @@ machinery; in a committed one it keeps the plugin's copies at the same release a
 files, so a skill listed twice never runs a different version. A pin that moves doesn't reach a
 machine on its own: Claude Code registers the marketplace once per machine, at the ref it was
 first added with, and `"autoUpdate": true` refreshes that ref. After an upgrade merges, each machine
-adds the marketplace at the new pin and updates or installs each plugin; `/adf:upgrade`'s report
-lists the commands ([UPGRADING.md](../../docs/UPGRADING.md#on-each-machine-after-the-merge)).
+adds the marketplace at the new pin and updates or installs each plugin — `install` only once the
+merged settings turn it on, since the command writes `.claude/settings.json` for a plugin they
+don't. `/adf:upgrade`'s report lists the commands
+([UPGRADING.md](../../docs/UPGRADING.md#on-each-machine-after-the-merge)).
 
 ## Updating the plugin
 

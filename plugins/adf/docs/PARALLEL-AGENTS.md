@@ -21,6 +21,13 @@ hook stops every file edit in the main checkout (`HUB_READONLY` in `.claude/hook
 same goes for maintenance such as a framework upgrade: it moves to a worktree of its own like any
 other task.
 
+The hook stops the agent's edits, not a command you run there.
+`claude plugin install <plugin>@aplyca --scope project` writes `.claude/settings.json` itself for a
+plugin the committed settings don't enable — it adds the `enabledPlugins` entry and can rewrite the
+whole file — and leaves an uncommitted change on the base branch. Run it in the main checkout only
+once the settings enable the plugin. Turning a plugin on is a one-line change to those settings: a
+task of its own, on a work branch in a worktree, merged by pull request.
+
 ## How a task gets its worktree
 
 **Each new task starts a new session.** The developer opens it in the main checkout, or wherever the

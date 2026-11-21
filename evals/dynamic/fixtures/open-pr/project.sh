@@ -142,7 +142,7 @@ fill("AGENTS.md", [
      "- Dev server: `pnpm dev` · stop (keeps containers and data): Ctrl-C, or end its background command · down (removes containers; data stays): nothing to remove · where it runs: `pnpm urls`"),
     ('- Production build, locally: `[command, e.g. make prod — or "none"]`', "- Production build, locally: `none`"),
     ("- Tests: `[command]` (on their own port)", "- Tests: `pnpm test`"),
-    ("- Lint: `[command]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
+    ("- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or \"none\"]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate before a PR: `[command]`", "- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`"),
     ("- Preview: `[where each pull request's preview deploys, e.g. the host's comment on the PR — or \"none\"]`",
      "- Preview: each pull request deploys one; the `Preview` check on the pull request names its URL (`gh pr checks <n>`)"),

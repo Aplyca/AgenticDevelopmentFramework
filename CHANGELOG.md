@@ -94,6 +94,50 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     framework's marketplace names a ref, that the install prompt finds the newest tag and doesn't
     refresh, and that `/adf:adopt` checks the machine's ref.
 
+- **The docs no longer read as if `claude plugin install … --scope project` turns a plugin on**
+  (fixes [issue 176](https://github.com/aplyca/AgenticDevelopmentFramework/issues/176)). The
+  install lines say "only if the settings already turn it on", and each doc that names them says
+  what the command does for a plugin the settings don't enable: it writes the `enabledPlugins`
+  entry itself and can rewrite the whole `.claude/settings.json` in the checkout where it ran — in
+  a project with parallel-agents, an uncommitted change on the base branch that the protect-hub
+  hook can't stop, since it only stops the agent's own edits. Turning a plugin on is a one-line
+  `enabledPlugins` change to the committed settings, made on a work branch and merged by pull
+  request.
+  - **Where:** `plugins/adf-connect/README.md` and `docs/SETUP.md` (how to turn on `adf-connect`),
+    the joining note in `README.md` and `skeleton/docs/getting-started/DEV-SETUP.md` (the install
+    block's comments and the paragraph under it), `plugins/adf/README.md` (the pin's note),
+    `/adf:upgrade`'s per-machine commands, and `plugins/adf/docs/PARALLEL-AGENTS.md` (§ Where a
+    session works).
+  - **Upgrade impact:** overwrite for the plugins (`adf`'s skill and parallel-agents guide; a
+    committed install's `.claude/skills/upgrade/` and `docs/PARALLEL-AGENTS.md` copies).
+    **Merge** in `docs/getting-started/DEV-SETUP.md`: the install block's two comments and the
+    paragraph under it change; keep the project's own text around them. No migration steps.
+
+- **The Claude Code rule names no task variable; `AGENTS.md` § Quick reference writes them** (fixes
+  [issue 175](https://github.com/aplyca/AgenticDevelopmentFramework/issues/175)).
+  `.claude/rules/claude-code.md` told agents to run `make test t=<file>` and `make lint f=<file>`
+  with the `docker` module. A `Makefile` written before adoption may take another variable
+  (`args=`) or none, and `make` ignores one a task doesn't take: the agent ran the whole suite, or
+  linted everything, without a sign.
+  - **The rule** says to use the project's tasks as § Quick reference writes them, one test or file
+    included, and to read the task where it names none. It keeps `make run cmd='<command>'`.
+  - **§ Quick reference** gets a "one file" slot on the tests and lint lines. `/adf:adopt` fills them
+    from the project's `Makefile` or scripts; the docker module's Customize step and
+    `/adf-dev:dev-env set up` write C3's `t=` and `f=` once the tasks take them.
+  - **`dev-env`:** the audit names a `test` without `t=`, or a `lint` or `format` without `f=`, and
+    what each takes instead (C3); its checklist and C3 say § Quick reference writes the one-file
+    commands. `unit`'s F3 runs one file with the variable § Quick reference names. `/adf:upgrade`
+    reports such a task as a gap for `/dev-env set up`.
+  - **Upgrade impact:** overwrite for the plugins.
+    - **Merge:** `.claude/rules/claude-code.md` — the **Use the project's tasks** line under
+      § Commands that run without a prompt. `AGENTS.md` — § Quick reference's tests and lint lines
+      gain "one file".
+    - **Migration:** by hand — fill the two "one file" slots with what the project's tasks take
+      (`make help`, or the `Makefile`), or "none". `/adf:upgrade` lists this step in its plan.
+  - **Evals** (framework-internal): `check-skills.sh` checks the rule names no `t=` or `f=`, the
+    Quick reference has both slots, and the `dev-env` audit names the task; the dynamic fixtures fill
+    the new lint line.
+
 ## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
 
 A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts

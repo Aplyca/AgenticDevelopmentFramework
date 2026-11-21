@@ -85,7 +85,9 @@ a project misses. A project that departs from one on purpose records it, with th
 
   A mode may add tasks of its own — Docker mode's `shell`, native mode's `services` — and `help`
   lists whatever the loaded file defines. The filters mean an agent runs the one test or file it
-  changed through a task; a command no task covers goes through `run` (C10). In Docker mode `deps`,
+  changed through a task, as `AGENTS.md` § Quick reference writes it: `make` ignores a variable a
+  task doesn't take, so a `test` without `t` runs the whole suite, and the rules that load in every
+  session name no filter. A command no task covers goes through `run` (C10). In Docker mode `deps`,
   `test`, `lint`, `format`, `typecheck`, and `run` start a container of their own, so none needs
   `up` first (M11).
 - **C4.** `help` names the mode in force and its file on its first line, then lists each task with
@@ -385,7 +387,7 @@ a project misses. A project that departs from one on purpose records it, with th
 | Their rows, while they run | `.claude/launch.json`, untracked, kept by the tasks that start and stop them (P8) |
 | How the production build is built and served | the Dockerfile's `prod` stage and `<APP>-prod` in `compose.yaml`; `NATIVE_PROD_CMD` in `ops/native/Makefile` |
 | How a person sets up and starts the stack, and problems met before | `docs/getting-started/DEV-SETUP.md` |
-| The start and stop commands an agent runs | `AGENTS.md` § Quick reference |
+| The commands an agent runs — start and stop, one test or file | `AGENTS.md` § Quick reference |
 | The project's conventions, its deployment targets, and anything it changed here, with why | `.claude/rules/deployment.md` |
 | The URL the agent walks in the local check | `LOCAL_URL` in `.claude/hooks/config.sh` |
 | What each worktree starts, stops, and is told | `ops/agent/worktree.conf` |
