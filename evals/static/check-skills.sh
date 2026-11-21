@@ -1427,6 +1427,13 @@ check_marketplace_auto_update() {
     ! grep -rqF -e 'carries a new' -e 'move to the pin in their next session' -e 'updates every teammate' \
         "$REPO_ROOT/docs/SETUP.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
         || missing+=("a doc still says autoUpdate carries a moved pin to each machine (0090)")
+    # Run where no project declares the marketplace, a user-scope remove uninstalls every plugin from it:
+    # each one the docs give runs behind a guard that checks the project declares it (0090).
+    local unguarded
+    unguarded=$(grep -rn -F 'marketplace remove aplyca --scope user' "$REPO_ROOT/docs/UPGRADING.md" "$REPO_ROOT/docs/SETUP.md" \
+        "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
+        | grep -v -F "grep -q '\"aplyca\"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user")
+    [ -z "$unguarded" ] || missing+=("a user-scope marketplace remove without the guard: ${unguarded//$REPO_ROOT\//}")
     if [ ${#missing[@]} -eq 0 ]; then
         pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine, which add the marketplace at the new pin (0090)"
     else

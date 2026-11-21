@@ -128,12 +128,15 @@ and `/adf:upgrade` in a local session.
 
 **Installed `aplyca-framework` before?** That was this plugin's name until v1.0.0. Install
 `adf` with the prompt above, then remove the old one — from the project, and from user scope
-if you ever installed it there:
+if you ever installed it there. Run these from the project's folder, once its
+`.claude/settings.json` declares `aplyca`. The marketplace's user-level declaration goes only
+there, since anywhere else the remove finds no other declaration and uninstalls every plugin from
+the marketplace, `adf` included. The guard on the last line checks first:
 
 ```bash
 claude plugin uninstall aplyca-framework@aplyca --scope project
 claude plugin uninstall aplyca-framework@aplyca --scope user
-claude plugin marketplace remove aplyca --scope user
+grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user
 ```
 
 `/adf:upgrade` replaces the old name in the project's committed settings.

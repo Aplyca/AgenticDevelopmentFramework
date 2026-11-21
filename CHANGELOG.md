@@ -31,6 +31,12 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     project's `"ref"` instead of refreshing it, and restore the settings afterwards.
   - **Docs** stop saying that `autoUpdate` carries a moved pin to each machine: `docs/SETUP.md`, the
     `adf` plugin's README, and `/adf:adopt`.
+  - **The user-scope cleanup runs behind a guard.** Run where no project declares the marketplace,
+    `claude plugin marketplace remove aplyca --scope user` finds no other declaration and uninstalls
+    every plugin from it. `docs/UPGRADING.md`, this entry, and the `adf` plugin's README (the
+    `aplyca-framework` cleanup, which `/adf:upgrade` and the install prompt point to) now give it as
+    `grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user`,
+    to run from the project's folder.
   - **Upgrade impact:** overwrite for the plugins and the scripted upgrade, which the next upgrade
     runs from its own release, so its report gives the new commands.
     - **Merge:** `docs/getting-started/DEV-SETUP.md` — the commands when the plugin didn't
@@ -47,15 +53,20 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       claude plugin list
       ```
 
-      A machine that followed the workaround in issue 174 also has a user-level declaration: from
-      the project's folder, `claude plugin marketplace remove aplyca --scope user` drops it and keeps
-      the plugins installed.
+      A machine that followed the workaround in issue 174 also has a user-level declaration. Drop
+      it only from a project whose `.claude/settings.json` declares `aplyca`: anywhere else, the
+      remove uninstalls every plugin from the marketplace. The guard runs it only there:
+
+      ```bash
+      grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user
+      ```
   - **Framework docs and records** (framework-internal): decision 0041's status and the index name
     0090.
   - **Evals** (framework-internal): `test-upgrade.sh` checks the commands `scripts/upgrade.py`
     writes for a moved pin, a fork, a pin that stays, and a local directory, and the report's shell
     block; `check-skills.sh` checks the upgrade skill, `UPGRADING.md`, the joining note, and
-    `DEV-SETUP.md` for the add at the pin, and that no doc says `autoUpdate` carries it.
+    `DEV-SETUP.md` for the add at the pin, that no doc says `autoUpdate` carries it, and that every
+    user-scope remove the docs give runs behind the guard.
 - **The install adds the marketplace at the newest release**
   ([decision 0091](docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md),
   amends [0016](docs/decisions/0016-packaged-install.md)). The install prompt added the `aplyca`
