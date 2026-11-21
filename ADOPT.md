@@ -26,17 +26,20 @@ branch, delivered as a draft pull request — and wait for their go-ahead.
 ## 2. Install the plugin for this project only
 
 Skip this step when `.claude/settings.json` already enables `adf@aplyca`, or `aplyca-adf@aplyca`, its
-name before v2.0.0. Otherwise run,
-from the project's root:
+name before v2.0.0. Otherwise find the newest release, the first tag
+`git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`
+prints, and run, from the project's root, with that tag in place of `<tag>`:
 
 ```bash
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin marketplace update aplyca
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project
 claude plugin install adf@aplyca --scope project
 ```
 
-The update refreshes a copy of the marketplace this machine added before; without it, the install
-can't find `adf`. Always with `--scope project`: without it, Claude Code installs at user scope, which turns the plugin
+Always at the tag, the release `/adopt` pins: Claude Code keeps one copy of the marketplace per
+machine, at the ref it was first added with. Added without one, it follows the default branch,
+unreleased changes included, and the pin doesn't move it
+([decision 0091](docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
+Always with `--scope project`: without it, Claude Code installs at user scope, which turns the plugin
 on in every project on the machine. If `claude plugin list` also shows the plugin at user scope, tell
 the developer, with the commands that remove that copy (the plugin's
 [README § Install](plugins/adf/README.md#install)); don't run them.

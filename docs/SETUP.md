@@ -8,12 +8,16 @@ Code session, or with these commands:
 
 ```bash
 cd your-project
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin marketplace update aplyca
+tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
 claude plugin install adf@aplyca --scope project
 # then, in the repository:  /adf:adopt
 ```
 
+The marketplace is added at the newest release, the one the project will pin: Claude Code keeps one
+copy of it per machine, at the ref it was first added with, and a copy added without one follows the
+default branch, unreleased changes included, after the pin too
+([decision 0091](decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
 `--scope project` turns the plugin on in this project only, through its committed
 `.claude/settings.json` — teammates get it once they trust the folder, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use

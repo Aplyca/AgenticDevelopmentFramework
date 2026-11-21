@@ -91,14 +91,16 @@ any code exists. Step by step:
    2. If ops/agent/worktree.conf or scripts/agent/worktree.conf exists and this is the main checkout
       (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the main checkout takes no
       edits. Tell me to run this from a worktree.
-   3. From this folder, run:
-      claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-      claude plugin marketplace update aplyca
+   3. Find the newest release: the first tag this prints.
+      git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'
+      Then, from this folder, run, with that tag in place of <tag>:
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project
       claude plugin install adf@aplyca --scope project
-      The update refreshes a copy of the marketplace added before; without it the install can't
-      find adf.
-   4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
-      plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+      Never add it without the tag: this machine's copy of the marketplace stays at the ref it was
+      first added with, and with none, it follows the default branch and its unreleased changes.
+   4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace, with
+      "ref": "<tag>", and the plugin. Don't commit it — /adopt or /upgrade puts it in its pull
+      request.
    5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
       that copy. Don't run them.
    6. Tell me to start a new session here, then run /adf:upgrade if the first line of AGENTS.md
@@ -109,12 +111,16 @@ any code exists. Step by step:
 
    ```bash
    cd your-project
-   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-   claude plugin marketplace update aplyca
+   tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+   claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
    claude plugin install adf@aplyca --scope project
    ```
 
-   They write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
+   The first line finds the newest release, which `/adf:adopt` pins. The marketplace is added at it
+   because Claude Code keeps one copy of it per machine, at the ref it was first added with: added
+   without one, it follows the default branch, unreleased changes included, and the pin doesn't
+   move it ([decision 0091](docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
+   The commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
    this project only, and teammates get it once they trust the folder. Without `--scope`,
    Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).
