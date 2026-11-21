@@ -213,7 +213,8 @@ Present the table before going further. Wrong facts here poison every file downs
 
 - **`AGENTS.md`** — identity, stack, ground rules, delivery rules (base branch, protected branches),
   sensitive areas, boundaries & antipatterns, conventions, structure, quick reference (commands
-  exactly as typed).
+  exactly as typed — running one test or linting one file with the variable the project's task
+  takes, read from its `Makefile` or scripts, or "none").
   Under ~200 lines; link instead of inlining. Monorepo: nested `AGENTS.md` per module whose rules
   differ (template in `/init-project`).
 - **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
@@ -256,8 +257,8 @@ Present the table before going further. Wrong facts here poison every file downs
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
   `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
   stack to the local environment specification it carries (its templates are an example of it), or
-  audits the existing one against it and proposes the move, and fills
-  `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_URL`, and `deployment.md`'s
+  audits the existing one against it and proposes the move, and fills `DEV-SETUP.md`,
+  the Quick reference's start, stop, and one-file lines, `LOCAL_URL`, and `deployment.md`'s
   `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
   `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
   the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is

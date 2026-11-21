@@ -76,6 +76,31 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     **Merge** in `docs/getting-started/DEV-SETUP.md`: the install block's two comments and the
     paragraph under it change; keep the project's own text around them. No migration steps.
 
+- **The Claude Code rule names no task variable; `AGENTS.md` § Quick reference writes them** (fixes
+  [issue 175](https://github.com/aplyca/AgenticDevelopmentFramework/issues/175)).
+  `.claude/rules/claude-code.md` told agents to run `make test t=<file>` and `make lint f=<file>`
+  with the `docker` module. A `Makefile` written before adoption may take another variable
+  (`args=`) or none, and `make` ignores one a task doesn't take: the agent ran the whole suite, or
+  linted everything, without a sign.
+  - **The rule** says to use the project's tasks as § Quick reference writes them, one test or file
+    included, and to read the task where it names none. It keeps `make run cmd='<command>'`.
+  - **§ Quick reference** gets a "one file" slot on the tests and lint lines. `/adf:adopt` fills them
+    from the project's `Makefile` or scripts; the docker module's Customize step and
+    `/adf-dev:dev-env set up` write C3's `t=` and `f=` once the tasks take them.
+  - **`dev-env`:** the audit names a `test` without `t=`, or a `lint` or `format` without `f=`, and
+    what each takes instead (C3); its checklist and C3 say § Quick reference writes the one-file
+    commands. `unit`'s F3 runs one file with the variable § Quick reference names. `/adf:upgrade`
+    reports such a task as a gap for `/dev-env set up`.
+  - **Upgrade impact:** overwrite for the plugins.
+    - **Merge:** `.claude/rules/claude-code.md` — the **Use the project's tasks** line under
+      § Commands that run without a prompt. `AGENTS.md` — § Quick reference's tests and lint lines
+      gain "one file".
+    - **Migration:** by hand — fill the two "one file" slots with what the project's tasks take
+      (`make help`, or the `Makefile`), or "none". `/adf:upgrade` lists this step in its plan.
+  - **Evals** (framework-internal): `check-skills.sh` checks the rule names no `t=` or `f=`, the
+    Quick reference has both slots, and the `dev-env` audit names the task; the dynamic fixtures fill
+    the new lint line.
+
 ## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
 
 A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts

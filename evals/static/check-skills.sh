@@ -979,6 +979,10 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    file_contains_literal "$SKELETON/.claude/rules/claude-code.md" 'as `AGENTS.md` § Quick reference writes them' && ! grep -qE '(^|[^A-Za-z])[tf]=<' "$SKELETON/.claude/rules/claude-code.md" \
+        || missing+=("claude-code rule: names no task variable a project's Makefile may not take; the Quick reference writes them (issue 175)")
+    file_contains "$AGENTS_MD" '^- Tests: .* · one file: ' && file_contains "$AGENTS_MD" '^- Lint: .* · one file: ' || missing+=("AGENTS.md: Quick reference writes one test and one file's lint (issue 175)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'name each task and what it takes (C3)' || missing+=("/dev-env: the audit names a test or lint that doesn't take C3's variable (issue 175)")
     ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
