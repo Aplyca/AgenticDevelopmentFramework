@@ -40,18 +40,24 @@ Most of what's here was proven in real client projects first — some built on t
 Claude Code and accept the prompt to trust the folder: its committed `.claude/settings.json` turns
 the plugin on, at the release the project pins. If typing `/adf:` then offers nothing, the plugin
 didn't download. That happens on a machine whose copy of the `aplyca` marketplace is older than the
-project's release: Claude Code keeps one copy for every project. From the project's folder, refresh
-it and install each plugin the project turns on, then start a new session:
+project's release: Claude Code keeps one copy for every project, at the release it was first added
+with, and refreshing it doesn't move it. From the project's folder, add it again at the project's
+release, the `"ref"` in `.claude/settings.json`, and install each plugin the project turns on, then
+start a new session:
 
 ```bash
 cd your-project
-claude plugin marketplace update aplyca
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
 claude plugin install adf@aplyca --scope project
-claude plugin install adf-dev@aplyca --scope project      # when the project turns it on
-claude plugin install adf-connect@aplyca --scope project  # when the project turns it on
+claude plugin install adf-dev@aplyca --scope project      # only if the settings already turn it on
+claude plugin install adf-connect@aplyca --scope project  # only if the settings already turn it on
+git restore .claude/settings.json
 ```
 
-They only download what the settings already turn on, so `.claude/settings.json` doesn't change. A
+They only download what the settings already turn on. They rewrite `.claude/settings.json`, though,
+so `git restore` puts back the committed file. For a plugin the settings don't turn on, the command
+isn't a way to turn it on: it writes the `enabledPlugins` entry itself. Turning one on is a one-line
+change to the committed settings, made on a work branch and merged by pull request. A
 leftover `aplyca-adf@aplyca` in `claude plugin list` is the plugin's name before v2.0.0, turned off;
 [UPGRADING.md](docs/UPGRADING.md#our-settings-still-turn-on-aplyca-adf--moving-to-v200) has the
 command that removes it.
@@ -85,14 +91,16 @@ any code exists. Step by step:
    2. If ops/agent/worktree.conf or scripts/agent/worktree.conf exists and this is the main checkout
       (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the main checkout takes no
       edits. Tell me to run this from a worktree.
-   3. From this folder, run:
-      claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-      claude plugin marketplace update aplyca
+   3. Find the newest release: the first tag this prints.
+      git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'
+      Then, from this folder, run, with that tag in place of <tag>:
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project
       claude plugin install adf@aplyca --scope project
-      The update refreshes a copy of the marketplace added before; without it the install can't
-      find adf.
-   4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
-      plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+      Never add it without the tag: this machine's copy of the marketplace stays at the ref it was
+      first added with, and with none, it follows the default branch and its unreleased changes.
+   4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace, with
+      "ref": "<tag>", and the plugin. Don't commit it — /adopt or /upgrade puts it in its pull
+      request.
    5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
       that copy. Don't run them.
    6. Tell me to start a new session here, then run /adf:upgrade if the first line of AGENTS.md
@@ -103,12 +111,16 @@ any code exists. Step by step:
 
    ```bash
    cd your-project
-   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-   claude plugin marketplace update aplyca
+   tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+   claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
    claude plugin install adf@aplyca --scope project
    ```
 
-   They write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
+   The first line finds the newest release, which `/adf:adopt` pins. The marketplace is added at it
+   because Claude Code keeps one copy of it per machine, at the ref it was first added with: added
+   without one, it follows the default branch, unreleased changes included, and the pin doesn't
+   move it ([decision 0091](docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
+   The commands write to the project's `.claude/settings.json` and nowhere else: the plugin is on in
    this project only, and teammates get it once they trust the folder. Without `--scope`,
    Claude Code installs at `user` scope — on in every project on your machine — so always pass it. To
    try the plugin alone first, use `--scope local` (the git-ignored `.claude/settings.local.json`).

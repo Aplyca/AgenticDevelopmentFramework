@@ -214,7 +214,8 @@ Present the table before going further. Wrong facts here poison every file downs
 
 - **`AGENTS.md`** — identity, stack, ground rules, delivery rules (base branch, protected branches),
   sensitive areas, boundaries & antipatterns, conventions, structure, quick reference (commands
-  exactly as typed).
+  exactly as typed — running one test or linting one file with the variable the project's task
+  takes, read from its `Makefile` or scripts, or "none").
   Under ~200 lines; link instead of inlining. Monorepo: nested `AGENTS.md` per module whose rules
   differ (template in `/init-project`).
 - **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
@@ -257,8 +258,8 @@ Present the table before going further. Wrong facts here poison every file downs
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
   `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
   stack to the local environment specification it carries (its templates are an example of it), or
-  audits the existing one against it and proposes the move, and fills
-  `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_URL`, and `deployment.md`'s
+  audits the existing one against it and proposes the move, and fills `DEV-SETUP.md`,
+  the Quick reference's start, stop, and one-file lines, `LOCAL_URL`, and `deployment.md`'s
   `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
   `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
   the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is
@@ -283,8 +284,8 @@ Present the table before going further. Wrong facts here poison every file downs
   why), the costs (docs to keep fresh, more tokens
   for phased work, the approval gate on the critical path), alternatives considered. Ask who the
   deciders are. Add it to the index in `docs/process/README.md`.
-- **The plugin setting.** The documented install (`--scope project`) already wrote
-  `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
+- **The plugin setting.** The documented install (`--scope project`, at the newest release) already wrote
+  `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>"}}}`
   and `"enabledPlugins": {"adf@aplyca": true}` into `.claude/settings.json`: keep both when
   merging the skeleton's settings, so they're committed with the adoption and teammates get the
   plugin and `/adf:upgrade`. If they're missing — a user- or local-scope install — offer to add them
@@ -293,8 +294,10 @@ Present the table before going further. Wrong facts here poison every file downs
   skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
   project then gets the plugin's copies at the same release as its own files, and a packaged one gets
   its machinery from that release. Add
-  `"autoUpdate": true` to the same entry, so a pin that later moves updates every teammate's plugins
-  on its own.
+  `"autoUpdate": true` to the same entry. A pin that later moves reaches each machine through the
+  commands `/adf:upgrade` gives (decision 0090). Writing the pin doesn't move this machine's copy of
+  the marketplace: Claude Code keeps it at the ref it was first added with, which Step 6 checks
+  (decision 0091).
 
 ## Step 6 — Verify
 
@@ -302,6 +305,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
+- [ ] This machine's copy of the marketplace is at the pin: `aplyca`'s `ref` in `claude plugin marketplace list --json` equals the settings' `"ref"`. A GAP when it differs or is missing (added without a release, it follows the default branch): after the merge, from the project's folder, `claude plugin marketplace add <source>#v<X.Y.Z> --scope project`, then `claude plugin uninstall` and `claude plugin install` (`--scope project`) for each plugin the settings turn on, then `git restore .claude/settings.json`. `claude plugin update` isn't enough: at the release's version it keeps the files it installed from the default branch (decision 0091)
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session

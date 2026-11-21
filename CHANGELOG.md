@@ -25,6 +25,144 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     module), `.claude/skills/write-docs/`, and `.claude/skills/framework-feedback/`; additive
     `docs/PROSE-PATTERNS.md`, which `/adf:upgrade` writes with the other reference docs.
 
+- **Each machine adds the marketplace again at the new pin after an upgrade**
+  ([decision 0090](docs/decisions/0090-each-machine-re-adds-the-marketplace-at-the-pin.md), amends
+  [0041](docs/decisions/0041-the-pin-updates-every-machine.md); fixes
+  [issue 174](https://github.com/aplyca/AgenticDevelopmentFramework/issues/174)). Claude Code
+  registers the `aplyca` marketplace once per machine, at the ref it was first added with.
+  `claude plugin marketplace update`, `claude plugin update`, and `"autoUpdate": true` refresh that
+  ref, so after an upgrade merged, every machine that had registered an earlier release stayed on it,
+  and `claude plugin update` reported that release as the latest.
+  - **The commands for each machine** — in `/adf:upgrade`'s report, its step 6, and
+    `docs/UPGRADING.md` § On each machine, after the merge — add the marketplace at the new pin with
+    `claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project`, which
+    re-points the registration and keeps the plugins installed. Then they install or update each
+    plugin, `git restore .claude/settings.json` (the add and the installs rewrite it, and the add
+    drops `autoUpdate`), and `claude plugin list` shows each plugin's version. The report writes them
+    as one shell block, with the release, the plugins, and the marketplace's own source (a fork's
+    `git` URL) filled in.
+  - **Joining a project:** the README's joining note and `DEV-SETUP.md` add the marketplace at the
+    project's `"ref"` instead of refreshing it, and restore the settings afterwards.
+  - **Docs** stop saying that `autoUpdate` carries a moved pin to each machine: `docs/SETUP.md`, the
+    `adf` plugin's README, and `/adf:adopt`.
+  - **The user-scope cleanup runs behind a guard.** Run where no project declares the marketplace,
+    `claude plugin marketplace remove aplyca --scope user` finds no other declaration and uninstalls
+    every plugin from it. `docs/UPGRADING.md`, this entry, and the `adf` plugin's README (the
+    `aplyca-framework` cleanup, which `/adf:upgrade` and the install prompt point to) now give it as
+    `grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user`,
+    to run from the project's folder.
+  - **Upgrade impact:** overwrite for the plugins and the scripted upgrade, which the next upgrade
+    runs from its own release, so its report gives the new commands.
+    - **Merge:** `docs/getting-started/DEV-SETUP.md` — the commands when the plugin didn't
+      download.
+    - **Migration:** by hand, on each machine — nothing changes in the project. A machine already
+      upgraded to v2.10.0 or v2.10.1 whose `claude plugin list` shows an older version runs the
+      commands once, from the project's folder, with the project's `"ref"`:
+
+      ```bash
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
+      claude plugin update adf@aplyca
+      claude plugin update adf-dev@aplyca   # when the project turns it on
+      git restore .claude/settings.json
+      claude plugin list
+      ```
+
+      A machine that followed the workaround in issue 174 also has a user-level declaration. Drop
+      it only from a project whose `.claude/settings.json` declares `aplyca`: anywhere else, the
+      remove uninstalls every plugin from the marketplace. The guard runs it only there:
+
+      ```bash
+      grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user
+      ```
+  - **Framework docs and records** (framework-internal): decision 0041's status and the index name
+    0090.
+  - **Evals** (framework-internal): `test-upgrade.sh` checks the commands `scripts/upgrade.py`
+    writes for a moved pin, a fork, a pin that stays, and a local directory, and the report's shell
+    block; `check-skills.sh` checks the upgrade skill, `UPGRADING.md`, the joining note, and
+    `DEV-SETUP.md` for the add at the pin, that no doc says `autoUpdate` carries it, and that every
+    user-scope remove the docs give runs behind the guard.
+- **The install adds the marketplace at the newest release**
+  ([decision 0091](docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md),
+  amends [0016](docs/decisions/0016-packaged-install.md)). The install prompt added the `aplyca`
+  marketplace with no ref, so the adopting machine registered the default branch. `/adf:adopt` then
+  pinned a release in the settings, which doesn't move a registration, so the machine kept following
+  `main`, unreleased changes included. `claude plugin list` couldn't show it: between releases,
+  `main` carries the newest release's version.
+  - **The install prompt** (`README.md` and the `adf` plugin's README), **`ADOPT.md`**, and
+    **`docs/SETUP.md`** find the newest tag with `git ls-remote` and add the marketplace at it; the
+    `marketplace update` line goes. The settings the install writes already carry the `"ref"` that
+    `/adf:adopt` pins.
+  - **`/adf:adopt`** Step 6 checks that the machine's copy of the marketplace is at the pin
+    (`claude plugin marketplace list --json`). A machine that isn't gets a GAP with the fix.
+  - **Upgrade impact:** overwrite for the `adf` plugin, which carries `/adf:adopt`. Nothing changes
+    in an adopted project's files.
+    - **Migration:** by hand, on a machine that installed with the earlier commands, when
+      `claude plugin marketplace list --json` shows `aplyca` with no `ref`. From the project's
+      folder, with the project's `"ref"`, add the marketplace at it and reinstall each plugin the
+      settings turn on. `claude plugin update` isn't enough: at the same version it keeps the files
+      it installed from `main`.
+
+      ```bash
+      claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
+      claude plugin uninstall adf@aplyca --scope project
+      claude plugin install adf@aplyca --scope project
+      claude plugin uninstall adf-dev@aplyca --scope project   # when the project turns it on
+      claude plugin install adf-dev@aplyca --scope project     # when the project turns it on
+      git restore .claude/settings.json
+      ```
+
+      Otherwise the next upgrade's commands for each machine (0090) re-point it, and the new
+      release's version replaces the files.
+  - **Framework docs and records** (framework-internal): decision 0016's status and the index name
+    0091.
+  - **Evals** (framework-internal): `check-skills.sh` checks that every documented add of the
+    framework's marketplace names a ref, that the install prompt finds the newest tag and doesn't
+    refresh, and that `/adf:adopt` checks the machine's ref.
+
+- **The docs no longer read as if `claude plugin install … --scope project` turns a plugin on**
+  (fixes [issue 176](https://github.com/aplyca/AgenticDevelopmentFramework/issues/176)). The
+  install lines say "only if the settings already turn it on", and each doc that names them says
+  what the command does for a plugin the settings don't enable: it writes the `enabledPlugins`
+  entry itself and can rewrite the whole `.claude/settings.json` in the checkout where it ran — in
+  a project with parallel-agents, an uncommitted change on the base branch that the protect-hub
+  hook can't stop, since it only stops the agent's own edits. Turning a plugin on is a one-line
+  `enabledPlugins` change to the committed settings, made on a work branch and merged by pull
+  request.
+  - **Where:** `plugins/adf-connect/README.md` and `docs/SETUP.md` (how to turn on `adf-connect`),
+    the joining note in `README.md` and `skeleton/docs/getting-started/DEV-SETUP.md` (the install
+    block's comments and the paragraph under it), `plugins/adf/README.md` (the pin's note),
+    `/adf:upgrade`'s per-machine commands, and `plugins/adf/docs/PARALLEL-AGENTS.md` (§ Where a
+    session works).
+  - **Upgrade impact:** overwrite for the plugins (`adf`'s skill and parallel-agents guide; a
+    committed install's `.claude/skills/upgrade/` and `docs/PARALLEL-AGENTS.md` copies).
+    **Merge** in `docs/getting-started/DEV-SETUP.md`: the install block's two comments and the
+    paragraph under it change; keep the project's own text around them. No migration steps.
+
+- **The Claude Code rule names no task variable; `AGENTS.md` § Quick reference writes them** (fixes
+  [issue 175](https://github.com/aplyca/AgenticDevelopmentFramework/issues/175)).
+  `.claude/rules/claude-code.md` told agents to run `make test t=<file>` and `make lint f=<file>`
+  with the `docker` module. A `Makefile` written before adoption may take another variable
+  (`args=`) or none, and `make` ignores one a task doesn't take: the agent ran the whole suite, or
+  linted everything, without a sign.
+  - **The rule** says to use the project's tasks as § Quick reference writes them, one test or file
+    included, and to read the task where it names none. It keeps `make run cmd='<command>'`.
+  - **§ Quick reference** gets a "one file" slot on the tests and lint lines. `/adf:adopt` fills them
+    from the project's `Makefile` or scripts; the docker module's Customize step and
+    `/adf-dev:dev-env set up` write C3's `t=` and `f=` once the tasks take them.
+  - **`dev-env`:** the audit names a `test` without `t=`, or a `lint` or `format` without `f=`, and
+    what each takes instead (C3); its checklist and C3 say § Quick reference writes the one-file
+    commands. `unit`'s F3 runs one file with the variable § Quick reference names. `/adf:upgrade`
+    reports such a task as a gap for `/dev-env set up`.
+  - **Upgrade impact:** overwrite for the plugins.
+    - **Merge:** `.claude/rules/claude-code.md` — the **Use the project's tasks** line under
+      § Commands that run without a prompt. `AGENTS.md` — § Quick reference's tests and lint lines
+      gain "one file".
+    - **Migration:** by hand — fill the two "one file" slots with what the project's tasks take
+      (`make help`, or the `Makefile`), or "none". `/adf:upgrade` lists this step in its plan.
+  - **Evals** (framework-internal): `check-skills.sh` checks the rule names no `t=` or `f=`, the
+    Quick reference has both slots, and the `dev-env` audit names the task; the dynamic fixtures fill
+    the new lint line.
+
 ## v2.10.1 — 2026-11-19 — Fewer prompts: `make run` in any line, and reads of `git config`, releases, and secrets
 
 A patch release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): two fixes for prompts

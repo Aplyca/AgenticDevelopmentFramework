@@ -154,11 +154,51 @@ working tree, and commits nothing. It:
 
 Its report — `$(git rev-parse --git-dir)/adf-upgrade/report.md`, and `report.json` — says what needs
 you (conflicts, permission changes, modules, files to decide, migrations), what it applied (each clean
-merge with its hunk count, so you know where to look), the checks, the commands for each machine, and
+merge with its hunk count, so you know where to look), the checks, the commands for each machine
+([below](#on-each-machine-after-the-merge)), and
 the follow-ups to run after the merge. Review the diff, resolve the conflicts, and approve the
 permission changes; nothing lands without the pull request's review.
 
 A project below v2.0.0, or a release before the script, follows the procedure below.
+
+## On each machine, after the merge
+
+The upgrade moves the pin in the project's settings, not the plugins on each machine
+([decision 0090](decisions/0090-each-machine-re-adds-the-marketplace-at-the-pin.md)). Claude Code
+registers the `aplyca` marketplace once per machine, at the ref it was first added with.
+`claude plugin marketplace update`, `claude plugin update`, and `"autoUpdate": true` all refresh
+that ref, so they keep the old release and report it as the latest. Adding the marketplace again at the new
+pin re-points the registration, and leaves the plugins installed. From the project's folder, once
+the upgrade merges:
+
+```bash
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project   # the pin the upgrade moved to
+claude plugin install <plugin>@aplyca --scope project   # each plugin the upgrade turned on
+claude plugin update <plugin>@aplyca                    # each plugin already on: adf, and adf-dev or adf-connect
+git restore .claude/settings.json                       # the commands above rewrite it: keep the merged file
+claude plugin list                                      # each plugin shows Version: <X.Y.Z>
+```
+
+Then `/reload-plugins` in an open session, or start a new one. The upgrade's report lists these
+commands with the release and the plugins filled in. A project whose marketplace comes from a fork
+adds it by the source in its settings: the `repo`, or the `url` of a `git` source.
+
+- **Always pass `--scope project`.** Without it, the add also declares the marketplace in your user
+  settings, at that ref. To drop a declaration left that way, first `cd` into a project whose
+  `.claude/settings.json` declares `aplyca`. Run anywhere else, the remove finds no other
+  declaration and uninstalls every plugin from the marketplace, in every project. The guard runs it
+  only where the project declares it:
+
+  ```bash
+  grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user
+  ```
+
+  If the plugins were uninstalled anyway, run the commands above from each project's folder, with
+  `claude plugin install` in place of `update`.
+- **Don't remove the marketplace to re-add it.** `claude plugin marketplace remove aplyca` without
+  `--scope` uninstalls every plugin from it, and rewrites the project's committed settings.
+- **One registration per machine.** A machine with two projects pinned to different releases follows
+  whichever one ran the add last ([decision 0016](decisions/0016-packaged-install.md)).
 
 ## Upgrade procedure
 
@@ -379,7 +419,9 @@ plugin, pinned to a release tag in `.claude/settings.json`. Upgrading it means t
   every skill, agent, workflow, hook, and reference doc. The project's links to the reference docs
   name the release too: `python3 <framework>/scripts/link-reference-docs.py . --packaged vX.Y.Z`,
   from the new release, moves them. Every project moves from release to release, committed ones
-  too: their pin keeps the plugin's copies at the same release as their committed files.
+  too: their pin keeps the plugin's copies at the same release as their committed files. Each
+  machine then adds the marketplace at the new pin
+  ([§ On each machine](#on-each-machine-after-the-merge)).
 - **Merge the committed layer** as in the procedure above — `AGENTS.md`, `.claude/rules/claude-code.md`, the settings
   (never adding a `hooks` block), `config.sh`, the rules, the docs, and the modules — and skip every
   path the plugin carries.

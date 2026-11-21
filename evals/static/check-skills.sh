@@ -984,6 +984,10 @@ check_practices() {
     file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    file_contains_literal "$SKELETON/.claude/rules/claude-code.md" 'as `AGENTS.md` § Quick reference writes them' && ! grep -qE '(^|[^A-Za-z])[tf]=<' "$SKELETON/.claude/rules/claude-code.md" \
+        || missing+=("claude-code rule: names no task variable a project's Makefile may not take; the Quick reference writes them (issue 175)")
+    file_contains "$AGENTS_MD" '^- Tests: .* · one file: ' && file_contains "$AGENTS_MD" '^- Lint: .* · one file: ' || missing+=("AGENTS.md: Quick reference writes one test and one file's lint (issue 175)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'name each task and what it takes (C3)' || missing+=("/dev-env: the audit names a test or lint that doesn't take C3's variable (issue 175)")
     ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
@@ -1013,9 +1017,10 @@ check_practices() {
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
     file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     file_contains "$SKELETON/docs/getting-started/DEV-SETUP.md" 'needs no install step' || missing+=("DEV-SETUP.md: joining a project needs no install")
-    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin (#80)")
-    grep -A12 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace update aplyca' || missing+=("README.md: joining names the commands when trusting the folder didn't download the plugin (#80)")
-    file_contains "$REPO_ROOT/README.md" 'claude plugin marketplace update aplyca' || missing+=("install prompt: refreshes a marketplace added before")
+    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin add the marketplace at the pin (#80, 0090)")
+    ! file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: a refresh keeps the machine's old ref; the joining commands add the marketplace at the pin (0090)")
+    grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("README.md: joining adds the marketplace at the pin when trusting the folder didn't download the plugin (#80, 0090)")
+    grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'git restore .claude/settings.json' || missing+=("README.md: joining restores the settings the commands rewrite (0090)")
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
@@ -1413,8 +1418,29 @@ check_marketplace_auto_update() {
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'claude plugin install <plugin>@aplyca --scope project' \
         || missing+=("/upgrade's commands for each machine")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'claude plugin update adf-dev@aplyca' || missing+=("SETUP.md § Updating updates adf-dev")
+    # A machine keeps the marketplace at the ref it was first added with: each one adds it again at the
+    # moved pin, restores the settings the commands rewrite, and checks the versions (decision 0090).
+    local doc
+    for doc in plugins/adf/skills/upgrade/SKILL.md docs/UPGRADING.md; do
+        file_contains_literal "$REPO_ROOT/$doc" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' \
+            || missing+=("$doc: each machine adds the marketplace at the new pin (0090)")
+        file_contains_literal "$REPO_ROOT/$doc" 'git restore .claude/settings.json' || missing+=("$doc: restores the settings the commands rewrite (0090)")
+        file_contains_literal "$REPO_ROOT/$doc" 'each plugin shows Version: <X.Y.Z>' || missing+=("$doc: checks the installed versions (0090)")
+    done
+    ! grep -qF 'claude plugin marketplace update aplyca' <(sed -n '/^5\. \*\*Give the developer the commands for each machine/,/^ *```$/p' "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md") \
+        || missing+=("/upgrade's commands for each machine: a refresh keeps the old ref (0090)")
+    ! grep -rqF -e 'carries a new' -e 'move to the pin in their next session' -e 'updates every teammate' \
+        "$REPO_ROOT/docs/SETUP.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
+        || missing+=("a doc still says autoUpdate carries a moved pin to each machine (0090)")
+    # Run where no project declares the marketplace, a user-scope remove uninstalls every plugin from it:
+    # each one the docs give runs behind a guard that checks the project declares it (0090).
+    local unguarded
+    unguarded=$(grep -rn -F 'marketplace remove aplyca --scope user' "$REPO_ROOT/docs/UPGRADING.md" "$REPO_ROOT/docs/SETUP.md" \
+        "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
+        | grep -v -F "grep -q '\"aplyca\"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user")
+    [ -z "$unguarded" ] || missing+=("a user-scope marketplace remove without the guard: ${unguarded//$REPO_ROOT\//}")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine"
+        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine, which add the marketplace at the new pin (0090)"
     else
         fail "marketplace auto-update (decision 0041) missing in: ${missing[*]}"
     fi
@@ -1456,6 +1482,39 @@ PY
         pass "install prompt: identical in README.md and the plugin's README"
     else
         fail "install prompt: $report"
+    fi
+}
+
+check_install_at_release() {
+    # Claude Code keeps a machine's copy of a marketplace at the ref it was first added with, and a
+    # pin written into the settings later doesn't move it. Added without a ref, it follows the
+    # default branch and its unreleased changes, so every documented add names one (decision 0091).
+    local missing=() hits prompt
+    hits=$(grep -rnE 'marketplace add "?aplyca/AgenticDevelopmentFramework([^#]|$)' "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" \
+        "$REPO_ROOT/docs" "$REPO_ROOT/plugins" "$SKELETON" "$MODULES_DIR" 2>/dev/null | grep -v '/docs/decisions/')
+    [ -z "$hits" ] || missing+=("an add of the framework's marketplace names no ref, so the machine follows the default branch: $hits")
+    prompt=$(sed -n '/<!-- install-prompt:/,/^ *```$/p' "$REPO_ROOT/README.md")
+    grep -qF -- "git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'" <<<"$prompt" \
+        || missing+=("install prompt: finds the newest release")
+    grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project' <<<"$prompt" \
+        || missing+=("install prompt: adds the marketplace at the newest release")
+    ! grep -qF 'marketplace update aplyca' <<<"$prompt" || missing+=("install prompt: a refresh keeps the machine's ref; the add at the tag needs none")
+    local doc
+    for doc in README.md plugins/adf/README.md docs/SETUP.md; do
+        file_contains_literal "$REPO_ROOT/$doc" 'claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project' \
+            || missing+=("$doc: the commands add the marketplace at the newest release")
+    done
+    file_contains_literal "$REPO_ROOT/ADOPT.md" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project' \
+        || missing+=("ADOPT.md: adds the marketplace at the newest release")
+    ! file_contains_literal "$REPO_ROOT/ADOPT.md" 'marketplace update aplyca' || missing+=("ADOPT.md: no refresh after the add at the tag")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" "This machine's copy of the marketplace is at the pin" \
+        || missing+=("/adf:adopt: Step 6 checks the machine's ref against the pin")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" "\`claude plugin update\` isn't enough" \
+        || missing+=("/adf:adopt: the fix reinstalls, since an update at the same version keeps the default branch's files")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "the install adds the marketplace at the newest release, and /adf:adopt checks the machine's ref (0091)"
+    else
+        fail "install at a release (decision 0091): ${missing[*]}"
     fi
 }
 
@@ -1765,6 +1824,7 @@ check_plugin_committed_paths
 check_module_plugins
 check_install_scope
 check_install_prompt
+check_install_at_release
 check_lanes
 check_practices
 check_spec_records

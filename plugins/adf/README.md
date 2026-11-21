@@ -59,27 +59,33 @@ at user scope.
 2. If ops/agent/worktree.conf or scripts/agent/worktree.conf exists and this is the main checkout
    (git rev-parse --git-dir equals git rev-parse --git-common-dir), stop: the main checkout takes no
    edits. Tell me to run this from a worktree.
-3. From this folder, run:
-   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-   claude plugin marketplace update aplyca
+3. Find the newest release: the first tag this prints.
+   git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'
+   Then, from this folder, run, with that tag in place of <tag>:
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project
    claude plugin install adf@aplyca --scope project
-   The update refreshes a copy of the marketplace added before; without it the install can't
-   find adf.
-4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace and the
-   plugin. Don't commit it — /adopt or /upgrade puts it in its pull request.
+   Never add it without the tag: this machine's copy of the marketplace stays at the ref it was
+   first added with, and with none, it follows the default branch and its unreleased changes.
+4. Show me the diff of .claude/settings.json: it should add only the aplyca marketplace, with
+   "ref": "<tag>", and the plugin. Don't commit it — /adopt or /upgrade puts it in its pull
+   request.
 5. If claude plugin list also shows the plugin at user scope, tell me, with the commands that remove
    that copy. Don't run them.
 6. Tell me to start a new session here, then run /adf:upgrade if the first line of AGENTS.md
    (or of CLAUDE.md) is a "Skeleton source:" stamp, otherwise /adf:adopt.
 ```
 
-Or run the commands yourself, from the project's folder. The update refreshes a copy of the
-marketplace added before, which doesn't list `adf` yet:
+Or run the commands yourself, from the project's folder. The first line finds the newest release,
+which `/adf:adopt` pins. The marketplace is added at it because Claude Code keeps one copy of it per
+machine, at the ref it was first added with: added without one, it follows the default branch,
+unreleased changes included, and the pin doesn't move it
+([decision 0091](../../docs/decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
+An add at another ref moves a copy added before, for another project, to this release.
 
 ```bash
 cd your-project
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin marketplace update aplyca
+tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
 claude plugin install adf@aplyca --scope project
 ```
 
@@ -104,12 +110,12 @@ decides where the plugin is turned on.
 The Code tab of the Claude desktop app reads the same settings files as the terminal, so an install
 made with the commands above works there too. To install from the app instead:
 
-1. Add the marketplace from a terminal in the project's folder — the app's plugin browser lists the
-   plugins of marketplaces already added:
+1. Add the marketplace at the newest release from a terminal in the project's folder — the app's
+   plugin browser lists the plugins of marketplaces already added:
 
    ```bash
-   claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-   claude plugin marketplace update aplyca
+   tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+   claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
    ```
 
 2. In a local or SSH session on the project, click **+** next to the prompt box, then **Plugins** →
@@ -122,12 +128,15 @@ and `/adf:upgrade` in a local session.
 
 **Installed `aplyca-framework` before?** That was this plugin's name until v1.0.0. Install
 `adf` with the prompt above, then remove the old one — from the project, and from user scope
-if you ever installed it there:
+if you ever installed it there. Run these from the project's folder, once its
+`.claude/settings.json` declares `aplyca`. The marketplace's user-level declaration goes only
+there, since anywhere else the remove finds no other declaration and uninstalls every plugin from
+the marketplace, `adf` included. The guard on the last line checks first:
 
 ```bash
 claude plugin uninstall aplyca-framework@aplyca --scope project
 claude plugin uninstall aplyca-framework@aplyca --scope user
-claude plugin marketplace remove aplyca --scope user
+grep -q '"aplyca"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user
 ```
 
 `/adf:upgrade` replaces the old name in the project's committed settings.
@@ -189,16 +198,19 @@ it.
 Every project pins its release with `"ref"`, and `/adf:adopt` and `/adf:upgrade` keep
 it equal to the release in the project's stamp. In a packaged project the pin chooses the
 machinery; in a committed one it keeps the plugin's copies at the same release as the committed
-files, so a skill listed twice never runs a different version. `"autoUpdate": true` carries a new
-pin to every teammate: once it merges, Claude Code updates the plugins installed from `aplyca` in
-their next session, never past the pin. A plugin a release turns on for the first time may still
-need `claude plugin install <plugin>@aplyca --scope project` on each machine; `/adf:upgrade`'s
-report lists the commands.
+files, so a skill listed twice never runs a different version. A pin that moves doesn't reach a
+machine on its own: Claude Code registers the marketplace once per machine, at the ref it was
+first added with, and `"autoUpdate": true` refreshes that ref. After an upgrade merges, each machine
+adds the marketplace at the new pin and updates or installs each plugin — `install` only once the
+merged settings turn it on, since the command writes `.claude/settings.json` for a plugin they
+don't. `/adf:upgrade`'s report lists the commands
+([UPGRADING.md](../../docs/UPGRADING.md#on-each-machine-after-the-merge)).
 
 ## Updating the plugin
 
 Every project pins a release, so updating the plugin changes nothing until the pin moves.
 `/adf:upgrade` moves it to the newest release and brings the committed files along, in one pull
-request; restart Claude Code after it merges. A project adopted before v1.0.0 isn't pinned and turns
+request; after it merges, run the commands its report gives for each machine, then restart Claude
+Code. A project adopted before v1.0.0 isn't pinned and turns
 on `aplyca-framework`: install `adf` with the [install prompt](#install), then run
 `/adf:upgrade`, which renames the setting and pins the release.

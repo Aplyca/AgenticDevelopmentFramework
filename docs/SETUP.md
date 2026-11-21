@@ -8,12 +8,16 @@ Code session, or with these commands:
 
 ```bash
 cd your-project
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin marketplace update aplyca
+tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
 claude plugin install adf@aplyca --scope project
 # then, in the repository:  /adf:adopt
 ```
 
+The marketplace is added at the newest release, the one the project will pin: Claude Code keeps one
+copy of it per machine, at the ref it was first added with, and a copy added without one follows the
+default branch, unreleased changes included, after the pin too
+([decision 0091](decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
 `--scope project` turns the plugin on in this project only, through its committed
 `.claude/settings.json` — teammates get it once they trust the folder, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
@@ -106,6 +110,13 @@ for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca
 `enabledPlugins`, then run `/adf-connect:connect <service>`. It writes the project's `.mcp.json` entry
 with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
 tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
+
+Turning a plugin on is a one-line change to the committed settings: make it on a work branch
+(`/adf:dispatch` with the parallel-agents module) and merge it by pull request.
+`claude plugin install <plugin>@aplyca --scope project` isn't the way to turn one on: for a plugin
+the settings don't enable, it writes the `enabledPlugins` entry itself and can rewrite the whole
+`.claude/settings.json` in the checkout where you ran it. Run it only once the settings already
+enable the plugin.
 
 ## 3. Fill in AGENTS.md — the file every tool reads
 
@@ -241,9 +252,10 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    rule: `"adf-dev@aplyca": true` in `enabledPlugins` and
    `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 
-   `"autoUpdate": true` lets the pin move every teammate: once a change to `"ref"` merges, Claude
-   Code updates the plugins installed from `aplyca` in each session, a few minutes after its first
-   message, and says `Run /reload-plugins to apply`. It never goes past the pin.
+   `"autoUpdate": true` lets Claude Code refresh the marketplace and its installed plugins in the
+   background after a session starts. It refreshes at the ref the machine registered the
+   marketplace with, so a pin that later moves reaches each machine through the commands
+   `/adf:upgrade` gives ([UPGRADING.md § On each machine](./UPGRADING.md#on-each-machine-after-the-merge)).
 
    The hooks read `.claude/hooks/config.sh` from the project, so step 5's settings apply unchanged.
    The read rule lets the plugin's skills and agents open its reference docs: Claude Code asks before
@@ -325,11 +337,13 @@ claude plugin update adf-dev@aplyca      # when the project turns it on
 claude plugin update adf-connect@aplyca  # when the project turns it on
 ```
 
-After the upgrade merges, the marketplace's `"autoUpdate": true` updates each teammate's installed
-plugins in their next session. A plugin the upgrade turned on may not be on their machine yet —
+After the upgrade merges, each teammate's machine still has the marketplace at its old ref:
+Claude Code registers it once per machine, and neither `claude plugin update` nor `"autoUpdate": true`
+follows a pin that moved. A plugin the upgrade turned on may not be on their machine yet either —
 `/plugin` lists it under Errors as enabled but not installed. `/adf:upgrade`'s report gives the
-commands that do both at once — `claude plugin install <plugin>@aplyca --scope project` for a plugin
-it turned on, `claude plugin update` for the rest — then `/reload-plugins`.
+commands for each machine: add the marketplace at the new pin, install or update each plugin,
+restore the settings file they rewrite, and check the versions, then `/reload-plugins`
+([UPGRADING.md § On each machine](./UPGRADING.md#on-each-machine-after-the-merge)).
 
 By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's
 **Upgrade impact** in the [CHANGELOG](../CHANGELOG.md) first.

@@ -41,7 +41,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
   without one (C9), so the yes in chat is the only check.
 - **Published ports bind to `127.0.0.1`**, never every interface.
 - **In Docker mode, commands run in the container, never on the host.** Tests, linters, the package
-  manager, a one-off script: a named task first (`make test t=<file>`, `make lint f=<file>`), and
+  manager, a one-off script: a named task first, as `AGENTS.md` § Quick reference writes it
+  (`make test t=<file>`, `make lint f=<file>` once the tasks meet C3), and
   `make run cmd='<command>'` for what no task covers. It runs in the tools container (D6) without a
   prompt, in single quotes, with a `$` for the container as `$$`; a pipe goes inside the quotes
   (C10). The host's runtime and dependencies aren't the project's, and Docker mode
@@ -122,7 +123,10 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
    - a service another one waits for without a healthcheck and `condition: service_healthy`;
    - no `DEV_MODE`: a `Makefile` with its own `native` or `dev` targets beside the Docker ones, which
      the two mode files replace;
-   - a `test` without `t=`, or a `lint` without `f=`, so agents reach for a command of their own;
+   - a `test` that doesn't take `t=`, or a `lint` or `format` that doesn't take `f=` — one with a
+     variable of its own (`args=`) or none: name each task and what it takes (C3). `make` ignores a
+     variable a task doesn't take, so until it's fixed `make test t=<file>` runs the whole suite and
+     `make lint f=<file>` lints everything; § Quick reference writes what the task takes meanwhile;
    - no `run` task, or one that pastes `$(cmd)` into the recipe or runs it anywhere but a container
      that meets D5 in Docker mode (C10): until it meets C10, `make run` runs some or all of its command on the host, without a prompt;
    - checks that `exec` into the app's container, so they need `make up` and see only what the app
@@ -170,7 +174,8 @@ the specification wins. Name the requirement's ID whenever you report a gap or p
      with the services, § 6 the two modes — `DEV_MODE` in `.env`, and what native mode needs on the
      host — and the command surface;
    - `AGENTS.md` § Quick reference: `make up`, `make stop` (keeps containers and data), `make down`
-     (removes containers; data stays), and `make urls` for where the app is — the words of C12;
+     (removes containers; data stays), and `make urls` for where the app is — the words of C12 —
+     and the one-file commands of the tests and lint lines, as the tasks take them (C3);
    - `.claude/hooks/config.sh`: `LOCAL_URL='http://localhost:${APP_PORT}'`;
    - `deployment.md`: `paths:` naming `compose.yaml`, `Makefile`, `ops/**`, and `.env.example`, and in
      § Docker any convention the project adds;
@@ -358,7 +363,7 @@ reset in the main checkout of a hub.
 - [ ] Every task that deletes data is named as one in `DEV-SETUP.md`; a task other than `run` that runs a command it's given on the host has an ask rule; no task waits for input or follows (C9, C10)
 - [ ] In Docker mode `make run cmd='<command>'` runs in the tools container with no prompt, and neither the app's service nor `tools` mounts anything of the host but the checkout, with its nested worktrees hidden (C10, D5, D6)
 - [ ] In Docker mode `make deps`, `make lint`, `make typecheck`, and `make test` pass with the stack down and only `docker`, `git`, and `make` on the `PATH` (M11)
-- [ ] `make test t=<file>` and `make lint f=<file>` run just that file
+- [ ] `make test t=<file>` and `make lint f=<file>` run just that file, and `AGENTS.md` § Quick reference writes the one-file commands as the tasks take them (C3)
 - [ ] With parallel-agents: two worktrees' stacks run side by side, each under its own project and ports
 - [ ] In a checkout configured for native mode: `make up` answers on the URL `make urls` gives, with only the backing services in Docker, and `make down` stops it. In any other, native mode's file was read against M4–M8 and reported as not run (M10)
 - [ ] After a fix or a reset, the failing signal passes

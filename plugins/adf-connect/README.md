@@ -21,3 +21,10 @@ Turn it on in any project that connects services, committed or packaged:
 `"adf-connect@aplyca": true` in `enabledPlugins`, beside `adf`. It's listed in the `aplyca`
 marketplace at the same version as `adf`, and a project pins them together. Its skill is written here
 by hand; `scripts/build-plugins.sh` only keeps the version equal.
+
+Turning it on is a one-line change to the committed settings: make it on a work branch
+(`/adf:dispatch` with the parallel-agents module) and merge it by pull request. Teammates get the
+plugin once they trust the folder; on a machine that doesn't download it,
+`claude plugin install adf-connect@aplyca --scope project` does. Run that only once the settings
+already enable the plugin: for one they don't, it writes the `enabledPlugins` entry itself and can
+rewrite the whole `.claude/settings.json` in the checkout where you ran it.

@@ -832,6 +832,7 @@ class Upgrade:
                         allow.append(rule)
         entry = (settings.get("extraKnownMarketplaces") or {}).get("aplyca")
         if isinstance(entry, dict) and isinstance(entry.get("source"), dict):
+            self.marketplace = entry["source"]
             if self.released:
                 old_ref = entry["source"].get("ref")
                 entry["source"]["ref"] = self.new.tag
@@ -980,15 +981,10 @@ class Upgrade:
                 "module": module, "text": f"modules/{module}/MODULE.md § Customize, at {self.new.tag}"})
 
     def machines(self):
-        before = getattr(self, "enabled_before", set())
-        after = getattr(self, "enabled_after", set())
-        if not after:
-            return
-        cmds = ["claude plugin marketplace update aplyca"]
-        cmds += [f"claude plugin install {p} --scope project" for p in sorted(after - before)]
-        cmds += [f"claude plugin update {p}" for p in sorted(after & before)]
-        cmds.append("/reload-plugins (in an open session), or a new session")
-        self.report["machines"] = cmds
+        pin = self.report["applied"]["pin"] or {}
+        self.report["machines"] = machine_commands(getattr(self, "enabled_before", set()),
+                                                   getattr(self, "enabled_after", set()),
+                                                   getattr(self, "marketplace", None), pin.get("to"))
 
     def modules_offer(self):
         available = sorted(m for m in os.listdir(os.path.join(FRAMEWORK, "modules"))
@@ -1040,6 +1036,42 @@ class Upgrade:
             shutil.rmtree(self.old_tree + "-builds", ignore_errors=True)
 
 
+# ─── the commands for each machine ─────────────────────────────────────────────────────────────
+
+def marketplace_argument(source):
+    """What `claude plugin marketplace add` takes for a settings source, without its ref."""
+    if not isinstance(source, dict):
+        return None
+    if source.get("source") == "github" and source.get("repo"):
+        return source["repo"]
+    if source.get("source") == "git" and source.get("url"):
+        return source["url"]
+    return None
+
+
+def machine_commands(before, after, source, new_tag):
+    """The shell lines that bring a machine to the plugins the merged settings pin (decisions 0041, 0090).
+
+    Claude Code registers a marketplace once per machine, at the ref it was first added with, and
+    `marketplace update` and `plugin update` keep that ref. A moved pin reaches a machine only through an
+    add at the new ref, which re-points the registration and leaves the plugins installed.
+    """
+    if not after:
+        return []
+    argument = marketplace_argument(source)
+    if new_tag and argument:
+        cmds = [f"claude plugin marketplace add {argument}#{new_tag} --scope project"
+                "   # re-points this machine's marketplace at the new pin"]
+    else:
+        cmds = ["claude plugin marketplace update aplyca"]
+    cmds += [f"claude plugin install {p} --scope project" for p in sorted(after - before)]
+    cmds += [f"claude plugin update {p}" for p in sorted(after & before)]
+    cmds.append("git restore .claude/settings.json   # the commands above rewrite it: keep the merged file")
+    shows = f"Version: {new_tag.lstrip('v')}" if new_tag else "the release the pin names"
+    cmds.append(f"claude plugin list   # {', '.join(sorted(after))}: each shows {shows}")
+    return cmds
+
+
 # ─── the report in Markdown ────────────────────────────────────────────────────────────────────
 
 def render(r):
@@ -1088,8 +1120,12 @@ def render(r):
     for c in r["checks"]:
         mark = "✓" if c["ok"] else ("–" if c["ok"] is None else "✘")
         lines.append(f"- {mark} {c['check']}" + (f" — {c['note']}" if c.get("note") else ""))
-    lines += ["", "## On each machine", "", "After the merge, from the project's folder:", ""]
-    lines += [f"- `{c}`" for c in r["machines"]] or ["- nothing"]
+    lines += ["", "## On each machine", ""]
+    if r["machines"]:
+        lines += ["After the merge, from the project's folder:", "", "```bash"] + r["machines"] + ["```", "",
+                  "Then `/reload-plugins` in an open session, or start a new one."]
+    else:
+        lines.append("- nothing")
     lines += ["", "## Follow-ups", ""]
     lines += [f"- [ ] `{f['command']}` — {f['why']} ({f['source']})" for f in r["follow_ups"]] or ["- none"]
     return "\n".join(lines) + "\n"
