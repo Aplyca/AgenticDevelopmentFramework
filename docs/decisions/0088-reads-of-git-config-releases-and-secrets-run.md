@@ -1,6 +1,6 @@
 # 0088: Reading git config, a release, or the secrets' names runs without a prompt
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0096](0096-hooks-stay-silent-on-what-they-cannot-read.md) (an unreadable `git config` form runs unless it names `core.hooksPath`)
 - **Date:** 2026-11-16
 - **Amends:** [0038](0038-fewer-prompts-for-tasks-and-local-git.md) — `git config`, releases, and
   `gh secret` ask before a write, not before every use

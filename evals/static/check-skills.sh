@@ -320,6 +320,10 @@ expected = {
     "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
     "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
     "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Auth asks before a login, a switch, or a token shown; checking who is signed in runs (0096).
+    "gh auth login": "ask", "gh auth switch --user x": "ask", "gh auth status --show-token": "ask",
+    "gh auth status -t": "ask", "gh auth status": "allow", "glab auth status": "allow",
+    "glab auth login --hostname x": "ask", "glab auth status --show-token": "ask",
     # Releases and secrets ask before a write, not a read (0088).
     "gh release new v1": "ask", "gh release edit v1 --draft=false": "ask",
     "gh release upload v1 a.zip": "ask", "gh release delete v1": "ask",
@@ -347,7 +351,7 @@ expected = {
     "glab mr approve": "ask", "glab mr approve 12": "ask", "glab mr revoke 12": "ask",
     "glab mr unapprove 12": "ask", "glab release create v1": "ask", "glab repo delete x": "ask",
     "glab variable get X": "ask", "glab var list": "ask", "glab securefile download 1": "ask",
-    "glab auth status": "ask", "glab token create t": "ask", "glab api projects/:id -X PUT": "ask",
+    "glab auth logout": "ask", "glab token create t": "ask", "glab api projects/:id -X PUT": "ask",
     "glab api projects/:id/notes -f body=x": "ask", "glab api projects/:id/uploads --form file=@a.png": "ask",
 }
 for command, want in expected.items():

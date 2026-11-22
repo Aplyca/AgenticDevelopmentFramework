@@ -13,10 +13,10 @@
 
 Hooks and permissions hold whatever the instructions say; their values live in `.claude/hooks/config.sh` and `.claude/settings.json`:
 
-- **Ask first:** merging, approving, or reviewing a pull request, creating or changing a release, pushing a tag, changing `git config`, `gh auth` and `glab auth`, setting or deleting a GitHub secret, any GitLab CI/CD variable or secure file (a read shows the value), and `gh api` and `glab api` writes. Reading `git config`, a GitHub release, or the secrets' names runs.
+- **Ask first:** merging, approving, or reviewing a pull request, creating or changing a release, pushing a tag, changing `git config`, a `gh auth` or `glab auth` login, switch, or token, setting or deleting a GitHub secret, any GitLab CI/CD variable or secure file (a read shows the value), and `gh api` and `glab api` writes. Reading `git config`, a GitHub release, the secrets' names, or `auth status` runs.
 - **No prompt:** commits, the work branch's push, its draft, and marking it ready (`AGENTS.md` § Delivery rules) and requesting its reviewers — and keeping that pull request current. They are a standing go-ahead: never ask for them, in a reply or in the desktop app's next-step box.
 - **Never:** `--no-verify`; a commit, push, or force-push on a protected branch; a pull request that isn't a draft; a hand edit to generated files or append-only history; reading secret env files; with parallel-agents, an edit in the main checkout (`/dispatch` first).
-- **Stops once, as a reminder:** a session's first edit or new branch with no lane stated in your replies; the first edit in a sensitive area.
+- **Stops once, as a reminder:** a session's first edit to a project file, or new branch, with no triage in your replies; the first edit in a sensitive area before a careful or full lane is named.
 - **Tells you:** the branch, worktree role, and spec folder at session start; when this branch's pull request merges or closes (offer `/wrap-up`, or ask whether the task is dropped); an environment variable missing from the env template.
 
 ## Commands that run without a prompt

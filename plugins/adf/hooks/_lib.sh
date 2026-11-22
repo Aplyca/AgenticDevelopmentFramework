@@ -169,6 +169,39 @@ repo_relative() {
   relative="${file_path#"$root"/}"
 }
 
+# transcript_replies — the visible text of this session's replies, as the developer saw them, from
+# the event's transcript; nothing when it names none.
+transcript_replies() {
+  local transcript
+  transcript="$(json_get '.transcript_path')"
+  [ -n "$transcript" ] && [ -f "$transcript" ] || return 0
+  if command -v jq >/dev/null 2>&1; then
+    cat "$transcript" | jq -r -f "${CLAUDE_PLUGIN_ROOT}/hooks/transcript-text.jq" 2>/dev/null
+  else
+    cat "$transcript" | python3 "${CLAUDE_PLUGIN_ROOT}/hooks/transcript-text.py" 2>/dev/null
+  fi
+}
+
+# lane_pattern <names> — an extended regex for a lane named within a few characters of the word:
+# "Fast lane", "lane: careful". <names> is an alternation, e.g. "fast|careful|full".
+lane_pattern() {
+  printf '(%s)[^a-z]?[^a-z]?[^a-z]?lane|lane[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?[^a-z]?(%s)' "$1" "$1"
+}
+
+# in_project <file path> — whether the file is in the session's repository: the event's cwd's, or
+# the project's. Sets file_path, root, and relative (repo_relative).
+in_project() {
+  local cwd here project
+  repo_relative "$1" || return 1
+  cwd="$(json_get '.cwd')"
+  for here in "$cwd" "${CLAUDE_PROJECT_DIR:-}"; do
+    [ -n "$here" ] && [ -d "$here" ] || continue
+    project="$(repo_root_for "$here")"
+    [ -n "$project" ] && [ "$(physical_path "$project")" = "$root" ] && return 0
+  done
+  return 1
+}
+
 # block <reason> — stop the call. The hook is named, not its path: the scripts run from .claude/hooks/
 # in a committed install and from the adf plugin in a packaged one.
 block() {

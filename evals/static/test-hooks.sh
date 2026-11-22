@@ -78,7 +78,7 @@ run guard-git.sh 2 "$(bash_event 'gh -R acme/app pr create --title "Add signup"'
 # Quoted text is blanked as data, but not the folder a command runs in or the branch it pushes.
 run guard-git.sh 2 "$(bash_event "cd \"$T\" && git commit -m \"wip\"")" "follows a quoted cd"
 run guard-git.sh 2 "$(bash_event "git -C \"$T\" commit -m wip")" "follows a quoted git -C"
-run guard-git.sh 2 "$(bash_event 'git -C "$SOMEWHERE/else" commit -m wip')" "falls back to the session's folder for a path it can't read"
+run guard-git.sh 0 "$(bash_event 'git -C "$SOMEWHERE/else" commit -m wip')" "stays silent on a folder it can't read (0096)"
 run guard-git.sh 2 "$(bash_event 'git push origin "main"')" "blocks a push to a quoted main"
 run guard-git.sh 2 "$(bash_event 'if true; then git commit -m wip; fi')" "sees a command after a shell keyword"
 run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing && git commit -m "feat: add signup"')" "allows a commit chained to the work branch's creation"
@@ -142,7 +142,9 @@ run_ask yes 'git -C /tmp/other config core.hooksPath x' "asks before a config ch
 run_ask yes 'git config --unset core.hooksPath' "asks before --unset"
 run_ask yes 'git config --add remote.origin.push HEAD' "asks before --add"
 run_ask yes 'git config --type bool core.bare true' "asks before a value after a flag that takes one"
-run_ask yes 'git config --weird-flag core.bare true' "asks when a flag it doesn't know comes before a value"
+run_ask no 'git config --weird-flag core.bare true' "stays silent on a flag it doesn't know (0096)"
+run_ask yes 'git config --weird-flag core.hooksPath /dev/null' "still asks when that form names core.hooksPath"
+run_ask yes 'git config --local core.bare true' "asks before a value after a known scope flag"
 run_ask yes 'git config set core.hooksPath x' "asks before the set subcommand"
 run_ask yes 'git config unset core.hooksPath' "asks before the unset subcommand"
 run_ask yes 'git config --edit' "asks before --edit"
@@ -188,6 +190,10 @@ echo 'process.env.TEST_ONLY_VAR = "x";' > "$T/src/client.test.ts"
 run check-env-declared.sh 0 "$(file_event Write "$T/src/client.test.ts")" "skips test files"
 printf 'package svc\nimport "os"\nvar a = os.Getenv("SERVICE_TOKEN")\n' > "$T/src/svc.go"
 run check-env-declared.sh 2 "$(file_event Write "$T/src/svc.go")" "reads Go os.Getenv"
+# Only the names an edit writes are checked: an Edit elsewhere in client.ts passes; one that adds a read reports it.
+edit_event() { python3 -c 'import json,sys; print(json.dumps({"tool_name":"Edit","cwd":sys.argv[1],"tool_input":{"file_path":sys.argv[2],"old_string":"x","new_string":sys.argv[3]}}))' "$T" "$1" "$2"; }
+run check-env-declared.sh 0 "$(edit_event "$T/src/client.ts" 'const label = "Subscribe";')" "an edit that reads no new variable passes, though the file reads undeclared ones"
+run check-env-declared.sh 2 "$(edit_event "$T/src/client.ts" 'const region = process.env.DEPLOY_REGION;')" "an edit that adds an undeclared read is reported"
 
 # session-context
 # careful-paths — sensitive areas stop the first edit per area per session
@@ -200,6 +206,13 @@ run careful-paths.sh 0 "$(careful_event s1 "$T/src/billing/tax.ts")" "lets later
 run careful-paths.sh 2 "$(careful_event s1 "$T/src/api/auth/session.ts")" "stops again for a different sensitive area"
 run careful-paths.sh 2 "$(careful_event s2 "$T/src/billing/invoice.ts")" "stops again in a new session"
 run careful-paths.sh 0 "$(careful_event s1 "$T/src/app.ts")" "ignores paths outside the sensitive areas"
+# A session whose latest lane is careful or full has confirmed it (0096); fast still stops; subagents pass.
+printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Fast lane at first — then the invoice total is shared code, so the careful lane, with its checklist."}]}}' > "$WORK/careful.jsonl"
+printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Fast lane — fix the invoice label; done when its test passes."}]}}' > "$WORK/fast.jsonl"
+careful_said() { printf '{"tool_name":"Edit","session_id":"%s","transcript_path":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$1" "$2" "$T" "$T/src/billing/invoice.ts"; }
+run careful-paths.sh 0 "$(careful_said s3 "$WORK/careful.jsonl")" "lets the edit through when the latest lane named is careful (0096)"
+run careful-paths.sh 2 "$(careful_said s4 "$WORK/fast.jsonl")" "still stops when the latest lane named is fast"
+run careful-paths.sh 0 "$(printf '{"tool_name":"Edit","session_id":"s5","agent_id":"a1","cwd":"%s","tool_input":{"file_path":"%s"}}' "$T" "$T/src/billing/invoice.ts")" "leaves subagents alone, under their caller's triage"
 
 # triage-first — the first edit waits for a stated lane, once per session
 printf '%s\n' '{"type":"user","message":{"content":"fix the label"}}' '{"type":"assistant","message":{"content":[{"type":"text","text":"Looking at the form."}]}}' > "$WORK/no-lane.jsonl"
@@ -215,6 +228,11 @@ run triage-first.sh 2 "$(triage_bash b1 "$WORK/no-lane.jsonl" 'git switch -c fix
 run triage-first.sh 0 "$(triage_event b1 "$WORK/no-lane.jsonl")" "one reminder per session — the edit after it passes"
 run triage-first.sh 2 "$(triage_bash b2 "$WORK/no-lane.jsonl" 'cd repo && git checkout -b fix/label')" "catches git checkout -b inside a compound command"
 run triage-first.sh 0 "$(triage_bash b3 "$WORK/lane.jsonl" 'git switch -c fix/label')" "lets a new branch through once a lane is stated"
+# Only project files, real commands, and any triage count (0096).
+run triage-first.sh 0 "$(printf '{"tool_name":"Write","session_id":"t5","transcript_path":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$WORK/no-lane.jsonl" "$T" "$WORK/memory/note.md")" "leaves a file outside the project alone (a memory note, a plan)"
+run triage-first.sh 0 "$(triage_bash b4 "$WORK/no-lane.jsonl" 'echo "next: git branch cleanup" && git status')" "doesn't read quoted text as a new branch"
+printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Triage — Newsletter bounce rate\n- Deliverable: an answer"}]}}' > "$WORK/answer.jsonl"
+run triage-first.sh 0 "$(triage_event t6 "$WORK/answer.jsonl")" "accepts an answer's triage, which names no lane"
 echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
 run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
 
