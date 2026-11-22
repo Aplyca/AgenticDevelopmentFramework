@@ -19,8 +19,10 @@ GENERATED_GLOBS="package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock 
 
 # CUSTOMIZE: sensitive areas — paths where any change takes at least the careful lane, whatever its
 # size (mirror AGENTS.md § Sensitive areas). The first edit in each area stops once per session so
-# the agent confirms the lane. E.g. "src/billing/* src/auth/* supabase/migrations/*". Empty disables.
-CAREFUL_GLOBS=""
+# the agent confirms the lane, unless its replies already named careful or full. The defaults are CI,
+# the git hooks, and Claude Code's own guardrails, which specs/README.md § Lanes makes careful in
+# every project; add yours, e.g. "src/billing/* src/auth/* supabase/migrations/*". Empty disables.
+CAREFUL_GLOBS=".github/workflows/* .gitlab-ci.yml .gitlab/ci/* .githooks/* .husky/* .claude/settings.json .claude/hooks/*"
 
 # The triage — the lane and why — comes before the first change. "1" stops a session's first file
 # edit or new branch once, as a reminder, when its reply text states no lane yet. Empty disables.

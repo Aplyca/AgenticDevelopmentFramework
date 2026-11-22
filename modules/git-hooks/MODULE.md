@@ -23,6 +23,13 @@ git config core.hooksPath .githooks   # once per clone — add this line to DEV-
 Already using a hook manager (Husky, Lefthook, pre-commit)? Copy the protected-branch block into its
 `pre-push` instead of switching `core.hooksPath`.
 
+## Verify
+
+- `.githooks/pre-push` is executable, and `git config core.hooksPath` prints `.githooks`.
+- `DEV-SETUP.md` tells each clone to run `git config core.hooksPath .githooks`.
+- A push to a protected branch is refused: try `git push <remote> HEAD:main` against a scratch bare
+  repository added as `<remote>`.
+
 ## Customize
 
 Set `FAST_CHECKS` at the top of `pre-push` to your fast layers only (lint, typecheck, unit). Keep

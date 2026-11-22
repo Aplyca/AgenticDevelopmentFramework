@@ -144,7 +144,7 @@ fills these from what it verifies, for you to review:
 
 ## Verify
 
-- `python3 -m json.tool .claude/settings.json` parses, and its `allow` list holds `Bash(docker *)` and `Bash(make *)`.
+- `python3 -m json.tool .claude/settings.json` parses: its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its `deny` list the module's `DEV_MODE` and `SERVICES` rules, and its `ask` list no docker or make rule of the module's.
 - In a new session, `/dev-env` (packaged: `/adf-dev:dev-env`) is offered; `docker compose ps`,
   `make up`, and `make test` run without a prompt; asked to reset the stack, the agent names what
   is lost and waits for a yes in chat.

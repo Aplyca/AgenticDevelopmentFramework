@@ -51,6 +51,12 @@ tier.
 Then add `unit` to the `modules:` list in the stamp on `AGENTS.md`'s first line: `/unit` stops in
 a project whose stamp doesn't name it.
 
+## Verify
+
+- `python3 -m json.tool .claude/settings.json` parses. Without `docker`, its `allow` list holds
+  `npm test` and `npm run test:smoke`; with `docker`, neither is allowed and `make test` runs them.
+- In a new session, `/unit` (packaged: `/adf-dev:unit`) is offered.
+
 ## Customize
 
 Run `/unit set up` (packaged: `/adf-dev:unit set up`) in a worktree. It proposes the feature suites for

@@ -64,6 +64,14 @@ committed script instead where a project keeps one. A developer's own terminal d
 operational code moved to `ops/`. The commands and the hooks still read `scripts/agent/` in a project
 that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops/agent`.
 
+## Verify
+
+- Committed: `ops/agent/` holds the scripts and `worktree.conf`; packaged: only `worktree.conf`
+  (the scripts are the plugin's commands), and an older `scripts/agent/` is gone.
+- In a new session, `adf-worktree-ls` (committed: `ops/agent/worktree-ls.sh`) lists the main
+  checkout, and `/dispatch` (packaged: `/adf:dispatch`) is offered.
+- In the main checkout, an edit is stopped by the protect-hub hook.
+
 ## Customize
 
 1. **`ops/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the

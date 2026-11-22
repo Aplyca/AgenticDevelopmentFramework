@@ -27,7 +27,11 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
 2. **Put the state in the record first.** Commit finished tasks (`/adf:commit`) and tick them in
    `tasks.md`. Write decisions taken in this session where they last: the spec's Clarifications or
    the plan in the full lane, the pull request body otherwise. Uncommitted work is named, with its
-   files, never described as if done. Nothing is pushed for the handoff: the work branch's push waits for your local check (`/adf:open-pr`) or the developer's ask.
+   files, never described as if done. Nothing is pushed for a handoff within this machine: the work
+   branch's push waits for your local check (`/adf:open-pr`). A teammate or another machine can only
+   pick up what's pushed, so then ask once: push the work branch as it stands — work before the
+   approval gate first committed as `spec: draft <slug>` — or hand over the uncommitted files another
+   way. Push only on the developer's yes, and open no pull request for it.
 
 3. **Write the handoff — pointers, not copies:**
 

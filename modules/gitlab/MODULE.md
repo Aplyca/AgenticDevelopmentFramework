@@ -60,6 +60,13 @@ The secret scan runs in the `zricethezav/gitleaks` image, and the branch policy 
 need a runner that runs Docker images — GitLab.com's shared runners do. A shell runner ignores
 `image:`, and needs `gitleaks` on its path.
 
+## Verify
+
+- `.gitlab/merge_request_templates/Default.md` and the issue templates exist, and `.gitlab-ci.yml`
+  includes `.gitlab/ci/adf.yml` — merged into a `.gitlab-ci.yml` that existed, not replacing it.
+- A new merge request offers the template, and the pipeline runs the secret scan and the
+  base-branch policy.
+
 ## Optional: a stable preview address per merge request
 
 The `github` module's [§ Optional: a stable preview address per pull

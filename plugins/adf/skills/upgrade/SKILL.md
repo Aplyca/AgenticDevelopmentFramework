@@ -147,13 +147,8 @@ project's `Makefile` and mode files for a task that follows or waits for input (
 1. Run the verification from `/adf:adopt` Step 6: settings JSON valid with nested hook entries; hook
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
    `CLAUDE_PLUGIN_ROOT` and `CLAUDE_PROJECT_DIR` exported: the hooks use `set -u`); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
-   uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
-   installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
-   gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
-   exists (`github`); the MR template exists and `.gitlab-ci.yml` includes `.gitlab/ci/adf.yml` (`gitlab`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
-   `.claude/settings.json` parses, its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its
-   `deny` list holds the mode-change rules, and its `ask` list holds no docker or make rule of the
-   module's (`docker`), and its `allow` list holds `make e2e` and `make smoke`, or the `Bash(make *)` that covers them (`e2e`). Packaged, for
+   uses hyphenated keys only. Re-run the target's lint and tests if config files changed. Each newly
+   installed module passes its own `<framework-root>/modules/<name>/MODULE.md` § Verify. Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.

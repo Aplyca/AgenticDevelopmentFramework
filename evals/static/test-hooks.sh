@@ -199,7 +199,10 @@ run check-env-declared.sh 2 "$(edit_event "$T/src/client.ts" 'const region = pro
 # careful-paths — sensitive areas stop the first edit per area per session
 careful_event() { printf '{"tool_name":"Edit","session_id":"%s","cwd":"%s","tool_input":{"file_path":"%s"}}' "$1" "$T" "$2"; }
 export TMPDIR="$WORK/tmp"; mkdir -p "$TMPDIR"
-run careful-paths.sh 0 "$(careful_event s-off "$T/src/billing/invoice.ts")" "does nothing while CAREFUL_GLOBS is empty"
+run careful-paths.sh 2 "$(careful_event s-ci "$T/.github/workflows/ci.yml")" "stops the first CI edit with the skeleton's defaults"
+run careful-paths.sh 0 "$(careful_event s-ci "$T/src/billing/invoice.ts")" "leaves paths the defaults don't name alone"
+echo 'CAREFUL_GLOBS=""' >> "$T/.claude/hooks/config.sh"
+run careful-paths.sh 0 "$(careful_event s-off "$T/.github/workflows/ci.yml")" "does nothing while CAREFUL_GLOBS is empty"
 echo 'CAREFUL_GLOBS="src/billing/* */auth/*"' >> "$T/.claude/hooks/config.sh"
 run careful-paths.sh 2 "$(careful_event s1 "$T/src/billing/invoice.ts")" "stops the first edit in a sensitive area"
 run careful-paths.sh 0 "$(careful_event s1 "$T/src/billing/tax.ts")" "lets later edits in that area through, same session"
