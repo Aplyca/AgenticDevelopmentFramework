@@ -181,14 +181,14 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.10.1** (2026-11-19), is a patch release: no hook decides `make run`, so a chained
-or quoted `make run` line follows the session's permission mode, and in native mode its command runs
-on the host without a prompt unless the project adds `Bash(make run *)` to `permissions.ask`;
-reading `git config`, a release, or the secrets' names runs without a prompt. **v2.10.0**
-(2026-11-16), a minor release: with the `docker` module, Docker mode needs nothing on the host but
-Docker, git, and make; task worktrees sit under `.claude/worktrees/`, and the session moves there
-with `EnterWorktree`; follow-ups found along the way are filed as issues; and a merge wakes an idle
-session to wrap up. This README describes `main`: what has landed
+The latest, **v2.11.0** (2026-11-21), is a minor release: four skills run a prose pass on what they
+draft for readers outside the team; after an upgrade, each machine adds the marketplace again at the
+new pin, so the release reaches every machine; and the Claude Code rule leaves the one-file test and
+lint commands to `AGENTS.md` § Quick reference. **v2.10.1** (2026-11-19), a patch release: no hook
+decides `make run`, so a chained or quoted `make run` line follows the session's permission mode,
+and in native mode its command runs on the host without a prompt unless the project adds
+`Bash(make run *)` to `permissions.ask`; reading `git config`, a release, or the secrets' names runs
+without a prompt. This README describes `main`: what has landed
 since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
 one.
 
