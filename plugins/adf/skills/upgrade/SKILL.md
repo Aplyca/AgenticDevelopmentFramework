@@ -186,7 +186,10 @@ project's `Makefile` and mode files for a task that follows or waits for input (
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, each file's action with each clean merge's hunk count, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
-   user-scope copy), an install switch and its PDR, anything needing human judgment.
+   user-scope copy), an install switch and its PDR, anything needing human judgment — and a
+   `## Follow-ups` section, as the scripted path's step 8 writes it: one
+   `- [ ] \`<command>\` — <why> (<source>)` line per follow-up (a new module's `set up`, a service to
+   connect), or `- none`.
 4. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request changes the rules and guardrails that grant it.
 5. **Give the developer the commands for each machine,** in the report and the PR body. The commit
    changes settings, not the machines (decision 0090). Claude Code registers the marketplace once per

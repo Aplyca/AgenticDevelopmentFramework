@@ -81,7 +81,7 @@ is_tag() {
 }
 
 is_protected() {
-  [ -n "$1" ] && in_words "$1" "$PROTECTED_BRANCHES"
+  is_protected_branch "$1"
 }
 
 check_no_verify() {

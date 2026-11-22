@@ -44,9 +44,14 @@ fail() {
 # `git push origin HEAD:main` and `git push origin feature:main` are caught too.
 while read -r _local_ref _local_sha remote_ref _remote_sha; do
   branch="${remote_ref#refs/heads/}"
-  case " $PROTECTED_BRANCHES " in
-    *" $branch "*) fail "pushing directly to '$branch' is not allowed. Open a pull request instead." ;;
-  esac
+  # Each protected name is a glob: "release/*" covers every release branch.
+  set -f
+  for pattern in $PROTECTED_BRANCHES; do
+    case "$branch" in
+      $pattern) fail "pushing directly to '$branch' is not allowed. Open a pull request instead." ;;
+    esac
+  done
+  set +f
 done
 
 if [ -n "$FAST_CHECKS" ]; then
