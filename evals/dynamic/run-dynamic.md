@@ -7,10 +7,10 @@ Patterns for executing the dynamic eval suite. Pick one based on your team's sta
 Best for: small teams, occasional eval runs, no CI integration yet.
 
 ```
-1. Pick a fixture: e.g. fixtures/write-spec/simple-feature.input.md
+1. Pick a fixture: e.g. fixtures/triage/answer-only.input.md
 2. Open your AI tool (Claude Code, Cursor, etc.) with the framework loaded
 3. Paste the input prompt
-4. Run the skill: /write-spec [the prompt content]
+4. Run the skill: /adf:triage [the prompt content]
 5. Save the AI's output as <case-name>.actual.md (gitignored)
 6. Open <case-name>.expected.md and check each invariant against the actual output
 7. Record pass/fail for each invariant in a results log
@@ -39,8 +39,9 @@ def load_fixture(skill: str, case: str):
     return input_path.read_text(), expected_path.read_text()
 
 def load_skill_prompt(skill: str):
-    # Load the SKILL.md as system prompt
-    return Path(f"../../.claude/skills/{skill}/SKILL.md").read_text()
+    # Load the SKILL.md as system prompt, from the plugin that carries it
+    repo = Path(__file__).resolve().parents[2]
+    return (repo / "plugins/adf/skills" / skill / "SKILL.md").read_text()
 
 def run_case(skill: str, case: str):
     input_text, expected_text = load_fixture(skill, case)
@@ -53,6 +54,8 @@ def run_case(skill: str, case: str):
         system=skill_prompt,
         messages=[{"role": "user", "content": input_text}],
     )
+    if response.stop_reason in ("refusal", "max_tokens"):
+        raise RuntimeError(f"{case}: stopped on {response.stop_reason}")  # a run error, not a failed invariant
     # Thinking blocks may precede the answer, so take the first text block, not content[0]
     actual = next((b.text for b in response.content if b.type == "text"), "")
 
@@ -76,6 +79,8 @@ Best for: teams that want a managed dashboard, regression tracking, run history.
 import braintrust
 from anthropic import Anthropic
 
+client = Anthropic()
+
 eval_dataset = [
     {
         "input": "draft a spec for a newsletter signup form...",
@@ -85,7 +90,8 @@ eval_dataset = [
 ]
 
 def task(input):
-    return client.messages.create(...).content[0].text
+    response = client.messages.create(...)
+    return next((b.text for b in response.content if b.type == "text"), "")  # thinking blocks come first
 
 def scorer(output, expected):
     # Score each invariant in expected against output
