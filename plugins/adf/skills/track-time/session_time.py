@@ -60,8 +60,8 @@ def project_dirs(projects_dir, project, siblings):
     return sorted(dirs)
 
 
-def session_times(path, branch, base):
-    """The timestamps of a session's counted events, or [] when the session never ran on the branch."""
+def read_events(path):
+    """A session's events, in order: each one's time and the branch it ran on (None without one)."""
     events = []
     for line in open(path, encoding="utf-8", errors="replace"):
         try:
@@ -72,6 +72,16 @@ def session_times(path, branch, base):
         if when and when.tzinfo:
             events.append((when, event.get("gitBranch") or None))
     events.sort(key=lambda e: e[0])
+    return events
+
+
+def session_times(path, branch, base):
+    """The timestamps of a session's counted events, or [] when the session never ran on the branch."""
+    return counted_times(read_events(path), branch, base)
+
+
+def counted_times(events, branch, base):
+    """session_times for a session's events already read."""
     on_branch = [i for i, (_, b) in enumerate(events) if b == branch]
     if not on_branch:
         return []
@@ -117,9 +127,34 @@ def blocks(spans):
         if out and (start - out[-1]["end"]).total_seconds() <= BLOCK_GAP:
             out[-1]["end"] = end
             out[-1]["active"] += (end - start).total_seconds()
+            out[-1]["spans"].append((start, end))
         else:
-            out.append({"start": start, "end": end, "active": (end - start).total_seconds()})
+            out.append({"start": start, "end": end, "active": (end - start).total_seconds(),
+                        "spans": [(start, end)]})
     return out
+
+
+def local_spans(spans, since=None, until=None):
+    """The spans merged, in local time, cut to the window [since, until)."""
+    local = [(a.astimezone(), b.astimezone()) for a, b in union(spans)]
+    if since:
+        local = [(max(a, since), b) for a, b in local if b > since]
+    if until:
+        local = [(a, min(b, until)) for a, b in local if a < until]
+    return local
+
+
+def by_day(spans):
+    """The working blocks of local spans, by the local day each block starts on."""
+    days = {}
+    for block in blocks(spans):
+        days.setdefault(block["start"].date().isoformat(), []).append(block)
+    return days
+
+
+def block_report(block):
+    return {"start": block["start"].isoformat(timespec="minutes"),
+            "end": block["end"].isoformat(timespec="minutes"), "active_min": minutes(block["active"])}
 
 
 def minutes(seconds):
@@ -130,6 +165,10 @@ def duration(mins):
     return f"{mins // 60}h {mins % 60:02d}m" if mins >= 60 else f"{mins}m"
 
 
+def default_projects_dir():
+    return os.path.join(os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude")), "projects")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("branch", help="the task's branch, e.g. feat/newsletter-signup")
@@ -138,8 +177,7 @@ def main():
     parser.add_argument("--since", help="count only time after this local date-time (the last entry logged)")
     parser.add_argument("--siblings", action="store_true", help="also every folder beside the project")
     parser.add_argument("--json", action="store_true", help="print the days and blocks as JSON")
-    parser.add_argument("--projects-dir", default=os.path.join(
-        os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude")), "projects"))
+    parser.add_argument("--projects-dir", default=default_projects_dir())
     args = parser.parse_args()
 
     dirs = project_dirs(args.projects_dir, args.project, args.siblings)
@@ -155,18 +193,13 @@ def main():
     if not sessions:
         sys.exit(f"No session ran on {args.branch} in {', '.join(os.path.basename(d) for d in dirs)}")
 
-    local = [(a.astimezone(), b.astimezone()) for a, b in union(spans)]
+    since = None
     if args.since:
         since = datetime.datetime.fromisoformat(args.since)
         since = since.astimezone() if since.tzinfo is None else since
-        local = [(max(a, since), b) for a, b in local if b > since]
-    days = {}
-    for block in blocks(local):
-        days.setdefault(block["start"].date().isoformat(), []).append(block)
+    days = by_day(local_spans(spans, since))
     report = [{"date": date, "active_min": sum(minutes(b["active"]) for b in day),
-               "blocks": [{"start": b["start"].isoformat(timespec="minutes"),
-                           "end": b["end"].isoformat(timespec="minutes"),
-                           "active_min": minutes(b["active"])} for b in day]}
+               "blocks": [block_report(b) for b in day]}
               for date, day in sorted(days.items())]
     total = sum(d["active_min"] for d in report)
 

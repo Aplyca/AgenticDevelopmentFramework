@@ -8,6 +8,9 @@ business terms — and writes the ones the developer approves, with the number t
 the tracker task's time entries
 ([decisions 0043](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0043-track-time-in-the-tracker.md),
 [0092](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0092-time-entries-are-outcomes-with-a-midpoint.md)).
+`/track-time day` or `week` drafts every task's entries for a day or a week, for a team that logs
+its time that way, with the time actually spent each day
+([decision 0093](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0093-a-period-review-counts-each-minute-once.md)).
 
 With the module, `/wrap-up` asks whether to log the task's time before it closes up, while the
 worktree is still there to measure. A project without the module doesn't track time: `/track-time`
@@ -18,7 +21,7 @@ stops there, and `/wrap-up` never asks.
 | File | Purpose |
 |---|---|
 | `docs/TIME-TRACKING.md` | The project's settings — the unit, how time entries are read and written with the tracker's tools, the labels, whether they're billable — how an entry's description is written, and the activities an entry covers, with the evidence `/track-time` looks for and where each one's midpoint sits |
-| `.claude/skills/track-time/` | **Committed install only:** the skill and the script that measures the sessions' time. A packaged project gets `/adf:track-time` from the `adf` plugin, which `module.json` names |
+| `.claude/skills/track-time/` | **Committed install only:** the skill and the scripts that measure the sessions' time, for a task or for a period across tasks. A packaged project gets `/adf:track-time` from the `adf` plugin, which `module.json` names |
 
 ## Install
 
@@ -49,6 +52,7 @@ In `docs/TIME-TRACKING.md`:
    spent, halfway, or nearer one end.
 5. **Descriptions** — by default, what each outcome delivered in business terms; add the team's own
    convention, if any.
+6. **Week** — Monday to Sunday by default: the days `/track-time week` reviews.
 
 ## Good to know
 
@@ -58,7 +62,9 @@ In `docs/TIME-TRACKING.md`:
   delivered; work toward an outcome not delivered yet waits for the next run, or is logged for what
   it found or settled.
 - **Only this machine's sessions are measured.** Work on another machine counts as off-session work.
-- **Each task gets its full time.** Two tasks whose sessions overlap each count that time.
+- **Each task gets its full time.** Two tasks whose sessions overlap each count that time. A day's
+  time in `/track-time day` or `week` counts it once, and says how much the tasks shared; the
+  period's midpoint and manual estimate are the sums of the tasks'.
 
 ## Verify
 

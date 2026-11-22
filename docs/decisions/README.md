@@ -54,7 +54,7 @@ projects.
 | [0040](0040-workers-move-out-of-the-apps-worktree.md) | A worker that starts in the desktop app's worktree moves to the task's worktree beside the main checkout | accepted; amended by 0042, 0083, 0085 |
 | [0041](0041-the-pin-updates-every-machine.md) | The pinned marketplace auto-updates, and an upgrade names the commands for each machine | accepted; amended by 0090 |
 | [0042](0042-each-session-moves-to-its-task-worktree.md) | Each task's session moves to its own worktree; the main checkout hands nothing out (parallel-agents module) | accepted; amended by 0083, 0085 |
-| [0043](0043-track-time-in-the-tracker.md) | A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module) | accepted; amended by 0061, 0064, 0066, 0092 |
+| [0043](0043-track-time-in-the-tracker.md) | A task's time goes to the tracker as two numbers, and the developer picks one per entry (time-tracking module) | accepted; amended by 0061, 0064, 0066, 0092, 0093 |
 | [0044](0044-parallel-agents-guide-in-the-plugin.md) | The parallel-agents guide ships in the plugin; the project keeps only its shared services (parallel-agents module) | accepted |
 | [0045](0045-agent-local-check-opens-the-draft.md) | The agent's own local check opens the draft, and the developer tests after it, locally and on the preview | accepted; amended by 0047, 0070, 0071, 0072 |
 | [0046](0046-a-scripted-upgrade-from-the-new-release.md) | An upgrade runs a script from the new release, and the developer approves only what needs a person | accepted |
@@ -104,6 +104,7 @@ projects.
 | [0090](0090-each-machine-re-adds-the-marketplace-at-the-pin.md) | Each machine adds the marketplace again at the new pin: Claude Code keeps it at the ref it was first added with, so the upgrade's commands for each machine add it at the moved pin, restore the settings they rewrite, and show the installed versions | accepted |
 | [0091](0091-the-install-adds-the-marketplace-at-the-newest-release.md) | The install adds the marketplace at the newest release: added without a ref, a machine's copy follows the default branch and the pin `/adf:adopt` writes doesn't move it, so the install finds the newest tag with `git ls-remote` and adds at it, and `/adf:adopt` checks the machine's ref against the pin | accepted |
 | [0092](0092-time-entries-are-outcomes-with-a-midpoint.md) | A time entry is an outcome, with a midpoint: one entry per milestone, completed task, or value delivered — not per session or day — ending at its delivery, and a third number between the AI-assisted time and the manual estimate, set activity by activity | accepted |
+| [0093](0093-a-period-review-counts-each-minute-once.md) | A day's or a week's review across tasks counts each minute once: `/track-time day` or `week` drafts every task's outcomes, each with its full time; each day's time actually spent merges the tasks' sessions, and the period's midpoint and manual estimate are the sums of the tasks'; `period_time.py` shares the per-task measure | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

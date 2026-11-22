@@ -44,6 +44,29 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   - **Migration:** by hand — if the team's reports filter on labels, add the midpoint's label to them.
     Entries already logged per day stay as they are; the next run starts after the latest one.
 
+- **`/adf:track-time` reviews a day or a week across tasks**
+  ([#79](https://github.com/aplyca/AgenticDevelopmentFramework/issues/79); decision
+  [0093](docs/decisions/0093-a-period-review-counts-each-minute-once.md), amends
+  [0043](docs/decisions/0043-track-time-in-the-tracker.md)).
+  - **What:** with the `time-tracking` module, `/adf:track-time day [<date>]` or `week [<date>]`
+    drafts the outcomes of every task worked on in that period, each as a per-task run would (0092),
+    and writes the approved ones to their tasks. Work toward an outcome not delivered by the period's
+    end is logged for what it found or settled. Each task still gets its full session time.
+    - **Each day** gets a row with the time actually spent: the tasks' sessions merged, so a minute
+      two tasks shared counts once, and the draft says how much they shared.
+    - **The period** gets all three numbers: the AI-assisted time is the sum of its days; the manual
+      estimate and the midpoint are the sums of the tasks', since they rate the work, which runs one
+      task at a time without AI. Neither row is written to the tracker.
+    - A new script beside the skill, `period_time.py`, finds every task's branch in the period and
+      measures it with `session_time.py`'s own code; the steps live in a reference file,
+      `period.md`. Work with no task (sessions only on the base branch, or a branch the developer
+      leaves out) isn't in the review.
+  - **Upgrade impact:**
+    - **Overwrite:** committed install with the module: `.claude/skills/track-time/`, which gains
+      `period.md` and `period_time.py`; packaged, it comes with the plugin.
+    - **Merge:** `docs/TIME-TRACKING.md` gains an optional `Week` setting (Monday to Sunday).
+      Without it, a week runs Monday to Sunday, so there's nothing to migrate.
+
 ## v2.11.0 — 2026-11-21 — A prose pass, and every machine on the project's release
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

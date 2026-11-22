@@ -116,7 +116,7 @@ mkdir -p "$TP" && git -C "$TP" init -q -b main && git -C "$TP" -c user.email=t@e
 git -C "$TP" worktree add -q -b feat/newsletter-signup "$WORK/code/feat-newsletter-signup" 2>/dev/null
 TMAIN="$WORK/projects/$(slug "$TP")"
 TWT="$WORK/projects/$(slug "$WORK/code/feat-newsletter-signup")"
-mkdir -p "$TMAIN" "$TWT" "$TMAIN--claude-worktrees-calm-otter"
+mkdir -p "$TMAIN" "$TWT" "$TMAIN--claude-worktrees-calm-otter" "$TMAIN--claude-worktrees-brave-fox"
 python3 - "$TMAIN" "$TWT" <<'PY'
 import json, sys, datetime
 main, wt = sys.argv[1:3]
@@ -144,6 +144,10 @@ session(f"{main}/33333333-c.jsonl", every("2026-10-14T09:15:00", 30, "fix/other-
 # The desktop app's own worktree: 40 minutes on its generated branch, a two-hour break, then the move.
 session(f"{main}--claude-worktrees-calm-otter/44444444-d.jsonl",
         every("2026-10-16T09:00:00", 40, "claude/calm-otter") + every("2026-10-16T11:40:00", 10, "fix/nav-focus"))
+# For the period review: a session that never left its generated branch, overlapping fix/nav-focus by 5
+# minutes, and one only on main, which is no task's.
+session(f"{main}--claude-worktrees-brave-fox/55555555-e.jsonl", every("2026-10-16T11:45:00", 25, "claude/brave-fox"))
+session(f"{main}/66666666-f.jsonl", every("2026-10-16T13:00:00", 20, "main"))
 PY
 timer() { TZ=UTC python3 "$TIMER" feat/newsletter-signup "$TP" --projects-dir "$WORK/projects" "$@" 2>&1; }
 tjson=$(timer --json)
@@ -168,6 +172,38 @@ generated=$(TZ=UTC python3 "$TIMER" fix/nav-focus "$TP" --projects-dir "$WORK/pr
 check "track-time: a session in the app's own worktree counts from its start, before the move (got $generated min)" "[ '$generated' = '55' ]"
 none=$(TZ=UTC python3 "$TIMER" feat/never-started "$TP" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "track-time: a branch no session ran on says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$none\" | grep -q 'No session ran on feat/never-started'"
+
+# /track-time's period_time.py (decision 0093): a day or a week across tasks. Each task keeps its full
+# time, as above; each day's own active time merges every task's sessions, so a shared minute counts once.
+PERIOD="$REPO_ROOT/plugins/adf/skills/track-time/period_time.py"
+period() { TZ=UTC python3 "$PERIOD" "$@" --project "$TP" --projects-dir "$WORK/projects" 2>&1; }
+pjson=$(period 2026-10-14 2026-10-16 --json)
+pq() { printf '%s' "$pjson" | python3 -c "import json,sys; d=json.load(sys.stdin); print($1)"; }
+# 14th: the newsletter task's 09:00–09:55 and 14:00–14:50 (105), as above; fix/other-thing's 09:15–09:45
+# (30) lies inside the first block, so the day is 105, the tasks add up to 135, and 30 were shared.
+check "track-time period: finds every task's branch, not the base branch or a generated one a session moved off (got $(pq '[b["branch"] for b in d["branches"]]'))" \
+    "[ \"\$(pq '[b[\"branch\"] for b in d[\"branches\"]]')\" = \"['claude/brave-fox', 'feat/newsletter-signup', 'fix/nav-focus', 'fix/other-thing']\" ]"
+check "track-time period: each task keeps its full time on a day two of them shared (got $(pq '[(b["branch"], b["active_min"]) for b in d["days"][0]["branches"]]'))" \
+    "[ \"\$(pq '[(b[\"branch\"], b[\"active_min\"]) for b in d[\"days\"][0][\"branches\"]]')\" = \"[('feat/newsletter-signup', 105), ('fix/other-thing', 30)]\" ]"
+check "track-time period: the day counts a minute two tasks shared once, and says how much they shared (got $(pq 'd["days"][0]["active_min"], d["days"][0]["tasks_min"], d["days"][0]["overlap_min"]'))" \
+    "[ \"\$(pq 'd[\"days\"][0][\"active_min\"], d[\"days\"][0][\"tasks_min\"], d[\"days\"][0][\"overlap_min\"]')\" = '105 135 30' ]"
+# 16th: fix/nav-focus 09:00–09:45 and 11:40–11:50 (55); claude/brave-fox 11:45–12:10 (25), sharing
+# 11:45–11:50; the 20 minutes on main are no task's. The day: 09:00–09:45 and 11:40–12:10, 75.
+check "track-time period: a session on the app's generated branch that never moved is its own task, and time only on main is no task's (got $(pq 'd["days"][2]["active_min"], d["days"][2]["tasks_min"], d["days"][2]["overlap_min"]'))" \
+    "[ \"\$(pq 'd[\"days\"][2][\"active_min\"], d[\"days\"][2][\"tasks_min\"], d[\"days\"][2][\"overlap_min\"]')\" = '75 80 5' ]"
+check "track-time period: the period is the sum of its days, each minute once (got $(pq '[x["date"] for x in d["days"]], d["total_min"], d["tasks_min"], d["overlap_min"]'))" \
+    "[ \"\$(pq '[x[\"date\"] for x in d[\"days\"]], d[\"total_min\"], d[\"tasks_min\"], d[\"overlap_min\"]')\" = \"['2026-10-14', '2026-10-15', '2026-10-16'] 210 245 35\" ]"
+check "track-time period: a task's period total matches its own report (got $(pq '[b["active_min"] for b in d["branches"] if b["branch"] == "feat/newsletter-signup"]'))" \
+    "[ \"\$(pq '[b[\"active_min\"] for b in d[\"branches\"] if b[\"branch\"] == \"feat/newsletter-signup\"]')\" = '[135]' ]"
+kept=$(period 2026-10-14 --branch feat/newsletter-signup --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["days"][0]["active_min"], d["days"][0]["overlap_min"], len(d["branches"]))')
+check "track-time period: --branch keeps only the tasks in the review, and the day's figures follow (got $kept)" "[ '$kept' = '105 0 1' ]"
+one=$(period 2026-10-15 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print([x["date"] for x in d["days"]], d["total_min"])')
+check "track-time period: one day counts only that day (got $one)" "[ \"$one\" = \"['2026-10-15'] 30\" ]"
+pout=$(period 2026-10-14 2026-10-16)
+check "track-time period: prints each day, its tasks, and what they shared" \
+    "echo \"\$pout\" | grep -q '^2026-10-14 – 2026-10-16 · 4 branches · 3h 30m active over 3 days · the branches add up to 4h 05m: 35m ran on more than one at once' && echo \"\$pout\" | grep -q '^2026-10-14  1h 45m · the branches add up to 2h 15m: 30m ran on more than one at once' && echo \"\$pout\" | grep -qE '^  fix/other-thing +30m  09:15–09:45'"
+empty=$(period 2026-10-20); code=$?
+check "track-time period: a period with no task's session says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$empty\" | grep -q 'No session ran on a task.s branch in 2026-10-20'"
 
 # link-reference-docs.py (decision 0019), on a copy of the skeleton: a packaged project links the
 # reference docs at the release it pins; a committed one, in its own docs/.

@@ -14,7 +14,9 @@ numbers in whole units:
   § Activities says.
 
 Each entry's description says what its outcome delivered, in business terms, and the entry ends when
-the outcome was delivered. The developer picks one number per entry, and only the entries they
+the outcome was delivered. `/track-time day` or `/track-time week` drafts every task's outcomes for
+that day or week, with the time actually spent each day, which counts a minute two tasks shared
+once. The developer picks one number per entry, and only the entries they
 approve are written to the tracker task's time entries. **The tracker is the only record:** no time
 goes into the repository, the spec folders, or the pull requests.
 
@@ -29,6 +31,7 @@ goes into the repository, the spec folders, or the pull requests.
 - **Labels:** [what marks the number an entry carries — e.g. the tag `ai-assisted` for the time spent,
   `midpoint` for the midpoint, `manual-estimate` for the estimate; or a prefix in the description]
 - **Billable:** [no — the entries are an internal measure — or how the team sets it]
+- **Week:** Monday to Sunday — the days `/track-time week` reviews.
 
 ## Descriptions
 

@@ -1,7 +1,7 @@
 ---
 name: track-time
-description: With the time-tracking module: draft a task's time entries since the last one logged — one per outcome delivered (a milestone, a completed task, value delivered), each with the AI-assisted time from the transcripts, a senior developer's estimate without AI, and a midpoint between them set by the activities — and write them to the tracker only on the developer's yes. Use after a milestone, significant partial work, or the merge, or when asked to log, track, or report the time spent on a task.
-argument-hint: "[tracker task link or ID] [--since <date-time>]"
+description: With the time-tracking module: draft a task's time entries since the last one logged — one per outcome delivered (a milestone, a completed task, value delivered), each with the AI-assisted time from the transcripts, a senior developer's estimate without AI, and a midpoint between them set by the activities — or every task's for a day or a week, and write them to the tracker only on the developer's yes. Use after a milestone, significant partial work, or the merge, or when asked to log, track, or report the time spent on a task, a day, or a week.
+argument-hint: "[tracker task link or ID] [--since <date-time>] | day [<date>] | week [<date>]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/track-time/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -36,7 +36,10 @@ skill what's already logged, so it can run at each milestone without logging an 
    time-tracking module isn't installed" and stop: offer nothing, draft nothing. Then read
    `docs/TIME-TRACKING.md`: the unit, how time entries are read and written, the labels, the
    activities with their evidence and where each one's midpoint sits, and any convention for the
-   descriptions. Placeholders left in it are questions for the developer before going on.
+   descriptions. Placeholders left in it are questions for the developer before going on. With the
+   argument `day` or `week`, also read `<this skill's base directory>/period.md`: a review of every
+   task worked on that day or week, each one's outcomes drafted with steps 4 to 8, and the time
+   actually spent each day, which counts a minute two tasks shared once.
 
 2. **Find the task and what's logged.**
    - **The task:** the argument, the spec's `tracker:` field, or the pull request's tracker link. If
@@ -202,6 +205,7 @@ skill what's already logged, so it can run at each milestone without logging an 
 - [ ] Session time came from the script; each off-session activity has its evidence
 - [ ] One entry per outcome, each with its delivery; every block and activity in the window belongs to one, or waits for the next run
 - [ ] Three numbers per entry in whole units rounded up — no half units, decimals, or minutes anywhere in the draft or the entries — the midpoint set activity by activity between the other two, with the activities behind them
+- [ ] A day or a week: every task's outcomes, each day's AI-assisted time from the script's active time, each minute once, and the period's three numbers — its midpoint and manual estimate the sums of the rows'
 - [ ] Each description says what the outcome delivered in business terms, with no technical names
 - [ ] The full draft was shown, and the developer chose a number, an edit, or skip for each entry
 - [ ] Only the approved entries were written, through the project's server as the developer, each ending at its delivery and labelled with the number it carries, and read back
