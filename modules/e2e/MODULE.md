@@ -65,6 +65,12 @@ what's missing, and is safe to run again.
 Then add `e2e` to the `modules:` list in the stamp on `AGENTS.md`'s first line: `/e2e` stops in a
 project whose stamp doesn't name it.
 
+## Verify
+
+- `python3 -m json.tool .claude/settings.json` parses, and its `allow` list holds `make e2e` and
+  `make smoke` — or, with `docker`, the `Bash(make *)` that covers them.
+- In a new session, `/e2e` (packaged: `/adf-dev:e2e`) is offered.
+
 ## Customize
 
 Run `/e2e set up` (packaged: `/adf-dev:e2e set up`) once the module is in — in a worktree, with the

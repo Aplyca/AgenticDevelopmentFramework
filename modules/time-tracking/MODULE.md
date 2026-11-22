@@ -3,7 +3,7 @@
 For teams that measure the time their tasks take. Adds `/track-time`, which drafts a task's time
 entries — one per outcome (a milestone reached, a completed task, value delivered), each with the
 AI-assisted time spent, an estimate of a senior developer's time without AI, and a midpoint between
-them set by the activities, in whole units, and a description of what the outcome delivered in
+them set by the activities, in whole hours, and a description of what the outcome delivered in
 business terms — and writes the ones the developer approves, with the number they pick for each, to
 the tracker task's time entries
 ([decisions 0043](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0043-track-time-in-the-tracker.md),

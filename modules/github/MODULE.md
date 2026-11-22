@@ -30,6 +30,12 @@ them.
    end-to-end suite at its critical tier (`make e2e tier=critical`). Don't put a `paths:` filter on a workflow you'll
    require: a required check that never runs is not a gate.
 
+## Verify
+
+- `.github/pull_request_template.md`, the issue forms, `secret-scan.yml`, `branch-policy.yml`, and
+  `.gitleaks.toml` are in the repository, and a file that existed before was merged, not replaced.
+- A new pull request opens with the template's sections.
+
 ## Optional: a stable preview address per pull request
 
 A host that deploys a preview on every push gives each deploy an address of its own, and some — a

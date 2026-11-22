@@ -11,6 +11,38 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Small review findings.**
+  - **What:**
+    - **Each module verifies itself:** every `MODULE.md` now has a § Verify — `github`, `gitlab`,
+      `git-hooks`, `parallel-agents`, `e2e`, and `unit` gain one, and `docker`'s checks its deny and ask
+      rules too. `/adf:adopt` and `/adf:upgrade`, which each checked a different list, run each
+      installed module's own.
+    - **`/adf:handoff` can hand work to another machine:** a teammate or another machine can only
+      pick up what's pushed, so it asks once to push the work branch as it stands (work before the
+      gate committed as `spec: draft <slug>` first), and opens no pull request for it.
+    - **One `glab` form for a note's body:** `glab issue note <n> --message "$(cat <file>)"`, in
+      `docs/TRACKER-INTEGRATION.md` as in `/adf:framework-feedback`.
+    - **The hooks README is right for both installs:** where the hooks are wired (the plugin's
+      `hooks.json`, or `.claude/settings.json`), how to turn one off (its setting in `config.sh`; a
+      packaged project can't drop a single hook), and where a project's own hook goes.
+    - **`CAREFUL_GLOBS` ships with CI, the git hooks, and Claude Code's own guardrails**
+      (`.github/workflows/*`, `.gitlab-ci.yml`, `.gitlab/ci/*`, `.githooks/*`, `.husky/*`,
+      `.claude/settings.json`, `.claude/hooks/*`), which `specs/README.md` § Lanes makes careful in
+      every project; it shipped empty, so the reminder never fired.
+    - **"Whole units" reads "whole hours"** in the README, `docs/SKILLS-REFERENCE.md`, and the
+      `time-tracking` module's docs, after decision 0094.
+  - **Where:** `modules/*/MODULE.md`, `plugins/adf/skills/{adopt,upgrade,handoff}/SKILL.md`,
+    `skeleton/docs/TRACKER-INTEGRATION.md`, `plugins/adf/hooks/README.md`,
+    `skeleton/.claude/hooks/config.sh`, `README.md`, `docs/SKILLS-REFERENCE.md`, `modules/README.md`,
+    `evals/static/test-hooks.sh`, `evals/dynamic/run-session-evals.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/handoff/` and `.claude/hooks/README.md`, as
+    `/adf:upgrade` writes them; packaged, they come with the plugin.
+  - **Merge:** `.claude/hooks/config.sh` — `CAREFUL_GLOBS` gains the defaults; a project that set its
+    own adds the ones it wants. `docs/TRACKER-INTEGRATION.md` — the Issues table's **Post an update**
+    row.
+
 - **Repeated text trimmed, with one home for each rule.**
   - **What:**
     - **The status-move rules live in `docs/TRACKER-INTEGRATION.md` § Rules for agents:** the task's

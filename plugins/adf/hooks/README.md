@@ -2,7 +2,8 @@
 
 Instructions in `AGENTS.md` are context: an agent reads them and usually follows them. These
 hooks are the rules that must hold **every** time, so they run as code at fixed points instead of
-depending on what the model decides. They are wired in `../settings.json`.
+depending on what the model decides. A packaged project gets them wired from the `adf` plugin's
+`hooks/hooks.json`; a committed one wires its own copies in `.claude/settings.json`.
 
 | Hook | Event | What it does |
 |---|---|---|
@@ -58,7 +59,12 @@ you've trusted"), and a hook can't answer it. Trusting the main checkout covers 
 
 ## Disable or extend
 
-- Turn one off by removing its entry from `../settings.json` (`/hooks` shows what is active).
-- Add a project-specific hook as a new script here, wired the same way. Read the event JSON from
-  stdin (`tool_input.command`, `tool_input.file_path`, `cwd`), and source `_lib.sh` for the
-  helpers. Keep hooks fast — they run on every matching tool call.
+- Turn one off with its setting in `.claude/hooks/config.sh`, in either install: the table above names
+  each (an empty `TRIAGE_FIRST`, `CAREFUL_GLOBS`, `PR_STATE`, `SESSION_TITLE`, …). `guard-git.sh` and
+  `session-context.sh` have none, and `check-env-declared.sh` does nothing without an env template. A
+  committed install can also remove a hook's entry from `.claude/settings.json`; a packaged one can't
+  drop a single hook, since the plugin wires them all. `/hooks` shows what is active.
+- Add a project-specific hook as a script in `.claude/hooks/`, wired in `.claude/settings.json` —
+  in a packaged project too, beside the plugin's. Read the event JSON from
+  stdin (`tool_input.command`, `tool_input.file_path`, `cwd`); a committed install's hooks can source
+  `_lib.sh` for the helpers, which a packaged project keeps in the plugin. Keep hooks fast — they run on every matching tool call.

@@ -206,7 +206,7 @@ the project names (§ Stakeholder updates › Status at each moment), and **deli
 | Who is signed in | `gh api user --jq .login` | `glab api user` — its `username` |
 | The labels the repository has | `gh label list` | `glab label list` |
 | Move the status | `gh issue edit <n> --add-label "<new>" --remove-label "<old>"` | `glab issue update <n> --label "<new>" --unlabel "<old>"` |
-| Post an update | `gh issue comment <n> --body-file <file>` | `glab issue note <n> < <file>` |
+| Post an update | `gh issue comment <n> --body-file <file>` | `glab issue note <n> --message "$(cat <file>)"` |
 | Read it back | `gh issue view <n> --json comments,labels,state` | `glab issue view <n> --comments --output json` |
 | Correct your last update | `gh issue comment <n> --edit-last --body-file <file>` | The developer edits it in GitLab: `glab` can't edit a note |
 | Delivered — after the delivered update | `gh issue close <n> --reason completed` | `glab issue close <n>` |

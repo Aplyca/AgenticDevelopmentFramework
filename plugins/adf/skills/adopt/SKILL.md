@@ -273,10 +273,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with both variables set — `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/adf <marketplace folder>/plugins/adf/hooks/guard-git.sh`, the marketplace folder being `aplyca`'s `installLocation` in `claude plugin marketplace list --json` (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
-- [ ] Packaged, with `parallel-agents`: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
-- [ ] With `docker`: `.claude/settings.json` parses, its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its `deny` list holds the module's `DEV_MODE` and `SERVICES` rules, and its `ask` list holds no docker or make rule of the module's
-- [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke` — or, with `docker`, the `Bash(make *)` that covers them
-- [ ] With `unit`: `.claude/settings.json` parses and, without `docker`, its `allow` list holds `npm test` and `npm run test:smoke`; with `docker`, neither is allowed and `make test` runs them
+- [ ] Each installed module passes its own `MODULE.md` § Verify (`<framework-root>/modules/<name>/MODULE.md`)
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question

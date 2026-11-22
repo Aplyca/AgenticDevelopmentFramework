@@ -230,7 +230,7 @@ fill("AGENTS.md", [
     ("- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or \"none\"]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `[command]`", "- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `pnpm lint && pnpm typecheck && pnpm test`"),
 ])
-fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS=""', 'CAREFUL_GLOBS="src/billing/*"'), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])
+fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS="', 'CAREFUL_GLOBS="src/billing/* '), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])
 fill(".claude/rules/claude-code.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — Claude Code")])
 PY
 [ -f "$FIXTURES/setup.sh" ] && bash "$FIXTURES/setup.sh" "$REPO"
