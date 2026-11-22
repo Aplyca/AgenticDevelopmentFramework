@@ -52,7 +52,7 @@ Read `docs/security/SECURITY.md` if it exists — this agent specifically needs 
 - Is data sanitized before being stored or forwarded to other services?
 
 ### Dependencies (MEDIUM)
-- Any new dependencies with known vulnerabilities?
+- Any new dependency the diff adds: name it with its version, with its known vulnerabilities when an audit tool's output (`npm audit`, `pip-audit`, …) is at hand — otherwise list it under **Not checked**.
 - Any dependencies with excessive permissions or suspicious behavior?
 
 ## Output format
@@ -64,4 +64,4 @@ Report findings with severity levels:
 - **[MEDIUM]** `file:line` — fix when possible, defense-in-depth
 - **[LOW]** `file:line` — informational, hardening suggestion
 
-End with: **PASS** (no critical/high), **CONDITIONAL PASS** (high issues with mitigations noted), or **FAIL** (critical issues found).
+End with **Not checked** — what needed a tool you don't have, such as a dependency audit — then **PASS** (no critical/high), **CONDITIONAL PASS** (high issues with mitigations noted), or **FAIL** (critical issues found).

@@ -86,7 +86,10 @@ the close-up only once it resumes and ends.
      conventions, in either mode — and the background commands this session started. Running
      things aren't work left over: they go in the close-up.
 
-3. **If anything is left, list it and stop.** Show each item, and what clearing it would take:
+3. **What's left, then the delivered step.** Two parts, and the second runs whatever the first
+   finds.
+
+   **Left over: list it and stop the close-up.** Show each item, and what clearing it would take:
    commit and push, open a follow-up, drop the stash, give the handoff. Offer no close-up until
    the developer settles them. Nothing is deleted or archived in this case.
 
@@ -97,12 +100,11 @@ the close-up only once it resumes and ends.
    follow-up for the work. Either is settled as a follow-up of the close-up
    (`<this skill's base directory>/follow-ups.md`).
 
-   An end-user page waiting to be published isn't work left over: with the `end-user-docs` module,
-   `modules.md` § End-user docs says when to offer `/adf:end-user-docs publish`, once, before the
-   close-up.
-
-   For a tracker task — a ClickUp task, a GitHub or GitLab issue — the **delivered** step, once
-   the check finds the answer delivered, or the pull request merged **and the change live**.
+   **The delivered step,** for a tracker task — a ClickUp task, a GitHub or GitLab issue — once
+   the check finds the answer delivered, or the pull request merged **and the change live**. It runs
+   whether or not something is left over: it needs no worktree. With the `end-user-docs` module, the
+   page's publish offer comes first (`modules.md` § End-user docs), so the update can link the page;
+   an end-user page waiting to be published isn't work left over.
    Delivered means the requester can use it: `docs/TRACKER-INTEGRATION.md` § Stakeholder updates ›
    *Live when* says whether that's on the merge, on a release, or when the developer says (no line:
    ask once). Verify it — the live site shows the change, or the release's deploy finished.
@@ -123,7 +125,7 @@ the close-up only once it resumes and ends.
      the status to set and the update's text to paste.
    - **Abandoned:** the task keeps its status, and gets no update.
 
-   None of it needs the worktree, so it doesn't hold up the close-up.
+   None of it holds up the close-up.
 
 4. **Ask about the time, before the close-up.** Only when the stamp names the `time-tracking`
    module: ask as `modules.md` § Time says — a question of its own, before the close-up's — and wait

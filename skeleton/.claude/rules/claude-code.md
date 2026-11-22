@@ -46,7 +46,7 @@ Lane definitions are in `AGENTS.md` § How work flows; in Claude Code:
 |---|---|---|
 | Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit` → local check → `/open-pr` (runs `/review`) | `sonnet` |
 | Careful | Fast, plus the area's checklist; `@security-reviewer` for authorization, personal data, or payments | `sonnet`, high effort |
-| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → local check → `/open-pr` (runs `/review`) | `opus`, high effort, up to the gate; then `/compact` and `sonnet` in the same session |
+| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → local check → `/open-pr` (runs `/review`) | `opus`, high effort, up to the approval gate; then `/compact` and `sonnet` in the same session |
 | Bug, cause unknown | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
 | Refactor | `/refactor` (full when it sets a structure others must follow) | `sonnet` |
 | Answer | `/triage` → the answer | `sonnet`; `opus` for architecture-level questions |

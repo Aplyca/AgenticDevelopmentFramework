@@ -59,5 +59,13 @@ Contract-first option: when the plan asks for it, end-to-end acceptance tests en
 - A feature suite is a feature and its folder (`tests/billing/`), listed in `docs/TEST-SUITES.md`; a path runs one feature suite. End-to-end flows across feature suites carry `@suite:<name>`
 - Never retag or skip a failing test to get green
 
+## End-to-end
+- Only where the whole stack is needed — a flow across pages, the browser and the server together, a critical flow; a rule is tested at a lower layer and shown once in the flow
+- Red first, on this checkout's own stack — or, when the code came first, in a second worktree of the base branch on that worktree's stack
+- **Never on a preview,** for the red or the green: a preview can share real backends, and the tests write data
+- Find elements by role and accessible name, label, or text; wait with assertions on what a person sees, never with sleeps
+- Each test owns its data and runs alone, in any order; no real third party — stub it, or leave the flow to the human check
+- Flaky is broken: fix it, or skip it with the reason and a tracker link — never rerun until it passes
+
 ## What NOT to test
 - Implementation details or internal state; CSS specifics; third-party internals; anything not in the spec

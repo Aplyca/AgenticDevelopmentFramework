@@ -23,7 +23,7 @@ These apply whatever the project's branching and release model is (`CONTRIBUTING
 
 | Prefix | When | What it captures |
 |---|---|---|
-| `spec:` | After the approval gate, before any other work | The approved spec folder; a full change request's approved spec, plan, and tasks; a plan correction made outside a task; the pull request link. A draft saved before the gate at the developer's request: `spec: draft <slug>`. A light `CR N` entry, or a plan fix a task needs, rides that task's commit |
+| `spec:` | After the approval gate, before any other work | The approved spec folder; a full change request's approved spec, plan, and tasks; a plan correction made outside a task; the pull request link. A draft saved before the approval gate at the developer's request: `spec: draft <slug>`. A light `CR N` entry, or a plan fix a task needs, rides that task's commit |
 | `docs:` | Before implementation, when the plan lists pre-implementable docs | Admin guides, API contracts, end-user copy |
 | `test:` | Contract-first acceptance tests, or a task that only adds tests | Acceptance tests committed red ahead of the code, or tests of existing behavior committed green once each is proven able to fail |
 | `feat:` / `fix:` | One per task, after its test went red then green | The test and the code that makes it pass, together |

@@ -123,8 +123,8 @@ fill("AGENTS.md", [
     ('- Production build, locally: `none`', '- Production build, locally: `make prod`'),
     ("- Tests: `pnpm test`", "- Tests: `make test` (t=<file>)"),
     ("- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`", "- Lint: `make lint` · Typecheck: `make typecheck`"),
-    ("- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`",
-     "- Full gate before a PR: `make lint && make typecheck && make test`"),
+    ("- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `pnpm lint && pnpm typecheck && pnpm test`",
+     "- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `make lint && make typecheck && make test`"),
 ])
 PY
 "$FW/modules/docker/install.sh" . >/dev/null

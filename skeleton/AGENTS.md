@@ -17,7 +17,7 @@ Stack: [languages, frameworks and versions, database, hosting. Example: Next.js 
 
 - **Don't invent requirements.** When the task or spec leaves something open — a missing criterion, a field that doesn't exist, two requirements that conflict — stop and ask. If you must proceed, state the assumption and surface it in the pull request.
 - **Nothing leaves this machine unless a human asks** — except what § Delivery rules and § Requirements & traceability make yours: the work branch's push, its draft pull request, marking it ready and requesting its reviewers, and the tracker task's status moves and outcome updates. No push to another branch, no pull request merged or reviewed, no tag, release, or chat message, and no tracker message that asks the requester for something.
-- **Never bypass the gates** — git hooks (`--no-verify`), lint, typecheck, tests, secret scanning.
+- **Never bypass the checks** — git hooks (`--no-verify`), lint, typecheck, tests, secret scanning.
 - **Agents implement and review; humans decide.** The local environment is yours, to build, test, and review; the preview is yours to test and review, and the developer's to review, approve, and merge. No merge without human review, AI-generated changes included: CI is a signal, a person's review decides.
 - **Never commit secrets.** Every environment variable the code reads is declared, without its value, in [`.env.example`].
 <!-- CUSTOMIZE: add the day-to-day subset of your constitution every agent needs in context, e.g.
@@ -45,7 +45,7 @@ Every lane gets the tests, the hooks, CI, your local check and `/review` before 
 - **Careful** — the same, touching a risk area: a migration or schema change, authentication or authorization, personal data, payments, a public API or contract, code other features use, infrastructure, CI, or deploy configuration, or a sensitive area below. Add that area's checklist, and name the risky part — the area, what the checklist found, what you walked — first in the pull request and your report.
 - **Full** — something to decide, a new feature or dependency, or work across layers: the flow in § 3.
 
-**Move up a lane** when a trigger appears, a test outside the area fails, or no test can prove a behavior change — keep what's done and say so; into full, stop for the spec and the gate. A diff that grows past the files you stated is triaged again: a new trigger moves the lane; otherwise state the new files and carry on. **The developer can set the lane:** raising is always honored; lowering is honored for size, but a risk trigger keeps its checklist unless they explicitly accept the risk (say so in the pull request).
+**Move up a lane** when a trigger appears, a test outside the area fails, or no test can prove a behavior change — keep what's done and say so; into full, stop for the spec and the approval gate. A diff that grows past the files you stated is triaged again: a new trigger moves the lane; otherwise state the new files and carry on. **The developer can set the lane:** raising is always honored; lowering is honored for size, but a risk trigger keeps its checklist unless they explicitly accept the risk (say so in the pull request).
 
 ### 3. Full lane — spec-driven, test-driven, docs-first
 
@@ -59,7 +59,7 @@ Every lane gets the tests, the hooks, CI, your local check and `/review` before 
 
 ### 4. Change request on delivered work
 
-Not a new feature: find its `specs/NNN-<slug>/` and compare the request with what the spec records as delivered. A precise adjustment takes the fast or careful lane with a **light** `CR N` entry in the same commit; one with something to decide is a **full** `CR N` with plan, tasks, and the gate. After the merge it gets a fresh branch (`<type>/<slug>-<change>`) and pull request — never the merged branch; before it, it rides the open draft's branch (`specs/README.md` § Before the merge). If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
+Not a new feature: find its `specs/NNN-<slug>/` and compare the request with what the spec records as delivered. A precise adjustment takes the fast or careful lane with a **light** `CR N` entry in the same commit; one with something to decide is a **full** `CR N` with plan, tasks, and the approval gate. After the merge it gets a fresh branch (`<type>/<slug>-<change>`) and pull request — never the merged branch; before it, it rides the open draft's branch (`specs/README.md` § Before the merge). If the delta can't be recovered, ask — never reconstruct the old requirement from the code.
 
 ### 5. Answers, hotfixes, and process changes
 
@@ -119,7 +119,7 @@ Every call re-reads the whole conversation, so cost and time grow with how long 
 - **Evaluate honestly** — assess the developer's proposed approach critically; flag concerns and suggest a better path when you see one.
 - **Flag risks proactively** — security risks, breaking changes, tech debt, blast radius — even when not asked.
 - **Report what you find along the way** — a bug or an improvement, related to the task or not: say it in that turn's report with `file:line`, and route it (`specs/README.md` § Found along the way): this branch's own bug is fixed in the task, an improvement to it is the developer's call, anything else is a follow-up in the pull request (an issue, not a session, with the `github` or `gitlab` module), and a problem in the framework itself is offered to `/framework-feedback`. Never drop it, never fix it in passing.
-- **End every turn with what's next.** After your report — what you did and found, options, your recommendation — say who acts next: you, carrying on (never asking for a step already authorized); the developer, with the decision, approval, or test the work waits on, named once rather than every turn; or something outside — CI, a deploy — and how you'll know. Ask a person only at a gate. When the task's work is done, offer the step that closes it.
+- **End every turn with what's next.** After your report — what you did and found, options, your recommendation — say who acts next: you, carrying on (never asking for a step already authorized); the developer, with the decision, approval, or test the work waits on, named once rather than every turn; or something outside — CI, a deploy — and how you'll know. Ask a person only for a decision, an approval, or a confirmation these rules call for. When the task's work is done, offer the step that closes it.
 
 ## Coding conventions
 
@@ -145,7 +145,7 @@ Read the relevant doc before deciding anything in its area. When a doc contradic
 
 | Document | Read when… |
 |---|---|
-| `docs/CONSTITUTION.md` | Always — the gate every spec, plan, and review checks against |
+| `docs/CONSTITUTION.md` | Before a spec, a plan, or a review — the principles each is checked against |
 | `specs/README.md` | Starting any change — when a spec is needed, the flow, change requests |
 | `docs/SPEC-MODEL.md` | Writing or reviewing a spec |
 | `docs/ARCHITECTURE.md` | Designing features, reviewing data flow, choosing patterns |
@@ -180,5 +180,5 @@ docs/                Documentation
 - Production build, locally: `[command, e.g. make prod — or "none"]` — for what only the production build shows; never the stack's build and start commands run by hand
 - Tests: `[command]` (on their own port) · one file: `[e.g. npm test -- <file>]` · by tier: `[e.g. npm run test:smoke · test:critical · npm test]` · one feature suite: `[e.g. npm test -- tests/billing]`
 - Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or "none"]` · Typecheck: `[command]`
-- Full gate before a PR: `[command]`
+- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `[command]`
 - Preview: `[where each pull request's preview deploys, e.g. the host's comment on the PR — or "none"]`

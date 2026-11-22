@@ -1,0 +1,25 @@
+---
+description: "Git — activate before staging, committing, branching, syncing with the base branch, or pushing"
+globs: ""
+alwaysApply: false
+---
+
+# Git workflow
+
+The full rules, with the commit prefixes and their phase order: `.claude/rules/git-workflow.md`.
+What leaves the machine, and when: `AGENTS.md` § Ground rules and § Delivery rules.
+
+## Commits
+- One task, one commit, made once its test passes, with the task ticked in `tasks.md`; a fast- or careful-lane change and the test that proves it make one commit
+- Stage files by name — never `git add .` or `git add -A`
+- Never bypass hooks (`--no-verify`, `git commit -n`); fix what the hook reports
+- **Never discard work** — uncommitted changes, a stash, an unmerged branch (`git reset --hard`, `clean`, `restore`, `stash drop`, `branch -D`) — unless the developer asks
+- Don't amend or rewrite pushed history unless asked
+
+## Branches
+- `<type>/<slug>` from the base branch, up to date with its remote (`git pull --ff-only` first); `<slug>` matches the spec folder
+- Never commit to the base branch or another protected branch
+
+## Syncing and pushing
+- Sync with the base branch only for a reason — a conflict, something the work needs, the developer's ask — with a merge commit: never rebase or force-push pushed history
+- Never push to the branch of a merged or closed pull request
