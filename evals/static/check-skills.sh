@@ -384,6 +384,57 @@ PY
     fi
 }
 
+check_cost_prose() {
+    # The prices the prose states must be the script's, so a price change can't drift again: the
+    # cost model's list prices and tier ratios, and /cost-report's model sentence (the drift PR 189 fixed).
+    local report
+    report=$(python3 - "$REPO_ROOT/plugins/adf/skills/cost-report/session_cost.py" "$REPO_ROOT/plugins/adf/docs/COST-MODEL.md" "$REPO_ROOT/plugins/adf/skills/cost-report/SKILL.md" <<'PY'
+import ast, re, sys
+tree = ast.parse(open(sys.argv[1]).read())
+values = {t.id: ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign)
+          for t in n.targets if isinstance(t, ast.Name) and t.id in ("PRICES", "HAIKU_LONG")}
+price = dict(values["PRICES"])
+haiku, sonnet, opus, fable = price["haiku"], price["sonnet-5-5"], price["opus-5-5"], price["fable-5-2"]
+model = " ".join(open(sys.argv[2]).read().split())
+skill = " ".join(open(sys.argv[3]).read().split())
+problems = []
+def num(x): return float(x)
+def expect(pattern, text, want, what):
+    m = re.search(pattern, text)
+    if not m:
+        problems.append(f"{what}: the sentence the check reads is gone — update the check with it")
+    elif tuple(num(g) for g in m.groups()) != tuple(want):
+        problems.append(f"{what}: prose says {m.groups()}, session_cost.py {want}")
+expect(r"Haiku 5\.5 \$([\d.]+) / \$([\d.]+) for prompts", model, haiku[:2], "COST-MODEL Haiku 5.5")
+expect(r"\(\$([\d.]+) / \$([\d.]+) beyond\)", model, values["HAIKU_LONG"][:2], "COST-MODEL Haiku over 100k")
+expect(r"Sonnet 5\.5 \$([\d.]+) / \$([\d.]+)", model, sonnet[:2], "COST-MODEL Sonnet 5.5")
+expect(r"Opus 5\.5 \$([\d.]+) / \$([\d.]+)", model, opus[:2], "COST-MODEL Opus 5.5")
+expect(r"Fable 5\.2, \$([\d.]+) / \$([\d.]+)", model, fable[:2], "COST-MODEL Fable 5.2")
+expect(r"Cache reads cost \$([\d.]+) / MTok on Sonnet 5\.5 and \$([\d.]+) on Opus 5\.5", model, (sonnet[2], opus[2]), "COST-MODEL cache reads")
+expect(r"Fable 5\.2, [^)]*cache reads \$([\d.]+)\)", model, (fable[2],), "COST-MODEL Fable cache reads")
+expect(r"\(Sonnet 5\.5\) \|[^|]*\| (\d+)× Haiku", model, (sonnet[0] / haiku[0],), "COST-MODEL Sonnet tier ratio")
+expect(r"\(Opus 5\.5\) \|[^|]*\| (\d+)× Haiku", model, (opus[0] / haiku[0],), "COST-MODEL Opus tier ratio")
+expect(r"Fable 5\.2, [^;]*?(\d+)× Haiku", model, (fable[0] / haiku[0],), "COST-MODEL Fable ratio")
+if "Opus costs twice Sonnet for output, uncached input, and cache reads" in model and any(o / s != 2 for o, s in zip(opus, sonnet)):
+    problems.append("COST-MODEL: 'Opus costs twice Sonnet' no longer holds")
+if "Opus 5.5 costs twice Sonnet 5.5 on every kind of token" not in skill:
+    problems.append("/cost-report: the model sentence the check reads is gone — update the check with it")
+elif any(o / s != 2 for o, s in zip(opus, sonnet)):
+    problems.append("/cost-report: 'Opus 5.5 costs twice Sonnet 5.5' no longer holds")
+if "Fable 5.2 four times on input and output, twice on cache reads" not in skill:
+    problems.append("/cost-report: the Fable sentence the check reads is gone — update the check with it")
+elif (fable[0] / sonnet[0], fable[1] / sonnet[1], fable[2] / sonnet[2]) != (4, 4, 2):
+    problems.append("/cost-report: 'Fable 5.2 four times … twice on cache reads' no longer holds")
+print("; ".join(problems))
+PY
+)
+    if [ -z "$report" ]; then
+        pass "cost: the prices COST-MODEL.md and /cost-report state match session_cost.py"
+    else
+        fail "cost: the prose and session_cost.py disagree" "$report"
+    fi
+}
+
 check_hook_scripts_syntax() {
     local script bad=""
     for script in "$HOOKS_DIR"/*.sh; do
@@ -1844,6 +1895,7 @@ echo ""
 check_settings
 check_hook_scripts_syntax
 check_hook_defaults
+check_cost_prose
 check_instruction_files
 check_agents_md_workflow
 check_git_workflow_prefixes
