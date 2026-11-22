@@ -15,7 +15,7 @@ cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
 root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)" || exit 0
 branch="$(git -C "$root" symbolic-ref --short -q HEAD 2>/dev/null)" || exit 0
-in_words "$branch" "$PROTECTED_BRANCHES" && exit 0
+is_protected_branch "$branch" && exit 0
 event="$(json_get '.hook_event_name')"
 if [ "$event" = "Stop" ]; then
   [ -n "$PR_WATCH_HOURS" ] && [[ $PR_WATCH_HOURS =~ ^[0-9]+$ ]] && [ "$PR_WATCH_HOURS" -gt 0 ] || exit 0

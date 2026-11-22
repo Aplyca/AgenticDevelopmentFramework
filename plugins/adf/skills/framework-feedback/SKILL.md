@@ -43,7 +43,7 @@ naming the project, its people, or its code.
 3. **Check the release.** List the newest release tag:
 
    ```bash
-   git ls-remote --tags --refs https://<host>/<repo> 'v*'
+   git ls-remote --tags --refs --sort=-v:refname https://<host>/<repo> 'v*' | head -1
    ```
 
    When it's newer than `release` (or `pinned_ref`), say so: the problem may be fixed in that release,

@@ -5,8 +5,8 @@
 # Patterns are shell globs. A pattern without "/" matches a file name at any depth;
 # a pattern with "/" matches the path relative to the repository root.
 
-# CUSTOMIZE: branches that never take direct commits or pushes from an agent.
-# Add your integration and release branches (e.g. "main staging develop"). Empty disables the check.
+# CUSTOMIZE: branches that never take direct commits or pushes from an agent, each a glob.
+# Add your integration and release branches (e.g. "main staging develop release/*"). Empty disables the check.
 PROTECTED_BRANCHES="main master"
 
 # CUSTOMIZE: append-only history — existing files here must never be modified; adding new

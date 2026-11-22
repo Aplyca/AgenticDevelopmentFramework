@@ -512,6 +512,17 @@ if [ "$(pkg_push release-x)" = 2 ] && [ "$(pkg_push main)" = 0 ]; then
 else
     FAIL=$((FAIL+1)); echo "✘ _lib.sh: packaged hooks didn't read the project's config.sh"
 fi
+# PROTECTED_BRANCHES words are globs: release/* protects release/1.0, and a file named like a branch
+# in the folder doesn't expand the pattern.
+echo 'PROTECTED_BRANCHES="main release/*"' > "$PROJ/.claude/hooks/config.sh"
+touch "$PROJ/release-file"
+if [ "$(pkg_push release/1.0)" = 2 ] && [ "$(pkg_push main)" = 2 ] && [ "$(pkg_push feat/release)" = 0 ] && [ "$(pkg_push release)" = 0 ]; then
+    PASS=$((PASS+1)); echo "✓ _lib.sh: a protected-branch glob matches (release/* protects release/1.0, not feat/release)"
+else
+    FAIL=$((FAIL+1)); echo "✘ _lib.sh: a protected-branch glob doesn't match as a glob"
+fi
+rm -f "$PROJ/release-file"
+echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 stand_down=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin main"}}' "$T" | CLAUDE_PROJECT_DIR="$T" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/guard-git.sh" >/dev/null 2>&1; echo $?)
 own=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push origin main"}}' "$T" | CLAUDE_PROJECT_DIR="$T" "$H/guard-git.sh" >/dev/null 2>&1; echo $?)
 if [ "$stand_down" = 0 ] && [ "$own" = 2 ]; then
