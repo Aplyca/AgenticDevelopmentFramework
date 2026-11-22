@@ -11,6 +11,22 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The time unit is one hour, in every project**
+  ([decision 0094](docs/decisions/0094-the-time-unit-is-one-hour.md)).
+  - **What:** `docs/TIME-TRACKING.md` loses its Unit setting. Every number `/adf:track-time` shows or
+    writes is a whole number of hours, rounded up — never a half hour, a decimal, or minutes — so
+    every team's entries compare. `/adf:adopt` no longer asks for a unit.
+  - **Where:** `plugins/adf/skills/track-time/SKILL.md`, `modules/time-tracking/` (`MODULE.md`'s
+    § Customize and `docs/TIME-TRACKING.md`), `plugins/adf/skills/adopt/SKILL.md`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install with the `time-tracking` module: `.claude/skills/track-time/`,
+    as `/adf:upgrade` writes it; packaged, it comes with the plugin.
+  - **Merge:** `docs/TIME-TRACKING.md` — remove the **Unit** line from § Settings, and take the
+    intro's "whole hours" wording.
+  - **Migration:** by hand — a team that set a unit other than one hour: its next entries are in
+    whole hours. Entries already logged stay as they are.
+
 - **A time entry is an outcome, with a midpoint between the two numbers**
   ([decision 0092](docs/decisions/0092-time-entries-are-outcomes-with-a-midpoint.md)).
   - **What:**

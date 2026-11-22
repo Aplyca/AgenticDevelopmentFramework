@@ -266,7 +266,7 @@ Present the table before going further. Wrong facts here poison every file downs
   the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is
   `/unit set up` (packaged: `/adf-dev:unit set up`): the developer picks the feature suites, and it
   writes the configuration, the tier scripts, and `docs/TEST-SUITES.md`. For `time-tracking`, fill
-  `docs/TIME-TRACKING.md` — the unit, the tracker's time-entry tools, the labels — from the tracker's
+  `docs/TIME-TRACKING.md` — the tracker's time-entry tools, the labels — from the tracker's
   real tools, or leave a `TODO(team)` for each. For `end-user-docs`, fill `docs/END-USER-DOCS.md` —
   the doc tool, the end-user doc, the drafts location, its page tools, the end users and their
   language — from what the team says and the tool's real tools, or leave a `TODO(team)` for each.

@@ -17,7 +17,7 @@ stops there, and `/wrap-up` never asks.
 
 | File | Purpose |
 |---|---|
-| `docs/TIME-TRACKING.md` | The project's settings — the unit, how time entries are read and written with the tracker's tools, the labels, whether they're billable — how an entry's description is written, and the activities an entry covers, with the evidence `/track-time` looks for and where each one's midpoint sits |
+| `docs/TIME-TRACKING.md` | The project's settings — how time entries are read and written with the tracker's tools, the labels, whether they're billable — how an entry's description is written, and the activities an entry covers, with the evidence `/track-time` looks for and where each one's midpoint sits |
 | `.claude/skills/track-time/` | **Committed install only:** the skill and the script that measures the sessions' time. A packaged project gets `/adf:track-time` from the `adf` plugin, which `module.json` names |
 
 ## Install
@@ -38,22 +38,20 @@ feature off.
 
 In `docs/TIME-TRACKING.md`:
 
-1. **Unit** — a whole hour by default. Every number in a draft is a whole number of units, rounded up:
-   no half units, decimals, or minutes.
-2. **Time entries** — the tracker's tools that read and write a task's time entries. With the
+1. **Time entries** — the tracker's tools that read and write a task's time entries. With the
    `clickup` module, they're ClickUp's time-tracking tools (`/mcp` lists them): reading falls under
    its read-only allowlist, and writing prompts.
-3. **Labels** — the tag or prefix that says whether an entry carries the AI-assisted time, the
+2. **Labels** — the tag or prefix that says whether an entry carries the AI-assisted time, the
    midpoint, or the manual estimate, so reports can tell them apart.
-4. **Activities** — the work the team counts, the evidence of each, and where its midpoint sits: as
+3. **Activities** — the work the team counts, the evidence of each, and where its midpoint sits: as
    spent, halfway, or nearer one end.
-5. **Descriptions** — by default, what each outcome delivered in business terms; add the team's own
+4. **Descriptions** — by default, what each outcome delivered in business terms; add the team's own
    convention, if any.
 
 ## Good to know
 
-- **Ballpark, not a timesheet.** Each number is rounded up to a whole unit and rests on the work the
-  evidence shows. The developer edits any entry before it's written.
+- **Ballpark, not a timesheet.** Each number is rounded up to a whole hour — the unit in every
+  project, never a half hour — and rests on the work the evidence shows. The developer edits any entry before it's written.
 - **Outcomes, not days.** An outcome that took three days is one entry, logged when it was
   delivered; work toward an outcome not delivered yet waits for the next run, or is logged for what
   it found or settled.
