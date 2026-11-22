@@ -4,6 +4,8 @@
 # next developer, CI, and every deploy target knows it is required. Undeclared variables are the
 # classic onboarding landmine: the app boots on one machine and fails on the next.
 # The edit has already happened; exit 2 hands the message to Claude so it declares the variable.
+# Only the names the edit wrote are checked — an Edit's new text, a Write's content — so a variable
+# the file already read, such as one the platform provides, doesn't come back on every edit.
 set -uo pipefail
 export LC_ALL=C
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
@@ -52,11 +54,15 @@ patterns=(
   "System\\.get_env\\(\"$name\""
 )
 
+written="$(json_get '.tool_input.new_string')"
+[ -n "$written" ] || written="$(json_get '.tool_input.content')"
+[ -n "$written" ] || written="$(cat "$file_path")" # a MultiEdit, or an event without the text
+
 found=""
 for pattern in "${patterns[@]}"; do
   while IFS= read -r match; do
     [[ $match =~ $pattern ]] && found="$found ${BASH_REMATCH[1]}"
-  done < <(grep -oE "$pattern" "$file_path" 2>/dev/null)
+  done < <(printf '%s\n' "$written" | grep -oE "$pattern" 2>/dev/null)
 done
 
 missing=""
@@ -77,7 +83,7 @@ done
 set +f
 
 if [ -n "$missing" ]; then
-  echo "$relative reads${missing} but $template does not declare it. Add each name to $template with a placeholder or a comment — never a real value — so every environment knows it is required." >&2
+  echo "$relative reads${missing} but $template does not declare it. Add each name to $template with a placeholder or a comment — never a real value — so every environment knows it is required. A variable the platform sets for you (PORT, VERCEL_URL…) goes in ENV_IGNORE in .claude/hooks/config.sh instead." >&2
   exit 2
 fi
 exit 0

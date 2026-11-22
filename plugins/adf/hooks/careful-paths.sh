@@ -2,11 +2,14 @@
 # PreToolUse hook (matcher: Edit|Write|MultiEdit). Paths the team listed in CAREFUL_GLOBS take at
 # least the careful lane, whatever the size of the change. The first edit in each sensitive area
 # is stopped once per session so the agent confirms the lane before going on; later edits in that
-# area pass. Empty CAREFUL_GLOBS turns the hook off.
+# area pass. A session whose latest lane in its replies is careful or full has confirmed it already,
+# and a subagent works under its caller's triage: neither is stopped. Empty CAREFUL_GLOBS turns the
+# hook off.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 [ -n "$CAREFUL_GLOBS" ] || exit 0
+[ -z "$(json_get '.agent_id')" ] || exit 0
 file_path="$(json_get '.tool_input.file_path')"
 [ -n "$file_path" ] || exit 0
 
@@ -30,6 +33,9 @@ state="$tmp_dir/claude-careful-paths-${session:-unknown}"
 if [ -f "$state" ] && grep -qxF -- "$matched" "$state"; then
   exit 0
 fi
+# The latest lane the replies name: careful or full already covers the area ("fast lane … now the
+# careful lane" counts as careful).
+transcript_replies | grep -oiE "$(lane_pattern 'fast|careful|full')" | tail -n 1 | grep -qiE 'careful|full' && exit 0
 printf '%s\n' "$matched" | tee -a "$state" >/dev/null
 
 block "$relative is in a sensitive area ($matched — CAREFUL_GLOBS in .claude/hooks/config.sh, AGENTS.md § Sensitive areas). Changes here take at least the careful lane. If this task is in the fast lane, stop: tell the developer, move to the careful lane, and apply its checklist (specs/README.md § Lanes). If it is already careful or full, make the edit again — this check runs once per area per session."

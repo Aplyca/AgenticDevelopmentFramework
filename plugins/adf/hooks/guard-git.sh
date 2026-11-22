@@ -38,12 +38,13 @@ resolve_path() {
   printf '%s' "$path"
 }
 
-# A folder this hook can't read from the text (a variable, a command substitution) falls back to
-# the session's own, so an unreadable path never passes as "no protected branch". A branch the same
-# command line switched to with && stands for the folder's current one.
+# A folder this hook can't read from the text (a variable, a command substitution) has no branch it
+# knows of, so the protected-branch checks stay silent: a hook acts only on a risk it has identified,
+# never on input it couldn't parse (decision 0096). A branch the same command line switched to with
+# && stands for the folder's current one.
 current_branch() {
   local dir="$1"
-  [ -d "$dir" ] || dir="$event_cwd"
+  [ -d "$dir" ] || return 0
   if [ -n "$switched_branch" ] && [ "$dir" = "$switched_dir" ]; then
     printf '%s\n' "$switched_branch"
     return 0
@@ -152,10 +153,11 @@ check_push() {
 
 # check_config <args of git config> — a read is a get or list form, or a single name with no value;
 # anything else (a name and a value, --unset, --add, --edit, a section rename, the set or unset
-# subcommands) changes the config. A flag this doesn't know counts as taking no value, so a value
-# after it counts as a second word: an unknown form asks rather than passes.
+# subcommands) changes the config. A flag this doesn't know makes the form unreadable, and an
+# unreadable form stays silent (decision 0096) — unless it names core.hooksPath, the setting that
+# switches the hooks off, which is the risk this check exists for.
 check_config() {
-  local token skip_next="" reading="" words=0
+  local token skip_next="" reading="" words=0 unknown="" hooks_path=""
   for token in "$@"; do
     if [ -n "$skip_next" ]; then
       skip_next=""
@@ -165,11 +167,15 @@ check_config() {
       --get | --get-all | --get-regexp | --get-urlmatch | --get-color | --get-colorbool | -l | --list) reading=1 ;;
       --unset | --unset-all | --add | --replace-all | --rename-section | --remove-section | -e | --edit)
         config_write=1 && return 0 ;;
-      -f | --file | --blob | --type | --default) skip_next=1 ;;
-      -*) ;;
+      -f | --file | --blob | --type | --default | --comment) skip_next=1 ;;
+      --global | --system | --local | --worktree | --show-origin | --show-scope | -z | --null | \
+        --name-only | --includes | --no-includes | --bool | --int | --bool-or-int | --path | \
+        --expiry-date | --fixed-value | --no-type) ;;
+      -*) unknown=1 ;;
       # A redirect isn't a word: 2>/dev/null, or > and the file after it.
       [0-9]\>* | \>* | [0-9]\<* | \<*) [[ $token =~ ^[0-9]*[\<\>]+$ ]] && skip_next=1 ;;
       *)
+        case "$token" in [cC][oO][rR][eE].[hH][oO][oO][kK][sS][pP][aA][tT][hH]*) hooks_path=1 ;; esac
         if [ "$words" -eq 0 ]; then
           case "$token" in
             get | list) reading=1 ;;
@@ -180,7 +186,9 @@ check_config() {
         ;;
     esac
   done
-  [ -n "$reading" ] || [ "$words" -le 1 ] || config_write=1
+  [ -n "$reading" ] || [ "$words" -le 1 ] && return 0
+  [ -n "$unknown" ] && [ -z "$hooks_path" ] && return 0
+  config_write=1
   return 0
 }
 

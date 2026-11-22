@@ -11,6 +11,34 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Hooks stay silent on what they can't read, and stop only where the risk is**
+  ([decision 0096](docs/decisions/0096-hooks-stay-silent-on-what-they-cannot-read.md)).
+  - **What:**
+    - **`guard-git`** knows no branch for a folder it can't read (`git -C "$WT"`) instead of taking the
+      session's, and lets a `git config` form with an unknown flag run — unless it names
+      `core.hooksPath`. `git config --global user.name x` still asks.
+    - **`triage-first`** looks only at files in the project — a memory note, a plan, or a scratch file
+      outside it isn't stopped — and at real commands: quoted text such as `echo "git branch cleanup"`
+      isn't a new branch. An answer's triage (`Triage —`, no lane) counts.
+    - **`careful-paths`** lets the edit through when the latest lane the replies name is careful or
+      full, and leaves subagents alone.
+    - **`check-env-declared`** checks the names the edit wrote, not the whole file, so a variable the
+      platform sets doesn't stop every edit; its message names `ENV_IGNORE`.
+    - **`gh auth` and `glab auth`** ask before a login, a logout, a switch, a refresh, a git
+      credential, or a token shown; `auth status` runs.
+  - **Where:** `plugins/adf/hooks/{_lib,guard-git,triage-first,careful-paths,check-env-declared}.sh`,
+    `plugins/adf/hooks/README.md`, `skeleton/.claude/settings.json`,
+    `skeleton/.claude/rules/claude-code.md`, `evals/static/{test-hooks,check-skills}.sh`,
+    `docs/decisions/0038…`, `0088…` (amended).
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: the hook scripts in `.claude/hooks/` (all but `config.sh`), as
+    `/adf:upgrade` writes them; packaged, they come with the plugin.
+  - **Merge:** `.claude/settings.json` — in `permissions.ask`, `Bash(gh auth *)` becomes the `gh auth`
+    login, logout, refresh, setup-git, switch, token, and `status *-t*` rules, and `Bash(glab auth *)`
+    the `glab auth` login, logout, git-credential, configure-docker, docker-helper, dpop-gen, and
+    `status *-t*` rules; `.claude/rules/claude-code.md` — the **Ask first** and **Stops once** lines.
+
 - **The full gate's loop, protected-branch globs, the release lookup, and adoption follow-ups.**
   - **What:**
     - **Recording the gate no longer calls for another run.** `/adf:open-pr` reran the full gate when
