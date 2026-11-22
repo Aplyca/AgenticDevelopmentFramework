@@ -11,6 +11,26 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Three agents point to the skills they follow, and the cost prose is checked against the script.**
+  - **What:**
+    - **`@adf:debugger`, `@adf:test-runner`, and `@adf:spec-writer` follow their skill's steps**
+      (`/adf:debug`, `/adf:write-tests`, `/adf:write-spec`) by reading its `SKILL.md`, and keep only
+      what differs for an agent working for a caller — the debugger never fixes and can't edit, the
+      spec writer sends questions back and stops before the hand-off — and their report format. They
+      had copied the skills and drifted from them; together they go from about 1,860 words to 730.
+    - **The build carries a skill's file path** between the two installs, as it carries a reference
+      doc's: `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` in the plugin, `.claude/skills/<name>/SKILL.md`
+      in a committed project (`scripts/forms.py`).
+    - **A static check compares the cost prose with `session_cost.py`:** `COST-MODEL.md`'s list
+      prices, cache-read prices, and tier ratios, and `/adf:cost-report`'s model sentence. A price
+      changed in one place and not the other fails the evals.
+  - **Where:** `plugins/adf/agents/{debugger,test-runner,spec-writer}.md`, `scripts/forms.py`,
+    `evals/static/check-skills.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/agents/{debugger,test-runner,spec-writer}/`, as
+    `/adf:upgrade` writes them; packaged, they come with the plugin.
+
 - **Low-priority review findings.**
   - **What:**
     - **`/adf:deep-review` verifies a finding once:** two reviewers raising the same one cost one

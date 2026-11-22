@@ -38,6 +38,10 @@ DOCS_NOTE = ("> **The reference docs this file names are the plugin's copies,** 
 DOCS_NOTE_AT_TOP = re.compile(r"\A(.*?\n---\n\n)" + re.escape(DOCS_NOTE), re.S)
 LOCAL_DOC = re.compile(r"(?<![\w/.-])docs/(" + "|".join(REFERENCE_DOCS) + r")\.md")
 PLUGIN_DOC = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/docs/(" + "|".join(REFERENCE_DOCS) + r")\.md")
+# An agent that follows a skill's steps names its file: the plugin's copy in a packaged project, the
+# project's in a committed one. Only adf's agents and skills name one: ${CLAUDE_PLUGIN_ROOT} is adf's.
+LOCAL_SKILL = re.compile(r"(?<![\w/.-])\.claude/skills/([a-z-]+)/SKILL\.md")
+PLUGIN_SKILL = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/skills/([a-z-]+)/SKILL\.md")
 
 # Claude Code doesn't fill in ${CLAUDE_PLUGIN_ROOT} in a workflow script, so a workflow that needs the
 # spec model carries its text; a committed workflow reads the project's copy instead.
@@ -259,16 +263,19 @@ class Machinery:
         if plugin != CORE:
             # ${CLAUDE_PLUGIN_ROOT} is this plugin's folder, and the reference docs are in adf's.
             assert not LOCAL_DOC.search(text), f"{plugin}:{name} names a reference doc only adf can reach"
+            assert not LOCAL_SKILL.search(text), f"{plugin}:{name} names a skill file only adf can reach"
         named = LOCAL_DOC.sub(r"${CLAUDE_PLUGIN_ROOT}/docs/\1.md", text)
+        with_skills = LOCAL_SKILL.sub(r"${CLAUDE_PLUGIN_ROOT}/skills/\1/SKILL.md", named)
         # After the frontmatter, so the name and description still come first.
-        head, sep, body = named.partition("\n---\n")
+        head, sep, body = with_skills.partition("\n---\n")
         note = HANDOVER[kind].format(name=name, source=self.source_note(plugin, kind, name))
         return head + sep + "\n" + note + (DOCS_NOTE if named != text else "") + body.lstrip("\n")
 
     def to_committed_markdown(self, text):
         text = STEP0.sub(lambda m: m.group(1) + "\n", text, count=1)
         text = DOCS_NOTE_AT_TOP.sub(lambda m: m.group(1), text, count=1)
-        return self.to_committed_names(PLUGIN_DOC.sub(r"docs/\1.md", text))
+        text = PLUGIN_SKILL.sub(r".claude/skills/\1/SKILL.md", PLUGIN_DOC.sub(r"docs/\1.md", text))
+        return self.to_committed_names(text)
 
     # ─── Workflows and hooks ───────────────────────────────────────────────
 
