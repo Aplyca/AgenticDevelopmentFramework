@@ -13,8 +13,9 @@ leave out:
   the tracker); a label the repository lacks is a question too — never create one.
 - **Delivered means live.** Move to it only once the change is verified live (`SKILL.md` § Live), or
   an answer is delivered.
-- **Forward only** covers a task already at or past the target — a developer moved it by hand, or
-  it's waiting on the requester: it stays where it is.
+- **Forward only,** in the tracker's own order of statuses (§ Rules for agents): a task already at or
+  past the target — a developer moved it by hand — stays where it is, and so does one at a status
+  outside that order, such as blocked or waiting on the requester.
 - **Send the status alone, in a call of its own.** Where the project names the tracker's status
   tool in `APPROVE_STATUS_MOVE` (`.claude/hooks/config.sh`), a call that carries only the task and
   its status passes without a prompt; any other field in the same call brings the prompt back.

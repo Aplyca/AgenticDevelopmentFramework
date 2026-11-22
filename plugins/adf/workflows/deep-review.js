@@ -16,7 +16,7 @@ const READ_ONLY = 'Do not modify, create, or delete any file, and do not run com
 // carries each checklist's text here instead: a packaged project keeps no copy of the agents, and a
 // workflow can't reach the plugin's (decision 0029).
 const SECURITY_REVIEWER_CHECKLIST = "The security-reviewer agent's checklist, which this review follows:\n\n## Audit checklist\n\n### Injection vulnerabilities (CRITICAL)\n- **XSS**: Any use of `dangerouslySetInnerHTML`, `innerHTML`, or equivalent with user-provided data? Is all rendering through the framework's safe templating?\n- **Command injection**: Any user input reaching shell execution (`exec`, `spawn`, `system`, backticks)?\n- **SQL injection**: Any raw SQL with string interpolation instead of parameterized queries?\n- **Header injection**: Any user input interpolated into HTTP headers or redirect URLs?\n- **Path traversal**: Any user input used in file system paths without sanitization?\n\n### Credential exposure (CRITICAL)\n- Are secrets (API keys, passwords, tokens) accessed only in server-side code?\n- Are any server-side modules imported in client-side code?\n- Are any secrets hard-coded in source files?\n- Are secret files (`.env`, `.env.local`, credentials) in `.gitignore`?\n\n### Input validation (HIGH)\n- Do API endpoints validate request data (required fields, types, bounds) before processing?\n- Do endpoints return appropriate error codes for bad input (400, not 500)?\n- Are internal error details (stack traces, service errors) hidden from client responses?\n\n### Authorization (HIGH)\n- Is any access check, policy, or database-level rule removed, loosened, or bypassed to make data appear? Broadening access must be an explicit, justified decision in the spec — never a side effect.\n- Is authorization enforced on the server, not only by hiding UI?\n\n### Data handling (MEDIUM)\n- Is sensitive data stored only where appropriate? (no secrets in localStorage, cookies without httpOnly, etc.)\n- Are there logging statements that could leak sensitive data?\n- Is data sanitized before being stored or forwarded to other services?\n\n### Dependencies (MEDIUM)\n- Any new dependency the diff adds: name it with its version, with its known vulnerabilities when an audit tool's output (`npm audit`, `pip-audit`, …) is at hand — otherwise list it under **Not checked**.\n- Any dependencies with excessive permissions or suspicious behavior?"
-const UX_REVIEWER_CHECKLIST = "The ux-reviewer agent's checklist, which this review follows:\n\n## Review checklist\n\n### Spec compliance\n- Does the UI match each user story in the spec?\n- Does the markup satisfy each acceptance criterion a person would see?\n- Does the UI satisfy explicit Accessibility requirements (label association, ARIA roles, focus management, keyboard navigation)?\n- Are edge cases handled with appropriate UI states? (empty lists, loading, errors, long text, missing data)\n\n### Doc-UI alignment\n- Does the UI match the admin guide's claims (field labels, behavior descriptions)?\n- Does the user-facing copy match the committed copy defaults (or has it been updated deliberately)?\n- If divergence exists, was it captured in a `docs:` update or called out in the `feat:` commit?\n\n### Consistency\n- Are colors used consistently for status? (success=green, error=red, active=blue, pending=gray — or whatever the project defines)\n- Are similar elements styled the same way across views? (cards, buttons, form fields, tabs)\n- Is spacing and layout consistent between pages?\n- Is terminology consistent? (same word for the same concept everywhere)\n\n### User flow\n- Is the navigation logical? Can the user always get back to where they came from?\n- Are destructive actions confirmed? (delete, reject, cancel)\n- Is the current state always clear? (which tab is active, which step in a process, what's selected)\n- Are loading states present for async operations?\n- Are success/error states shown after actions? (form submitted, action completed, request failed)\n\n### Text and language\n- Is all user-facing text in the correct language for the project?\n- Are labels, buttons, and messages clear and concise?\n- Are error messages helpful? (tell the user what to do, not what went wrong technically)\n- Is placeholder text appropriate? (not \"lorem ipsum\" in production UI)\n\n### Accessibility baseline\n- Are interactive elements using semantic HTML? (`<button>`, `<a>`, `<input>`, not styled `<div>` with onClick)\n- Do non-link clickable elements have keyboard support? (`tabIndex`, `role`, key handlers)\n- Is color never the sole indicator of state? (icons or text labels accompany color)\n- Do form inputs have associated labels?\n- Do the styles give text enough contrast? (the colors the code sets; a ratio needs the rendered page)\n\n### Responsive behavior\n- Do the styles adapt the layout to narrower viewports (breakpoints, flexible widths, no fixed widths that overflow)?\n- Do data tables or horizontal content scroll gracefully?\n- Are touch targets large enough on narrow viewports?"
+const UX_REVIEWER_CHECKLIST = "The ux-reviewer agent's checklist, which this review follows:\n\n## Review checklist\n\n### Spec compliance\n- Does the UI match each user story in the spec?\n- Does the markup satisfy each acceptance criterion a person would see?\n- Does the UI satisfy explicit Accessibility requirements (label association, ARIA roles, focus management, keyboard navigation)?\n- Are edge cases handled with appropriate UI states? (empty lists, loading, errors, long text, missing data)\n\n### Doc-UI alignment\n- Does the UI match the admin guide's claims (field labels, behavior descriptions)?\n- Does the user-facing copy match the committed copy defaults (or has it been updated deliberately)?\n- If divergence exists, was it captured in a `docs:` update or called out in the `feat:` commit?\n\n### Consistency\n- Are colors used consistently for status? (success=green, error=red, active=blue, pending=gray — or whatever the project defines)\n- Are similar elements styled the same way across views? (cards, buttons, form fields, tabs)\n- Is spacing and layout consistent between pages?\n- Is terminology consistent? (same word for the same concept everywhere)\n\n### User flow\n- Is the navigation logical? Can the user always get back to where they came from?\n- Are destructive actions confirmed? (delete, reject, cancel)\n- Is the current state always clear? (which tab is active, which step in a process, what's selected)\n- Are loading states present for async operations?\n- Are success/error states shown after actions? (form submitted, action completed, request failed)\n\n### Text and language\n- Is all user-facing text in the correct language for the project?\n- Are labels, buttons, and messages clear and concise?\n- Are error messages helpful? (tell the user what to do, not what went wrong technically)\n- Is placeholder text appropriate? (not \"lorem ipsum\" in production UI)\n\n### Accessibility baseline\n- Are interactive elements the platform's own? (native buttons, links, and inputs — not a generic element with a click handler)\n- Do custom interactive elements have keyboard support? (focusable, a role, key handlers)\n- Is color never the sole indicator of state? (icons or text labels accompany color)\n- Do form inputs have associated labels?\n- Do the styles give text enough contrast? (the colors the code sets; a ratio needs the rendered page)\n\n### Responsive behavior\n- Do the styles adapt the layout to narrower viewports (breakpoints, flexible widths, no fixed widths that overflow)?\n- Do data tables or horizontal content scroll gracefully?\n- Are touch targets large enough on narrow viewports?"
 
 const SCOPE_SCHEMA = {
   type: 'object',
@@ -105,18 +105,32 @@ if (scope.hasDocs) {
   DIMENSIONS.push({ key: 'docs', prompt: `Review DOC ACCURACY. Committed user-facing docs match what was built; divergences were reconciled in docs: commits or called out in a task commit; nothing fabricated.` })
 }
 
+// A finding two reviewers both raise is verified once, and a dimension's checkers are capped, highest
+// severity first: the rest come back unverified rather than unbounded.
+const MAX_VERIFIED_PER_DIMENSION = 12
+const queued = new Set()
+const findingKey = (finding) => `${finding.file}:${finding.line}:${finding.title.toLowerCase()}`
+log(`${DIMENSIONS.length} reviewers; up to ${MAX_VERIFIED_PER_DIMENSION} checkers each.`)
+
 const reviewed = await pipeline(
   DIMENSIONS,
   (dimension) =>
     agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA, model: 'sonnet' }).then(
       (result) => ({ dimension: dimension.key, returned: Boolean(result), checked: result ? result.checked : 'reviewer did not return', findings: result ? result.findings : [] }),
     ),
-  (review) =>
-    parallel(
-      review.findings.map((finding) => () => {
+  (review) => {
+    const rank = { critical: 0, warning: 1, nit: 2, outside: 3 }
+    let verifying = 0
+    return parallel(
+      [...review.findings].sort((x, y) => rank[x.severity] - rank[y.severity]).map((finding) => () => {
         if (finding.severity === 'nit' || finding.severity === 'outside') {
           return Promise.resolve({ ...finding, dimension: review.dimension, verdict: null })
         }
+        const key = findingKey(finding)
+        if (queued.has(key)) return Promise.resolve({ ...finding, dimension: review.dimension, duplicate: true, verdict: null })
+        if (verifying >= MAX_VERIFIED_PER_DIMENSION) return Promise.resolve({ ...finding, dimension: review.dimension, overCap: true, verdict: null })
+        queued.add(key)
+        verifying += 1
         return agent(
           `Try to REFUTE this code review finding. ${READ_ONLY}
 Finding (${review.dimension}, ${finding.severity}) at ${finding.file}:${finding.line}: ${finding.title}
@@ -125,7 +139,8 @@ Read the code and the spec folder${scope.specFolder ? ` (${scope.specFolder})` :
           { label: `verify:${finding.file}:${finding.line}`, phase: 'Verify', schema: VERDICT_SCHEMA, model: 'sonnet' },
         ).then((verdict) => ({ ...finding, dimension: review.dimension, verdict }))
       }),
-    ).then((findings) => ({ ...review, findings: findings.filter(Boolean) })),
+    ).then((findings) => ({ ...review, findings: findings.filter(Boolean) }))
+  },
 )
 
 const reviews = reviewed.filter(Boolean)
@@ -137,7 +152,8 @@ const unverified = []
 const nits = []
 const followUps = []
 for (const finding of all) {
-  const key = `${finding.file}:${finding.line}:${finding.title.toLowerCase()}`
+  if (finding.duplicate) continue // its first copy was verified, in whichever dimension finished first
+  const key = findingKey(finding)
   if (seen.has(key)) continue
   seen.add(key)
   if (finding.severity === 'nit') nits.push(finding)

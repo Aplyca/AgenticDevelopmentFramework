@@ -6,7 +6,7 @@
 
 - **Skills** (`/`) — the workflow playbooks (`/triage`, `/write-spec`, `/implement`, `/open-pr`, and more), run in this conversation: the cheapest option.
 - **Agents** (`@`) — isolated specialists with their own model and context: an independent second opinion, restricted tools (reviewers can't edit), or work alongside yours. `@spec-analyzer` checks a spec folder before the approval gate.
-- **Workflows** (`/deep-…`) — multi-agent fan-outs with adversarial verification (`/deep-review`, `/deep-spec-analysis`, `/deep-context-audit`, `/deep-drift-sweep`), several times the cost of the skill they extend: for high-stakes changes and broad sweeps.
+- **Workflows** (`/deep-…`) — multi-agent fan-outs (`/deep-review`, `/deep-spec-analysis`, `/deep-drift-sweep`, which verify each finding adversarially, and `/deep-context-audit`), several times the cost of the skill they extend: for high-stakes changes and broad sweeps.
 - **The local environment's URL** — `LOCAL_URL` in `.claude/hooks/config.sh`, a worktree's `READY_URL` (parallel-agents), or `make urls` (docker module); in Claude Desktop the Browser lists the running app. It's yours, for the local check; the developer reviews on the preview.
 
 ## Guardrails enforced by configuration

@@ -30,7 +30,7 @@ Read `docs/ARCHITECTURE.md` if it exists — this agent specifically needs syste
 
 ### Component boundaries
 - Are components extracted only when genuinely shared or when files exceed reasonable size?
-- Is page/view-specific logic staying in the page file (not prematurely extracted)?
+- Is logic only one screen, route, job, or command uses staying with it (not prematurely extracted)?
 - Are the mechanisms for passing data between components consistent with project conventions?
 - Is state owned by the right component in the hierarchy?
 
@@ -42,7 +42,7 @@ Read `docs/ARCHITECTURE.md` if it exists — this agent specifically needs syste
 
 ### Dependency decisions
 - Does each external dependency earn its place?
-- Could the problem be solved without adding to the bundle?
+- Could the problem be solved without a new dependency — or, for an app that ships code to a client, without adding to what it ships?
 - Are dependencies well-maintained and appropriately scoped?
 
 ### Change surface

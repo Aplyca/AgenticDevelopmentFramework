@@ -25,7 +25,7 @@ whether an environment is needed.
 | A precise change in one layer, no trigger — **fast** | The test first, seen failing → edit → `/adf:commit` → local check → `/adf:open-pr` | `AGENTS.md` § 2; `/adf:triage` § Routing |
 | The same in a risk or sensitive area — **careful** | Fast, plus the area's checklist; `@adf:security-reviewer` for authorization, personal data, or payments | `specs/README.md` § Careful-lane checklists; `/adf:review` step 3 |
 | Something to decide, a new feature or dependency, or work across layers — **full** | `/adf:write-spec` → `/adf:write-plan` → approval gate → `/adf:write-docs` → `/adf:implement` → local check → `/adf:open-pr` | `AGENTS.md` § 3; `specs/README.md` § Flow |
-| A change request on delivered work | A light `CR N` with a fast or careful change; a full one (`/adf:write-spec`, amend mode) when something is left to decide — after the merge, on a fresh branch | `AGENTS.md` § 4; `specs/README.md` § Change requests |
+| A change request on delivered work | A light `CR N` with a fast or careful change; a full one (`/adf:write-spec`, change-request mode) when something is left to decide — after the merge, on a fresh branch | `AGENTS.md` § 4; `specs/README.md` § Change requests |
 | **Feedback on an open pull request** | A change request on the same branch and the same draft | `specs/README.md` § Before the merge |
 | An answer — investigation, impact analysis, estimate | Read-only; delivered where the task asks; a change it recommends gets a lane once someone approves it | `AGENTS.md` § 5 |
 | A bug whose cause is unclear | `/adf:debug`, then the lane the fix needs | `/adf:debug` |

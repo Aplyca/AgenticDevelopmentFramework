@@ -55,8 +55,8 @@ You read the code, not the rendered page. Judge what the markup and styles show;
 - Is placeholder text appropriate? (not "lorem ipsum" in production UI)
 
 ### Accessibility baseline
-- Are interactive elements using semantic HTML? (`<button>`, `<a>`, `<input>`, not styled `<div>` with onClick)
-- Do non-link clickable elements have keyboard support? (`tabIndex`, `role`, key handlers)
+- Are interactive elements the platform's own? (native buttons, links, and inputs — not a generic element with a click handler)
+- Do custom interactive elements have keyboard support? (focusable, a role, key handlers)
 - Is color never the sole indicator of state? (icons or text labels accompany color)
 - Do form inputs have associated labels?
 - Do the styles give text enough contrast? (the colors the code sets; a ratio needs the rendered page)
@@ -76,5 +76,7 @@ Report findings by category:
 - **[text]** `file:line` — text issue: description
 - **[a11y]** `file:line` — accessibility gap: description
 - **[nit]** `file:line` — minor polish suggestion
+
+Give each finding but a nit a severity as `/adf:review` uses them — **critical** (blocks a person from the task, or breaks a spec criterion) or **warning** — so the caller can merge your findings with its own.
 
 End with **Not checked** — what needs the rendered page — then **approve**, **approve with nits**, or **request changes**.
