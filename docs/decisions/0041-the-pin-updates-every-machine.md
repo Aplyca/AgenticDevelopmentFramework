@@ -1,6 +1,6 @@
 # 0041: The pinned marketplace auto-updates, and an upgrade names the commands for each machine
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0090](0090-each-machine-re-adds-the-marketplace-at-the-pin.md) — `autoUpdate` and `claude plugin update` keep the ref a machine first registered, so the commands for each machine add the marketplace at the new pin
 - **Date:** 2026-10-15
 - **Amends:** [0016](0016-packaged-install.md) — what the pin does on each machine
 

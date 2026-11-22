@@ -25,7 +25,8 @@ dynamic/
     upgrade/
       project.sh                   - builds a committed adoption at v1.0.0, from that tag
       inspect.sh                   - records the end state; checks the switch to the packaged install
-      ...                          - /upgrade switching a committed project to the packaged install
+      project-v2.sh                - builds a packaged adoption at v2.3.0 with the docker module (the scripted-upgrade case)
+      ...                          - /upgrade switching a committed project to the packaged install; the scripted upgrade
     plugin-hooks/
       project.sh                   - builds a project on the packaged install, with something for each hook to stop
       inspect.sh                   - checks that the case's hook fired (or stood down): ✓ or ✘ per check
@@ -38,14 +39,17 @@ dynamic/
     open-pr/
       project.sh                   - builds a packaged project that runs on Node alone: the dev server and the gate need nothing installed
       stubs.sh                     - each case's stand-ins for the remote, gh, docker, and the preview, which log what ran and when
-      inspect.sh                   - checks the order: the local walk, the push, the draft, the preview walk, the one report
-      ...                          - a visible change; a local environment that won't start; a docs-only change
+      inspect.sh                   - checks the order: the local walk, the push, the draft, the preview walk, ready after CI, the one report
+      compose-stub.py              - prod-build's docker: Compose for dev-env's stack, its containers run on this machine
+      ...                          - a visible change; a local environment that won't start; a docs-only change; a refresh after a change request; the production build in Docker mode
     write-tests/
       ...
     write-docs/
       ...
     implement/
       ...
+    spec-analyzer/
+      ...                          - names, tracker quotes, and a contract change a consumer spec relies on (0050)
 ```
 
 Each fixture has two files:
@@ -85,6 +89,18 @@ suite builds a committed adoption at v1.0.0 from that tag (`project.sh` gets thi
 turned on, no `hooks` block, the stamp, and the names people type — each marked ✓ or ✘ — plus the PDR
 that records the choice. Both are long sessions; run them on one model.
 
+The upgrade suite's **scripted-upgrade** case checks the scripted upgrade
+([decision 0046](../../docs/decisions/0046-a-scripted-upgrade-from-the-new-release.md)). Its
+`setup.sh` swaps the suite's project for a packaged adoption at v2.3.0 with the `docker` module — the
+team's lines in `AGENTS.md` and a rule, a Makefile task that deletes data, and two allow rules a broader
+one covers — and sets `ADF_FRAMEWORK` to the session's copy of this checkout. Until a release carries
+`scripts/upgrade.py`, a shim in the case's `PATH` runs the checkout's script as an unreleased commit.
+`inspect.sh` checks the order of the commands (`adf-upgrade --dry-run` first), that `main` is untouched
+and everything is committed, that the customizations survived, the pin's `autoUpdate`, the dropped
+rules and the new ask rule, the report, and that nothing was pushed; the pull request body, the
+approvals asked, and the hand-over to the new release's skill are read against the expected file. It
+has no `parallel-agents`, which would make the project a hub and send the upgrade into a worktree first.
+
 The **plugin-hooks** suite checks the `adf` plugin's hooks in real sessions, which the static
 hook tests can't: that Claude Code runs them from the plugin, and that what they print reaches the
 session. Its project is on the packaged install, with the plugin loaded from this checkout per session.
@@ -107,19 +123,34 @@ $0.60; run it after any change to how the plugin's skills, agents, or hooks name
 Report: [`reports/2026-10-05-plugin-docs.md`](reports/2026-10-05-plugin-docs.md).
 
 The **open-pr** suite checks what no hook can: that `/adf:open-pr` walks the change locally before
-anything leaves the machine ([decision 0045](../../docs/decisions/0045-agent-local-check-opens-the-draft.md)).
+anything leaves the machine ([decision 0045](../../docs/decisions/0045-agent-local-check-opens-the-draft.md)),
+and marks the pull request ready only once its own tests pass ([0070](../../docs/decisions/0070-the-agent-marks-its-pull-request-ready.md)).
 Its project is a packaged install of a newsletter site that runs on Node alone — `pnpm dev` serves the
 form, the gate needs nothing installed — with the plugin loaded from this checkout per session. Each
 case's setup puts its change on a work branch and, next to the run's copy, stand-ins that keep
 everything on the machine (`stubs.sh`): `origin` is a GitHub address git rewrites to a local bare
-repository, `gh` opens the pull request and deploys the pushed branch as a local preview about 15
-seconds later, and `docker` has no daemon. Each logs what ran, with its time, and `inspect.sh` checks
+repository, `gh` opens the pull request, deploys the pushed branch as a local preview about 15
+seconds later — CI passes with it — and marks the pull request ready, and `docker` has no daemon. Each logs what ran, with its time, and `inspect.sh` checks
 the order from that log. `visible-change` walks the change locally before the push, opens the draft,
-waits for the preview in the background, walks it read-only, and reports once with both URLs.
+runs `/adf:review`, waits for the preview and CI in the background, walks and reviews it read-only,
+marks it ready, requests the Reviewers line (`sam-lead`), and reports once, sending the developer to
+the preview.
 `env-wont-start` can't reach its database, so it stops before pushing and says what blocks it.
-`docs-only` opens its draft after the full gate and `/adf:review`, with "nothing to run". A case's
-setup can leave `<copy>.bin/`, put first on the session's PATH, and `<copy>.env`, set in its
-environment. Three sessions on Sonnet; run it after any change to `/adf:open-pr` or the delivery rules.
+`docs-only` opens its draft after the full gate and `/adf:review`, with "nothing to run", and marks
+it ready once CI passes.
+`refresh-after-cr` starts with the draft open, its preview up, and people's text outside the
+description's `adf:` markers; asked for a change, it amends the light CR, walks it locally, pushes,
+and refreshes the description (`/adf:open-pr refresh`): the current body fetched, only the marked
+sections rebuilt, the diff shown, `gh pr edit --body-file` — and, the draft's tests passing after the
+redeploy, marks it ready. Its preview redeploys on each push.
+`prod-build` runs on dev-env's templates in Docker mode, with a production build that renders the
+page at build time; its "done when" names the production build, so the local check takes `make prod`
+([decision 0052](../../docs/decisions/0052-production-build-in-the-configured-mode.md)), never a host
+server or `DEV_MODE=native`. Its `docker` is `compose-stub.py`, whose "containers" log as
+`container` and `container-prod`, so a host server shows up as `local`. A case's setup can leave
+`<copy>.bin/`, put first on the session's PATH, and `<copy>.env`, set in its environment. Five
+sessions on Sonnet; run it after any change to `/adf:open-pr`, the delivery rules, or dev-env's
+command surface.
 
 The **adopt** suite builds its own project (`fixtures/adopt/project.sh`: a new repository with no
 commits) and appends each run's end state (`inspect.sh`) to the transcript. `{{FRAMEWORK}}` in a

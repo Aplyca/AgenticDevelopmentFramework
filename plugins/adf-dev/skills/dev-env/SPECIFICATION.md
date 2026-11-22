@@ -2,7 +2,9 @@
 
 What a project's local environment must look like, and how it behaves, in a project with the
 `docker` module ([decision 0032](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0032-local-environment-layout.md),
-[decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md)).
+[decision 0034](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0034-local-environment-modes.md),
+[decision 0056](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0056-the-running-app-in-claude-desktops-browser.md),
+[decision 0084](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0084-docker-mode-needs-nothing-on-the-host.md)).
 `/adf-dev:dev-env` writes a stack that meets it, audits a stack against it, and `/adf:adopt` and
 `/adf:upgrade` hand a project to `/adf-dev:dev-env` to reach it.
 
@@ -22,6 +24,7 @@ a project misses. A project that departs from one on purpose records it, with th
 |---|---|
 | **App** | The project's own code that serves what a person checks locally: one Compose service, `APP` |
 | **Backing service** | Anything the app needs that isn't its code: a database, a cache, a queue |
+| **Tools service** | Docker mode's container for the checks and `make run`, `tools`: the app's runtime and dependencies over the whole checkout (D6) |
 | **Target** | One place the project runs: a **local mode** (`docker`, `native`) or a **deployment target** (Vercel, ECS, …) |
 | **Local mode** | A way to run the app on a developer's machine, picked with `DEV_MODE` |
 | **Checkout** | The main checkout or a worktree: each runs its own stack |
@@ -33,7 +36,7 @@ a project misses. A project that departs from one on purpose records it, with th
   (untracked), and `.env.example`.
 - **L2.** All other operational code lives in `ops/`, **one folder per target**. A target's folder
   holds everything that target needs and can move: its make file, scripts, images, and config.
-  - `ops/docker/` — `Makefile`, `guard.sh`, and each service's image and config in
+  - `ops/docker/` — `Makefile`, `guard.sh`, `launch-json.sh`, and each service's image and config in
     `ops/docker/<service>/` (a Dockerfile, its `<Dockerfile>.dockerignore`, config files).
   - `ops/native/` — `Makefile`, `native.sh`, and `.run/`.
   - `ops/agent/` — the parallel-agents module, when installed.
@@ -41,14 +44,16 @@ a project misses. A project that departs from one on purpose records it, with th
 - **L3.** `ops/` is never organized by kind of file: no `ops/scripts/`, `ops/make/`, `ops/config/`,
   or another folder that several targets share.
 - **L4.** A target may use another target's files, where the dependency is real: native's backing
-  services run in Docker, so native mode runs `ops/docker/guard.sh` too; an ECS deployment builds
-  the image in `ops/docker/<service>/`. A file is never copied between targets.
+  services run in Docker, so native mode runs `ops/docker/guard.sh` too, and `ops/docker/launch-json.sh`
+  for its rows in Claude Desktop's Browser (P8); an ECS deployment builds the image in
+  `ops/docker/<service>/`. A file is never copied between targets.
 - **L5.** A file a tool reads from a fixed place stays there, and the target's folder holds the rest:
   `compose.yaml` at the root (so `docker compose` needs no `-f`), `vercel.json` where Vercel reads it,
   `.github/`, a platform's own manifest. `.claude/rules/deployment.md` lists each one the project has.
 - **L6.** The app's code never lives in `ops/`.
-- **L7.** Git ignores `.env` and `ops/native/.run/`; each Dockerfile's `.dockerignore` excludes `.git`,
-  `.env`, `.env.*` (but `.env.example`), `.claude/`, and `ops/native/.run/`.
+- **L7.** Git ignores `.env`, `ops/native/.run/`, and `.claude/launch.json` (P8); each Dockerfile's
+  `.dockerignore` excludes `.git`, `.env`, `.env.*` (but `.env.example`), `.claude/`, and
+  `ops/native/.run/`.
 
 ## The command surface — `C`
 
@@ -64,40 +69,120 @@ a project misses. A project that departs from one on purpose records it, with th
   | Task | Must |
   |---|---|
   | `up` | Start the local environment and **return** once the app answers, then print where each service is. Running it twice changes nothing |
-  | `down` | Stop what `up` started. Data stays |
-  | `build` | Prepare what `up` runs: rebuild the images (Docker) or install the app's dependencies on the host (native) |
+  | `stop` | Stop what `up` started — its processes and containers end, freeing memory and CPU — and remove nothing: containers, volumes, and data stay, and `up` starts it again (C12) |
+  | `down` | Stop what `up` started and remove its containers. Data stays |
+  | `build` | Prepare what `up` and the checks run: rebuild the images, then `deps` (Docker); `deps` (native) |
+  | `deps` | Install the project's dependencies, from its lockfile, where the tasks read them: into this checkout's dependency volume (Docker, D7), on the host (native). Running it twice changes nothing |
   | `ps` | Show what runs, its state, and its health |
   | `logs` | Print the last lines — 100 — of every log, or of one service's (`s=<service>`). **Never follow** |
   | `urls` | Print where each service is now, and whether it answers |
-  | `test` | Run the tests, where the mode runs the app. `t=<filter>` runs only the matching ones — a file, or what the test runner takes to select tests |
-  | `lint` | Run the linters, where the mode runs the app. `f=<files>` lints only those |
-  | `format` | Rewrite files to the project's formatting, where the mode runs the app; `f=<files>` formats only those. A stack with no formatter keeps the task, saying so |
-  | `typecheck` | Run the type checker, where the mode runs the app. A stack with none keeps the task, saying so |
+  | `test` | Run the tests where the mode runs its tools: the tools service (Docker, D6), the host (native). `t=<filter>` runs only the matching ones — a file, or what the test runner takes to select tests. `tier=<smoke\|critical\|regression>` runs a tier and `suite=<name>` one feature suite, when the project has the `unit` module ([decision 0058](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)); `make e2e` takes the same two |
+  | `lint` | Run the linters where the mode runs its tools. `f=<files>` lints only those |
+  | `format` | Rewrite files to the project's formatting, where the mode runs its tools; `f=<files>` formats only those. A stack with no formatter keeps the task, saying so |
+  | `typecheck` | Run the type checker where the mode runs its tools. A stack with none keeps the task, saying so |
+  | `run` | Run the command in `cmd` where the mode runs its tools: in the tools service's container (Docker), on the host (native). The command reaches that shell as one argument (C10) |
   | `reset` | **The only task that deletes data:** remove this checkout's containers and volumes, then `up` |
 
   A mode may add tasks of its own — Docker mode's `shell`, native mode's `services` — and `help`
   lists whatever the loaded file defines. The filters mean an agent runs the one test or file it
-  changed through a task, never through a command of its own (C10).
+  changed through a task, as `AGENTS.md` § Quick reference writes it: `make` ignores a variable a
+  task doesn't take, so a `test` without `t` runs the whole suite, and the rules that load in every
+  session name no filter. A command no task covers goes through `run` (C10). In Docker mode `deps`,
+  `test`, `lint`, `format`, `typecheck`, and `run` start a container of their own, so none needs
+  `up` first (M11).
 - **C4.** `help` names the mode in force and its file on its first line, then lists each task with
   its one-line description (`<task>: … ## <description>`).
 - **C5.** `env` creates `.env` from `.env.example`, readable only by its owner, and leaves an
   existing `.env` alone.
-- **C6.** `up`, `down`, `services`, and `reset` run `guard` first (P6).
+- **C6.** `up`, `stop`, `down`, `services`, and `reset` run `guard` first (P6), and so do Docker mode's
+  `deps`, `test`, `lint`, `format`, `typecheck`, and `run`, which create containers in the checkout's
+  Compose project without `up` (D6).
 - **C7.** The make files run on GNU make 3.81, which macOS ships: no `.ONESHELL`, `!=`, or `$(file …)`.
   They never `include .env`, never use a bare `export` or `.EXPORT_ALL_VARIABLES`, and never export a
   value read from `.env`. A mode file may `export` a command of its own, such as `NATIVE_CMD`.
 - **C8.** Every command a task runs is the project's own — its package manager, its test runner, its
   dev server. The framework names none: a template's `CUSTOMIZE` marks each one.
-- **C9.** Every task runs without a prompt except the ones that delete data or run a command
-  they're given. `.claude/settings.json` allows `Bash(make *)` and asks before each exception — an
-  ask rule wins over any allow rule. The docker module adds the allow and the asks for `reset`
-  (`Bash(make *reset*)`) and `run` (`Bash(make run *)`, C10). A project task that deletes data under
-  another name (`db-drop`, a `clean` that removes volumes) gets an ask rule of its own,
-  `Bash(make <task>*)`. No task waits for input or never returns — `logs` with `--tail`, never `-f`
-  or `--follow` — so an agent that runs one is never left waiting.
-- **C10.** A task that runs a command it's given — `make run cmd="…"`, `make exec` — is for people.
-  `.claude/settings.json` asks before it (`Bash(make run *)`), and agents use the named tasks. A
-  command agents keep needing that no task covers is a gap: it becomes a task of its own.
+- **C9.** Every task runs without a prompt, `run` included in both modes (C10), except a project's
+  own task that runs a command it's given on the host (C10) and one that takes a command for a
+  service outside D5 (D8). `.claude/settings.json` allows `Bash(make *)` and `Bash(docker *)`, and the docker module
+  adds no ask rule: both act on this project's local stack, whose data comes back from the seed
+  ([decision 0078](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0078-docker-and-make-run-without-a-prompt.md)).
+  A prompt isn't what protects data: an agent deletes it — `reset`, a project's `db-drop` — only
+  on the developer's yes in chat (C12). A project that wants a prompt for a task adds its own ask
+  rule, `Bash(make <task>*)`, which wins over the allow. No task an agent runs waits for input or never
+  returns — `logs` with `--tail`, never `-f` or `--follow` — so an agent that runs one is never left
+  waiting; a task that does, such as Docker mode's `shell`, says "for people" in its description.
+- **C10.** **`run` is the one task that runs a command it's given, and the way an agent runs a
+  command no task covers:** `make run cmd='<command>'`
+  ([decision 0077](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0077-the-container-is-the-boundary-for-make-run.md),
+  [0089](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0089-no-hook-decides-make-run.md)).
+  - **Docker mode runs it in the tools service's container, without a prompt:**
+    `$(COMPOSE) run --rm tools sh -c "$$cmd"` — a new container over the whole checkout, removed
+    when the command ends, with the backing services in the service's `depends_on` started first
+    (D6). Tests, linters, the package manager, a one-off script: in Docker mode an agent runs them
+    through a named task or through `run`, never on the host, whose runtime and dependencies aren't
+    the project's (M11).
+  - **Native mode runs it on the host,** with the services' ports exported.
+  - **The command reaches its shell as one argument.** The recipe passes the environment's `cmd` —
+    `"$$cmd"` — and never pastes `$(cmd)`, which hands the command's quotes and separators to the
+    host's shell. `make` still expands a `$` in the value, so one meant for the command is written
+    `$$`, inside single quotes: `make run cmd='echo $$HOME'`.
+  - **No rule or hook asks first, in either mode.** `Bash(make *)` covers `make run`, so the
+    session's permission mode — the developer's choice — decides it, and the command inside `cmd=`
+    isn't checked on its own: the project's other permission rules, deny rules included, and the
+    git guard don't see it. **In native mode the command runs on the host,** with the developer's
+    files and credentials in reach. A project that wants a prompt there adds `Bash(make run *)` to
+    `permissions.ask` in `.claude/settings.json`; a rule can't read the mode, so it prompts in
+    Docker mode too.
+  - **What the container bounds:** the host outside the checkout — the home directory, other
+    repositories and worktrees (those nested in the main checkout too, behind D5's `tmpfs`), SSH
+    keys, the Docker daemon — as long as `compose.yaml` hands the
+    tools service none of it (D5).
+  - **What it doesn't bound:**
+    - the checkout, mounted with its `.git` and its `.env`: a command can change or delete any file
+      in it;
+    - the credentials: `.env` is readable from inside, and so is the container's environment;
+    - local data: the backing services answer on the stack's network, so a command can change or
+      drop it without `make reset`;
+    - the network: a command reaches whatever a credential in `.env` authorizes, and can send
+      anything out.
+
+    So the boundary limits a mistake to this checkout and its local data, and protects no secret
+    in `.env`: keep production credentials out of it. The rules that hold on the host hold in the
+    container, where no hook reads the command: none prints a secret (V4), changes
+    the mode (M10), or commits or pushes.
+  - **Any other task that runs a command it's given on the host** (`make exec`, `make sh c=…`) is
+    for people, and gets ask rules on the variable that carries the command, as D8's task does.
+  - A command agents keep running through `run` is worth a task of its own: a reviewer reads a
+    task's name, and it takes `t=` or `f=` (C3).
+- **C11.** **A production-like run, when the project has one, is the optional task `prod`, in every
+  local mode.** It builds the app the way a deploy does, serves it, and returns once it answers,
+  then prints where it is. It's for what only the production build shows — a bug the preview has
+  and the dev server doesn't, a check before a deploy — so an agent never runs the stack's build
+  and start commands on the host, or switches modes, to get one (M10).
+  - **Docker mode:** a service `<APP>-prod` in Compose's `prod` profile, so `make up` never starts
+    it, built from the app Dockerfile's `prod` stage, with no source mount, and published on
+    `APP_PROD_PORT` (P1, P2). `make prod` builds and starts it beside the dev server.
+  - **Native mode:** `NATIVE_PROD_CMD`, the production build and server listening on `$APP_PORT`,
+    runs through `native.sh` in place of the dev server, on its port, until the next `make up`.
+  - `make urls` shows it, `make logs` prints its log (`s=<APP>-prod` in Docker mode), and
+    `make stop` and `make down` stop it.
+
+  A project without a production-like run deletes the task, the service, and the stage. Then an
+  agent that needs one says so, and asks.
+- **C12.** **One word for each state of the local environment** — Docker's own — in the tasks, the
+  docs, and what an agent says ([decision 0071](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0071-stop-the-local-environment-once-ready.md)):
+
+  | Word | What happens | What stays | Back with | Task, and who runs it |
+  |---|---|---|---|---|
+  | **Stop** | The processes and containers end, after a graceful shutdown: memory and CPU are freed | Containers and the files in them, volumes, data, images, dependencies | `make up`, in seconds; a port Docker picked can change | `make stop` — the agent, once its pull request is ready |
+  | **Pause** | Docker's `pause`: the processes freeze in place — CPU is freed, memory is still held | Everything, ports included | `docker compose unpause` | None: it frees no memory |
+  | **Down** | Stop, then the containers and networks are removed | Named volumes — the data — images, dependencies; files written inside a container are lost | `make up`, which recreates the containers | `make down` — `/adf:wrap-up` after the merge, or the developer |
+  | **Kill** | The processes end at once, with no graceful shutdown | Containers and volumes, but a database can lose unsaved writes | `make up` | None: an agent kills only a process it started that ignores a stop |
+  | **Remove** | Containers, networks, and volumes are deleted: the data is gone. Images stay | Images, dependencies, the code | `make up` from scratch — rebuild, re-seed, re-migrate | `make reset` (remove, then start fresh), and a worktree's `STOP_CMD`, which removes despite its name, when `/adf:wrap-up` removes the worktree — only on the developer's yes |
+
+  Native mode's app takes the same words: `stop` and `down` end its process group, and the backing
+  services follow the rows above.
 
 ## Local modes — `M`
 
@@ -122,11 +207,14 @@ a project misses. A project that departs from one on purpose records it, with th
   ports there, which the app reads; `SERVICES=none` means native mode needs no Docker at all.
 - **M6.** Native `up` starts the backing services in `SERVICES`, then the app **in the background**,
   in a process group of its own, with every port variable exported (P4). It waits until `APP_PORT`
-  answers. If the app exits first, `up` fails and prints the end of the app's log. Native `down` stops
-  the whole process group.
+  answers. If the app exits first, `up` fails and prints the end of the app's log. Native `stop` and
+  `down` stop the whole process group; `stop` leaves the backing services' containers in place, and
+  `down` removes them.
 - **M7.** While the app runs on the host, `ops/native/.run/app.env` holds exactly `PID=<pid>` and
-  `APP_PORT=<port>`, and `ops/native/.run/app.log` its output. The band above the prompt reads
-  `APP_PORT` from that file. A state file whose process has gone is removed by the next command.
+  `APP_PORT=<port>`, and `ops/native/.run/app.log` its output. `ops/docker/launch-json.sh` reads
+  `APP_PORT` from that file (P8). `ops/native/.run/app.kind` holds `prod` while the production build runs
+  (C11), and is absent for the dev server. A state file whose process has gone is removed by the
+  next command.
 - **M8.** Switching modes needs no cleanup: each mode's `up` stops what the other mode runs for the
   app — Docker's `up` stops a native app; native `up` stops the app's container.
 - **M9.** The same task names in every mode (C3) mean an agent, a worktree's `START_CMD`, and
@@ -139,6 +227,14 @@ a project misses. A project that departs from one on purpose records it, with th
   next run is in the new mode. The other mode's files are checked by reading them, never by running
   them. The docker module denies what would change the mode: a `make` command or a leading
   assignment that sets either one, an `export` of it, and an edit to `.env`.
+- **M11.** **In Docker mode the host needs Docker, git, and make, and nothing else.** Every task runs
+  in a container, and `deps`, `test`, `lint`, `format`, `typecheck`, and `run` need no `make up`
+  first (D6). Nothing a task, a worktree's `SETUP_CMD` (W2), or a git hook runs uses the stack's
+  runtime, its package manager, or a project CLI on the host. An agent never fixes a missing tool by
+  installing it on the host, or by switching modes (M10): it uses a task or `make run`, and proposes
+  a task for a command agents keep needing (C10). Native mode and CI install what they need. With no
+  dependencies on the host the editor resolves none of them; `DEV-SETUP.md` says what the team uses
+  instead.
 
 ## Ports — `P`
 
@@ -157,13 +253,29 @@ a project misses. A project that departs from one on purpose records it, with th
   `SERVICES` entry's published port under that name, looked up with `docker compose ps`, and
   `APP_PORT`: the shell's, else the one `.env` pins, else a free one. A service in `SERVICES` that
   isn't running stops `make up` with a message to start it.
-- **P5.** Ports are looked up, never written down: only `.env`, by a person, and native mode's run
-  state while the app runs (M7) record a port.
+- **P5.** Ports are looked up, never written down: only `.env`, by a person, and what the app leaves
+  while it runs — native mode's run state (M7) and its rows in Claude Desktop's Browser (P8) — record
+  a port.
 - **P6.** In a linked worktree, `ops/docker/guard.sh` fails when the worktree's `.env` repeats a port
   or the `COMPOSE_PROJECT_NAME` the main checkout's `.env` pins — a copy, which would run the main
   checkout's stack, or delete its volumes on `make reset`.
 - **P7.** `guard.sh` reads only `COMPOSE_PROJECT_NAME` and the `*_PORT` lines of either `.env`, and
   `native.sh` only `APP_PORT`; neither prints a value but a port.
+- **P8.** `.claude/launch.json` lists each web service that runs now, and Claude Desktop's Browser
+  shows each entry on a new tab:
+  - **Which services:** each one in `compose.yaml` labeled `claude.browser: "true"` — one with pages
+    a person opens: the app, its production build, an admin UI, a mail catcher; never a backing
+    service. In native mode, the app on the host too, while it runs (M7).
+  - **The row:** an attach entry, named `<service> · http://localhost:<port>`, with that `url` and
+    `port` and no command. A localhost `url` can't carry a path, so a page inside an app is never a
+    row.
+  - **When:** `ops/docker/launch-json.sh` makes the rows match what runs. `up`, `prod`, `stop`, `down`,
+    and native mode's `services` run it, and so does `native.sh` when it starts or stops the app. A
+    stopped service loses its row, so a port Docker later hands to another checkout is never listed
+    here.
+  - **How:** only where git ignores the file (L7). It keeps the developer's own entries and settings —
+    its rows are the attach entries named `<service> · <url>` — leaves a file with comments as it is,
+    and never fails the task.
 
 ## Compose — `D`
 
@@ -173,6 +285,51 @@ a project misses. A project that departs from one on purpose records it, with th
 - **D3.** A service another one waits for has a `healthcheck:`, and the one that waits uses
   `depends_on` with `condition: service_healthy`.
 - **D4.** Data lives in named volumes.
+- **D5.** The app's service and the tools service get nothing of the host but the checkout. Their
+  volumes are the checkout and named volumes — never the Docker socket, the home directory, or
+  another path outside the checkout — and neither is `privileged` or has `pid: host` or
+  `network_mode: host`. The worktrees nested in the checkout, `.claude/worktrees/`, are hidden
+  behind an empty `tmpfs` mounted over that folder: they're other checkouts, and in the main
+  checkout the mount would hand every one of them, `.env` included, to the container. `make run` runs any command in the tools service without a prompt (C10),
+  and the app's code runs in the app's, so what either reaches is what an agent reaches. A project whose app needs one of those adds `Bash(make run *)` to
+  `permissions.ask` in `.claude/settings.json` and records the exception. No hook checks this: the audit does.
+- **D6.** **Docker mode's tools run in a service of their own, `tools`:**
+  - in Compose's `tools` profile, so `make up` never starts it, built from the app Dockerfile's
+    `tools` stage — the app's runtime and dependencies, and whatever only the checks need;
+  - with the whole checkout mounted where the app's service mounts it, so a check sees every file as
+    it is on disk, tests and config the app's mount leaves out included;
+  - with the app's variables, in container form, so a test or a migration reaches the backing
+    services, and in its `depends_on` the backing services the tests need;
+  - started by `deps`, `test`, `lint`, `format`, `typecheck`, and `run` with
+    `$(COMPOSE) run --rm tools …`: a new container per command, removed when it ends. A task that
+    reaches no backing service adds `--no-deps`.
+- **D7.** **Dependencies live in Docker volumes, never in the checkout:**
+  - this checkout's, in a named volume, `deps`, that the app's service and `tools` mount over the
+    folder the install writes. Docker fills a new one from the image that mounts it first, and
+    `deps` brings it up to date with the lockfile. The app's service mounts it, so
+    `docker compose down -v` — `make reset`, W2's `STOP_CMD` — removes it with the checkout;
+  - the package manager's cache, in one volume that every checkout of the repository shares:
+    `external: true` with a fixed `name:` in `compose.yaml`, the repository's, mounted only in
+    `tools`, whose `environment:` points the package manager there. External, so no checkout owns it
+    and no `down -v` removes it — a Compose-created volume belongs to the project that created it,
+    whose `down -v` deletes it with any profile, and every other project warns on each run. The tasks
+    that start the tools create it first when it's missing (`docker volume create`, which changes
+    nothing when it's there), reading its name from `compose.yaml`;
+  - the folder on the host where the dependency volume mounts stays, empty: it's the mount point.
+- **D8.** **A tool that needs more of the host than D5 allows** — the Docker socket, host networking,
+  a path outside the checkout, such as a local backend's CLI that starts containers of its own —
+  gets a service of its own in the `tools` profile, never `tools` itself. `make run` never runs in it.
+  - Its task that takes a command reads it from a variable of its own, `<task>_cmd` (`-` as `_`),
+    never `run`'s `cmd`, and the variable gets two ask rules, `Bash(make *<task>_cmd=*)` and
+    `Bash(<task>_cmd=*)`: the command runs with the host's Docker, which reaches every project's
+    containers and folders. The rules match the variable wherever the call puts it — after the goal,
+    before it, behind an option, or as a leading assignment — where a rule on the task's name
+    (`Bash(make <task> *)`) misses `make -s <task> …` and `make <task>_cmd=… <task>`.
+  - A command of it that agents run often and that deletes nothing becomes a task of its own
+    (`make <task>-status`), which takes no command and so runs without a prompt, like every task
+    (C9): its command is in the `Makefile`, where a reviewer reads it.
+  - A CLI that hands the checkout's paths to the Docker daemon gets the checkout mounted at its path
+    on the host, so the daemon finds the folders it names.
 
 ## Variables — `V`
 
@@ -193,8 +350,11 @@ a project misses. A project that departs from one on purpose records it, with th
 - **W1.** Each worktree runs its own stack: its folder names its Compose project, and its ports are
   Docker's or its own.
 - **W2.** `ops/agent/worktree.conf`: `PORT_SLOTS=0`; `ENV_OVERRIDES='COMPOSE_PROJECT_NAME=${PROJECT}'`
-  plus an empty `<NAME>_PORT=` for each port the main checkout pins; `START_CMD="make up"`;
-  `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`; `READY_URL` empty;
+  plus an empty `<NAME>_PORT=` for each port the main checkout pins; `SETUP_CMD="make deps"`, never a
+  host install, so each start brings the worktree's dependency volume up to its lockfile, which a
+  rebase may have changed (M11, D7); `START_CMD="make up"`;
+  `STOP_CMD="ops/native/native.sh stop; docker compose down -v"`, which removes the worktree's
+  dependency volume too, never the external shared cache (D7); `READY_URL` empty;
   `ENV_INFO_CMD="make urls"`.
 - **W3.** A worktree's mode is its own `DEV_MODE`; `make up` starts it either way (M9).
 
@@ -212,17 +372,24 @@ a project misses. A project that departs from one on purpose records it, with th
 |---|---|
 | The services, their healthchecks, and what each container gets | `compose.yaml` |
 | Images and service config | `ops/docker/<service>/` |
+| What the checks and `make run` run in, in Docker mode | the `tools` service in `compose.yaml`, built from the app Dockerfile's `tools` stage (D6) |
+| This checkout's dependencies; the package cache every checkout shares | the `deps` volume; the cache volume `compose.yaml` names (D7) |
+| A tool that needs the Docker socket, and the ask before its command-taking task | its own service in `compose.yaml`; `Bash(make *<task>_cmd=*)` and `Bash(<task>_cmd=*)` in `.claude/settings.json` (D8) |
 | The tasks people and agents run | the `Makefile` and the mode's file (`make help`) |
 | Each mode's commands | `ops/docker/Makefile`, `ops/native/Makefile` |
 | The project's default mode; this checkout's | `DEFAULT_MODE` in the `Makefile`; `DEV_MODE` in `.env` |
+| Whether `make run` needs a prompt | a `Bash(make run *)` ask rule in `.claude/settings.json`, which the project adds if it wants one, and the session's permission mode (C10) |
 | Every variable's name | `.env.example` |
 | This checkout's credentials and pinned ports | `.env` — never read into the conversation |
 | Where the services are now | `make urls` |
 | The app on the host while it runs | `ops/native/.run/` |
+| Which services Claude Desktop's Browser lists | the `claude.browser: "true"` label in `compose.yaml` (P8) |
+| Their rows, while they run | `.claude/launch.json`, untracked, kept by the tasks that start and stop them (P8) |
+| How the production build is built and served | the Dockerfile's `prod` stage and `<APP>-prod` in `compose.yaml`; `NATIVE_PROD_CMD` in `ops/native/Makefile` |
 | How a person sets up and starts the stack, and problems met before | `docs/getting-started/DEV-SETUP.md` |
-| The start and stop commands an agent runs | `AGENTS.md` § Quick reference |
+| The commands an agent runs — start and stop, one test or file | `AGENTS.md` § Quick reference |
 | The project's conventions, its deployment targets, and anything it changed here, with why | `.claude/rules/deployment.md` |
-| The URL the band above the prompt shows | `LOCAL_URL` and `LOCAL_SERVICE` in `.claude/hooks/config.sh` |
+| The URL the agent walks in the local check | `LOCAL_URL` in `.claude/hooks/config.sh` |
 | What each worktree starts, stops, and is told | `ops/agent/worktree.conf` |
 
 ## Conformance
@@ -231,11 +398,16 @@ A stack conforms when every requirement holds. `/adf-dev:dev-env` checks a stack
 each gap as the requirement's ID, what the project has, and the change:
 
 1. **Layout:** L1–L7.
-2. **Command surface:** C1–C10, and the mode files define every task in C3.
-3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, and `make down` in
+2. **Command surface:** C1–C12, and the mode files define every task in C3, and `prod` in both or
+   in neither.
+3. **Modes:** M1–M8 by running `make help`, `make up`, `make urls`, `make ps`, `make stop`, `make up`
+   again, and `make down` in
    the configured mode, and by reading the other mode's file against them — never by running it
-   (M10); M10 by the deny rules.
-4. **Ports, Compose, variables:** P1–P7, D1–D4, V1–V4.
+   (M10); M10 by the deny rules; M11, in Docker mode, by running `make deps`, `make lint`,
+   `make typecheck`, and `make test` after `make down`, with a `PATH` that reaches `docker`, `git`,
+   and `make` and the system's own folders, and nothing else — each passes — and by reading the
+   recipes, `SETUP_CMD`, and the git hooks for a host runtime the system ships.
+4. **Ports, Compose, variables:** P1–P8, D1–D8, V1–V4.
 5. **Worktrees,** with parallel-agents: W1–W3.
 6. **Deployment targets:** T1–T2.
 

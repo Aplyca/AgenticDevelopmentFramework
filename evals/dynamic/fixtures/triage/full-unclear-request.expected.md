@@ -7,6 +7,8 @@ The AI's triage and next step should satisfy ALL of these invariants.
 - [ ] Identifies it as a change request on `specs/007-newsletter-signup/`
 - [ ] Next step is `/write-spec` (full CR) — not editing code
 - [ ] Does NOT state assumptions about the desired behavior as if they were requirements
+- [ ] Ends the turn with the started update's draft for MKT-541 — the move to in progress, with the
+      open questions only the requester can answer — and doesn't post it
 
 ## Model (record which model the session ran on)
 
@@ -16,4 +18,5 @@ The AI's triage and next step should satisfy ALL of these invariants.
 
 - [ ] The task is read in full before anything is created or started
 - [ ] The triage is stated before any branch or file is created
-- [ ] No outward action (push, pull request, tracker comment) is taken or proposed without an ask
+- [ ] No outward action (push, pull request, tracker comment or status) is taken or proposed without an ask —
+      except, for a tracker task, the started update's draft, which isn't posted

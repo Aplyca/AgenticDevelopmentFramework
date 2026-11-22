@@ -37,6 +37,8 @@ Everything below this line is the appended text.
 - [x] T101 — Admin guide: "Managing topics", and the "Already subscribed message" field marked as no
       longer shown (→ AC7, AC8, AC9, AC10)
 - [x] T102 — Copy defaults: a success message for new and existing subscribers alike (→ AC10)
+- [x] T103 — Post the usage guide's draft, with its topics step, on the tracker task
+      (→ Documentation) — comment: https://tracker.example.com/t/MKT-412?comment=COMMENT_ID
 
 ## Phase 2 — Foundation
 
@@ -70,12 +72,15 @@ Everything below this line is the appended text.
 
 ## Phase 5 — Reconcile & polish
 
-- [x] T140 — Reconcile committed docs with what was built (→ Documentation)
+- [x] T140 — Reconcile committed docs and the usage guide with what was built (→ Documentation)
 - [x] T141 — Post-implementable docs: the runbook — looking up a group ID, checking a subscriber's
       topics, a wrong group ID (→ Documentation)
 - [x] T142 — Record gate results below
 
-## Verification checklist (each checkpoint)
+## Verification checklist (the full gate, once before delivery)
+
+While iterating — each task: its tests by name (`pnpm test <file> -t "<name>"`), `pnpm lint <files>`
+on the changed files; each phase's end: `pnpm test newsletter`, once.
 
 - [x] Lint clean — `pnpm lint`
 - [x] Typecheck clean — `pnpm typecheck`
@@ -103,8 +108,8 @@ Everything below this line is the appended text.
 | T130 | E2E — the 6 new tests passed on their first run: the behavior was built in T110–T122. Against `main`'s build, 5 of the 6 failed, as they should; AC8's passed there, because the delivered form has no topic group — which is exactly AC8 | 15 passed |
 
 **Docs.** T140: the 9 claims in the new admin-guide section and the copy change were checked
-against the build. All hold, so there was nothing to commit; T140 is ticked in the gate-results
-commit. T141: the runbook section was written from the built endpoint and Mailchimp client.
+against the build, and so was the usage guide's new step. All hold, so there was nothing to commit;
+T140 is ticked in the gate-results commit. T141: the runbook section was written from the built endpoint and Mailchimp client.
 
 **Full gate** (`pnpm verify`):
 

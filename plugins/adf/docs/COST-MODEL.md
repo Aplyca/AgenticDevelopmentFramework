@@ -2,11 +2,11 @@
 
 How to manage AI development costs — tokens and time — in a project that uses this framework. Covers what a session actually costs, the lanes and the effort dials, the three model tiers, per-skill / per-agent recommendations, prompt caching, measuring, cost attribution, and tool integrations.
 
-The framework is opinionated about WHEN to use which model and HOW to structure context for cache efficiency. Teams that follow these recommendations spend noticeably less than teams that default everything to Opus: at current list prices Sonnet costs about half as much per token and Haiku about a quarter, and a stable, cache-friendly context cuts input costs further. The overall saving depends on your mix of work — measure it rather than assuming a multiple.
+The framework is opinionated about WHEN to use which model and HOW to structure context for cache efficiency. Teams that follow these recommendations spend noticeably less than teams that default everything to Opus: at current list prices Sonnet costs about half as much per token as Opus, and Haiku 5.5 a twentieth of Sonnet, and a stable, cache-friendly context cuts input costs further. The overall saving depends on your mix of work — measure it rather than assuming a multiple.
 
 ## Why this matters
 
-By 2026, AI engineering workflows are the #1 line item in many teams' LLM token spend. The difference between "default to Opus for everything" and "default to Sonnet, escalate to Opus only when needed, route triage through Haiku, cache aggressively" shows up directly in the monthly bill — roughly 2× per token from the Sonnet-vs-Opus choice alone, with prompt caching (cache reads bill at a tenth of the base input price or less) often mattering as much as the model choice.
+By 2026, AI engineering workflows are the #1 line item in many teams' LLM token spend. The difference between "default to Opus for everything" and "default to Sonnet, escalate to Opus only when needed, give bounded subagent work to Haiku, cache aggressively" shows up directly in the monthly bill — roughly 2× per token from the Sonnet-vs-Opus choice alone, with prompt caching (cache reads bill at a tenth of the base input price or less) often mattering as much as the model choice.
 
 For consultancies billing AI-assisted work to clients, cost attribution per feature/per project is also a billing requirement, not just an internal concern.
 
@@ -15,13 +15,13 @@ For consultancies billing AI-assisted work to clients, cost attribution per feat
 Every call to the model re-reads the whole conversation — instructions, every message, every tool
 output so far — mostly from the prompt cache. So a session costs roughly **number of calls × context
 size**, plus the tokens the model writes. Measured on 48 sessions in two production projects
-(September 2026, Opus 5 and 5.5):
+(September 2026, Opus 5 and 5.5), and checked on 41 more in October:
 
 | Measure | Value |
 |---|---|
 | Median cost per call | about $0.06 |
-| Context at the first call | 46–66k tokens — Claude Code and its tools, the instruction files, memory. This framework's always-loaded instructions are about 5–7k of that |
-| Where the money goes | about 47% re-reading cached context, 27% writing the cache, 17% output |
+| Context at the first call | 46–93k tokens — Claude Code and its tools, the instruction files, the skill listing, memory. This framework's share is about 11k (15k before decision 0055): `AGENTS.md` and the Claude Code rule (~6.3k), `git-workflow.md` from the first file read (~1.3k), and the plugins' skill and agent listings (~3.3k) |
+| Where the money goes | about 47% re-reading cached context, 27% writing the cache, 17% output — in October 44%, 40%, and 16%, with every cache write at the 1-hour rate |
 | Sessions under 30 calls | median about $1 and 10 minutes of activity |
 | 30–100 calls | median about $4 and 35 minutes |
 | Over 100 calls | median about $20 and 2+ hours |
@@ -33,15 +33,16 @@ What drives the bill, in order:
    browser checks).
 2. **The context size.** Long sessions and verbose output make every later call more expensive: in
    sessions over ~90 calls the average call carried 145–190k tokens, against ~60k at the start.
-3. **Pauses longer than the cache lifetime.** The prompt cache expires about 5 minutes after its last
-   use (Claude Code uses a longer-lived cache for some requests). After a longer wait — an
+3. **Pauses longer than the cache lifetime.** The prompt cache expires 5 minutes after its last use —
+   an hour for the main conversation on a Claude subscription, whose cache writes cost twice the
+   input price instead of 1.25×. After a longer wait — an
    unanswered question, a gate, a meeting — the next call writes the whole context again: about
    $0.75–1.20 for 150k tokens on Opus 5.5.
 4. **The model** — Opus costs twice Sonnet for output and uncached input; cache reads cost the same
    (see the tiers below).
 
-The framework's fixed overhead is small by comparison: the always-loaded instructions add a fraction
-of a cent per call once cached, and the guardrail hooks take 60–140 ms per tool call against 5–10
+The framework's fixed overhead is small by comparison: its ~11k always-loaded tokens add about a
+fifth of a cent per call once cached, and under $0.10 to write at a session's start on Opus, and the guardrail hooks take 60–140 ms per tool call against 5–10
 seconds of model time.
 
 ## Lanes and what they cost
@@ -53,14 +54,14 @@ at the measured $0.06–0.09 per call; Sonnet runs about 25–35% less:
 |---|---|---|---|---|
 | Typo, copy, a precise adjustment | Fast | 8–20 | 2–10 min | $0.5–1.5 |
 | Bug with a clear cause | Fast | 15–30 | 5–15 min, plus test runtime | $1–2 |
-| Either, in a risk area | Careful | fast + 5–15 for the checklist and confirmation | +5–10 min | $1.5–3 |
+| Either, in a risk area | Careful | fast + 5–15 for the checklist | +5–10 min | $1.5–3 |
 | Bug, cause unknown | `/adf:debug`, then a lane | 30–60 | 15–40 min | $2–5 |
 | Change request with something to decide | Full | 60–120 | 30–90 min, plus the wait at the gate | $5–12 |
 | New feature | Full | 150–400 | hours | $10–40 |
 | A `/deep-*` workflow run | Opt-in | 6–15 agents, each starting from a fresh context | — | $2–8 |
 
 A precise adjustment pushed through the full lane costs 5–10× the fast lane, and the extra steps
-record decisions nobody had to make: the tests, the review, and the human QC — the steps that find
+record decisions nobody had to make: the tests, the human review, and the QC — the steps that find
 defects — run in every lane.
 
 ## Effort — what to raise, and what it costs
@@ -70,7 +71,7 @@ raise effort. The dials are independent, so raise the one the intuition points a
 
 | Dial | How to ask | What it adds | Cost |
 |---|---|---|---|
-| **Lane** | "full lane on this", "be careful here" | Careful: the area's checklist and a confirmation. Full: spec, plan, gate | Careful: roughly +20–50%. Full: roughly 5–10× the fast lane |
+| **Lane** | "full lane on this", "be careful here" | Careful: the area's checklist, and the risky part named for the developer's test. Full: spec, plan, gate | Careful: roughly +20–50%. Full: roughly 5–10× the fast lane |
 | **Understanding** | "question my request first" | Clarifying questions before any code | One exchange — though a wait past the cache lifetime re-writes the context |
 | **Design** | "compare approaches first" (`/adf:evaluate`) | Options with trade-offs and a recommendation | One analysis pass, typically 10–30 calls |
 | **Thinking** | The desktop app's effort selector or `effortLevel` in settings; `/model opus` | More reasoning per step | More output tokens per call; Opus doubles output and uncached input |
@@ -95,9 +96,10 @@ a way to check the result?**
 
 - **Switch where the cache is cold or small.** Each model has its own prompt cache: after a switch,
   the next call re-reads the whole conversation uncached. Switch when the session starts, right
-  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or in a
-  fresh session after the approval gate: the spec folder is the handoff, and the wait at the gate has
-  usually let the cache expire anyway. Don't switch for a single step.
+  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or
+  after the approval gate, right after a compaction — in the same session (§ Between phases): the
+  spec folder carries the detail, so the switch re-reads only the summary. Don't switch for a single
+  step.
 - **Effort before model.** Within Sonnet, `/effort high` for harder or longer work is often enough.
   `xhigh` and `max` make Sonnet think longer and cost more — at that point Opus is usually the
   better trade.
@@ -110,16 +112,30 @@ a way to check the result?**
 
 ## Keeping sessions cheap
 
-- **One task per session; `/clear` before the next.** A fresh session starts at ~60k tokens; a long
-  one can carry 200k+ on every call.
-- **A 1M-context model is for work that needs it.** With a 1M window (e.g. `opus[1m]`) compaction
-  happens late, so routine sessions grow far past what the task needs — and every call pays for it.
+- **One task per session, one session per task; `/clear` before the next.** A cleared conversation
+  starts at ~60k tokens; a long one can carry 200k+ on every call.
+- **Cap the conversation: `"autoCompactWindow": 300000`.** Opus and Sonnet run with a 1M
+  window, and Claude Code compacts them by default only near it (about 967k tokens), so routine
+  sessions grow far past what the task needs — and every call pays for it. On one adopting project,
+  calls carried about 289k tokens on average, and re-reading and re-caching that context was 83% of
+  the cost. The skeleton's `.claude/settings.json` sets the window to 300k: room for a phase to
+  finish, at about two thirds of the saving a 200k window would bring, with half the compactions. A
+  developer who needs more sets it in `.claude/settings.local.json` or passes `--autocompact` for one
+  launch; the project file outranks `/autocompact`.
+- **What a compaction keeps** (Claude Code's docs, "What survives compaction"): the instructions and
+  unscoped rules, re-read from disk; the five most recently changed files; the first 5,000 tokens of
+  each invoked skill, 25,000 in all; and the session-start hooks' output. The conversation itself —
+  tool output, exact errors, and anything agreed only in chat — survives only as the summary keeps
+  it. So write a decision where it lasts (the spec, `plan.md`, the pull request) before a
+  compaction can take it.
 - **Keep output short.** Quiet test reporters, `| tail -n 40`, reading the lines you need. A log
   printed once is paid for on every later call.
 - **Targeted tests while iterating, the full gate once** (`.claude/rules/testing.md` § Verification
   budget).
-- **Browser checks by the agent only when asked or for a visual change.** In one measured bug fix,
-  210 browser calls cost more than the rest of the session; the human QC on the preview is the check.
+- **Browser checks walk the changed flow, not the site.** The local check and the preview walk
+  (`AGENTS.md` § Delivery rules) cover the flow the change touches, once each; a loop of screenshots
+  and retries doesn't — in one measured bug fix, 210 browser calls cost more than the rest of the
+  session. The human QC on the preview is still the gate.
 - **Ask together, then wait once.** Batch blocking questions into one round, each with a recommended
   answer; state minor implementation choices as assumptions in the pull request.
 
@@ -133,24 +149,45 @@ loses the thread. Ask in order; the first yes wins.
    edit, or clarifying a spec → writing it: the reasoning is the input, and any summary of it loses
    something.
 2. **Is everything here disposable?** `/clear` — a finished task, an unrelated next one. It's the
-   cheapest move, and the old session stays resumable.
-3. **Does the work travel** — to a teammate, another worktree, another tool? Write a short handoff
+   cheapest move, and the old conversation stays resumable.
+3. **Does the work travel** — to a teammate, another machine, another tool? Write a short handoff
    (`/adf:handoff`): what was decided, what's next, and pointers to the spec folder, branch, and pull
-   request rather than copies of them. In the full lane after the approval gate, the spec folder
-   already is the handoff: start a fresh session from it.
+   request rather than copies of them.
 4. **Can the next step run unattended?** Give it to an agent (`@adf:code-reviewer`, `/adf:deep-review`): it
    works in its own context and returns a report, and this session stays as it is.
 5. **Otherwise, `/compact`** — with an instruction about what the next phase needs
-   (`/compact keep the open questions and the change surface`).
+   (`/compact keep the open questions and the change surface`). The full lane's approval gate lands
+   here: the spec folder carries the detail, the summary keeps the thread, and the session stays one.
 
 Switching the model follows the same logic: `/model opus` in place re-reads the conversation once,
-uncached, but keeps all of it; a fresh session is cheaper only when files carry what the next phase
-needs.
+uncached, but keeps all of it; after a compaction it re-reads only the summary — so compact first,
+then switch.
+
+**A phase never moves to another session** unless the developer asks. Compacting keeps the session —
+its folder, branch, title, and thread — and shrinks what each call carries. A second session on the
+same task splits it: two places to talk to, two sessions on one branch, and the one waiting re-reads
+its whole conversation, at its own model's price, each time it's woken. The switch after the gate,
+by client (`/adf:write-plan` step 12):
+
+| Client | Compact | Model | Then |
+|---|---|---|---|
+| Terminal | `/compact <what the next phases need>` | `/model sonnet` | The next command: `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` |
+| Desktop app | The same, in the prompt box | The model menu | The same |
+| Another tool | Its compaction; with none, starting the conversation over — the folder carries the task | Its model picker | The same |
+
+The developer takes all three steps: no tool compacts a session from inside it, and the desktop app
+doesn't let a session re-price its own turns. Compact soon after approval — the summary's read of the
+conversation is then mostly from the cache.
+
+**Skip the compaction when it can't pay back.** The summary call costs about what 10–40 later calls
+pay to carry a long planning conversation, so it's worth it when dozens of calls follow. With a task
+or two left in `tasks.md`, or a conversation that's still short, switch the model in place — or keep
+going as is.
 
 ## Measuring
 
 - **`/cost`** in Claude Code shows the current session.
-- **The framework plugin's `/cost-report`** reads Claude Code's local transcripts for a project and
+- **The framework plugin's `/adf:cost-report`** reads Claude Code's local transcripts for a project and
   reports each session's calls, active time, tokens, and estimated cost, with the patterns above
   flagged (long context, many waits, browser loops). Run it after a few weeks on a new lane setup
   to see what changed.
@@ -163,18 +200,18 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 | Tier | Model alias (current model, September 2026) | Use when... | Approximate relative cost (vs Haiku) |
 |---|---|---|---|
-| **Capable** | `haiku` (Haiku 4.5) | Narrow, well-bounded subagent work in a small context: classification, simple lookups, deterministic-ish checks | 1× (cheapest) |
-| **Balanced** | `sonnet` (Sonnet 5.5) | Work with a clear spec and a way to check the result — fast and careful lanes, bug fixes, implementing an approved plan, investigation, review, drafting | 2× Haiku input and output |
-| **Frontier** | `opus` (Opus 5.5) | Judgment — the full lane's spec and plan, ambiguous or long-horizon work, architecture decisions, bugs that resist diagnosis | 4× Haiku input and output |
+| **Capable** | `haiku` (Haiku 5.5) | Narrow, well-bounded subagent work in a small context: classification, simple lookups, deterministic-ish checks | 1× (cheapest) |
+| **Balanced** | `sonnet` (Sonnet 5.5) | Work with a clear spec and a way to check the result — fast and careful lanes, bug fixes, implementing an approved plan, investigation, review, drafting | 20× Haiku input and output |
+| **Frontier** | `opus` (Opus 5.5) | Judgment — the full lane's spec and plan, ambiguous or long-horizon work, architecture decisions, bugs that resist diagnosis | 40× Haiku input and output |
 
-Configure models with these aliases everywhere Claude Code takes one: `.claude/settings.json` (`"model": "sonnet"`), agent frontmatter (`model: haiku`), and `/model`. They're version-less — each resolves to the current model of its tier and moves forward as Claude Code updates, so keep Claude Code current with `claude update` (Sonnet 5.5 needs v2.1.284+, Opus 5.5 v2.1.280+). On Amazon Bedrock, Google Cloud, and Microsoft Foundry an alias can resolve to an older model (e.g. `sonnet` → Sonnet 4.5); pin the provider's model ID there with `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Pin a full model ID (e.g. `claude-sonnet-5-5`) only when your team needs a fixed version.
+Configure models with these aliases everywhere Claude Code takes one: `.claude/settings.json` (`"model": "sonnet"`), agent frontmatter (`model: haiku`), and `/model`. They're version-less — each resolves to the current model of its tier and moves forward as Claude Code updates, so keep Claude Code current with `claude update` (Sonnet 5.5 needs v2.1.284+, Opus 5.5 v2.1.280+, Haiku 5.5 v2.1.293+). On Amazon Bedrock, Google Cloud, and Microsoft Foundry an alias can resolve to an older model (e.g. `sonnet` → Sonnet 4.5); pin the provider's model ID there with `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Pin a full model ID (e.g. `claude-sonnet-5-5`) only when your team needs a fixed version.
 
-> **Pricing changes** — ratios are from list prices per million input / output tokens as of September 2026: Haiku 4.5 $1 / $5, Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Sonnet 5.5 and Opus 5.5 use a newer tokenizer that produces roughly 30% more tokens than Haiku 4.5 for the same text, so per unit of work their gap to Haiku is somewhat wider than the per-token ratio. Cache reads cost $0.20 / MTok on both Sonnet 5.5 and Opus 5.5, so in cache-heavy sessions the Sonnet–Opus difference is mostly in output and uncached input. `fable` (Fable 5.1, $10 / $50, 10× Haiku) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
+> **Pricing changes** — ratios are from list prices per million input / output tokens as of October 2026: Haiku 5.5 $0.10 / $0.50 for prompts up to 100k tokens ($0.50 / $2.50 beyond), Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Cache reads cost $0.20 / MTok on both Sonnet 5.5 and Opus 5.5, so in cache-heavy sessions the Sonnet–Opus difference is in output, uncached input, and cache writes — 1.25× input for the 5-minute cache, 2× for the 1-hour one. `fable` (Fable 5.2, $8 / $40, 80× Haiku; cache reads $0.20) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
 
 ### Decision rules
 
 - **Default to Sonnet** for work with a clear spec and a way to check the result — most work, once the lanes route it.
-- **Use Haiku** for well-defined, bounded work that runs in its own small context: subagents for convention checks, classification, routing, simple lookups. Inside a long main conversation, switching to Haiku for one step costs more than it saves — the cache is per model.
+- **Use Haiku** for well-defined, bounded work that runs in its own small context: subagents for convention checks, classification, routing, simple lookups. At a twentieth of Sonnet's price, Haiku 5.5 is worth an eval for read-only sweeps and finding verifiers. Inside a long main conversation, switching to Haiku for one step costs more than it saves — the cache is per model.
 - **Use Opus** where judgment is the work: the full lane up to the gate, ambiguous requirements, long-horizon changes, architecture, a bug that resists two hypotheses — and when Sonnet at `high` effort keeps producing inadequate output.
 - **Don't escalate "just in case"** — Opus on tasks Sonnet handles well is pure waste. The framework's anti-rationalization tables, plan-then-execute gates, and verification checklists do most of the quality work that escalation would otherwise paper over.
 
@@ -187,14 +224,14 @@ Configure models with these aliases everywhere Claude Code takes one: `.claude/s
 
 ## Per-skill recommendations
 
-Skills run in your conversation, on its model. A skill could name its own model, but a switch mid-session re-reads the whole context uncached on the new model — so for skills the lever is the **session's** model: Sonnet for fast- and careful-lane sessions, Opus when a session is planning or debugging something hard.
+Skills run in your conversation, on its model — except the three that fork onto Sonnet, out of the session's context (`/adf:context-audit`, `/adf:spec-drift`, `/adf:cost-report`). A skill could name its own model, but a switch mid-session re-reads the whole context uncached on the new model — so for skills the lever is the **session's** model: Sonnet for fast- and careful-lane sessions, Opus when a session is planning or debugging something hard.
 
 | Skill | Recommended tier | Why |
 |---|---|---|
 | `/adf:init-project` | Sonnet | Multi-perspective setup decisions; one-time so cost is small |
 | `/adf:triage` | Sonnet | Reading a task in full and deciding what it needs; cheap, and it prevents the most expensive mistakes |
 | `/adf:write-spec` | Opus | Full lane: ambiguity, clarification, and the decisions the spec records — judgment work |
-| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then hand off to a fresh Sonnet session |
+| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then compact and switch to Sonnet, in the same session |
 | `/adf:write-tests` | Sonnet | AC → test mapping is moderate complexity |
 | `/adf:write-docs` | Sonnet | Synthesis from spec + tests; matters for tone and accuracy |
 | `/adf:implement` | Sonnet | An approved plan with named tests is a clear spec with a way to check the result; Opus for a task that turns out genuinely hard |
@@ -204,8 +241,16 @@ Skills run in your conversation, on its model. A skill could name its own model,
 | `/adf:commit` | Session model | A few short calls; switching to Haiku for them would re-read the whole context uncached |
 | `/adf:handoff` | Session model | A short message of pointers, written where the context already is |
 | `/adf:open-pr`, `/adf:stakeholder-update` | Sonnet | Short, but every claim must be checked against the diff, the gate results, or the live site |
-| `/adf:record-decision`, `/adf:context-audit`, `/adf:spec-drift` | Sonnet | Reading and comparing many files; precision matters more than depth |
+| `/adf:record-decision` | Sonnet | Reading and comparing many files; precision matters more than depth |
+| `/adf:context-audit`, `/adf:spec-drift` | Sonnet, in a fork | The same reading and comparing, out of the session's context |
 | `/adf:evaluate` | Sonnet (or Opus for hard decisions) | Deep analysis with options and tradeoffs. The "evaluate" name implies the higher-value work where escalation often pays off. |
+| `/adf:orchestrate` | Session model | Plans and synthesizes here; the agents it spawns carry their own model |
+| `/adf:dispatch`, `/adf:wrap-up` | Session model | A few git and app calls, where the context already is |
+| `/adf:cost-report` | Sonnet, in a fork | A script measures; the skill presents the numbers, out of the session's context |
+| `/adf:track-time` | Session model | A script measures; the skill presents the numbers |
+| `/adf:framework-feedback` | Session model | A short report, written where the evidence already is |
+| `/adf:end-user-docs` | Sonnet | Drafting from the spec and what was built — the same work as `/adf:write-docs` |
+| `/adf:adopt`, `/adf:upgrade` | Sonnet | Many files and merges under clear rules; Opus for a merge that needs judgment |
 | `/adf:spec-workflow` | n/a | Reference doc, no AI invocation |
 
 **Practical guidance:** set your default to Sonnet and pick the model per session, by the work it will do. Escalate to Opus only when you hit the explicit triggers above.
@@ -216,12 +261,12 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 
 | Agent | Current frontmatter | Why |
 |---|---|---|
-| `@adf:spec-writer` | `model: sonnet` | Same reasoning as `/adf:write-spec` skill |
-| `@adf:code-reviewer` | `model: sonnet` | Review is well-defined, repeatable work — where Anthropic's guidance places Sonnet; it costs about twice Haiku per token, a few cents per review |
+| `@adf:spec-writer` | `model: sonnet` | Drafts in its own context from the requirements it's given; the clarifying questions and decisions — what the full lane pays Opus for — stay in the session running `/adf:write-spec`. Override it to `opus` (§ Agent model overrides) to draft from raw requirements |
+| `@adf:code-reviewer` | `model: sonnet` | Review is well-defined, repeatable work — where Anthropic's guidance places Sonnet |
 | `@adf:security-reviewer` | `model: sonnet` | Security review in the careful lane needs real reasoning about data flow; escalate to Opus for novel attack surfaces |
 | `@adf:test-runner` | `model: sonnet` | Test writing requires understanding the spec and matching patterns |
 | `@adf:architect` | `model: opus` | Architecture review weighs trade-offs across the system — judgment work; it runs rarely |
-| `@adf:debugger` | `model: sonnet` | Root cause analysis benefits from stronger reasoning |
+| `@adf:debugger` | `model: sonnet` | Most diagnoses follow a failing signal and ranked hypotheses; `/adf:debug` moves to Opus in the session after two disproven ones |
 | `@adf:ux-reviewer` | `model: sonnet` | Review against the spec's stories, states, and accessibility — well-defined review work |
 | `@adf:spec-analyzer` | `model: opus` | Adversarial analysis of a plan is judgment work, and it runs once per full-lane folder, before the gate — where a missed problem is most expensive |
 
@@ -253,11 +298,11 @@ spec lens, file, or spec — and then spend more agents verifying each finding. 
 moderate diff typically runs 6–7 reviewers plus one verifier per finding: several times the cost of
 `/adf:review`, for higher coverage and fewer false positives. Use them where that trade pays — high-stakes
 changes, pre-gate analysis of risky specs, periodic sweeps — and the single-context skills
-everywhere else. Workflow agents inherit the session model unless the script pins one.
+everywhere else. Each script pins its steps' models to the agents that do the same work — reviewers, file and drift checks, and verifiers on `sonnet`, the spec lenses on `opus` like `@adf:spec-analyzer`, the scoping step on `sonnet` at low effort — so a run from an Opus session doesn't fan out on Opus.
 
 ## Prompt caching strategy
 
-Anthropic's prompt caching can reduce input cost by ~90% on cache hits (with a 5-minute TTL). To exploit it, structure context so the **stable prefix** (rarely-changing) comes BEFORE the **variable suffix** (per-message specifics).
+Anthropic's prompt caching can reduce input cost by ~90% on cache hits (a 5-minute lifetime by default; an hour for the main conversation on a Claude subscription, with writes at 2× input). To exploit it, structure context so the **stable prefix** (rarely-changing) comes BEFORE the **variable suffix** (per-message specifics).
 
 ### What's stable, what's variable
 
@@ -275,7 +320,7 @@ Anthropic's prompt caching can reduce input cost by ~90% on cache hits (with a 5
 - **Avoid putting per-feature volatile content in AGENTS.md.** That belongs in the feature's spec or in memory. AGENTS.md should describe the project's stable identity.
 - **Memory entries are great for project-specific gotchas** that change occasionally — they evolve without busting the cache of the always-loaded instructions.
 - **Subagents have their own cache.** A subagent invocation doesn't bust the parent's cache. Use them for anything that loads a lot of one-off context.
-- **Long conversations get compacted automatically.** Cleared tool outputs cost nothing on subsequent turns. You don't need to manage compaction by hand, but be aware that it can change cache prefix length.
+- **A compaction changes the cache prefix.** The summary replaces the conversation, so the next call writes it to the cache again: compact at a phase boundary (§ Between phases), not mid-phase.
 
 ### Verifying cache behavior
 
@@ -305,7 +350,7 @@ Use an **AI gateway** (Helicone, LiteLLM) that routes by client and tags every r
 | **[Helicone](https://helicone.ai)** | Open-source LLM gateway. Per-request cost tracking, dashboards, custom properties for tagging. Free tier suitable for small teams. | ~30 min — proxy your Anthropic base URL through Helicone |
 | **[LiteLLM](https://litellm.ai)** | Multi-provider proxy with budget enforcement, alerts, and routing rules. Open-source. | ~1 hour — deploy as a service, point clients at it |
 | **[Braintrust](https://braintrust.dev)** | Eval-focused but tracks per-run cost. Good if you're already running dynamic evals (see `evals/`). | ~1 hour |
-| **Custom (Anthropic API direct)** | Full control. Read `usage` from response headers, log to your own DB. | Variable |
+| **Custom (Anthropic API direct)** | Full control. Read `usage` from each response, log to your own DB. | Variable |
 
 For a typical consultancy or agency running AI-assisted work across several client projects, the recommended stack is:
 - **Anthropic Console** for high-level monthly visibility (free, built-in)
@@ -350,7 +395,7 @@ If your monthly bill jumps unexpectedly:
 
 ## See also
 
-- [`AGENTS.md`](../AGENTS.md) — project-wide AI conventions
+- The project's `AGENTS.md` — project-wide AI conventions
 - [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) — current rates
 - [Helicone docs](https://docs.helicone.ai) — gateway setup
 - [LiteLLM docs](https://docs.litellm.ai) — multi-provider proxy setup

@@ -181,11 +181,11 @@ When in doubt: don't save. A small, sharp memory beats a bloated one the AI can'
 
 ## See also
 
-- [`AGENTS.md`](../AGENTS.md) — project identity layer
-- [`.claude/rules/claude-code.md`](../.claude/rules/claude-code.md) — Claude Code-specific tool config
-- [`docs/SPEC-MODEL.md`](SPEC-MODEL.md) — per-feature knowledge layer
-- [`docs/architecture/decisions/`](architecture/decisions/) — ADR layer
-- [`docs/COST-MODEL.md`](COST-MODEL.md) — cache implications of where knowledge lives
+- The project's `AGENTS.md` — project identity layer
+- The project's `.claude/rules/claude-code.md` — Claude Code-specific tool config
+- [`SPEC-MODEL.md`](SPEC-MODEL.md) — per-feature knowledge layer
+- The project's `docs/architecture/decisions/` — ADR layer
+- [`COST-MODEL.md`](COST-MODEL.md) — cache implications of where knowledge lives
 - Tool-specific memory documentation:
   - Claude Code: [memory tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool)
   - Cursor: project rules + custom rules

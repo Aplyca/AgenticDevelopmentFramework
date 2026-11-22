@@ -1,6 +1,6 @@
 ---
 name: review
-description: Multi-perspective review of a change against its spec folder — acceptance criteria and every filled spec section, the approved change surface, the constitution, conventions (including the comments rule), security, UX, test evidence, and doc accuracy. Use before delivering a change; escalate to the /adf:deep-review workflow for high-stakes diffs.
+description: Multi-perspective review of a change against its spec folder or request — lane fit, acceptance criteria, change surface, constitution, conventions, security, UX, tests, docs. Use before every push, in every lane — it reads in proportion to the lane — or when the developer asks; /adf:deep-review for high-stakes diffs.
 argument-hint: "[spec folder, branch, or files to review]"
 ---
 
@@ -27,16 +27,18 @@ instead: separate reviewers per dimension, each finding independently verified.
    - **Fast** — the diff stays within the files stated, touches no escalation trigger or sensitive
      area (`specs/README.md` § Lanes, `AGENTS.md` § Sensitive areas), a test proves the change, and
      delivered work has its light `CR N` entry.
-   - **Careful** — the area's checklist shows in the diff and the tests, and the developer confirmed
-     the risky part. A lane lowered by the developer is stated in the pull request.
+   - **Careful** — the area's checklist shows in the diff and the tests, and the risky part is
+     clear enough for the developer's test to start there. A lane lowered by the developer is stated
+     in the pull request.
    - **Full** — a spec folder with an `approvals:` line covering this scope.
 
    A diff that doesn't fit its lane is a **Critical** finding: name the trigger and the lane it needs.
 
 4. **Scope and traceability:**
    - Every changed file is inside the approved change surface — or the extension is recorded in
-     `plan.md` with a re-confirmation in `approvals:`. Fast and careful lanes: inside the files the
-     triage stated.
+     `plan.md` and the pull request, with a re-confirmation in `approvals:` where it grew into risk
+     (a new layer, a new dependency, an escalation trigger). Fast and careful lanes: inside the
+     files the triage stated.
    - Commits map to tasks (one task, one commit); nothing unrelated is bundled in.
    - The spec folder and tracker task are linked; for a change request, the `CR N` section exists.
 
@@ -78,16 +80,19 @@ instead: separate reviewers per dimension, each finding independently verified.
     - **Warning** — should fix (likely bug, convention violation, missing evidence)
     - **Nit** — minor (style, naming)
     End with: **approve**, **approve with nits**, or **request changes** — and what you did not review.
+    Below the verdict, list apart what you found **outside the diff** — a bug or an improvement in code
+    this change doesn't touch, each with `file:line`. It doesn't change the verdict: each becomes a
+    follow-up (`specs/README.md` § Found along the way), or goes to the developer now when it can't wait.
 
 ## Rationalizations (do not accept these)
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "The code looks fine, no issues found" | Every change has something worth noting. At minimum, state spec compliance, change-surface compliance, and what you checked. |
+| "The code looks fine, no issues found" | A clean result still says what was checked: spec or request compliance, change surface, and what you did not review. |
 | "It's a small change, a quick look is enough" | Small changes cause big bugs. An injection is one line. Review every changed line. |
 | "It doesn't touch user input, so I'll skip security" | Data flows through layers; trace it. A component that renders data can be the injection point. |
 | "The tests pass, so it's correct" | Tests verify behavior, not conventions, security, scope, or missing edge cases. Green is necessary, not sufficient. |
-| "These extra files are harmless" | Files outside the approved change surface are a finding until the plan records them and the developer re-confirms. |
+| "These extra files are harmless" | Files outside the approved change surface are a finding until the plan records them — and, where they grow the change into risk, until the developer re-confirms. |
 | "The comments are helpful, leave them" | Comments that restate code drift from it. Keep only the invisible *why*. |
 
 ## Red flags (stop and reassess)

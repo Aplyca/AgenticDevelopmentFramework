@@ -9,6 +9,10 @@
 | [e.g., Node.js] | [e.g., 20+] | `node --version` |
 | [e.g., Docker] | [e.g., 24+] | `docker --version` |
 | [e.g., Git] | [e.g., 2.40+] | `git --version` |
+| [e.g., make] | [e.g., 3.81+] | `make --version` |
+
+[e.g., In Docker mode, the default here, Docker, Git, and make are all your machine needs: the
+runtime, the dependencies, and every check run in containers. Native mode needs the runtime too.]
 
 **Operating system:** [e.g., macOS 14+, Ubuntu 22.04+, Windows 11 with WSL2]
 
@@ -26,8 +30,12 @@ cd [project-name]
 ### 2. Install dependencies
 
 ```bash
-[e.g., npm install]
+[e.g., make deps  # into this checkout's Docker volume: nothing is installed on your machine]
 ```
+
+[e.g., In Docker mode the dependencies live in a Docker volume, one per checkout, and the package
+manager's cache in another that every checkout shares. The empty `node_modules/` folder in the
+checkout is where the volume mounts: leave it. After a lockfile change, `make deps` again.]
 
 ### 3. Set up environment variables
 
@@ -83,7 +91,7 @@ The app will be available at [e.g., the URL `make up` and `make urls` print].
 ### 7. Verify everything works
 
 ```bash
-[e.g., npm test]
+[e.g., make test  # in the tools container, with the stack up or not]
 ```
 
 All tests should pass. If not, see [Troubleshooting](#troubleshooting) below.
@@ -93,7 +101,7 @@ All tests should pass. If not, see [Troubleshooting](#troubleshooting) below.
 Once your environment is working, try this to build confidence:
 
 1. [e.g., Pick an issue labeled "good first issue"]
-2. [e.g., Create a branch: `git checkout -b your-name/first-task`]
+2. [e.g., Create a branch: `git switch -c docs/first-task`]
 3. [e.g., Make the change, write a test, open a PR]
 
 ## IDE setup
@@ -106,6 +114,10 @@ Once your environment is working, try this to build confidence:
 - [e.g., Format on save: enabled]
 - [e.g., Default formatter: Prettier]
 
+[e.g., In Docker mode the dependencies aren't on your machine, so the editor resolves no package: no
+autocomplete or library types from them, and no on-save lint or format with the project's own
+tools. Run `make lint f=<file>` and `make format f=<file>` instead.]
+
 ## AI-assisted development
 
 This project is set up for AI coding agents: `AGENTS.md` is the shared instruction file, and
@@ -117,12 +129,34 @@ Code would read it instead of `AGENTS.md`.
 claude  # Start Claude Code in the project directory
 ```
 
-**Claude Code needs no install step.** Open a session in the project — in the terminal, the desktop
-app, or an IDE — and accept the prompt to trust the folder. The committed `.claude/settings.json`
-then turns on the hooks, the permissions, and the framework's plugin, `adf`, at the release
-the project pins; Claude Code downloads the plugin, and `/plugin` lists it. Don't install it yourself,
-and never at user scope, which turns it on in every project on your machine. Cloud sessions don't
-load it.
+**Claude Code usually needs no install step.** Open a session in the project — in the terminal, the
+desktop app, or an IDE — and accept the prompt to trust the folder. The committed
+`.claude/settings.json` then turns on the hooks, the permissions, and the framework's plugin, `adf`,
+at the release the project pins; Claude Code downloads the plugin, and `/plugin` lists it. Cloud
+sessions don't load it.
+
+If typing `/adf:` offers nothing, the plugin didn't download — on a machine whose copy of the
+`aplyca` marketplace is older than this project's release, for instance, since Claude Code keeps
+one copy for every project, at the release it was first added with. From the project's folder, add
+it again at this project's release — the `"ref"` of the `aplyca` entry in `.claude/settings.json` —
+and install each plugin the settings turn on, then start a new session:
+
+```bash
+claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project
+claude plugin install adf@aplyca --scope project
+claude plugin install adf-dev@aplyca --scope project      # only if the settings already turn it on
+claude plugin install adf-connect@aplyca --scope project  # only if the settings already turn it on
+git restore .claude/settings.json
+```
+
+They only download what the settings already turn on, but they rewrite the file, so
+`git restore` puts back the committed one. For a plugin the settings don't turn on, the command isn't
+a way to turn it on: it writes the `enabledPlugins` entry itself. Turning one on is a one-line change
+to the committed settings, made on a work branch and merged by pull request. Always pass
+`--scope project`: without it, Claude Code declares the marketplace and installs the plugin at user
+scope, which turns it on in every project on your machine. After a framework upgrade merges, run the
+same commands with the new release, and `claude plugin update` for a plugin you already have;
+`claude plugin list` shows each version.
 
 Key commands:
 - `/triage [task link]` — read a task in full and decide what it needs, before setting anything up
@@ -145,13 +179,15 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 | Task | Command |
 |---|---|
 | List the tasks | `[e.g., make help]` |
-| Install | `[command]` |
-| Run / stop | `[e.g., make up · make down]` |
+| Install | `[e.g., make deps]` |
+| Run / stop / down | `[e.g., make up · make stop (keeps containers and data) · make down (removes containers; data stays)]` |
 | Where it runs | `[e.g., make urls]` |
 | Run on the host | `[e.g., DEV_MODE=native in .env, then make up]` |
+| The production build, locally | `[e.g., make prod — make urls shows it, make logs s=web-prod]` |
 | Logs | `[e.g., make logs]` |
 | Test | `[e.g., make test]` |
-| Lint / typecheck | `[e.g., make lint]` |
+| Lint / format / typecheck | `[e.g., make lint · make format · make typecheck]` |
+| Anything else, in the tools container | `[e.g., make run cmd='<command>']` |
 
 ## Troubleshooting
 
@@ -173,9 +209,14 @@ How work flows end to end: `AGENTS.md` § How work flows, and `specs/README.md`.
 
 ### [Common issue 3: e.g., Dependencies fail to install]
 
+[e.g., In Docker mode the dependencies are this checkout's Docker volume, `<project>_deps`, where
+`<project>` is this checkout's name in `docker compose ls` — a worktree's is the one its `.env` sets.
+To start it over: stop the stack, remove the volume, and install again.]
+
 ```bash
-[e.g., rm -rf node_modules package-lock.json]
-[e.g., npm install]
+[e.g., make down]
+[e.g., docker volume rm <project>_deps]
+[e.g., make deps]
 ```
 
 ### Still stuck?

@@ -29,17 +29,22 @@ slug() { python3 -c 'import re,sys; print(re.sub(r"[^A-Za-z0-9]", "-", sys.argv[
 MAIN="$WORK/projects/$(slug "$PROJECT")"
 INNER="$WORK/projects/$(slug "$PROJECT/.claude/worktrees/calm-otter")"
 SIBLING="$WORK/projects/$(slug "$WORK/code/site-fix")"
-mkdir -p "$MAIN" "$INNER" "$SIBLING"
+OTHER_PROJECT="$WORK/other/app"
+OTHER="$WORK/projects/$(slug "$OTHER_PROJECT")"
+mkdir -p "$MAIN" "$INNER" "$SIBLING" "$OTHER" "$OTHER_PROJECT"
 
-python3 - "$MAIN" "$INNER" "$SIBLING" <<'PY'
-import json, sys, datetime
-main, inner, sibling = sys.argv[1:4]
+python3 - "$MAIN" "$INNER" "$SIBLING" "$OTHER" <<'PY'
+import json, os, sys, datetime
+main, inner, sibling, other = sys.argv[1:5]
 start = datetime.datetime(2026, 9, 1, 9, 0, 0)
 
-def session(path, calls, context, model="claude-opus-5-5", gap_seconds=20, browser=0, spec_edits=0, code_edits=0, title="Session"):
+def session(path, calls, context, model="claude-opus-5-5", gap_seconds=20, browser=0, spec_edits=0, code_edits=0, title="Session", hour_cache=False, copy_of=None):
     t = start
     lines = [{"type": "custom-title", "customTitle": title},
              {"type": "user", "timestamp": t.isoformat() + "Z", "message": {"role": "user", "content": "do the task"}}]
+    if copy_of:
+        lines += [json.loads(l) for l in open(copy_of) if '"assistant"' in l]
+    tag = os.path.basename(path)[:8]
     for i in range(calls):
         t += datetime.timedelta(seconds=gap_seconds)
         content = []
@@ -49,9 +54,11 @@ def session(path, calls, context, model="claude-opus-5-5", gap_seconds=20, brows
             content.append({"type": "tool_use", "id": f"s{i}", "name": "Edit", "input": {"file_path": "/repo/specs/001-x/spec.md"}})
         elif i < browser + spec_edits + code_edits:
             content.append({"type": "tool_use", "id": f"c{i}", "name": "Edit", "input": {"file_path": "/repo/src/app.ts"}})
+        usage = {"input_tokens": 10, "cache_read_input_tokens": context, "cache_creation_input_tokens": 1000, "output_tokens": 500}
+        if hour_cache:
+            usage["cache_creation"] = {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 1000}
         lines.append({"type": "assistant", "timestamp": t.isoformat() + "Z", "message": {
-            "id": f"msg_{i}", "model": model, "content": content,
-            "usage": {"input_tokens": 10, "cache_read_input_tokens": context, "cache_creation_input_tokens": 1000, "output_tokens": 500}}})
+            "id": f"msg_{tag}_{i}", "model": model, "content": content, "usage": usage}})
     with open(path, "w") as f:
         f.write("\n".join(json.dumps(l) for l in lines) + "\n")
 
@@ -60,6 +67,10 @@ session(f"{main}/bbbbbbbb-2.jsonl", calls=40, context=180_000, gap_seconds=400, 
 session(f"{main}/cccccccc-3.jsonl", calls=12, context=60_000, model="claude-sonnet-5-5", spec_edits=6, code_edits=1, title="Spec heavy")
 session(f"{inner}/dddddddd-4.jsonl", calls=5, context=40_000, title="Inner worktree")
 session(f"{sibling}/eeeeeeee-5.jsonl", calls=5, context=40_000, title="Sibling worktree")
+# Another project: the desktop app's 1-hour cache, Haiku 5.5, and a session forked from another.
+session(f"{other}/11111111-a.jsonl", calls=10, context=50_000, gap_seconds=400, hour_cache=True, title="Hour cache")
+session(f"{other}/22222222-b.jsonl", calls=10, context=50_000, model="claude-haiku-5-5", title="Haiku")
+session(f"{other}/33333333-c.jsonl", calls=2, context=50_000, copy_of=f"{other}/11111111-a.jsonl", title="Forked")
 PY
 
 run() { python3 "$REPORT" "$PROJECT" --projects-dir "$WORK/projects" --days 0 "$@" 2>&1; }
@@ -86,6 +97,14 @@ on_sonnet=$(printf '%s' "$json" | python3 -c 'import json,sys; s={x["title"]: x 
 # The same tokens at Sonnet's prices: 10×(10×2 + 500×10 + 50,000×0.20 + 1,000×2.5)/1e6 = 0.18
 check "cost-report: re-prices an Opus session at Sonnet's prices (\$0.18; a Sonnet session unchanged — got $on_sonnet)" "[ '$on_sonnet' = '0.18 True' ]"
 check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals it" "echo \"\$out\" | grep 'Quick fix' | grep -q '≈0.18' && echo \"\$out\" | grep 'Spec heavy' | grep -q ' - ' && echo \"\$out\" | grep -q '^Model: 3 sessions ran above Sonnet'"
+other=$(python3 "$REPORT" "$OTHER_PROJECT" --projects-dir "$WORK/projects" --days 0 --json)
+oq() { printf '%s' "$other" | python3 -c "import json,sys; s={x['title']: x for x in json.load(sys.stdin)}; print($1)"; }
+# 10 calls on Opus 5.5, writes at the 1-hour rate (2× input): 10×(10×4 + 500×20 + 50,000×0.20 + 1,000×8)/1e6 = 0.28
+check "cost-report: prices 1-hour cache writes at twice the input price (\$0.28, got \$$(oq 's["Hour cache"]["cost"]'))" "[ \"\$(oq 's[\"Hour cache\"][\"cost\"]')\" = '0.28' ]"
+check "cost-report: a 400-second wait doesn't flag a session with the 1-hour cache (got $(oq 's["Hour cache"]["flags"]'))" "[ \"\$(oq 's[\"Hour cache\"][\"flags\"]')\" = '[]' ]"
+# 10 calls on Haiku 5.5: 10×(10×0.10 + 500×0.50 + 50,000×0.01 + 1,000×0.125)/1e6 = 0.0088
+check "cost-report: prices Haiku 5.5 at its own rates (\$0.01, got \$$(oq 's["Haiku"]["cost"]'))" "[ \"\$(oq 's[\"Haiku\"][\"cost\"]')\" = '0.01' ]"
+check "cost-report: a forked session's copied calls count once, in the session that made them (got $(oq 's["Forked"]["calls"], s["Hour cache"]["calls"]'))" "[ \"\$(oq 's[\"Forked\"][\"calls\"], s[\"Hour cache\"][\"calls\"]')\" = '2 10' ]"
 missing=$(python3 "$REPORT" "$WORK/elsewhere" --projects-dir "$WORK/projects" 2>&1); code=$?
 check "cost-report: a project without transcripts says so and exits non-zero" "[ $code -ne 0 ] && echo \"\$missing\" | grep -q 'No Claude Code transcripts'"
 
@@ -158,8 +177,8 @@ cp -R "$REPO_ROOT/skeleton" "$SITE"
 NAMES='COST-MODEL|MCP-INTEGRATION|MEMORY-STRATEGY|SPEC-MODEL'
 local_refs() { grep -rlE "(^|[^/.A-Za-z0-9_-])docs/($NAMES)\.md" "$SITE" --include='*.md' --include='*.mdc' | grep -v -e "/\.claude/\(skills\|agents\|workflows\|hooks\)/" -e "/docs/[A-Z-]*\.md$"; }
 plugin_docs=$(cd "$REPO_ROOT/plugins/adf/docs" && ls | sort | tr '\n' ' ')
-check "link-reference-docs: the plugin carries the four reference docs and the parallel-agents guide (got: $plugin_docs)" \
-    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md PARALLEL-AGENTS.md SPEC-MODEL.md ' ]"
+check "link-reference-docs: the plugin carries the five reference docs and the parallel-agents guide (got: $plugin_docs)" \
+    "[ '$plugin_docs' = 'COST-MODEL.md MCP-INTEGRATION.md MEMORY-STRATEGY.md PARALLEL-AGENTS.md PROSE-PATTERNS.md SPEC-MODEL.md ' ]"
 first=$(python3 "$LINKS" "$SITE" --packaged v9.9.9)
 check "link-reference-docs: --packaged links every skeleton file at the release, in the plugin" \
     "[ -z \"\$(local_refs)\" ] && grep -q 'blob/v9.9.9/plugins/adf/docs/SPEC-MODEL.md' \"\$SITE/AGENTS.md\""
@@ -205,9 +224,12 @@ python3 "$BC" "$WORK/core-only" >/dev/null
 check "build-committed: writes the parallel-agents guide only with the module, in the committed form (decision 0044)" \
     "[ -f '$CP/docs/PARALLEL-AGENTS.md' ] && [ ! -e '$WORK/core-only/docs/PARALLEL-AGENTS.md' ] && [ -f '$WORK/core-only/docs/SPEC-MODEL.md' ] && grep -q 'ops/agent/worktree-new.sh <type>/<slug> --no-start' '$CP/docs/PARALLEL-AGENTS.md' && ! grep -qE 'adf-worktree-|/adf:' '$CP/docs/PARALLEL-AGENTS.md'"
 check "build-committed: takes only the modules it's given, and never the installer's skills" \
-    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/track-time' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
+    "[ -d '$CP/.claude/skills/dispatch' ] && [ ! -e '$CP/.claude/skills/dev-env' ] && [ ! -e '$CP/.claude/skills/track-time' ] && [ ! -e '$CP/.claude/skills/end-user-docs' ] && [ ! -e '$CP/.claude/skills/adopt' ] && [ ! -e '$CP/.claude/skills/connect' ] && [ ! -e '$CP/.claude/hooks/hooks.json' ]"
 check "build-committed: keeps a file the project already has, and says so" \
     "[ \"\$(cat '$CP/.claude/skills/review/SKILL.md')\" = '# our own review' ] && echo \"\$out\" | grep -q 'Kept 1 .*\.claude/skills/review/SKILL.md'"
+python3 "$BC" "$WORK/docs-project" --modules end-user-docs >/dev/null
+check "build-committed: writes /end-user-docs with its module, in the committed form (decision 0048)" \
+    "[ -f '$WORK/docs-project/.claude/skills/end-user-docs/SKILL.md' ] && grep -q '/write-docs' '$WORK/docs-project/.claude/skills/end-user-docs/SKILL.md' && ! grep -qE '/adf:|Step 0 — which copy' '$WORK/docs-project/.claude/skills/end-user-docs/SKILL.md'"
 out=$(python3 "$BC" "$WORK/elsewhere-project" --modules no-such-module 2>&1); code=$?
 check "build-committed: refuses a module that doesn't exist" "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'no such module'"
 
@@ -236,22 +258,22 @@ for old, new in (('PORT_SLOTS=0', 'PORT_SLOTS=180'), ("ENV_OVERRIDES=''", "ENV_O
     text = text.replace(old, new, 1)
 open(path, "w").write(text)
 CONF
-printf 'SECRET=\nAPP_PORT=\n' > "$S/.env.example" && printf '.env\n' > "$S/.gitignore" && echo '# Site' > "$S/docs/README.md"
+printf 'SECRET=\nAPP_PORT=\n' > "$S/.env.example" && printf '.env\n.claude/worktrees/\n' > "$S/.gitignore" && echo '# Site' > "$S/docs/README.md"
 git -C "$S" add -A && git -C "$S" commit -qm init && git -C "$S" push -q -u origin main 2>/dev/null
 printf 'SECRET=abc\n' > "$S/.env"
 out=$(cd "$S" && on_path adf-worktree-new feat/newsletter-signup --no-start 2>&1); code=$?
-W1="$WT/feat-newsletter-signup"
-check "adf-worktree-new: creates a sibling worktree in a project that commits only worktree.conf" \
+W1="$S/.claude/worktrees/feat-newsletter-signup"
+check "adf-worktree-new: creates a worktree under .claude/worktrees/ in a project that commits only worktree.conf" \
     "[ $code -eq 0 ] && [ -f '$W1/.git' ] && [ -f \"\$(git -C '$W1' rev-parse --absolute-git-dir)/agent-worktree\" ]"
 check "adf-worktree-new: reads the project's worktree.conf — a port, and the overrides with it" \
     "grep -q '^SECRET=abc$' '$W1/.env' && grep -qE '^SITE_URL=http://localhost:[0-9]+$' '$W1/.env'"
 echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
 out=$(cd "$W1" && on_path adf-worktree-new fix/other-thing --no-start 2>&1); code=$?
-W2="$WT/fix-other-thing"
-check "adf-worktree-new: from inside a worktree, makes a sibling of the main checkout, seeded from it" \
+W2="$S/.claude/worktrees/fix-other-thing"
+check "adf-worktree-new: from inside a worktree, makes it in the main checkout's .claude/worktrees/, seeded from it" \
     "[ $code -eq 0 ] && [ -f '$W2/.git' ] && grep -q '^SECRET=abc$' '$W2/.env' && ! grep -q LOCAL_EXPERIMENT '$W2/.env'"
 out=$(cd "$S/docs" && on_path adf-worktree-new chore/from-docs --no-start 2>&1); code=$?
-check "adf-worktree-new: works from a subdirectory of the checkout" "[ $code -eq 0 ] && [ -f '$WT/chore-from-docs/.git' ]"
+check "adf-worktree-new: works from a subdirectory of the checkout" "[ $code -eq 0 ] && [ -f '$S/.claude/worktrees/chore-from-docs/.git' ]"
 out=$(cd "$S" && on_path adf-worktree-ls 2>&1)
 check "adf-worktree-ls: lists every worktree and marks the main checkout" \
     "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
@@ -263,7 +285,7 @@ check "adf-worktree-new: outside a repository, stops and says so" "[ $code -ne 0
 mkdir -p "$WT/plain" && git -C "$WT/plain" init -q -b main && git -C "$WT/plain" -c user.email=t@e -c user.name=t commit -q --allow-empty -m init
 out=$(cd "$WT/plain" && on_path adf-worktree-new feat/nothing --no-start 2>&1); code=$?
 check "adf-worktree-new: in a project without the module, stops and creates nothing" \
-    "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/feat-nothing' ]"
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"doesn't use the parallel-agents module\" && [ ! -e '$WT/plain/.claude/worktrees/feat-nothing' ]"
 printf '#!/bin/sh\necho "$@" > "%s/handed-over"\n' "$WT" > "$S/ops/agent/worktree-new.sh" && chmod +x "$S/ops/agent/worktree-new.sh"
 out=$(cd "$S" && on_path adf-worktree-new feat/committed --no-start 2>&1); code=$?
 check "adf-worktree-new: in a committed install, runs the project's own script with the same arguments" \
@@ -277,19 +299,104 @@ git -C "$L" config user.email test@example.com && git -C "$L" config user.name t
 mkdir -p "$L/scripts/agent"
 sed -e 's/^PORT_SLOTS=0/PORT_SLOTS=180/' -e "s|^ENV_OVERRIDES=''|ENV_OVERRIDES='FROM=scripts'|" \
     "$REPO_ROOT/modules/parallel-agents/files/ops/agent/worktree.conf" > "$L/scripts/agent/worktree.conf"
-printf 'APP_PORT=\n' > "$L/.env.example" && printf '.env\n' > "$L/.gitignore"
+printf 'APP_PORT=\n' > "$L/.env.example" && printf '.env\n.claude/worktrees/\n' > "$L/.gitignore"
 git -C "$L" add -A && git -C "$L" commit -qm init && git -C "$L" push -q -u origin main 2>/dev/null
 out=$(cd "$L" && on_path adf-worktree-new feat/legacy --no-start 2>&1); code=$?
 check "adf-worktree-new: in a project that still keeps scripts/agent/, reads its settings there" \
-    "[ $code -eq 0 ] && grep -q '^FROM=scripts$' '$LW/feat-legacy/.env' && grep -qE '^APP_PORT=[0-9]+$' '$LW/feat-legacy/.env'"
+    "[ $code -eq 0 ] && grep -q '^FROM=scripts$' '$L/.claude/worktrees/feat-legacy/.env' && grep -qE '^APP_PORT=[0-9]+$' '$L/.claude/worktrees/feat-legacy/.env'"
 mkdir -p "$L/ops/agent" && sed 's/FROM=scripts/FROM=ops/' "$L/scripts/agent/worktree.conf" > "$L/ops/agent/worktree.conf"
 out=$(cd "$L" && on_path adf-worktree-new feat/both --no-start 2>&1); code=$?
-check "adf-worktree-new: with both folders, ops/agent/ wins" "[ $code -eq 0 ] && grep -q '^FROM=ops$' '$LW/feat-both/.env'"
+check "adf-worktree-new: with both folders, ops/agent/ wins" "[ $code -eq 0 ] && grep -q '^FROM=ops$' '$L/.claude/worktrees/feat-both/.env'"
 rm -rf "$L/ops"
 printf '#!/bin/sh\necho "$@" > "%s/legacy-handed-over"\n' "$LW" > "$L/scripts/agent/worktree-new.sh" && chmod +x "$L/scripts/agent/worktree-new.sh"
 out=$(cd "$L" && on_path adf-worktree-new feat/old-committed --no-start 2>&1); code=$?
 check "adf-worktree-new: runs a committed script still in scripts/agent/" \
     "[ $code -eq 0 ] && [ \"\$(cat '$LW/legacy-handed-over' 2>/dev/null)\" = 'feat/old-committed --no-start' ]"
+
+# ─── /framework-feedback's check_report.py ─────────────────────────────────
+# A project that names itself everywhere: its remotes, folder, heading, git user, branches, and local
+# hosts. A report about the framework passes; each of those in the report blocks it.
+FB="$WORK/fb" && FEEDBACK="$REPO_ROOT/plugins/adf/skills/framework-feedback/check_report.py"
+P="$FB/portal-app" && mkdir -p "$P/.claude" "$P/src/loyalty" "$FB/config"
+git -C "$P" init -q && git -C "$P" symbolic-ref HEAD refs/heads/main
+git -C "$P" config user.name "Dana Tester" && git -C "$P" config user.email dana@acme-corp.test
+git -C "$P" remote add origin git@github.com:acme-corp/acme-portal.git
+git -C "$P" remote add legacy https://git.acme.internal/web/portal-legacy.git
+printf '%s\n' '<!-- Skeleton source: v2.9.0 · abc1234 (2026-11-10) · modules: github, parallel-agents · install: packaged — update on every framework upgrade. -->' \
+    '# Acme Customer Portal' > "$P/AGENTS.md"
+printf '%s' '{"enabledPlugins": {"adf@aplyca": true}, "extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.9.0"}}}}' > "$P/.claude/settings.json"
+printf '%s' '{"mcpServers": {"cms": {"type": "http", "url": "https://cms.acme-corp.test/mcp"}}}' > "$P/.mcp.json"
+printf '%s' '{"configurations": [{"name": "app", "url": "http://portal.localhost:3000"}]}' > "$P/.claude/launch.json"
+echo 'export const points = 1;' > "$P/src/loyalty/points.ts"
+git -C "$P" add -A && git -C "$P" commit -qm init
+git -C "$P" branch feat/loyalty-points && git -C "$P" branch hotfix
+feedback() { CLAUDE_CONFIG_DIR="$FB/config" python3 "$FEEDBACK" "$@"; }
+
+ctx=$(feedback context "$P")
+check "framework-feedback: the target and the Seen in facts come from the project's settings and stamp" \
+    "printf '%s' '$ctx' | python3 -c 'import json,sys; c=json.load(sys.stdin); sys.exit(not (c[\"repo\"]==\"aplyca/AgenticDevelopmentFramework\" and c[\"tool\"]==\"gh\" and c[\"new_issue_url\"].endswith(\"/issues/new\") and c[\"release\"]==\"v2.9.0\" and c[\"install\"]==\"packaged\" and c[\"modules\"]==[\"github\",\"parallel-agents\"]))'"
+
+U="$FB/user-scope" && mkdir -p "$U/.claude" "$FB/config/plugins"
+printf '%s' '{"enabledPlugins": {"adf@forks": true}}' > "$U/.claude/settings.json"
+printf '%s' '{"forks": {"source": {"source": "git", "url": "https://gitlab.com/tools/adf-fork.git"}}}' > "$FB/config/plugins/known_marketplaces.json"
+ctx=$(feedback context "$U")
+check "framework-feedback: with no project entry, reads the marketplace Claude Code knows; a GitLab fork posts with glab" \
+    "printf '%s' '$ctx' | python3 -c 'import json,sys; c=json.load(sys.stdin); sys.exit(not (c[\"repo\"]==\"tools/adf-fork\" and c[\"tool\"]==\"glab\" and c[\"new_issue_url\"]==\"https://gitlab.com/tools/adf-fork/-/issues/new\"))'"
+printf '%s' '{"forks": {"source": {"source": "directory", "path": "/opt/adf"}}}' > "$FB/config/plugins/known_marketplaces.json"
+ctx=$(feedback context "$U")
+check "framework-feedback: a source with no repository names none, for the developer to file by hand" \
+    "printf '%s' '$ctx' | python3 -c 'import json,sys; c=json.load(sys.stdin); sys.exit(not (c[\"repo\"] is None and c[\"tool\"] is None))'"
+
+CLEAN="$FB/clean.md"
+cat > "$CLEAN" <<'MD'
+## What happens
+
+`/adf:wrap-up` stops at step 1 in the main checkout, so an answer session is never archived.
+See `specs/README.md` § Found along the way, aplyca/AgenticDevelopmentFramework#150, and
+https://github.com/aplyca/AgenticDevelopmentFramework/issues/151.
+
+## Seen in
+
+An adopting project (adf v2.9.0, packaged, modules: github, parallel-agents, the desktop app, macOS).
+MD
+out=$(feedback check "$CLEAN" "$P" 2>&1); code=$?
+check "framework-feedback: a report in the framework's terms passes, the target's own links included" \
+    "[ $code -eq 0 ] && ! printf '%s' \"\$out\" | grep -q '^BLOCK'"
+
+blocks() { # blocks <kind> <line added to the clean report>
+    { cat "$CLEAN"; printf '%s\n' "$2"; } > "$FB/draft.md"
+    out=$(feedback check "$FB/draft.md" "$P" 2>&1); code=$?
+    [ $code -eq 1 ] && printf '%s' "$out" | grep -qE "^BLOCK +$1 "
+}
+check "framework-feedback: the remote's repository name blocks" "blocks remote 'Seen in acme-portal.'"
+check "framework-feedback: the remote's owner blocks" "blocks remote 'The acme-corp team saw it.'"
+check "framework-feedback: a self-hosted remote's host blocks" "blocks remote 'Mirrored on git.acme.internal.'"
+check "framework-feedback: the folder's name blocks" "blocks folder 'In portal-app, it failed.'"
+check "framework-feedback: the project name from AGENTS.md blocks" "blocks project-name 'The Acme Customer Portal team.'"
+check "framework-feedback: the git user blocks" "blocks git-user 'Reported by Dana Tester.'"
+check "framework-feedback: any email address blocks" "blocks email 'Contact someone@example.org.'"
+check "framework-feedback: a home-directory path blocks" "blocks home-path 'Ran in /Users/dana/code.'"
+check "framework-feedback: a branch name blocks" "blocks branch 'On feat/loyalty-points it stopped.'"
+check "framework-feedback: a host from .mcp.json blocks" "blocks host 'The server at cms.acme-corp.test.'"
+check "framework-feedback: a host from launch.json blocks" "blocks host 'Opened portal.localhost.'"
+check "framework-feedback: a reference to another repository blocks" "blocks repo-ref 'Seen in someorg/billing#188.'"
+check "framework-feedback: a link to another repository blocks" "blocks repo-ref 'See https://github.com/someorg/billing/pull/3.'"
+
+{ cat "$CLEAN"; echo 'The hotfix branch, and src/loyalty/points.ts, and https://code.claude.com/docs/en/skills.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$P" 2>&1); code=$?
+check "framework-feedback: a one-word branch, the project's file paths, and other URLs only warn" \
+    "[ $code -eq 0 ] && printf '%s' \"\$out\" | grep -qE '^WARN +branch .*hotfix' && printf '%s' \"\$out\" | grep -qE '^WARN +path .*src/loyalty/points.ts' && printf '%s' \"\$out\" | grep -qE '^WARN +url '"
+G="$FB/web" && git init -q "$G" && printf '# web\n' > "$G/AGENTS.md"
+{ cat "$CLEAN"; echo 'The web preview broke.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$G" 2>&1); code=$?
+check "framework-feedback: a project named with a generic word only warns" "[ $code -eq 0 ] && printf '%s' \"\$out\" | grep -qE '^WARN +folder '"
+
+{ cat "$CLEAN"; echo 'On feat/loyalty-points it stopped.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$P" --allow feat/loyalty-points 2>&1); code=$?
+check "framework-feedback: the developer can clear a branch name with --allow" "[ $code -eq 0 ] && printf '%s' \"\$out\" | grep -q '(allowed)'"
+{ cat "$CLEAN"; echo 'Reported by Dana Tester.'; } > "$FB/draft.md"
+out=$(feedback check "$FB/draft.md" "$P" --allow 'Dana Tester' 2>&1); code=$?
+check "framework-feedback: the git user can't be cleared" "[ $code -eq 1 ] && printf '%s' \"\$out\" | grep -q \"(can't be allowed)\""
 
 echo "======================================="
 echo "Results: $PASS passed, $FAIL failed"

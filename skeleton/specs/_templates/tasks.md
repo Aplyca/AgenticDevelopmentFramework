@@ -9,8 +9,10 @@
   [P] = independent of the previous task (can run in parallel).
   The docs-first tasks (Phase 1) share one `docs:` commit; test-only tasks are `test:` commits.
   Each delivery is one branch and one pull request; size the work so that holds.
-  Change request: leave the delivered tasks as they are and append a "# CR N — <title>" part with
-  these phases, its tasks numbered from T<N>00 (T100 for CR 1) and its own gate results.
+  Change request — after the merge or on the open pull request: leave the earlier tasks as they
+  are and append a "# CR N — <title>" part with these phases, its tasks numbered from T<N>00
+  (T100 for CR 1), each red then green, and its own gate results. An earlier task the CR
+  supersedes is struck through, never deleted.
 -->
 
 - **Spec:** ./spec.md · **Plan:** ./plan.md
@@ -27,6 +29,8 @@
      before the implementation tasks. Delete this phase when the plan lists none. -->
 
 - [ ] T001 — [Doc] for [audience] (→ AC1, AC2)
+- [ ] T002 — Draft the end-user page [page] in the doc tool (→ AC1, AC2) — draft: [link]
+- [ ] T003 — Post the usage guide's draft on the tracker task (→ Documentation) — comment: [link]
 
 ## Phase 2 — Foundation
 
@@ -51,13 +55,17 @@
 
 ## Phase 5 — Reconcile & polish
 
-- [ ] T040 — Reconcile committed docs with what was built (→ Documentation)
+- [ ] T040 — Reconcile committed docs, the usage guide, and the end-user draft, with what was built (→ Documentation)
 - [ ] T041 — Post-implementable docs (→ Documentation)
 - [ ] T042 — Record gate results below
 
-## Verification checklist (each checkpoint)
+## Verification checklist (the full gate, once before delivery)
 
-<!-- CUSTOMIZE: the project's real commands, from AGENTS.md § Quick reference -->
+<!-- CUSTOMIZE: the project's real commands, from AGENTS.md § Quick reference. When each run comes:
+     .claude/rules/testing.md § Verification budget. -->
+
+While iterating — each task: its tests by name (`[command]`), static checks on the changed files
+(`[command]`); each phase's end: its feature suite, once (`[command]`).
 
 - [ ] Lint clean
 - [ ] Typecheck clean
@@ -71,3 +79,5 @@
 <!-- Evidence, not claims. For each task: the red failure you saw and the green that followed.
      Commands run and their counts (e.g. "unit: 19 files, 350 tests"). What was NOT run, and
      why (no environment, shared database, needs a preview). The PR body links here. -->
+
+- End-to-end, red then green: `[test file]` failed [before the code | on the base branch's code, in a second worktree] — "[the assertion that failed]"; passed on this branch — `[command]`, [N] passed <!-- one line per end-to-end test this work added or changed; delete when none -->

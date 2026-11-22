@@ -1,6 +1,6 @@
 ---
 name: e2e
-description: Set up, audit, or extend this project's end-to-end tests to the specification this skill carries — Playwright in its own `e2e/` folder, run with `make e2e` and `make smoke` against the checkout's own stack (in Docker or on the host), one `@smoke` test per critical flow, tests that own their data and never reach a real third party — and diagnose a failing or flaky end-to-end test from what it kept. Use when a project has no end-to-end suite, when a suite should meet the specification, when a feature adds a critical flow, or when an end-to-end test fails or flakes. A change's own tests are written test-first with /adf:write-tests, following `.claude/rules/testing.md` § End-to-end.
+description: Set up, audit, or extend this project's end-to-end tests to the specification this skill carries — Playwright in e2e/, make e2e and make smoke against the checkout's own stack, one @smoke test per critical flow, tests that own their data and never reach a real third party — and diagnose a failing or flaky one. Use when a project has no end-to-end suite, when a suite should meet the specification, when a feature adds a critical flow, or when an end-to-end test fails or flakes. A change's own tests come from /adf:write-tests.
 argument-hint: "[set up | audit | smoke | diagnose <test>]"
 ---
 
@@ -32,8 +32,9 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
 
 ## Safety (always)
 
-- **The checkout's own stack only.** The suite runs against the stack `make up` starts here, never a
-  shared environment, a preview, staging, or production. Never point `E2E_BASE_URL` anywhere else.
+- **The checkout's own stack only.** The suite runs against the stack `make up` starts here — or,
+  for a red run on the base branch's code, a second local worktree's own (F1) — never a shared
+  environment, a preview, staging, or production. Never point `E2E_BASE_URL` anywhere else.
 - **No real third party.** No test sends anything a real person or account receives (B2). A flow
   that can't be kept local is named for the human check, not tested against the real service.
 - **No secrets in the conversation.** Never read `.env`. Test accounts' credentials are variables
@@ -51,7 +52,7 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
 2. **Check where you are.** If `ops/agent/worktree.conf` (or `scripts/agent/worktree.conf`) exists
    and `git rev-parse --git-dir` equals `git rev-parse --git-common-dir`, this is the main checkout,
    which takes no edits. Say so in a line, read nothing more, and run `/adf:dispatch` now with
-   `test/e2e` as the branch, without asking first: it moves this session to the task's worktree,
+   `chore/e2e` as the branch, without asking first: it moves this session to the task's worktree,
    where this command runs as the developer typed it.
 
 3. **Read the facts, running nothing yet:**
@@ -79,7 +80,8 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
    - **`package.json`** with `@playwright/test` at the newest version released at least two weeks
      ago (`npm view @playwright/test time --json`), exactly. Check that Playwright's image has the
      same tag (`docker manifest inspect mcr.microsoft.com/playwright:v<version>-noble`).
-   - **The lockfile:** `npm install --prefix e2e --no-audit --no-fund`. Without Node on the host,
+   - **The lockfile:** `npm install --prefix e2e --no-audit --no-fund`. With the `docker` module
+     in Docker mode, or without Node on the host, never on the host:
      `docker run --rm -v "$PWD/e2e:/suite" -w /suite node:<lts> npm install --no-audit --no-fund`.
    - **`playwright.config.ts`** to S3, and **`fixtures.ts`** to S4: a unique id per test (B1), a stub
      for each third party the browser calls (B2), and, with sign-in, the setup project and its
@@ -118,8 +120,8 @@ right. Name the requirement's ID whenever you report a gap or propose a change.
    - `docs/getting-started/DEV-SETUP.md`: how to run the suite, and in native mode what the host
      needs (Node, and the browser `make build` installs).
 
-   CI that can start the stack runs `make smoke` on every pull request (K3): propose the job to the
-   developer. The framework ships no pipeline file.
+   CI that can start the stack runs `make e2e tier=critical` on every pull request (K3, K6): propose the job to the
+   developer. The framework's CI files carry no test job.
 8. **Commit** with `/adf:commit`, in two commits. First `chore:` for the suite's groundwork: the
    folder, the configuration, the service, and the tasks. Then `test:` for the smoke tests, green,
    with how each was seen failing in the body.

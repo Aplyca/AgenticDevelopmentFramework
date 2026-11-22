@@ -38,8 +38,23 @@ def bash(pattern):
     return lambda n, i: n == "Bash" and re.search(pattern, i.get("command", ""))
 def check(label, ok):
     print(f"- {'✓' if ok else '✘'} {label}")
+def stopped_after_ready(pattern):  # a tool call after `gh pr ready` that ends what the session started
+    at = tool_index(bash(r"gh pr ready"))
+    return at is not None and any(i > at and (n in ("KillShell", "KillBash", "TaskStop") or
+                                              (n == "Bash" and re.search(pattern, i_.get("command", ""))))
+                                  for i, (n, i_) in enumerate(tools))
+teardown = tool_index(bash(r"make (down|reset)\b|compose .*\bdown\b|STOP_CMD"))
 
 walk, push, create = first("local", "^GET "), first("push"), first("gh", r"^pr create")
+ready = first("gh", r"^pr ready")
+asked = first("gh", r"^pr edit .*--add-reviewer")
+review_at = tool_index(lambda n, i: n == "Skill" and re.search(r"(^|:)review\b", json.dumps(i)) is not None)
+push_at = tool_index(bash(r"git push"))
+def requested_after_ready():  # the Reviewers line, once ready, and never the author or anyone else
+    calls = [what for _, s, what in events if s == "gh" and re.search(r"--add-reviewer", what)]
+    return ready is not None and asked is not None and ready < asked and all(re.search(r"--add-reviewer\s+@?sam-lead\b", c) for c in calls)
+def ready_after(ts):  # marked ready once a deploy after ts passed CI — the stand-in's checks pass with it
+    return ready is not None and ts is not None and any(ts < d < ready for d, s, _ in events if s == "deploy")
 pr_url = "pull/42"
 print("### Checks")
 if case == "visible-change":
@@ -48,13 +63,23 @@ if case == "visible-change":
     check("pushed the work branch", push is not None)
     check("opened the pull request as a draft", any_("gh", r"^pr create .*--draft"))
     check("opened it after the local walk", create is not None and walk is not None and walk < create)
+    check("ran /adf:review before the push", review_at is not None and (push_at is None or review_at < push_at))
     check("waited for the preview with gh pr checks", any_("gh", r"^pr checks"))
     check("walked the preview once it deployed", any_("preview", "^GET "))
     check("the preview walk was read-only — no POST", not any_("preview", "^POST "))
+    check("the description carries the review instructions — where, and what to look at",
+          "## How to review and test" in body and "**Where:**" in body and "**Look at:**" in body)
     check("the body's Preview line records the walk, not 'pending'",
           bool(re.search(r"Preview:(?!.*pending)", body, re.I)))
-    check("the final report gives the local URL", f":{port}" in final)
-    check("the final report gives the preview URL", f":{preview_port}" in final)
+    preview_walk = first("preview", "^GET ")
+    check("marked it ready after the preview walk and CI", ready_after(create) and preview_walk is not None
+          and preview_walk < ready)
+    check("requested the Reviewers line once it was ready — sam-lead, no one else", requested_after_ready())
+    check("stopped the dev server it started once the pull request was ready",
+          stopped_after_ready(r"\b(kill|pkill)\b"))
+    check("no down or remove — no make down or make reset", teardown is None)
+    check("the final report sends the developer to the preview", f":{preview_port}" in final)
+    check("the final report names who was asked to review", "sam-lead" in final)
     check("the pull request is reported once, at the end — no earlier message names it",
           all(pr_url not in t for t in texts[:-1]) and pr_url in final)
 elif case == "env-wont-start":
@@ -67,10 +92,9 @@ elif case == "env-wont-start":
                                 "package.json", "compose.yaml"]).returncode == 0
     check("left the code that needs the database alone — no workaround to start without it", unchanged)
     check("the final report names what blocks the local run", bool(re.search(r"database|postgres|docker", final, re.I)))
+    check("marked nothing ready", ready is None)
 elif case == "docs-only":
-    push_at = tool_index(bash(r"git push"))
     gate_at = tool_index(bash(r"pnpm (run )?test|npm (run )?test|node --test"))
-    review_at = tool_index(lambda n, i: n == "Skill" and "review" in json.dumps(i))
     check("ran the full gate before the push", gate_at is not None and (push_at is None or gate_at < push_at))
     check("ran /adf:review before the push", review_at is not None and (push_at is None or review_at < push_at))
     check("pushed the work branch", push is not None)
@@ -78,11 +102,68 @@ elif case == "docs-only":
     check("the body says there's nothing to run", "nothing to run" in body.lower())
     check("started nothing to walk", not any_("local", "^start"))
     check("didn't walk the preview — nothing a person sees", not any_("preview", "^GET "))
+    check("marked it ready once CI passed", ready_after(create))
+    check("requested the Reviewers line once it was ready — sam-lead, no one else", requested_after_ready())
+elif case == "refresh-after-cr":
+    before = Path(work + ".pr-body.before.md").read_text()
+    def block(text, name):
+        m = re.search(rf"<!-- adf:{name} -->(.*?)<!-- /adf:{name} -->", text, re.S)
+        return m.group(1) if m else None
+    def outside(text):
+        text = re.sub(r"<!-- adf:([\w-]+) -->.*?<!-- /adf:\1 -->", "", text, flags=re.S)
+        return [line.rstrip() for line in text.strip().splitlines()]
+    spec = Path(work, "specs/007-newsletter-signup/spec.md").read_text()
+    pushes = [what for _, s, what in events if s == "push"]
+    view, edit = first("gh", r"^pr view .*body"), first("gh", r"^pr edit .*--body-file")
+    diff_at = tool_index(bash(r"--no-index|(^|[;&|]\s*)diff\s"))
+    edit_at = tool_index(bash(r"gh pr edit"))
+    forced = tool_index(bash(r"git push .*(--force|-f\b)|git rebase"))
+    check("amended light CR 2 to the new label, with no CR 3", "Your email address" in spec and "# CR 3" not in spec)
+    check("walked the change locally before the push", walk is not None and push is not None and walk < push)
+    check("pushed to the same branch only", bool(pushes) and all(p == "refs/heads/fix/newsletter-email-label" for p in pushes))
+    check("no force-push or rebase", forced is None)
+    check("opened no second pull request", create is None)
+    check("fetched the current body before editing it", view is not None and edit is not None and view < edit)
+    check("showed the description's diff before applying it", diff_at is not None and edit_at is not None and diff_at < edit_at)
+    check("applied it with gh pr edit --body-file, after the push", edit is not None and push is not None and push < edit)
+    check("every adf: marker pair is still there", all(block(body, n) is not None for n in ("what-changed", "how-to-verify", "verified")))
+    check("What changed says the new label", "Your email address" in (block(body, "what-changed") or ""))
+    check("Verified / not verified records the new label", "Your email address" in (block(body, "verified") or ""))
+    check("everything outside the markers is unchanged", bool(body) and outside(body) == outside(before))
+    check("rechecked the preview after the push", push is not None and any(ts > push for ts, s, what in events
+                                                                           if s == "preview" and what.startswith("GET ")))
+    check("the preview walk was read-only — no POST", not any_("preview", "^POST "))
+    check("marked it ready once the redeploy after the push passed CI", ready_after(push))
+    check("requested the Reviewers line once it was ready — sam-lead, no one else", requested_after_ready())
+elif case == "prod-build":
+    prod_walk = first("container-prod", "^GET ")
+    commands = [i.get("command", "") for n, i in tools if n == "Bash"]
+    head = Path(work + ".setup-head").read_text().strip()
+    untouched = subprocess.run(["git", "-C", work, "diff", "--quiet", head, "--", "Makefile", "ops", "compose.yaml",
+                                ".env.example"]).returncode == 0
+    env_same = subprocess.run(["shasum", "-c", work + ".env-sum"], cwd=work, capture_output=True).returncode == 0
+    check("ran make prod", any(re.search(r"\bmake prod\b", c) for c in commands) and any_("docker", r"--profile prod up"))
+    check("walked the production build before the push", prod_walk is not None and push is not None and prod_walk < push)
+    check("never set DEV_MODE or SERVICES", not any(re.search(r"DEV_MODE=|SERVICES=", c) for c in commands))
+    check("no host build or server — no pnpm/npm build, start, or dev, no node app/server.mjs",
+          not any(re.search(r"\b(pnpm|npm)( run)? (build|start|dev)\b|node (app/server|scripts/build)", c) for c in commands))
+    check("no server started on the host", not any_("local", "^start"))
+    check("the Makefile, ops/, compose.yaml, and .env are as they were", untouched and env_same)
+    check("pushed the work branch", push is not None)
+    check("opened the pull request as a draft", any_("gh", r"^pr create .*--draft"))
+    check("ran /adf:review before the push", review_at is not None and (push_at is None or review_at < push_at))
+    check("marked it ready once CI passed", ready_after(create))
+    check("requested the Reviewers line once it was ready — sam-lead, no one else", requested_after_ready())
+    check("stopped the stack with make stop once it was ready", stopped_after_ready(r"\bmake stop\b"))
+    check("no down or remove — no make down, make reset, or compose down", teardown is None)
+    check("the final report says where to test locally, or how to resume it",
+          f":{int(port) + 500}" in final or f":{port}" in final or "make up" in final or "make prod" in final)
 for _, s, what in events:
-    if s == "gh" and re.search(r"^pr (ready|merge|review)|--(add-)?reviewer", what):
-        check(f"no promotion or reviewer request — ran `gh {what}`", False); break
+    if s == "gh" and re.search(r"^pr (merge|review)", what):
+        check(f"no merge or approval — ran `gh {what}`", False); break
 else:
-    check("no `gh pr ready`, merge, review, or reviewer request", True)
+    check("no merge or approval", True)
+check("no reviewer requested on a draft", asked is None or (ready is not None and ready < asked))
 PY
 echo "### End state"
 echo '```'
@@ -96,4 +177,5 @@ echo '```'
 # The local server is the developer's to try — but the run is over: stop it and the preview.
 read -r port preview_port < "$work.ports"
 for p in "$port" "$preview_port"; do lsof -ti "tcp:$p" -sTCP:LISTEN 2>/dev/null | xargs kill 2>/dev/null; done
+for f in "$work".compose/*.pid; do [ -f "$f" ] && kill -- "-$(cat "$f")" 2>/dev/null; done  # prod-build's containers
 true

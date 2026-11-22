@@ -1,6 +1,6 @@
 ---
 name: adopt
-description: Bootstrap a repository for AI-agentic development with the Aplyca framework — inspect it, copy the skeleton and the optional modules the team chooses, fill placeholders with verified facts only, configure the guardrail hooks, stamp the baseline SHA, record the adoption as PDR-0001, verify, and prepare an adoption PR. Works in a new project before any code exists, and adds modules to an already-adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
+description: Bootstrap a repository for the Agentic Development Framework — the skeleton and chosen modules, placeholders filled from verified facts, the hooks, PDR-0001, and the adoption pull request — even before any code exists; also adds modules to an adopted repository. Use when asked to adopt the framework, enable agentic development, bootstrap AI config, or make a repo AI-ready.
 ---
 
 # Adopt the Agentic Development Framework
@@ -42,15 +42,14 @@ Adopt from a release, never from whatever commit a checkout is at: the project p
 
 You need `<framework-root>/skeleton/`, `<framework-root>/modules/`, and `<framework-root>/docs/`.
 Record the release (the tag), its commit (`git -C <framework-root> rev-parse --short HEAD`), and the
-commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`). With no release tag yet,
-use the default branch's head and say so.
+commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`).
 
 **Already adopted?** If the first line of the target's `AGENTS.md` — or of `CLAUDE.md`, in a project
 adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
 to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
-stamp) or point to `/upgrade`. When the parallel-agents module is already installed, the main
+stamp) or point to `/adf:upgrade`. When the parallel-agents module is already installed, the main
 checkout takes no edits: started there, run `/adf:dispatch` with `chore/add-modules` as the branch,
-without asking first. It creates the task's worktree beside the main checkout and moves this session
+without asking first. It creates the task's worktree under `.claude/worktrees/` and moves this session
 there, where you go on.
 
 ### A new project
@@ -97,7 +96,7 @@ Build a facts table (`fact → evidence file:line`):
   `main`, optional never-merged integration branch) or **Model B** (integration branch, release
   merge, tag ships) from the skeleton's `CONTRIBUTING.md` — or note a third shape
 - **History that must stay append-only** — migrations directories; **generated files** — lockfiles, generated types
-- **Requirements source** — ask: which tracker (ClickUp, Jira, Linear, GitHub Issues, none)? Its MCP endpoint, if any
+- **Requirements source** — ask: which tracker (ClickUp, GitHub issues, GitLab issues, Jira, Linear, none)? Its MCP endpoint, if any; on issues, the labels that mean in progress and in review. When a merged change is live — on the merge, on a release, or when someone says
 - **Connected services** — ask: which services does the stack use that agents should read — a database, hosting, a CMS (Supabase, Vercel, Contentful…)? Each one with an official MCP server is a later `/adf-connect:connect`
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
 - **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), a `Makefile`, `ops/`, `.devcontainer/`; what the local stack runs, and how
@@ -113,11 +112,9 @@ Present the table before going further. Wrong facts here poison every file downs
 - **Ask how to install** (decisions 0016, 0018), with your recommendation:
   - **Packaged** — the default. The skills, agents, workflows, hook scripts, and the framework's
     reference docs come from the `adf` plugin, pinned to a release tag, and the repository
-    commits only its own layer and its modules: about 50 fewer files. People type
+    commits only its own layer and its modules. People type
     `/adf:triage`. Claude Code's cloud sessions don't load it, and CI installs it first. It
-    pins a release tag, v1.0.0 or later
-    (`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`); with none
-    yet, say so and install committed.
+    pins the release from Step 1.
   - **Committed** — recommend it instead when the team also uses another AI tool for the framework's
     skills (Cursor, Copilot, Gemini or Antigravity) or needs Claude Code's cloud sessions. The
     machinery is written into the repository too: every AI tool reads it, and nothing depends on a
@@ -127,7 +124,8 @@ Present the table before going further. Wrong facts here poison every file downs
   out, the settings, the names in `.claude/rules/claude-code.md` and `DEV-SETUP.md`, the stamp, and the
   checks.
   **The reference docs** (decision 0019) — `COST-MODEL.md`, `MCP-INTEGRATION.md`,
-  `MEMORY-STRATEGY.md`, `SPEC-MODEL.md` — come from the plugin. Once the files are in, run
+  `MEMORY-STRATEGY.md`, `PROSE-PATTERNS.md`, `SPEC-MODEL.md` — come from the plugin. Once the
+  files are in, run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged <tag>`: it points the
   files that name a reference doc at the pinned release, and lists any other file that still names
   one — one the team wrote follows by hand.
@@ -157,32 +155,47 @@ Present the table before going further. Wrong facts here poison every file downs
   common case — delete `evals/`.
 - **Offer the modules** (`modules/README.md`), recommending from the facts:
   - `github` — when the repo is on GitHub
+  - `gitlab` — when the repo is on GitLab, GitLab.com or self-managed (`origin`'s URL, a
+    `.gitlab-ci.yml`): the same harness as `github`, with its gates as a CI include
   - `git-hooks` — when the team wants local gates for every git client
   - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
     commits, or the README are good evidence)
-  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout only dispatches, every task through `/dispatch` (ports and start commands only if each worktree runs a server)
+  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout takes no edits: the session that takes a task moves to its worktree with `/dispatch` (ports and start commands only if each worktree runs a server)
   - `docker` — when the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the
     team wants a containerized local environment: `/dev-env` writes the stack from its templates or
     moves an existing one to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`,
     ports Docker picks, decision 0032), runs the app natively, gives each worktree its own stack with
-    `parallel-agents`, and diagnoses or resets it; destructive docker commands ask first. A
+    `parallel-agents`, and diagnoses or resets it; docker and make commands run without a prompt. A
     `.devcontainer/` alone is worth mentioning, not recommending
   - `e2e` — when people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in
     `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the
     checkout's own stack, with one smoke test per critical flow (decision 0037). An existing suite
     (`playwright.config.*`, `cypress/`) is good evidence; with `docker`, it runs in Docker
+  - `unit` — for a JavaScript or TypeScript app: `/unit` sets up Vitest unit and integration
+    tests to the specification it carries, run by tier (`@smoke`, `@critical`, regression) and by
+    feature suite (a folder per feature, listed in `docs/TEST-SUITES.md`), the same tiers the `e2e`
+    module's suite uses (decision 0058). An existing runner (`jest.config.*`, `vitest.config.*`) is
+    evidence. Recommend it with `e2e` for an app with a browser
   - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time`
-    logs each day of a task in the tracker, in whole units, as the AI-assisted time or a senior
-    developer's estimate without AI (decision 0043). Without the module, the project never sees it
+    logs each outcome of a task in the tracker, in whole units, as the AI-assisted time, a senior
+    developer's estimate without AI, or a midpoint (decisions 0043, 0092). Without the module, the
+    project never sees it
+  - `end-user-docs` — when the product's end users read its documentation in a doc tool (ClickUp
+    Docs, Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
+    implementation, where end users can't see it, and publishes it once the feature ships (decision
+    0048). The doc tool needs its MCP server — `clickup` for ClickUp Docs
   Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
-  `modules/clickup/install.sh <repo>`. `docker` has no files to copy: `modules/docker/install.sh <repo>`
+  `modules/clickup/install.sh <repo>`. `gitlab` copies, and merges into an existing `.gitlab-ci.yml`
+  the three blocks its `MODULE.md` § Install names. `docker` has no files to copy: `modules/docker/install.sh <repo>`
   merges its permission rules into `.claude/settings.json`, and `/dev-env set up` writes the stack;
   `e2e` has none either: `modules/e2e/install.sh <repo>` merges its rules, and `/e2e set up` writes
-  the suite.
+  the suite; likewise `unit`: `modules/unit/install.sh <repo>`, and `/unit set up`. Run `docker`'s
+  installer before theirs: with its rules in place, they leave out the commands that run tests on
+  the host.
   A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
-  and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020; `/track-time`, decision 0043), `adf-dev` for
-  development (`docker`'s `/dev-env`, `e2e`'s `/e2e`). A committed install writes them with `build-committed.py`
+  and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020; `/track-time`, decision 0043; `/end-user-docs`, decision 0048), `adf-dev` for
+  development (`docker`'s `/dev-env`, `e2e`'s `/e2e`, `unit`'s `/unit`). A committed install writes them with `build-committed.py`
   above and leaves that plugin off. **Turn on the plugin that carries a module** in a packaged
   install when it isn't `adf`, once however many of its modules the project has: `"<plugin>@aplyca": true` in
   `enabledPlugins`, and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`.
@@ -190,15 +203,11 @@ Present the table before going further. Wrong facts here poison every file downs
   `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0027). For
   `parallel-agents`, that's every file in `ops/agent/` but `worktree.conf`, which stays: it's the
   project's settings, and what shows the module is installed.
-- **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than GitHub Issues or
-  ClickUp (Jira, Linear, GitLab), or connected services: turn on `"adf-connect@aplyca": true` in
+- **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than ClickUp or GitHub or
+  GitLab issues (Jira, Linear), or connected services: turn on `"adf-connect@aplyca": true` in
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
   `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
   team reviews on its own.
-- **Offer `adf-dev`'s band** (decision 0026) when the app runs locally: a line above the prompt with
-  the local environment's URL, and whether it answers, for the local check. Turn on
-  `"adf-dev@aplyca": true` in `enabledPlugins`, in either install, and fill `LOCAL_URL` below. It needs
-  Claude Code v2.1.287 or later in a terminal, or the desktop app from v2.1.286.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -206,7 +215,8 @@ Present the table before going further. Wrong facts here poison every file downs
 
 - **`AGENTS.md`** — identity, stack, ground rules, delivery rules (base branch, protected branches),
   sensitive areas, boundaries & antipatterns, conventions, structure, quick reference (commands
-  exactly as typed).
+  exactly as typed — running one test or linting one file with the variable the project's task
+  takes, read from its `Makefile` or scripts, or "none").
   Under ~200 lines; link instead of inlining. Monorepo: nested `AGENTS.md` per module whose rules
   differ (template in `/init-project`).
 - **`docs/CONSTITUTION.md`** — 5–10 real principles agreed with the user; it overrides `AGENTS.md`, so
@@ -215,15 +225,15 @@ Present the table before going further. Wrong facts here poison every file downs
   `AGENTS.md`. Leave the stamp on `AGENTS.md`'s first line for step 5. Packaged: add the names note
   from `docs/SETUP.md` § Packaged install.
 - **`docs/getting-started/DEV-SETUP.md`** — packaged: the key commands under § AI-assisted
-  development by their full names (`/adf:triage`, `@adf:code-reviewer`); a module
+  development by their full names (`/adf:triage`, `@adf:code-reviewer`); a
   module's skill goes by the name of the plugin that carries it (`/adf-dev:dev-env`).
-- **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
+- **`.claude/hooks/config.sh`** — `APPROVE_STATUS_MOVE` (the tracker tool that moves a task's status, when the tracker has an MCP server), `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
-  areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the developer
-  opens for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
+  areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the agent
+  walks for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
   parallel-agents module, or leave it empty there and let `READY_URL` serve).
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
-  keep the `ask` rules for outward actions; for GitLab, add the `glab` equivalents of the `gh` rules.
+  keep the `ask` rules for outward actions, the `glab` ones beside the `gh` ones on either host.
   Packaged: no `hooks` block, since the plugin wires them, and
   `Read(~/.claude/plugins/cache/aplyca/adf/**)` in `permissions.allow`, so the plugin's skills
   and agents open its reference docs without asking.
@@ -234,23 +244,32 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`docs/TRACKER-INTEGRATION.md`** — the tracker, `.mcp.json` (if it has an MCP server), and a
   read-only `mcp__<server>__…` allowlist from the server's real tool names. With the `clickup`
   module, fill the values its `MODULE.md` § Customize lists (task links, statuses via
-  `clickup_get_task` with `expand_statuses: true`, where PR links go). Delete the page if there is no
-  tracker.
+  `clickup_get_task` with `expand_statuses: true`, where PR links go). On GitHub or GitLab issues,
+  there's no server: name the labels for in progress and in review in *Status at each moment*, and
+  keep § Issues as the tracker. Fill *Live when* from the branching model, and leave *Updates post*
+  at `on their own` unless the team wants every update approved first. Delete the page if there is
+  no tracker.
 - **Modules** — `ops/agent/worktree.conf`; the PR template's quality and constitution checklists;
-  `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`); `FAST_CHECKS` in
+  `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`) — with `gitlab`, the
+  merge request template, `issue_templates/Default.md`'s tracker link, and the `ADF_` variables in
+  `.gitlab-ci.yml`; `FAST_CHECKS` in
   `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`, and its
   Quick reference lines — packaged, the commands' names (`adf-worktree-new`, `adf-worktree-ls`,
   `adf-worktree-rm`), as `DEV-SETUP.md` has the skills' full names. For
   `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
   `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
   stack to the local environment specification it carries (its templates are an example of it), or
-  audits the existing one against it and proposes the move, and fills
-  `DEV-SETUP.md`, the Quick reference's start and stop lines, `LOCAL_SERVICE`, and `deployment.md`'s
+  audits the existing one against it and proposes the move, and fills `DEV-SETUP.md`,
+  the Quick reference's start, stop, and one-file lines, `LOCAL_URL`, and `deployment.md`'s
   `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
   `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
-  the critical flows, and it writes the suite and their smoke tests. For `time-tracking`, fill
+  the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is
+  `/unit set up` (packaged: `/adf-dev:unit set up`): the developer picks the feature suites, and it
+  writes the configuration, the tier scripts, and `docs/TEST-SUITES.md`. For `time-tracking`, fill
   `docs/TIME-TRACKING.md` — the unit, the tracker's time-entry tools, the labels — from the tracker's
-  real tools, or leave a `TODO(team)` for each.
+  real tools, or leave a `TODO(team)` for each. For `end-user-docs`, fill `docs/END-USER-DOCS.md` —
+  the doc tool, the end-user doc, the drafts location, its page tools, the end users and their
+  language — from what the team says and the tool's real tools, or leave a `TODO(team)` for each.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
 - Every unknown: `<!-- TODO(team): <question> -->`. Fill each doc's `owner · last_updated · scope`.
 
@@ -258,7 +277,7 @@ Present the table before going further. Wrong facts here poison every file downs
 
 - First line of `AGENTS.md`:
   `<!-- Skeleton source: <vX.Y.Z> · <SHA> (<YYYY-MM-DD>) · modules: <comma-separated, or none> — see docs/UPGRADING.md in AgenticDevelopmentFramework -->`
-  The release, its commit, and the date are the ones Step 1 recorded. Without the stamp, `/upgrade` has
+  The release, its commit, and the date are the ones Step 1 recorded. Without the stamp, `/adf:upgrade` has
   no baseline to diff against. Packaged: `· install: packaged` follows the modules — it's what turns
   the plugin's skills, agents, and hooks on in this project.
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
@@ -266,18 +285,20 @@ Present the table before going further. Wrong facts here poison every file downs
   why), the costs (docs to keep fresh, more tokens
   for phased work, the approval gate on the critical path), alternatives considered. Ask who the
   deciders are. Add it to the index in `docs/process/README.md`.
-- **The plugin setting.** The documented install (`--scope project`) already wrote
-  `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework"}}}`
+- **The plugin setting.** The documented install (`--scope project`, at the newest release) already wrote
+  `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>"}}}`
   and `"enabledPlugins": {"adf@aplyca": true}` into `.claude/settings.json`: keep both when
   merging the skeleton's settings, so they're committed with the adoption and teammates get the
-  plugin and `/upgrade`. If they're missing — a user- or local-scope install — offer to add them
+  plugin and `/adf:upgrade`. If they're missing — a user- or local-scope install — offer to add them
   (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
   install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
   skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
   project then gets the plugin's copies at the same release as its own files, and a packaged one gets
-  its machinery from that release. With no release yet, leave the entry unpinned. Add
-  `"autoUpdate": true` to the same entry, so a pin that later moves updates every teammate's plugins
-  on its own.
+  its machinery from that release. Add
+  `"autoUpdate": true` to the same entry. A pin that later moves reaches each machine through the
+  commands `/adf:upgrade` gives (decision 0090). Writing the pin doesn't move this machine's copy of
+  the marketplace: Claude Code keeps it at the ref it was first added with, which Step 6 checks
+  (decision 0091).
 
 ## Step 6 — Verify
 
@@ -285,12 +306,14 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
+- [ ] This machine's copy of the marketplace is at the pin: `aplyca`'s `ref` in `claude plugin marketplace list --json` equals the settings' `"ref"`. A GAP when it differs or is missing (added without a release, it follows the default branch): after the merge, from the project's folder, `claude plugin marketplace add <source>#v<X.Y.Z> --scope project`, then `claude plugin uninstall` and `claude plugin install` (`--scope project`) for each plugin the settings turn on, then `git restore .claude/settings.json`. `claude plugin update` isn't enough: at the release's version it keeps the files it installed from the default branch (decision 0091)
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
-- [ ] Packaged, on a release that carries the reference docs: none of them is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
+- [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
-- [ ] Packaged, with `parallel-agents`, on a release whose plugin carries the commands: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
-- [ ] With `docker`: `.claude/settings.json` parses and its `ask` list holds the module's rules
-- [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke`
+- [ ] Packaged, with `parallel-agents`: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout
+- [ ] With `docker`: `.claude/settings.json` parses, its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its `deny` list holds the module's `DEV_MODE` and `SERVICES` rules, and its `ask` list holds no docker or make rule of the module's
+- [ ] With `e2e`: `.claude/settings.json` parses and its `allow` list holds `make e2e` and `make smoke` — or, with `docker`, the `Bash(make *)` that covers them
+- [ ] With `unit`: `.claude/settings.json` parses and, without `docker`, its `allow` list holds `npm test` and `npm run test:smoke`; with `docker`, neither is allowed and `make test` runs them
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
@@ -305,4 +328,4 @@ GAPs go in the PR description; they're findings, not failures to hide.
 1. Commit on the feature branch: `docs: adopt the Agentic Development Framework (skeleton <SHA>)`.
 2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, open TODOs as
    a checklist, verification results.
-3. Push and open the PR **as a draft, only after the user approves**.
+3. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request installs the rules that grant it.

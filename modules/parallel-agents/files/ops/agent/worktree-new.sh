@@ -3,15 +3,15 @@
 # anyone else: its own branch, its own env file seeded from the MAIN checkout's, its own port, and —
 # unless --no-start — its environment set up and started.
 #
-# Worktrees are siblings of the main checkout (or live under WORKTREE_PARENT), named after the
-# branch with "/" turned into "-" (feat/newsletter-signup → ../feat-newsletter-signup). Ports derive
-# from that name, so they're stable across runs, and are reserved under a lock so two agents
-# starting at once can't claim the same one.
+# Worktrees live in the main checkout's .claude/worktrees/, beside Claude Code's own, named after the
+# branch with "/" turned into "-" (feat/newsletter-signup → .claude/worktrees/feat-newsletter-signup).
+# Ports derive from that name, so they're stable across runs, and are reserved under a lock so two
+# agents starting at once can't claim the same one.
 #
 # Usage: ops/agent/worktree-new.sh <type>/<slug> [--no-start | --setup-only] [--refresh-env] [--from <ref>]
 #   (default)      create the worktree if needed, run SETUP_CMD and START_CMD, wait for READY_URL
 #   --no-start     create the worktree and its env file only — what /dispatch uses
-#   --setup-only   create if needed and run SETUP_CMD (e.g. host dependencies the git hooks need)
+#   --setup-only   create if needed and run SETUP_CMD (what the git hooks and tests need)
 #   --refresh-env  rewrite an existing worktree's env file from the main checkout and re-claim its port
 #   --from <ref>   start a NEW branch from <ref> instead of BASE_BRANCH (e.g. a release tag for a hotfix)
 # Rerunning for an existing worktree never touches its branch; without --no-start it sets the
@@ -54,21 +54,30 @@ fi
 
 SLUG="$(to_slug "$BRANCH")"
 MAIN_CHECKOUT="$(main_checkout)" || die "not inside a git repository."
-PARENT="$(worktree_parent "$MAIN_CHECKOUT")"
-WORKTREE_DIR="$PARENT/$SLUG"
+WORKTREE_DIR="$MAIN_CHECKOUT/.claude/worktrees/$SLUG"
 PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
 APP_PORT=""
 
 # --- Branch and worktree ---------------------------------------------------------------------
 existing="$(worktree_of_branch "$MAIN_CHECKOUT" "$BRANCH")"
 EXISTING=""
-# A linked worktree's .git is a file; the main checkout's is a directory and is never "reused".
-if [ "$existing" = "$WORKTREE_DIR" ] && [ -f "$WORKTREE_DIR/.git" ]; then
+# A linked worktree's .git is a file; the main checkout's is a directory and is never "reused". The
+# branch's worktree is reused wherever it is: one from a release before decision 0083 sits beside
+# the main checkout.
+if [ -n "$existing" ] && [ -f "$existing/.git" ]; then
+  WORKTREE_DIR="$existing"
   EXISTING=1
+  # Named after its folder, as worktree-rm and worktree-ls name it: a reused worktree's folder may
+  # not be its branch's slug, and STOP_CMD must expand the ${PROJECT} that START_CMD did.
+  SLUG="$(basename "$WORKTREE_DIR")"
+  PROJECT="$(project_name "$MAIN_CHECKOUT" "$SLUG")"
   [ -z "$FROM_REF" ] || echo "Note: '$BRANCH' already has a worktree — --from is ignored." >&2
   echo "==> Worktree exists: $WORKTREE_DIR (branch left as it is)"
 else
   [ -z "$existing" ] || die "'$BRANCH' is already checked out at $existing."
+  if ! git -C "$MAIN_CHECKOUT" check-ignore -q "$WORKTREE_DIR"; then
+    echo "Note: git doesn't ignore .claude/worktrees/ here, so the main checkout lists the task's worktree as untracked — add it to .gitignore." >&2
+  fi
   [ ! -e "$WORKTREE_DIR" ] || die "$WORKTREE_DIR already exists."
 
   if git -C "$MAIN_CHECKOUT" remote get-url origin >/dev/null 2>&1; then
@@ -111,11 +120,18 @@ marker="$(git -C "$WORKTREE_DIR" rev-parse --absolute-git-dir)/agent-worktree"
 [ -f "$marker" ] || echo "Set up by ops/agent/worktree-new.sh — read by session-context.sh and worktree-ls.sh." >"$marker"
 
 # --- Port, under a lock ------------------------------------------------------------------------
-# "Taken" means listening now OR reserved in a sibling worktree's env file whose environment isn't
+# "Taken" means listening now OR reserved in another worktree's env file whose environment isn't
 # up yet. Checking only the first is a race: two agents starting together both see a free port.
-# The env files are the registry; the lock makes check-then-claim atomic.
-LOCK_DIR="$PARENT/.$(repo_name "$MAIN_CHECKOUT")-worktree-ports.lock"
-release_lock() { rm -rf "$LOCK_DIR" 2>/dev/null || true; }
+# The env files are the registry; the lock, in the repository's shared git directory, makes
+# check-then-claim atomic.
+LOCK_DIR="$(git -C "$MAIN_CHECKOUT" rev-parse --path-format=absolute --git-common-dir)/agent-worktree-ports.lock"
+# Only a run that took the lock releases it: a rerun for an existing worktree never takes it.
+LOCKED=""
+release_lock() {
+  [ -n "$LOCKED" ] || return 0
+  rm -rf "$LOCK_DIR" 2>/dev/null || true
+  LOCKED=""
+}
 
 WRITE_ENV=""
 if [ -n "$ENV_FILE" ] && { [ -z "$EXISTING" ] || [ -n "$REFRESH_ENV" ]; }; then
@@ -128,13 +144,15 @@ if [ -n "$WRITE_ENV" ] && [ "${PORT_SLOTS:-0}" -gt 0 ]; then
     owner="$(cat "$LOCK_DIR/pid" 2>/dev/null || true)"
     if [ -n "$owner" ] && ! kill -0 "$owner" 2>/dev/null; then
       echo "==> Clearing a stale port lock left by PID $owner"
-      rm -rf "$LOCK_DIR"
+      # Still that owner's: another waiter may have cleared it and taken the lock meanwhile.
+      [ "$(cat "$LOCK_DIR/pid" 2>/dev/null || true)" != "$owner" ] || rm -rf "$LOCK_DIR"
       continue
     fi
     sleep 1
     waited=$((waited + 1))
     [ "$waited" -lt 60 ] || die "timed out waiting for the port lock at $LOCK_DIR (remove it if no other run is active)."
   done
+  LOCKED=1
   trap release_lock EXIT
   echo $$ >"$LOCK_DIR/pid"
 
@@ -145,7 +163,7 @@ if [ -n "$WRITE_ENV" ] && [ "${PORT_SLOTS:-0}" -gt 0 ]; then
     [ -n "$port" ] && reserved="$reserved$port "
   done < <(all_worktrees "$MAIN_CHECKOUT")
 
-  # Refreshing keeps the worktree's own port while no sibling claims it — its app may be running on it.
+  # Refreshing keeps the worktree's own port while no other worktree claims it — its app may be running on it.
   current="$(env_value "$WORKTREE_DIR/$ENV_FILE" APP_PORT || true)"
   if [ -n "$EXISTING" ] && [ -n "$current" ]; then
     case "$reserved" in *" $current "*) ;; *) APP_PORT="$current" ;; esac
@@ -217,6 +235,11 @@ fi
 release_lock
 trap - EXIT
 
+# The port stays the worktree's while its env file reserves it, so Claude Desktop's Browser can list it.
+if [ -n "$WRITE_ENV" ] && [ -n "$APP_PORT" ]; then
+  launch_entry "$WORKTREE_DIR" "$APP_PORT"
+fi
+
 echo
 echo "==> Worktree ready: $WORKTREE_DIR"
 echo "    Branch:  $BRANCH"
@@ -240,7 +263,7 @@ if [ "$MODE" = "none" ]; then
     echo
     echo "--no-start: the environment is left down. When a step needs it, run from the worktree:"
     [ -z "$START_CMD" ] || echo "  ops/agent/worktree-new.sh $BRANCH                # set up and start"
-    [ -z "$SETUP_CMD" ] || echo "  ops/agent/worktree-new.sh $BRANCH --setup-only   # only what the git hooks need"
+    [ -z "$SETUP_CMD" ] || echo "  ops/agent/worktree-new.sh $BRANCH --setup-only   # only what the git hooks and tests need"
   fi
   exit 0
 fi

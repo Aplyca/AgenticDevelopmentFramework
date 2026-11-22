@@ -11,19 +11,30 @@ The tracker task (ClickUp, Jira, Linear, GitHub Issues…) stays the source of t
 requester needs**; the spec folder records **how we understood it and what we built**. Specs
 _link_ their tracker task — they never copy it.
 
+## Records name roles
+
+A spec folder is read by everyone with access to the repository, for as long as the repository
+lives — a different audience from the tracker's, and a longer time than anyone holds a role. So
+`spec.md`, `plan.md`, and `tasks.md` date each decision and attribute it to a **role** — requester,
+developer, tech lead, legal — never to a person's name: in `approvals:`, Clarifications, change
+requests, and assumptions alike. Decisions are written in the folder's own words: no quotes or text
+copied from the tracker, and no "the requester said…". The `tracker:` link is where people's words
+live, and git history holds who committed what.
+
 ## Lanes — how much process a change gets
 
 Every change to the repository takes one of three lanes. The lane follows **risk and uncertainty,
 not size**. What catches defects runs in every lane: a test that proves the change, the guardrail
-hooks, CI, the developer's check on the local environment before the pull request, a draft pull
-request reviewed by a person, and the human check on the preview. What the
+hooks, CI, the agent's own check and review on the local environment before the pull request, its
+test and review on the preview, and a person's review there before the merge — agents implement and
+review; humans decide. What the
 lane changes is how much gets written down and approved *before* the code exists.
 
 | Lane | When | What happens |
 | --- | --- | --- |
-| **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. About 3 files or fewer, in one layer, and no escalation trigger | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test) → edit until it passes → `/commit`. When it changes what a spec records as delivered, add a [light change request](#change-requests) in the same commit; a fix that restores documented behavior needs none |
-| **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the developer confirms the risky part before the commit. Still no spec folder: a light change request when it changes recorded behavior, a regression test for a bug |
-| **Full** | Something to decide: a requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves the design to us. Also a new feature, a new dependency, or work across layers or more than ~3 files | A spec folder and the [flow](#flow) below: spec → plan → tasks → approval gate → docs first → one red → green commit per task → review |
+| **Fast** | The requester has already decided exactly what they want — or a bug with a clear cause, where the fix restores the intended behavior. In one layer, with no escalation trigger — however many files it touches | No spec folder, plan, or approval gate. Restate the request in one line with **"done when…"** and the files you expect to touch → search every use of what you change → write or update the test that asserts the new behavior and watch it fail (for a bug, the regression test) → edit until it passes → `/commit`. When it changes what a spec records as delivered, add a [light change request](#change-requests) in the same commit; a fix that restores documented behavior needs none |
+| **Careful** | As fast, but the change touches a risk area (triggers below) | The fast lane plus that area's [checklist](#careful-lane-checklists), and the pull request names the risky part — the area, what the checklist found, what was walked locally — where the developer's test starts. The push and the draft need no yes. Still no spec folder: a light change request when it changes recorded behavior, a regression test for a bug |
+| **Full** | Something to decide: a requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves the design to us. Also a new feature, a new dependency, or work across layers | A spec folder and the [flow](#flow) below: spec → plan → tasks → approval gate → docs first → one red → green commit per task → review |
 
 Answers (investigations, impact analyses, estimates) and changes to how the team works (PDRs in
 `docs/process/`) take no lane.
@@ -33,13 +44,14 @@ Answers (investigations, impact analyses, estimates) and changes to how the team
 | Trigger | Lane, at least |
 | --- | --- |
 | A requirement that's unclear, conflicts with an agreed acceptance criterion, or leaves a design choice to us | Full |
-| A new feature or module, a new dependency, or a change across layers or more than ~3 files | Full |
+| A new feature or module, a new dependency, or a change across layers | Full |
 | A migration or schema change; authentication, authorization, or row-level security; personal data; payments; a public API or contract; code that other features use; infrastructure, CI, or deploy configuration | Careful |
 | A path in the project's sensitive areas — `AGENTS.md` § Sensitive areas, mirrored in `CAREFUL_GLOBS` (`.claude/hooks/config.sh`) | Careful |
 
 Triggers are checked at triage **and again while working**. When the diff grows past the files
-stated at triage, a test outside the area fails, or no test can prove the change: stop, tell the
-developer, and move up a lane — keeping what's done.
+stated at triage, a test outside the area fails, or no test can prove the change: move up a lane,
+keeping what's done, and tell the developer. Into careful, carry on with its checklist; into full,
+stop: the spec and the approval gate come before more code.
 
 ### Careful-lane checklists
 
@@ -49,6 +61,8 @@ developer, and move up a lane — keeping what's done.
   denied case as well as the allowed one.
 - **Personal data** — what's collected, stored, or exposed changes only as the request says; nothing
   new reaches logs, analytics, or the browser.
+- **Payments** — the authorization and personal-data checklists both apply; amounts and who is
+  charged change only as the request says, with a test for the failed or declined case.
 - **Shared code** — list the code's other consumers and run their tests.
 - **Public API or contract** — existing callers keep working (an additive change), or the developer
   agrees to the break.
@@ -80,7 +94,7 @@ higher effort level or a stronger model, and extra verification (`@security-revi
 The full lane:
 
 ```
-triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE → docs first → implement (TDD per task) → verify → local check → draft PR
+triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE → docs first → implement (TDD per task) → verify → local check → draft PR → ready
 ```
 
 | Step | Artifact | What happens |
@@ -92,11 +106,11 @@ triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE �
 | **Tasks** | `tasks.md` | Dependency-ordered tasks sized to one commit each, each naming its test and ACs |
 | **Analyze** | (report) | Read-only consistency check: every AC → task → test, no constitution conflict, change surface complete (`@spec-analyzer`, or `/deep-spec-analysis` for high-stakes work) |
 | **Approve** | `spec.md` `status: approved` | **Stop.** The developer sees the scope, the change surface, and every assumption, and signs off. No implementation code before this. |
-| **Docs first** | pre-implementable docs | Written from the spec and plan, committed before implementation (`/write-docs`; skips cleanly when there are none) |
+| **Docs first** | pre-implementable docs | Written from the spec and plan, committed before implementation (`/write-docs`; skips cleanly when there are none). A tracker task's usage guide — written in the spec — is posted on the task as a draft (`/stakeholder-update guide`). With the end-user-docs module, an end-user page is drafted in the doc tool (`/end-user-docs`) and published once the feature ships |
 | **Implement** | one commit per task | Write the test, watch it fail, write the code, watch it pass, commit, tick the task (`/implement`) |
 | **Verify** | `tasks.md` § Gate results | Full gate run; `/implement` records the red-then-green evidence and what could not be run; `/review` checks it |
-| **Local check** | the agent's walk | The agent runs the change on the local environment and walks the changed flow before any push (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use |
-| **Deliver** | draft PR | Once the local check passes (with nothing to run, once the gate and review pass): push and open a **draft** PR naming the spec folder and tracker task (`/open-pr`). The developer tests it locally and on the preview, QCs it, and marks it ready. |
+| **Local check** | the agent's walk and review | The agent runs the change on the local environment and walks the changed flow before any push (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use — and runs `/review`, in every lane |
+| **Deliver** | draft PR | Once the local check and review pass (with nothing to run, the gate and review): push and open a **draft** PR naming the spec folder and tracker task, test and review it on the preview, and mark it ready once that and CI pass — its description carrying the review instructions — then request the reviewers and post the outcome on the tracker task (`/open-pr`). The reviewers review it on the preview, approve it, and merge. Once it's live, the task gets its delivered update and status. |
 
 The approval gate sits after the plan on purpose: approving a spec alone is cheap but checks
 the wrong thing — the riskiest part of an agent's convincing analysis is usually **which files
@@ -109,12 +123,20 @@ the first commit, a wrong change surface is a sentence to correct; after it, a r
 | --- | --- |
 | Tracker task | The business requirement (one task may need several spec folders) |
 | Spec folder | One feature — created by its first PR, amended by later change requests |
-| Branch | `<type>/<slug>`, where `<slug>` matches the spec folder's slug; a change request's branch adds the change: `<type>/<slug>-<change>` |
+| Branch | `<type>/<slug>`, where `<slug>` matches the spec folder's slug; a change request after the merge gets a branch that adds the change: `<type>/<slug>-<change>` (before the merge, it rides the open branch) |
 | Commit | One task from `tasks.md` (full lane); one change with its test (fast and careful lanes) |
-| Pull request | One per branch; names its spec folder and links its tracker task |
+| Pull request | One per branch; names its spec folder, links its tracker task, and carries everything the task changes in the repository, its record included. After the merge, only a change request, a fix, or a follow-up opens another |
 
 **Shared foundation work** that several features depend on — a migration, a shared type, a
 service — is its own spec folder and its own PR, landed first.
+
+**A feature split across spec folders** — a provider and the consumers that use it, often built on
+parallel branches — shares one written contract. Before the split, write the shared interface —
+parameter names, accepted values, field IDs, endpoints — in both specs (§ Constraints & prior
+decisions). The consumer names the provider's folder in `related-specs`, and the provider names
+its consumers. A change to the contract on either side is recorded in the consumer's spec and pull
+request; after each sync with the base branch, the consumer re-checks the contract against the
+provider's spec. A contract that lives only in two sessions' conversations breaks silently.
 
 ## Folder convention
 
@@ -143,9 +165,9 @@ Recorded in `spec.md` frontmatter:
 | Status | Meaning |
 | --- | --- |
 | `draft` | Being written; may be incomplete |
-| `in-review` | Required sections filled; requirements under review with the requester (optional step for client-facing work) |
-| `approved` | Scope, change surface, and assumptions signed off at the gate — implementation may start. Each sign-off is a line in `approvals:` |
-| `implemented` | Every task done and the gate results recorded — set by `/implement` in the branch, so it merges with the pull request and the folder reads as built. A full change request moves it back to `in-review` until its own sign-off; a light one leaves it `implemented` |
+| `in-review` | Required sections filled; requirements under review with the requester (optional step for client-facing work) — or a full change request waiting for its sign-off |
+| `approved` | Scope, change surface, and assumptions signed off at the gate — implementation may start. Each sign-off is a dated line in `approvals:`, naming a role |
+| `implemented` | Every task done — or struck through as a follow-up, with why — and the gate results recorded. Set by `/implement` in the branch and checked by `/open-pr` before each push, so it merges with the pull request and the folder reads as built; after the merge, it would need a pull request of its own. A full change request — after the merge, or on the open pull request — moves it back to `in-review` until its own sign-off, then `approved`, and `/implement` sets it to `implemented` again with the CR's gate results; a light one leaves it `implemented` |
 
 Nothing mechanical enforces the gate — it is a rule an agent could skip and CI can't see. That
 is why `/implement` refuses to write code for a spec whose status is not `approved`, and why
@@ -153,8 +175,9 @@ reviewers check the `approvals:` line.
 
 ## Change requests
 
-Feedback on delivered work is not a new feature. Re-reading the task from scratch is how scope
-gets silently dropped or redone. Find the delta first:
+Feedback on delivered work is not a new feature, and neither is feedback on work whose pull
+request is still open ([before the merge](#before-the-merge)). Re-reading the task from scratch is
+how scope gets silently dropped or redone. Find the delta first:
 
 1. **Find the existing folder.** `git log -- specs/NNN-<slug>/` says when each part landed.
 2. **Compare the request now against what the spec says was delivered.** Trackers rarely keep a
@@ -171,7 +194,7 @@ gets silently dropped or redone. Find the delta first:
      ```markdown
      # CR 2 — Email field label (2026-10-08) · light
 
-     - **Requested:** https://tracker.example.com/t/MKT-530 · by Dana (marketing lead)
+     - **Requested:** https://tracker.example.com/t/MKT-530 · by requester (marketing lead)
 
      | Aspect | Delivered (PR …) | Change |
      | --- | --- | --- |
@@ -182,10 +205,12 @@ gets silently dropped or redone. Find the delta first:
    - **Full** — the request leaves something to decide. Append a `CR N` section (intent + a
      Delivered → Change table), add new ACs tagged `(CR N)`, and append a `# CR N — <title>` part to
      `plan.md` and `tasks.md` covering only the delta — tasks numbered from `T<N>00` (T100 for CR 1),
-     so IDs never collide. Earlier parts stay as the record of what was built. Same gate.
+     so IDs never collide. Earlier parts stay as the record of what was built; an entry the CR
+     supersedes is struck through, not deleted. Same gate, with a dated `approvals:` line naming a
+     role and the CR (`2026-10-08 · tech lead · CR 2`).
 
-   A light change request that turns out to need a decision becomes a full one. Either way: a new
-   branch, a new pull request, the same folder.
+   A light change request that turns out to need a decision becomes a full one. After the merge,
+   either way: a new branch, a new pull request, the same folder.
 4. **If the delta can't be recovered** — no folder, or a description rewritten without a trace —
    say so and ask. Never reconstruct the old requirement from the code and present it as fact.
 
@@ -194,6 +219,66 @@ in a follow-up pull request: a `CR N — hotfix: <title> (date)` section (what c
 Delivered → Change table), the acceptance criteria it changed, and the hotfix pull request in
 `pull-requests:`. There's no approval gate for recording what already shipped — the backfill pull
 request is reviewed like any change.
+
+### Before the merge
+
+Feedback that arrives while the pull request is still open — the requester's second look at the
+preview, a reviewer's change of scope — is a change request too, with the same two weights. It rides
+**the same branch and the same draft pull request**: no new branch, no second pull request, and no
+separate "amendment" record.
+
+- **Light** — precise and already decided: the `CR N — <title> (date) · light` section, committed
+  with the change. No status cycle: the status stays where the branch had it.
+- **Full** — something to decide:
+  - the status goes `implemented` → `in-review` while the CR is written, → `approved` at its gate,
+    with a dated `approvals:` line naming a role and the CR, and back to `implemented` once the CR's
+    gate results are recorded;
+  - `plan.md` and `tasks.md` get a `# CR N` part covering only the delta, its tasks numbered
+    `T<N>00`; an earlier entry it supersedes — a planned file, a task, a test — is struck through,
+    not deleted;
+  - each task goes red then green as its own commit, and the CR gets its own gate-results block.
+
+The pull request's line in `pull-requests:` adds the CR (`<url> · initial delivery, CR 1`), and
+`/open-pr` keeps the pull request's description current with each push, so the reviewer sees the CR
+there too. Once the pull request merges, the next change request needs a new branch, as above.
+
+A **bug** in the branch's own work — it doesn't do what its spec already says — isn't a change
+request, before the merge or after: fix it on the branch with a regression test. What an agent
+finds on its own, rather than hears from the requester, is routed in [§ Found along the way](#found-along-the-way).
+
+## Found along the way
+
+An agent reads far more code than it changes, and what it notices there is worth having — a bug in
+another feature, a missing test, a slow query, a stale doc, a better way to build what it's building,
+related to the task or not. **Nothing found is dropped, and nothing found is fixed in passing.** The
+agent says it in that turn's report — what, where (`file:line`), how it knows (seen failing, or read
+and suspected), and the lane it would take — and routes it:
+
+| Found | Where it goes |
+| --- | --- |
+| **A bug in this branch's own work** — it doesn't do what its spec, or its "done when", already says | The task itself: a regression test, red then green, on this branch. No change request |
+| **An improvement to what this branch builds**, beyond what was agreed | The developer decides — never added on the agent's own (an invented requirement). Accepted before the merge: a change request on this branch ([§ Before the merge](#before-the-merge)). Not now: a follow-up — with the `github` or `gitlab` module, the question also offers an issue, filed at once. Declined: nothing, or a line in the spec's *Out of scope* when the developer wants it on record |
+| **Anything else** — a bug or an improvement outside this task, however unrelated | Its own task, never this branch: a follow-up. With the `github` or `gitlab` module, `/wrap-up` files it as an issue in this repository — the queue for engineering work — not a new session; without one, the parallel-agents module's `/dispatch` offers it a new session at once. The developer can have any follow-up filed or started now |
+| **A problem in the framework itself** — a skill, agent, hook, rule, or template that came with it misbehaves, contradicts itself, or misses a case | Not this project's task: the agent offers `/framework-feedback`, which reports it to the framework's repository with nothing that names the project, and posts only on the developer's yes. A change to the project's own copy of the file stays the developer's call, and the report says it was made |
+| **Something that can't wait** — a security hole, data lost or exposed, production broken | The top of the report, now, whatever it relates to: it may be a hotfix (careful lane) that doesn't wait for this merge |
+
+A finding the task can't be done without — a bug in shared code the change depends on — isn't a
+follow-up: it joins the change surface (`plan.md` updated, re-confirmed if it reaches a risk), and
+the pull request says so.
+
+**Follow-ups** live in the pull request's `## Follow-ups` section, one line each:
+`- [ ] <the task, in one line> — <why it matters> (found in <file:line>)`. On an open pull request the agent
+adds the line at once — upkeep, with no prompt; before the draft opens, `/open-pr` writes the ones
+the session found. The agent adds lines and removes none, and ticks only one the developer had
+filed as an issue, adding its link (`→ #<n>`); the developer drops a follow-up by ticking or
+deleting it. When the task ends — merged, or closed and dropped — `/wrap-up` offers each one left,
+in the close-up's yes: with the `github` or `gitlab` module, filed as an issue; otherwise, or when
+the developer wants it now, started in its own session. A task with no pull request (an answer)
+lists its follow-ups in the answer, and `/wrap-up` offers them the same way.
+
+**An issue for a follow-up** is filed only on the developer's yes, as them (`gh issue create`, or
+`glab issue create`): the line's task is its title, and its body the why, the `file:line`, and the
+pull request or answer it was found in. An open issue that already covers it is named instead.
 
 ## Specs from older framework versions
 

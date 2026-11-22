@@ -34,6 +34,7 @@ Use light variants for backgrounds, full-strength for text and borders.
 - **Destructive actions** — confirm before delete, reject, or cancel operations.
 
 ## Accessibility baseline
+- The target is WCAG 2.1 AA, unless `docs/CONSTITUTION.md` sets another level.
 - Use semantic HTML (`<button>`, `<a>`, `<input>`, not styled divs with click handlers).
 - Non-link clickable elements need keyboard support (`tabIndex`, `role`, key handlers).
 - Color is never the sole indicator of state — icons or text labels accompany color.

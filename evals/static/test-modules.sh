@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the
-# parallel-agents worktree scripts, and the clickup and docker install scripts. Builds throwaway repositories (with a bare "origin") in a temp
+# Functional tests for the optional modules' scripts: the git-hooks pre-push hook, the gitlab
+# module's branch-policy job, the parallel-agents worktree scripts, the clickup, docker, e2e, and unit install scripts, and the dev-env stack's templates. Builds throwaway repositories (with a bare "origin") in a temp
 # directory. No AI invocation, no network. Needs bash, git ≥ 2.31, and python3. Exit 0 on all-pass.
 #
 set -uo pipefail
@@ -33,6 +33,12 @@ new_repo() { # new_repo <dir> — a repo with a commit on main and an identity
     git -C "$1" config user.email test@example.com
     git -C "$1" config user.name test
 }
+entries() { # entries <launch.json> — its configurations' names, " | " between them; empty without the file
+    python3 - "$1" 2>/dev/null <<'PY'
+import json, sys
+print(" | ".join(c.get("name") for c in json.load(open(sys.argv[1], encoding="utf-8"))["configurations"]))
+PY
+}
 
 echo ""
 echo "Module tests — modules/*/files"
@@ -61,6 +67,39 @@ check "pre-push: a failing fast check refuses the push" "! pushes feat/x"
 replace "$R/.githooks/pre-push" 'false"' 'true"'
 check "pre-push: passing fast checks allow the push" "pushes feat/x"
 
+# ─── gitlab: the branch-policy job's script (decision 0075) ─────────────────
+ci_script() { # ci_script <job> — the job's `- |` script block from the gitlab module's CI include
+    python3 - "$MODULES/gitlab/files/.gitlab/ci/adf.yml" "$1" <<'PY'
+import sys
+lines = open(sys.argv[1], encoding="utf-8").read().split("\n")
+start = lines.index(sys.argv[2] + ":")
+first = next(n for n in range(start, len(lines)) if lines[n] == "    - |")
+block = []
+for line in lines[first + 1:]:
+    if line and not line.startswith("      "):
+        break
+    block.append(line[6:])
+print("\n".join(block))
+PY
+}
+BP="$WORK/branch-policy.sh"
+ci_script branch-policy > "$BP"
+policy() { # policy <target> <source> [VAR=value ...] — runs the job's script as a merge request pipeline would
+    local target="$1" source="$2"; shift 2
+    env -i PATH="$PATH" CI_MERGE_REQUEST_IID=7 CI_MERGE_REQUEST_TARGET_BRANCH_NAME="$target" \
+        CI_MERGE_REQUEST_SOURCE_BRANCH_NAME="$source" "$@" sh "$BP" >/dev/null 2>&1
+}
+check "gitlab branch-policy: with no model set, every merge request passes" "policy main feat/x"
+check "gitlab branch-policy: integration model refuses a work branch into main" "! policy main feat/x 'ADF_ALLOWED_HEADS=staging hotfix/*'"
+check "gitlab branch-policy: integration model allows staging and hotfix/* into main" \
+    "policy main staging 'ADF_ALLOWED_HEADS=staging hotfix/*' && policy main hotfix/login 'ADF_ALLOWED_HEADS=staging hotfix/*'"
+check "gitlab branch-policy: trunk model refuses dev into main, allows it elsewhere" \
+    "! policy main dev ADF_FORBIDDEN_HEADS=dev && policy staging dev ADF_FORBIDDEN_HEADS=dev"
+check "gitlab branch-policy: a pattern matches branch names, never files in the folder" \
+    "(cd '$WORK' && touch hotfix-file && policy main hotfix/login 'ADF_ALLOWED_HEADS=hotfix*')"
+check "gitlab branch-policy: guards the base it is set to" "! policy develop feat/x ADF_GUARDED_BASE=develop 'ADF_ALLOWED_HEADS=release/*'"
+check "gitlab secret-scan: its script is valid shell" "ci_script secret-scan | sh -n"
+
 # ─── parallel-agents: worktree scripts ──────────────────────────────────────
 P="$WORK/proj"
 mkdir -p "$P" && git init -q --bare "$WORK/origin.git"
@@ -71,7 +110,7 @@ git -C "$M" config user.name test
 git -C "$M" symbolic-ref HEAD refs/heads/main   # the clone is empty; don't depend on init.defaultBranch
 cp -R "$MODULES/parallel-agents/files/." "$M/" && chmod +x "$M"/ops/agent/*.sh
 printf 'SECRET=\nAPP_PORT=\n' > "$M/.env.example"
-printf '.env\nsetup.txt\nstarted.txt\n' > "$M/.gitignore"
+printf '.env\nsetup.txt\nstarted.txt\n.claude/launch.json\n.claude/worktrees/\n' > "$M/.gitignore"
 CONF="$M/ops/agent/worktree.conf"
 replace "$CONF" 'REQUIRED_ENV=""' 'REQUIRED_ENV="SECRET"'
 replace "$CONF" 'SETUP_CMD=""' 'SETUP_CMD="echo setup-${SLUG} > setup.txt"'
@@ -88,14 +127,16 @@ port_of() { sed -n 's/^APP_PORT=//p' "$1/.env"; }
 
 cd "$M" || exit 1
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
-W1="$P/feat-newsletter-signup"
-check "worktree-new: creates a sibling worktree on a new branch" "[ $code -eq 0 ] && [ -f '$W1/.git' ] && git -C '$M' show-ref --verify --quiet refs/heads/feat/newsletter-signup"
+W1="$M/.claude/worktrees/feat-newsletter-signup"
+check "worktree-new: creates the worktree under the main checkout's .claude/worktrees/, on a new branch" "[ $code -eq 0 ] && [ -f '$W1/.git' ] && git -C '$M' show-ref --verify --quiet refs/heads/feat/newsletter-signup"
 check "worktree-new: the new branch has no upstream" "! git -C '$W1' rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1"
 check "worktree-new: inherits secrets from the main checkout" "grep -q '^SECRET=abc$' '$W1/.env'"
 P1=$(port_of "$W1")
 check "worktree-new: replaces stale overrides with exactly one port ($P1)" "[ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ] && [ '$P1' != 1 ] && [ \$(grep -c '^COMPOSE_PROJECT_NAME=' '$W1/.env') -eq 1 ]"
 check "worktree-new: expands placeholders; project prefix is the repository name" "grep -q '^COMPOSE_PROJECT_NAME=origin-feat-newsletter-signup$' '$W1/.env' && grep -q '^SITE_URL=http://localhost:$P1$' '$W1/.env'"
 check "worktree-new: --no-start runs no commands" "[ ! -f '$W1/setup.txt' ] && [ ! -f '$W1/started.txt' ]"
+check "worktree-new: lists the app in Claude Desktop's Browser, named with its URL, on the worktree's port" \
+    "[ \"\$(entries '$W1/.claude/launch.json')\" = 'app · http://localhost:$P1' ] && grep -q '\"url\": \"http://localhost:$P1\"' '$W1/.claude/launch.json'"
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --no-start 2>&1); code=$?
 check "worktree-new: rerunning with --no-start changes nothing" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'Worktree exists' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ ! -f '$W1/setup.txt' ]"
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --setup-only 2>&1); code=$?
@@ -103,14 +144,17 @@ check "worktree-new: --setup-only on an existing worktree runs only the setup" "
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup 2>&1); code=$?
 check "worktree-new: rerunning without --no-start starts an existing worktree" "[ $code -eq 0 ] && grep -q 'started-$P1' '$W1/started.txt'"
 replace "$M/.env" 'SECRET=abc' 'SECRET=rotated'
+printf '{"version": "0.0.1", "autoVerify": false, "configurations": [{"name": "api", "runtimeExecutable": "npm", "port": 4000}, {"name": "app · http://localhost:1", "url": "http://localhost:1", "port": 1}]}\n' > "$W1/.claude/launch.json"
 out=$(ops/agent/worktree-new.sh feat/newsletter-signup --refresh-env --no-start 2>&1); code=$?
 check "worktree-new: --refresh-env re-seeds secrets and keeps the port" "[ $code -eq 0 ] && grep -q '^SECRET=rotated$' '$W1/.env' && [ \"\$(port_of '$W1')\" = '$P1' ] && [ \$(grep -c '^APP_PORT=' '$W1/.env') -eq 1 ]"
+check "worktree-new: --refresh-env updates the app's entry and keeps the developer's own" \
+    "[ \"\$(entries '$W1/.claude/launch.json')\" = 'api | app · http://localhost:$P1' ] && grep -q '\"autoVerify\": false' '$W1/.claude/launch.json'"
 replace "$M/.env" 'SECRET=rotated' 'SECRET=abc'
 
 echo 'LOCAL_EXPERIMENT=1' >> "$W1/.env"
 cd "$W1" || exit 1
 out=$(ops/agent/worktree-new.sh fix/other-thing 2>&1); code=$?
-W2="$P/fix-other-thing"
+W2="$M/.claude/worktrees/fix-other-thing"
 P2=$(port_of "$W2" 2>/dev/null)
 check "worktree-new: works from inside another worktree, with setup and start" "[ $code -eq 0 ] && grep -q setup-fix-other-thing '$W2/setup.txt' && grep -q 'started-$P2' '$W2/started.txt'"
 check "worktree-new: seeds from the MAIN checkout, never the calling worktree" "! grep -q LOCAL_EXPERIMENT '$W2/.env'"
@@ -124,20 +168,26 @@ replace "$M/.env" 'SECRET=' 'SECRET=abc'
 
 git -C "$M" branch -q feat/from-remote && git -C "$M" push -q origin feat/from-remote 2>/dev/null && git -C "$M" branch -q -D feat/from-remote
 out=$(ops/agent/worktree-new.sh feat/from-remote --no-start 2>&1); code=$?
-check "worktree-new: tracks a branch that exists on origin" "[ $code -eq 0 ] && [ \"\$(git -C '$P/feat-from-remote' rev-parse --abbrev-ref '@{u}')\" = origin/feat/from-remote ]"
+check "worktree-new: tracks a branch that exists on origin" "[ $code -eq 0 ] && [ \"\$(git -C '$M/.claude/worktrees/feat-from-remote' rev-parse --abbrev-ref '@{u}')\" = origin/feat/from-remote ]"
 
-mkdir -p "$P/.origin-worktree-ports.lock" && echo 999999 > "$P/.origin-worktree-ports.lock/pid"
+mkdir -p "$M/.git/agent-worktree-ports.lock" && echo 999999 > "$M/.git/agent-worktree-ports.lock/pid"
 out=$(ops/agent/worktree-new.sh chore/stale-lock --no-start 2>&1); code=$?
-check "worktree-new: reclaims a lock left by a dead process" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'stale port lock' && [ ! -d '$P/.origin-worktree-ports.lock' ]"
+check "worktree-new: reclaims a lock left by a dead process, in the shared git directory" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'stale port lock' && [ ! -d '$M/.git/agent-worktree-ports.lock' ]"
 
 git -C "$M" tag -a v1.0.0 -m "Release v1.0.0"
 echo later > "$M/later.txt" && git -C "$M" add later.txt && git -C "$M" commit -qm later && git -C "$M" push -q origin main 2>/dev/null
 out=$(ops/agent/worktree-new.sh hotfix/broken-login --from v1.0.0 --no-start 2>&1); code=$?
-check "worktree-new: --from starts a new branch at a release tag" "[ $code -eq 0 ] && [ \"\$(git -C '$P/hotfix-broken-login' rev-parse HEAD)\" = \"\$(git -C '$M' rev-parse 'v1.0.0^{commit}')\" ]"
+check "worktree-new: --from starts a new branch at a release tag" "[ $code -eq 0 ] && [ \"\$(git -C '$M/.claude/worktrees/hotfix-broken-login' rev-parse HEAD)\" = \"\$(git -C '$M' rev-parse 'v1.0.0^{commit}')\" ]"
 
 git -C "$M" branch -q feat/old-delivery v1.0.0
 out=$(ops/agent/worktree-new.sh feat/old-delivery --no-start 2>&1); code=$?
 check "worktree-new: warns when reusing a local branch that is behind the base" "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'behind origin/main'"
+# A worktree from a release before decision 0083, beside the main checkout, is reused where it is.
+git -C "$M" worktree add -q -b feat/legacy "$P/feat-legacy" main 2>/dev/null
+out=$(ops/agent/worktree-new.sh feat/legacy --no-start 2>&1); code=$?
+check "worktree-new: reuses a branch's worktree beside the main checkout, from an older release" \
+    "[ $code -eq 0 ] && echo \"\$out\" | grep -q 'Worktree exists: .*/feat-legacy (branch left' && [ ! -e '$M/.claude/worktrees/feat-legacy' ]"
+git -C "$M" worktree remove --force "$P/feat-legacy" && git -C "$M" branch -q -D feat/legacy
 
 out=$(ops/agent/worktree-ls.sh 2>&1)
 check "worktree-ls: lists every worktree and marks the main checkout" "echo \"\$out\" | grep -q feat/newsletter-signup && echo \"\$out\" | grep -q fix/other-thing && echo \"\$out\" | grep -q 'main checkout'"
@@ -156,7 +206,7 @@ echo dirty > "$W2/dirty.txt"
 out=$(ops/agent/worktree-rm.sh fix/other-thing 2>&1); code=$?
 check "worktree-rm: refuses uncommitted changes" "[ $code -ne 0 ] && [ -d '$W2' ]"
 out=$(ops/agent/worktree-rm.sh fix/other-thing --force 2>&1); code=$?
-check "worktree-rm: --force stops, removes, and keeps an unmerged branch" "[ $code -eq 0 ] && [ ! -d '$W2' ] && [ -f '$P/stopped-fix-other-thing.txt' ] && echo \"\$out\" | grep -q 'kept branch'"
+check "worktree-rm: --force stops, removes, and keeps an unmerged branch" "[ $code -eq 0 ] && [ ! -d '$W2' ] && [ -f '$M/.claude/worktrees/stopped-fix-other-thing.txt' ] && echo \"\$out\" | grep -q 'kept branch'"
 # Someone else's pull request merged upstream since the main checkout last pulled.
 U="$WORK/upstream-clone"; git clone -q "$WORK/origin.git" "$U" 2>/dev/null
 git -C "$U" checkout -q -B main origin/main
@@ -175,17 +225,39 @@ XR="$X/repo"
 cp -R "$MODULES/parallel-agents/files/." "$XR/" && chmod +x "$XR"/ops/agent/*.sh
 printf '.env\n' > "$XR/.gitignore" && printf 'A=\n' > "$XR/.env.example"
 replace "$XR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=2'
-# Only sibling env files reserve ports here: a host app listening on one of the two slots would fail the run.
+# Only the worktrees' env files reserve ports here: a host app listening on one of the two slots would fail the run.
 replace "$XR/ops/agent/_worktree-lib.sh" '(exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null' 'return 1'
 git -C "$XR" add -A && git -C "$XR" commit -qm init
 cd "$XR" || exit 1
 ops/agent/worktree-new.sh feat/one --no-start >/dev/null 2>&1; c1=$?
 ops/agent/worktree-new.sh feat/two --no-start >/dev/null 2>&1; c2=$?
 o3=$(ops/agent/worktree-new.sh feat/three --no-start 2>&1); c3=$?
-q1=$(port_of "$X/feat-one"); q2=$(port_of "$X/feat-two")
+q1=$(port_of "$XR/.claude/worktrees/feat-one"); q2=$(port_of "$XR/.claude/worktrees/feat-two")
 check "worktree-new: with 2 slots, two worktrees take both ports ($q1, $q2)" "[ $c1 -eq 0 ] && [ $c2 -eq 0 ] && [ -n '$q1' ] && [ '$q1' != '$q2' ]"
-check "worktree-new: honors ports reserved in sibling env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
-check "worktree-new: a failed run releases the port lock" "[ ! -d '$X/.repo-worktree-ports.lock' ]"
+check "worktree-new: honors ports reserved in other worktrees' env files (third fails)" "[ $c3 -ne 0 ] && echo \"\$o3\" | grep -q 'no free port slot'"
+check "worktree-new: a failed run releases the port lock" "[ ! -d '$XR/.git/agent-worktree-ports.lock' ]"
+check "worktree-new: no entry in Claude Desktop's Browser where git doesn't ignore .claude/launch.json" "[ -n '$q1' ] && [ ! -e '$XR/.claude/worktrees/feat-one/.claude/launch.json' ]"
+
+# The listening check the test above stubs out: a port something listens on is taken, even with no
+# env file reserving it. One slot, on a port this test binds itself (the system picks a free one).
+B="$WORK/busy"
+mkdir -p "$B" && new_repo "$B/repo"
+BR="$B/repo"
+cp -R "$MODULES/parallel-agents/files/." "$BR/" && chmod +x "$BR"/ops/agent/*.sh
+printf '.env\n' > "$BR/.gitignore" && printf 'A=\n' > "$BR/.env.example"
+python3 -c 'import socket, time
+s = socket.socket(); s.bind(("127.0.0.1", 0)); s.listen()
+print(s.getsockname()[1], flush=True); time.sleep(120)' > "$B/port" &
+listener=$!
+for _ in $(seq 50); do [ -s "$B/port" ] && break; sleep 0.1; done
+busy=$(cat "$B/port")
+replace "$BR/ops/agent/worktree.conf" 'PORT_SLOTS=0' 'PORT_SLOTS=1'
+replace "$BR/ops/agent/worktree.conf" 'PORT_RANGE_START=41000' "PORT_RANGE_START=$((busy - 80))"
+git -C "$BR" add -A && git -C "$BR" commit -qm init
+cd "$BR" || exit 1
+o4=$(ops/agent/worktree-new.sh feat/busy --no-start 2>&1); c4=$?
+kill "$listener" 2>/dev/null; wait "$listener" 2>/dev/null
+check "worktree-new: skips a port something listens on ($busy)" "[ -n '$busy' ] && [ $c4 -ne 0 ] && echo \"\$o4\" | grep -q 'no free port slot'"
 
 # The defaults assume nothing: no env file, no ports, no commands
 N="$WORK/plain"
@@ -195,7 +267,9 @@ cp -R "$MODULES/parallel-agents/files/." "$NR/" && chmod +x "$NR"/ops/agent/*.sh
 git -C "$NR" add -A && git -C "$NR" commit -qm init
 cd "$NR" || exit 1
 o5=$(ops/agent/worktree-new.sh feat/cli-flag 2>&1); c5=$?
-check "worktree-new, defaults: a worktree with no env file, port, or commands when the project has none" "[ $c5 -eq 0 ] && [ -f '$N/feat-cli-flag/.git' ] && [ ! -e '$N/feat-cli-flag/.env' ] && ! echo \"\$o5\" | grep -qE 'Port:|Project:|--setup-only'"
+check "worktree-new, defaults: a worktree with no env file, port, or commands when the project has none" "[ $c5 -eq 0 ] && [ -f '$NR/.claude/worktrees/feat-cli-flag/.git' ] && [ ! -e '$NR/.claude/worktrees/feat-cli-flag/.env' ] && ! echo \"\$o5\" | grep -qE 'Port:|Project:|--setup-only'"
+check "worktree-new: says so when git doesn't ignore .claude/worktrees/" "echo \"\$o5\" | grep -q \"git doesn't ignore .claude/worktrees/\""
+check "worktree-new: no such note where git ignores it" "! echo \"\$out\" | grep -q \"git doesn't ignore .claude/worktrees/\""
 o6=$(ops/agent/worktree-ls.sh 2>&1)
 check "worktree-ls, defaults: no port columns when no worktree has a port" "echo \"\$o6\" | grep -q feat/cli-flag && ! echo \"\$o6\" | grep -q PORT"
 
@@ -230,7 +304,7 @@ ALLOWS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["a
 ASKS=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["ask"])')
 DENIES=$(jsonq "$MODULES/docker/settings-fragment.json" 'len(d["permissions"]["deny"])')
 "$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1; c=$?
-check "docker install: creates .claude/settings.json with the allows, the destructive asks, and the mode denies" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"]), len(d[\"permissions\"][\"deny\"])')\" = \"($ALLOWS, $ASKS, $DENIES)\" ]"
+check "docker install: creates .claude/settings.json with the allows, no ask rule, and the mode denies" "[ $c -eq 0 ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"]), len(d[\"permissions\"][\"deny\"])')\" = \"($ALLOWS, $ASKS, $DENIES)\" ]"
 check "docker install: no MCP server and nothing enabled" "[ ! -e '$DF/.mcp.json' ] && [ \"\$(jsonq '$DF/.claude/settings.json' 'sorted(d)')\" = \"['permissions']\" ]"
 "$MODULES/docker/install.sh" "$DF" >/dev/null 2>&1
 check "docker install: a second run adds nothing" "[ \"\$(jsonq '$DF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"]), len(d[\"permissions\"][\"ask\"])')\" = \"($ALLOWS, $ASKS)\" ]"
@@ -267,28 +341,28 @@ def verdict(command):
         return "ask"
     return "allow" if all(matches(perms["allow"], p) for p in parts) else "prompt"
 cases = {
-    "docker compose down -v": "ask", "docker compose down --volumes": "ask",
-    "docker compose -f compose.yaml down -v": "ask", "docker compose down --rmi all": "ask",
-    "cd app && docker compose down -v": "ask", "docker volume rm newsletter_redis-data": "ask",
-    "docker system prune -af": "ask", "docker volume prune": "ask", "docker image prune -a": "ask",
-    "docker rm -f web": "ask", "docker rmi redis:7": "ask", "docker compose rm -f web": "ask",
+    "docker compose down -v": "allow", "docker compose down --volumes": "allow",
+    "docker compose -f compose.yaml down -v": "allow", "docker compose down --rmi all": "allow",
+    "cd app && docker compose down -v": "prompt", "docker volume rm newsletter_redis-data": "allow",
+    "docker system prune -af": "allow", "docker volume prune": "allow", "docker image prune -a": "allow",
+    "docker rm -f web": "allow", "docker rmi redis:7": "allow", "docker compose rm -f web": "allow",
     "docker compose ps": "allow", "docker compose logs --tail 100 --no-color web": "allow",
     "docker compose config --quiet": "allow", "docker compose config --services": "allow",
     "docker compose port web 3000": "allow", "docker system df": "allow",
-    # Docker broadly too (decision 0038): what this project's stack does runs; what deletes, reaches
-    # other projects' containers or the host, leaves the machine, or prints secrets asks.
+    # Docker broadly (decisions 0038, 0078): no docker command asks, whatever it deletes or prints.
     "docker compose up -d --wait": "allow", "docker compose down": "allow", "docker compose build": "allow",
     "docker compose stop web": "allow", "docker compose restart web": "allow", "docker compose pull": "allow",
     "docker images": "allow", "docker stats --no-stream": "allow", "docker version": "allow",
-    "docker compose config": "ask", "docker inspect web": "ask", "docker run --rm alpine true": "allow",
-    "docker run --rm -v \"$PWD/e2e:/suite\" node:22 npm install": "allow", "docker push registry.example.com/site:1": "ask",
+    "docker compose config": "allow", "docker inspect web": "allow", "docker run --rm alpine true": "allow",
+    "docker run --rm -v \"$PWD/e2e:/suite\" node:22 npm install": "allow", "docker push registry.example.com/site:1": "allow",
     "docker stop web": "allow", "docker kill web": "allow", "docker login": "allow",
-    "docker compose exec web printenv": "ask", "docker compose exec -T web cat .env": "ask",
-    "docker compose run --rm web env": "ask",
-    # Allow broadly, ask by name (SPECIFICATION.md C9, decision 0038): every make task runs, and the
-    # containers' commands, but reset deletes the stack's volumes and run runs any command it's given.
-    "make reset": "ask", "make logs reset": "ask", "make -C site reset": "ask",
-    "make urls && make reset": "ask", 'make run cmd="yarn test"': "ask", "make run": "ask",
+    "docker compose exec web printenv": "allow", "docker compose exec -T web cat .env": "allow",
+    "docker compose run --rm web env": "allow",
+    # Every make task runs, reset included (SPECIFICATION.md C9, decision 0078). make run has no rule
+    # either, in any mode: a project that wants a prompt adds its own (C10, decision 0089).
+    "make reset": "allow", "make logs reset": "allow", "make -C site reset": "allow",
+    "make urls && make reset": "allow", 'make run cmd="yarn test"': "allow", "make run": "allow",
+    "make run cmd='git reset --hard'": "allow",
     "make help": "allow", "make ps": "allow", "make urls": "allow", "make logs": "allow",
     "make up": "allow", "make down": "allow", "make test t=src/signup.test.ts": "allow",
     "make lint f=src/a.ts": "allow",
@@ -304,7 +378,7 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "docker rules: destructive commands ask, read-only ones run, secret-printing ones aren't allowed" "[ -z \"\$verdicts\" ]"
+check "docker rules: every docker and make command runs without a prompt, and a mode override is denied" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
 
 # ─── docker: the stack /dev-env writes from its templates (decision 0032) ──
@@ -315,7 +389,9 @@ DS="$WORK/docker-stack"; mkdir -p "$DS/site" "$DS/bin"
 cp -R "$TPL/." "$DS/site/"
 cat > "$DS/bin/docker" <<'STUB'
 #!/bin/sh
+[ "$1 $2" = "volume create" ] && { echo "$3"; exit 0; }
 [ "$1 $2" = "compose ps" ] || exit 2
+[ "$3 $4" = "--format json" ] && { printf '%s\n' "${STUB_JSON:-}"; exit 0; }
 for entry in $STUB_PORTS; do
   [ "${entry%%=*}" = "$3" ] && { echo "${entry#*=} "; exit 0; }
 done
@@ -324,10 +400,10 @@ STUB
 chmod +x "$DS/bin/docker"
 git -C "$DS/site" init -q -b main && printf '.env\n' > "$DS/site/.gitignore"
 git -C "$DS/site" add -A && git -C "$DS/site" -c user.email=t@e -c user.name=t commit -qm init
-stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" "$@"); }
+stack() { (cd "$DS/site" && PATH="$DS/bin:$PATH" STUB_PORTS="${STUB_PORTS:-}" STUB_JSON="${STUB_JSON:-}" "$@"); }
 ports() { stack env SERVICES=redis /bin/bash ops/native/native.sh env; }
 
-check "templates: guard.sh and native.sh are executable" "[ -x '$TPL/ops/docker/guard.sh' ] && [ -x '$TPL/ops/native/native.sh' ]"
+check "templates: guard.sh, launch-json.sh, and native.sh are executable" "[ -x '$TPL/ops/docker/guard.sh' ] && [ -x '$TPL/ops/docker/launch-json.sh' ] && [ -x '$TPL/ops/native/native.sh' ]"
 check "templates: no ports.sh and no PORTS — Docker Compose knows the ports" "[ ! -e '$TPL/ops/docker/ports.sh' ] && ! grep -q '^PORTS' '$TPL/Makefile'"
 out=$(stack make env 2>&1)
 # GNU stat first: its -f means "file system" and takes %Lp for a file name, so BSD's form tried first
@@ -339,7 +415,7 @@ out=$(stack make env 2>&1)
 check "make env: leaves an existing .env alone" "grep -q '^MAILCHIMP_API_KEY=topsecret$' '$DS/site/.env' && echo \"\$out\" | grep -q 'left as it is'"
 out=$(stack make help 2>&1)
 check "make help: the default target lists every task of the mode" \
-    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up down build ps logs urls shell test lint reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
+    "[ \"\$(stack make 2>&1)\" = \"\$out\" ] && for t in help env up stop down build deps ps logs urls shell test lint run reset; do echo \"\$out\" | grep -q \"make \$t \" || exit 1; done"
 out=$(stack make -n reset 2>&1)
 check "make reset: deletes the volumes, after the worktree guard" \
     "echo \"\$out\" | grep -q 'down -v' && echo \"\$out\" | sed '/down -v/,\$d' | grep -q 'guard.sh'"
@@ -350,7 +426,7 @@ check "make logs: the last lines, never followed" \
 # nothing, and never follow a log.
 c9=""
 for mode in docker native; do
-    for task in help env up down build ps logs urls test lint format typecheck $( [ "$mode" = native ] && echo services ); do
+    for task in help env up stop down build deps ps logs urls prod test lint format typecheck run $( [ "$mode" = native ] && echo services ); do
         out=$(stack make -n "$task" DEV_MODE="$mode" 2>&1) || { c9="$c9 [$mode $task: no such task]"; continue; }
         while IFS= read -r line; do
             case "$line" in
@@ -362,11 +438,116 @@ for mode in docker native; do
 done
 check "C9: the templates' tasks but reset exist in both modes, delete nothing, and never follow a log" "[ -z \"$c9\" ]"
 [ -z "$c9" ] || echo "    $c9"
+# C10: run hands the command to its shell as one argument, from the environment: the host's shell
+# reads none of its quotes or separators. The stub prints each argument it gets in brackets.
+cat > "$DS/bin/docker-args" <<'STUB'
+#!/bin/sh
+printf 'docker'; for a in "$@"; do printf ' [%s]' "$a"; done; printf '\n'
+STUB
+chmod +x "$DS/bin/docker-args"
+out=$(stack make run COMPOSE="docker-args compose" DOCKER=docker-args DEV_MODE=docker cmd='echo "it'"'"'s"; ls | head -1 && echo $$HOME' 2>&1)
+check "C10: make run, docker mode: the command reaches the tools container as one argument" \
+    "echo \"\$out\" | grep -qF '[compose] [run] [--rm] [tools] [sh] [-c] [echo \"it'\"'\"'s\"; ls | head -1 && echo \$HOME]'"
+out=$(stack make run DEV_MODE=docker 2>&1); code=$?
+check "C10: make run with no command stops, saying how to give one" "[ $code -ne 0 ] && echo \"\$out\" | grep -q \"make run cmd='<command>'\""
+out=$(stack make -n run DEV_MODE=native SERVICES=none cmd='npm ci' 2>&1)
+check "C10: make run, native mode: on the host, with the services' ports exported, and never through Compose" \
+    "echo \"\$out\" | grep -q 'native.sh env)\" && sh -c \"\$cmd\"\$' && ! echo \"\$out\" | grep -q 'exec -T'"
 out=$(stack make -n test DEV_MODE=docker t=src/signup.test.ts 2>&1)
 check "C3: make test passes t to the test command as its filter" "echo \"\$out\" | grep -q 'src/signup.test.ts'"
+# M11, D6: in Docker mode the checks and deps start the tools service, never exec into the app's
+# container, so none needs make up; those that reach no backing service pass --no-deps.
+m11=""
+for task in deps test lint format typecheck; do
+    out=$(stack make -n "$task" DEV_MODE=docker 2>&1)
+    echo "$out" | grep -q 'compose run --rm .*tools' || m11="$m11 [$task: not the tools service]"
+    echo "$out" | grep -q 'exec -T' && m11="$m11 [$task: exec into the app's container]"
+    [ "$task" = test ] || echo "$out" | grep -q -- '--no-deps tools' || m11="$m11 [$task: starts the backing services]"
+done
+check "M11: make deps, test, lint, format, and typecheck run in the tools service, with the stack up or not" "[ -z \"$m11\" ]"
+[ -z "$m11" ] || echo "    $m11"
+out=$(stack make -n build DEV_MODE=docker 2>&1)
+check "make build, docker mode: rebuilds the images, the tools' too, then brings the dependencies up to date (C3)" \
+    "echo \"\$out\" | grep -q 'compose --profile tools build\$' && echo \"\$out\" | sed '1,/--profile tools build/d' | grep -q 'deps'"
+out=$(stack make -n build DEV_MODE=native SERVICES=none 2>&1)
+check "make build, native mode: installs the dependencies on the host, as make deps does (C3)" "echo \"\$out\" | grep -q 'CUSTOMIZE: the install command'"
+check "compose.yaml: the tools service is in the tools profile, built from the Dockerfile's tools stage (D6)" \
+    "grep -A1 '^  tools:' '$TPL/compose.yaml' | grep -q 'profiles: \\[tools\\]' && grep -q 'target: tools' '$TPL/compose.yaml' && grep -q '^FROM dev AS tools' '$TPL/ops/docker/web/Dockerfile'"
+check "compose.yaml: neither the app nor the tools service gets the Docker socket or the host's network (D5)" \
+    "! grep -qE 'docker\\.sock|network_mode|privileged|pid: host' '$TPL/compose.yaml'"
+check "compose.yaml: the app and the tools hide the worktrees nested in the checkout behind an empty tmpfs (D5)" \
+    "[ \$(grep -c '^    tmpfs:\$' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - /app/.claude/worktrees\$' '$TPL/compose.yaml') -eq 2 ]"
+check "compose.yaml: the app and the tools mount this checkout's dependency volume; only the tools mount the shared cache, external with a fixed name (D7)" \
+    "[ \$(grep -c '^      - deps:' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c '^      - deps-cache:' '$TPL/compose.yaml') -eq 1 ] && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    name: ' && sed -n '/^  deps-cache:/,\$p' '$TPL/compose.yaml' | grep -q '^    external: true'"
+# D7: the shared cache is external, so no checkout's down -v removes it and none owns it; each task
+# that starts the tools creates it first, by the name compose.yaml gives it, after the guard (C6).
+d7=""
+for task in deps test lint format typecheck run; do
+    out=$(stack make -n "$task" DEV_MODE=docker cmd=true 2>&1)
+    echo "$out" | grep -q 'guard.sh' || d7="$d7 [$task: no guard]"
+    echo "$out" | grep -q '^docker volume create newsletter-deps-cache >/dev/null$' || d7="$d7 [$task: doesn't create the cache]"
+    [ "$(echo "$out" | grep -n 'guard.sh' | head -1 | cut -d: -f1)" -lt "$(echo "$out" | grep -n 'volume create' | head -1 | cut -d: -f1)" ] 2>/dev/null || d7="$d7 [$task: guard after the cache]"
+done
+check "D7, C6: deps, test, lint, format, typecheck, and run guard the checkout, then create the external cache by compose.yaml's name" "[ -z \"$d7\" ]"
+[ -z "$d7" ] || echo "    $d7"
+NC="$WORK/no-cache-name"; mkdir -p "$NC" && cp -R "$TPL/." "$NC/" && git -C "$NC" init -q -b main
+sed '/^    name: newsletter-deps-cache$/d' "$TPL/compose.yaml" > "$NC/compose.yaml"
+out=$(cd "$NC" && make deps-cache DEV_MODE=docker DOCKER=docker-args 2>&1); code=$?
+check "D7: with no name for the cache in compose.yaml, the tools tasks stop, saying so — never an anonymous volume" \
+    "[ $code -ne 0 ] && echo \"\$out\" | grep -q 'deps-cache volume no name' && ! echo \"\$out\" | grep -q 'volume'.*'create'"
+check "compose.yaml: the app's variables are one list, which the tools and the production build merge (D6)" \
+    "grep -q '^x-app-environment: &app-environment\$' '$TPL/compose.yaml' && grep -q '^    environment: \*app-environment\$' '$TPL/compose.yaml' && [ \$(grep -c '^      <<: \*app-environment\$' '$TPL/compose.yaml') -eq 2 ] && [ \$(grep -c 'REDIS_URL' '$TPL/compose.yaml') -eq 1 ]"
 out=$(stack make -n urls 2>&1)
 check "make urls, docker mode: Docker Compose's own ports and health, and the app's URL" \
     "echo \"\$out\" | grep -q 'compose ps --format' && echo \"\$out\" | grep -q 'http://localhost:'"
+check "make urls, docker mode: the production build's URL too, when it runs (C11)" "echo \"\$out\" | grep -q 'ps web-prod .*The production build: http://localhost:'"
+out=$(stack make -n prod 2>&1)
+check "make prod, docker mode: builds and serves the prod profile's web-prod beside the dev server, then make urls (C11)" \
+    "echo \"\$out\" | grep -q 'compose --profile prod up -d --build --wait web-prod\$' && echo \"\$out\" | grep -q 'urls' && echo \"\$out\" | sed '/--profile prod up/,\$d' | grep -q 'guard.sh'"
+check "make prod, docker mode: the service is in the prod profile, so make up never starts it (C11)" \
+    "grep -A1 '^  web-prod:' '$TPL/compose.yaml' | grep -q 'profiles: \\[prod\\]' && grep -q 'target: prod' '$TPL/compose.yaml' && grep -q '^FROM dev AS prod' '$TPL/ops/docker/web/Dockerfile'"
+out=$(stack make -n stop 2>&1)
+check "make stop, docker mode: stops the stack, the production build too, and removes nothing (0071)" \
+    "echo \"\$out\" | grep -q 'compose --profile prod stop\$' && ! echo \"\$out\" | grep -qE ' down| rm |-v( |\$)' && echo \"\$out\" | sed '/--profile prod stop/,\$d' | grep -q 'guard.sh'"
+check "make stop, docker mode: lists in Claude Desktop's Browser what still runs, once the stack is stopped (P8)" "echo \"\$out\" | sed '1,/--profile prod stop/d' | grep -q 'ops/docker/launch-json.sh\$'"
+out=$(stack make -n down 2>&1)
+check "make down, docker mode: stops the production build too" "echo \"\$out\" | grep -q 'compose --profile prod down\$'"
+check "make down, docker mode: lists in Claude Desktop's Browser what still runs, once the stack is down (P8)" "echo \"\$out\" | sed '1,/--profile prod down/d' | grep -q 'ops/docker/launch-json.sh\$'"
+out=$(stack make -n up 2>&1)
+check "make up, docker mode: lists the web services in Claude Desktop's Browser once they're healthy (P8)" \
+    "echo \"\$out\" | sed '1,/compose up -d --wait/d' | grep -q \"APP='web' COMPOSE='docker compose' ops/docker/launch-json.sh\$\""
+out=$(stack make -n prod 2>&1)
+check "make prod, docker mode: lists the production build too (P8)" "echo \"\$out\" | sed '1,/--profile prod up/d' | grep -q 'ops/docker/launch-json.sh\$'"
+check "compose.yaml: the app and its production build are labeled for Claude Desktop's Browser, the backing service isn't (P8)" \
+    "[ \$(grep -c '^      claude.browser: \"true\"\$' '$TPL/compose.yaml') -eq 2 ] && ! sed -n '/^  redis:/,\$p' '$TPL/compose.yaml' | grep -q claude.browser"
+# launch-json.sh itself (P8): a row per labeled web service that runs, only where git ignores the file.
+LJ="$DS/site/.claude/launch.json"
+WEB='{"Service":"web","Labels":"com.docker.compose.service=web,claude.browser=true","Publishers":[{"URL":"127.0.0.1","TargetPort":3000,"PublishedPort":51234,"Protocol":"tcp"}]}'
+MOVED='{"Service":"web","Labels":"claude.browser=true","Publishers":[{"URL":"127.0.0.1","TargetPort":3000,"PublishedPort":51999,"Protocol":"tcp"}]}'
+PROD='{"Service":"web-prod","Labels":"claude.browser=true,com.docker.compose.service=web-prod","Publishers":[{"URL":"127.0.0.1","TargetPort":3000,"PublishedPort":51300,"Protocol":"tcp"}]}'
+REDIS='{"Service":"redis","Labels":"com.docker.compose.service=redis","Publishers":[{"URL":"127.0.0.1","TargetPort":6379,"PublishedPort":51001,"Protocol":"tcp"}]}'
+lj() { stack env APP=web ops/docker/launch-json.sh; }
+out=$(STUB_JSON="$WEB" lj 2>&1); code=$?
+check "launch-json.sh: writes nothing where git doesn't ignore the file, says so, and doesn't fail" \
+    "[ $code -eq 0 ] && [ ! -e '$LJ' ] && echo \"\$out\" | grep -q 'add it to .gitignore'"
+printf '.claude/launch.json\n' >> "$DS/site/.gitignore"
+STUB_JSON="$WEB
+$REDIS
+$PROD" lj
+check "launch-json.sh: a row per labeled service that runs, named with its URL — no backing service, no command" \
+    "[ \"\$(entries '$LJ')\" = 'web · http://localhost:51234 | web-prod · http://localhost:51300' ] && grep -q '\"url\": \"http://localhost:51234\"' '$LJ' && ! grep -q runtimeExecutable '$LJ'"
+printf '{"version": "0.0.1", "autoVerify": false, "configurations": [{"name": "api", "runtimeExecutable": "npm", "port": 4000}, {"name": "web", "url": "http://localhost:4100", "port": 4100}, {"name": "web · http://localhost:51234", "url": "http://localhost:51234", "port": 51234}]}\n' > "$LJ"
+STUB_JSON="[$MOVED]" lj
+check "launch-json.sh: follows a new port and keeps the developer's entries and settings; reads Compose's older JSON array" \
+    "[ \"\$(entries '$LJ')\" = 'api | web | web · http://localhost:51999' ] && grep -q '\"autoVerify\": false' '$LJ'"
+STUB_JSON= lj
+check "launch-json.sh: a service that stopped loses its row, and the developer's entries stay" "[ \"\$(entries '$LJ')\" = 'api | web' ]"
+printf '{\n  // mine\n  "configurations": []\n}\n' > "$LJ"
+cp "$LJ" "$LJ.mine" && out=$(STUB_JSON="$WEB" lj 2>&1); code=$?
+check "launch-json.sh: leaves a file with comments as it is, and doesn't fail" "[ $code -eq 0 ] && cmp -s '$LJ' '$LJ.mine' && echo \"\$out\" | grep -q \"isn't plain JSON\""
+rm -f "$LJ" "$LJ.mine"
+STUB_JSON="$WEB" lj && STUB_JSON= lj
+check "launch-json.sh: deletes the file once nothing of the developer's is in it" "[ ! -e '$LJ' ]"
 out=$(STUB_PORTS='redis=51001' ports 2>&1); code=$?
 check "native.sh env: each backing service's published port as <SERVICE>_PORT, and a free port for the app" \
     "[ $code -eq 0 ] && echo \"\$out\" | grep -q '^export REDIS_PORT=51001$' && echo \"\$out\" | grep -qE '^export APP_PORT=[0-9]+$'"
@@ -426,22 +607,42 @@ check "make reset, native mode: stops the app on the host, then deletes the volu
     "echo \"\$out\" | grep -q 'native.sh stop' && echo \"\$out\" | grep -q 'down -v'"
 # The app on the host, for real: a dev command that serves the folder, with nothing in Docker.
 NS="$WORK/native-stack"; mkdir -p "$NS" && cp -R "$TPL/." "$NS/"
-git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n' > "$NS/.gitignore"
-sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
+git -C "$NS" init -q -b main && printf '.env\nops/native/.run/\n.claude/launch.json\n' > "$NS/.gitignore"
+sed -i.bak -e 's|^NATIVE_CMD = .*|NATIVE_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1|' \
+    -e 's|^NATIVE_PROD_CMD = .*|NATIVE_PROD_CMD = exec python3 -m http.server "$$APP_PORT" --bind 127.0.0.1 --directory ops|' \
+    "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
 native() { (cd "$NS" && PATH="$DS/bin:$PATH" make "$@" DEV_MODE=native SERVICES=none); }
 out=$(native up 2>&1); code=$?
 port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
 check "native mode, make up: starts the app in the background and waits until it answers" \
     "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"\$out\" | grep -q \"http://localhost:$port\""
+check "native mode, make up: lists the app in Claude Desktop's Browser, named with its URL (P8)" "[ \"\$(entries '$NS/.claude/launch.json')\" = 'web · http://localhost:$port' ]"
 out=$(native urls 2>&1)
 check "native mode, make urls: the app on the host" "echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
 out=$(native up 2>&1)
 check "native mode, make up again: leaves the running app alone" "echo \"\$out\" | grep -q 'already runs on the host'"
 out=$(cd "$NS" && SERVICES= /bin/bash ops/native/native.sh env 2>&1)
 check "native.sh env: while the app runs, its port — what make test and make e2e reach" "echo \"\$out\" | grep -q '^export APP_PORT=$port\$'"
+out=$(native prod 2>&1); code=$?
+check "native mode, make prod: the production build replaces the dev server, on its port, and make urls says so (C11)" \
+    "[ $code -eq 0 ] && [ \"\$(cat '$NS/ops/native/.run/app.kind' 2>/dev/null)\" = prod ] && grep -q '^APP_PORT=$port\$' '$NS/ops/native/.run/app.env' && echo \"\$out\" | grep -q \"web .*http://localhost:$port  (the production build, on the host\""
+out=$(native prod 2>&1)
+check "native mode, make prod again: leaves the running production build alone" "echo \"\$out\" | grep -q 'already runs on the host'"
+out=$(native up 2>&1); code=$?
+check "native mode, make up after make prod: the dev server comes back, on the same port" \
+    "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.kind' ] && grep -q '^APP_PORT=$port\$' '$NS/ops/native/.run/app.env' && echo \"\$out\" | grep -q \"web .*http://localhost:$port  (on the host\""
+out=$(native stop 2>&1); code=$?
+check "native mode, make stop: stops the app and its process group, and frees its port (0071)" \
+    "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
+check "native mode, make stop: takes the app out of Claude Desktop's Browser (P8)" "[ ! -e '$NS/.claude/launch.json' ]"
+out=$(native up 2>&1); code=$?
+port=$(sed -n 's/^APP_PORT=//p' "$NS/ops/native/.run/app.env" 2>/dev/null)
+check "native mode, make up after make stop: the app answers again" \
+    "[ $code -eq 0 ] && [ -n '$port' ] && (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
 out=$(native down 2>&1); code=$?
 check "native mode, make down: stops the app and its process group" \
     "[ $code -eq 0 ] && [ ! -f '$NS/ops/native/.run/app.env' ] && ! (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null"
+check "native mode, make down: takes the app out of Claude Desktop's Browser (P8)" "[ ! -e '$NS/.claude/launch.json' ]"
 sed -i.bak 's|^NATIVE_CMD = .*|NATIVE_CMD = echo boom; exit 3|' "$NS/ops/native/Makefile" && rm -f "$NS/ops/native/Makefile.bak"
 out=$(native up 2>&1); code=$?
 check "native mode, make up: a dev command that exits fails, and shows its log" \
@@ -454,10 +655,13 @@ EALLOWS=$(jsonq "$MODULES/e2e/settings-fragment.json" 'len(d["permissions"]["all
 "$MODULES/e2e/install.sh" "$EF" >/dev/null 2>&1
 check "e2e install: allows the suite's commands, and a second run adds nothing" \
     "[ $c -eq 0 ] && [ \"\$(jsonq '$EF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$EALLOWS' ]"
-verdicts=$(python3 - "$MODULES/docker/settings-fragment.json" "$MODULES/e2e/settings-fragment.json" <<'PY'
+# With the docker module installed first, e2e's installer leaves out the suite's host command.
+ED="$WORK/e2e-docker"; mkdir -p "$ED"
+"$MODULES/docker/install.sh" "$ED" >/dev/null 2>&1; "$MODULES/e2e/install.sh" "$ED" >/dev/null 2>&1
+verdicts=$(python3 - "$ED/.claude/settings.json" <<'PY'
 import json, re, sys
-docker, e2e = (json.load(open(f))["permissions"] for f in sys.argv[1:3])
-allow, ask = docker["allow"] + e2e["allow"], docker["ask"]
+permissions = json.load(open(sys.argv[1]))["permissions"]
+allow, ask = permissions["allow"], permissions.get("ask", [])
 def matches(rules, command):
     # A trailing " *" also matches the bare command (Claude Code's permissions docs, wildcard patterns).
     return any(re.fullmatch(".*".join(map(re.escape, r[5:-1].split("*"))), command)
@@ -469,8 +673,8 @@ def verdict(command):
     return "allow" if all(matches(allow, p) for p in parts) else "prompt"
 cases = {
     "make e2e": "allow", "make e2e t=signup": "allow", 'make e2e t=signup g="valid signup"': "allow",
-    "make smoke": "allow", "npm --prefix e2e test": "allow", "npm --prefix e2e test -- --grep @smoke": "allow",
-    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "ask",
+    "make smoke": "allow", "npm --prefix e2e test": "prompt", "npm --prefix e2e test -- --grep @smoke": "prompt",
+    "make up": "allow", "make e2e; rm -rf e2e": "prompt", "make smoke && make reset": "allow",
     "npm --prefix e2e install": "prompt", "npx playwright test": "prompt",
 }
 for command, expected in cases.items():
@@ -478,8 +682,21 @@ for command, expected in cases.items():
         print(f"'{command}': {verdict(command)}, expected {expected}")
 PY
 )
-check "e2e rules: the suite runs without a prompt, beside the docker module's, and reset still asks" "[ -z \"\$verdicts\" ]"
+check "e2e rules: the suite runs without a prompt through make, beside the docker module's, which asks before no make task (0078); on the host it prompts" "[ -z \"\$verdicts\" ]"
 [ -n "$verdicts" ] && echo "$verdicts" | sed 's/^/    /'
+
+# ─── unit: its rules, and none on the host with the docker module (issue 149) ──
+UF="$WORK/unit-fresh"; UD="$WORK/unit-docker"; UB="$WORK/unit-before"; mkdir -p "$UF" "$UD" "$UB"
+UALLOWS=$(jsonq "$MODULES/unit/settings-fragment.json" 'len(d["permissions"]["allow"])')
+"$MODULES/unit/install.sh" "$UF" >/dev/null 2>&1; c=$?
+"$MODULES/unit/install.sh" "$UF" >/dev/null 2>&1
+check "unit install: allows the tiers' commands, and a second run adds nothing" \
+    "[ $c -eq 0 ] && [ \"\$(jsonq '$UF/.claude/settings.json' 'len(d[\"permissions\"][\"allow\"])')\" = '$UALLOWS' ]"
+"$MODULES/docker/install.sh" "$UD" >/dev/null 2>&1; "$MODULES/unit/install.sh" "$UD" >/dev/null 2>&1
+"$MODULES/unit/install.sh" "$UB" >/dev/null 2>&1; "$MODULES/docker/install.sh" "$UB" >/dev/null 2>&1
+"$MODULES/unit/install.sh" "$UB" >/dev/null 2>&1
+check "unit install, with the docker module: no host test command, and a rerun takes out the ones an earlier install added" \
+    "[ \"\$(jsonq '$UD/.claude/settings.json' 'sorted(d[\"permissions\"][\"allow\"])')\" = \"['Bash(docker *)', 'Bash(make *)']\" ] && [ \"\$(jsonq '$UB/.claude/settings.json' 'sorted(d[\"permissions\"][\"allow\"])')\" = \"['Bash(docker *)', 'Bash(make *)']\" ]"
 # The root Makefile's help lists a task whose name has a digit, such as the e2e module's.
 HD="$WORK/help-digits"; mkdir -p "$HD" && cp -R "$TPL/." "$HD/"
 printf '\ne2e: ## Run the end-to-end tests\n\t@true\n' >> "$HD/ops/docker/Makefile"
@@ -488,6 +705,8 @@ check "make help: lists a task whose name has a digit (e2e)" "echo \"\$out\" | g
 if docker compose version >/dev/null 2>&1; then
     check "compose.yaml: valid, with an empty .env and with pinned ports" \
         "(cd '$DS/site' && docker compose config --quiet) && (cd '$DS/site-feat-copied' && docker compose config --quiet)"
+    check "compose.yaml: valid with the tools profile, and make up starts no tools service (D6)" \
+        "(cd '$DS/site' && docker compose --profile tools config --quiet) && ! (cd '$DS/site' && docker compose config --services) | grep -qx tools"
 fi
 
 

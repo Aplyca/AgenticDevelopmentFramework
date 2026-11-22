@@ -2,8 +2,12 @@
 #
 # Merges the docker module's permissions into a repository's .claude/settings.json — never
 # overwrites: existing rules keep their order, and only missing ones are added. Docker commands and
-# the project's tasks run without a prompt; commands that delete containers, volumes, or images
-# always ask; and nothing an agent runs changes the local mode, which only the developer sets.
+# the project's tasks run without a prompt, with no ask rule: they act on this project's local
+# stack (decision 0078). Nothing an agent runs changes the local mode, which only the developer sets.
+# `make run` has no rule either: in native mode it runs on the host without a prompt, and a project
+# that wants one adds its own ask rule (0089).
+# An upgrade's migrations take out the ask rules this script once added; this script only adds, and
+# moves a rule it now denies out of the ask list.
 # Safe to run again (an upgrade picks up new rules the same way).
 #
 # Usage: modules/docker/install.sh [path/to/repository]    (default: the current directory)
@@ -60,5 +64,5 @@ denied = append_missing(permissions.setdefault("deny", []), fragment.get("deny",
 permissions["ask"] = [r for r in permissions["ask"] if r not in fragment.get("deny", [])]
 save(settings_path, settings)
 print(f".claude/settings.json: {len(allowed)} docker command(s) allowed, "
-      f"{len(asked)} destructive one(s) set to ask, {len(denied)} mode change(s) denied")
+      f"{len(asked)} set to ask, {len(denied)} mode change(s) denied")
 PY

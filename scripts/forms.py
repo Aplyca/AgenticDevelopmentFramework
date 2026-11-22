@@ -19,7 +19,7 @@ import re
 CORE = "adf"
 REPO_URL = "https://github.com/aplyca/AgenticDevelopmentFramework"
 # Every doc in adf's docs/. A module's guide is among them, and its module.json names it (PARALLEL-AGENTS).
-REFERENCE_DOCS = ["COST-MODEL", "MCP-INTEGRATION", "MEMORY-STRATEGY", "PARALLEL-AGENTS", "SPEC-MODEL"]
+REFERENCE_DOCS = ["COST-MODEL", "MCP-INTEGRATION", "MEMORY-STRATEGY", "PARALLEL-AGENTS", "PROSE-PATTERNS", "SPEC-MODEL"]
 
 HANDOVER = {
     "skill": "> **Step 0 — which copy.** This is the packaged copy{source}. "

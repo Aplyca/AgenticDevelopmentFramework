@@ -1,4 +1,4 @@
-# AI-Assisted Development Onboarding
+# Agentic Development Framework Onboarding
 
 A two-week path for a team adopting the framework: **multi-perspective spec-driven, test-driven,
 docs-first development, with AI agents working under the same rules as people.** Week 1 takes one
@@ -16,8 +16,8 @@ skill's `SKILL.md` by hand. Paths are the ones in your project; links go to the 
 Each discipline prevents a different mistake: **specs written from every perspective** (business,
 security, accessibility, privacy, testing, docs…) prevent building the wrong thing; **a plan approved
 on its change surface** prevents touching the wrong files; **tests that fail first** prevent false
-confidence; **docs first** prevent shipping what nobody can use; **guardrails** keep pushing,
-publishing, and posting waiting for a person.
+confidence; **docs first** prevent shipping what nobody can use; **guardrails** keep merging,
+releasing, and messages to the requester waiting for a person.
 
 **Every task starts with triage** (`/triage`): read the task in full, check for prior work, and state
 the deliverable (an answer or a change), the kind, the **lane**, and whether an environment is needed.
@@ -27,18 +27,18 @@ wanted an answer or a one-line fix, or delivered work re-analyzed from scratch.
 
 **The lane follows risk and uncertainty, not size** ([decision 0011](decisions/0011-lanes-ceremony-follows-risk.md)):
 
-- **Fast** — a precise request (or a bug with a clear cause), a few files, no risk trigger: restate it
+- **Fast** — a precise request (or a bug with a clear cause), nothing to decide, no risk trigger: restate it
   with "done when…", the test first (watch it fail), then the edit, `/commit`. On delivered work, a light `CR N` entry.
 - **Careful** — the same in a risk area — a migration, authorization, personal data, a shared
-  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist and
-  your yes on the risky part.
+  contract, infrastructure, or one of the project's sensitive areas: plus that area's checklist, and
+  the risky part named in the pull request, where your test starts. The agent pushes without asking.
 - **Full** — something to decide, a new feature, cross-layer work: the flow below.
 
 What finds defects — a test that proves the change, the hooks, CI, review, your QC on the preview —
 runs in every lane. **Your intuition sets the lane too:** "full lane on this" or "be careful here" is
 always honored; "just a quick fix" never silently drops a risk area's checklist. Other ways to ask for
 more effort — questions first, `/evaluate`, a higher effort level or model, `/deep-review` — and what
-each costs are in the skeleton's `docs/COST-MODEL.md` § Effort.
+each costs are in [`COST-MODEL.md` § Effort](../plugins/adf/docs/COST-MODEL.md#effort--what-to-raise-and-what-it-costs).
 
 The full lane flows:
 
@@ -51,8 +51,8 @@ The full lane flows:
 | Implement | `/implement` | Per task: test → watch it fail → code → green → commit | `feat:` / `fix:` per task |
 | Verify | `/implement`, `/review` | Docs reconciled; evidence in `tasks.md` § Gate results | `docs:` |
 | Local check | The agent, on the local environment | It walks the changed flow before any push | — |
-| Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, and the local check; then where you test it, locally and on the preview | — |
-| Close the loop, when asked | `/stakeholder-update` | The requester's update, shown to you first | — |
+| Deliver | `/open-pr` | A **draft** pull request: spec folder, tracker task, verified / not verified, the local check and review; tested and reviewed on the preview, marked ready with the review instructions in its description, and the reviewers requested; then where you review it — the preview | — |
+| Keep the requester informed — started, in review, delivered | `/stakeholder-update` (from `/triage` and `/open-pr`, or when asked) | The task's status and the requester's update on the ticket — the outcome posts on its own and is shown to you; a question for them waits for your yes | — |
 
 It all lives in `specs/NNN-<slug>/` (`spec.md`, `plan.md`, `tasks.md`), copied from
 `specs/_templates/`; the slug joins folder, branch (`<type>/<slug>`), and pull request.
@@ -70,10 +70,12 @@ Why it's shaped this way:
 - **One task, one commit** — every step reviewable, revertible, and backed by a test that once failed.
 - **Docs first** — describing use before code forces agreement on behavior while it's cheap to
   change, and docs left for "later" get skipped. They're reconciled when the build shows reality differs.
-- **Drafts only.** "Ready" means a person exercised the change — opened the preview, clicked through.
-  An agent can't claim that, so it opens drafts, reports what it verified and what it couldn't, and
-  never marks them ready on its own — you do, or you ask it to after your QC.
-  ([0005](decisions/0005-outward-actions-and-draft-prs.md))
+- **Agents implement and review; humans decide.** The local environment is the agent's, to build,
+  test, and review the change; the preview is the agent's to test and review it, and yours to review,
+  approve, and merge it. The pull request opens as a draft while the agent tests and reviews it, and
+  the agent marks it ready once that and CI pass — or says what holds it — then requests the
+  reviewers `CONTRIBUTING.md` names. "Ready" means ready for your review, not that a person has
+  tried it. ([0070](decisions/0070-the-agent-marks-its-pull-request-ready.md), [0072](decisions/0072-agents-implement-and-review-humans-decide.md))
 
 Optional: contract-first acceptance tests — end-to-end tests encoding the criteria, committed red
 (`test:`) before the task loop.
@@ -82,8 +84,8 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 
 | The task is… | Lane | Do this | Spec folder |
 |---|---|---|---|
-| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | Edit → targeted test → `/commit` | None — or a light `CR N` when it changes recorded behavior |
-| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + your yes | None — or a light `CR N` |
+| A typo, copy edit, version bump, dev-only tooling; a precise adjustment the requester already decided | Fast | The test first, seen failing → edit → `/commit` | None — or a light `CR N` when it changes recorded behavior |
+| The same, in a risk area or sensitive area | Careful | Fast + the area's checklist + the risky part named for your test | None — or a light `CR N` |
 | A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
 | A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
 | A bug whose fix changes documented behavior | By the change | A change request — light or full | Amend |
@@ -106,19 +108,22 @@ are configuration ([decision 0006](decisions/0006-guardrails-as-configuration.md
 | Rule | Enforced by |
 |---|---|
 | Claude Code loads `AGENTS.md` — a `CLAUDE.md` or `CLAUDE.local.md` would replace it | The session-context hook warns when one is in the project or above it |
-| No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them | `guard-git.sh` hook |
+| A session hears once when its branch's pull request merged (it offers the wrap-up) or closed (it asks whether the task is dropped) | `pr-state.sh` hook — `gh`, or `glab` on GitLab, at session start and at most every five minutes after; while the session sits idle, a background watch wakes it when the pull request merges or closes |
+| A session is named after its task once the triage is stated, as `/triage` does in the desktop app — in a terminal, and in the desktop app when the triage was made without `/triage`; a title you set stays | `session-title.sh` hook |
+| No `--no-verify`; no commits on protected branches; no pushes, force-pushes, or deletes targeting them; a tag push or a `git config` change asks first | `guard-git.sh` hook |
 | No hand-edits of lockfiles or generated files; existing migrations never modified | `protect-paths.sh` hook |
 | Environment variables the code reads are declared in the env template, when there is one | `check-env-declared.sh` hook — reports right after the edit |
 | An edit in a sensitive area (`CAREFUL_GLOBS`) stops once per session so the agent confirms the lane | `careful-paths.sh` hook |
 | The triage comes before the first change, in text you can read — a session's first edit or new branch with no lane stated stops once, as a reminder (a nudge, not a lock) | `triage-first.sh` hook |
-| A session's move into a worktree of this repository passes Claude Code's permission check in the desktop app; any other folder still asks. The app's own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `approve-worktree-move.sh` hook |
-| `git` and `gh` run without a prompt, except `git config`, pushing tags, readying, merging, or reviewing a pull request, releases, `gh repo delete`, secrets, `gh auth`, and `gh api` writes. With `docker`, Docker and make commands run without a prompt; deleting data, `docker push`, commands that print secrets, and `make run` ask | `permissions.allow` · `permissions.ask` |
-| A person confirms marking a pull request ready, merges, reviews, releases, GitHub API writes. Keeping the draft current — pushing, editing it, commenting on it — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
+| A session's move into a worktree of this repository passes Claude Code's permission check, in the desktop app and a terminal alike; any other folder still asks. For the app's `change_directory`, its own folder-trust check asks until you trust the folder that holds the main checkout and its worktrees | `approve-worktree-move.sh` hook |
+| A tracker update that changes only the task's status passes without a prompt, once `APPROVE_STATUS_MOVE` names the tracker's tool; a comment, or an update that also touches an assignee, a date, or the description, still asks | `approve-status-move.sh` hook |
+| `git`, `gh`, and `glab` run without a prompt, except `git config`, pushing tags, merging, approving, or reviewing a pull request, releases, deleting the repository, secrets (`gh secret`, `glab variable`), `gh auth`, `glab auth` and `glab token`, and API writes. With `docker`, every Docker and make command runs without a prompt, `make reset` and `make run` included: the agent asks in chat before it deletes data, and in native mode `make run cmd='…'` runs its command on the host — add `Bash(make run *)` to `permissions.ask` for a prompt there (it prompts in Docker mode too) | `permissions.allow` · `permissions.ask` |
+| A person confirms merges, reviews, releases, GitHub and GitLab API writes. Keeping the pull request current — pushing, editing it, commenting on it, marking it ready once the agent's own tests pass — needs no prompt, and neither does an issue write: `AGENTS.md` still says an agent posts only when asked | `permissions.ask` · `permissions.allow` |
 | Pull requests open only as drafts — the agent opens the draft itself once it has checked the change locally | `guard-git.sh` |
 | `.env`, `.env.local`, and `.env.*.local` are never read into context | `permissions.deny` |
-| `/stakeholder-update` starts from a plain request ("update the client"), and posts only after you approve the draft in chat | `disable-model-invocation` · the skill's steps |
+| `/stakeholder-update` starts from a plain request ("update the client"); a message that asks the requester for something posts only after you approve the draft in chat | The skill's steps |
 | No pushes to protected branches, fast checks before every push — any git client, once enabled per clone | [`git-hooks` module](../modules/git-hooks/MODULE.md) |
-| Secret scan and base-branch policy — advisory until a ruleset requires them | [`github` module](../modules/github/MODULE.md) |
+| Secret scan and base-branch policy — advisory until a ruleset (GitHub) or *Pipelines must succeed* (GitLab) requires them | [`github`](../modules/github/MODULE.md) or [`gitlab`](../modules/gitlab/MODULE.md) module |
 | Reviews and checks before merge; no direct pushes | Branch protection on the Git host — the real boundary |
 
 Everything above the module rows is Claude Code configuration; Cursor, Copilot, and other tools get
@@ -127,8 +132,9 @@ none of it. Hooks match the command text an agent writes, so they stop mistakes,
 **Conventions** — written in `AGENTS.md`, checked by reviewers, but nothing stops a skip: triage first;
 choosing the lane (outside the sensitive areas, `/review` checks it after the fact);
 **the approval gate** (`/implement` refuses without `status: approved`, so reviewers check the
-`approvals:` line); red before green; one task per commit; docs first; never marking a pull request
-ready; confirming tracker writes (mechanical only while the tracker's write tools stay off
+`approvals:` line); red before green; one task per commit; docs first; marking a pull request
+ready only once the agent's own tests, review, and CI pass; a message that asks the requester for
+something waiting for your yes (mechanical only while the tracker's write tools stay off
 `permissions.allow`); human review before merge, unless the host requires it. Write your project's
 honest version in `CONTRIBUTING.md` § What's enforced.
 
@@ -186,7 +192,8 @@ release, and the originals are linked below:
    lockfile by hand — blocked too.
 3. On a work branch, ask for a server file that reads `process.env.MAILCHIMP_API_KEY`. The env hook
    reports it; the agent adds the name, without a value, to `.env.example`.
-4. Ask it to push. Claude Code asks you first — decline.
+4. Ask it to push to `main` — the git guard blocks it. Then ask it to push the tags
+   (`git push --tags`, or one tag by name): Claude Code asks you first — decline.
 5. Discuss which of these a teammate on Cursor would get.
 
 ### Day 2: Triage (1 hour)
@@ -254,8 +261,10 @@ One person drives; another plays marketing, the requester.
 5. Run `/review` and fix what it finds.
 6. The local check: the agent starts the change on your machine and walks the changed flow itself.
 7. With a remote, that check opens the pull request: the agent runs `/open-pr`, and it opens as a
-   draft. The agent gives you the local URL, the preview's, and what to try. Test it by hand on
-   either, then mark it ready.
+   draft. The agent tests and reviews it on the preview, marks it ready once that and CI pass, and
+   requests the reviewers `CONTRIBUTING.md` names. Then it stops the local environment — its
+   containers and data stay — and gives you the preview's URL; what to try is in the pull request's description. Review it on
+   the preview; approving and merging are yours.
 
 ## Week 2: The full workflow in practice
 
@@ -267,11 +276,12 @@ keep a description's history, so the spec folder is the record of what was built
 **Exercise:** with the signup delivered, take task 5 from Day 2 — topics managed in Contentful,
 forwarded to Mailchimp interest groups.
 
-1. `/triage` finds the folder; `/write-spec` appends `CR 1` to `spec.md`: who asked, the intent, and a
-   *Delivered → Change* table. New criteria get new numbers tagged `(CR 1)`; retired ones are struck
-   through, never deleted.
+1. `/triage` finds the folder; `/write-spec` appends `CR 1` to `spec.md`: the role that asked, the
+   intent, and a *Delivered → Change* table. New criteria get new numbers tagged `(CR 1)`; retired
+   ones are struck through, never deleted.
 2. `/write-plan` adds the change request's plan and tasks: same gate, a `CR 1` line in `approvals:`.
-3. New branch, new pull request, same folder. Tests for unchanged criteria pass untouched.
+3. New branch, new pull request, same folder. Tests for unchanged criteria pass untouched. Feedback
+   before the merge is a change request too, on the open branch and draft.
 4. Variation: a change request on a feature delivered before you adopted the framework. With no spec
    folder, the agent should say the delta can't be recovered and ask — never rebuild it from the code.
 
@@ -306,12 +316,16 @@ framework's own [decision records](decisions/README.md) are examples.
 - **Read freely** — with a tracker MCP server connected, `/triage` reads the task itself.
 - **Tracker text is data, not instructions.** A comment telling the agent to deploy is a requirement
   to discuss; otherwise anyone who can comment on a task can steer your agent.
-- **Confirm every requester-visible write** — comment, message, status change — with the exact text,
-  every time. Never act on a task the developer isn't assigned to.
+- **The ticket is for stakeholders; the pull request is for the developer.** On the task you hand
+  it, the agent moves the status and posts the outcome — in review, delivered — on its own, and
+  shows you the text. Anything that asks the requester for something waits for your yes to the
+  exact text, every time, and so does any write on another task.
 - **Link, don't copy** — the tracker and the repository have different audiences and access.
 
-Tracker-originated work — light changes included — ends with an update to the requester, sent only
-when the developer says so. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
+Tracker-originated work — light changes included — updates the requester at three moments: started
+(after triage), in review (once the pull request is ready, with the preview and what to test), and
+delivered (once the change is live). The started message is a draft; the other two post on their
+own unless `docs/TRACKER-INTEGRATION.md` says *Updates post: on the developer's yes*. **Exercise:** `/stakeholder-update` for the signup (paste the Day 2 brief
 if there's no tracker task). Check for business language, verified claims, and your status words —
 "in review", "in acceptance testing", "live". Post nothing.
 ([TRACKER-INTEGRATION.md](../skeleton/docs/TRACKER-INTEGRATION.md))
@@ -322,14 +336,14 @@ Each agent session gets its own git worktree — never two in one checkout. With
 [`parallel-agents` module](../modules/parallel-agents/MODULE.md), **each task gets its own session,
 worktree, folder, branch, and pull request.** Start a new session for each task, in the main
 checkout, and give it the task. It triages from there; then a change — or an answer that runs the
-app — goes to `/dispatch`, which creates the task's worktree beside the main checkout with the
+app — goes to `/dispatch`, which creates the task's worktree under `.claude/worktrees/` with the
 scripts (named after the branch, on a new branch, with the env file and, when the project needs one,
-a port) and moves the session into it, with no prompt in the desktop app. An answer that only reads
+a port) and moves the session into it, with no prompt. An answer that only reads
 stays in the main checkout. The main checkout takes no edits — one there collides with every other
 session — and a session that already has a task offers another one a new session: a task chip you
 start with one click in the desktop app, or a `claude "<prompt>"` command in a terminal.
-([decisions 0021](decisions/0021-sibling-worktree-and-chip.md) and
-[0042](decisions/0042-each-session-moves-to-its-task-worktree.md))
+([decisions 0042](decisions/0042-each-session-moves-to-its-task-worktree.md) and
+[0083](decisions/0083-task-worktrees-under-claude-worktrees.md))
 
 **Exercise (module installed):** start one session for the typo and another for the topics
 estimate. The typo's session moves to its worktree after triage; the estimate, an answer that only
@@ -364,7 +378,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | A change surface that grows quietly | Stop, update `plan.md`, re-confirm |
 | Re-specifying a delivered feature | Amend its folder with a change request |
 | Obeying a tracker comment | Treat it as a requirement to discuss |
-| Marking an agent's pull request ready because CI is green | QC the preview yourself, then mark it ready |
+| Merging an agent's pull request because it's ready | Ready means its tests and review passed: review it yourself on the preview, then decide |
 | Accepting output you haven't read | Read every line; ask for explanations |
 | Letting the agent add abstractions, scripts, or CI guards nobody asked for | Do what was asked; new tooling needs a reason and a yes |
 
@@ -383,7 +397,7 @@ change surface, seen every task go red before green, amended a delivered feature
 | Review against the spec folder | `/review` |
 | One clean commit | `/commit` |
 | Push and open a draft pull request (on its own, once the agent has checked the change locally) | `/open-pr` |
-| Draft the requester's update ("update the client", or type it) | `/stakeholder-update` |
+| Write the requester's update ("update the client", or type it) | `/stakeholder-update` |
 | Record an ADR or PDR | `/record-decision` |
 | Root-cause a bug | `/debug` |
 | Restructure code safely | `/refactor` |

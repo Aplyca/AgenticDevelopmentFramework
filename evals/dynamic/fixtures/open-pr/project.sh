@@ -130,15 +130,19 @@ note = ("**This project uses the packaged install.** Skills, agents, and workflo
 fill(".claude/rules/claude-code.md", [("# [PROJECT NAME] — Claude Code", "# Newsletter Site — Claude Code\n\n" + note)])
 agents = Path("AGENTS.md").read_text().split("\n", 1)[1]
 Path("AGENTS.md").write_text("<!-- Skeleton source: v2.0.0 · de05c95 (2026-10-08) · modules: none · install: packaged -->\n" + agents)
+fill("CONTRIBUTING.md", [
+    ("[`@username`, … — usernames work on GitHub and GitLab; on GitHub, an `@org/team`\n  too, or `CODEOWNERS` when that file names them; or `none`]", "`@sam-lead`"),
+])
 fill("AGENTS.md", [
     ("# [PROJECT NAME]", "# Newsletter Site"),
     ("[One paragraph: what this project is, who uses it, and its stage — PoC, MVP, or production.]",
      "The marketing site for a publisher: article pages and a newsletter signup (Mailchimp). In production."),
     ("- Install: `[command]`", "- Install: nothing to install (Node 22+)"),
-    ("- Dev server: `[command, e.g. make up]` · stop: `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`",
-     "- Dev server: `pnpm dev` · stop: Ctrl-C · where it runs: `pnpm urls`"),
+    ("- Dev server: `[command, e.g. make up]` · stop (keeps containers and data): `[command, e.g. make stop]` · down (removes containers; data stays): `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`",
+     "- Dev server: `pnpm dev` · stop (keeps containers and data): Ctrl-C, or end its background command · down (removes containers; data stays): nothing to remove · where it runs: `pnpm urls`"),
+    ('- Production build, locally: `[command, e.g. make prod — or "none"]`', "- Production build, locally: `none`"),
     ("- Tests: `[command]` (on their own port)", "- Tests: `pnpm test`"),
-    ("- Lint: `[command]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
+    ("- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or \"none\"]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate before a PR: `[command]`", "- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`"),
     ("- Preview: `[where each pull request's preview deploys, e.g. the host's comment on the PR — or \"none\"]`",
      "- Preview: each pull request deploys one; the `Preview` check on the pull request names its URL (`gh pr checks <n>`)"),

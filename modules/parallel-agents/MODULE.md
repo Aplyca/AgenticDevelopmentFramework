@@ -14,13 +14,13 @@ gets its own session, worktree, folder, branch, and pull request.
 | `ops/agent/worktree-rm.sh` | Stop (when a stop command is set), remove, bring the main checkout's base branch up to date, and safely delete the branch |
 | `ops/agent/worktree.conf` | The project's settings — base branch, env file, setup/start/stop commands, environment info, and the server-only port settings |
 | `ops/agent/_worktree-lib.sh` | Shared helpers |
-| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: after triage, creates the task's worktree beside the main checkout with the scripts and moves this session there; offers another task a new session. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
+| `.claude/skills/dispatch/SKILL.md` | `/dispatch`: after triage, creates the task's worktree under `.claude/worktrees/` with the scripts and moves this session there; offers another task a new session. The `adf` plugin carries its source; a committed install writes it with `build-committed.py` |
 | `.worktreeinclude` | The env file Claude Code copies into the worktrees it creates — the desktop app's worktree option, `claude --worktree` |
 | `docs/SHARED-SERVICES.md` | What the project's worktrees share, what a task may copy, and what a copy costs |
 
 A developer starts a new session for each task, and that session takes it (decision 0042). After
 triage, a change — or an answer that runs the app, the tests, or the database — goes to `/dispatch`,
-which creates the task's worktree beside the main checkout with `worktree-new.sh --no-start`, on a
+which creates the task's worktree under `.claude/worktrees/` with `worktree-new.sh --no-start`, on a
 new branch, and moves the session into it; an answer that only reads stays in the main checkout.
 Another task, in a session that already has one, gets a new session: a task chip in the desktop app,
 a `claude "<prompt>"` command in a terminal. With the module installed, the core session-context
@@ -29,7 +29,7 @@ move — and, in a worktree the scripts didn't set up, what it lacks: a task bra
 file, or the scripts' setup. The core `protect-hub.sh`
 hook stops file edits in the main checkout once the module is there, and the core
 `approve-worktree-move.sh` hook lets a session move into a worktree of the repository without a
-prompt in the desktop app. The core `/handoff` skill
+prompt, in the desktop app and a terminal alike. The core `/handoff` skill
 covers passing work in progress on.
 
 The module's guide, `PARALLEL-AGENTS.md` — one task per session and worktree, the scripts, a server
@@ -67,7 +67,8 @@ that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops
 ## Customize
 
 1. **`ops/agent/worktree.conf`** — at least `BASE_BRANCH`; `ENV_FILE` / `ENV_TEMPLATE` if the
-   project has an env file; `SETUP_CMD` for what the git hooks and tests need. Only if each worktree
+   project has an env file; `SETUP_CMD` for what the git hooks and tests need — with the `docker`
+   module, empty or a make task, never a host install. Only if each worktree
    runs a server: `PORT_SLOTS`, `ENV_OVERRIDES`, `START_CMD`, `READY_URL`, `STOP_CMD` — and make the
    app read its port from the env file.
 2. **`AGENTS.md` § Delivery rules** — replace the "Parallel sessions" line with: *"Each task gets
@@ -79,11 +80,21 @@ that hasn't moved it yet; `/adf:upgrade` moves it with `git mv scripts/agent ops
 3. **`docs/SHARED-SERVICES.md`** — record what worktrees share, what a task may copy, and what a
    copy costs; optionally set `ENV_INFO_CMD` so `worktree-ls.sh --info` prints what someone needs to
    use each environment.
-4. **`.gitignore`** — the env file, and `.claude/worktrees/`.
+4. **`.gitignore`** — the env file, and `.claude/worktrees/`, where every task's worktree lives
+   (`worktree-new.sh` says so when git doesn't ignore it). When each worktree runs a server, also
+   `.claude/launch.json`: `worktree-new.sh` lists the app there as `app · http://localhost:<port>`,
+   and Claude Desktop's Browser shows it on a new tab (decision 0056). It skips the row where git
+   doesn't ignore the file.
 5. **`.worktreeinclude`** — the same env file as `ENV_FILE`, plus any other gitignored file a worktree
    needs (gitignore syntax). Claude Code copies only files that are gitignored.
+6. **Your tools in a nested worktree** — a task's worktree sits inside the main checkout, so a tool
+   that looks in parent folders can reach the main checkout's files. `docs/PARALLEL-AGENTS.md`
+   § Why the details matter lists the three cases and the fix for each: run the tools in the
+   container or install in the worktree, `compilerOptions.types` before TypeScript 6.0, and
+   `"root": true` for ESLint's `.eslintrc`.
 
 ## Requirements
 
-`bash`, `git` 2.31+; `curl` only for `READY_URL`. macOS and Linux. `.worktreeinclude` needs a Claude Code
+`bash`, `git` 2.31+; `curl` only for `READY_URL`; `python3` only for the app's entry in Claude
+Desktop's Browser, which is skipped without it. macOS and Linux. `.worktreeinclude` needs a Claude Code
 version that supports it.

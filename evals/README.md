@@ -42,12 +42,17 @@ See [`dynamic/README.md`](dynamic/README.md) and [`dynamic/run-dynamic.md`](dyna
 ```yaml
 # .github/workflows/evals.yml
 name: Framework evals
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
+    branches: [main]
 jobs:
   static:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # the upgrade tests build projects from older release tags, and skip themselves without them
       - run: ./evals/run-evals.sh
 ```
 
@@ -84,14 +89,15 @@ evals/
     check-skills.sh    ← structural checks (skills, agents, workflows, settings, hooks, templates, links, modules)
     test-hooks.sh      ← functional tests of the guardrail hooks
     test-modules.sh    ← functional tests of the module scripts
+    test-plugin.sh     ← functional tests of the plugin's scripts (cost and time reports)
+    test-upgrade.sh    ← the scripted upgrade, run against projects built from older release tags
     skills.checklist.md ← human / AI-readable checklist (same checks, prose form)
   dynamic/
     README.md
     run-dynamic.md     ← manual + SDK execution patterns
-    fixtures/
-      write-spec/
-      write-tests/
-      write-docs/
-      implement/
+    run-session-evals.sh ← runs the skills in real Claude Code sessions (costs tokens)
+    check-packaged.sh  ← checks a packaged install in a real session
+    fixtures/          ← one folder per skill or flow under test
+    reports/           ← graded reports of past session-eval runs
   results/             ← gitignored, where eval run outputs land
 ```

@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: Turn a spec into plan.md (constitution check, architecture, change surface, test strategy, documentation plan, assumptions) and tasks.md (commit-sized TDD tasks), check the folder for consistency, and stop at the approval gate. Use after /adf:write-spec and before any implementation code — for new features and change requests alike.
+description: Turn a spec into plan.md (constitution check, architecture, change surface, test strategy, documentation plan, assumptions) and tasks.md (commit-sized TDD tasks), then stop at the approval gate. Use after /adf:write-spec and before any implementation code, for new features and change requests alike.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup]"
 ---
 
@@ -41,16 +41,17 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Approach** — the design, plus the alternatives you rejected (one line each). Justify any new dependency here or don't add it.
    - **Architecture & integrations** — domain concepts and which layer owns each; what must not leak across layers; a diagram only when prose can't carry it.
    - **Change surface** — every file to create or modify, by layer, with why; plus what is deliberately **not** touched.
-   - **Data model & contracts** — new migrations (never edits to existing ones), API or contract changes, environment variables (declared in the env template), CMS model changes.
-   - **Test strategy** — every acceptance criterion, edge case, and testable requirement from Security, Accessibility, Performance, Privacy, Analytics, and Localization mapped to a named test.
-   - **Documentation plan** — from spec § Documentation: pre-implementable docs become Phase 1 tasks; post-implementable ones Phase 5.
+   - **Data model & contracts** — new migrations (never edits to existing ones), API or contract changes, environment variables (declared in the env template), CMS model changes. A contract shared with another spec folder (`related-specs`) is named here: a consumer re-checks it against the provider's spec after each sync with the base branch, and a change to it is recorded in the consumer's spec and pull request.
+   - **Test strategy** — every acceptance criterion, edge case, and testable requirement from Security, Accessibility, Performance, Privacy, Analytics, and Localization mapped to a named test, at the cheapest layer that proves it and tested once (`.claude/rules/testing.md` § Strategy): a check repeats across variants — screens, locales, roles — only where each runs code of its own. When that layer doesn't exist in the project — logic a unit test would prove, testable only end to end — keep the test where it can run, and list the missing layer as a risk; adding it is the developer's call.
+   - **Documentation plan** — from spec § Documentation: pre-implementable docs become Phase 1 tasks; post-implementable ones Phase 5. A diff a teammate could merge without new docs has none. An end-user page (End-user docs) is a Phase 1 task too — its draft in the doc tool — and is published after the feature ships, outside `tasks.md`. So is the spec's usage guide: posting its draft on the tracker task is a Phase 1 task, reconciling its text a Phase 5 one, and its final version goes up at delivered, outside `tasks.md`.
    - **Rollout, risks, assumptions, open questions.** Every assumption you are relying on is written down — an unstated assumption is how an invented requirement gets in. Ask the open questions in rounds, each with your recommended answer (`AGENTS.md` § Working economically); name modules and concepts with the terms in `docs/GLOSSARY.md`.
+   - **Roles, not names.** A decision or confirmation in `plan.md` and `tasks.md` — an assumption someone confirmed, a correction at the gate — is dated and attributed to a role (developer, tech lead, requester, legal), never to a person's name, and written in your own words: no quotes or text copied from the tracker (`specs/README.md` § Records name roles).
 
 ## Phase 2: Tasks (`tasks.md`)
 
 5. **Break the plan into commit-sized tasks** in dependency order, using `specs/_templates/tasks.md`:
    - Phase 0 — the approval itself (T000).
-   - Phase 1 — docs first (one task per pre-implementable doc). Omit when there are none.
+   - Phase 1 — docs first (one task per pre-implementable doc, per end-user page draft, and for posting the usage guide's draft). Omit when there are none.
    - Phase 2 — foundation: migrations, shared types, configuration.
    - Phase 3 — stories: each task names its test (`test: <path> · "<name>"`) and the ACs it serves.
    - Phase 4 — acceptance tests encoding the ACs end to end. Written after the stories, they pass on
@@ -60,19 +61,21 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    Mark independent tasks `[P]`. **Sizing:** one task is one red → green cycle and one commit. A task
    that touches more than ~5 files or needs several test files is probably two tasks.
 
-   **For a change request**, don't edit the delivered parts: append a `# CR N — <title>` part to
-   `plan.md` and to `tasks.md`, with the templates' headings, covering only the delta. Number its
-   tasks from `T<N>00` (T100 for CR 1); its gate results go under that part. Delivered tests the CR
-   changes or retires are named in its test strategy, each with the task that touches it.
+   **For a change request** — after the merge, or on the open pull request — don't edit the earlier
+   parts: append a `# CR N — <title>` part to `plan.md` and to `tasks.md`, with the templates'
+   headings, covering only the delta. Number its tasks from `T<N>00` (T100 for CR 1); its gate
+   results go under that part. An earlier entry the CR supersedes — a planned file, a task not yet
+   done, a test — is struck through, not deleted. Tests the CR changes or retires are named in its
+   test strategy, each with the task that touches it.
 
-6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference.
+6. **Fill the verification checklist** with the project's real commands from `AGENTS.md` § Quick reference — one test by name, a feature suite, and the full gate: what runs while iterating is the task's tests — or their file, when it runs in seconds — never a slow file or a suite of them.
 
 ## Phase 3: Analyze (read-only)
 
 7. **Check the folder for consistency** before showing it to anyone:
    - every AC → at least one task → a named test; every task → an AC, or a stated reason (foundation, docs);
    - every testable requirement in the filled non-functional sections → a test;
-   - every pre-implementable doc → a doc task;
+   - every pre-implementable doc, end-user page, and usage guide → a Phase 1 task;
    - every file named in a task appears in the change surface;
    - no conflict with the constitution, and no contradiction between spec and plan;
    - assumptions listed; open questions empty.
@@ -88,27 +91,47 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Scope** — the ACs in, and what is explicitly out.
    - **Change surface** — the table, the shared code and its other consumers, what is not touched.
    - **Assumptions and risks** — every one, plainly.
-   - **Verification** — the test strategy in a few lines, and what will be checked manually.
+   - **Verification** — the test strategy in a few lines, a test layer the project lacks, and what will be checked manually.
    - **Docs** — what will be written before code.
    - End with: *"No implementation code until you approve. Reply with changes, or approve."*
 
 10. **Wait.** Fold every change the developer asks for into the files, and show the result again.
 
 11. **On approval:**
-    - set `status: approved` in `spec.md`, and add an `approvals:` line — `YYYY-MM-DD · <who> · initial scope` (or `· CR N`);
+    - set `status: approved` in `spec.md`, and add an `approvals:` line — `YYYY-MM-DD · <role> · initial scope` (or `· CR N`), naming the approver's role (developer, tech lead), never their name;
     - tick T000;
     - commit the folder: `spec: approve <slug> scope and plan` (or `spec: approve <slug> CR N`). Don't push.
+      A CR on an open pull request is committed on that same branch.
 
-12. **Hand off:** `/adf:write-docs` when Phase 1 has tasks, then `/adf:implement`. Suggest doing that in a
-    **fresh session on `sonnet`**: an approved plan with named tests is a clear spec with a way to
-    check the result, the spec folder carries everything the next session needs, and the wait at the
-    gate has usually let the prompt cache expire anyway — so the switch costs nothing extra.
+12. **Hand off — in this session:** `/adf:write-docs` when Phase 1 has tasks — and `/adf:end-user-docs` for an end-user page, `/adf:stakeholder-update guide` for the spec's usage guide — then `/adf:implement`. They run on
+    **`sonnet`, from a compacted conversation**: an approved plan with named tests is a clear spec
+    with a way to check the result, the committed folder carries the detail, and the whole planning
+    conversation would be re-read on every later call. Give the developer three steps, in order:
+    1. **Compact, right away** — the sooner after approval, the more of the summary's read comes
+       from the cache: `/compact Keep the lane, the approved spec folder specs/<NNN>-<slug>/, the
+       gate's decisions and open questions, and the next step: /adf:write-docs, then /adf:implement`.
+    2. **Pick Sonnet:** `/model sonnet` in a terminal, the model menu in the desktop app, the picker
+       in another tool.
+    3. **Send the next command:** `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` when
+       Phase 1 has no tasks.
+
+    Compacting first means the switch re-reads only the summary. Name the steps rather than taking
+    them: no tool compacts a session from inside it, and the desktop app doesn't let a session change
+    its own model. A tool with no compaction starts the conversation over instead — the folder
+    carries the task. **Skip the compaction when it can't pay back** — a task or two left in
+    `tasks.md`, or a planning conversation that's still short: name only the model switch, made in
+    place. If the developer keeps the whole conversation, the model switches in place
+    (one uncached re-read) or stays — their call. **Never start another
+    session for these phases** — not a new one, not a child — unless the developer asks: two
+    sessions on one branch split the task, and the waiting one wakes, at its own model's price, each
+    time the other finishes a turn.
 
 ## After approval
 
 The plan is a living record. When implementation contradicts it, `/adf:implement` corrects `plan.md` in
-the same branch. If the change surface grows — a new layer, a new shared component, a file outside
-the table — stop and re-confirm with the developer before continuing.
+the same branch. If the change surface grows into risk — a new layer, a new dependency, an escalation
+trigger — stop and re-confirm with the developer before continuing. Other growth, such as a file
+outside the table, is recorded in `plan.md` and the pull request, and work goes on.
 
 ## Rationalizations (do not accept these)
 
@@ -124,7 +147,7 @@ the table — stop and re-confirm with the developer before continuing.
 
 ## Red flags (stop and reassess)
 
-- The change surface touches shared code with consumers the spec never mentions.
+- The change surface touches shared code with consumers the spec never mentions, or changes a contract a consumer spec in `related-specs` relies on.
 - An AC has no test you can name, or a test has no AC — the spec or the plan is ambiguous.
 - More than ~15 tasks, or several unrelated layers — the spec may be more than one PR; consider splitting.
 - A new dependency, service, or migration appears that the spec didn't ask for.
@@ -139,7 +162,8 @@ the table — stop and re-confirm with the developer before continuing.
 - [ ] The constitution check is done, and conflicts are resolved or recorded
 - [ ] `@adf:spec-analyzer` (or `/adf:deep-spec-analysis`) ran for non-trivial work, and its confirmed gaps are fixed
 - [ ] The gate was presented — scope, change surface, assumptions — and the developer explicitly approved
-- [ ] `status: approved` and an `approvals:` line are set; the folder is committed with `spec:`, not pushed
+- [ ] `status: approved` and an `approvals:` line naming a role are set; the folder is committed with `spec:`, not pushed
+- [ ] No personal name and no quoted tracker text in `plan.md` or `tasks.md`; a shared contract is named, with the consumer's re-check after each base sync
 
 ## Principles
 

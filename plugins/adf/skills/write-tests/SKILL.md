@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: Write tests from a spec folder's acceptance criteria and testable requirements, and watch them fail before any implementation (TDD red). Three modes — the test for one task inside the /adf:implement loop, contract-first acceptance tests committed ahead of the code, or standalone coverage for existing code and bugs. Use whenever tests come before code.
+description: Write tests from a spec's acceptance criteria and testable requirements, and watch them fail before any code (TDD red) — one task's test inside /adf:implement, contract-first acceptance tests, or coverage for existing code and bugs. Use whenever tests come before code.
 argument-hint: "[spec folder and task ID, 'acceptance' for contract-first, or an area to cover]"
 ---
 
@@ -31,7 +31,7 @@ test that never failed proves nothing: it may test something that already exists
 2. **Read the test conventions** — `.claude/rules/testing.md` (framework, ports, mocking,
    organization, and § End-to-end for a test that needs the whole stack) — and the existing tests
    in the area. Don't duplicate; extend. With the `e2e` module, an end-to-end test goes in `e2e/`,
-   uses its fixtures, and runs with `make e2e t=<file>`.
+   uses its fixtures, and runs by name with `make e2e t=<file> g="<title>"`.
 
 3. **Present the test plan** — requirement → test, grouped by source section:
    ```
@@ -54,13 +54,32 @@ test that never failed proves nothing: it may test something that already exists
 5. **Run them — every new test must fail, for the right reason**: the assertion about the missing
    behavior, not an import error, a typo, or a broken fixture. Keep the failure output — it's the
    red half of the evidence in `tasks.md` § Gate results.
-   A test that **passes** now is testing something that already exists (fine in a change request,
-   if intended — say so) or testing the wrong thing (fix it).
+   A test that **passes** now is either wrong — fix it until it fails for the right reason — or
+   pins behavior that already exists (coverage of existing code, an unchanged path in a change
+   request): say so in one line, break the behavior on purpose, watch the test fail, restore it,
+   and record that in the gate results. A type or compile error is never the red.
+
+   **An end-to-end test is red first too, and only on a local stack.** It never runs against a
+   preview, staging, or production: a preview can share real backends, and the tests write data.
+   Get its red one of two ways:
+   - **Before the code** — the usual way. Write or update the test, run it on this checkout's stack
+     (`make e2e t=<file> g="<title>"` with the `e2e` module), and watch it fail on the missing behavior.
+   - **Against the base branch's code,** when the code came first — a test added after the change,
+     or one the review asked for. Put the base branch in a second worktree with a stack of its own:
+     with the parallel-agents module, `adf-worktree-new chore/<slug>-red --no-start`, which seeds its
+     env file and its ports; otherwise `git worktree add --detach ../<repo>-red origin/<base>`, with
+     `.env` copied in. Start it (`make up`), copy the test in, and run it there: it fails for the
+     right reason. Commands there run outside this checkout, so Claude Code asks for them. Then run
+     it green here, on the new code. Stop that stack (`make down`) and remove the worktree
+     (`adf-worktree-rm`, or `git worktree remove`).
+
+   Record both runs in `tasks.md` § Gate results: where the red ran, the assertion that failed, and
+   the green.
 
 6. **Hand off:**
    - **Task mode** — back to `/adf:implement` to write the code, reach green, and commit both together.
    - **Acceptance mode** — commit the red tests: `test: add <slug> acceptance tests (red — pending implementation)`. `/adf:implement` turns them green task by task.
-   - **Standalone** — commit `test:`; for a bug, the fix follows in its own commit.
+   - **Standalone** — commit `test:`; a bug's regression test is committed with its fix (`fix:`), once green.
 
 ## Rationalizations (do not accept these)
 
@@ -68,6 +87,8 @@ test that never failed proves nothing: it may test something that already exists
 |---|---|
 | "I'll write the tests after the code — it's faster" | Tests written after code confirm what was built, not what should be. They miss edge cases and encode implementation accidents. |
 | "It failed with a module-not-found error — that's red" | Red means the behavior is missing, not that the test can't load. Fix the scaffolding until the assertion is what fails. |
+| "The code's already done, so I'll check the end-to-end test red on the preview of the base branch" | The suite runs only against a local stack: a preview can share real backends, and the tests write data. Run it red on the base branch's code in a second local worktree, then green here. |
+| "The code's already done, so this end-to-end test can't be red" | It can: run it on the base branch's code, in a second worktree with its own stack. A test you never saw fail may test nothing. |
 | "This AC is too simple to test" | Simple ACs break too. If it's in the spec, it gets a test. |
 | "I'll combine several ACs in one test" | Each AC needs its own test so a failure names the broken requirement. |
 | "This service is reliable — no need to mock it" | Tests must not depend on external services. A flaky suite is worse than none. |
@@ -85,7 +106,7 @@ test that never failed proves nothing: it may test something that already exists
 - [ ] Every AC and edge case in scope has at least one test
 - [ ] Every testable requirement in the filled non-functional sections is covered
 - [ ] Every explicit ask in the spec's Testing section is covered
-- [ ] Every new test was run and failed for the right reason — the output is kept for the gate results
+- [ ] Every new test was seen failing for the right reason — before the code, or by breaking the behavior it pins — and the output is kept for the gate results
 - [ ] All external services are mocked; test data is fake
 - [ ] Test names read as behavior; organization follows the project's conventions
 

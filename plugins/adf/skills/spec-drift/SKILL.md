@@ -1,7 +1,9 @@
 ---
 name: spec-drift
-description: Detect drift between a committed spec folder (spec, plan, tasks) and the current code, tests, and docs. Reports divergences without fixing them. Run periodically (e.g., monthly per spec area) to catch silent decay after a spec has aged through many pull requests.
+description: Detect drift between a committed spec folder and the current code, tests, and docs. Reports divergences; fixes nothing. Run periodically — monthly per spec area, say — to catch silent decay after a spec has aged through many pull requests.
 argument-hint: "[spec folder | --all | --area <path>]"
+context: fork
+model: sonnet
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/spec-drift/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -82,10 +84,10 @@ This workflow enforces consistency at *write time* (spec and plan before docs be
    ✓ AC1 (form renders with Contentful copy) — code matches, test in place
    ✓ AC2 (success message after valid submission) — matches
    ✘ AC3 (inline error for invalid email) — DRIFT
-       Spec says: "focus moves to the input"
-       Code: focus does not move (commit a1b2c3d removed the focus management
-             "for accessibility refactor"; spec was not updated)
-       Recommendation: update spec to reflect new behavior, OR restore focus management
+       Spec says: nothing about disposable-email domains
+       Code: rejects them with the same inline error (commit a1b2c3d "block
+             disposable domains"; spec was not updated)
+       Recommendation: add the rule to the spec (change request), OR remove the check
    ✘ Edge case "Mailchimp 5xx → retry-able error" — MISSING
        Test was removed in commit d4e5f6g; code still has the path but no test
        Recommendation: restore the test (it's a real edge case)

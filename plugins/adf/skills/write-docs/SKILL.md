@@ -1,10 +1,12 @@
 ---
 name: write-docs
-description: Write the pre-implementable user-facing docs an approved spec folder's plan lists (admin guides, API contracts, end-user copy) BEFORE implementation — docs-first — and update them later when implementation shows reality differs. Skips cleanly when the plan lists none. Use after the approval gate, before /adf:implement.
+description: Write the pre-implementable repository docs an approved plan lists (admin guides, API contracts, end-user copy) before implementation, and update them when the build differs; skips cleanly when the plan lists none (doc-tool pages are /adf:end-user-docs'). Use after the approval gate, before /adf:implement.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup — or 'update' for update mode]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/write-docs/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
+
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
 
 # Write Docs (Docs-First)
 
@@ -12,6 +14,11 @@ Write the user-facing documentation the plan calls for **before** the code exist
 forces the team to articulate how the feature will be used while that conversation is still cheap.
 Docs are **living artifacts**, not frozen contracts: when implementation reveals reality differs,
 they are updated deliberately (small fixes by `/adf:implement`, larger rewrites by this skill's update mode).
+
+These are the repository's docs, for the team, its agents, and anyone who reads the code. With the
+`end-user-docs` module, the guides stakeholders read — user, editorial, and administrative guides on
+how to use the system — live in a doc tool instead: spec § Documentation › End-user docs lists them,
+and `/adf:end-user-docs` writes them.
 
 Two modes:
 - **First pass (default)** — the Phase 1 doc tasks in `tasks.md`, after the approval gate and before
@@ -27,11 +34,11 @@ Two modes:
 
 If `plan.md` § Documentation plan lists no pre-implementable docs (or spec § Documentation marks
 Pre-implementable as Not applicable), say so, confirm the post-implementable docs are listed for
-later, and hand off to `/adf:implement`. Don't manufacture docs a feature doesn't need.
+later, and hand off to `/adf:implement` — or first to `/adf:end-user-docs`, when the plan lists an
+end-user page, and `/adf:stakeholder-update guide`, when the spec has a usage guide. Don't manufacture docs a feature doesn't need.
 
-Pre-implementable docs typically include admin or operator guides, API contracts (OpenAPI, GraphQL
-schemas), end-user help and copy defaults seeded into a CMS, public READMEs or SDK docs, and
-architecture sketches for non-trivial features. Post-implementable docs — runbooks with real
+Pre-implementable docs typically include operator guides, API contracts (OpenAPI, GraphQL
+schemas), help and copy defaults seeded into a CMS, and public READMEs or SDK docs. Post-implementable docs — runbooks with real
 metrics, tutorials with real screenshots, troubleshooting from real failures — are not this phase's
 job; they're Phase 5 tasks.
 
@@ -41,7 +48,9 @@ job; they're Phase 5 tasks.
    where they live), the spec — Functional, Design, Documentation, and the sections each doc draws
    on — and `plan.md` § Test strategy: the tests are the precise statement of behavior the docs
    must match. For a change request, focus on the `CR N` section and leave docs for unchanged
-   behavior alone.
+   behavior alone. In a conversation that doesn't show where the task stands — compacted after the
+   gate, or started anew — open with one line on it: `Full lane — specs/007-newsletter-signup/,
+   approved; writing its Phase 1 docs`.
 
 2. **Read the existing docs** in the same area and match their tone, structure, and depth. Use
    `docs/GLOSSARY.md` terms.
@@ -52,10 +61,15 @@ job; they're Phase 5 tasks.
      screenshots, sample output, or anything you'd have had to run;
    - cross-reference the spec folder, related ADRs, and related docs.
 
+   Then run the prose pass, `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`: the existing docs'
+   tone and structure, from step 2, win over it.
+
 4. **Validate** — every claim backed by an AC, an edge case, or a planned test; nothing contradicts
    the spec; no implementation details that aren't defined yet; glossary terms used.
 
-5. **Tick the Phase 1 tasks and commit:** `docs: add <audience> docs for <slug>`. Hand off to `/adf:implement`.
+5. **Tick the Phase 1 tasks for the docs you wrote and commit:** `docs: add <audience> docs for
+   <slug>`. Hand off to `/adf:end-user-docs` when the plan lists an end-user page and
+   `/adf:stakeholder-update guide` when the spec has a usage guide, then to `/adf:implement`.
 
 ## Update mode
 
@@ -65,7 +79,7 @@ behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it
 1. Read the committed docs and what has actually been built (the implementation commits).
 2. List what is wrong, missing, or misleading, and present a short **doc-update plan** — which
    sections of which files change, and what gets removed. Wait for approval.
-3. Write the updates; commit `docs: update <doc> for <what changed>`.
+3. Write the updates and run the prose pass on them; commit `docs: update <doc> for <what changed>`.
 
 ## Rationalizations (do not accept these)
 
@@ -77,6 +91,7 @@ behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it
 | "This feature is small, I'll skip the docs" | The plan decides, not the skill. If it lists pre-implementable docs, write them; if not, skip cleanly. |
 | "I'll keep the docs vague — implementation will fill in the details" | Docs drive implementation thinking; vagueness defeats that. Match the tests' precision. |
 | "The spec is missing an audience — I'll add the doc anyway" | Scope changes go through the spec and plan first. Don't extend scope silently. |
+| "The end-user page is a doc too — I'll write it in `docs/` as well" | With the `end-user-docs` module, the doc tool is its only home. Hand it to `/adf:end-user-docs`. |
 
 ## Red flags (stop and reassess)
 
@@ -91,6 +106,7 @@ behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it
 - [ ] Every claim is backed by an AC, an edge case, or a planned test
 - [ ] Nothing describes implementation details that don't exist yet; nothing is fabricated
 - [ ] Terminology matches `docs/GLOSSARY.md`; tone and structure match existing docs
+- [ ] The prose pass ran on every doc written or updated
 - [ ] Phase 1 tasks are ticked and the docs are committed with `docs:` before any implementation commit
 
 ## Principles

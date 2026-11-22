@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-10-01
-- **Refined by:** [0011](0011-lanes-ceremony-follows-risk.md) — spec folders belong to the full lane; precise adjustments leave a light change request
+- **Refined by:** [0011](0011-lanes-ceremony-follows-risk.md) — spec folders belong to the full lane; precise adjustments leave a light change request; [0050](0050-spec-records-name-roles-and-contracts.md) — the folder names roles, never people, and quotes nothing from the tracker
 
 ## Context
 

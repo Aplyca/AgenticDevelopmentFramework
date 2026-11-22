@@ -104,11 +104,14 @@ Triage — Newsletter signup on article pages, round two (https://tracker.exampl
     2. Everyone sees the same thank-you message — retires AC4. This is only in the comments of
        2026-09-15 (Lee asked, Dana agreed); the description doesn't mention it.
     Unchanged: placement, copy, validation, rate limit, failure behavior (AC1–AC3, AC5, AC6).
+- Lane: full — the request leaves things to decide: topics for an address already on the list,
+  who maps each topic to its Mailchimp group (source: triggers)
+- Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
 - Environment: needed later, for the TDD loop — not for the spec or the plan
-- Spec folder: amend specs/007-newsletter-signup/ as CR 1, on a fresh branch feat/newsletter-signup-topics
 - Open questions: 1) A reader already on the list picks topics — add them? 2) Who maps each topic
   to its Mailchimp group? 3) Topic order, and a maximum?
-- Next: /write-spec (CR 1), then /write-plan
+- Next: /write-spec — amend specs/007-newsletter-signup/ as CR 1, on a fresh branch
+  feat/newsletter-signup-topics — then /write-plan
 ```
 
 Three things to notice:
@@ -264,8 +267,8 @@ The gate shows only what CR 1 changes:
 > **Verification.** Every new AC and edge case maps to a test. Of the 49 delivered tests, four go
 > with AC4 and two are adjusted, each in a named task; the other 43 must pass unedited.
 >
-> **Docs first.** "Managing topics" in the admin guide and one new default in the copy doc. After
-> the code: the runbook.
+> **Docs first.** "Managing topics" in the admin guide, one new default in the copy doc, and the
+> usage guide's new step, posted on MKT-412 as a draft. After the code: the runbook.
 >
 > No implementation code until you approve. Reply with changes, or approve.
 
@@ -284,8 +287,8 @@ commits:
 
 ```yaml
 approvals:
-  - "2026-06-09 · Sam (tech lead) · initial scope"
-  - "2026-09-17 · Sam (tech lead) · CR 1"
+  - "2026-06-09 · tech lead · initial scope"
+  - "2026-09-17 · tech lead · CR 1"
 ```
 
 ```bash
@@ -323,6 +326,11 @@ wrong, Mailchimp rejects every signup that picks it, and those readers see your 
 in place. In the copy defaults, the suggested success message changes from "You're subscribed!" —
 odd for someone already on the list — to "Thanks for signing up — look out for the Thursday
 digest." Both land in one commit: `docs: add marketing docs for newsletter-signup CR 1`.
+
+The spec's usage guide gained a step for topics in CR 1, approved at the gate with the rest.
+`/stakeholder-update guide` posts the amended guide on MKT-412 as a draft, so Dana can correct it
+before the build, and T103 is ticked with the comment's link:
+`docs: post the newsletter-signup CR 1 usage guide draft`.
 
 ---
 
@@ -399,9 +407,10 @@ its outcome assertion is unchanged.
 ## Step 7 — Reconcile, record, review
 
 **Reconcile (T140).** Nine claims in the new admin-guide section and the copy change, checked
-against the build: all hold. Nothing to commit — T140 is ticked with the gate results. Not every
-reconciliation finds something; it still has to be done. **Runbook (T141):** how to look up a group
-ID, check a subscriber's topics, and recognize a wrong group ID in the logs.
+against the build: all hold, and so does the usage guide's new step. Nothing to commit — T140 is
+ticked with the gate results. Not every reconciliation finds something; it still has to be done.
+**Runbook (T141):** how to look up a group ID, check a subscriber's topics, and recognize a wrong
+group ID in the logs.
 
 **Gate results (T142)** — the full table is in [tasks-diff.md](tasks-diff.md#gate-results-2026-09-18).
 The line that matters most for a change request:
@@ -421,9 +430,10 @@ fixture already defines. Sam left it for a later tidy-up.
 
 ---
 
-## Step 8 — Draft pull request
+## Step 8 — Local check, then the pull request
 
-When Sam asks, `/open-pr` pushes the branch and opens draft #187:
+The agent walks AC7–AC10 on its own checkout first — the local check — and then, without waiting
+to be asked, `/open-pr` pushes the branch and opens draft #187:
 
 ```markdown
 feat: add newsletter topic preferences (CR 1)
@@ -431,6 +441,8 @@ feat: add newsletter topic preferences (CR 1)
 ## Traceability
 **Spec:** `specs/007-newsletter-signup/` (CR 1)
 **Tracker task:** https://tracker.example.com/t/MKT-412
+**Lane:** full — a change request with things to decide: topics for an address already on the
+list, who maps each topic to its Mailchimp group; set by the triggers
 
 ## What changed and why
 Marketing wants to segment the Thursday digest by interest, and privacy asked that the form stop
@@ -446,12 +458,16 @@ changed file is inside the CR 1 change surface approved on 2026-09-17. Deploy or
 and field in Contentful `master` before merging; do **not** remove `alreadySubscribedMessage` until
 this is live — the current code needs it.
 
-## How to verify
-1. On the preview (Contentful `sandbox` has three topics), open an article: three unchecked topics
-   under "Topics (optional)".
+## How to review and test
+**Where:** the preview — pending until it deploys (Contentful `sandbox` has three topics).
+
+1. Open an article: three unchecked topics under "Topics (optional)".
 2. Pick two and subscribe with a `+test` address; in Mailchimp, the member has those two groups.
 3. Submit the same address with a third topic: the same success message; the member now has three.
 4. Remove the topics from the `sandbox` entry: within 5 minutes, the form has no topic group.
+
+**Look at:** `lib/newsletter/mailchimp.ts` — one upsert replaces the add, which is what retires
+AC4 — and the endpoint, which keeps only the topics that are in the entry.
 
 **Tests:** 17 new, 2 changed, 4 removed with AC4 — mapped in `plan.md` § CR 1 › Test strategy.
 
@@ -459,30 +475,51 @@ this is live — the current code needs it.
 - Verified: lint, typecheck, and build; Vitest 52 files / 287 tests; Playwright on Chromium, 32
   tests including axe with topics on screen; 43 of the 49 delivered newsletter tests pass unedited
   (four went with AC4, two were adjusted as planned) — `tasks.md` § CR 1 › Gate results.
+  `/review`: approve with one nit.
+- Local check: AC7–AC10 walked in a browser on the local environment, against the mock layer —
+  three optional topics, a signup with two of them, the same success message for an address
+  already on the list, no topic group when the entry has none.
+- Preview: pending: deploying.
 - Not verified: a real Mailchimp update with real group IDs; the VoiceOver pass over the topic
-  group; WebKit and Firefox (CI only).
+  group; WebKit and Firefox (CI only). The review nit stays, at the developer's call: topic IDs
+  hard-coded in the route tests.
+
+## Merge danger
+**Reversible:** yes — reverting the merge restores the delivered form, which ignores topics.
+Interests already saved in Mailchimp stay, and do no harm.
+**Blast radius:** every signup — new and existing addresses go through the changed Mailchimp
+call. With no topics in the entry, the form is as delivered (AC8).
+
+## Follow-ups
+- none
 
 ## Screenshots
 From the local Playwright run at 375 px and 1280 px: the form with three topics; the success message.
 ```
 
 The agent records #187 in `spec.md` (`spec: link newsletter-signup CR 1 pull request`) — a second
-line under `pull-requests:`, below #142. Sam QC'd the preview the next working day, VoiceOver
-included, and asked the agent to push the link commit and mark the pull request ready. It merged on
-2026-09-21.
+line under `pull-requests:`, below #142 — and pushes the commit to the same branch. Its walk of the
+preview is read-only, as in June, so the real Mailchimp update and the VoiceOver pass held #187 a
+draft, and its one report said so. Sam checked both on the preview the next working day. That left
+nothing a criterion depends on unverified, so the agent marked the pull request ready, requested
+its reviewers, moved MKT-412 to in review, and posted the review update for Dana and Lee. It merged
+on 2026-09-21.
 
 ---
 
 ## Step 9 — Close the loop
 
+Sam says it merged, and the agent closes up the task as it did in June:
+
 ```
-/stakeholder-update MKT-412 187
+/wrap-up
 ```
 
-> **For the team:** suggested reply for the tracker task [Newsletter signup on article pages](https://tracker.example.com/t/MKT-412).
->
-> ---
->
+Its check finds nothing left. The change is live, so the delivered step
+(`/stakeholder-update delivered`) posts the update on its own, brings the usage guide on the task
+up to date with its topics step, and moves the task to delivered; the agent's report shows the
+text:
+
 > Hi Dana and Lee,
 >
 > Here's a quick update on newsletter topics.
@@ -494,7 +531,9 @@ included, and asked the agent to push the link commit and mark the pull request 
 >
 > This is live. The form looks exactly as before until topics are added to the
 > [Newsletter Signup entry](https://app.contentful.com/spaces/SPACE_ID/entries/ENTRY_ID); they
-> appear within five minutes of publishing.
+> appear within five minutes of publishing. The
+> [usage guide](https://tracker.example.com/t/MKT-412?comment=COMMENT_ID) on this task now has the
+> steps for adding them.
 >
 > We noticed a few things along the way:
 >
@@ -504,13 +543,23 @@ included, and asked the agent to push the link commit and mark the pull request 
 > - **The "Already subscribed message" field** in the entry is no longer shown. Please leave it in
 >   place for now — we'll let you know when it can go.
 >
-> 1 question for you:
+> Thanks!
+
+The question for Dana and Lee is a second message — a draft, posted on Sam's yes to its text and
+its assignee:
+
+> Hi Dana and Lee,
+>
+> 1 question on newsletter topics:
 >
 > 1. **Setting up topics:** each topic needs its group ID from Mailchimp, which Mailchimp doesn't
 >    show on screen. Shall we create Tech, Business, and Culture for you as drafts, ready for you to
 >    publish?
 >
 > Thanks!
+
+Then the close-up, as in June: `main` pulled, `feat/newsletter-signup-topics` deleted here and on
+origin, the session done.
 
 ---
 
@@ -539,6 +588,7 @@ c06f9a4 feat: let readers pick newsletter topics                         T121
 9d2e7b1 feat: keep only the entry's topics when subscribing              T120
 4b8a0f6 feat: load newsletter topics from Contentful                     T111
 f3e9c25 feat: upsert Mailchimp members with their topic interests        T110
+6c41d9b docs: post the newsletter-signup CR 1 usage guide draft          T103
 8a6d1e4 docs: add marketing docs for newsletter-signup CR 1              T101, T102
 2f0c7d3 spec: approve newsletter-signup CR 1                             T100
 ```
@@ -556,7 +606,7 @@ starts from an accurate record of what it does and why.
 | Acceptance criteria | AC1–AC6 | AC7–AC10 added; AC4 retired |
 | Change surface | 7 new source files, 2 changed shared files | 4 changed source files, none new |
 | Tests | 49 new | 17 new, 2 changed, 4 removed with AC4; 43 untouched |
-| Tasks and commits | 15 tasks, 14 task commits | 12 tasks, 10 task commits |
+| Tasks and commits | 16 tasks, 15 task commits | 13 tasks, 11 task commits |
 | What `@spec-analyzer` caught | A cache setting that would have changed every article page | A removal ordered before the code that still needed it |
 | The gate | Scope, change surface, five assumptions | The delta only: four ACs, one retirement, four files, three assumptions |
 

@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Hand work in progress to someone who wasn't here — a teammate, another machine or tool, a fresh session — as a short message of pointers (task, branch, spec folder, pull request, what's done, what's next, open questions), never a copy of the spec or the process. Use when asked to hand off, pass the work on, or continue elsewhere, or before ending a session mid-task.
+description: Hand work in progress to someone who wasn't here — a teammate, another machine or tool, a fresh session — as a short message of pointers, never a copy of the spec: branch, spec folder, pull request, what's done and next, open questions. Use when asked to hand off, pass the work on, or continue elsewhere, or before ending a session mid-task.
 argument-hint: "[who or where it goes — a teammate, a fresh session, another machine]"
 ---
 
@@ -18,16 +18,16 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
 ## Steps
 
 1. **Check that the work travels.** A handoff is for work that leaves this session: to a teammate,
-   to another machine or tool, or to a fresh session after the approval gate (in the full lane, the
-   spec folder already carries everything — point at it). Work that stays here needs no handoff:
-   continue, or `/compact` with what the next phase needs (`${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Between phases).
+   to another machine or tool, or to a session the developer chooses to open. A task's next phase
+   stays here and needs no handoff: continue, or `/compact` with what it needs — after the approval
+   gate, the steps `/adf:write-plan` gives (step 12, `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` § Between phases).
    A side task found mid-work isn't a handoff either: note it for the developer — or, with the
    parallel-agents module, `/adf:dispatch` offers it a new session of its own.
 
 2. **Put the state in the record first.** Commit finished tasks (`/adf:commit`) and tick them in
    `tasks.md`. Write decisions taken in this session where they last: the spec's Clarifications or
    the plan in the full lane, the pull request body otherwise. Uncommitted work is named, with its
-   files, never described as if done. Nothing is pushed unless the developer asks.
+   files, never described as if done. Nothing is pushed for the handoff: the work branch's push waits for your local check (`/adf:open-pr`) or the developer's ask.
 
 3. **Write the handoff — pointers, not copies:**
 
@@ -39,6 +39,7 @@ incomplete handoff strands whoever receives it: they either ask, or guess.
    Done: <one line per finished piece, naming its commit>
    Next: <the next step as the workflow names it, e.g. "/adf:implement from T4">
    Open: <each question waiting on someone, and who>
+   Found: <each follow-up found along the way and not yet in the pull request, with file:line>
    Follow AGENTS.md; start by reading the record above.
    ```
 

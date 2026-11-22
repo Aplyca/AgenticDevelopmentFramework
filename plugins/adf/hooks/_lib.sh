@@ -26,6 +26,11 @@ TRIAGE_FIRST=""
 HUB_READONLY=""
 APPROVE_WORKTREE_MOVE="1"
 UPDATE_CHECK="1"
+PR_STATE="1"
+PR_WATCH_HOURS="8"
+SESSION_TITLE="1"
+APPROVE_STATUS_MOVE=""
+STATUS_MOVE_FIELDS="task_id status"
 SPECS_DIR="specs"
 # in_words <word> <space-separated list> — exact membership.
 in_words() {
@@ -71,7 +76,8 @@ worktree_settings() {
 for config in "${CLAUDE_PLUGIN_ROOT}/hooks/config.sh" "${CLAUDE_PROJECT_DIR:+$CLAUDE_PROJECT_DIR/.claude/hooks/config.sh}"; do
   if [ -n "$config" ] && [ -f "$config" ]; then
     read_settings "$config" PROTECTED_BRANCHES APPEND_ONLY_GLOBS GENERATED_GLOBS CAREFUL_GLOBS TRIAGE_FIRST \
-      HUB_READONLY APPROVE_WORKTREE_MOVE UPDATE_CHECK ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
+      HUB_READONLY APPROVE_WORKTREE_MOVE PR_STATE PR_WATCH_HOURS SESSION_TITLE APPROVE_STATUS_MOVE STATUS_MOVE_FIELDS UPDATE_CHECK \
+      ENV_TEMPLATE ENV_IGNORE ENV_CHECK_EXCLUDE SPECS_DIR
     break
   fi
 done
@@ -88,6 +94,15 @@ json_get() {
   else
     echo "$(basename "$0"): install jq or python3 to enable this hook" >&2
     exit 1
+  fi
+}
+
+# tool_input_keys — print the top-level field names of the tool call's input, one per line.
+tool_input_keys() {
+  if command -v jq >/dev/null 2>&1; then
+    printf '%s' "$HOOK_INPUT" | jq -r -f "${CLAUDE_PLUGIN_ROOT}/hooks/tool-input-keys.jq" 2>/dev/null
+  elif command -v python3 >/dev/null 2>&1; then
+    printf '%s' "$HOOK_INPUT" | python3 "${CLAUDE_PLUGIN_ROOT}/hooks/tool-input-keys.py"
   fi
 }
 
@@ -132,6 +147,27 @@ repo_root_for() {
   [ -d "$dir" ] || dir="$(dirname "$dir")"
   while [ ! -d "$dir" ] && [ "$dir" != "/" ]; do dir="$(dirname "$dir")"; done
   git -C "$dir" rev-parse --show-toplevel 2>/dev/null
+}
+
+# repo_relative <file path> — set file_path (absolute and physical; a relative one is read from
+# the event's cwd), root (its git toplevel, physical), and relative (the path inside root). Fails
+# outside a repository.
+repo_relative() {
+  local cwd
+  file_path="$1"
+  case "$file_path" in
+    /*) ;;
+    *)
+      cwd="$(json_get '.cwd')"
+      [ -d "$cwd" ] || cwd="$PWD"
+      file_path="$cwd/$file_path"
+      ;;
+  esac
+  file_path="$(physical_path "$file_path")"
+  root="$(repo_root_for "$file_path")"
+  [ -n "$root" ] || return 1
+  root="$(physical_path "$root")"
+  relative="${file_path#"$root"/}"
 }
 
 # block <reason> — stop the call. The hook is named, not its path: the scripts run from .claude/hooks/

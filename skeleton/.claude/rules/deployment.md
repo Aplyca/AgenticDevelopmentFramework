@@ -28,8 +28,8 @@ paths:
 ## Command surface
 - A `Makefile` at the root holds the common tasks, for people and agents alike; `make help` lists
   them. A task the team runs often gets a target instead of a command copied around.
-- In every mode: `env`, `up`, `down`, `build`, `ps`, `logs`, `urls`, `test` (`t=`), `lint` (`f=`),
-  `format`, `typecheck`, and `reset` — the only one that deletes data. `logs` shows the last lines
+- In every mode: `env`, `up`, `stop`, `down`, `build`, `deps`, `ps`, `logs`, `urls`, `test` (`t=`), `lint`
+  (`f=`), `format`, `typecheck`, `run` (`cmd=`), and `reset` — the only one that deletes data. `logs` shows the last lines
   and never follows.
 - One file per mode: the root `Makefile` loads `ops/<DEV_MODE>/Makefile` — `ops/docker/Makefile`, or
   `ops/native/Makefile` for the app on the host — and both define the same tasks, so nobody types a different
@@ -79,6 +79,17 @@ paths:
   `depends_on` with `condition: service_healthy`. Data lives in named volumes.
 - Which mode a checkout runs in is the developer's: `DEV_MODE` in their `.env`, or the project's
   `DEFAULT_MODE`. An agent runs and checks everything in it, and only the developer changes it.
+- In Docker mode the host needs Docker, git, and make, and nothing else. The checks, the dependency
+  install (`make deps`), and `make run` start the `tools` service — Compose's `tools` profile, the
+  app Dockerfile's `tools` stage — with the stack up or not, and dependencies live in Docker volumes:
+  this checkout's, and a package cache every checkout shares. Never run the stack's runtime, package
+  manager, or CLIs on the host, and never fix a missing tool by installing it there: use a task or
+  `make run`, or propose a task. Native mode and CI install what they need.
+- The app's and the tools service mount the checkout and named volumes only — never the Docker
+  socket, a path outside the checkout, or the host's network — since `make run` runs any command in
+  the tools service without a prompt. A tool that needs the Docker socket gets a service of its own,
+  and its task that takes a command reads it from a variable of its own, `<task>_cmd`, with two ask
+  rules that match it wherever the call puts it: `Bash(make *<task>_cmd=*)` and `Bash(<task>_cmd=*)`.
 - Native mode (`DEV_MODE=native`) runs the app on the host with its own dev command, against the
   backing services in Docker (`DEFAULT_SERVICES` in `ops/native/Makefile`). A developer who runs some
   on the host sets their own `SERVICES` in `.env` (or `none`) and pins those services' ports there. `make up` starts the app in the background and waits until

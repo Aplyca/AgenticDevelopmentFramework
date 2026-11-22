@@ -20,6 +20,9 @@
 # The upgrade suite: a committed adoption at v1.0.0, built from that tag, which /adf:upgrade moves
 # to the newest release — the switch-to-packaged case switches it to the packaged install on the way. It
 # runs like the adopt suite (bypassPermissions on throwaway copies, the plugin per session).
+# The scripted-upgrade case replaces that project with a packaged one at v2.3.0 (its setup.sh), points
+# ADF_FRAMEWORK at the session's copy of this checkout, and, until a release carries scripts/upgrade.py,
+# puts an adf-upgrade shim first on PATH that runs the checkout's script as an unreleased commit.
 #
 # The plugin-hooks suite: a project on the packaged install, with the plugin loaded per session; each
 # case drives one of the plugin's hooks in a real session (Haiku by default), and inspect.sh checks
@@ -33,7 +36,7 @@
 #
 # The open-pr suite: a packaged project that runs on Node alone, a work branch per case, and local
 # stand-ins for the remote, gh, and the preview (fixtures/open-pr/stubs.sh). inspect.sh checks the
-# order of what ran — the local walk, the push, the draft, the preview walk — from their log.
+# order of what ran — the local walk, the push, the draft, the preview walk, ready — from their log.
 #
 # The adopt suite: {{FRAMEWORK}} in a prompt becomes --source (the framework's GitHub address by
 # default — what's published on main; pass this checkout's path to test a branch), and a fixture
@@ -224,7 +227,7 @@ fill("AGENTS.md", [
     ("- Install: `[command]`", "- Install: `pnpm install`"),
     ("- Dev server: `[command]` (port [XXXX])", "- Dev server: `pnpm dev` (port 3000)"),
     ("- Tests: `[command]` (port [YYYY])", "- Tests: `pnpm test`"),
-    ("- Lint: `[command]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
+    ("- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or \"none\"]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate before a PR: `[command]`", "- Full gate before a PR: `pnpm lint && pnpm typecheck && pnpm test`"),
 ])
 fill(".claude/hooks/config.sh", [('CAREFUL_GLOBS=""', 'CAREFUL_GLOBS="src/billing/*"'), ('APPEND_ONLY_GLOBS=""', 'APPEND_ONLY_GLOBS="db/migrations/*"')])

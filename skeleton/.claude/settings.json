@@ -1,23 +1,50 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "model": "sonnet",
+  "autoCompactWindow": 300000,
   "permissions": {
     "allow": [
+      "mcp__ccd_session_mgmt__get_session",
+      "mcp__ccd_session_mgmt__set_session_title",
       "Bash(rg *)",
+      "Bash(glab *)",
       "Bash(git *)",
       "Bash(gh *)"
     ],
     "ask": [
-      "Bash(git config *)",
       "Bash(git push *--tags*)",
-      "Bash(gh pr ready)",
-      "Bash(gh pr ready *)",
-      "Bash(gh pr merge)",
+      "Bash(glab mr merge *)",
+      "Bash(glab mr accept *)",
+      "Bash(glab mr approve *)",
+      "Bash(glab mr revoke *)",
+      "Bash(glab mr unapprove *)",
+      "Bash(glab release *)",
+      "Bash(glab repo delete *)",
+      "Bash(glab variable *)",
+      "Bash(glab var *)",
+      "Bash(glab securefile *)",
+      "Bash(glab auth *)",
+      "Bash(glab token *)",
+      "Bash(glab api *-X *)",
+      "Bash(glab api *--method *)",
+      "Bash(glab api *-f *)",
+      "Bash(glab api *-F *)",
+      "Bash(glab api *--field *)",
+      "Bash(glab api *--raw-field *)",
+      "Bash(glab api *--form *)",
+      "Bash(glab api *--input *)",
       "Bash(gh pr merge *)",
       "Bash(gh pr review *)",
-      "Bash(gh release *)",
+      "Bash(gh release create *)",
+      "Bash(gh release new *)",
+      "Bash(gh release edit *)",
+      "Bash(gh release upload *)",
+      "Bash(gh release delete *)",
+      "Bash(gh release delete-asset *)",
       "Bash(gh repo delete *)",
-      "Bash(gh secret *)",
+      "Bash(gh secret set *)",
+      "Bash(gh secret delete *)",
+      "Bash(gh secret remove *)",
       "Bash(gh auth *)",
       "Bash(gh api *-X *)",
       "Bash(gh api *--method *)",
@@ -40,6 +67,36 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-context.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pr-state.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pr-state.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-title.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pr-state.sh",
+            "asyncRewake": true,
+            "timeout": 86400
           }
         ]
       }
@@ -80,11 +137,20 @@
         ]
       },
       {
-        "matcher": "mcp__ccd_directory__change_directory",
+        "matcher": "EnterWorktree|mcp__ccd_directory__change_directory",
         "hooks": [
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/approve-worktree-move.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/approve-status-move.sh"
           }
         ]
       }

@@ -7,7 +7,7 @@ idioms change.
 
 | Example | What it shows | Files |
 | --- | --- | --- |
-| [newsletter-signup/](newsletter-signup/README.md) | **A new feature, start to finish.** Triage → a spec folder (`spec.md`, `plan.md`, `tasks.md`) → `@spec-analyzer` catching a change-surface problem → the approval gate, where the developer corrects an assumption → docs first → one red-then-green commit per task → reconciled docs → gate results → review → a draft pull request → the update to the requester | [README](newsletter-signup/README.md) · [spec.md](newsletter-signup/spec.md) · [plan.md](newsletter-signup/plan.md) · [tasks.md](newsletter-signup/tasks.md) |
+| [newsletter-signup/](newsletter-signup/README.md) | **A new feature, start to finish.** Triage → a spec folder (`spec.md`, `plan.md`, `tasks.md`) → `@spec-analyzer` catching a change-surface problem → the approval gate, where the developer corrects an assumption → docs first → one red-then-green commit per task → reconciled docs → gate results → review → the agent's local check → a draft pull request, marked ready → the updates to the requester → wrap-up | [README](newsletter-signup/README.md) · [spec.md](newsletter-signup/spec.md) · [plan.md](newsletter-signup/plan.md) · [tasks.md](newsletter-signup/tasks.md) |
 | [newsletter-topics/](newsletter-topics/README.md) | **A change request on the delivered feature.** Triage finds the existing folder and computes the delta — half of it only in tracker comments → `CR 1` amends the same folder (new ACs AC7–AC10, AC4 struck through) → the same gate, for the delta only → per-task commits → a draft pull request — and what deliberately did not change | [README](newsletter-topics/README.md) · [spec-diff.md](newsletter-topics/spec-diff.md) · [plan-diff.md](newsletter-topics/plan-diff.md) · [tasks-diff.md](newsletter-topics/tasks-diff.md) |
 
 **Reading order:** `newsletter-signup` first — the whole workflow on a new feature — then
@@ -42,7 +42,9 @@ The spec model behind `spec.md` is [`plugins/adf/docs/SPEC-MODEL.md`](../../plug
   one `feat:` / `refactor:` / `test:` per task, then `docs:` again.
 - **People are fictional**, and named only where it helps to follow the story: Dana (marketing
   lead, the requester), Lee (privacy lead), Sam (tech lead, the developer working with the agent).
-  Other roles appear by title.
+  Other roles appear by title. The names stay in the story — the tracker's comments and the
+  conversation; the spec folders attribute every decision to a role (requester, tech lead, privacy
+  lead), as [`specs/README.md`](../../skeleton/specs/README.md#records-name-roles) asks.
 - **Links are placeholders.** `tracker.example.com` stands in for whichever tracker you use
   (ClickUp, Jira, Linear, GitHub Issues…); `github.com/<org>/marketing-site` for your repository.
 
@@ -53,7 +55,8 @@ The spec model behind `spec.md` is [`plugins/adf/docs/SPEC-MODEL.md`](../../plug
   Next.js.
 - **A perfect session** — the agent's output is realistic, not idealized, and real sessions have
   more back-and-forth. But the stops are the same: the triage stated, the gate presented, the red
-  seen before the green, the evidence recorded, nothing pushed until someone asks.
+  seen before the green, the evidence recorded, nothing pushed before the agent's own local check,
+  nothing merged without a person's review.
 - **Runnable files** — test, doc, and implementation code appears as excerpts in the walkthroughs.
 
 ## When to come back to the examples

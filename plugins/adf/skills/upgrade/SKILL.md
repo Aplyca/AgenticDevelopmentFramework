@@ -1,12 +1,12 @@
 ---
 name: upgrade
-description: Upgrade a repository that already adopted the Aplyca framework skeleton (and any optional modules) to a newer version, using the three-bucket file taxonomy (overwrite / merge / project-owned), OLD_SHA → NEW_SHA diff discipline, and the changelog's migration steps — and offer the optional modules the project doesn't have yet. Use when asked to upgrade, sync, or update the agentic framework or skeleton in a repo.
+description: Upgrade a repository that adopted the framework to a newer release — overwrite, merge, or keep each file, diff OLD_SHA → NEW_SHA, apply the changelog's migration steps — and offer the modules it lacks. Use when asked to upgrade, sync, or update the agentic framework or its skeleton in a repository.
 ---
 
 # Upgrade an adopted repository to a newer skeleton version
 
-Automates `docs/UPGRADING.md` from the framework repo. Read that document for the full rationale;
-this skill is the executable procedure. The upgrade is deliberate and file-by-file — there is no
+Automates `docs/UPGRADING.md` from the framework repo, which holds the full rationale; this skill
+is the executable procedure. The upgrade is deliberate and file-by-file — there is no
 blind sync.
 
 ## Ground rules
@@ -17,12 +17,61 @@ blind sync.
   (`ops/agent/worktree.conf` exists, or `scripts/agent/worktree.conf` in a project that hasn't moved
   it yet), the main checkout takes no edits: the protect-hub hook stops them. Started there, say so
   and run `/adf:dispatch` with `chore/skeleton-upgrade-<NEW_SHA>` as the branch, without asking
-  first: it creates the task's worktree beside the main checkout and moves this session there, where
+  first: it creates the task's worktree under `.claude/worktrees/` and moves this session there, where
   the upgrade goes on.
-- **Plan before touching.** No file is modified until the user approves the per-file plan.
+- **Approve what needs a person** (decision 0046). The upgrade changes files only on its own branch,
+  and the draft pull request is the full record. Clean merges and scripted steps apply without a plan
+  row. The developer approves the module choices, each conflict's resolution, and each
+  permission-rule change, before anything is committed.
 - **Modules are offered, never imposed.** Recommend the ones the facts support; the developer chooses.
 - **An upgrade needs a nameable benefit.** If the user can't name one, say so and suggest
   cherry-picking the one or two changes they actually want.
+
+## The scripted upgrade
+
+The deterministic part is a script (decision 0046): `adf-upgrade`, on the Bash tool's PATH
+while `adf` is on, fetches a framework checkout and runs the new release's own `scripts/upgrade.py`. A
+committed project, where the command may not be on the path, runs
+`python3 <framework-root>/scripts/upgrade.py <repo>` from a checkout at the release. Use it first; the
+manual procedure (Steps 1–6) is for what it refuses.
+
+1. **Branch first,** by the ground rules: `chore/skeleton-upgrade-<NEW_SHA>`, in a worktree in a hub.
+2. **Dry run:** `adf-upgrade [<tag>] --dry-run`. It changes nothing and prints the report. Exit 2 is a
+   refusal; say what it says. "Below v2.0.0" or "predates the scripted upgrade" means the manual
+   procedure below; a dirty tree or the default branch, fix and rerun.
+3. **Hand over to the new release.** This skill is the pinned plugin's, as old as the project. Read
+   `plugins/adf/skills/upgrade/SKILL.md` in the release's tree — `adf-upgrade` keeps it at
+   `${XDG_CACHE_HOME:-~/.cache}/adf/trees/<NEW commit>/` — and if it differs from this file, follow
+   that copy from here on.
+4. **What it brings, and the modules.** Summarize the report's Releases for the developer, with a
+   nameable benefit (the ground rules). Offer the modules under Needs you → Modules by the rules in
+   Step 2, and the other install or the plugin setting when they fit. The developer chooses: the first
+   approval.
+5. **Run it:** `adf-upgrade [<tag>] --add-modules <the chosen ones>`. It applies everything clean,
+   leaves the conflicts marked, and writes the report to `$(git rev-parse --git-dir)/adf-upgrade/`.
+6. **The judgment is yours:**
+   - **Conflicts:** propose a resolution for each, keeping the project's customizations and the new
+     release's structure (Step 5, Bucket 2).
+   - **Clean merges:** read each one the report lists with its hunk count — a clean merge can still be
+     wrong, a section added twice.
+   - **Tasks to fix:** with `docker`, read the project's `Makefile` and mode files for a task C9 or
+     C10 names (Step 1), and propose its fix. A `test` or `lint` that doesn't take C3's `t=` or `f=`
+     is a gap for `/dev-env set up`; meanwhile `AGENTS.md` § Quick reference writes what it takes.
+   - **Files to decide** and **Migrations** that need the developer: the choices they list.
+   - **Each new module's** `MODULE.md` § Customize steps; an install switch with its PDR (Step 2).
+7. **One approval** covers the conflict resolutions, the permission changes — each rule the report or
+   you added or removed that changes what runs without a prompt — and the draft pull request. Revert a
+   rule the developer rejects. Dropped allow rules a broader one covers change nothing that runs, and
+   need none.
+8. **Deliver** (Step 6, 2–5): commit, write the PR body from the report — the releases, what needs a
+   person and how it was resolved, each clean merge with its hunk count, the migrations, the dropped
+   rules, the checks — and push the draft. Give the developer **On each machine** as the report lists
+   it.
+   - **Follow-ups ride in the PR body:** copy the report's `## Follow-ups` section into it
+     as it stands, the heading and one `- [ ] \`<command>\` — <why> (<source>)` line per item, or
+     `- none`. The merged PR is what survives the upgrade branch, and `/adf:wrap-up` reads it from there
+     after the merge to offer each one in its own session. Don't rename the heading or reword the lines,
+     and don't run the commands during the upgrade.
 
 ## Step 1 — Establish OLD_SHA and the installed modules
 
@@ -36,12 +85,12 @@ e2e rules in `.claude/settings.json`).
 
 For the `clickup` module, rerun `modules/clickup/install.sh <repo>` from NEW_SHA instead of copying:
 it merges new read-only patterns into `.claude/settings.json` and keeps everything else. For
-`docker` and `e2e`, rerun `modules/docker/install.sh <repo>` and `modules/e2e/install.sh <repo>` the
-same way, besides their file changes. From v2.3.0 the docker installer adds `Bash(make *)`, so every
-task runs without a prompt but the ones its ask rules name (`reset`, `run`). Before it does, read
-the project's `Makefile` and mode files for a task that deletes data under another name, or that
-follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan:
-the plan adds its ask rule, `Bash(make <task>*)`, in the same change, or fixes the task.
+`docker`, `e2e`, and `unit`, rerun `modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, and
+`modules/unit/install.sh <repo>` the same way, besides their file changes. The docker installer adds `Bash(make *)`, so every
+task runs without a prompt, `reset` and `make run` included, which in native mode runs on the
+host (decisions 0078, 0089). Before it does, read the project's `Makefile` and mode files for a task that
+follows or waits for input (`dev-env`'s `SPECIFICATION.md` C9), and list each one in the plan, which
+fixes the task in the same change.
 
 If the line is missing, infer the baseline from `git log` on skeleton-derived files (rules, skills,
 agents) and confirm the inferred SHA with the user before proceeding.
@@ -72,39 +121,47 @@ files the project customized. Summarize for the user what the upgrade brings bef
 
 **Offer the modules the project doesn't have.** List the modules at NEW_SHA (`modules/README.md`)
 that aren't installed — a project adopted before modules existed has none — and recommend from the
-repository's facts, by the same rules as `/adopt` Step 3:
+repository's facts, by the same rules as `/adf:adopt` Step 3:
 
 - `github` — the repository is on GitHub
+- `gitlab` — the repository is on GitLab (an existing `.gitlab-ci.yml` takes the module's three
+  blocks as a merge)
 - `git-hooks` — the team wants local gates that every git client runs
 - `clickup` — requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests, commits,
   or the README; a `clickup` server in `.mcp.json`)
 - `parallel-agents` — several agent sessions may work on the repository at once: each task gets its
-  own worktree, branch, pull request, and session, and the main checkout only dispatches
+  own worktree, branch, pull request, and session, and the main checkout takes no edits
 - `docker` — the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the team
   wants a containerized local environment: `/dev-env` writes the stack or moves it to the
   conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), runs the app
-  natively, gives each worktree its own stack, and diagnoses or resets it; destructive docker
-  commands ask first
+  natively, gives each worktree its own stack, and diagnoses or resets it; docker and make
+  commands run without a prompt
 - `e2e` — people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in `e2e/`,
   run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per
   critical flow (decision 0037). An existing suite (`playwright.config.*`, `cypress/`) is good
   evidence
+- `unit` — a JavaScript or TypeScript app: `/unit` sets up Vitest unit and integration tests,
+  run by tier (`@smoke`, `@critical`, regression) and by feature suite, like `e2e`'s (decision 0058).
+  An existing runner (`jest.config.*`, `vitest.config.*`) is good evidence
 - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time` logs
-  each day of a task in the tracker, in whole units (decision 0043)
+  each outcome of a task in the tracker, in whole units (decisions 0043, 0092)
+- `end-user-docs` — the product's end users read its documentation in a doc tool (ClickUp Docs,
+  Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
+  implementation and publishes it once the feature ships (decision 0048)
 
-Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. On a
-release with `adf-connect` (decision 0023), offer it the same way when the project works with a
-tracker other than GitHub Issues or ClickUp, or with services agents should read: turn on
+Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. Offer
+`adf-connect` (decision 0023) the same way when the project works with a
+tracker other than ClickUp or GitHub or GitLab issues, or with services agents should read: turn on
 `"adf-connect@aplyca": true` in `enabledPlugins`, and list `/adf-connect:connect <service>` as a
-follow-up. On a release whose `adf-dev` carries the local-environment band (decision 0026), offer it
-when the app runs locally: `"adf-dev@aplyca": true`, and `LOCAL_URL` in `.claude/hooks/config.sh`.
+follow-up.
 
 **If the developer chooses `parallel-agents`,** do the whole upgrade in a worktree of its own, created
 with plain git since the module's script isn't there yet:
-`git worktree add -b chore/skeleton-upgrade-<NEW_SHA> ../chore-skeleton-upgrade-<NEW_SHA> <base>`.
-Edit files under that path and run git with `-C <that path>`. Once the module is installed, the
-protect-hub hook stops edits in the main checkout, so the main checkout stays a clean hub from the
-first commit.
+`git worktree add -b chore/skeleton-upgrade-<NEW_SHA> .claude/worktrees/chore-skeleton-upgrade-<NEW_SHA> <base>`,
+where the module puts every task's worktree (add `.claude/worktrees/` to `.gitignore` first when it
+isn't ignored yet). Edit files under that path and run git with `-C <that path>`. Once the module is
+installed, the protect-hub hook stops edits in the main checkout, so the main checkout stays clean
+from the first commit.
 
 Uncommitted changes in the main checkout don't follow into the worktree. Check `git status` there
 before creating it. The usual one is the plugin setting the install left in `.claude/settings.json`:
@@ -229,41 +286,44 @@ and, when the new release carries them in `<framework-root>/plugins/adf/docs/`, 
 
 | Bucket | Typical contents | Action |
 |---|---|---|
-| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `SPEC-MODEL.md`, and the parallel-agents guide, `PARALLEL-AGENTS.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts | Copy verbatim from the new version |
-| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, `docs/SHARED-SERVICES.md`, the PR template, `branch-policy.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
+| **Safe to overwrite** | `.claude/skills/*`, `.claude/agents/*`, `.claude/workflows/*`, hook scripts and helpers (everything in `.claude/hooks/` but `config.sh`), universal rules, the framework reference docs (`docs/COST-MODEL.md`, `MCP-INTEGRATION.md`, `MEMORY-STRATEGY.md`, `PROSE-PATTERNS.md`, `SPEC-MODEL.md`, and the parallel-agents guide, `PARALLEL-AGENTS.md`), `specs/_templates/*` (if unmodified), `docs/process/0000-pdr-template.md`, module scripts and gate jobs (`secret-scan.yml`, `.gitlab/ci/adf.yml`) | Copy verbatim from the new version |
+| **Merge required** | `AGENTS.md`, `.claude/rules/claude-code.md`, `.gemini/settings.json`, `CONTRIBUTING.md`, `.claude/settings.json`, `.claude/hooks/config.sh`, customizable rules, `.claudeignore`, `docs/CONSTITUTION.md`, `specs/README.md`, `docs/process/README.md`, `docs/reference/README.md`, `docs/TRACKER-INTEGRATION.md`, `docs/getting-started/DEV-SETUP.md`, module config (`worktree.conf`, `docs/SHARED-SERVICES.md`, the PR or MR template, `branch-policy.yml`, `.gitlab-ci.yml`, `.githooks/pre-push`) | 3-way merge: reapply the project's customizations on top of the new template |
 | **Project-owned** | Spec folders and legacy specs, ADRs, PDRs, project docs, `docs/reference/*` pages, everything the team authored | Never touched |
 
 **Newly chosen modules** are **additive**: copy `modules/<name>/files/` at NEW_SHA without overwriting
 (merge a collision such as an existing PR template), except `clickup`, which installs with
-`modules/clickup/install.sh <repo>`; `docker` and `e2e` have no files to copy: run
-`modules/docker/install.sh <repo>` or `modules/e2e/install.sh <repo>`.
+`modules/clickup/install.sh <repo>`; `docker`, `e2e`, and `unit` have no files to copy: run
+`modules/docker/install.sh <repo>`, `modules/e2e/install.sh <repo>`, or `modules/unit/install.sh <repo>`.
 In a packaged project, a module whose skills the release's plugins carry leaves its `.claude/skills/`
 out, and the plugin its `module.json` names, when that isn't `adf`, is turned on:
 `"<plugin>@aplyca": true` in `enabledPlugins` and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in
 `permissions.allow`. Each module's
 `MODULE.md` § Customize steps join the plan's
 checklist — for `parallel-agents`, `worktree.conf` (only `BASE_BRANCH` and `SETUP_CMD` unless worktrees
-run a server) and the dispatcher line in `AGENTS.md` § Delivery rules; for `docker`, `/dev-env set up`
+run a server) and the "Parallel sessions" line in `AGENTS.md` § Delivery rules; for `docker`, `/dev-env set up`
 as a follow-up in a new session once the stamp names the module. A project that already has `docker`
 gets the same follow-up whenever the release changed the local environment specification
 (`dev-env`'s `SPECIFICATION.md`; the CHANGELOG names it): `/dev-env set up` audits the stack against
 it and proposes each gap by requirement ID. Never copy the templates over the project's files — they
 are an example of the specification, not the project's stack. For `e2e`, the follow-up is
 `/e2e set up`, after `/dev-env set up` when the project has `docker`; a project that already has
-`e2e` gets `/e2e audit` when the release changed `e2e`'s `SPECIFICATION.md`.
+`e2e` gets `/e2e audit` when the release changed `e2e`'s `SPECIFICATION.md`. For `unit`, the follow-up
+is `/unit set up`, and `/unit audit` when the release changed its `SPECIFICATION.md`.
 
 Files deleted upstream: propose deletion only if the target's copy is unmodified from OLD_SHA;
 otherwise flag for the user. Never delete `.agents/skills`: the link to `.claude/skills` left the
-skeleton because the Claude Directory accepts no symlinks, and `/adopt` now creates it. Files that moved
+skeleton because the Claude Directory accepts no symlinks, and `/adf:adopt` now creates it. Files that moved
 (`R` in `--name-status`, e.g. `specs/_template.md` → `specs/_templates/`, or the parallel-agents
 module's `scripts/agent/` → `ops/agent/`) follow the changelog's migration notes.
 
-## Step 4 — Present the plan
+## Step 4 — Present what needs a person
 
-One table: `file → bucket → action → risk note`, plus the changelog's migration steps as their own
-checklist, the newly chosen modules with their customize steps, the plugin setting when it's
-being added, and an install switch with its PDR. For merge-required files, show which customizations were detected (diff of the target file
-vs the OLD_SHA version) and confirm they will survive. Wait for approval.
+The manual procedure keeps the same gate as the script (decision 0046). Before Step 5, the developer
+approves the module choices. After it, before the commit, they approve the conflict resolutions and
+the permission changes, with the changelog's migration steps, the newly chosen modules' customize
+steps, the plugin setting when it's being added, and an install switch with its PDR. List each clean
+merge with its hunk count, and the customizations each merge kept (the target file vs the OLD_SHA
+version), so the reviewer knows where to look; they need no plan row.
 
 ## Step 5 — Execute
 
@@ -278,15 +338,14 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
      any helper the team keeps there.
   2. In `ops/agent/worktree.conf`, any `*_CMD` or `ENV_INFO_CMD` that names `scripts/agent/`.
   3. The comment in `.worktreeinclude`.
-  4. `AGENTS.md` § Quick reference: a committed install names `ops/agent/worktree-new.sh` and its
-     siblings; a packaged one keeps the commands' names (`adf-worktree-new`).
+  4. `AGENTS.md` § Quick reference: a committed install names `ops/agent/worktree-new.sh` and the
+     other two; a packaged one keeps the commands' names (`adf-worktree-new`).
   5. Every other hit of `git grep -n scripts/agent` — docs, CI, settings, a Makefile.
   6. Remove `scripts/` if it's now empty.
 
   Worktrees branched before the merge keep `scripts/agent/` until they merge; the commands and hooks
   read either folder, so nothing breaks meanwhile.
-- With the parallel-agents module, on a release whose plugin carries its guide
-  (`<framework-root>/plugins/adf/docs/PARALLEL-AGENTS.md`, decision 0044), while the project's
+- With the parallel-agents module (decision 0044), while the project's
   `docs/PARALLEL-AGENTS.md` is still its own copy — it has an `owner:` line and § Shared services —
   split it, in either install, before Bucket 1 copies the guide into a committed one:
   1. Write `docs/SHARED-SERVICES.md` from the module's files at NEW_SHA, and carry over the copy's
@@ -306,11 +365,11 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   names note and the stamp, and its PDR.
 - The plugin setting, when the developer accepted it: merge both entries into `.claude/settings.json`.
 - Pin the new release: set the marketplace's `"ref"` in `.claude/settings.json` to `v<X.Y.Z>` (add it
-  if the project has none), and add `"autoUpdate": true` to the same `aplyca` entry if it lacks it:
-  once the change merges, every teammate's installed plugins move to the pin in their next session. In a packaged project that one line upgrades the plugin's skills, agents,
+  if the project has none), and add `"autoUpdate": true` to the same `aplyca` entry if it lacks it.
+  In a packaged project that one line upgrades the plugin's skills, agents,
   workflows, hooks, and reference docs; in a committed one it keeps the plugin's copies at the same
-  release as the committed files.
-- Packaged, on a release that carries the reference docs: run
+  release as the committed files. It reaches each machine through the commands in Step 6.
+- Packaged: run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged v<X.Y.Z>`. It points the
   files that name a reference doc at the new release, and lists the other files that still name one
   and the reference docs still in `docs/`. A copy unchanged since OLD_SHA goes; one the team edited
@@ -319,12 +378,10 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
   `.claude/settings.json` if it isn't there: the plugin's skills and agents read the docs from its
   folder, and Claude Code asks first without it. Add the last sentence of `docs/SETUP.md`'s names
   note to the project's, if it lacks it.
-- Packaged, with the parallel-agents module, on a release whose plugin carries `/dispatch`
-  (`<framework-root>/plugins/adf/skills/dispatch/`): delete the committed
+- Packaged, with the parallel-agents module: delete the committed
   `.claude/skills/dispatch/` when it's unchanged since OLD_SHA. One the team edited is the
   developer's call — under a name of its own, or upstream as a change to the framework.
-- Packaged, with the parallel-agents module, on a release whose plugin carries its scripts as
-  commands (`<framework-root>/plugins/adf/bin/adf-worktree-new`, decision 0027): delete
+- Packaged, with the parallel-agents module (decision 0027): delete
   `worktree-new.sh`, `worktree-ls.sh`, `worktree-rm.sh`, and `_worktree-lib.sh` from `ops/agent/`
   when none of them changed since OLD_SHA, and keep `worktree.conf`. If the team edited one, the four
   stay together — each script loads `_worktree-lib.sh` from beside it — and the developer decides, as
@@ -342,32 +399,40 @@ vs the OLD_SHA version) and confirm they will survive. Wait for approval.
 
 ## Step 6 — Verify and deliver
 
-1. Run the verification from `/adopt` Step 6: settings JSON valid with nested hook entries; hook
+1. Run the verification from `/adf:adopt` Step 6: settings JSON valid with nested hook entries; hook
    smoke tests (sample events piped to each script — in a packaged project, the plugin's, with
-   `CLAUDE_PROJECT_DIR` set); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
+   `CLAUDE_PLUGIN_ROOT` and `CLAUDE_PROJECT_DIR` exported: the hooks use `set -u`); the stamp on `AGENTS.md`'s first line and no `CLAUDE.md`; skill frontmatter
    uses hyphenated keys only. Re-run the target's lint and tests if config files changed. For a newly
    installed module, its own check: `adf-worktree-ls` lists the worktrees, and `scripts/agent/` is
    gone (`parallel-agents`); `.mcp.json` and `.claude/settings.json` parse (`clickup`); the PR template
-   exists (`github`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
-   `.claude/settings.json` parses, and its `ask` list holds the docker rules and one for each
-   project task that deletes data (`docker`), and its `allow` list holds `make e2e` and `make smoke` (`e2e`). Packaged, for
+   exists (`github`); the MR template exists and `.gitlab-ci.yml` includes `.gitlab/ci/adf.yml` (`gitlab`); `.githooks/pre-push` is executable and `core.hooksPath` is documented (`git-hooks`);
+   `.claude/settings.json` parses, its `allow` list holds `Bash(docker *)` and `Bash(make *)`, its
+   `deny` list holds the mode-change rules, and its `ask` list holds no docker or make rule of the
+   module's (`docker`), and its `allow` list holds `make e2e` and `make smoke`, or the `Bash(make *)` that covers them (`e2e`). Packaged, for
    a module whose skills another plugin carries: `<plugin>@aplyca` is on with its read rule, and
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
-3. PR body: changelog summary, the plan table as executed, migration steps done, customizations
+3. PR body: changelog summary, each file's action with each clean merge's hunk count, migration steps done, customizations
    reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
    user-scope copy), an install switch and its PDR, anything needing human judgment.
-4. Push and open the PR **as a draft, only after the user approves**.
+4. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request changes the rules and guardrails that grant it.
 5. **Give the developer the commands for each machine,** in the report and the PR body. The commit
-   changes settings, not the machines: a plugin this upgrade turned on (`adf-dev`, `adf-connect`)
-   may not be installed anywhere yet, and the session that ran the upgrade still runs the old
-   release. `autoUpdate` catches up the installed plugins after the merge, a few minutes into a
-   session; these do it at once, from the project's folder, after the merge:
+   changes settings, not the machines (decision 0090). Claude Code registers the marketplace once per
+   machine, at the ref it was first added with. `marketplace update`, `plugin update`, and
+   `autoUpdate` keep that ref and report the old release as the latest, so each machine adds the
+   marketplace again at the new pin. A plugin this upgrade turned on (`adf-dev`, `adf-connect`) may not
+   be installed anywhere yet, and the session that ran the upgrade still runs the old release. From
+   the project's folder, after the merge — `install` only for a plugin the merged settings turn on,
+   since for one they don't, it writes `.claude/settings.json` itself:
 
    ```bash
-   claude plugin marketplace update aplyca
+   claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project   # the marketplace's source in the settings, at the new pin
    claude plugin install <plugin>@aplyca --scope project   # each plugin this upgrade turned on
    claude plugin update <plugin>@aplyca                    # each plugin already on: adf, and adf-dev or adf-connect
+   git restore .claude/settings.json                       # the commands above rewrite it: keep the merged file
+   claude plugin list                                      # each plugin shows Version: <X.Y.Z>
    ```
 
-   Then `/reload-plugins` in an open session, or a new session.
+   Then `/reload-plugins` in an open session, or a new session. Never `marketplace remove` to re-add:
+   it uninstalls the plugins and rewrites the committed settings. A pin that didn't move (an
+   unreleased head) needs only `claude plugin marketplace update aplyca` in place of the add.

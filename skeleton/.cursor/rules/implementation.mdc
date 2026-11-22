@@ -13,28 +13,30 @@ alwaysApply: false
 
 ## Before the first task
 1. Read `spec.md` (every filled section, not just Functional), `plan.md` (change surface, test strategy, assumptions), `tasks.md`, and the committed docs
-2. Run the existing tests to know the baseline
+2. Run the tests the task touches to know the baseline; widen the run when the task calls for it
 
 ## For each task in tasks.md, in order
 1. Write the test the task names
-2. Run it — **watch it fail for the right reason** (the missing behavior, not an import or fixture error)
+2. Run it — **watch it fail for the right reason** (the missing behavior, not an import, fixture, or type error); if it passes first, find out why before going on
 3. Write the smallest code that makes it pass, **inside the plan's change surface**
-4. Run it to green, plus neighboring tests
+4. Run it to green — the task's tests by name, and lint and typecheck on the changed files
 5. Tick the task and commit test + code together (`feat:` / `fix:` / `refactor:`)
+6. When a phase's last task is committed, run the feature suite it touched, once
 
 ## When reality departs from the plan
 - Small deviation inside the change surface → update `plan.md` in the same commit
-- The change surface grows (new layer, file outside the table, dependency, migration) → **stop** and get the developer's re-confirmation
+- The change surface grows into risk (a new layer, a new dependency, an escalation trigger such as a migration) → **stop** and get the developer's re-confirmation
+- It grows otherwise (a file outside the table) → update `plan.md` in the same commit, say so in the pull request, and carry on
 - A requirement turns out ambiguous → stop and ask; never guess
 - Committed docs turn out wrong → small fix folded into the task commit (say so in the body); meaningful revision as its own `docs:` commit
 
 ## Finish
 - Reconcile docs; backfill post-implementable docs
 - Run the full gate; record **Gate results** in `tasks.md`: red-then-green evidence, commands and counts, what was not run and why
-- Review; push and open a **draft** pull request only when asked
+- Review, in every lane; run the change on the local environment and walk the changed flow; once it works, push and open a **draft** pull request without asking, test and review it on the preview, and mark it ready once that and CI pass, then request the reviewers `CONTRIBUTING.md` names (`AGENTS.md` § Delivery rules)
 
 ## Rules
 - Build exactly what the spec says — no more, no less
 - Never weaken a test to make it pass
 - Never ship code that contradicts committed docs
-- Never bypass git hooks; never push, open, or ready a pull request unasked
+- Never bypass git hooks; never push before the local check; never mark a pull request ready before your own tests and review pass, or request a reviewer on a draft or the author; never merge or approve it

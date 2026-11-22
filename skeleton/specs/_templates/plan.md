@@ -6,9 +6,13 @@
   implementation code. The section the gate scrutinizes most is "Change surface": the most
   common way a convincing plan is wrong is touching more (or other) files and layers than it
   says. When implementation contradicts this plan, fix the plan in the same branch rather than
-  leaving it stale; if the change surface grows, re-confirm with the developer.
-  Change request: leave the delivered plan as it is and append a "# CR N — <title>" part with
-  these headings, covering only the delta.
+  leaving it stale; if the change surface grows into risk (a new layer, a new dependency, an
+  escalation trigger), re-confirm with the developer.
+  Change request — after the merge or on the open pull request: leave the earlier plan as it is
+  and append a "# CR N — <title>" part with these headings, covering only the delta; strike
+  through an earlier entry the CR supersedes, never delete it.
+  Decisions and confirmations are attributed to a role (developer, tech lead, requester), never
+  to a person's name (specs/README.md § Records name roles).
 -->
 
 - **Spec:** ./spec.md · **Tasks:** ./tasks.md
@@ -70,13 +74,18 @@ Every principle in `docs/CONSTITUTION.md` was read against this plan.
 
 <!-- Schema changes (new migrations only — history is append-only), API/contract changes
      (see ./contracts/ if used), new or changed environment variables (declared in the env
-     template), CMS content-model changes. "None" is a valid answer. -->
+     template), CMS content-model changes. "None" is a valid answer.
+     A contract shared with another spec folder (spec.md § Constraints, `related-specs`): a
+     consumer re-checks it against the provider's spec each time it syncs the base branch, and a
+     change to it is recorded in the consumer's spec and pull request. -->
 
 ## Test strategy
 
 <!-- Map every AC, edge case and testable requirement (Security, Accessibility, Performance,
-     Privacy, Analytics, Localization) to a test. tasks.md repeats the test on the task that
-     makes it pass. Note anything verified manually and why it can't be automated. -->
+     Privacy, Analytics, Localization) to a test, at the cheapest layer that proves it and tested
+     once (.claude/rules/testing.md § Strategy). tasks.md repeats the test on the task that
+     makes it pass. Note anything verified manually and why it can't be automated, and a layer
+     the project lacks. -->
 
 | Requirement | Test (file · name) | Type |
 | --- | --- | --- |
@@ -88,11 +97,17 @@ before implementation tasks, when the team wants the verification contract up fr
 ## Documentation plan
 
 <!-- From spec.md § Documentation. Pre-implementable docs become Phase 1 tasks (written before
-     code); post-implementable docs become Phase 5 tasks. "None — <reason>" is valid. -->
+     code); post-implementable docs become Phase 5 tasks. "None — <reason>" is valid. An end-user
+     page (end-user-docs module) is a Phase 1 task too — its draft in the doc tool — and is
+     published after the feature ships, outside tasks.md. The spec's usage guide likewise: its
+     draft posted on the tracker task is a Phase 1 task, its text reconciled in Phase 5, and its
+     final version goes up once the change is live. -->
 
 | Doc | Audience | Pre / post | Task |
 | --- | --- | --- | --- |
 | [`docs/admin/<feature>.md`] | [site administrator] | pre | [T001] |
+| [User guide › Newsletter › Subscribe] | [site visitors] | end-user | [T002] |
+| [Usage guide, on the tracker task] | [the requester] | usage guide | [T003] |
 
 ## Rollout & deployment
 
@@ -109,7 +124,7 @@ before implementation tasks, when the team wants the verification contract up fr
      shows these to the developer explicitly — an unstated assumption is how an invented
      requirement slips in. -->
 
-- [Assumption] — [why it is believed true / who confirmed it]
+- [Assumption] — [why it is believed true / which role confirmed it]
 
 ## Open questions
 

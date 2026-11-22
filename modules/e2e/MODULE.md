@@ -23,10 +23,14 @@ writes its own suite to it, and its runs prove it. In short:
   image, so the host needs no Node, and native mode runs it on the host against the app's port.
   Without the module, `npm --prefix e2e test` is the command, with `-- --grep @smoke` for the smoke
   suite.
-- **One smoke test per critical flow,** which the team names in `e2e/README.md`, run before the local
-  check and in CI.
+- **One smoke test per critical flow,** which the team names in `e2e/README.md`. They run after a change to
+  shared code, configuration, or the stack, and inside the critical tier, which runs before the
+  local check and in CI.
 - **Tests own their data and never reach a real third party.** They find elements by role and name,
   and wait with assertions, never sleeps. Flaky is broken.
+- **Tiers and feature suites:** `@smoke` ⊂ `@critical` ⊂ everything, and a folder per feature suite under `e2e/tests/`;
+  `make e2e tier=critical suite=billing` ([decision 0058](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0058-test-tiers-and-feature-suites-with-vitest.md)).
+  The `unit` module applies the same tiers to unit and integration tests.
 - **Test first:** an acceptance criterion gets an end-to-end test only when the whole stack is needed
   to show it, and the test is seen failing before the code exists.
 
@@ -34,7 +38,7 @@ writes its own suite to it, and its runs prove it. In short:
 
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` (merged) | `permissions.allow` for running the suite: `make e2e`, `make smoke`, and `npm --prefix e2e test`, so a test-first loop reruns a test without a prompt |
+| `.claude/settings.json` (merged) | `permissions.allow` for running the suite: `make e2e`, `make smoke`, and `npm --prefix e2e test`, so a test-first loop reruns a test without a prompt. With the `docker` module, none: its `Bash(make *)` rule already allows the make tasks, and the npm one would run the suite on the host — install `docker` first; a rerun takes out the rule an earlier install added |
 | `.claude/skills/e2e/` | **Committed install only:** the skill and its `SPECIFICATION.md`. A packaged project gets `/adf-dev:e2e` from the development plugin, `adf-dev`, which `module.json` names ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)) |
 
 The module copies no files into the project. `/e2e set up` writes the suite to the specification —
@@ -75,8 +79,8 @@ approve, and fills these from what it verifies, for you to review:
 4. **`docs/getting-started/DEV-SETUP.md`** — how to run the suite, and what native mode needs on the
    host.
 
-CI that can start the stack runs `make smoke` on every pull request: `/e2e set up` proposes the job,
-and you add it. The framework ships no pipeline file.
+CI that can start the stack runs `make e2e tier=critical` on every pull request: `/e2e set up` proposes the job,
+and you add it. The framework's CI files carry no test job.
 
 ## Prerequisites
 

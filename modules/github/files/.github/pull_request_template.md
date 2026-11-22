@@ -1,11 +1,15 @@
-<!-- Title: a commit-style subject under 70 characters — e.g. "feat: add newsletter signup" -->
+<!-- Title: a commit-style subject under 72 characters — e.g. "feat: add newsletter signup" -->
+<!-- The agent rebuilds the text between each "adf:<section>" marker and its "/adf:<section>" when
+     it refreshes this description after a later push (/open-pr refresh). Write your own notes
+     outside those pairs: they're kept as they are. -->
 
 ## Traceability
 
 <!-- Required. The spec folder is the record of intent; the tracker task is the requirement it
      fulfills. Fast- and careful-lane work has no spec folder — say so and cite the task alone
-     (on delivered work, cite the light CR entry).
-     Add `Closes #N` as well if this resolves an engineering issue. -->
+     (on delivered work, cite the light CR entry). A requester's issue is referenced — `Refs #N` —
+     never closed by the merge, which isn't live yet. Add `Closes #N` only if this resolves an
+     engineering issue. -->
 
 **Spec:** `specs/NNN-slug/` <!-- add "(CR N)" when amending a delivered feature, "(CR N, light)" for a fast- or careful-lane adjustment; "none" in the fast lane with nothing to record -->
 **Tracker task:**
@@ -13,26 +17,40 @@
 
 ## What changed and why
 
+<!-- adf:what-changed -->
 <!-- A reviewer should not have to reconstruct intent from the diff. AI-assisted or not, the person
      who opened this pull request owns it. -->
+<!-- /adf:what-changed -->
 
-## How to verify
+## How to review and test
+
+<!-- The review instructions, for the developer who reviews this: where, the steps to try and what
+     to expect, and what deserves a close look. What changes for the people who use the system goes
+     on the tracker task, not here. -->
+
+<!-- adf:how-to-verify -->
+**Where:** <!-- the preview's URL — or "no preview", and the command that runs it locally -->
 
 1.
 2.
 
+**Look at:** <!-- the risky part, a decision, the files that carry the change -->
 **Tests:** <!-- tests added or extended, or why none were needed -->
+<!-- /adf:how-to-verify -->
 
 ## Verified / not verified
 
-<!-- From the spec folder's tasks.md § Gate results: what ran (commands, counts) and what could not
-     be checked, and why. Preview: the flow walked on this pull request's preview once it deployed,
-     after the local check — or "pending", "no preview", "nothing a person sees". -->
+<!-- From the spec folder's tasks.md § Gate results: what ran (commands, counts), the agent's review,
+     and what could not be checked, and why. Preview: the flow walked and reviewed on this pull
+     request's preview once it deployed, after the local check — or "pending", "no preview",
+     "can't reach it", "nothing a person sees". -->
 
+<!-- adf:verified -->
 - Verified:
 - Local check:
 - Preview:
 - Not verified:
+<!-- /adf:verified -->
 
 ## Merge danger
 
@@ -41,6 +59,14 @@
 
 **Reversible:** <!-- yes — reverting the merge undoes it | no — what a revert leaves changed -->
 **Blast radius:** <!-- who or what is affected if this is wrong — one page, every form, an API's callers -->
+
+## Follow-ups
+
+<!-- Bugs and improvements found along the way, outside this change (specs/README.md § Found along
+     the way): one "- [ ] <task> — <why> (found in <file:line>)" line each, or "- none". The agent
+     adds lines; tick or delete one to drop it. /wrap-up files each one left as an issue, or offers to start it. -->
+
+- none
 
 ## Screenshots
 

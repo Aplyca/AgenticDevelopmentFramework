@@ -17,11 +17,7 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
-file_path="$(physical_path "$file_path")"
-root="$(repo_root_for "$file_path")"
-[ -n "$root" ] || exit 0
-root="$(physical_path "$root")"
-relative="${file_path#"$root"/}"
+repo_relative "$file_path" || exit 0
 matches_any "$relative" "$ENV_CHECK_EXCLUDE" && exit 0
 
 template="$ENV_TEMPLATE"
@@ -36,10 +32,12 @@ fi
 [ -n "$template" ] && [ -f "$root/$template" ] || exit 0
 
 name='([A-Z_][A-Z0-9_]*)'
+# After a dot, the name ends where the identifier does: process.env.Path is not a variable named P.
+end='([^A-Za-z0-9_]|$)'
 patterns=(
-  "process\\.env\\.$name"
+  "process\\.env\\.$name$end"
   "process\\.env\\[['\"]$name['\"]\\]"
-  "import\\.meta\\.env\\.$name"
+  "import\\.meta\\.env\\.$name$end"
   "os\\.environ\\[['\"]$name['\"]\\]"
   "os\\.environ\\.get\\(['\"]$name['\"]"
   "getenv\\(['\"]$name['\"]"

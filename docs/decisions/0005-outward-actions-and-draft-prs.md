@@ -1,6 +1,6 @@
 # 0005: Outward actions only on request; pull requests stay drafts until a human QCs them
 
-- **Status:** accepted; amended by [0022](0022-local-check-before-the-pull-request.md) (the developer approves a change on the local environment before its pull request opens) and [0033](0033-pull-request-upkeep-without-prompts.md) (pushing, editing, and commenting on the draft take no prompt)
+- **Status:** accepted; amended by [0022](0022-local-check-before-the-pull-request.md) (the developer approves a change on the local environment before its pull request opens) [0033](0033-pull-request-upkeep-without-prompts.md) (pushing, editing, and commenting on the draft take no prompt), and [0070](0070-the-agent-marks-its-pull-request-ready.md) (the agent marks its pull request ready once its own tests pass)
 - **Date:** 2026-10-01
 
 ## Context

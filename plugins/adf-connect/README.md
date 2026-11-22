@@ -5,7 +5,7 @@ how a project reaches its tracker and the services its stack uses.
 
 | Skill | What it does |
 |---|---|
-| `/adf-connect:connect` | Connects the project to a service through the service's official MCP server — Supabase, Vercel, Contentful, GitLab, Linear, Jira. It writes the project's `.mcp.json` entry with safe defaults (read-only, never production, no credentials committed), pre-approves only the tools that read, writes it down in `DEV-SETUP.md`, and verifies that every write still prompts |
+| `/adf-connect:connect` | Connects the project to a service through the service's official MCP server — Supabase, Vercel, Contentful, GitLab, Linear, Jira. It writes the project's `.mcp.json` entry with safe defaults (read-only, never production, no credentials committed), pre-approves only the tools that read, denies the reads that return secrets, writes it down in `DEV-SETUP.md`, and verifies that every write still prompts. Vercel (troubleshooting deployments and logs) and Contentful (entries and the content model) have fixed read-only profiles. A Contentful server is named after its project (`contentful-<project>`), so each project has its own sign-in and space |
 
 The servers themselves stay in the project, not in this plugin
 ([decision 0023](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0023-plugins-by-concern.md)):
@@ -14,9 +14,17 @@ The servers themselves stay in the project, not in this plugin
 - The allow lists that keep writes prompting are project settings.
 
 This plugin carries the knowledge, and the project keeps the configuration. ClickUp has the
-framework's `clickup` module, and GitHub needs only the `gh` CLI.
+framework's `clickup` module, and GitHub needs only the `gh` CLI
+([decision 0057](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0057-read-only-profiles-for-connected-services.md)).
 
 Turn it on in any project that connects services, committed or packaged:
 `"adf-connect@aplyca": true` in `enabledPlugins`, beside `adf`. It's listed in the `aplyca`
 marketplace at the same version as `adf`, and a project pins them together. Its skill is written here
 by hand; `scripts/build-plugins.sh` only keeps the version equal.
+
+Turning it on is a one-line change to the committed settings: make it on a work branch
+(`/adf:dispatch` with the parallel-agents module) and merge it by pull request. Teammates get the
+plugin once they trust the folder; on a machine that doesn't download it,
+`claude plugin install adf-connect@aplyca --scope project` does. Run that only once the settings
+already enable the plugin: for one they don't, it writes the `enabledPlugins` entry itself and can
+rewrite the whole `.claude/settings.json` in the checkout where you ran it.

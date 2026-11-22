@@ -165,7 +165,7 @@ project only:
 }
 ```
 
-In Claude Code, the resources appear in the resource picker and can be referenced via `mcp://specs/<name>` URIs. Tool definitions are deferred — only the resource names consume context until you read one.
+In Claude Code, the resources appear in the resource picker and can be referenced via `mcp://specs/<name>` URIs. Resource definitions are deferred — only the resource names consume context until you read one.
 
 ### Cursor
 

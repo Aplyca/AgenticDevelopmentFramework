@@ -13,7 +13,7 @@ Vulnerabilities in the AI tools themselves (Claude Code, Cursor, Copilot, and so
 
 ## Supported versions
 
-The framework is versioned by commit rather than semver. Fixes land on `main`; adopting projects pick them up through the upgrade procedure in [`docs/UPGRADING.md`](docs/UPGRADING.md). Please verify an issue against the latest `main` before reporting it.
+Releases follow semantic versioning from v1.0.0. Fixes land on `main` and reach adopting projects with the next release, through the upgrade procedure in [`docs/UPGRADING.md`](docs/UPGRADING.md). Please verify an issue against the latest `main` before reporting it.
 
 ## Reporting a vulnerability
 

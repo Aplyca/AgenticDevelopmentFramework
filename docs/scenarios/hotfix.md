@@ -21,8 +21,8 @@ review, or the backfill. Most "urgent" bugs aren't hotfixes — be honest about 
 ## Steps
 
 A hotfix takes the **careful lane, without delay** (`specs/README.md` § Lanes): no spec folder up
-front, but the regression test, the checklist of any risk area the fix touches, and the developer's
-yes on the risky part.
+front, but the regression test, the checklist of any risk area the fix touches, and the risky part
+named in the pull request for the developer's test.
 
 1. **Mitigate if you can.** Rolling back to the previous deployment or release, reverting a content
    or configuration change, turning off a flag: if one restores service faster and more safely than
@@ -57,12 +57,12 @@ yes on the risky part.
    red-then-green evidence (a hotfix has no `tasks.md`). Hooks run; under pressure is exactly when
    `--no-verify` is tempting, and the guard blocks it anyway.
 
-8. **Quick `/review`, a local check, then deliver.** The developer reproduces the bug's steps on the
-   local environment, sees it fixed, and approves. On that approval `/open-pr` pushes and opens a
-   **draft** pull request. A human QCs it — the preview, the
-   reproduction — and only then is it marked ready, reviewed, and merged. In model B someone also tags
-   the patch release and opens the back-merge. The agent does any of these only when asked, never on
-   its own initiative: only the draft follows the local check by itself.
+8. **Quick `/review`, a local check, then deliver.** The agent reproduces the bug's steps on the
+   local environment and sees it fixed; `/open-pr` pushes and opens a **draft** pull request, walks
+   the reproduction on the preview, and marks it ready once CI is green. A human QCs it — the
+   preview, the reproduction — then reviews and merges it. In model B someone also tags the patch
+   release and opens the back-merge. The agent does these only when asked: only the draft and its
+   promotion to ready follow its own checks.
 
 9. **Watch production recover** — the affected page, the error rate, the logs.
 
@@ -97,6 +97,8 @@ Fix forward.
 Triage — Every newsletter signup fails since 09:12 (on-call alert)
 - Deliverable: change
 - Kind: hotfix — production broken now; no deploy since Tuesday, so a rollback won't help
+- Lane: careful — a hotfix, without delay
+- Model: sonnet, high effort
 - Environment: needed now — the regression test runs against the signup route
 - Spec folder: none now; backfill specs/007-newsletter-signup/ afterwards
 - Open questions: 1) While the limiter's store is unavailable, accept signups without rate limiting
@@ -121,8 +123,9 @@ losing every signup costs more than a short window without the limit.
 **Fix**: the route catches the store failure, logs `newsletter.rate_limit.store_unavailable`, and
 carries on. The test passes; the unit suite and lint pass.
 
-**Delivery**: the developer approved the fix locally; `/open-pr` opened a draft into `main`. The
-on-call lead checked the preview, marked it ready, reviewed, and merged; the merge deployed. By 10:25
+**Delivery**: the agent walked the fix locally; `/open-pr` opened a draft into `main`, walked the
+reproduction on the preview, and marked it ready once CI passed. The on-call lead checked the
+preview, reviewed, and merged; the merge deployed. By 10:25
 the error rate was back to normal.
 
 **Backfill**, the next morning, on a fresh branch, `docs/newsletter-signup-rate-limit-outage`:

@@ -59,7 +59,7 @@ run guard-git.sh 0 "$(bash_event 'ls -la && echo done')" "ignores non-git comman
 run guard-git.sh 2 "$(bash_event 'git commit -m "wip"')" "blocks a commit on main"
 run guard-git.sh 2 "$(bash_event 'git push')" "blocks a bare push from main"
 run guard-git.sh 2 "$(bash_event 'git push origin HEAD')" "blocks pushing HEAD from main"
-run guard-git.sh 0 "$(bash_event 'git push --tags')" "allows a tags-only push"
+run guard-git.sh 0 "$(bash_event 'git push --tags')" "doesn't block a tags-only push (it asks: below)"
 run guard-git.sh 0 "$(bash_event 'git pull --ff-only')" "allows pull"
 run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing')" "allows creating a work branch"
 # Decision 0022: the agent opens the pull request on its own, so the draft rule lives here.
@@ -67,7 +67,23 @@ run guard-git.sh 2 "$(bash_event 'gh pr create --title "Add signup" --body-file 
 run guard-git.sh 0 "$(bash_event 'gh pr create --draft --title "Add signup" --body-file /tmp/body.md')" "allows a draft pull request"
 run guard-git.sh 0 "$(bash_event 'git push -u origin feat/new-thing && gh pr create -d --fill')" "allows a draft by its short flag, after a work-branch push"
 run guard-git.sh 2 "$(bash_event 'gh pr create --title "--draft later" --fill')" "isn't fooled by --draft inside a quoted title"
+# Decision 0072: the same draft rule on GitLab.
+run guard-git.sh 2 "$(bash_event 'glab mr create --target-branch main --title "Add signup" --description-file /tmp/body.md')" "blocks a GitLab merge request that isn't a draft"
+run guard-git.sh 0 "$(bash_event 'glab mr create --draft --target-branch main --title "Add signup"')" "allows a GitLab draft merge request"
+run guard-git.sh 0 "$(bash_event 'glab mr new --wip --fill')" "allows a GitLab draft by --wip, and mr new"
+run guard-git.sh 2 "$(bash_event 'glab mr create -d "notes" --fill')" "doesn't take glab's -d (--description) for --draft"
 run guard-git.sh 0 "$(bash_event 'gh pr view 12 --json state')" "ignores other gh commands"
+run guard-git.sh 2 "$(bash_event 'gh pr new --title "Add signup" --fill')" "blocks gh pr new, the alias of create, without --draft"
+run guard-git.sh 2 "$(bash_event 'gh -R acme/app pr create --title "Add signup"')" "sees gh pr create after a --repo flag"
+# Quoted text is blanked as data, but not the folder a command runs in or the branch it pushes.
+run guard-git.sh 2 "$(bash_event "cd \"$T\" && git commit -m \"wip\"")" "follows a quoted cd"
+run guard-git.sh 2 "$(bash_event "git -C \"$T\" commit -m wip")" "follows a quoted git -C"
+run guard-git.sh 2 "$(bash_event 'git -C "$SOMEWHERE/else" commit -m wip')" "falls back to the session's folder for a path it can't read"
+run guard-git.sh 2 "$(bash_event 'git push origin "main"')" "blocks a push to a quoted main"
+run guard-git.sh 2 "$(bash_event 'if true; then git commit -m wip; fi')" "sees a command after a shell keyword"
+run guard-git.sh 0 "$(bash_event 'git switch -c feat/new-thing && git commit -m "feat: add signup"')" "allows a commit chained to the work branch's creation"
+run guard-git.sh 2 "$(bash_event 'git switch -c feat/new-thing; git commit -m "feat: add signup"')" "doesn't trust a switch that && doesn't chain"
+run guard-git.sh 2 "$(bash_event 'git checkout README.md && git commit -m wip')" "doesn't take a checked-out path for a branch"
 
 git -C "$T" switch -q -c feat/newsletter-signup
 # guard-git — on a work branch
@@ -77,6 +93,8 @@ heredoc=$'git commit -m "$(cat <<\'EOF\'\nfeat: add signup\n\nDon\'t use -n; git
 run guard-git.sh 0 "$(bash_event "$heredoc")" "ignores a heredoc commit message"
 run guard-git.sh 2 "$(bash_event 'git commit --no-verify -m x')" "blocks --no-verify"
 run guard-git.sh 2 "$(bash_event 'git commit -nm x')" "blocks -n folded into short flags"
+run guard-git.sh 0 "$(bash_event 'git commit -uno -m x')" "doesn't take -uno (--untracked-files=no) for -n"
+run guard-git.sh 2 "$(bash_event 'git switch main && git commit -m x')" "blocks a commit chained to a switch to main"
 run guard-git.sh 2 "$(bash_event 'git merge --no-verify feat/x')" "blocks --no-verify on merge"
 run guard-git.sh 0 "$(bash_event 'git push -u origin feat/newsletter-signup')" "allows pushing the work branch (after the local check, decision 0022)"
 run guard-git.sh 2 "$(bash_event 'git push origin main')" "blocks a push to main"
@@ -91,6 +109,58 @@ run guard-git.sh 0 "$(bash_event 'echo "git push origin main is forbidden"')" "i
 run guard-git.sh 0 "$(bash_event "echo 'done; git push origin main'")" "ignores a single-quoted mention with a separator"
 run guard-git.sh 2 "$(bash_event "git commit -m 'subject' -m \"body; more\" --no-verify")" "sees a flag after quoted messages"
 run guard-git.sh 0 "$(bash_event 'git log --oneline -n 5')" "allows git log -n"
+# A heredoc's body is data: an apostrophe in it no longer pairs with a later quote and hides a command.
+run guard-git.sh 2 "$(bash_event $'cat <<EOF\nIt\'s ready\nEOF\ngit push origin \'main\'')" "sees a command after a heredoc body with an apostrophe"
+run guard-git.sh 2 "$(bash_event $'cat <<-\'EOF\'\n\tdon\'t\n\tEOF\ngit push origin main')" "ends a <<- heredoc at its tab-indented delimiter"
+run guard-git.sh 0 "$(bash_event $'cat <<EOF\ngit push origin main\nEOF')" "ignores a command inside a heredoc body"
+run guard-git.sh 0 "$(bash_event $'cat <<< "it\'s"\ngit status')" "doesn't take a here-string for a heredoc"
+# A tag push asks, whatever form it takes: a tag is a release (0038).
+git -C "$T" tag v1.0.0
+run_ask() { # run_ask <yes|no> <command> <description>
+    local out code got=no
+    out=$(printf '%s' "$(bash_event "$2")" | "$H/guard-git.sh" 2>&1)
+    code=$?
+    case "$out" in *'"permissionDecision":"ask"'*) got=yes ;; esac
+    if [ "$code" = 0 ] && [ "$got" = "$1" ]; then
+        PASS=$((PASS+1)); echo "✓ guard-git.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ guard-git.sh: $3 (exit $code, asks: $got, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+run_ask yes 'git push --tags' "asks before pushing every tag"
+run_ask yes 'git push origin v1.0.0' "asks before pushing a tag by its name"
+run_ask yes 'git push origin refs/tags/v1.0.0' "asks before pushing a tag by its ref"
+run_ask yes 'git push origin tag v1.0.0' "asks before git push … tag <name>"
+run_ask yes 'git push origin :v1.0.0' "asks before deleting a remote tag"
+run_ask yes 'git switch -c feat/x && git push --follow-tags origin feat/x' "asks before --follow-tags"
+run_ask no 'git switch -c feat/x && git push -u origin feat/x' "a branch push doesn't ask"
+# Changing git config asks, reading it doesn't (0088): no permission rule can tell the two apart.
+run_ask yes 'git config core.hooksPath /dev/null' "asks before setting a value"
+run_ask yes 'git config core.hooksPath ""' "asks before setting an empty value"
+run_ask yes 'git config --global user.name "Jane Doe"' "asks before setting a quoted value, in any scope"
+run_ask yes 'git -C /tmp/other config core.hooksPath x' "asks before a config change in another folder"
+run_ask yes 'git config --unset core.hooksPath' "asks before --unset"
+run_ask yes 'git config --add remote.origin.push HEAD' "asks before --add"
+run_ask yes 'git config --type bool core.bare true' "asks before a value after a flag that takes one"
+run_ask yes 'git config --weird-flag core.bare true' "asks when a flag it doesn't know comes before a value"
+run_ask yes 'git config set core.hooksPath x' "asks before the set subcommand"
+run_ask yes 'git config unset core.hooksPath' "asks before the unset subcommand"
+run_ask yes 'git config --edit' "asks before --edit"
+run_ask yes 'ls .githooks; git config core.hooksPath .githooks' "asks for a change in a chained command"
+run_ask yes 'git config core.hooksPath x && git push origin --tags' "asks once for a config change and a tag push"
+run_ask no 'git config core.hooksPath' "reading a value doesn't ask"
+run_ask no 'git config --get core.hooksPath' "--get doesn't ask"
+run_ask no 'git config --show-origin --get-all core.hooksPath' "--show-origin --get-all doesn't ask"
+run_ask no 'git config --get-regexp ^alias\. x' "--get-regexp with a value pattern doesn't ask"
+run_ask no 'git config --global --list' "--list doesn't ask"
+run_ask no 'git config -l --show-scope' "-l doesn't ask"
+run_ask no 'git config get core.hooksPath' "the get subcommand doesn't ask"
+run_ask no 'git config list' "the list subcommand doesn't ask"
+run_ask no 'git config --file .gitmodules --get-regexp path' "--file's value isn't a second word"
+run_ask no 'git config core.hooksPath 2>/dev/null' "an attached redirect isn't a value"
+run_ask no 'git config core.hooksPath 2>&1 | head -1' "2>&1 isn't a value"
+run_ask no 'git config core.hooksPath > hooks.txt' "a redirect's file isn't a value"
+run_ask no $'git config core.hooksPath\nls .githooks' "a read followed by another command doesn't ask"
 
 # protect-paths
 run protect-paths.sh 2 "$(file_event Edit "$T/package-lock.json")" "blocks hand-editing a lockfile"
@@ -148,6 +218,41 @@ run triage-first.sh 0 "$(triage_bash b3 "$WORK/lane.jsonl" 'git switch -c fix/la
 echo 'TRIAGE_FIRST=""' >> "$T/.claude/hooks/config.sh"
 run triage-first.sh 0 "$(triage_event t4 "$WORK/no-lane.jsonl")" "does nothing when TRIAGE_FIRST is empty"
 
+# session-title — a session takes its task's title from the stated triage, once per session
+said() { # said <transcript name> <reply text>
+    printf '%s\n' '{"type":"user","message":{"content":"Work on this task https://app.clickup.com/t/86a1"}}' \
+        "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":$(printf '%s' "$2" | json_string)}]}}" > "$WORK/$1.jsonl"
+}
+named() { # named <session> <transcript name> [<entrypoint>] [<more input fields>] → the title the hook sets, or nothing
+    printf '{"session_id":"%s","transcript_path":"%s","cwd":"%s","hook_event_name":"UserPromptSubmit","prompt":"go on"%s}' "$1" "$WORK/$2.jsonl" "$T" "${4:-}" |
+        CLAUDE_CODE_ENTRYPOINT="${3:-cli}" "$H/session-title.sh" | python3 -c '
+import json, sys
+out = sys.stdin.read().strip()
+if out:
+    event = json.loads(out)
+    hook = event["hookSpecificOutput"]
+    print("blocks the prompt" if "decision" in event or hook["hookEventName"] != "UserPromptSubmit" else hook["sessionTitle"])'
+}
+title_check() { # title_check <description> <got> <want>
+    if [ "$2" = "$3" ]; then PASS=$((PASS+1)); echo "✓ session-title.sh: $1"; else FAIL=$((FAIL+1)); echo "✘ session-title.sh: $1 (got '$2', want '$3')"; fi
+}
+said full $'Read the task and its comments.\n\n**Triage — Newsletter signup: double opt-in ([CU-86a1](https://app.clickup.com/t/86a1))**\n- Deliverable: change\n- Lane: full'
+said fast 'Fast lane — make the "Company" field optional on the signup form; done when an empty value submits; files: SignupForm.tsx; model: sonnet.'
+said none 'Reading the task first. Triage-first is a hook; the format is `Triage — <task title> (<link>)`.'
+title_check "names the session after the triage's task title, without its link" "$(named n1 full)" "Newsletter signup: double opt-in"
+title_check "once per session: a later prompt leaves the title alone" "$(named n1 full)" ""
+title_check "a fast-lane line gives its request, capitalized, without the rest" "$(named n2 fast)" 'Make the "Company" field optional on the signup form'
+title_check "no triage stated yet — or only its template — names nothing" "$(named n3 none)" ""
+said none $'Reading the task first.\n\nTriage — Fix the label on the signup form (#123)'
+title_check "the session is named on a later prompt, once the triage is stated" "$(named n3 none)" "Fix the label on the signup form"
+title_check "a title already set (/rename, --name) stays" "$(named n4 full cli ',"session_title":"My own name"')" ""
+title_check "in the desktop app, names the session over the app's title — the app keeps one the developer set" "$(named n5 full claude-desktop ',"session_title":"Work on this task"')" "Newsletter signup: double opt-in"
+title_check "in the desktop app too, once per session" "$(named n5 full claude-desktop ',"session_title":"Newsletter signup: double opt-in"')" ""
+said long "Triage — $(printf 'Signup %.0s' $(seq 1 20))(https://app.clickup.com/t/86a1)"
+title_check "cuts a long title to 80 characters" "$(named n6 long | python3 -c 'import sys; print(len(sys.stdin.read().strip()))')" "80"
+echo 'SESSION_TITLE=""' >> "$T/.claude/hooks/config.sh"
+title_check "does nothing when SESSION_TITLE is empty" "$(named n7 full)" ""
+
 out=$(printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$T" | "$H/session-context.sh")
 if echo "$out" | grep -q 'specs/007-newsletter-signup/ (status: approved)'; then
     PASS=$((PASS+1)); echo "✓ session-context.sh: finds the branch's spec folder and status"
@@ -199,7 +304,7 @@ check_ctx() { # check_ctx <description> <dir> <must match> [<must not match>]
     fi
 }
 check_ctx "in the main checkout: triage first, then the task's own worktree, with /dispatch" "$T" "Triage the task first. A change, or an answer that runs the app, the tests, or the database, then gets its own worktree: /dispatch" "DISPATCHER"
-check_ctx "the task's worktree sits beside the main checkout, from the base branch, and this session moves" "$T" "beside this checkout, on a new branch from main, and moves this session there" "Route:"
+check_ctx "the task's worktree goes under .claude/worktrees/, from the base branch, and this session moves" "$T" "under .claude/worktrees/, on a new branch from main, and moves this session there with EnterWorktree" "Route:"
 check_ctx "in the main checkout: an answer that only reads stays, and another task goes to a new session" "$T" "An answer that only reads stays here. Once this session has a task, another one goes to a new session"
 # A base branch behind origin's, as the last fetch left it: told to pull before branching.
 B="$WORK/behind"; mkdir -p "$B" && git -C "$B" init -q -b main
@@ -213,12 +318,13 @@ git -C "$B" switch -q main && git -C "$B" merge -q --ff-only origin/main
 check_ctx "on the base branch, up to date: no base-branch line" "$B" "branch main" "behind origin/main"
 check_ctx "worker in a worktree the scripts set up, with nothing missing" "$WORK/feat-role-check" "Role: WORKER" "generated\|No .env\|Not set up"
 # The desktop app gives every chip's session a worktree of its own (decision 0040): a worker that starts
-# there creates the task's worktree beside the main checkout and moves, and never renames the branch.
-check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree beside the main checkout and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task's worktree sits beside the main checkout: triage the task, then /dispatch creates it" "git branch -m"
-check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task's worktree sits beside the main checkout" "git switch -c"
+# there creates the task's worktree (decision 0083) and moves, and never renames the branch.
+check_ctx "worker in Claude Code's worktree on a generated branch: create the task's worktree under .claude/worktrees/ and move" "$T/.claude/worktrees/eager-lamport" "on a generated branch (claude/eager-lamport). A task gets a worktree of its own, named after its branch: triage the task, then /dispatch creates it under .claude/worktrees/" "git branch -m"
+check_ctx "worker in Claude Code's worktree on a detached HEAD: the same first step" "$T/.claude/worktrees/calm-turing" "on a detached HEAD. A task gets a worktree of its own" "git switch -c"
+check_ctx "worker in Claude Code's worktree: moves with EnterWorktree, which the app allows from there (0085)" "$T/.claude/worktrees/eager-lamport" "moves this session there with EnterWorktree (the app refuses change_directory from here)"
 check_ctx "a marked worktree counts as the scripts' wherever it is" "$WORK/somewhere-else" "Role: WORKER" "generated\|No .env\|Not set up"
 git -C "$T/.claude/worktrees/eager-lamport" branch -q -m feat/renamed
-check_ctx "an app worktree already on a task branch keeps its notes: the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here" "sits beside the main checkout"
+check_ctx "an app worktree already on a task branch keeps its notes: the env file is missing" "$T/.claude/worktrees/eager-lamport" "No .env here" "A task gets a worktree of its own"
 cp "$T/.env" "$T/.claude/worktrees/eager-lamport/.env"
 check_ctx "a renamed branch with its env file needs nothing more" "$T/.claude/worktrees/eager-lamport" "Role: WORKER" "generated\|No .env\|Not set up"
 printf 'BASE_BRANCH="main"\nENV_FILE=".env"\nPORT_SLOTS=180\nSTART_CMD="npm run dev"\n' > "$T/.claude/worktrees/eager-lamport/ops/agent/worktree.conf"
@@ -250,21 +356,24 @@ if command -v jq >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
         [ "$(printf '%s' "$event" | jq -r --arg path "$path" -f "$HOOKS_SRC/json-get.jq" 2>/dev/null)" = "$(printf '%s' "$event" | python3 "$HOOKS_SRC/json-get.py" "$path")" ] || same=""
     done
     [ "$(jq -r -f "$HOOKS_SRC/transcript-text.jq" <"$WORK/transcript.jsonl" 2>/dev/null)" = "$(python3 "$HOOKS_SRC/transcript-text.py" <"$WORK/transcript.jsonl")" ] || same=""
+    for title in 'Newsletter signup' 'Say "hi" — back' "$(printf 'é%.0s' $(seq 1 90))"; do
+        [ "$(printf '%s' "$title" | jq -cRs -f "$HOOKS_SRC/session-title.jq")" = "$(printf '%s' "$title" | python3 "$HOOKS_SRC/session-title.py")" ] || same=""
+    done
     if [ -n "$same" ]; then
-        PASS=$((PASS+1)); echo "✓ helpers: json-get and transcript-text give the same answers in jq and Python"
+        PASS=$((PASS+1)); echo "✓ helpers: json-get, transcript-text, and session-title give the same answers in jq and Python"
     else
         FAIL=$((FAIL+1)); echo "✘ helpers: the jq and Python helpers disagree"
     fi
 fi
 
 # protect-hub — with the module, the main checkout takes no edits: each task moves to its own worktree
-git -C "$T" worktree add -q -b feat/hub-check "$WORK/feat-hub-check"
+git -C "$T" worktree add -q -b feat/hub-check "$T/.claude/worktrees/feat-hub-check"
 git -C "$T" worktree add -q -b claude/calm-hopper "$T/.claude/worktrees/calm-hopper"
 mkdir -p "$WORK/no-module" && git -C "$WORK/no-module" init -q
 edit_event() { printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s"}}' "$T" "$1"; }
 run protect-hub.sh 2 "$(edit_event "$T/src/app.ts")" "stops an edit in the main checkout"
 run protect-hub.sh 2 "$(edit_event "$T/src/new/file.ts")" "stops a new file in the main checkout"
-run protect-hub.sh 0 "$(edit_event "$WORK/feat-hub-check/src/app.ts")" "lets edits in a task worktree through"
+run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/feat-hub-check/src/app.ts")" "lets edits in a task worktree through"
 run protect-hub.sh 0 "$(edit_event "$T/.claude/worktrees/calm-hopper/notes.md")" "lets edits in Claude Code's own worktrees through"
 run protect-hub.sh 0 "$(edit_event "$WORK/no-module/src/app.ts")" "does nothing in a repository without the module"
 echo 'HUB_READONLY=""' >> "$T/.claude/hooks/config.sh"
@@ -283,18 +392,94 @@ moves() { # moves <allow|silent> <event-json> <description> — "allow" prints t
     fi
 }
 mkdir -p "$WORK/plain-folder"
-moves allow "$(move_event "$WORK/feat-hub-check")" "approves a move from the main checkout into a task worktree beside it"
+git -C "$T" worktree add -q -b feat/legacy "$WORK/feat-legacy"
+moves allow "$(move_event "$T/.claude/worktrees/feat-hub-check")" "approves a move from the main checkout into a task worktree under .claude/worktrees/"
+moves allow "$(move_event "$WORK/feat-legacy")" "approves a move into a worktree beside the main checkout, from an older release"
 moves allow "$(move_event "$T/.claude/worktrees/calm-hopper")" "approves a move into Claude Code's own worktree"
-moves allow "$(move_event "$WORK/feat-hub-check" "$T/.claude/worktrees/calm-hopper")" "approves a move from one worktree to another of the same repository"
+moves allow "$(move_event "$T/.claude/worktrees/feat-hub-check" "$T/.claude/worktrees/calm-hopper")" "approves a move from one worktree to another of the same repository"
 moves silent "$(move_event "$T")" "leaves a move into the main checkout to the prompt"
-moves silent "$(move_event "$WORK/feat-hub-check/src")" "leaves a folder inside a worktree to the prompt"
+moves silent "$(move_event "$T/.claude/worktrees/feat-hub-check/src")" "leaves a folder inside a worktree to the prompt"
 moves silent "$(move_event "$WORK/no-module")" "leaves another repository to the prompt"
 moves silent "$(move_event "$WORK/plain-folder")" "leaves a folder outside any repository to the prompt"
 moves silent "$(move_event "$WORK/missing")" "leaves a folder that doesn't exist to the prompt"
 moves silent "$(move_event "feat-hub-check")" "leaves a relative path to the prompt"
+# The move is EnterWorktree, in the desktop app too: the app refuses change_directory from its own worktree (0085).
+enter_event() { printf '{"tool_name":"EnterWorktree","cwd":"%s","tool_input":%s}' "$2" "$1"; }
+moves allow "$(enter_event "{\"path\":\"$T/.claude/worktrees/feat-hub-check\"}" "$T/.claude/worktrees/calm-hopper")" "approves EnterWorktree from the app's worktree into a task worktree"
+moves allow "$(enter_event "{\"path\":\"$T/.claude/worktrees/feat-hub-check\"}" "$T")" "approves EnterWorktree from the main checkout into a task worktree"
+moves silent "$(enter_event "{\"path\":\"$T\"}" "$T/.claude/worktrees/calm-hopper")" "leaves EnterWorktree into the main checkout to the prompt"
+moves silent "$(enter_event '{"name":"scratch"}' "$T")" "leaves EnterWorktree creating a worktree of its own to its own check"
 echo 'APPROVE_WORKTREE_MOVE=""' >> "$T/.claude/hooks/config.sh"
-moves silent "$(move_event "$WORK/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
-git -C "$T" worktree remove --force "$WORK/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
+moves silent "$(move_event "$T/.claude/worktrees/feat-hub-check")" "does nothing when APPROVE_WORKTREE_MOVE is empty"
+git -C "$T" worktree remove --force "$T/.claude/worktrees/feat-hub-check"; git -C "$T" worktree remove --force "$T/.claude/worktrees/calm-hopper"
+git -C "$T" worktree remove --force "$WORK/feat-legacy"
+
+# approve-status-move — a tracker update that changes only the status needs no prompt (0076)
+status_event() { printf '{"tool_name":"%s","cwd":"%s","tool_input":%s}' "$1" "$T" "$2"; }
+status_move() { # status_move <allow|silent> <event-json> <description>
+    local out code
+    out=$(printf '%s' "$2" | "$H/approve-status-move.sh" 2>&1)
+    code=$?
+    if [ "$code" = 0 ] && { { [ "$1" = allow ] && echo "$out" | grep -q '"permissionDecision":"allow"'; } || { [ "$1" = silent ] && [ -z "$out" ]; }; }; then
+        PASS=$((PASS+1)); echo "✓ approve-status-move.sh: $3"
+    else
+        FAIL=$((FAIL+1)); echo "✘ approve-status-move.sh: $3 (exit $code, wanted $1)"; [ -n "$out" ] && echo "    $out"
+    fi
+}
+update_tool="mcp__clickup__clickup_update_task"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in progress"}')" "does nothing until APPROVE_STATUS_MOVE names a tool"
+echo "APPROVE_STATUS_MOVE=\"$update_tool\"" >> "$T/.claude/hooks/config.sh"
+status_move allow "$(status_event "$update_tool" '{"task_id":"86a1","status":"in progress"}')" "approves an update that carries only the task and its status"
+status_move allow "$(status_event "$update_tool" '{"status":"in review","task_id":"86a1"}')" "approves it whatever the order of the fields"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in review","assignees":["42"]}')" "leaves an update that also sets an assignee to the prompt"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in review","description":"New text"}')" "leaves an update that also edits the description to the prompt"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","due_date":"2026-12-01"}')" "leaves an update with no status to the prompt"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":""}')" "leaves an empty status to the prompt"
+status_move silent "$(status_event "mcp__clickup__clickup_create_task_comment" '{"task_id":"86a1","comment_text":"Ready for review"}')" "leaves a comment to the prompt — every post asks"
+status_move silent "$(status_event "mcp__clickup__clickup_update_task_extra" '{"task_id":"86a1","status":"done"}')" "matches the tool's whole name, not its start"
+status_move silent "$(status_event "$update_tool" '"not an object"')" "leaves an input it can't read to the prompt"
+printf '%s\n' 'APPROVE_STATUS_MOVE="mcp__tracker__update_issue mcp__tracker__move_issue"' 'STATUS_MOVE_FIELDS="id team state"' >> "$T/.claude/hooks/config.sh"
+status_move allow "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","state":"In Review"}')" "takes several tools, and the project's own field names"
+status_move silent "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","team":"mkt"}')" "needs the status field — the last one listed"
+status_move silent "$(status_event "$update_tool" '{"task_id":"86a1","status":"in progress"}')" "stops approving a tool the setting no longer names"
+echo 'APPROVE_STATUS_MOVE=""' >> "$T/.claude/hooks/config.sh"
+status_move silent "$(status_event "mcp__tracker__move_issue" '{"id":"MKT-530","state":"In Review"}')" "does nothing when APPROVE_STATUS_MOVE is empty"
+
+# make run — no hook decides it (0089): Bash(make *) covers it, and the session's permission mode
+# decides the rest, in either mode. A prompt on a line no hook could read (issue 177's chained sed,
+# grep, or find, a for loop, a $ in the value) would override the project's own rules.
+STACK="$WORK/stack"; mkdir -p "$STACK" && cp -R "$REPO_ROOT/plugins/adf-dev/skills/dev-env/templates/." "$STACK/"
+git -C "$STACK" init -q -b main
+echo '<!-- Skeleton source: v2.10.0 · abc1234 (2026-11-16) · modules: github, docker · install: committed -->' > "$STACK/AGENTS.md"
+bash_hooks=$(python3 -c 'import json,re,sys; print(" ".join(re.search(r"hooks/([\w-]+\.sh)", h["command"]).group(1) for g in json.load(open(sys.argv[1]))["hooks"]["PreToolUse"] if g["matcher"] == "Bash" for h in g["hooks"]))' "$REPO_ROOT/plugins/adf/hooks/hooks.json")
+no_prompt() { # no_prompt <mode> <command> — every Bash hook exits 0 and prints no decision
+    local hook out code event
+    printf 'DEV_MODE=%s\n' "$1" > "$STACK/.env"
+    event=$(printf '{"tool_name":"Bash","cwd":"%s","permission_mode":"default","tool_input":{"command":%s}}' "$STACK" "$(printf '%s' "$2" | json_string)")
+    for hook in $bash_hooks; do
+        out=$(printf '%s' "$event" | env -u DEV_MODE -u CLAUDE_PROJECT_DIR "$H/$hook" 2>&1)
+        code=$?
+        if [ "$code" != 0 ] || echo "$out" | grep -q '"permissionDecision"'; then
+            FAIL=$((FAIL+1)); echo "✘ make run: $hook decided \`$2\` in $1 mode (exit $code)"; [ -n "$out" ] && echo "    $out"
+            return
+        fi
+    done
+    PASS=$((PASS+1)); echo "✓ make run: no hook decides \`$2\` in $1 mode (0089)"
+}
+[ -n "$bash_hooks" ] || { FAIL=$((FAIL+1)); echo "✘ make run: no Bash hooks found in hooks.json"; }
+for mode in docker native; do
+    no_prompt "$mode" "make run cmd='npm test'"
+    no_prompt "$mode" "sed -i.bak 's/a/b/' src/app.js && make run cmd='npm run lint'"
+    no_prompt "$mode" "grep -rn signup src; make run cmd='npm test' >/dev/null"
+    no_prompt "$mode" "find . -name '*.test.js' | head && make run cmd='npm test'"
+    no_prompt "$mode" "for p in a b; do make run cmd=\"npm ls \$p\"; done"
+    no_prompt "$mode" "make run cmd='echo \$HOME'"
+done
+if python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if p["ask"] == [] and not any(r.startswith("Bash(make run") for r in p["deny"]) else 1)' "$REPO_ROOT/modules/docker/settings-fragment.json"; then
+    PASS=$((PASS+1)); echo "✓ make run: the docker module asks before no docker or make command, make run included — a prompt is the project's own rule (0078, 0089)"
+else
+    FAIL=$((FAIL+1)); echo "✘ make run: the docker module carries an ask rule, or a deny for make run"
+fi
 
 # Packaged install (decision 0016): the plugin's generated scripts, with no config.sh of their own,
 # load _lib.sh from CLAUDE_PLUGIN_ROOT and read the project's .claude/hooks/config.sh through
@@ -367,13 +552,13 @@ fi
 # plugin's hooks name the plugin's skill for the move to the task's worktree.
 mkdir -p "$PROJ/ops/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/ops/agent/worktree.conf"
 echo 'HUB_READONLY="1"' >> "$PROJ/.claude/hooks/config.sh"
-step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it beside this checkout")
+step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it under .claude/worktrees/")
 hub=$(printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s/src/app.ts"}}' "$PROJ" "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/protect-hub.sh" 2>&1 >/dev/null; echo "exit=$?")
 rm -rf "$PROJ/ops"
 # Decision 0032: a project that hasn't moved the module's settings to ops/agent/ yet keeps them in
 # scripts/agent/, and the hooks still find them there.
 mkdir -p "$PROJ/scripts/agent" && printf 'BASE_BRANCH="main"\n' > "$PROJ/scripts/agent/worktree.conf"
-legacy_step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it beside this checkout")
+legacy_step=$(pkg_context | grep -c -F "own worktree: /adf:dispatch creates it under .claude/worktrees/")
 legacy_hub=$(printf '{"tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s/src/app.ts"}}' "$PROJ" "$PROJ" | CLAUDE_PROJECT_DIR="$PROJ" CLAUDE_PLUGIN_ROOT="$PKG_ROOT" "$PKG/protect-hub.sh" 2>&1 >/dev/null; echo "exit=$?")
 rm -rf "$PROJ/scripts" && echo 'PROTECTED_BRANCHES="release-x"' > "$PROJ/.claude/hooks/config.sh"
 if [ "$step" = 1 ] && echo "$hub" | grep -q 'exit=2' && echo "$hub" | grep -q -F "run /adf:dispatch, which creates the worktree"; then
@@ -453,6 +638,112 @@ check_up "an unfilled stamp: nothing said" "$(up_context s8 "$REL")" ""
 committed=$(printf '{"cwd":"%s","session_id":"s9","hook_event_name":"SessionStart"}' "$T" |
     XDG_CACHE_HOME="$WORK/cache" ADF_RELEASES_REMOTE="$REL" "$H/session-context.sh" | grep -c "is available")
 check_up "a project without a stamp: nothing said" "$committed" "0"
+# pr-state — a fake gh and glab answer for the branch's pull request; the hook speaks once per new state.
+PS="$WORK/prstate"
+mkdir -p "$PS" "$WORK/fakegh" && git -C "$PS" init -q -b main
+git -C "$PS" -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m init
+cp -R "$HOOKS_SRC" "$PS/.claude-hooks"
+mkdir -p "$PS/.claude" && mv "$PS/.claude-hooks" "$PS/.claude/hooks"
+printf '#!/usr/bin/env bash\necho "$FAKE_PR" >>"%s/gh-calls"\nprintf "%%s\\n" "$FAKE_PR"\n' "$WORK" >"$WORK/fakegh/gh"
+printf '#!/usr/bin/env bash\necho "$FAKE_MR" >>"%s/glab-calls"\nprintf "%%s\\n" "$FAKE_MR"\n' "$WORK" >"$WORK/fakegh/glab"
+chmod +x "$WORK/fakegh/gh" "$WORK/fakegh/glab"
+ps_cache="$PS/.git/adf-pr-state"
+ps() { # ps <event> <fake gh "number STATE"> [<fake glab JSON>] → the hook's output
+    printf '{"cwd":"%s","hook_event_name":"%s"}' "$PS" "$1" | FAKE_PR="$2" FAKE_MR="${3:-}" PATH="$WORK/fakegh:$PATH" "$PS/.claude/hooks/pr-state.sh"
+}
+mr_json() { # mr_json <state> → a merge request as glab prints it, with a nested state to skip
+    printf '{"iid":7,"state":"%s","author":{"state":"active"},"web_url":"https://gitlab.example.com/team/app/-/merge_requests/7"}' "$1"
+}
+ps_check() { # ps_check <description> <condition-exit>
+    if [ "$2" = 0 ]; then PASS=$((PASS+1)); echo "✓ pr-state.sh: $1"; else FAIL=$((FAIL+1)); echo "✘ pr-state.sh: $1"; fi
+}
+: >"$WORK/gh-calls"
+out="$(ps SessionStart "42 MERGED")"
+ps_check "says nothing on a protected branch, and doesn't ask gh" $([ -z "$out" ] && [ ! -s "$WORK/gh-calls" ]; echo $?)
+git -C "$PS" switch -q -c feat/newsletter-signup
+out="$(ps SessionStart "42 OPEN")"
+ps_check "an open pull request is nothing to report" $([ -z "$out" ]; echo $?)
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "asks gh at most every five minutes on a prompt" $([ -z "$out" ]; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "a merge noticed on a prompt points at the wrap-up" $(echo "$out" | grep -q 'PR #42 .*merged.*wrap-up'; echo $?)
+sed -i.bak 's/ [0-9]* MERGED/ 0 MERGED/' "$ps_cache"
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "says it once: the same state on a later prompt is silent" $([ -z "$out" ]; echo $?)
+out="$(ps SessionStart "42 MERGED")"
+ps_check "says it again at session start, where the context is new" $(echo "$out" | grep -q 'merged'; echo $?)
+out="$(ps SessionStart "")"
+ps_check "with gh failing, the last known state stands" $(echo "$out" | grep -q 'PR #42 .*merged'; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "42 CLOSED")"
+ps_check "a pull request closed unmerged asks whether the task is dropped" $(echo "$out" | grep -q 'closed without merging.*dropped'; echo $?)
+# GitLab: glab first when origin says so, and the merge request's number goes by "!" (0074).
+git -C "$PS" remote add origin git@gitlab.example.com:team/app.git
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+: >"$WORK/gh-calls"
+out="$(ps UserPromptSubmit "42 OPEN" "$(mr_json opened)")"
+ps_check "an opened merge request is nothing to report, and gh isn't asked on a GitLab origin" $([ -z "$out" ] && [ ! -s "$WORK/gh-calls" ]; echo $?)
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "42 OPEN" "$(mr_json merged)")"
+ps_check "a merged merge request points at the wrap-up" $(echo "$out" | grep -q 'Merge request !7 .*merged.*wrap-up'; echo $?)
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "" "$(mr_json closed)")"
+ps_check "a merge request closed unmerged asks whether the task is dropped" $(echo "$out" | grep -q 'Merge request !7 .*closed without merging.*dropped'; echo $?)
+out="$(ps SessionStart "" "")"
+ps_check "with glab failing, the last known merge request stands" $(echo "$out" | grep -q 'Merge request !7 .*closed'; echo $?)
+git -C "$PS" remote set-url origin git@git.example.com:team/app.git
+printf 'feat/newsletter-signup 0 OPEN !7\n' >"$ps_cache"
+out="$(ps UserPromptSubmit "" "$(mr_json merged)")"
+ps_check "a GitLab whose host name doesn't say so: glab answers when gh can't" $(echo "$out" | grep -q 'Merge request !7 .*merged'; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+: >"$WORK/glab-calls"
+out="$(ps UserPromptSubmit "42 MERGED" "$(mr_json closed)")"
+ps_check "gh's answer stands when it gives one, and glab isn't asked" $(echo "$out" | grep -q 'PR #42 .*merged' && [ ! -s "$WORK/glab-calls" ]; echo $?)
+# The idle watch (0087): at Stop, the hook polls an open pull request in the background and exits 2,
+# which wakes the session, when it merges or closes. A fake gh reads its answer from a file.
+mkdir -p "$WORK/fakegh-watch"
+printf '#!/usr/bin/env bash\necho x >>"%s/watch-calls"\ncat "%s/pr-answer"\n' "$WORK" "$WORK" >"$WORK/fakegh-watch/gh"
+printf '#!/usr/bin/env bash\nexit 1\n' >"$WORK/fakegh-watch/glab"
+chmod +x "$WORK/fakegh-watch/gh" "$WORK/fakegh-watch/glab"
+git -C "$PS" remote set-url origin git@github.com:team/app.git
+watch() { # watch → runs the Stop hook in the foreground; its stderr goes to $WORK/watch-err
+    printf '{"cwd":"%s","hook_event_name":"Stop"}' "$PS" | ADF_PR_WATCH_INTERVAL=1 PATH="$WORK/fakegh-watch:$PATH" \
+        "$PS/.claude/hooks/pr-state.sh" 2>"$WORK/watch-err"
+}
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+echo "42 OPEN" >"$WORK/pr-answer"
+( sleep 2; echo "42 MERGED" >"$WORK/pr-answer" ) &
+watch; rc=$?
+ps_check "the idle watch exits 2 once an open pull request merges, to wake the session" $([ "$rc" = 2 ]; echo $?)
+ps_check "the wake names the merge and the wrap-up" $(grep -q 'PR #42 .*merged while the session waited.*wrap-up' "$WORK/watch-err"; echo $?)
+sed -i.bak 's/ [0-9]* MERGED/ 0 MERGED/' "$ps_cache"
+out="$(ps UserPromptSubmit "42 MERGED")"
+ps_check "a merge the watch reported isn't said again on the next prompt" $([ -z "$out" ]; echo $?)
+: >"$WORK/watch-calls"
+watch; rc=$?
+ps_check "a state already reported ends the watch at once, without asking gh" $([ "$rc" = 0 ] && [ ! -s "$WORK/watch-calls" ]; echo $?)
+rm -f "$ps_cache"
+: >"$WORK/pr-answer"
+watch; rc=$?
+ps_check "with no pull request to watch, the watch ends" $([ "$rc" = 0 ]; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+echo "42 OPEN" >"$WORK/pr-answer"
+watch & first=$!
+sleep 1.5
+( sleep 2; echo "42 CLOSED" >"$WORK/pr-answer" ) &
+watch; rc=$?
+wait "$first"; first_rc=$?
+ps_check "a newer turn's watch replaces the older one" $([ "$first_rc" = 0 ]; echo $?)
+ps_check "a pull request closed unmerged wakes the session too" $([ "$rc" = 2 ] && grep -q 'closed without merging while the session waited' "$WORK/watch-err"; echo $?)
+printf 'feat/newsletter-signup 0 OPEN 42\n' >"$ps_cache"
+echo 'PR_WATCH_HOURS=""' >>"$PS/.claude/hooks/config.sh"
+: >"$WORK/watch-calls"
+watch; rc=$?
+ps_check "an empty PR_WATCH_HOURS turns the watch off" $([ "$rc" = 0 ] && [ ! -s "$WORK/watch-calls" ]; echo $?)
+echo 'PR_STATE=""' >>"$PS/.claude/hooks/config.sh"
+out="$(ps SessionStart "42 MERGED")"
+ps_check "an empty PR_STATE turns it off" $([ -z "$out" ]; echo $?)
 
 echo "==================================="
 echo "Results: $PASS passed, $FAIL failed"

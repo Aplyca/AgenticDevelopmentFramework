@@ -1,6 +1,6 @@
 ---
 name: spec-workflow
-description: Reference for how work flows in this project — the fast, careful, and full lanes, project setup, feature development (spec folder → plan → approval gate → docs first → TDD per task → draft PR), change requests, answer-only tasks, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
+description: Reference for how work flows here — the fast, careful, and full lanes, project setup, feature development, change requests, answers, bugs and hotfixes, process changes, and parallel work. Use to decide which workflow applies or to see how the phases fit together.
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/spec-workflow/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -15,7 +15,7 @@ follows risk and uncertainty, not size (`specs/README.md` § Lanes):
 
 | Lane | When | Workflow |
 |---|---|---|
-| **Fast** | A precise request (or a bug with a clear cause), about 3 files or fewer, no escalation trigger | Workflow 2a |
+| **Fast** | A precise request (or a bug with a clear cause), in one layer, no escalation trigger | Workflow 2a |
 | **Careful** | The same, touching a risk area or a sensitive area | Workflow 2a plus the area's checklist |
 | **Full** | Something to decide, a new feature, or work across layers | Workflow 2 |
 
@@ -23,7 +23,7 @@ The developer can raise the lane at any time; lowering it never silently drops a
 
 ## Workflow 1: Project setup (once)
 
-`/adf:init-project` (or the framework's `/adopt`): fill `AGENTS.md`, the constitution, the customizable
+`/adf:init-project` (or `/adf:adopt`, which runs it end to end): fill `AGENTS.md`, the constitution, the customizable
 rules, the hook configuration, and the initial docs — `docs/ARCHITECTURE.md`,
 `docs/security/SECURITY.md`, `docs/infrastructure/OVERVIEW.md`, `docs/GLOSSARY.md`, and reference
 pages for the most complex subsystems. Agents read these before every design review and
@@ -37,16 +37,18 @@ implementation; invest in them early.
 3. **Test first, then edit** — write or update the test that asserts the new behavior and watch it
    fail (for a bug, the regression test); then edit until it passes. Quiet output; the full gate once, before delivery.
 4. **Careful lane** — apply the area's checklist (migration, authorization, personal data, shared
-   code, contract, infrastructure), run `@adf:security-reviewer` for authorization, data, or payments,
-   and get the developer's yes on the risky part.
+   code, contract, infrastructure), run `@adf:security-reviewer` for authorization, personal data, or payments,
+   and name the risky part in the pull request for the developer's test; the push needs no yes
+   (`/adf:open-pr`).
 5. **Commit** (`/adf:commit`) — with a light `CR N` entry in `spec.md` when the change alters recorded
    behavior (a fix that restores documented behavior needs none).
-6. **Stop and move up a lane** when the diff grows past the stated files, a test outside the area
-   fails, or no test can prove the change.
+6. **Move up a lane** when the diff grows past the stated files, a test outside the area fails, or
+   no test can prove the change, and say so. Into careful, carry on with its checklist; into full,
+   stop: the spec and the approval gate come first.
 7. **Local check** — when the change alters something a person can see or use, run it on the local
    environment and walk the changed flow yourself.
-8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`); the human review and
-   QC are the gate.
+8. **Deliver** — once it works locally, a draft pull request stating the lane (`/adf:open-pr`, which runs `/adf:review` first, in every lane), marked ready once your
+   own tests pass; the human review and QC are the gate.
 
 ## Workflow 2: Feature or behavior change (full lane)
 
@@ -61,7 +63,7 @@ implementation; invest in them early.
 | 7 | Reconcile + verify | `/adf:implement`, `/adf:review` | Docs updated; `tasks.md` § Gate results | `docs:` |
 | 8 | Local check | The agent, on the local environment | The flow walked | — |
 | 9 | Deliver (once the local check passes) | `/adf:open-pr` | Draft pull request | — |
-| 10 | Close the loop (when asked) | `/adf:stakeholder-update` | Requester-facing message | — |
+| 10 | Keep the requester informed — started after triage, in review once the pull request is ready, delivered | `/adf:stakeholder-update` | The task's status, moved on your own; the review and delivered updates, posted on their own; the started message, on the developer's yes | — |
 
 **Why one approval gate, after the plan.** Approving the spec alone is cheap but checks the wrong
 thing: an agent's convincing analysis is most often wrong about *which files and layers the change
@@ -80,7 +82,7 @@ and every assumption together — before the first commit, when correcting them 
 front, the plan lists end-to-end tests that encode the ACs; they're written and committed red
 (`test:`) right after the docs, and the task loop turns them green.
 
-## Workflow 3: Change request on delivered work
+## Workflow 3: Change request — on delivered work, or feedback on an open pull request
 
 A precise adjustment the requester already decided takes Workflow 2a with a **light** `CR N` entry
 committed with the change. When the request leaves something to decide, it's a **full** change
@@ -94,11 +96,22 @@ request:
    results, review, the local check, and the draft pull request it approves — on a fresh branch (`<type>/<slug>-<change>`),
    with a new pull request, in the **same folder**. If the delta can't be recovered — ask.
 
+**Feedback on an open pull request** — the requester's second look before the merge — takes this
+workflow too, on **the same branch and the same draft** (`specs/README.md` § Before the merge): a
+light `CR N` committed with the change and no status cycle, or a full one whose status goes
+`implemented` → `in-review` → `approved` (a dated `approvals:` line naming a role and the CR) →
+`implemented`, with a `# CR N` part in `plan.md` and `tasks.md` (tasks `T<N>00`, superseded entries
+struck through), red then green per task, and its own gate results. `/adf:open-pr` keeps the pull
+request's description current with each push. After the merge, the next one needs a new branch.
+
+Either way, the folder records decisions by role, never by name, and links the tracker instead of
+quoting it (`specs/README.md` § Records name roles).
+
 ## Workflow 4: Answer-only task (investigation, impact analysis, estimate)
 
 No spec folder, no environment unless a step must run something. Read the code, docs, and history;
-deliver the answer where the task asks for it. A recommended change gets its spec once someone
-approves the change.
+deliver the answer where the task asks for it. A recommended change gets a lane once someone
+approves it.
 
 ## Workflow 5: Bugs and hotfixes
 
@@ -120,9 +133,26 @@ describes the old way in the same pull request. Constitution amendments get thei
 When several agent sessions run at once, each works in its own git worktree on its own branch —
 never two sessions in one checkout. With the parallel-agents module installed, each task has its own
 session, worktree, branch, and pull request: a session triages its task, and `/adf:dispatch` moves it
-to the task's worktree beside the main checkout, which takes no edits. Another task goes to another
-session. Passing work in progress to a
-teammate, another machine, or a fresh session is `/adf:handoff`: pointers to the record, never a copy.
+to the task's worktree under `.claude/worktrees/`; the main checkout takes no edits. Another task goes to another
+session. A task's own phases never move to another session: after the approval gate, the
+conversation is compacted in place (`/adf:write-plan` step 12). Passing work in progress to a
+teammate or another machine or tool is `/adf:handoff`: pointers to the record, never a copy.
+A feature split across spec folders shares one written contract, in both specs (`specs/README.md` §
+Granularity); the brief `/adf:dispatch` writes for each part carries it.
+
+## Found along the way
+
+A bug or an improvement the agent notices while working — in this task or far from it — is reported
+with `file:line` and routed, never dropped and never fixed in passing (`specs/README.md` § Found along
+the way): a bug in this branch's own work is fixed in the task; an improvement to it is the
+developer's call, a change request if taken or, with the `github` or `gitlab` module, an issue;
+anything else is a follow-up in the pull request's `## Follow-ups`, which `/adf:wrap-up` files as
+an issue with either module, or offers to start in a session (at once, too, with the
+parallel-agents module); what can't wait goes to the developer first. A problem in the framework
+itself isn't this project's task: offer `/adf:framework-feedback`, and never run it unasked.
+
+**When the base branch moves under an open draft,** run `/adf:open-pr sync`: only for a reason, a merge commit and never a rebase, then re-run only what
+the merged files affect, push, and refresh the description (`/adf:open-pr refresh`).
 
 ## Effort beyond the lane
 

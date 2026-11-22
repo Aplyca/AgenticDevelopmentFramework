@@ -1,13 +1,30 @@
 ---
 paths:
-  - "e2e/**"
-  - "tests/**"
-  - "test/**"
+  - "**/e2e/**"
+  - "**/tests/**"
+  - "**/test/**"
+  - "**/__tests__/**"
   - "**/*.test.*"
   - "**/*.spec.*"
 ---
 
 # Testing Rules
+
+## Strategy — the fewest, fastest tests that prove the spec
+- **Test what a requirement needs, once.** Every test maps to an acceptance criterion, an edge case,
+  or a testable requirement (§ When to write tests). A check one test already makes isn't made
+  again, in another test or another layer.
+- **At the cheapest layer that proves it:** a rule or a calculation in a unit test; parts that must
+  agree — modules, a database, a service's contract — in an integration test; the whole stack, used
+  the way a person uses it, in an end-to-end test (§ End-to-end). A higher layer shows a lower
+  layer's behavior once, in its flow, and doesn't test it again.
+- **Repeat a check across variants** — screens, locales, roles, inputs — only where each variant runs
+  code of its own. Otherwise one representative shows it.
+- **A slow test pays its setup once:** an end-to-end test checks what its requirement needs from
+  the screen or response it loaded, instead of loading it again for each check.
+- **Run only what the question needs,** chosen by tag, path, or name: a tier is how much matters,
+  a feature suite is which part, a test's name is one behavior (§ Tiers and feature suites,
+  § Verification budget).
 
 ## Environment isolation
 - Tests that start a server of their own run it on a **dedicated port**, separate from the development server. Define the test port in your test configuration and never change it to match the dev port.
@@ -16,7 +33,7 @@ paths:
 
 ## External service mocking
 - Mock every external API response. Use your framework's mocking approach (route interception, MSW, test doubles, dependency injection, etc.).
-- Never rely on real external services (databases, APIs, email servers) during tests.
+- Never rely on a third party's real service (an API, an email server) during tests. The checkout's own stack, its database included, is not external.
 - Mock responses must return realistic data structures matching actual API contracts.
 - **Mock only at the system boundary** — external services, the clock, randomness. Your own modules run for real: a test that mocks internal collaborators breaks on every refactor and proves only the wiring.
 
@@ -26,21 +43,9 @@ paths:
 - **Assert the behavior the spec names**, not that the code ran: "the 11th signup in a minute is rejected", not "no error was thrown".
 
 ## File organization
-- One test file per feature area or module.
+- One test file per module or flow, small enough to run in seconds; a feature suite is their folder (§ Tiers and feature suites).
 - Name test files after the feature they verify.
-- Group related tests with describe/context blocks.
 - Use descriptive test names that read as behavior: `'submitting with empty email shows validation error'`.
-
-## Test structure
-- **Arrange → Act → Assert** in every test.
-- Set up shared mocks in `beforeEach` / setup blocks.
-- Clean up state in `afterEach` / teardown blocks when needed.
-
-## What to test
-- User flows matching spec acceptance criteria.
-- Edge cases listed in specs.
-- View transitions, form submissions, navigation.
-- Error states and empty states.
 
 ## What NOT to test
 - Implementation details or internal state.
@@ -61,12 +66,21 @@ The unit is a task from `tasks.md` in the full lane, and the change itself in th
 lanes.
 - **Write the test, run it, and watch it fail** before writing the code that satisfies it. A test that never failed proves nothing: it may be testing something that already exists, or nothing at all.
 - **Make it pass with the smallest change**, run it to green, then commit the test and the code together.
-- If a new test passes before any code exists, stop: either the behavior already exists (say so) or the test is wrong.
+- If a new test passes before any code exists, find out why. A wrong test is fixed until it fails for the right reason. Behavior that already exists is said in one line, and the test pins it: break the behavior on purpose, watch the test fail, restore it. A type or compile error is never the red — like an import error, it shows the code doesn't build, not that the behavior is missing.
 - Never weaken an assertion to get to green. Fix the implementation — or, if the test itself is wrong, say why in the commit body.
 
 ## Verification budget
-- **While iterating, run the targeted tests** — the test you're writing and its neighbors — not the
-  whole suite on every step. **Run the full gate once**, before delivery.
+A run costs time as well as tokens, so each one waits for its point:
+
+| When | What runs |
+|---|---|
+| Each red and each green | The tests you wrote or changed, by name — or their file, when it runs in seconds; at the green, static checks (lint, typecheck) on the changed files |
+| A phase of `tasks.md` ends; in the fast and careful lanes, the change is green | Once: the feature suite the change touches, a sanity check of that area — plus `@smoke` when the phase changed shared code, configuration, or the stack |
+| Before the local check | `@critical` |
+| Before delivery | The full gate, once: every layer this environment can run, lint, typecheck |
+
+- **A slow run never follows every task** — a whole file of end-to-end tests, a feature suite, a
+  tier. When it fails at a phase's end, the task commits, one per task, show where it broke.
 - **Keep output short:** a quiet or dot reporter, failures only, `| tail -n 40`. Everything a command
   prints stays in the conversation and is paid for on every later call.
 - **End-to-end and browser checks** run when the change touches that flow or the developer asks —
@@ -74,17 +88,37 @@ lanes.
   (`AGENTS.md` § Delivery rules). The end-to-end suite runs only locally. The human QC on the preview
   remains the real check of how it looks and feels.
 
+## Tiers and feature suites
+Tests run in steps and by feature, so a run is as small as the question.
+- **Preferred engines,** when the stack allows: **Vitest** for unit and integration tests, **Playwright** for end-to-end tests. Another stack keeps its own runner and follows the tiers and feature suites below.
+- **Three cumulative tiers:** `@smoke` ⊂ `@critical` ⊂ regression.
+  - `@smoke` — one fast test per critical behavior or flow: the app starts, and its critical flows work. Runs after a phase that changed shared code, configuration, or the stack, and within every wider tier.
+  - `@critical` — the critical paths: the acceptance criteria of delivered features, and every smoke test. Runs before the local check, and on every pull request in CI.
+  - **Regression** — every test, tagged or not. Runs before delivering a full-lane change, on a schedule, and before a release.
+- **A test carries only its lowest tier,** in its title or its `describe`'s (`'rejects an empty email @smoke'`); the commands add the tiers below it. An untagged test is regression only. A bug fix's regression test starts untagged, and is promoted to `@critical` when the bug could cost users the flow.
+- **A feature suite is a feature, and its folder:** `tests/billing/` or `e2e/tests/billing/`, never a folder named for the layer. A path runs one feature suite at any tier. An end-to-end flow across feature suites carries `@suite:<name>` for each.
+- **Pick the feature suite from the project's list** (`docs/TEST-SUITES.md`); add a new one there first.
+- **A sanity check is not a tier:** it's the feature suite a change touches, run once when a phase ends. Which run comes when is § Verification budget; name each tier you ran in `tasks.md` § Gate results.
+- **Never retag or skip a failing test** to a later tier to get green.
+
+With the `unit` module (Vitest for unit and integration tests, `/unit`), a tier is `npm run test:smoke` or `npm run test:critical`, regression is `npm test`, and a feature suite is a path (`npm test -- tests/billing`). This project's commands, and anything it does differently, with why:
+<!-- e.g. `make test tier=critical suite=billing`, `make e2e tier=smoke` -->
+
 ## End-to-end
 End-to-end tests drive the app the way a person does — a browser, the pages, the server behind them.
 They're the slowest tests, so there are few of them.
-- **Only where the whole stack is needed:** a flow across pages, the browser and the server together, a critical flow. A rule — a validation, a calculation — is tested at the unit level, and shown once in the flow. `plan.md` § Test strategy names which criteria get end-to-end tests.
+- **Only where the whole stack is needed:** a flow across pages, the browser and the server together, a critical flow. A rule — a validation, a calculation — is tested at a lower layer, and shown once in the flow (§ Strategy). `plan.md` § Test strategy names which criteria get end-to-end tests.
 - **Red first, for the right reason:** the missing behavior — a heading not shown, a URL not reached — not a server that doesn't answer or a mistyped locator.
+  - **Before the code:** write or update the test, and watch it fail on this checkout's stack.
+  - **Or against the base branch's code,** when the code came first: run the test in a second worktree of the base branch, on that worktree's own stack, and watch it fail. Then run it green here.
+  - **Never on a preview** to get the red, or the green: a preview can share real backends, and the tests write data.
+  - Record both runs in `tasks.md` § Gate results.
 - **Find elements the way a person does:** by role and accessible name, label, or text; a test ID only where nothing a person perceives tells elements apart. Never a CSS class, an XPath, or the DOM's structure.
 - **Wait with assertions** on what a person sees, never with sleeps or fixed timeouts.
 - **Each test owns its data,** with values no other test uses, and runs alone, in any order, in parallel. It never relies on what another test or a person left.
 - **No real third party:** stub what the browser calls; point the server at a stub or a sandbox. A flow that can't be kept local goes to the human check.
 - **Flaky is broken:** fix it, or mark it skipped with the reason and a tracker link — never rerun it until it passes, and never add a retry or a sleep to hide it.
-- **Smoke tests:** one per critical flow, along its happy path, tagged so they run on their own — before the local check and in CI.
+- **Smoke tests:** one per critical flow, along its happy path, tagged so they run on their own — after a change to shared code, configuration, or the stack, and inside the critical tier, which runs before the local check and in CI.
 - **A failure is diagnosed from what it kept** — the error, the page's state, the screenshot, the trace — not by rerunning.
 
 With the `e2e` module, the suite follows its specification (`/e2e`); `e2e/README.md` lists the critical flows and their smoke tests. This project's commands, and anything it does differently from the specification, with why:

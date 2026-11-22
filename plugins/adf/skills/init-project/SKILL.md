@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: First-time setup of this project's AI-assisted development configuration — fill AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs from verified facts about the repository, and add nested AGENTS.md files where modules differ. Use once, after the skeleton has been copied in (the framework's /adopt does this end to end) — and again in a project adopted before its code existed, once the first code lands.
+description: First-time setup of a project's AI configuration — AGENTS.md, the constitution, the customizable rules, the hook configuration, and the core docs, filled from verified facts, with nested AGENTS.md files where modules differ. Use once after the skeleton is copied in (/adf:adopt does it end to end), and again once the first code lands in a project adopted before it.
 argument-hint: "[project name]"
 ---
 
@@ -19,6 +19,11 @@ honest TODO beats a plausible invention.
 again: replace each planned entry with the verified fact (or a `TODO(team)` where the plan changed),
 fill the commands from the real manifests, and point the globs and the rules' `paths:` at the real
 structure.
+
+**Already initialized?** When `AGENTS.md` has no `[bracketed placeholders]` and no `planned`
+entries left, the project is set up: don't run a setup pass. Make only the edit the request asks
+for — a nested `AGENTS.md` for one module, say, or one rule's `paths:` — and leave the constitution
+alone: it changes only through its amendment process (`/adf:record-decision`). Say so in a line.
 
 ## Steps
 
@@ -47,7 +52,7 @@ structure.
 
 6. **Configure the hooks** — `.claude/hooks/config.sh`: protected branches, sensitive areas
    (`CAREFUL_GLOBS`, matching `AGENTS.md` § Sensitive areas — ask the team), append-only paths
-   (migrations), generated files, the env template, and `LOCAL_URL` — the URL the developer opens
+   (migrations), generated files, the env template, and `LOCAL_URL` — the URL the agent walks
    for the local check, from the dev server and port in Quick reference (its comment covers
    worktrees). Extend `permissions` in `.claude/settings.json` with this repository's routine
    read-only commands.

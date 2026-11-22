@@ -46,15 +46,17 @@ the main checkout and changes nothing.
 
 Right after the triage, `/dispatch`:
 
-1. **Creates the worktree** — `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a sibling
-   directory named after the branch (`../feat-newsletter-signup-topics`), a fresh branch from the base
+1. **Creates the worktree** — `ops/agent/worktree-new.sh <type>/<slug> --no-start`: a folder in
+   the main checkout's `.claude/worktrees/`, named after the branch
+   (`.claude/worktrees/feat-newsletter-signup-topics`), a fresh branch from the base
    branch, and the env file seeded from the main checkout's, with the worktree's own Compose project
    name. No port is reserved: the newsletter site's stack runs in Docker, which picks each worktree's
    ports when it starts. `--no-start` because the task's own steps decide what runs.
-2. **Moves the session into it** — `change_directory` to the path the script printed, in the desktop
-   app (a hook approves a worktree of this repository, so no prompt asks), or `EnterWorktree` in a
-   terminal. `pwd` confirms it. If the move is refused, the session gives you the worktree's path and
-   stops: open a session on that folder.
+2. **Moves the session into it** — `EnterWorktree` with the path the script printed, in the desktop
+   app and in a terminal alike (a hook approves a worktree of this repository, so no prompt asks).
+   `pwd` confirms it. The desktop app keeps showing the session in the folder it started in, and the
+   pull request reaches its PR bar when the session opens it. If the move is refused, the session
+   gives you the worktree's path and stops: open a session on that folder.
 
 The session carries on there from where its triage left off. Until the move it edits nothing — the
 protect-hub hook stops any edit in the main checkout. Hooks don't run again after the move, so the
@@ -79,9 +81,11 @@ The session follows whichever scenario its triage picked. What's specific to wor
   for the app. On the newsletter site `START_CMD` is `make up`: Compose takes the worktree's project
   name from the env file and Docker picks free ports, so the stack comes up beside every other
   worktree's, and `make urls` says where. A project that runs nothing locally sets neither.
-- **Host dependencies before the first commit**, even with no environment —
+- **What the git hooks need, before the first commit**, even with no environment —
   `ops/agent/worktree-new.sh <branch> --setup-only`: git hooks run on the host, and an agent
-  never bypasses a failing hook.
+  never bypasses a failing hook. On the newsletter site `SETUP_CMD` is empty: its tests and checks
+  are make tasks, which run in the tools container in Docker mode, so nothing is installed on the
+  host.
 - **Configuration comes from the main checkout.** Keep secrets right in the main checkout's env file;
   every new worktree inherits them, and `--refresh-env` brings an existing worktree up to date. Don't
   hand-edit what the script generates — the project name, and a port when the scripts reserve one: it
@@ -109,11 +113,11 @@ worktree's env file.
 
 A chip's session in the desktop app starts in one of Claude Code's own worktrees, and so can a
 session started with its worktree option, or `claude --worktree`. Each sits at the app's worktree
-location — `.claude/worktrees/`, inside the main checkout, by default — on a generated branch,
-without the start command. That's where the session starts, not where it works: after triage,
-`/dispatch` creates the task's worktree beside the main checkout and moves there
+location — `.claude/worktrees/`, by default — on a generated branch, without the start command.
+That's where the session starts, not where it works: after triage, `/dispatch` creates the task's
+worktree, named after its branch, and moves there
 ([0040](../decisions/0040-workers-move-out-of-the-apps-worktree.md)). It never renames the generated
-branch, and the app removes that worktree when the session is archived. A worktree from before, already
+branch, and the app reuses that folder for a later session once this one is archived. A worktree from before, already
 on a task branch, stays a worker ([0015](../decisions/0015-tool-worktrees-are-workers.md)), and the
 session-context hook names what it lacks. `worktree-ls.sh` flags the ones left on a generated branch. `.claude/worktrees/` stays in
 `.gitignore` and `.claudeignore`.
@@ -138,26 +142,26 @@ Monday morning, three tasks arrive for the newsletter site:
 
 | Task | Its session |
 |---|---|
-| "Show the chosen topics after signing up" — feedback on delivered work | `feat/newsletter-signup` — reuses the feature's slug |
+| "Show the chosen topics after signing up" — feedback on delivered work | `feat/newsletter-signup-success-topics` — the feature's slug, plus the change |
 | "Every signup fails since 09:12" | `fix/newsletter-rate-limit-outage` |
 | "What would it take to switch email providers?" | An answer that only reads: stays in the main checkout |
 
-The team keeps the main checkout in a folder of its own, `/home/dev/code/newsletter-site/main`, as
-`worktree.conf` suggests, and sets `PROJECT_PREFIX="newsletter-site"` there — otherwise every project
-name would start with `main-`. You start three sessions in the main checkout, one per task. The first
+The main checkout is `/home/dev/code/newsletter-site`. You start three sessions in it, one per task. The first
 triages a change request, and `/dispatch` creates its worktree:
 
 ```
-$ ops/agent/worktree-new.sh feat/newsletter-signup --no-start
+$ ops/agent/worktree-new.sh feat/newsletter-signup-success-topics --no-start
 ==> Fetching origin
-==> Creating 'feat/newsletter-signup' from origin/main
+==> Creating 'feat/newsletter-signup-success-topics' from origin/main
 ==> Writing .env from the main checkout's
 
-==> Worktree ready: /home/dev/code/newsletter-site/feat-newsletter-signup
-    Branch:  feat/newsletter-signup
-    Project: newsletter-site-feat-newsletter-signup
+==> Worktree ready: /home/dev/code/newsletter-site/.claude/worktrees/feat-newsletter-signup-success-topics
+    Branch:  feat/newsletter-signup-success-topics
+    Project: newsletter-site-feat-newsletter-signup-success-topics
 
---no-start: the environment is left down. The worker starts it when a step needs it.
+--no-start: the environment is left down. When a step needs it, run from the worktree:
+  ops/agent/worktree-new.sh feat/newsletter-signup-success-topics                # set up and start
+  ops/agent/worktree-new.sh feat/newsletter-signup-success-topics --setup-only   # only what the git hooks and tests need
 ```
 
 The two changes' sessions move into their worktrees; the estimate's stays. An hour later:
@@ -165,12 +169,12 @@ The two changes' sessions move into their worktrees; the estimate's stays. An ho
 ```
 $ ops/agent/worktree-ls.sh --info
 
-  BRANCH                               CHANGES  PATH
-  main                                 0        /home/dev/code/newsletter-site/main (main checkout)
-  feat/newsletter-signup               0        /home/dev/code/newsletter-site/feat-newsletter-signup
-  fix/newsletter-rate-limit-outage     0        /home/dev/code/newsletter-site/fix-newsletter-rate-limit-outage
+  BRANCH                                 CHANGES  PATH
+  main                                   0        /home/dev/code/newsletter-site (main checkout)
+  feat/newsletter-signup-success-topics  0        /home/dev/code/newsletter-site/.claude/worktrees/feat-newsletter-signup-success-topics
+  fix/newsletter-rate-limit-outage       0        /home/dev/code/newsletter-site/.claude/worktrees/fix-newsletter-rate-limit-outage
 
-  feat/newsletter-signup
+  feat/newsletter-signup-success-topics
       ○ web        not running  (APP_PORT)
       ○ redis      not running  (REDIS_PORT)
   fix/newsletter-rate-limit-outage
@@ -191,8 +195,8 @@ The main checkout gets none — it stays clean. Each task's session produces the
 scenario, on its own branch:
 
 ```
-$ git -C /home/dev/code/newsletter-site/main status --short
-$ git -C /home/dev/code/newsletter-site/fix-newsletter-rate-limit-outage log --oneline main..
+$ git -C /home/dev/code/newsletter-site status --short
+$ git -C /home/dev/code/newsletter-site/.claude/worktrees/fix-newsletter-rate-limit-outage log --oneline main..
 4c2e8f1 fix: accept signups when the rate-limit store is unavailable
 ```
 
@@ -201,9 +205,9 @@ $ git -C /home/dev/code/newsletter-site/fix-newsletter-rate-limit-outage log --o
 The rule still holds — one worktree per session — and you do by hand what the scripts automate:
 
 ```
-git worktree add --no-track -b feat/newsletter-signup ../feat-newsletter-signup origin/main
-cp .env ../feat-newsletter-signup/.env      # Docker picks the copy's ports; its folder names the project
-cd ../feat-newsletter-signup && claude
+git worktree add --no-track -b feat/newsletter-signup .claude/worktrees/feat-newsletter-signup origin/main
+cp .env .claude/worktrees/feat-newsletter-signup/.env   # Docker picks the copy's ports; its folder names the project
+cd .claude/worktrees/feat-newsletter-signup && claude
 ```
 
 - Never start a second session in a checkout another session is using — the main checkout included.
@@ -211,7 +215,7 @@ cd ../feat-newsletter-signup && claude
 - The `session-context` hook still tells each session whether it's in the main checkout or a linked
   worktree.
 - The shared-services hazard is the same: a task that would change a shared service gets its own copy.
-- Afterwards: `git worktree remove ../feat-newsletter-signup`, and delete the branch once it's merged.
+- Afterwards: `git worktree remove .claude/worktrees/feat-newsletter-signup`, and delete the branch once it's merged.
 
 ## Common mistakes
 
@@ -220,7 +224,7 @@ cd ../feat-newsletter-signup && claude
 | A one-line fix in the main checkout | A stray edit collides with every other session, and the base branch takes no commits | Even one line moves to its worktree first |
 | Creating the worktree before triage | A branch named before the task is understood, or a worktree an answer never needed | Triage first; `/dispatch` after |
 | Creating the worktree without `--no-start` out of habit | An environment built for a task that may not need one | The session starts it when a step needs it |
-| Working in Claude Code's own worktree | A worktree inside the main checkout, on a generated branch, with no start command | `/dispatch` moves the session to the task's worktree beside the main checkout |
+| Working in Claude Code's own worktree | A generated branch, no start command, and a folder the app reuses for a later session | `/dispatch` moves the session to the task's worktree, named after its branch |
 | Taking the next task in the same session | Two tasks' context, branch, and pull request mixed | `/dispatch` offers it a new session |
 | Raw `git worktree add` with the module installed | Ports and env files drift from what the scripts track | The scripts |
 | Changing a service every worktree shares | Every other worktree's environment changes under it | That worktree gets its own copy (§ Shared services) |

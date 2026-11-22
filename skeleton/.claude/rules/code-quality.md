@@ -34,7 +34,7 @@ Name domain concepts with the terms in `docs/GLOSSARY.md`, never with a word it 
 
 ## Principles
 
-- **No premature abstraction** — three similar lines are better than a wrapper used once. Extract only when genuinely shared.
+- **No premature abstraction** — three similar lines are better than a wrapper used once. Extract only when genuinely shared; splitting a file that outgrew its size (`architecture.md`) is structure, not abstraction.
 - **No speculative features** — build what the spec says, nothing more. No feature flags, config options, or extension points "for the future."
 - **Delete, don't comment** — when removing code, delete it. Git preserves history. No commented-out blocks or `// removed` markers.
 - **Types are load-bearing** — don't silence the type system to clear an error (`any`, `@ts-ignore`, `# type: ignore`, non-null assertions forced through). Fix the underlying type.
@@ -82,4 +82,4 @@ where the project's conventions call for it.
 
 - Concise commit messages in imperative mood: the subject says what changed; the body says *why* when the diff doesn't (`.claude/rules/git-workflow.md`).
 - One logical change per commit. Don't mix unrelated changes.
-- Don't commit generated files, build artifacts, or dependency directories.
+- Don't commit build artifacts or dependency directories.

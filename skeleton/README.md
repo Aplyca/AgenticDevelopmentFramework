@@ -52,7 +52,7 @@ agents working under the same rules as people:
 
 1. **Triage** — read the task in full; decide what it needs before setting anything up, including
    its **lane**: fast (a precise change — its test first, seen failing, then the edit, commit),
-   careful (the same in a risk area, plus its checklist and a confirmation), or full (something to
+   careful (the same in a risk area, plus its checklist, with the risky part named in the pull request), or full (something to
    decide — the steps below).
    In Claude Code it also names the model: Sonnet for work with a clear spec and a way to check it,
    Opus for the full lane's spec and plan (`.claude/rules/claude-code.md` § Lanes).
@@ -60,8 +60,10 @@ agents working under the same rules as people:
    plan and its change surface (`plan.md`), and commit-sized tasks (`tasks.md`).
 3. **Approval gate** — scope, change surface, and assumptions are signed off before implementation.
 4. **Docs first, then one task at a time** — each task's test fails first, then passes; one commit per task.
-5. **Review, your local check, and a draft pull request** (every lane) — you test the change by hand
-   on the local environment before the pull request opens; it's QC'd on the preview, then marked ready.
+5. **Review, the local check, and a pull request** (every lane) — agents implement and review;
+   people decide. The agent walks and reviews the change on the local environment before its draft
+   opens, tests and reviews it on the preview, marks it ready once that and CI pass, and requests the
+   reviewers `CONTRIBUTING.md` names; they review it on the preview, approve it, and merge.
 
 How it works in detail: [AGENTS.md](AGENTS.md), [specs/README.md](specs/README.md),
 [docs/SPEC-MODEL.md](docs/SPEC-MODEL.md), and [CONTRIBUTING.md](CONTRIBUTING.md).

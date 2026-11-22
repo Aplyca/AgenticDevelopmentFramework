@@ -8,12 +8,16 @@ Code session, or with these commands:
 
 ```bash
 cd your-project
-claude plugin marketplace add aplyca/AgenticDevelopmentFramework --scope project
-claude plugin marketplace update aplyca
+tag=$(git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1 | cut -d/ -f3)
+claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project
 claude plugin install adf@aplyca --scope project
 # then, in the repository:  /adf:adopt
 ```
 
+The marketplace is added at the newest release, the one the project will pin: Claude Code keeps one
+copy of it per machine, at the ref it was first added with, and a copy added without one follows the
+default branch, unreleased changes included, after the pin too
+([decision 0091](decisions/0091-the-install-adds-the-marketplace-at-the-newest-release.md)).
 `--scope project` turns the plugin on in this project only, through its committed
 `.claude/settings.json` — teammates get it once they trust the folder, and every worktree of a hub project gets it. Without
 `--scope`, Claude Code installs it for every project on your machine. To try it alone first, use
@@ -48,7 +52,7 @@ cp -Rn /path/to/AgenticDevelopmentFramework/skeleton/. .
 python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py .
 ```
 
-The skeleton is the layer the project owns and edits. The machinery — 21 skills, 8 agents, 4
+The skeleton is the layer the project owns and edits. The machinery — 22 skills, 8 agents, 4
 workflows, the hook scripts, and the reference docs in `docs/` (the `parallel-agents` guide only with that module) — has its source in the framework's
 plugins, and `build-committed.py` writes the committed install's copies of it
 ([decision 0028](decisions/0028-plugins-are-the-source.md)). Neither step overwrites a file you already
@@ -83,12 +87,15 @@ Add to `.gitignore`: `.env` files, `.claude/settings.local.json`, `CLAUDE.local.
 | Module | When |
 |---|---|
 | `github` | The repository is on GitHub — PR template with traceability and constitution gates, issue forms, secret scan, base-branch policy |
+| `gitlab` | The repository is on GitLab — the same as `github`: a merge request template, issue templates, and the secret scan and base-branch policy as a CI include; merge its blocks into an existing `.gitlab-ci.yml` ([decision 0075](decisions/0075-the-gitlab-module.md)) |
 | `git-hooks` | You want a `pre-push` gate for every git client, not only Claude Code |
 | `clickup` | Requirements arrive as ClickUp tasks — ClickUp's MCP server and a read-only allowlist (install with `modules/clickup/install.sh .`, which merges) |
-| `parallel-agents` | Several agent sessions work at once, each needing a running app |
-| `docker` | The local stack runs on Docker Compose — `/dev-env` writes it from its templates or moves it to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks — [decision 0032](decisions/0032-local-environment-layout.md)), runs it natively or per worktree, and diagnoses or resets it; destructive docker commands ask first (run `modules/docker/install.sh .`, which merges its permission rules; it copies no files) |
+| `parallel-agents` | Several agent sessions work at once — each with its own port and running app only where the project configures them |
+| `docker` | The local stack runs on Docker Compose — `/dev-env` writes it from its templates or moves it to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks — [decision 0032](decisions/0032-local-environment-layout.md)), runs it natively or per worktree, and diagnoses or resets it; docker and make commands run without a prompt (run `modules/docker/install.sh .`, which merges its permission rules; it copies no files) |
 | `e2e` | People use the app in a browser — `/e2e` sets up Playwright end-to-end tests in `e2e/` to its specification, run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per critical flow ([decision 0037](decisions/0037-end-to-end-tests.md)) (run `modules/e2e/install.sh .`, which merges its permission rules; it copies no files) |
-| `time-tracking` | The team measures the time its tasks take — `/track-time` logs each day of a task in the tracker, in whole units: the AI-assisted time or a senior developer's estimate without AI, as the developer picks ([decision 0043](decisions/0043-track-time-in-the-tracker.md)); fill in `docs/TIME-TRACKING.md` |
+| `unit` | A JavaScript or TypeScript app — `/unit` sets up Vitest unit and integration tests to its specification, run by tier (`@smoke`, `@critical`, regression) and by feature suite, the tiers `e2e` uses too ([decision 0058](decisions/0058-test-tiers-and-feature-suites-with-vitest.md)) (run `modules/unit/install.sh .`, which merges its permission rules; it copies no files) |
+| `time-tracking` | The team measures the time its tasks take — `/track-time` logs each outcome of a task in the tracker, in whole units: the AI-assisted time, a senior developer's estimate without AI, or a midpoint, as the developer picks ([decisions 0043](decisions/0043-track-time-in-the-tracker.md), [0092](decisions/0092-time-entries-are-outcomes-with-a-midpoint.md)); fill in `docs/TIME-TRACKING.md` |
+| `end-user-docs` | Stakeholders read the system's guides in a doc tool — `/end-user-docs` writes a feature's user, editorial, or administrative guide page there, never in the repository: drafted before implementation where end users can't see it, published once the feature ships, each page on the developer's yes ([decision 0048](decisions/0048-end-user-docs-in-the-doc-tool.md)); fill in `docs/END-USER-DOCS.md`, and connect the doc tool (the `clickup` module for ClickUp Docs) |
 
 ```bash
 cp -Rn /path/to/AgenticDevelopmentFramework/modules/<name>/files/. .
@@ -96,7 +103,7 @@ python3 /path/to/AgenticDevelopmentFramework/scripts/build-committed.py . --modu
 ```
 
 The second line adds the module's skills, which its plugin carries — `parallel-agents`' `/dispatch`,
-`docker`'s `/dev-env`, `e2e`'s `/e2e`, `time-tracking`'s `/track-time` — and does nothing for a module without any. Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
+`docker`'s `/dev-env`, `e2e`'s `/e2e`, `unit`'s `/unit`, `time-tracking`'s `/track-time`, `end-user-docs`' `/end-user-docs` — and does nothing for a module without any. Each module's `MODULE.md` says what to customize. See [`modules/README.md`](../modules/README.md).
 
 **Connecting a tracker or a service** — Jira, Linear, GitLab, Supabase, Vercel, Contentful — is a job
 for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca": true` in
@@ -104,11 +111,12 @@ for the `adf-connect` plugin, not a module. Turn it on with `"adf-connect@aplyca
 with safe defaults (read-only, never production, no credentials committed) and pre-approves only the
 tools that read ([decision 0023](decisions/0023-plugins-by-concern.md)).
 
-**Seeing the local environment's URL** — turn on `adf-dev` (`"adf-dev@aplyca": true` in
-`enabledPlugins`, in either install) and set `LOCAL_URL` in `.claude/hooks/config.sh` (step 5). Its mod
-draws a line above the prompt with the URL and whether it answers; with the parallel-agents module,
-each worktree shows its own port from `READY_URL`. It needs Claude Code v2.1.287 or later in a
-terminal, or the desktop app from v2.1.286 ([decision 0026](decisions/0026-display-only-mods.md)).
+Turning a plugin on is a one-line change to the committed settings: make it on a work branch
+(`/adf:dispatch` with the parallel-agents module) and merge it by pull request.
+`claude plugin install <plugin>@aplyca --scope project` isn't the way to turn one on: for a plugin
+the settings don't enable, it writes the `enabledPlugins` entry itself and can rewrite the whole
+`.claude/settings.json` in the checkout where you ran it. Run it only once the settings already
+enable the plugin.
 
 ## 3. Fill in AGENTS.md — the file every tool reads
 
@@ -139,10 +147,10 @@ on conflict, so the two must agree — especially about branches and merge targe
 - **`.claude/hooks/config.sh`** — `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (e.g. migrations), `GENERATED_GLOBS` (add generated types), `CAREFUL_GLOBS` (the sensitive areas you
   list in `AGENTS.md` — any change there takes at least the careful lane), `ENV_TEMPLATE` if not
-  auto-detected, `LOCAL_URL` (the URL the agent walks in the local check, and the developer tests on).
+  auto-detected, `LOCAL_URL` (the URL the agent walks in the local check).
 - **`.claude/settings.json`** — extend `permissions.allow` with your routine read-only commands. Keep
-  the `ask` rules (pushes and pull-request actions need a human) and the `deny` rules (`.env` reads).
-  On GitLab, add the `glab` equivalents of the `gh` rules.
+  the `ask` rules (merging and reviewing a pull request, releases, tag pushes, and API writes need a human) and the `deny` rules (`.env` reads).
+  The `glab` rules sit beside the `gh` ones, so a GitLab project needs nothing added.
 - **`.claude/rules/`** — update the `<!-- CUSTOMIZE -->` sections and the `paths:` frontmatter of
   `architecture`, `ui-ux`, `deployment`, `performance`, `observability`; delete rules that can't apply.
   `code-quality`, `testing`, `security`, and `git-workflow` are universal.
@@ -201,11 +209,11 @@ Open the pull request as a draft; merge after review like any other change.
 ## Packaged install (Claude Code only)
 
 [Decision 0016](decisions/0016-packaged-install.md). The framework's machinery doesn't enter the
-repository: 21 skills, 8 agents, 4 workflows, the hook scripts, the framework's reference docs
+repository: 22 skills, 8 agents, 4 workflows, the hook scripts, the framework's reference docs
 ([decision 0019](decisions/0019-reference-docs-in-the-plugin.md)), and the `parallel-agents`
-module's `/dispatch` ([decision 0020](decisions/0020-every-task-through-dispatch.md)), and the `time-tracking` module's `/track-time` come from the
+module's `/dispatch` ([decision 0020](decisions/0020-every-task-through-dispatch.md)), the `time-tracking` module's `/track-time`, and the `end-user-docs` module's `/end-user-docs` come from the
 `adf` plugin, pinned to a release tag. A development module's skills come the same way from
-`adf-dev` — `docker`'s `/dev-env`, `e2e`'s `/e2e` ([decision 0023](decisions/0023-plugins-by-concern.md)). The repository commits its own
+`adf-dev` — `docker`'s `/dev-env`, `e2e`'s `/e2e`, `unit`'s `/unit` ([decision 0023](decisions/0023-plugins-by-concern.md)). The repository commits its own
 layer as above, and every module's other files.
 Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini users would get
 `AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.
@@ -244,9 +252,10 @@ v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it bri
    rule: `"adf-dev@aplyca": true` in `enabledPlugins` and
    `Read(~/.claude/plugins/cache/aplyca/adf-dev/**)` in `permissions.allow`.
 
-   `"autoUpdate": true` lets the pin move every teammate: once a change to `"ref"` merges, Claude
-   Code updates the plugins installed from `aplyca` in each session, a few minutes after its first
-   message, and says `Run /reload-plugins to apply`. It never goes past the pin.
+   `"autoUpdate": true` lets Claude Code refresh the marketplace and its installed plugins in the
+   background after a session starts. It refreshes at the ref the machine registered the
+   marketplace with, so a pin that later moves reaches each machine through the commands
+   `/adf:upgrade` gives ([UPGRADING.md § On each machine](./UPGRADING.md#on-each-machine-after-the-merge)).
 
    The hooks read `.claude/hooks/config.sh` from the project, so step 5's settings apply unchanged.
    The read rule lets the plugin's skills and agents open its reference docs: Claude Code asks before
@@ -280,7 +289,9 @@ where the marketplace folder is the `installLocation` of `aplyca` in
 `claude plugin marketplace list --json`. And in a new session, `/adf:triage` is offered — and, with
 the parallel-agents module, `adf-worktree-ls` lists the main checkout.
 
-Each teammate gets the plugin, and the read rule, once they trust the folder. A machine nobody opens a
+Each teammate gets the plugin, and the read rule, once they trust the folder — unless their copy of
+the `aplyca` marketplace is older than the project's release; the README's
+[joining note](../README.md#install-in-a-project) has the commands for that. A machine nobody opens a
 session on — CI — installs it first, from the repository's folder; a headless run (`claude -p`) never
 trusts the folder, so pass the read rule with `--allowedTools` if it uses the plugin's skills:
 
@@ -311,9 +322,13 @@ claude plugin install adf-dev@aplyca --scope project
 
 ## Updating
 
-Update the plugins from the adopted repository's folder, restart Claude Code, then run `/upgrade`
-there — it plans the update from the baseline stamp, keeps your customizations, and prepares a draft
-pull request. Update every plugin the project turns on, not only `adf`: each one updates on its own.
+Run `/adf:upgrade` in the adopted repository — it plans the update from the baseline stamp, keeps
+your customizations, and prepares a draft pull request. A project pinned to a release needs nothing
+first: the pinned plugin fetches the new release and runs that release's own upgrade script, and the
+marketplace never goes past the pin until the upgrade's pull request moves it
+([UPGRADING.md § The scripted upgrade](./UPGRADING.md#the-scripted-upgrade)). Only a project that isn't
+pinned updates the plugins first, from its folder — every plugin it turns on, not only `adf` — and
+restarts Claude Code:
 
 ```bash
 claude plugin marketplace update aplyca
@@ -322,11 +337,13 @@ claude plugin update adf-dev@aplyca      # when the project turns it on
 claude plugin update adf-connect@aplyca  # when the project turns it on
 ```
 
-After the upgrade merges, the marketplace's `"autoUpdate": true` updates each teammate's installed
-plugins in their next session. A plugin the upgrade turned on may not be on their machine yet —
+After the upgrade merges, each teammate's machine still has the marketplace at its old ref:
+Claude Code registers it once per machine, and neither `claude plugin update` nor `"autoUpdate": true`
+follows a pin that moved. A plugin the upgrade turned on may not be on their machine yet either —
 `/plugin` lists it under Errors as enabled but not installed. `/adf:upgrade`'s report gives the
-commands that do both at once — `claude plugin install <plugin>@aplyca --scope project` for a plugin
-it turned on, `claude plugin update` for the rest — then `/reload-plugins`.
+commands for each machine: add the marketplace at the new pin, install or update each plugin,
+restore the settings file they rewrite, and check the versions, then `/reload-plugins`
+([UPGRADING.md § On each machine](./UPGRADING.md#on-each-machine-after-the-merge)).
 
 By hand, or to cherry-pick one change: [UPGRADING.md](./UPGRADING.md). Read each release's
 **Upgrade impact** in the [CHANGELOG](../CHANGELOG.md) first.

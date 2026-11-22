@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Review the working tree and create one clean, well-prefixed commit — an approved spec folder, a docs-first doc, one TDD task (its test and code together), or a standalone change — staging files by name and never bypassing hooks. Commits locally only; pushing is a separate, explicitly requested action. Use when work is ready to commit.
+description: Create one clean, well-prefixed commit — an approved spec folder, a docs-first doc, one TDD task, or a fast- or careful-lane change. Local only: /adf:open-pr pushes. Use when work is ready to commit.
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/commit/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -26,7 +26,7 @@ approved spec folder, a docs-first doc, or one task from `tasks.md` (its test an
    | Contract-first acceptance tests, or characterization tests | `test:` | Acceptance tests fail for the right reason (red — pending implementation); characterization tests pass and were each seen failing once against a deliberately broken copy |
    | Doc reconciliation, backfill, ADR/PDR, gate results | `docs:` | Claims match what was built |
    | Tooling, dependencies, CI | `chore:` | Nothing to decide, no behavior change |
-   | A fast- or careful-lane change | `feat:` / `fix:` / `chore:` | A test proves it (a bug's regression test failed first); the diff stays within the files stated at triage — or the lane moved up; on delivered work, the light `CR N` entry is in this commit; careful lane: the area's checklist is done and the developer confirmed the risky part |
+   | A fast- or careful-lane change | `feat:` / `fix:` / `chore:` | A test proves it (a bug's regression test failed first); the diff stays within the files stated at triage — or the lane moved up; on delivered work, the light `CR N` entry is in this commit; careful lane: the area's checklist is done, and the risky part is noted for the pull request's Lane line |
 
    ```
    spec: approve newsletter-signup scope and plan
@@ -70,12 +70,12 @@ Pushing is **not** part of committing. It happens in `/adf:open-pr`, once the ch
 | "The hook is slow / flaky — `--no-verify` just this once" | Hooks catch real mistakes, and the git guard blocks it anyway. Fix the cause. |
 | "I'll amend the previous commit to keep history tidy" | Amending rewrites history and can destroy work. New commit, unless asked. |
 | "I'll leave the debug log in and remove it later" | Debug code doesn't belong in commits. Remove it now. |
-| "Committed — I'll push too, it's the next step" | Push is outward. It waits for the review and your own local check. |
+| "Committed — I'll push too, it's the next step" | The push is `/adf:open-pr`'s, after your own local check — or, with nothing to run, the full gate — and `/adf:review`, in every lane. |
 
 ## Red flags (stop and reassess)
 
 - `.env`, credentials, or keys among the staged files.
-- More than ~10 files for one task — the task may really be two.
+- More than ~5 files for one task — the task may really be two.
 - A task commit without its test, or a test that was never seen failing.
 - Untracked files that weren't part of the task.
 - You're on a protected branch.
@@ -94,4 +94,4 @@ Pushing is **not** part of committing. It happens in `/adf:open-pr`, once the ch
 - One logical step per commit; one task per commit in spec-driven work.
 - The subject says what, the body says why; the diff shows how.
 - Never commit secrets; never bypass hooks.
-- Committing is local. Pushing is a separate decision.
+- Committing is local; `/adf:open-pr` pushes, once your own local check passes.

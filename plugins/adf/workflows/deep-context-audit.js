@@ -3,12 +3,13 @@ export const meta = {
   description: 'Audit every agent-instruction and process file against the repository in parallel, then cross-check the files against each other for contradictions',
   whenToUse: 'Monthly, after a process change or a framework upgrade, or before onboarding someone. Read-only. The single-context version is the /adf:context-audit skill.',
   phases: [
-    { title: 'Inventory', detail: 'list instruction, process, hook and CI files' },
-    { title: 'Check', detail: 'one agent per file verifies its claims against the repository' },
-    { title: 'Cross-check', detail: 'find contradictions between files and say which one wins' },
+    { title: 'Inventory', model: 'sonnet', detail: 'list instruction, process, hook and CI files' },
+    { title: 'Check', model: 'sonnet', detail: 'one agent per file verifies its claims against the repository; one sweeps the spec folders for names and tracker quotes' },
+    { title: 'Cross-check', model: 'sonnet', detail: 'find contradictions between files and say which one wins' },
   ],
 }
 
+// Each step's model matches the agent that does the same work (COST-MODEL.md § Dynamic workflows): pinned here, so a run from an Opus session doesn't fan out on Opus.
 const READ_ONLY = 'Do not modify, create, or delete any file, and do not run commands that write, install, deploy, or migrate. Read files and run read-only commands only.'
 
 const INVENTORY_SCHEMA = {
@@ -52,6 +53,27 @@ const FILE_SCHEMA = {
   },
 }
 
+const SPEC_RECORDS_SCHEMA = {
+  type: 'object',
+  required: ['findings'],
+  properties: {
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['file', 'line', 'claim', 'evidence', 'fix'],
+        properties: {
+          file: { type: 'string' },
+          line: { type: 'integer' },
+          claim: { type: 'string' },
+          evidence: { type: 'string' },
+          fix: { type: 'string' },
+        },
+      },
+    },
+  },
+}
+
 const CONTRADICTIONS_SCHEMA = {
   type: 'object',
   required: ['contradictions'],
@@ -79,7 +101,7 @@ phase('Inventory')
 const inventory = await agent(
   `List the agent-instruction and process files in this repository. ${READ_ONLY} ${scopeHint}
 Include when present: AGENTS.md and every nested AGENTS.md, any CLAUDE.md or CLAUDE.local.md (a finding: Claude Code reads it instead of AGENTS.md), any GEMINI.md (a finding: Antigravity loads it beside AGENTS.md), .gemini/settings.json, .cursor/rules/*, .claude/rules/*, project-specific .claude/skills/*/SKILL.md and .claude/agents/*, .claude/settings.json, .claude/hooks/config.sh, docs/CONSTITUTION.md, CONTRIBUTING.md, README.md, specs/README.md, the pull request template, CI workflow files, git hook scripts, and the ADR and PDR index READMEs. Exclude node_modules, build output, and .claude/worktrees.`,
-  { label: 'inventory', phase: 'Inventory', schema: INVENTORY_SCHEMA },
+  { label: 'inventory', phase: 'Inventory', schema: INVENTORY_SCHEMA, model: 'sonnet', effort: 'low' },
 )
 
 const files = inventory ? inventory.files : []
@@ -99,11 +121,23 @@ const checked = await pipeline(files, (file) =>
 - Versions and environment variables match the version files, manifests, and env template.
 - Hygiene: owner/last_updated/scope metadata present and not older than the file's last meaningful change (git log -1 --format=%cs -- ${file}); leftover template placeholders; generic advice; over ~200 lines for always-loaded files; instructions the agent follows by default anyway; copies of what one command or file already shows (script lists, trees, versions); material only some tasks need in an always-loaded file; a "don't" with no statement of what to do instead.
 Also extract every POLICY statement it makes (base branch, protected branches, merge method, release process, review rule, pull request draft/ready state, commit convention, branch naming, when a spec is required, the approval gate, outward actions), with line numbers.`,
-    { label: `check:${file}`, phase: 'Check', schema: FILE_SCHEMA },
+    { label: `check:${file}`, phase: 'Check', schema: FILE_SCHEMA, model: 'sonnet' },
   ),
 )
 
 const results = checked.filter(Boolean)
+
+// Spec folders are records, not instructions: one agent sweeps them for what belongs in the tracker.
+const sweepSpecs = !scopeHint || /specs/.test(args)
+const specRecords = sweepSpecs
+  ? await agent(
+      `Sweep the spec folders (specs/*/spec.md, plan.md, tasks.md) for words that belong in the tracker, not the repository (specs/README.md § Records name roles). ${READ_ONLY} ${scopeHint}
+- A person's name or handle attributing a decision: an approvals: line, a clarification's attribution, a change request's Requested line, an assumption, the gate results. Decisions are attributed to a role (requester, developer, tech lead, legal); an agent such as @adf:spec-analyzer isn't a person.
+- A quote or text copied from the tracker (the description, a comment), or "the requester said…": the tracker: link holds people's words.
+Report each with the file, the line, and the role or restatement to use instead. None found is a valid answer.`,
+      { label: 'check:spec-records', phase: 'Check', schema: SPEC_RECORDS_SCHEMA, model: 'sonnet' },
+    )
+  : null
 const policies = results.flatMap((result) => result.policy.map((statement) => ({ file: result.file, ...statement })))
 
 phase('Cross-check')
@@ -112,10 +146,13 @@ const crossCheck = await agent(
 ${JSON.stringify(policies, null, 1)}
 
 Find every CONTRADICTION: two files that disagree on the same topic. Precedence: docs/CONSTITUTION.md overrides AGENTS.md; a nested AGENTS.md overrides the root for its folder; accepted ADRs and PDRs record decisions the instruction files must reflect. For each contradiction name the winning file, what an agent following that precedence would wrongly do, and the fix (amend which file; a PDR if a rule changes rather than being restated). Read the files to confirm before reporting. ${READ_ONLY}`,
-  { label: 'cross-check', phase: 'Cross-check', schema: CONTRADICTIONS_SCHEMA },
+  { label: 'cross-check', phase: 'Cross-check', schema: CONTRADICTIONS_SCHEMA, model: 'sonnet' },
 )
 
-const findings = results.flatMap((result) => result.findings.map((finding) => ({ file: result.file, ...finding })))
+const findings = [
+  ...results.flatMap((result) => result.findings.map((finding) => ({ file: result.file, ...finding }))),
+  ...(specRecords ? specRecords.findings.map((finding) => ({ category: 'HYGIENE', ...finding })) : []),
+]
 const order = { 'FALSE CLAIM': 0, STALE: 1, UNVERIFIED: 2, HYGIENE: 3 }
 findings.sort((a, b) => order[a.category] - order[b.category] || a.file.localeCompare(b.file))
 const contradictions = crossCheck ? crossCheck.contradictions : []

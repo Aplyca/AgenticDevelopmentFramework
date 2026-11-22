@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: mcp__ccd_directory__change_directory). A session that takes a task creates
-# its worktree beside the main checkout and moves there with the desktop app's change_directory
-# (/adf:dispatch, decision 0042). Claude Code asks the developer to approve that call, after they
-# already gave the session its task (decision 0035). This approves a move into a linked worktree of the
-# session's own repository, and says nothing about any other folder, which still prompts. It clears
-# Claude Code's permission check only: the app still asks before it moves a session into a folder
-# outside every folder the developer trusted, and no hook answers that. Trusting the folder that holds
-# the main checkout and its worktrees, once, ends it. Empty APPROVE_WORKTREE_MOVE turns it off.
+# PreToolUse hook (matcher: EnterWorktree and the desktop app's mcp__ccd_directory__change_directory).
+# A session that takes a task creates its worktree under the main checkout's .claude/worktrees/ and
+# moves there with EnterWorktree, in the desktop app too: the app refuses change_directory for a
+# session in its own worktree (/adf:dispatch, decisions 0042, 0083, and 0085). Claude Code may ask the
+# developer to approve that move, after they already gave the session its task (decision 0035). This
+# approves a move into a linked worktree of the session's own repository, by either tool, and says
+# nothing about any other folder, which still prompts. It clears Claude Code's permission check only:
+# for change_directory the app also asks before it moves a session into a folder outside every folder
+# the developer trusted, and no hook answers that. Empty APPROVE_WORKTREE_MOVE turns it off.
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
@@ -27,6 +28,10 @@ target_dir="$(git -C "$target" rev-parse --path-format=absolute --git-dir)"
 target_common="$(git -C "$target" rev-parse --path-format=absolute --git-common-dir)"
 [ "$target_dir" != "$target_common" ] || exit 0
 session_common="$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || exit 0
-[ "$(cd "$target_common" && pwd -P)" = "$(cd "$session_common" && pwd -P)" ] || exit 0
+# A git older than 2.31 doesn't know --path-format and prints nothing usable: an empty result on
+# either side is no match, never two equal blanks.
+target_real="$(cd "$target_common" 2>/dev/null && pwd -P)" || exit 0
+session_real="$(cd "$session_common" 2>/dev/null && pwd -P)" || exit 0
+[ -n "$target_real" ] && [ "$target_real" = "$session_real" ] || exit 0
 
 printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"The folder is a worktree of this repository, where this session works on its task (approve-worktree-move hook)."}}'

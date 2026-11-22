@@ -3,12 +3,13 @@ export const meta = {
   description: 'Multi-agent review of the current branch against its spec folder; every finding is independently verified before it is reported',
   whenToUse: 'High-stakes or large changes before delivery (auth, payments, personal data, migrations, many layers). Several times the cost of /adf:review. Optional argument: the base branch.',
   phases: [
-    { title: 'Scope', detail: 'diff against the base branch, spec folder, dimensions that apply' },
-    { title: 'Review', detail: 'one reviewer per dimension, in parallel' },
-    { title: 'Verify', detail: 'a skeptic tries to refute each critical and warning finding' },
+    { title: 'Scope', model: 'sonnet', detail: 'diff against the base branch, spec folder, dimensions that apply' },
+    { title: 'Review', model: 'sonnet', detail: 'one reviewer per dimension, in parallel' },
+    { title: 'Verify', model: 'sonnet', detail: 'a skeptic tries to refute each critical and warning finding' },
   ],
 }
 
+// Each step's model matches the agent that does the same work (COST-MODEL.md § Dynamic workflows): pinned here, so a run from an Opus session doesn't fan out on Opus.
 const READ_ONLY = 'Do not modify, create, or delete any file, and do not run commands that write, push, or install. Read files and run read-only git commands only.'
 
 // The checklists the security and UX lenses follow are the reviewer agents'. The adf plugin's copy
@@ -43,7 +44,7 @@ const FINDINGS_SCHEMA = {
         properties: {
           file: { type: 'string' },
           line: { type: 'integer' },
-          severity: { type: 'string', enum: ['critical', 'warning', 'nit'] },
+          severity: { type: 'string', enum: ['critical', 'warning', 'nit', 'outside'] },
           title: { type: 'string' },
           evidence: { type: 'string' },
           fix: { type: 'string' },
@@ -72,19 +73,20 @@ Base ref: ${requestedBase ? `use "${requestedBase}"` : 'use the base branch name
 Run git diff --stat <base>...HEAD and list every changed file. Find the spec folder whose slug matches the branch name (<type>/<slug> ↔ specs/NNN-<slug>/), or return an empty string.
 Set hasUI if the change touches UI components or styles; hasDocs if it touches user-facing docs or the spec lists pre-implementable docs.
 Summarize the change in two sentences.`,
-  { label: 'scope', phase: 'Scope', schema: SCOPE_SCHEMA },
+  { label: 'scope', phase: 'Scope', schema: SCOPE_SCHEMA, model: 'sonnet', effort: 'low' },
 )
 
 if (!scope || scope.files.length === 0) {
   log('No changes found against the base branch — nothing to review.')
-  return { scope, confirmed: [], refuted: [], nits: [] }
+  return { scope, confirmed: [], refuted: [], nits: [], followUps: [] }
 }
 
 const context = `Branch diff: git diff ${scope.base}...HEAD (${scope.files.length} files). ${scope.specFolder ? `Spec folder: ${scope.specFolder} — read spec.md (every filled section, including CR sections), plan.md (the approved change surface) and tasks.md (gate results).` : 'No spec folder matches this branch; review against AGENTS.md and the rules.'} ${READ_ONLY}
-Report only real issues with concrete evidence (file and line). If the dimension has nothing to report, return an empty findings list and say what you checked.`
+Report only real issues with concrete evidence (file and line). If the dimension has nothing to report, return an empty findings list and say what you checked.
+A bug or an improvement you notice in code this change does not touch gets severity "outside": it is a follow-up for its own task (specs/README.md § Found along the way), not part of this verdict.`
 
 const DIMENSIONS = [
-  { key: 'spec-compliance', prompt: `Review for SPEC AND SCOPE COMPLIANCE. Every acceptance criterion and every requirement from each filled spec section is implemented; nothing beyond the spec was built; every changed file is inside plan.md's change surface (or the extension is recorded and re-confirmed in approvals); no principle in docs/CONSTITUTION.md is violated.` },
+  { key: 'spec-compliance', prompt: `Review for SPEC AND SCOPE COMPLIANCE. Every acceptance criterion and every requirement from each filled spec section is implemented; nothing beyond the spec was built; every changed file is inside plan.md's change surface (or the extension is recorded in plan.md, and re-confirmed in approvals where it grew into risk); no principle in docs/CONSTITUTION.md is violated.` },
   { key: 'correctness', prompt: `Review for CORRECTNESS. Logic errors, unhandled edge cases the spec lists, error handling, null and type guards at boundaries, race conditions, and regressions in callers or other consumers of changed shared code.` },
   { key: 'security', prompt: `Review for SECURITY: injection (HTML, SQL, shell, headers, paths), secrets in code or client bundles, validation at boundaries, authorization loosened or bypassed, error details leaked, risky new dependencies. If nothing is security-relevant, say so. ${SECURITY_REVIEWER_CHECKLIST}` },
   { key: 'conventions', prompt: `Review for CONVENTIONS against AGENTS.md and .claude/rules/: naming, typing (no silenced types), existing patterns over new ones, no premature abstraction or speculative code, no unjustified dependencies — and the comments rule in .claude/rules/code-quality.md (flag comments that restate code, repeat signatures, narrate steps, label sections, or record history).` },
@@ -100,13 +102,13 @@ if (scope.hasDocs) {
 const reviewed = await pipeline(
   DIMENSIONS,
   (dimension) =>
-    agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA }).then(
+    agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA, model: 'sonnet' }).then(
       (result) => ({ dimension: dimension.key, checked: result ? result.checked : 'reviewer did not return', findings: result ? result.findings : [] }),
     ),
   (review) =>
     parallel(
       review.findings.map((finding) => () => {
-        if (finding.severity === 'nit') {
+        if (finding.severity === 'nit' || finding.severity === 'outside') {
           return Promise.resolve({ ...finding, dimension: review.dimension, verdict: null })
         }
         return agent(
@@ -114,7 +116,7 @@ const reviewed = await pipeline(
 Finding (${review.dimension}, ${finding.severity}) at ${finding.file}:${finding.line}: ${finding.title}
 Evidence given: ${finding.evidence}
 Read the code and the spec folder${scope.specFolder ? ` (${scope.specFolder})` : ''}. Refute it if the evidence is wrong, the behavior is intended by the spec or plan, or it is handled elsewhere. If it stands, confirm the severity or correct it. Default to refuted=true when you cannot confirm it from the code.`,
-          { label: `verify:${finding.file}:${finding.line}`, phase: 'Verify', schema: VERDICT_SCHEMA },
+          { label: `verify:${finding.file}:${finding.line}`, phase: 'Verify', schema: VERDICT_SCHEMA, model: 'sonnet' },
         ).then((verdict) => ({ ...finding, dimension: review.dimension, verdict }))
       }),
     ).then((findings) => ({ ...review, findings: findings.filter(Boolean) })),
@@ -126,18 +128,20 @@ const seen = new Set()
 const confirmed = []
 const refuted = []
 const nits = []
+const followUps = []
 for (const finding of all) {
   const key = `${finding.file}:${finding.line}:${finding.title.toLowerCase()}`
   if (seen.has(key)) continue
   seen.add(key)
   if (finding.severity === 'nit') nits.push(finding)
+  else if (finding.severity === 'outside') followUps.push(finding)
   else if (finding.verdict && !finding.verdict.refuted) confirmed.push({ ...finding, severity: finding.verdict.severity })
   else refuted.push(finding)
 }
 const rank = { critical: 0, warning: 1, nit: 2 }
 confirmed.sort((a, b) => rank[a.severity] - rank[b.severity] || a.file.localeCompare(b.file) || a.line - b.line)
 
-log(`${confirmed.length} confirmed, ${refuted.length} refuted by verification, ${nits.length} nits (not verified).`)
+log(`${confirmed.length} confirmed, ${refuted.length} refuted by verification, ${nits.length} nits (not verified), ${followUps.length} follow-ups outside the diff.`)
 
 return {
   scope,
@@ -145,4 +149,5 @@ return {
   confirmed,
   refuted: refuted.map((finding) => ({ file: finding.file, line: finding.line, title: finding.title, reason: finding.verdict ? finding.verdict.reason : 'verifier did not return' })),
   nits,
+  followUps,
 }

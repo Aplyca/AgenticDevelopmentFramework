@@ -3,7 +3,7 @@
 # Static evals — structural checks of the framework's skills, agents, rules, workflows, hooks,
 # settings, templates, and links. Zero AI invocation. Runs in seconds. Exit 0 on all-pass.
 #
-# Usage: ./check-skills.sh [--verbose]
+# Usage: ./check-skills.sh
 #
 
 set -uo pipefail
@@ -81,11 +81,11 @@ frontmatter() {
 }
 
 # Skills that carry the full discipline: rationalizations table + verification checklist.
-DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e wrap-up track-time"
+DISCIPLINE_SKILLS="write-spec write-plan write-tests write-docs implement review commit refactor debug spec-drift orchestrate triage open-pr stakeholder-update record-decision context-audit dispatch dev-env e2e unit wrap-up track-time end-user-docs framework-feedback"
 # Skills with side effects outside this machine as soon as they run: user-invoked only.
 OUTWARD_SKILLS=""  # /open-pr runs on its own after the local check (decisions 0022, 0045)
 # Skills that may start from a plain request but post only after showing the draft.
-DRAFT_FIRST_SKILLS="stakeholder-update track-time"
+DRAFT_FIRST_SKILLS="stakeholder-update track-time end-user-docs framework-feedback"
 
 is_discipline_skill() {
     case " $DISCIPLINE_SKILLS " in *" $1 "*) return 0 ;; esac
@@ -298,8 +298,8 @@ for event, entries in settings.get("hooks", {}).items():
                 elif not os.access(script, os.X_OK):
                     problems.append(f"{event}: {match.group(0)} is not executable")
 # Claude Code's matching, as documented: a * matches any text, a trailing " *" also matches the bare
-# command, and an ask rule wins over any allow rule. git and gh are allowed broadly, and what must
-# still prompt is asked by name (decisions 0022, 0033, 0038).
+# command, and an ask rule wins over any allow rule. git, gh, and glab are allowed broadly, and what
+# must still prompt is asked by name (decisions 0022, 0033, 0038, 0074).
 allow_rules = settings.get("permissions", {}).get("allow", [])
 ask_rules = settings.get("permissions", {}).get("ask", [])
 def matches(rules, command):
@@ -308,7 +308,7 @@ def matches(rules, command):
 def verdict(command):
     return "ask" if matches(ask_rules, command) else "allow" if matches(allow_rules, command) else "prompt"
 expected = {
-    # The draft pull request and its upkeep, and local git work, run (0022, 0033, 0038).
+    # The draft pull request, its upkeep and promotion to ready, and local git work, run (0022, 0033, 0038, 0070).
     "git push": "allow", "git push -u origin feat/newsletter-signup": "allow",
     "gh pr create --draft --title x": "allow", "gh pr edit 12 --body-file b.md": "allow",
     "gh pr comment 12 --body x": "allow", "gh pr view 12": "allow", "gh run view 99": "allow",
@@ -316,18 +316,39 @@ expected = {
     "git commit --amend --no-edit": "allow", "git switch -c feat/x": "allow", "git rebase main": "allow",
     "git log --oneline -5": "allow", "git push origin --delete feat/x": "allow",
     # A pull request's state, a reviewer's voice, issues, releases, the repository, secrets, auth.
-    "gh pr ready 12": "ask", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
+    "gh pr ready 12": "allow", "gh pr merge 12": "ask", "gh pr review 12 --approve": "ask",
     "gh issue comment 3 --body x": "allow", "gh issue create --title x": "allow",
     "gh release create v1": "ask", "gh repo delete x": "ask", "gh secret set X": "ask",
     "gh auth token": "ask", "gh api repos/x/y -X DELETE": "ask",
+    # Releases and secrets ask before a write, not a read (0088).
+    "gh release new v1": "ask", "gh release edit v1 --draft=false": "ask",
+    "gh release upload v1 a.zip": "ask", "gh release delete v1": "ask",
+    "gh release delete-asset v1 a.zip": "ask", "gh secret delete X": "ask", "gh secret remove X": "ask",
+    "gh release list": "allow", "gh release view v1": "allow", "gh release download v1": "allow",
+    "gh secret list": "allow",
     # Rare and recoverable: they run (the shorter list the developer chose).
     "gh pr close 12": "allow", "gh workflow run ci.yml": "allow", "gh label create bug": "allow",
     "gh run cancel 99": "allow", "git stash clear": "allow",
-    # Discarding local work and issue writes run (the developer's choice); hooks switched off and
-    # tags leaving the machine ask.
+    # Discarding local work and issue writes run (the developer's choice); tags leaving the machine
+    # ask. git config has no rule: the git guard hook asks before a change and lets a read run (0088).
     "git reset --hard HEAD~1": "allow", "git clean -fd": "allow", "git checkout -- src/a.ts": "allow",
     "git restore src/a.ts": "allow", "git stash drop": "allow", "git branch -D feat/x": "allow",
-    "git config core.hooksPath /dev/null": "ask", "git push origin --tags": "ask",
+    "git config --get core.hooksPath": "allow", "git config core.hooksPath /dev/null": "allow",
+    "git push origin --tags": "ask",
+    # GitLab, the same split (0074): the draft merge request, its upkeep, ready, reviewers, issues, reads.
+    "glab mr create --draft --target-branch main --title x": "allow",
+    "glab mr update 12 --description-file b.md": "allow", "glab mr update 12 --ready": "allow",
+    "glab mr update 12 --reviewer +a": "allow", "glab mr note create 12 --message x": "allow",
+    "glab mr view 12 --output json": "allow", "glab ci status --wait": "allow", "glab mr close 12": "allow",
+    "glab issue note 3 --message x": "allow", "glab issue update 3 --label x": "allow",
+    "glab api user": "allow", "glab api projects/:id/protected_branches": "allow",
+    # Merging, approving, releases, the repository, secrets (CI/CD variables, secure files), auth, API writes.
+    "glab mr merge": "ask", "glab mr merge 12": "ask", "glab mr accept 12": "ask",
+    "glab mr approve": "ask", "glab mr approve 12": "ask", "glab mr revoke 12": "ask",
+    "glab mr unapprove 12": "ask", "glab release create v1": "ask", "glab repo delete x": "ask",
+    "glab variable get X": "ask", "glab var list": "ask", "glab securefile download 1": "ask",
+    "glab auth status": "ask", "glab token create t": "ask", "glab api projects/:id -X PUT": "ask",
+    "glab api projects/:id/notes -f body=x": "ask", "glab api projects/:id/uploads --form file=@a.png": "ask",
 }
 for command, want in expected.items():
     if verdict(command) != want:
@@ -336,7 +357,7 @@ print("\n".join(problems) if problems else "OK")
 PY
 )
     if [ "$report" = "OK" ]; then
-        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git and gh allowed broadly, with what must still prompt asked by name — a pull request's state, reviews, issues, releases, secrets, auth, lost work, hooks switched off"
+        pass "settings.json: valid JSON, alias model, nested hooks pointing at executable scripts, git, gh, and glab allowed broadly, with what must still prompt asked by name — merging, reviews, release and secret writes, auth, API writes, tags — and their reads running"
     else
         fail "settings.json: structural problems" "$(printf '%s' "$report" | tr '\n' ';')"
     fi
@@ -454,8 +475,8 @@ check_workflow_integrity() {
         && pass "/implement: records gate results" || fail "/implement: missing gate results"
     file_contains "$SKILLS_DIR/write-docs/SKILL.md" '[Ss]kip cleanly' \
         && pass "/write-docs: documents the skip-clean condition" || fail "/write-docs: missing skip-clean condition"
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '[Dd]raft' && file_contains "$SKILLS_DIR/open-pr/SKILL.md" '[Nn]ever marks' \
-        && pass "/open-pr: opens drafts and never marks them ready" || fail "/open-pr: missing draft / never-ready rule"
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'gh pr create --draft' && file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Mark it ready once your own tests pass' \
+        && pass "/open-pr: opens a draft and marks it ready once its own tests pass" || fail "/open-pr: missing draft / ready-once-tested rule (0070)"
 }
 
 # ─── Spec templates ────────────────────────────────────────────────────────
@@ -629,15 +650,17 @@ PY
         name=$(basename "$(dirname "$fragment")")
         # A module may pre-approve MCP tools and commands only if they read: a write must always
         # prompt, and so must a command that prints secrets. The one exception is decided: the docker
-        # module allows its tasks and its containers' commands broadly and asks by name before
-        # what deletes data or runs any command it's given (decision 0038) — those asks must be there.
+        # module allows its tasks and its containers' commands broadly (decision 0038) and asks before
+        # none of them (decision 0078). An ask rule there would also win over the hook that decides
+        # make run by the mode (decision 0077).
         problems=$(python3 - "$fragment" "$(dirname "$fragment")/files/.mcp.json" "$name" <<'PY'
 import json, re, sys
 fragment, mcp, module = sys.argv[1], sys.argv[2], sys.argv[3]
 out = []
-decided = {"docker": {"Bash(make *)", "Bash(docker *)"}}
-decided_asks = {"docker": {"Bash(make *reset*)", "Bash(make run *)", "Bash(docker compose down *-v*)", "Bash(docker * prune *)",
-                           "Bash(docker inspect *)", "Bash(docker compose config)", "Bash(docker push *)"}}
+decided = {"docker": {"Bash(make *)", "Bash(docker *)"},
+           # Fixed test scripts and unit's run mode: they read the code and write only reports (0058).
+           "unit": {"Bash(npm run test:smoke)", "Bash(npm run test:smoke *)", "Bash(npm run test:critical)",
+                      "Bash(npm run test:critical *)", "Bash(npx --no-install vitest run *)"}}
 # Only the developer changes the local mode (dev-env's M10): what would change it is denied.
 decided_denies = {"docker": {"Bash(make *DEV_MODE=*)", "Bash(make *SERVICES=*)", "Bash(DEV_MODE=*)", "Bash(SERVICES=*)",
                              "Bash(export DEV_MODE*)", "Bash(export SERVICES*)", "Edit(.env)", "Write(.env)"}}
@@ -646,8 +669,8 @@ try:
     allow = [r for r in permissions.get("allow", []) if r not in decided.get(module, set())]
 except Exception as e:
     print(f"settings-fragment.json is not valid JSON: {e}"); sys.exit()
-for ask in sorted(decided_asks.get(module, set()) - set(permissions.get("ask", []))):
-    out.append(f"allows broadly, so must ask before {ask} (0038)")
+if module == "docker" and (permissions.get("ask") or any(r.startswith("Bash(make run") for r in permissions.get("deny", []))):
+    out.append("asks before no docker or make command (0078), make run included: a prompt for it is the project's own rule (0089)")
 for deny in sorted(decided_denies.get(module, set()) - set(permissions.get("deny", []))):
     out.append(f"must deny {deny}: only the developer changes the local mode (M10)")
 write = re.compile(r"(create|update|delete|remove|add|set|send|post|move|attach|start|stop|edit|comment|assign|resolve|merge|upload)", re.I)
@@ -728,27 +751,154 @@ check_practices() {
     file_contains "$COMMITTED/docs/COST-MODEL.md" '^## Between phases' || missing+=("COST-MODEL.md: between phases")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" 'never a copy' || missing+=("/handoff: pointers, not copies")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'only when nothing is left' || missing+=("/wrap-up: closes up only when the check finds nothing left (0036)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^4\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '^5\. \*\*Ask once' || missing+=("/wrap-up: one yes for the whole close-up (0036)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "unless the developer's own word ended the task" || missing+=("/wrap-up: the developer's own word closes up a merged task with nothing left or to choose (0055)")
+    file_contains "$SKILLS_DIR/open-pr/sync.md" '^# Sync — bring the base branch in' || missing+=("/open-pr: the sync procedure lives in the skill (0055)")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" "fit the session's model and effort to the lane" || missing+=("/triage: fits the session's model and effort to the lane (0055)")
+    for name in context-audit spec-drift; do
+        frontmatter "$SKILLS_DIR/$name/SKILL.md" | grep -q '^context: fork$' || missing+=("/$name: runs in a forked subagent (0055)")
+    done
+    for name in adopt init-project; do
+        ! frontmatter "$REPO_ROOT/plugins/adf/skills/$name/SKILL.md" | grep -q '^disable-model-invocation: true$' || missing+=("/$name: Claude can start it from a plain request")
+    done
+    grep -q 'Use whenever tests come before code' "$REPO_ROOT/plugins/adf/skills/write-tests/SKILL.md" || missing+=("/write-tests: its description keeps its trigger")
+    grep -q 'Already initialized?' "$REPO_ROOT/plugins/adf/skills/init-project/SKILL.md" || missing+=("/init-project: an initialized project gets only the edit asked for")
     file_contains "$SKELETON/.claude/rules/git-workflow.md" '/wrap-up' || missing+=("git-workflow rule: after the merge, /wrap-up (0036)")
+    for name in stakeholder-update end-user-docs write-docs framework-feedback; do
+        file_contains "$SKILLS_DIR/$name/SKILL.md" 'Then run the prose pass|Run the prose pass\*\* on every message' \
+            && file_contains "$SKILLS_DIR/$name/SKILL.md" 'docs/PROSE-PATTERNS\.md' \
+            || missing+=("/$name: runs the prose pass, docs/PROSE-PATTERNS.md, before the draft is shown (0086)")
+    done
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'time tracking tool is the only record' || missing+=("/track-time: the time tracking tool is the only record (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'names `time-tracking`' || missing+=("/track-time: acts only where the stamp names the time-tracking module (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'whole units, rounded up' || missing+=("/track-time: numbers in whole units, rounded up (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'An activity with no\s*$|evidence isn.t in the draft' || missing+=("/track-time: each off-session activity rests on its evidence (0043)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
-    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'names\s*$|the `time-tracking` module, offer `/track-time`' || missing+=("/wrap-up: offers /track-time only with the time-tracking module (0043)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'One entry per outcome' || missing+=("/track-time: one entry per outcome, not per session or day (0092)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'no half units, no decimals, no minutes' || missing+=("/track-time: every time shown or written is a whole unit (0092)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'Set the midpoint' || missing+=("/track-time: a midpoint between the AI-assisted time and the manual estimate, set by activity (0092)")
+    file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '\| Activity \| Evidence it looks for \| Midpoint \|' || missing+=("time-tracking module: § Activities says where each activity's midpoint sits (0092)")
+    file_contains "$SKILLS_DIR/wrap-up/modules.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'the follow-ups start before it' || missing+=("/wrap-up: starts the follow-ups before the worktree is removed (0061)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Never start another' || missing+=("/write-plan: the phases after the gate stay in this session (0062)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" '/compact Keep the lane, the approved spec folder' || missing+=("/write-plan: compact, then switch, after the gate (0062)")
+    python3 -c 'import json,sys; sys.exit(json.load(open(sys.argv[1])).get("autoCompactWindow") != 300000)' "$SETTINGS" || missing+=("settings.json: caps the conversation with autoCompactWindow 300000 (0062)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Skip the compaction when it can.t pay back' || missing+=("/write-plan: skips the compaction when it can't pay back (0062)")
+    file_contains "$REPO_ROOT/plugins/adf/docs/COST-MODEL.md" '^\*\*A phase never moves to another session\*\*' || missing+=("COST-MODEL.md: a phase never moves to another session (0062)")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" 'refuses a session.s change to itself' || missing+=("/triage: names the switch where the desktop app refuses it (0062)")
+    for file in "$REPO_ROOT"/plugins/adf/skills/*/SKILL.md "$REPO_ROOT"/plugins/adf/docs/*.md "$SKELETON/AGENTS.md" "$SKELETON/.claude/rules/claude-code.md" "$REPO_ROOT/README.md"; do
+        ! grep -qiE 'fresh `?sonnet`? session|fresh session (on|after|from)' "$file" || missing+=("${file#"$REPO_ROOT"/}: no fresh session for a task's next phase (0062)")
+    done
+    file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'names `end-user-docs`' || missing+=("/end-user-docs: acts only where the stamp names the end-user-docs module (0048)")
+    file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'The doc tool is their only home' || missing+=("/end-user-docs: the doc tool is the end-user docs' only home (0048)")
+    file_contains "$SKILLS_DIR/end-user-docs/SKILL.md" 'Read the live page first' || missing+=("/end-user-docs: reads the live page before replacing it (0048)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'the published end-user page' || missing+=("/stakeholder-update: the delivered update links the published end-user page (0048, 0053)")
+    file_contains "$MODULES_DIR/end-user-docs/files/docs/END-USER-DOCS.md" '^## Page structure' || missing+=("end-user-docs module: docs/END-USER-DOCS.md has the page structure (0048)")
+    file_contains "$TEMPLATES/spec.md" '^### End-user docs' || missing+=("spec template: Documentation › End-user docs (0048)")
+    file_contains "$SKILLS_DIR/wrap-up/modules.md" '`end-user-docs` module, the pull request merged' || missing+=("/wrap-up: offers to publish end-user docs only with the end-user-docs module (0048)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'The review and delivered updates post on their own' || missing+=("/stakeholder-update: outcome updates post on their own; a message that asks the requester for something is a draft (0073)")
+    ! grep -rqE 'gh pr comment|glab mr note' "$SKILLS_DIR/stakeholder-update" || missing+=("/stakeholder-update: posts nothing on the pull request (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '\[Screenshot N: <what it shows>\]' || missing+=("/stakeholder-update: a placeholder where an image the tracker can't inline goes (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/screenshots.md" 'Never upload the images to the task' || missing+=("/stakeholder-update: never attaches images to the task to embed them (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/screenshots.md" 'accept or decline cookies' || missing+=("/stakeholder-update: hides consent banners, never accepts or declines cookies (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'Read it back' || missing+=("/stakeholder-update: reads a posted comment back (0053)")
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Stable preview address:\*\*' || missing+=("TRACKER-INTEGRATION.md: the stable preview address (0053)")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" 'can be read more than one way' || missing+=("/triage: a stakeholder reply open to more than one reading is confirmed first (0053)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Moments' || missing+=("/stakeholder-update: three moments — started, in review, delivered (0053)")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" 'gets its started update' || missing+=("/triage: a tracker task's turn ends with the started update's draft (0053)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '\*\*The review update\*\* \(`/(adf:)?stakeholder-update review`\)' || missing+=("/open-pr: posts the review update once the pull request is ready (0053, 0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Status moves' || missing+=("/stakeholder-update: the task's status moves on its own at each moment (0059)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'maps to `delivered`' || missing+=("/wrap-up: the task moves to delivered once live (0059, 0073)")
+    file_contains "$AGENTS_MD" 'its status moves on your own' && ! file_contains "$AGENTS_MD" 'before changing task state' || missing+=("AGENTS.md: the status moves on its own; messages still need a yes (0059)")
+    for name in triage open-pr wrap-up; do
+        file_contains "$SKILLS_DIR/$name/SKILL.md" 'no skill to load' && file_contains "$SKILLS_DIR/$name/SKILL.md" 'forward only; the status alone' \
+            || missing+=("/$name: moves the task's status in a step of its own, by the rules (0063)")
+        ! file_contains "$SKILLS_DIR/$name/SKILL.md" 'stakeholder-update status' || missing+=("/$name: loads /stakeholder-update only to draft a message, never for a status move (0063)")
+    done
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Status at each moment:\*\*' || missing+=("TRACKER-INTEGRATION.md: the task status for each moment (0053)")
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" "Write only through the project's tracker tool" || missing+=("TRACKER-INTEGRATION.md: writes go through the project's server, never a host connector (0064)")
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '\*\*Editing posted text:\*\*' || missing+=("TRACKER-INTEGRATION.md: what an edit to posted text keeps (0064)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'say which account will post' || missing+=("/stakeholder-update: says which account will post before the first post (0064)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'the developer edits the comment in the tracker' || missing+=("/stakeholder-update: a correction an edit would damage is the developer's (0064)")
+    file_contains "$AGENTS_MD" 'never the merged branch' || missing+=("AGENTS.md: a change request after the merge gets a fresh branch (0065)")
+    file_contains "$AGENTS_MD" 'or another protected branch' || missing+=("AGENTS.md: no commit on any protected branch (0065)")
+    file_contains "$AGENTS_MD" 'Never do silently' || missing+=("AGENTS.md: no irreversible change or skipped step done silently (0065)")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" '^## When reality departs from the plan' || missing+=("/implement: what a plan that meets reality needs, which AGENTS.md points to (0065)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'A diff a teammate could merge without new docs has none' || missing+=("/write-plan: no docs for a diff that needs none (0065)")
     file_contains "$AGENTS_MD" 'Local check before the pull request' || missing+=("AGENTS.md: the agent's local check before the pull request (0022, 0045)")
     file_contains "$AGENTS_MD" 'never push to check it on the preview instead' || missing+=("AGENTS.md: a change that can't run locally isn't pushed (0045)")
     file_contains "$AGENTS_MD" 'Then on the preview' || missing+=("AGENTS.md: the agent checks locally first, then on the preview (0039)")
     file_contains "$AGENTS_MD" 'Tell the developer where to test it' || missing+=("AGENTS.md: the developer gets the local and preview URLs (0045)")
     file_contains "$AGENTS_MD" '^- Preview: ' || missing+=("AGENTS.md: Quick reference says where previews deploy (0039)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Check the preview' || missing+=("/open-pr: checks the preview once it deploys, read-only (0039)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Don't ask or remind the developer" || missing+=("/open-pr: the report doesn't nudge the developer to review, ready, or merge (0039)")
-    file_contains "$SKELETON/.claude/rules/git-workflow.md" '^- \*\*Reviewing, readying, and merging are the developer' || missing+=("git-workflow rule: no nudges to review, ready, or merge (0039)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Close with their next step, once" || missing+=("/open-pr: the report names the developer's next step once, with no reminders (0039, 0047)")
+    file_contains "$AGENTS_MD" "Don't remind them or offer to merge it" || missing+=("AGENTS.md: no nudges to review or merge (0039, 0070, 0072)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'follows `AGENTS.md` § Delivery rules' || missing+=("git-workflow rule: the work branch's pull request follows AGENTS.md § Delivery rules, not a copy of them (0065)")
+    file_contains "$AGENTS_MD" 'Mark it ready yourself' || missing+=("AGENTS.md: the agent marks its pull request ready once its tests pass (0070)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'only a shared service has' || missing+=("/open-pr: a criterion only a shared service has is walked on the preview (0070)")
+    file_contains "$AGENTS_MD" "End every turn with what's next" || missing+=("AGENTS.md: every turn ends with who acts next (0047)")
+    file_contains "$AGENTS_MD" "the team's standing go-ahead: never ask for them" || missing+=("AGENTS.md: commits, the push, and the draft need no yes, in every lane (0049)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" "Careful lane: no stop before the push" || missing+=("/open-pr: the careful lane pushes without a yes (0049)")
+    file_contains "$SKELETON/.claude/rules/claude-code.md" "desktop app's next-step box" || missing+=("claude-code rule: no asking for commits, the push, or the draft (0049)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "answer delivered" || missing+=("/wrap-up: an answer delivered closes up (0047)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "origin's stays" || missing+=("/wrap-up: an abandoned task keeps its branch on origin (0047)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "\*\*on hold\*\* isn't ending" || missing+=("/wrap-up: a task on hold isn't closed up (0047)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Close it up as an answer, from here" || missing+=("/wrap-up: a session in the main checkout closes up as an answer (0081)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "switch it, pull it, or delete it, here or on origin" || missing+=("/wrap-up: the main checkout's branch is never switched, pulled, or deleted (0081)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" "Only what this session made counts" || missing+=("/wrap-up: in the shared main checkout, only what this session made counts as left over (0081)")
+    grep -q 'pr-state.sh' "$SETTINGS" || missing+=("settings.json: pr-state hook (0047)")
+    file_contains "$HOOKS_DIR/config.sh" '^PR_STATE=' || missing+=("config.sh: PR_STATE (0047)")
+    grep -q '"asyncRewake": true' "$SETTINGS" || missing+=("settings.json: the pr-state hook's idle watch at Stop (0087)")
+    file_contains "$HOOKS_DIR/config.sh" '^PR_WATCH_HOURS=' || missing+=("config.sh: PR_WATCH_HOURS (0087)")
+    grep -q 'session-title.sh' "$SETTINGS" || missing+=("settings.json: session-title hook")
+    file_contains "$HOOKS_DIR/config.sh" '^SESSION_TITLE=' || missing+=("config.sh: SESSION_TITLE")
+    file_contains "$SKILLS_DIR/triage/SKILL.md" 'session-title hook does' || missing+=("/triage: in a terminal, the session-title hook names the session")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'the \*\*local check\*\*.*the gate for the push' || missing+=("/open-pr: stops without the agent's own local check (0022, 0045)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Report — once, after the preview walk' || missing+=("/open-pr: one report, after the preview walk (0045)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Leave the environment running' || missing+=("/open-pr: leaves the local environment running for the developer (0045)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Once it.s ready, stop the local environment you started' || missing+=("/open-pr: stops the local environment once the pull request is ready (0071)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Never `make down`, `make reset`' || missing+=("/open-pr: the stop never downs, kills, or removes (0071)")
+    file_contains "$AGENTS_MD" 'Agents implement and review; humans decide' || missing+=("AGENTS.md: agents implement and review; humans decide (0072)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Run `/(adf:)?review`, in every lane' || missing+=("/open-pr: /adf:review before the push, in every lane (0072)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Then request the reviewers' || missing+=("/open-pr: requests the project's reviewers once ready (0072)")
+    file_contains "$SKILLS_DIR/open-pr/preview.md" 'Then \*\*review\*\* what a person sees' || missing+=("/open-pr: reviews what a person sees on the preview (0072)")
+    file_contains "$SKELETON/CONTRIBUTING.md" '^- \*\*Reviewers:\*\*' || missing+=("CONTRIBUTING.md: the Reviewers line (0072)")
+    file_contains "$HOOKS_DIR/guard-git.sh" 'glab mr create' || missing+=("guard-git.sh: a GitLab merge request opens only as a draft (0072)")
+    # The ticket is for stakeholders, the pull request for the developer (0073).
+    file_contains "$AGENTS_MD" 'The ticket is for business communication with stakeholders' || missing+=("AGENTS.md: the ticket for stakeholders, the pull request for the developer (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" '^## Live' || missing+=("/stakeholder-update: delivered means live (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'Between review and delivered, the task is the developer' || missing+=("/stakeholder-update: the statuses between review and delivered are the developer's (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/SKILL.md" 'second message' || missing+=("/stakeholder-update: questions for the requester are a second message, a draft (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Delivered means live' || missing+=("/stakeholder-update status.md: delivered only once live (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'never create one' || missing+=("/stakeholder-update status.md: a missing label is a question (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/review.md" 'For reference, the change is in this' || missing+=("/stakeholder-update review.md: the pull request, for reference (0073)")
+    file_contains "$SKILLS_DIR/stakeholder-update/guide.md" 'Usage guide \(draft\)' || missing+=("/stakeholder-update guide.md: the usage guide's draft on the task (0073)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Write the review instructions first' || missing+=("/open-pr: the review instructions go in the description before ready (0073)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## How to review and test' || missing+=("/open-pr: the description's How to review and test section (0073)")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '`Refs #N`, never `Closes`' || missing+=("/open-pr: a requester's issue is referenced, never closed by the merge (0073)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'Merged, not live yet' || missing+=("/wrap-up: merged but not live posts nothing and moves nothing (0073)")
+    for name in triage open-pr wrap-up; do
+        file_contains "$SKILLS_DIR/$name/SKILL.md" 'assigned to them or not' || missing+=("/$name: the session's own task needs no assignment check (0073)")
+    done
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'The usage guide is written now' || missing+=("/write-spec: the usage guide is written with the spec (0073)")
+    file_contains "$SKELETON/specs/_templates/spec.md" '^### Usage guide' || missing+=("spec template: Documentation › Usage guide (0073)")
+    file_contains "$REPO_ROOT/plugins/adf/docs/SPEC-MODEL.md" 'Documentation › Usage guide' || missing+=("SPEC-MODEL.md: Documentation › Usage guide (0073)")
+    file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## How to review and test' || missing+=("pull request template: How to review and test (0073)")
+    for setting in 'Updates post' 'Live when' 'Usage guide'; do
+        file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" "^- \*\*$setting:\*\*" || missing+=("TRACKER-INTEGRATION.md: the $setting setting (0073)")
+    done
+    file_contains "$SKELETON/docs/TRACKER-INTEGRATION.md" '^## Issues as the tracker' || missing+=("TRACKER-INTEGRATION.md: issues as the tracker (0073)")
+    # Every tracker action has its gh and glab command (0073).
+    for action in 'gh issue view' 'glab issue view' 'gh issue edit' 'glab issue update' 'gh issue comment' 'glab issue note' 'gh issue close' 'glab issue close' 'Refs #<n>' 'Related to #<n>'; do
+        grep -qF -- "$action" "$SKELETON/docs/TRACKER-INTEGRATION.md" 2>/dev/null || missing+=("TRACKER-INTEGRATION.md § Issues as the tracker: no \`$action\` (0073)")
+    done
+    # Every host action /open-pr takes has its glab command (0072).
+    for action in 'glab mr create --draft' 'glab ci status --wait' 'glab mr view <n> --output json' \
+                  'glab mr update <n> --description-file' 'glab mr update <n> --ready' \
+                  'glab mr update <n> --reviewer +' '/request_review'; do
+        grep -qF -- "$action" "$SKILLS_DIR/open-pr/gitlab.md" 2>/dev/null || missing+=("/open-pr gitlab.md: no \`$action\` (0072)")
+    done
     file_contains "$HOOKS_DIR/guard-git.sh" 'check_pr_create' || missing+=("guard-git.sh: a pull request opens only as a draft (0022)")
-    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'Open after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
+    file_contains "$SKELETON/.claude/rules/git-workflow.md" 'opened after the local check' || missing+=("git-workflow rule: a pull request opens after the local check (0022)")
     file_contains "$HOOKS_DIR/session-context.sh" ', so it lacks ' || missing+=("session-context.sh: Claude Code's own worktrees are workers, told what they lack (0015)")
     [ -f "$MODULES_DIR/parallel-agents/files/.worktreeinclude" ] || missing+=("parallel-agents: .worktreeinclude")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'worktree-new.sh <type>/<slug> --no-start' || missing+=("/dispatch: creates the task's worktree with the scripts (0021)")
@@ -757,7 +907,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'An answer that only reads' || missing+=("/dispatch: an answer that only reads needs no worktree (0042)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" '^### A new session' || missing+=("/dispatch: another task gets a new session (0042)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" "never rename its generated branch" || missing+=("/dispatch: a session in the app's worktree moves to the task's, never renaming its branch (0040)")
-    file_contains "$HOOKS_DIR/session-context.sh" 'started in Claude Code.s own worktree' || missing+=("session-context.sh: a session in the app's worktree is sent to the task's worktree beside the main checkout (0040)")
+    file_contains "$HOOKS_DIR/session-context.sh" 'started in Claude Code.s own worktree' || missing+=("session-context.sh: a session in the app's worktree is sent to the task's worktree under .claude/worktrees/ (0040, 0083)")
     file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'task.s title' || missing+=("/dispatch: the chip's title is the task's, without the branch (0021, amended)")
     file_contains "$HOOKS_DIR/session-context.sh" 'Triage the task first' || missing+=("session-context.sh: in the main checkout, triage first, then the task's worktree (0042)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'the task gets its own worktree first' || missing+=("/triage: with the module, a change moves to its own worktree right after the triage (0042)")
@@ -772,6 +922,16 @@ check_practices() {
     file_contains "$HOOKS_DIR/config.sh" '^HUB_READONLY=' || missing+=("config.sh: HUB_READONLY")
     grep -q 'approve-worktree-move.sh' "$SETTINGS" || missing+=("settings.json: approve-worktree-move hook (0035)")
     file_contains "$HOOKS_DIR/config.sh" '^APPROVE_WORKTREE_MOVE=' || missing+=("config.sh: APPROVE_WORKTREE_MOVE (0035)")
+    # The app refuses change_directory from its own worktree: the session moves with EnterWorktree (0085).
+    grep -q '"matcher": "EnterWorktree|mcp__ccd_directory__change_directory"' "$SETTINGS" || missing+=("settings.json: approve-worktree-move answers EnterWorktree too (0085)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'Move this session into it\*\* with `EnterWorktree`' || missing+=("/dispatch: the session moves with EnterWorktree, in the desktop app too (0085)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" '`ExitWorktree` with `keep`' || missing+=("/wrap-up: a session that entered its worktree leaves it before the main checkout's git steps (0085)")
+    # A status-only tracker update needs no prompt (0076): the hook, its settings, and the rule that keeps the call status-only.
+    grep -q 'approve-status-move.sh' "$SETTINGS" || missing+=("settings.json: approve-status-move hook (0076)")
+    file_contains "$HOOKS_DIR/config.sh" '^APPROVE_STATUS_MOVE=""' || missing+=("config.sh: APPROVE_STATUS_MOVE, empty in the skeleton (0076)")
+    file_contains "$HOOKS_DIR/config.sh" '^STATUS_MOVE_FIELDS=' || missing+=("config.sh: STATUS_MOVE_FIELDS (0076)")
+    file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Send the status alone' || missing+=("/stakeholder-update status.md: the status goes alone, in a call of its own (0076)")
+    file_contains "$MODULES_DIR/clickup/MODULE.md" 'APPROVE_STATUS_MOVE="mcp__clickup__clickup_update_task"' || missing+=("clickup module: names its status tool for APPROVE_STATUS_MOVE (0076)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
@@ -796,6 +956,9 @@ check_practices() {
     file_contains_literal "$connect" 'Read-only and not production, unless the developer decides otherwise.' || missing+=("/connect: read-only, not production")
     file_contains_literal "$connect" 'Never allow `mcp__<server>__*`.' || missing+=("/connect: never pre-approves a whole server")
     file_contains_literal "$connect" 'Asking for a write — drafted, not sent — prompts' || missing+=("/connect: verifies that writes prompt")
+    file_contains_literal "$connect" '**Deny reads that return secrets.**' || missing+=("/connect: denies reads that return secrets (0057)")
+    file_contains_literal "$connect" '## Read-only profiles' || missing+=("/connect: read-only profiles for Vercel and Contentful (0057)")
+    file_contains_literal "$connect" '`mcp__contentful-<project>__<tool>`' || missing+=("/connect: a Contentful server is named after its project (0068)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
@@ -807,14 +970,28 @@ check_practices() {
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'are an example' || missing+=("/dev-env: the templates are an example of the specification, not the source (0034)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'base directory>/templates/' || missing+=("/dev-env: writes a missing stack from its templates (0032)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" '`make urls`' || missing+=("/dev-env: the ports Docker picked come from make urls (0032)")
-    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs but the ones that delete data or run a command, which ask (C9, 0038)")
-    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: a task that runs a command it's given is for people, and asks (C10, 0038)")
-    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: proposes an ask rule for a project task that deletes data (C9)")
-    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and {"Bash(make *reset*)","Bash(make run *)","Bash(docker inspect *)"} <= set(p["ask"]) else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks by name (C9, C10, 0038)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C9\.\*\*' || missing+=("dev-env's specification: every task runs without a prompt, run included (C9, 0078, 0089)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*C10\.\*\*' || missing+=("dev-env's specification: make run runs in a container in Docker mode (C10, 0077, 0084)")
+    # make run (0077, 0089): the spec's boundary, no hook, the native-mode note, the task in both modes, the migration.
+    file_contains_literal "$SKILLS_DIR/dev-env/SPECIFICATION.md" '**What it doesn'"'"'t bound:**' || missing+=("dev-env's specification: says what the container doesn't protect — the checkout, local data, credentials, the network (C10, 0077)")
+    file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*D5\.\*\*' || missing+=("dev-env's specification: the app's service gets nothing of the host but the checkout (D5, 0077)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'In Docker mode, commands run in the container, never on the host.' || missing+=("/dev-env: in Docker mode, a named task or make run, never the host (C10, 0077)")
+    ! grep -q 'approve-container-run' "$SETTINGS" "$HOOKS_DIR/config.sh" "$REPO_ROOT/plugins/adf/hooks/hooks.json" || missing+=("no hook decides make run: the session's permission mode does (0089)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SPECIFICATION.md" '**In native mode the command runs on the host,**' && file_contains_literal "$MODULES_DIR/docker/MODULE.md" 'add `Bash(make run *)` to' || missing+=("docker module and dev-env's specification: in native mode make run runs on the host without a prompt, and a project adds its own ask rule for one (C10, 0089)")
+    for mode in docker native; do file_contains "$SKILLS_DIR/dev-env/templates/ops/$mode/Makefile" '"\$\$cmd"$' && ! grep -q '\$(cmd)' "$SKILLS_DIR/dev-env/templates/ops/$mode/Makefile" || missing+=("dev-env templates: ops/$mode/Makefile's run passes the command from the environment, never \$(cmd) (C10)"); done
+    [ -f "$REPO_ROOT/scripts/migrations/unreleased/01-make-run-by-mode.py" ] || ls "$REPO_ROOT"/scripts/migrations/v*/[0-9][0-9]-make-run-by-mode.py >/dev/null 2>&1 || missing+=("migration: make run's ask rule leaves (0077, 0089)")
+    file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'deletes data under a name other than `reset`' || missing+=("/dev-env: names each project task that deletes data, since no prompt stops it (C9, 0078)")
+    python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["permissions"]; sys.exit(0 if {"Bash(make *)","Bash(docker *)"} <= set(p["allow"]) and p["ask"] == [] else 1)' "$MODULES_DIR/docker/settings-fragment.json" || missing+=("docker module: allows make * and docker *, and asks before none (C9, 0038, 0078)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'so the yes in chat is the only check' || missing+=("/dev-env: no prompt stops a destructive step, so the developer's yes in chat does (0078)")
+    [ -f "$REPO_ROOT/scripts/migrations/unreleased/02-docker-asks.py" ] || ls "$REPO_ROOT"/scripts/migrations/v*/[0-9][0-9]-docker-asks.py >/dev/null 2>&1 || missing+=("migration: the docker module's ask rules leave on upgrade (0078)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'SPECIFICATION.md` C9' || missing+=("/upgrade: removes the make allows a project's tasks fail (C9)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" '^## Commands that run without a prompt' || missing+=("claude-code rule: write commands an allow rule can read (0038)")
     file_contains "$SKILLS_DIR/dev-env/SPECIFICATION.md" '^- \*\*M10\.\*\*' || missing+=("dev-env's specification: an agent runs every task in the configured mode (M10)")
     file_contains "$SKELETON/.claude/rules/claude-code.md" 'Run them in the configured mode' || missing+=("claude-code rule: agents never override the local mode unasked (M10)")
+    file_contains_literal "$SKELETON/.claude/rules/claude-code.md" 'as `AGENTS.md` § Quick reference writes them' && ! grep -qE '(^|[^A-Za-z])[tf]=<' "$SKELETON/.claude/rules/claude-code.md" \
+        || missing+=("claude-code rule: names no task variable a project's Makefile may not take; the Quick reference writes them (issue 175)")
+    file_contains "$AGENTS_MD" '^- Tests: .* · one file: ' && file_contains "$AGENTS_MD" '^- Lint: .* · one file: ' || missing+=("AGENTS.md: Quick reference writes one test and one file's lint (issue 175)")
+    file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'name each task and what it takes (C3)' || missing+=("/dev-env: the audit names a test or lint that doesn't take C3's variable (issue 175)")
     ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
@@ -844,13 +1021,74 @@ check_practices() {
     file_contains_literal "$REPO_ROOT/ADOPT.md" '--scope project' || missing+=("ADOPT.md: the agent entry point installs per project")
     file_contains_literal "$REPO_ROOT/README.md" '(ADOPT.md)' || missing+=("README.md: points agents to ADOPT.md")
     file_contains "$SKELETON/docs/getting-started/DEV-SETUP.md" 'needs no install step' || missing+=("DEV-SETUP.md: joining a project needs no install")
-    file_contains "$REPO_ROOT/README.md" 'claude plugin marketplace update aplyca' || missing+=("install prompt: refreshes a marketplace added before")
+    file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("DEV-SETUP.md: the commands when trusting the folder didn't download the plugin add the marketplace at the pin (#80, 0090)")
+    ! file_contains_literal "$SKELETON/docs/getting-started/DEV-SETUP.md" 'claude plugin marketplace update aplyca' || missing+=("DEV-SETUP.md: a refresh keeps the machine's old ref; the joining commands add the marketplace at the pin (0090)")
+    grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' || missing+=("README.md: joining adds the marketplace at the pin when trusting the folder didn't download the plugin (#80, 0090)")
+    grep -A16 -F '**Joining a project that already uses it?**' "$REPO_ROOT/README.md" | grep -qF 'git restore .claude/settings.json' || missing+=("README.md: joining restores the settings the commands rewrite (0090)")
     file_contains "$REPO_ROOT/README.md" 'there is nothing to install' || missing+=("install prompt: stops when the project already turns the plugin on")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'by their full names' || missing+=("SETUP.md: a packaged DEV-SETUP.md names the commands in full")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install, the local environment's conventions (0032)"
+        pass "practices: signal-first debugging, question rounds, glossary, merge danger, test independence, decision threshold, handoff, worktree roles, portable worktree defaults, test-first in every lane, the hub enforced, /upgrade offers modules, adopting from one prompt and in a new project, joining one with no install (and the commands when the plugin didn't download), the local environment's conventions (0032), the prose pass (0086)"
     else
         fail "practices: missing" "${missing[*]}"
+    fi
+}
+
+# Spec folders name roles, a change request can ride the open pull request, and a split feature
+# shares one written contract (0050).
+check_spec_records() {
+    local readme="$SKELETON/specs/README.md" missing=()
+    file_contains "$readme" '^## Records name roles' || missing+=("specs/README.md § Records name roles")
+    grep -qE '<who>|\[who\]|, who\)' "$TEMPLATES/spec.md" "$TEMPLATES/plan.md" "$TEMPLATES/tasks.md" "$readme" \
+        && missing+=("templates and specs/README.md: attribution by role, never <who>")
+    file_contains "$TEMPLATES/spec.md" '<role>' || missing+=("spec template: approvals name a role")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Roles, not names' || missing+=("/write-spec: roles, not names")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Roles, not names' || missing+=("/write-plan: roles, not names")
+    file_contains "$AGENTS_DIR/spec-analyzer/agent.md" 'Roles, not names' || missing+=("@spec-analyzer: flags names and tracker quotes")
+    file_contains "$SKILLS_DIR/context-audit/SKILL.md" 'People in spec folders' || missing+=("/context-audit: flags names and tracker quotes in spec folders")
+    file_contains "$WORKFLOWS_DIR/deep-context-audit.js" 'check:spec-records' || missing+=("/deep-context-audit: sweeps the spec folders")
+    # The examples' spec folders use roles; their fictional names stay in the story.
+    grep -qwE 'Dana|Sam|Lee' "$REPO_ROOT"/docs/examples/newsletter-signup/{spec,plan,tasks}.md "$REPO_ROOT"/docs/examples/newsletter-topics/*-diff.md \
+        && missing+=("docs/examples: a spec folder names a person")
+    file_contains "$readme" '^### Before the merge' || missing+=("specs/README.md § Before the merge")
+    file_contains "$SKILLS_DIR/spec-workflow/SKILL.md" 'Feedback on an open pull request' || missing+=("/spec-workflow: routes feedback on an open pull request")
+    file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Before the merge' || missing+=("/write-spec: a change request before the merge")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" 'Feedback arrives on the open pull request' || missing+=("/implement: feedback on the open pull request is a change request")
+    file_contains "$readme" 'A feature split across spec folders' || missing+=("specs/README.md: a split feature's contract")
+    file_contains "$TEMPLATES/plan.md" 're-checks it against the provider' || missing+=("plan template: the consumer re-checks the contract after a base sync")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'One part of a split feature' || missing+=("/dispatch: the brief carries the contract")
+    file_contains "$AGENTS_DIR/spec-analyzer/agent.md" 'flag it against that consumer spec' || missing+=("@spec-analyzer: flags a contract change against a consumer spec")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "spec records: roles, not names; change requests before the merge; one contract for a split feature (0050)"
+    else
+        fail "spec records: missing" "${missing[*]}"
+    fi
+}
+
+# What an agent finds along the way is reported and routed — never dropped, never fixed in passing (0054).
+check_found_along_the_way() {
+    local missing=()
+    file_contains "$AGENTS_MD" 'Report what you find along the way' || missing+=("AGENTS.md: report and route what you find")
+    file_contains "$SKELETON/specs/README.md" '^## Found along the way' || missing+=("specs/README.md § Found along the way")
+    file_contains "$SKELETON/specs/README.md" "isn't a change\s*$|isn't a change request" || missing+=("specs/README.md: a bug in the branch's own work isn't a change request")
+    file_contains "$SKILLS_DIR/implement/SKILL.md" 'You find something along the way' || missing+=("/implement: routes findings")
+    file_contains "$SKILLS_DIR/review/SKILL.md" '\*\*outside the diff\*\*' || missing+=("/review: lists findings outside the diff apart")
+    file_contains "$SKILLS_DIR/debug/SKILL.md" 'Other bugs you met on the way' || missing+=("/debug: routes other bugs")
+    file_contains "$AGENTS_DIR/code-reviewer/agent.md" '\[outside\]' || missing+=("@code-reviewer: [outside] findings")
+    file_contains "$WORKFLOWS_DIR/deep-review.js" 'followUps' || missing+=("/deep-review: returns follow-ups apart")
+    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## Follow-ups' || missing+=("/open-pr: the body has ## Follow-ups")
+    file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## Follow-ups' || missing+=("PR template: ## Follow-ups")
+    file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
+    file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'survives a chip nobody started' || missing+=("/dispatch: a found task is also a follow-up")
+    file_contains "$SKELETON/specs/README.md" 'files it as an issue in this repository' || missing+=("specs/README.md: a finding is filed as an issue with github or gitlab (0082)")
+    file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'gh issue create' || missing+=("/wrap-up: files the findings as issues (0082)")
+    file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'File as issues in' || missing+=("/wrap-up: the close-up lists the issues to file (0082)")
+    file_contains "$SKILLS_DIR/dispatch/SKILL.md" 'files as an issue' || missing+=("/dispatch: no chip at once for a finding with github or gitlab (0082)")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "found along the way: reported, routed, kept as follow-ups, offered at the close-up, filed as issues with github or gitlab (0054, 0082)"
+    else
+        fail "found along the way: missing" "${missing[*]}"
     fi
 }
 
@@ -894,6 +1132,98 @@ PY
             fail "plugin script '$(basename "$script")': does not compile"
         fi
     done
+}
+
+check_skill_reference_files() {
+    # A skill's reference files load only when a step of its SKILL.md sends the agent to them (decision
+    # 0063): each one is named there, each file a SKILL.md names in its base directory exists, and none
+    # names ${CLAUDE_PLUGIN_ROOT}, which nothing fills in for a file read with the Read tool.
+    local report
+    report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
+import glob, os, re, sys
+plugins = sys.argv[1]
+for skill in sorted(glob.glob(os.path.join(plugins, "*", "skills", "*", "SKILL.md"))):
+    folder = os.path.dirname(skill)
+    rel = os.path.relpath(folder, os.path.dirname(plugins))
+    text = open(skill, encoding="utf-8").read()
+    for name in re.findall(r"<this skill.s base directory>/([\w./-]+)", text):
+        if not os.path.exists(os.path.join(folder, name.rstrip("/."))):
+            print(f"{rel}/SKILL.md names {name}, which is not beside it")
+    for ref in sorted(f for f in os.listdir(folder) if f.endswith(".md") and f != "SKILL.md"):
+        tick = chr(96)
+        if tick + ref + tick not in text and "/" + ref + tick not in text:
+            print(f"{rel}/{ref}: no step of its SKILL.md names it")
+        if "${CLAUDE_PLUGIN_ROOT}" in open(os.path.join(folder, ref), encoding="utf-8").read():
+            print(f"{rel}/{ref}: names " + "${CLAUDE_PLUGIN_ROOT}" + ", which nothing fills in for a file read with the Read tool")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "skills' reference files: each named by a step of its SKILL.md, each one named there present, none relying on \${CLAUDE_PLUGIN_ROOT} (0063)"
+    else
+        fail "skills' reference files" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
+check_host_parity() {
+    # The framework works on GitHub and GitLab (decision 0074): a skill whose folder names a `gh`
+    # command names the `glab` one too — in its steps or a reference file beside them — and so does
+    # each agent, workflow, hook script, and skeleton file that names one. The github module is GitHub's own.
+    local report
+    report=$(python3 - "$REPO_ROOT" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+gh = re.compile(r"(?<![\w-])gh (pr|issue|api|run|release|repo|label|auth|secret|workflow|search|browse|cache|variable)\b")
+glab = re.compile(r"(?<![\w-])glab\b")
+units = [(os.path.relpath(d, root) + "/", sorted(glob.glob(os.path.join(d, "*.md"))))
+         for d in sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*"))) if os.path.isdir(d)]
+singles = glob.glob(os.path.join(root, "plugins", "*", "agents", "**", "*.md"), recursive=True) \
+    + glob.glob(os.path.join(root, "plugins", "*", "workflows", "**", "*"), recursive=True) \
+    + glob.glob(os.path.join(root, "plugins", "*", "hooks", "*.sh")) \
+    + glob.glob(os.path.join(root, "skeleton", "**", "*.md"), recursive=True) \
+    + glob.glob(os.path.join(root, "skeleton", "**", "*.mdc"), recursive=True)
+units += [(os.path.relpath(f, root), [f]) for f in sorted(singles) if os.path.isfile(f)]
+for rel, files in units:
+    text = "".join(open(f, encoding="utf-8", errors="replace").read() for f in files)
+    if gh.search(text) and not glab.search(text):
+        print(f"{rel}: names a gh command and no glab one")
+PY
+)
+    if [ -z "$report" ]; then
+        pass "GitHub and GitLab: every skill, agent, workflow, hook, and skeleton file that names a gh command names its glab one (0074)"
+    else
+        fail "GitHub and GitLab: a gh command without its glab one" "$(printf '%s' "$report" | tr '\n' ';')"
+    fi
+}
+
+check_host_templates() {
+    # The gitlab module's merge request template is the github module's pull request template in
+    # GitLab's words (decision 0075): the same sections, agent-owned markers, labels, and checklist,
+    # in the same order, so /adf:open-pr fills either one the same way.
+    local report
+    report=$(python3 - "$MODULES_DIR/github/files/.github/pull_request_template.md" \
+        "$MODULES_DIR/gitlab/files/.gitlab/merge_request_templates/Default.md" <<'PY'
+import re, sys
+shape = re.compile(r"^(## .*|<!-- /?adf:[a-z-]+ -->|\*\*[^*]+:\*\*|- \[ \] .*|- [A-Z][a-z ]+:|\d+\.)\s*(?:<!--.*)?$")
+def skeleton(path):
+    try:
+        lines = open(path, encoding="utf-8").read().split("\n")
+    except FileNotFoundError:
+        return None
+    return [m.group(1).rstrip() for m in map(shape.match, lines) if m]
+github, gitlab = skeleton(sys.argv[1]), skeleton(sys.argv[2])
+if github is None or gitlab is None:
+    print("a template is missing"); sys.exit()
+if github != gitlab:
+    for a, b in zip(github + [""] * len(gitlab), gitlab + [""] * len(github)):
+        if a != b:
+            print(f"pull request template has '{a}' where the merge request template has '{b}'"); break
+PY
+)
+    if [ -z "$report" ]; then
+        pass "templates: the gitlab module's merge request template has the github pull request template's sections, markers, and checklist (0075)"
+    else
+        fail "templates: the merge request template differs from the pull request template" "$report"
+    fi
 }
 
 check_packaged_plugin() {
@@ -1092,8 +1422,29 @@ check_marketplace_auto_update() {
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'claude plugin install <plugin>@aplyca --scope project' \
         || missing+=("/upgrade's commands for each machine")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'claude plugin update adf-dev@aplyca' || missing+=("SETUP.md § Updating updates adf-dev")
+    # A machine keeps the marketplace at the ref it was first added with: each one adds it again at the
+    # moved pin, restores the settings the commands rewrite, and checks the versions (decision 0090).
+    local doc
+    for doc in plugins/adf/skills/upgrade/SKILL.md docs/UPGRADING.md; do
+        file_contains_literal "$REPO_ROOT/$doc" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#v<X.Y.Z> --scope project' \
+            || missing+=("$doc: each machine adds the marketplace at the new pin (0090)")
+        file_contains_literal "$REPO_ROOT/$doc" 'git restore .claude/settings.json' || missing+=("$doc: restores the settings the commands rewrite (0090)")
+        file_contains_literal "$REPO_ROOT/$doc" 'each plugin shows Version: <X.Y.Z>' || missing+=("$doc: checks the installed versions (0090)")
+    done
+    ! grep -qF 'claude plugin marketplace update aplyca' <(sed -n '/^5\. \*\*Give the developer the commands for each machine/,/^ *```$/p' "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md") \
+        || missing+=("/upgrade's commands for each machine: a refresh keeps the old ref (0090)")
+    ! grep -rqF -e 'carries a new' -e 'move to the pin in their next session' -e 'updates every teammate' \
+        "$REPO_ROOT/docs/SETUP.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
+        || missing+=("a doc still says autoUpdate carries a moved pin to each machine (0090)")
+    # Run where no project declares the marketplace, a user-scope remove uninstalls every plugin from it:
+    # each one the docs give runs behind a guard that checks the project declares it (0090).
+    local unguarded
+    unguarded=$(grep -rn -F 'marketplace remove aplyca --scope user' "$REPO_ROOT/docs/UPGRADING.md" "$REPO_ROOT/docs/SETUP.md" \
+        "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" "$REPO_ROOT/plugins/adf/README.md" "$REPO_ROOT/plugins/adf/skills" \
+        | grep -v -F "grep -q '\"aplyca\"' .claude/settings.json && claude plugin marketplace remove aplyca --scope user")
+    [ -z "$unguarded" ] || missing+=("a user-scope marketplace remove without the guard: ${unguarded//$REPO_ROOT\//}")
     if [ ${#missing[@]} -eq 0 ]; then
-        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine"
+        pass "the pinned marketplace auto-updates, and an upgrade names the commands for each machine, which add the marketplace at the new pin (0090)"
     else
         fail "marketplace auto-update (decision 0041) missing in: ${missing[*]}"
     fi
@@ -1138,20 +1489,53 @@ PY
     fi
 }
 
+check_install_at_release() {
+    # Claude Code keeps a machine's copy of a marketplace at the ref it was first added with, and a
+    # pin written into the settings later doesn't move it. Added without a ref, it follows the
+    # default branch and its unreleased changes, so every documented add names one (decision 0091).
+    local missing=() hits prompt
+    hits=$(grep -rnE 'marketplace add "?aplyca/AgenticDevelopmentFramework([^#]|$)' "$REPO_ROOT/README.md" "$REPO_ROOT/ADOPT.md" \
+        "$REPO_ROOT/docs" "$REPO_ROOT/plugins" "$SKELETON" "$MODULES_DIR" 2>/dev/null | grep -v '/docs/decisions/')
+    [ -z "$hits" ] || missing+=("an add of the framework's marketplace names no ref, so the machine follows the default branch: $hits")
+    prompt=$(sed -n '/<!-- install-prompt:/,/^ *```$/p' "$REPO_ROOT/README.md")
+    grep -qF -- "git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'" <<<"$prompt" \
+        || missing+=("install prompt: finds the newest release")
+    grep -qF 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project' <<<"$prompt" \
+        || missing+=("install prompt: adds the marketplace at the newest release")
+    ! grep -qF 'marketplace update aplyca' <<<"$prompt" || missing+=("install prompt: a refresh keeps the machine's ref; the add at the tag needs none")
+    local doc
+    for doc in README.md plugins/adf/README.md docs/SETUP.md; do
+        file_contains_literal "$REPO_ROOT/$doc" 'claude plugin marketplace add "aplyca/AgenticDevelopmentFramework#$tag" --scope project' \
+            || missing+=("$doc: the commands add the marketplace at the newest release")
+    done
+    file_contains_literal "$REPO_ROOT/ADOPT.md" 'claude plugin marketplace add aplyca/AgenticDevelopmentFramework#<tag> --scope project' \
+        || missing+=("ADOPT.md: adds the marketplace at the newest release")
+    ! file_contains_literal "$REPO_ROOT/ADOPT.md" 'marketplace update aplyca' || missing+=("ADOPT.md: no refresh after the add at the tag")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" "This machine's copy of the marketplace is at the pin" \
+        || missing+=("/adf:adopt: Step 6 checks the machine's ref against the pin")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" "\`claude plugin update\` isn't enough" \
+        || missing+=("/adf:adopt: the fix reinstalls, since an update at the same version keeps the default branch's files")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "the install adds the marketplace at the newest release, and /adf:adopt checks the machine's ref (0091)"
+    else
+        fail "install at a release (decision 0091): ${missing[*]}"
+    fi
+}
+
 check_english() {
     # Everything in the repository is in English (CONTRIBUTING.md § Ground rules): adopting teams of
     # any language read it, and agents follow one language more consistently.
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
     # This check names the words it looks for, so it skips its own file.
-    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | python3 -c '
-import re, sys
+    hits=$(git -C "$REPO_ROOT" ls-files -z -- '*.md' '*.mdc' '*.sh' '*.js' '*.json' '*.py' '*.jq' '*.yml' '*.yaml' ':!evals/static/check-skills.sh' | REPO_ROOT="$REPO_ROOT" python3 -c '
+import os, re, sys
 spanish = re.compile(r"[áíóúñÁÍÓÚÑ¿¡]|\b(también|según|además|herramienta|desarrollo|cómo|qué|está|nuestr[oa]s?)\b", re.I)
 for path in sys.stdin.read().split("\0"):
     if not path:
         continue
     try:
-        lines = open(path, encoding="utf-8").read().split("\n")
+        lines = open(os.path.join(os.environ["REPO_ROOT"], path), encoding="utf-8").read().split("\n")
     except (OSError, UnicodeDecodeError):
         continue
     for number, line in enumerate(lines, 1):
@@ -1163,49 +1547,6 @@ for path in sys.stdin.read().split("\0"):
         pass "language: every file is in English"
     else
         fail "language: Spanish text — write it in English (CONTRIBUTING.md § Ground rules)" "$(echo "$hits" | tr '\n' ' ')"
-    fi
-}
-
-check_mods() {
-    # The framework's mods are display-only (decision 0026): they read, draw, and add commands. They
-    # never approve, refuse, or rewrite a tool call or a prompt, start a turn, run a process, write a
-    # file, call a model, or change settings — each of those is the process's, through skills, hooks,
-    # and permissions every install shares. One exception (decision 0032): adf-dev's band may run
-    # `docker compose port <service> <port>`, read-only, for the port Docker picked — that call,
-    # with that argument vector, in that file, and no other. Each mod carries tests (`claude plugin test`).
-    local report
-    report=$(python3 - "$REPO_ROOT/plugins" <<'PY'
-import glob, json, os, re, sys
-plugins = sys.argv[1]
-display = {"session.start", "session.end", "turn.complete", "command.run", "command.describe",
-           "ui.render", "ui.press", "ui.input", "ui.select", "ui.close", "ui.focus", "ui.scroll"}
-banned = re.compile(r"\$\.(prompt\.submit|tool\.|process\.|model\.|agent\.|fs\.write|config\.set|env\.set|session\.(?:send|append|compact))")
-lookup = re.compile(r"\$\.process\.run\(\['docker', 'compose', 'port', target\.service, target\.port\], \{")
-for wiring in sorted(glob.glob(os.path.join(plugins, "*", "hooks", "hooks.json"))):
-    if not json.load(open(wiring)).get("modules"):
-        continue
-    plugin = os.path.dirname(os.path.dirname(wiring))
-    name = os.path.basename(plugin)
-    sources = [p for p in glob.glob(os.path.join(plugin, "hooks", "*")) if re.search(r"\.(m?[jt]sx?|c[jt]s)$", p)]
-    for path in sorted(sources):
-        text = open(path, encoding="utf-8").read()
-        for event in re.findall(r"\bon\(\s*['\"]([\w.]+)['\"]", text):
-            if event not in display:
-                print(f"{name}/hooks/{os.path.basename(path)} hooks {event}, which a display-only mod doesn't")
-        calls = banned.findall(text)
-        if (name, os.path.basename(path)) == ("adf-dev", "register.tsx") and calls.count("process.") == 1 \
-                and len(lookup.findall(text)) == 1 and "const target = parseService(service)" in text:
-            calls.remove("process.")
-        for call in calls:
-            print(f"{name}/hooks/{os.path.basename(path)} calls $.{call}, which a display-only mod doesn't")
-    if not glob.glob(os.path.join(plugin, "**", "*.test.ts*"), recursive=True):
-        print(f"{name}: a mod with no *.test.ts")
-PY
-)
-    if [ -z "$report" ]; then
-        pass "mods: display-only — they read, draw, and add commands, never act on a tool call or a prompt, and run no process but the band's docker compose port lookup (0032); each has tests"
-    else
-        fail "mods: $report"
     fi
 }
 
@@ -1221,14 +1562,14 @@ def read(rel):
     with open(os.path.join(tpl, rel), encoding="utf-8") as f:
         return f.read()
 files = ["compose.yaml", "Makefile", "ops/docker/Makefile", "ops/native/Makefile", ".env.example",
-         "ops/docker/guard.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
+         "ops/docker/guard.sh", "ops/docker/launch-json.sh", "ops/native/native.sh", "ops/docker/web/Dockerfile",
          "ops/docker/web/Dockerfile.dockerignore"]
 missing = [f for f in files if not os.path.isfile(os.path.join(tpl, f))]
 for f in missing:
     print(f"templates/{f} is missing")
 if missing:
     sys.exit()
-for script in ("ops/docker/guard.sh", "ops/native/native.sh"):
+for script in ("ops/docker/guard.sh", "ops/docker/launch-json.sh", "ops/native/native.sh"):
     if not os.access(os.path.join(tpl, script), os.X_OK):
         print(f"templates/{script} isn't executable")
 
@@ -1318,6 +1659,59 @@ PY
     fi
 }
 
+check_upgrade() {
+    # The scripted upgrade's data (decision 0046): every file the skeleton and the modules give a
+    # project has a bucket, every bucket entry is in docs/UPGRADING.md, and the changelog's Migration
+    # text and scripts/migrations/ name each other — from the first release that has the script.
+    local out
+    out=$(python3 - "$REPO_ROOT" <<'PY'
+import fnmatch, glob, json, os, re, sys
+root = sys.argv[1]
+data = json.load(open(os.path.join(root, "scripts", "upgrade-buckets.json")))
+patterns = data["merge"] + data["overwrite"] + data["project-owned"]
+problems = []
+for top in [os.path.join(root, "skeleton")] + sorted(glob.glob(os.path.join(root, "modules", "*", "files"))):
+    for directory, _, files in os.walk(top):
+        for f in files:
+            rel = os.path.relpath(os.path.join(directory, f), top)
+            if not any(fnmatch.fnmatchcase(rel, p) for p in patterns):
+                problems.append(f"{os.path.relpath(os.path.join(directory, f), root)} has no bucket in scripts/upgrade-buckets.json")
+guide = open(os.path.join(root, "docs", "UPGRADING.md"), encoding="utf-8").read()
+for p in patterns:
+    if f"`{p}`" not in guide:
+        problems.append(f"scripts/upgrade-buckets.json's `{p}` isn't in docs/UPGRADING.md's taxonomy")
+changelog = open(os.path.join(root, "CHANGELOG.md"), encoding="utf-8").read()
+named = set(re.findall(r"scripts/migrations/((?:v\d+\.\d+\.\d+|unreleased)/\d\d-[a-z0-9-]+\.py)", changelog))
+for section in re.split(r"^## ", changelog, flags=re.M)[1:]:
+    heading = section.split("\n", 1)[0]
+    m = re.match(r"v(\d+)\.(\d+)\.(\d+)", heading)
+    if not (heading.startswith("Unreleased") or (m and tuple(map(int, m.groups())) > (2, 4, 0))):
+        continue
+    for chunk in re.split(r"^- \*\*", section, flags=re.M)[1:]:
+        title = " ".join(chunk.split("**", 1)[0].split())
+        for line in re.findall(r"^.*\*\*[^*\n]*[Mm]igration[^*\n]*\*\*.*$", chunk, re.M):
+            if "scripts/migrations/" not in chunk and "by hand" not in chunk:
+                problems.append(f"CHANGELOG ({heading[:20]}): \"{title[:60]}\" has Migration text that names neither a script nor \"by hand\"")
+                break
+on_disk = {os.path.relpath(p, os.path.join(root, "scripts", "migrations"))
+           for p in glob.glob(os.path.join(root, "scripts", "migrations", "*", "*.py"))}
+for rel in sorted(on_disk - named):
+    problems.append(f"scripts/migrations/{rel} isn't named by any CHANGELOG entry")
+for rel in sorted(named - on_disk):
+    problems.append(f"CHANGELOG names scripts/migrations/{rel}, which doesn't exist")
+for rel in sorted(on_disk):
+    if not re.fullmatch(r"(v\d+\.\d+\.\d+|unreleased)/\d\d-[a-z0-9-]+\.py", rel):
+        problems.append(f"scripts/migrations/{rel} isn't <version>/NN-<slug>.py")
+print("\n".join(problems))
+PY
+)
+    if [ -z "$out" ]; then
+        pass "upgrade: every skeleton and module file has a bucket, the buckets match docs/UPGRADING.md, and the changelog names each migration"
+    else
+        while IFS= read -r line; do fail "upgrade: $line"; done <<< "$out"
+    fi
+}
+
 check_no_tracked_junk() {
     git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
     local hits
@@ -1343,11 +1737,6 @@ for hooks_dir in hooks_dirs:
     if not os.path.exists(wiring):
         continue
     wired = json.load(open(wiring))
-    # A mod's hooks module (decision 0026): one path, beside hooks.json, to a file of the plugin's.
-    for module in wired.get("modules", []):
-        target = os.path.normpath(os.path.join(hooks_dir, module))
-        if module.startswith("/") or ".." in module.split("/") or not os.path.isfile(target):
-            print(f"{os.path.relpath(wiring, sys.argv[1])}: module {module} isn't a file beside it")
     for group in wired.get("hooks", {}).values():
         for entry in group:
             for hook in entry["hooks"]:
@@ -1439,11 +1828,17 @@ check_plugin_committed_paths
 check_module_plugins
 check_install_scope
 check_install_prompt
+check_install_at_release
 check_lanes
 check_practices
+check_spec_records
+check_found_along_the_way
 check_plugin
-check_mods
+check_skill_reference_files
+check_host_parity
+check_host_templates
 check_dev_env_templates
+check_upgrade
 check_no_tracked_junk
 check_english
 check_directory_rules

@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement an approved spec folder one task at a time — for each task in tasks.md write its test, watch it fail, write the code, watch it pass, and commit — keeping plan.md and the committed docs true to what is built, then record the gate results. Use after the approval gate (spec status approved) and /adf:write-docs.
+description: Implement an approved spec folder one task at a time — test red, code, green, commit — keeping plan.md and the docs true to what is built, then record the gate results. Use after the approval gate and /adf:write-docs.
 argument-hint: "[spec folder, e.g. specs/007-newsletter-signup]"
 ---
 
@@ -16,55 +16,93 @@ plan is the contract for **where** code goes (the change surface); the tests are
 ## Prerequisites — refuse to start without them
 
 - `spec.md` reads `status: approved`, with an `approvals:` line covering this scope (the CR, for a
-  change request). If not, stop: the approval gate in `/adf:write-plan` hasn't happened.
+  change request — on the open pull request's branch too, before the merge). If not, stop: the
+  approval gate in `/adf:write-plan` hasn't happened.
 - The spec folder is committed (`spec:`).
 - If `plan.md` lists pre-implementable docs, they're committed (`docs:`) and their Phase 1 tasks
-  are ticked. If not, run `/adf:write-docs` first.
-- The environment the tests need is up — start it now if triage deferred it — and host
-  dependencies are installed so the git hooks can run on commit.
+  are ticked. If not, run `/adf:write-docs` first — and `/adf:end-user-docs` for an end-user page's
+  draft, `/adf:stakeholder-update guide` for the spec's usage guide.
+- The environment the tests need is up — start it now if triage deferred it — and what the git
+  hooks run on commit is set up (the worktree's `SETUP_CMD`, or the project's install step). With
+  the `docker` module in Docker mode, nothing is installed on the host: the test and lint tasks
+  start their own container.
 
 ## Phase 1: Prepare
 
 1. **Read the folder:** `spec.md` (every filled section, not only Functional), `plan.md` (change
    surface, test strategy, risks, assumptions), `tasks.md`, and the committed docs — they describe
    how the feature will be used and should drive your thinking.
+   The folder is the record, not a summary of the conversation. In a conversation that doesn't show
+   where the task stands — compacted after the gate, or started anew — open with one line on it:
+   `Full lane — specs/007-newsletter-signup/, approved; implementing T003 next`.
 2. **Mind the model.** Implementing an approved plan is well-specified work — `sonnet` handles it.
-   If this session is on Opus and still carries the whole planning conversation, suggest a fresh
-   Sonnet session (the spec folder is the handoff); keep Opus for a task that turns out genuinely hard.
-3. **Run the existing suite** to know the baseline. Pre-existing failures are recorded in the gate
+   If this session is on Opus and still carries the whole planning conversation, suggest the gate's
+   switch, in this session: compact, pick Sonnet, send this command again (`/adf:write-plan` step 12).
+   Never start another session for it. Keep Opus for a task that turns out genuinely hard.
+3. **Run the tests the task touches** to know the baseline — a run as small as its question
+   (`.claude/rules/testing.md` § Tiers and feature suites). Widen it — neighboring suites, a tier,
+   the whole suite — when the task calls for it: shared code, configuration, a migration, or a
+   change whose reach you can't name. Pre-existing failures are recorded in the gate
    results and reported — not silently fixed, and not mistaken for yours.
 
 ## Phase 2: The loop — for each task, in order
 
-4. **Take the next unticked task.** Respect dependencies; `[P]` tasks can go in any order.
+4. **Take the next unticked task** — for a change request, in its `# CR N` part (`T<N>00`…).
+   Respect dependencies; `[P]` tasks can go in any order. A task the CR struck through is not done.
 5. **Write the test the task names**, following `.claude/rules/testing.md` and the patterns of
    neighboring tests.
 6. **Run it and watch it fail — for the right reason:** an assertion about the missing behavior,
    not a syntax error, import error, or broken fixture. Keep the failure line for the gate results.
-   If it **passes** before you've written any code, stop: the behavior already exists or the test is
-   wrong. Find out which and tell the developer. The exception is a **test-only task** — acceptance
-   tests written after the stories, or a test that pins behavior the change must not break. It is
-   expected to pass: break the behavior it covers on purpose, watch it fail, restore it, and record
-   that in the gate results.
+   If it **passes** before you've written any code, find out why:
+   - **The test is wrong** — it asserts nothing the task adds: fix it until it fails for the right
+     reason.
+   - **The behavior already exists** — an earlier task or the code base already does it: tell the
+     developer in one line, and keep the test as a pin. Break the behavior on purpose, watch the test
+     fail, restore it, and record that in the gate results. The rest of the task lands in the same
+     commit, prefixed for what it does: `refactor:` when no behavior changes.
+   - **You can't tell which:** stop and ask.
+
+   A type or compile error is never the red, however the task is shaped. A **test-only task** —
+   acceptance tests written after the stories, or a test that pins behavior the change must not
+   break — is expected to pass, and proves itself the same way: break, fail, restore, record.
 7. **Write the smallest code that makes it pass**, inside the plan's change surface, matching the
    existing patterns. Handle the edge cases the spec lists; validate at system boundaries.
-8. **Run it to green**, plus the neighboring tests, to catch regressions early — targeted runs with
-   quiet output, not the whole suite each time (`.claude/rules/testing.md` § Verification budget).
-   Tidy the code while everything stays green.
+8. **Run it to green** — the tests this task wrote or changed, by name (or their file, when it runs
+   in seconds), with quiet output, and the static checks on the files it changed
+   (`.claude/rules/testing.md` § Verification budget). Not a slow file or the feature suite: that
+   runs once, when the phase ends. Tidy the code while
+   everything stays green.
 9. **Tick the task and commit** test, code, and the tick together — one commit:
    `feat: <what the task delivers>` (or `fix:`, `refactor:`; `test:` for a test-only task). Stage
    files by name. Hooks run; never `--no-verify`.
-10. **Next task.**
+10. **Next task.** When the last task of a phase is committed, run the feature suite the phase
+    touched, once — plus `@smoke` when it changed shared code, configuration, or the stack. A
+    failure is traced through the phase's task commits and fixed before the next phase.
 
 ## When reality departs from the plan
 
 - **Small deviation inside the change surface** (a different helper, an extra guard): update
   `plan.md` in the same commit and carry on.
-- **The change surface grows** — a new layer, a file outside the table, a shared component, a
-  migration, a dependency: **stop**. Explain what you found, update `plan.md`, and get the
+- **The change surface grows into risk** — a new layer, a new dependency, or an escalation trigger
+  (a migration, authorization, personal data, payments, a shared contract or shared code,
+  infrastructure, a sensitive area): **stop**. Explain what you found, update `plan.md`, and get the
   developer's re-confirmation (add an `approvals:` line) before continuing.
+- **It grows otherwise** — a file outside the table, in a layer the plan already touches: update
+  `plan.md` in the same commit, carry on, and list it in the pull request's description.
 - **A requirement turns out wrong or ambiguous:** stop and ask; the answer goes into the spec's
-  Clarifications. Never guess.
+  Clarifications, attributed to the role that answered. Never guess.
+- **A shared contract moved** — after a sync with the base branch, the provider's spec no longer
+  matches what this consumer's spec records (`related-specs`): stop, and record the change in this
+  spec and its pull request before building on it.
+- **Feedback arrives on the open pull request:** it's a change request on this branch — light, or
+  full with its own gate (`specs/README.md` § Before the merge). Don't fold it into the tasks in hand.
+- **You find something along the way** — a bug or an improvement, in this feature or anywhere else:
+  report it with `file:line` and route it (`specs/README.md` § Found along the way). A bug in this
+  branch's own work is a regression test and a fix here; an improvement to the feature is the
+  developer's call — a change request if they take it, and with the `github` or `gitlab` module an
+  issue filed at once is one of the answers you offer; anything else is a follow-up for the pull
+  request, never a change in this branch. What can't wait — a security hole, data at risk — goes to
+  the developer now.
 - **A test is genuinely wrong:** fix it in its own commit and say why. Never weaken a test to get
   to green.
 
@@ -77,21 +115,30 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 - **Small fix** (a sentence, a field name): fold it into the task's commit and say so in the body.
 - **Meaningful revision** (changed behavior, a new section): its own `docs:` commit; for a large
   rework, re-run `/adf:write-docs` in update mode.
+- **An end-user page's draft** lives in the doc tool, not the repository: when the build changes what
+  it says, update it with `/adf:end-user-docs update`.
 - **Never** ship code that contradicts a committed doc.
 
 ## Phase 3: Finish
 
-11. **Reconcile and backfill** — the Phase 5 tasks: committed docs checked claim by claim against
-    what was built; post-implementable docs (runbooks, troubleshooting) written or listed for later.
+11. **Reconcile and backfill** — the Phase 5 tasks: committed docs, the spec's usage guide, and an
+    end-user page's draft, checked claim by claim against what was built; post-implementable docs (runbooks,
+    troubleshooting) written now. One that can't be written yet — it needs production, or a decision
+    still to come — is a follow-up: strike its task through in `tasks.md` with
+    `— follow-up: <why>`, and `/adf:open-pr` lists it under Follow-ups.
 12. **Run the full gate** — the verification checklist in `tasks.md`: lint, typecheck, every test
     layer this environment can run.
 13. **Record the gate results** in `tasks.md`: the red-then-green evidence per task, commands and
-    counts, what you could **not** run and why, pre-existing failures. With every task ticked, set
-    `status: implemented` in `spec.md` — it merges with the pull request, so the folder reads as built.
-    Commit (`docs: record <slug> gate results`).
+    counts, what you could **not** run and why, pre-existing failures. With every task ticked or
+    struck through as a follow-up, set `status: implemented` in `spec.md`. The record merges with the
+    pull request, so the folder reads as built and nothing of this task is left to commit after it.
+    A change request gets its own gate-results block under its part, and sets `implemented` again.
+    Commit (`docs: record <slug> gate results`, or `… CR N gate results`).
 14. **Self-review**, then `/adf:review`. Don't push. Then the local check (`AGENTS.md` § Delivery rules):
     start the change on the local environment and walk every acceptance criterion yourself. Once it
-    works, run `/adf:open-pr`: it opens the draft and tells the developer where to test it.
+    works, run `/adf:open-pr`: it opens the draft and tells the developer where to test it. For a
+    change request on an open pull request, the push goes to the same draft, and `/adf:open-pr` keeps
+    its description current.
 
 ## Rationalizations (do not accept these)
 
@@ -100,12 +147,17 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | "The spec is approved in spirit — I'll start" | No `status: approved` and no `approvals:` line means no gate happened. Run `/adf:write-plan`'s gate first. |
 | "I'll write all the code, then the tests" | Then no test ever failed — and a test that never failed proves nothing. One red → green cycle per task. |
 | "The test failed with an import error — that counts as red" | Red means the assertion failed because the behavior is missing. Fix the scaffolding until it fails for the right reason. |
+| "The test passed first, but the typecheck fails until I make the change — that's my red" | A type error shows the code doesn't build, not that the behavior is missing. Keep the test as a pin: break the behavior on purpose and watch it fail. |
+| "I'll rerun the whole test file after each task, to be safe" | A file can hold a feature's every test. Run the task's tests by name, or their file when it runs in seconds; the feature suite runs once at the phase's end, and the full gate once before delivery. |
 | "I'll batch several tasks into one commit" | One task, one commit — that's what makes the history reviewable and each step revertible. |
-| "This file isn't in the change surface, but it's a tiny edit" | Change surface growth goes back to the developer. Tiny edits to shared code are how regressions ship. |
+| "This file isn't in the change surface, but it's a tiny edit" | Record it: `plan.md` in the same commit, and the pull request's description. Growth into risk — a new layer, a new dependency, an escalation trigger such as shared code — stops for the developer's re-confirmation. |
 | "The tests are too strict — I'll loosen them" | Tests are the contract. Fix the implementation; fix a test only when it's genuinely wrong, and say so. |
-| "I'll clean up this nearby code while I'm here" | Not in the spec, not in this branch. Refactoring is its own task or its own workflow. |
+| "I'll clean up this nearby code while I'm here" | Not in the spec, not in this branch. Report it and make it a follow-up — its own task, with its own review. |
+| "It's unrelated to this task, so I won't mention it" | An unrelated bug is still a bug. Report it with `file:line` and record the follow-up; the developer decides when. |
 | "I'll add this dependency to make it easier" | The plan didn't approve it. New dependencies need justification and re-confirmation. |
 | "All green — I'll push and open the PR" | Pushing is outward. Finish the gate results and review, then walk the change locally; that check is what opens the draft. |
+| "I'll set `implemented` once it merges — that's when it's really built" | The record merges with the pull request. Set after the merge, it needs a pull request of its own. |
+| "This doc can wait, so I'll leave its task open" | An open task keeps the status short of `implemented` past the merge. Write it now, or strike it through as a follow-up. |
 
 ## Red flags (stop and reassess)
 
@@ -118,19 +170,20 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 ## Verification
 
 - [ ] `status: approved` and an `approvals:` line existed before the first line of code
-- [ ] Every task went red (for the right reason) then green — a test-only task by breaking the behavior on purpose — and landed as its own commit (docs-first tasks share one)
-- [ ] Every task in `tasks.md` is ticked, or its absence is explained
-- [ ] All changes are inside the approved change surface — or the extension was re-confirmed
+- [ ] Every task went red (for the right reason) then green — a test-only task or a pin by breaking the behavior on purpose, never by a type error — and landed as its own commit (docs-first tasks share one)
+- [ ] Each task ran its own tests by name; each phase ran its feature suite once, at its end
+- [ ] Every task in `tasks.md` is ticked, or struck through as a follow-up with why, and `spec.md` reads `status: implemented`
+- [ ] Every change is inside the approved change surface, or recorded in `plan.md` and the pull request — and re-confirmed where it grew into risk
 - [ ] Every filled spec section (Security, Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment) is addressed
-- [ ] Committed docs match what was built; post-implementable docs written or listed
+- [ ] Committed docs match what was built; post-implementable docs written, or struck through as follow-ups
 - [ ] The full gate ran; `tasks.md` § Gate results records evidence and what was not run
 - [ ] Deployment needs (env vars, migrations, ordering) are listed for whoever ships it
-- [ ] Nothing was pushed
+- [ ] Nothing was pushed before the local check passed; the push and the draft are `/adf:open-pr`'s
 
 ## Principles
 
 - One task, one red → green cycle, one commit.
 - A test that never failed proves nothing.
-- The change surface is a contract; growing it is the developer's call.
+- The change surface is a contract; growth is recorded, and growth into risk is the developer's call.
 - Keep the plan and the docs true to what is built.
-- Evidence, not claims — and never outward actions unasked.
+- Evidence, not claims — and nothing leaves this machine before the local check.

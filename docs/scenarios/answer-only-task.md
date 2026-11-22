@@ -49,8 +49,8 @@ migration plan is the wrong deliverable, however thorough, because nobody has ap
    estimate states what it includes, what it excludes, and how confident it is. A recommendation
    says what would need approving.
 
-5. **Deliver it where the task asks.** Usually the tracker task: a write the requester sees, so the
-   developer sees the exact text first and it's posted only on their yes. A document in the
+5. **Deliver it where the task asks.** Usually the tracker task: an answer is the developer's to send, so
+   they see the exact text first and it's posted only on their yes. A document in the
    repository when the task asks for one: a `docs:` commit, and a draft pull request when asked.
 
 6. **If someone approves a recommended change**, it becomes a new task with its own triage — a new
@@ -67,6 +67,7 @@ Impact analysis and a rough estimate by Thursday."*
 Triage — Impact of switching email providers (https://tracker.example.com/t/MKT-530)
 - Deliverable: answer — impact analysis and a rough estimate, on the task
 - Kind: none yet — nothing is requested to change
+- Model: sonnet
 - Environment: none — the spec folder, the code, and the docs answer it
 - Spec folder: none. If marketing approves the move, it gets a spec (likely a CR on
   specs/007-newsletter-signup/) and an ADR superseding the provider decision
@@ -104,7 +105,7 @@ spec folder, no branch work.
 ## Commits it produces
 
 None. The answer lives on the tracker task, and `git status` is clean. (With the parallel-agents
-module, the worktree is removed with `worktree-rm.sh`.)
+module, an answer that only reads stays in the main checkout: there is no worktree to remove.)
 
 When the task asks for the analysis as a document in the repository, one commit:
 

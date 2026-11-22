@@ -78,7 +78,7 @@ for port in $duplicates; do
 done
 while IFS='|' read -r branch path; do
   [ -n "$path" ] || continue
-  printf '\n  !! %s is on %s. Give the task its branch after triage\n     (git branch -m <type>/<slug>, or git switch -c from a detached HEAD); if its work is done, archive\n     the session in the desktop app or git worktree remove it.\n' "$path" "$( [ "$branch" = "(detached)" ] && echo "a detached HEAD" || echo "a generated branch ($branch)")"
+  printf '\n  !! %s is on %s. Triage the task there, then /dispatch gives it a worktree of\n     its own on the branch triage names; never rename a generated branch — the app reuses that folder.\n     If its work is done, archive the session in the desktop app or git worktree remove it.\n' "$path" "$( [ "$branch" = "(detached)" ] && echo "a detached HEAD" || echo "a generated branch ($branch)")"
 done <<<"$unnamed"
 
 if [ -n "$INFO" ]; then

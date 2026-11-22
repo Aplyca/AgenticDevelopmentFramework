@@ -1,7 +1,9 @@
 ---
 name: context-audit
-description: Read-only audit of the agent-instruction and process files (AGENTS.md and nested ones, rules, constitution, CONTRIBUTING, PR template, decision indexes, hook and CI configuration) against the repository and against each other — stale commands and paths, claims the code doesn't back, contradictions between files, missing metadata. Reports findings; fixes nothing. Use monthly, after process changes or framework upgrades, and before onboarding someone.
+description: Read-only audit of the instruction and process files (AGENTS.md, rules, constitution, hook and CI configuration) against the repository and each other — stale commands, unbacked claims, contradictions; fixes nothing. Use monthly, after a process change or a framework upgrade, and before onboarding someone.
 argument-hint: "[file or directory to limit the audit to — default: everything]"
+context: fork
+model: sonnet
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/context-audit/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -33,6 +35,7 @@ agent tool, not only Claude Code.
    - `docs/CONSTITUTION.md`, `CONTRIBUTING.md`, `README.md`, `specs/README.md`
    - `.github/pull_request_template.md` (or the host's equivalent), CI workflows, git hooks
    - `docs/process/` and `docs/architecture/decisions/` indexes; `docs/reference/` pages
+   - spec folders (`specs/*/`) — only for the records check in Phase 4: they are records, not instructions
 
 ### Phase 2: Check each claim against the repository
 
@@ -45,8 +48,10 @@ agent tool, not only Claude Code.
    workflows themselves ("pre-push runs the unit tests" — does it?). Hook configuration
    (`PROTECTED_BRANCHES`, append-only paths) matches the documented branching and migration rules.
 5. **Enforcement claims** — statements like "CI must pass before merge" or "the branch is
-   protected": check what you can (with `gh`, read-only: `gh api repos/{owner}/{repo}/rulesets`). What
-   you can't check from here is reported as UNVERIFIED, never assumed.
+   protected": check what you can with the host's CLI, read-only —
+   `gh api repos/{owner}/{repo}/rulesets`, or on GitLab `glab api projects/:id/protected_branches`
+   and `glab api projects/:id` for `only_allow_merge_if_pipeline_succeeds`. What you can't check
+   from here is reported as UNVERIFIED, never assumed.
 6. **Versions and environment** — runtime versions in docs match the version files and manifests;
    environment variables in docs match the env template.
 
@@ -78,6 +83,11 @@ agent tool, not only Claude Code.
       a doc read on demand, behind a pointer that says *when* to read it ("Read `docs/X.md` before
       changing the payment flow"), not a bare "see X".
     - **Prohibitions without the target** — "don't do X" with no statement of what to do instead.
+    - **People in spec folders** — a person's name or handle attributing a decision (an `approvals:`
+      line, a clarification, a change request's *Requested* line, an assumption), or a quote or text
+      copied from the tracker, or a "the requester said…". Decisions name a role (requester,
+      developer, tech lead, legal); the `tracker:` link holds people's words (`specs/README.md` §
+      Records name roles). An agent such as `@adf:spec-analyzer` isn't a person.
 
 ### Phase 5: Report
 
@@ -91,8 +101,10 @@ agent tool, not only Claude Code.
     STALE          CONTRIBUTING.md:40 — `npm run e2e` no longer exists (now `npm run test:e2e`).
     UNVERIFIED     CONTRIBUTING.md:88 — "approvals are required"; host rulesets not readable here.
     HYGIENE        src/lib/AGENTS.md — no metadata header; lists folders that moved.
+    HYGIENE        specs/007-newsletter-signup/spec.md:9 — approvals line names a person; use the role
+                   ("2026-06-09 · tech lead · initial scope").
 
-    Summary: 1 contradiction, 1 false claim, 1 stale, 1 unverified, 1 hygiene.
+    Summary: 1 contradiction, 1 false claim, 1 stale, 1 unverified, 2 hygiene.
     ```
 
 13. **Offer the fix** as one `docs:` pull request — and a PDR when the fix changes a rule rather than
@@ -119,6 +131,7 @@ For a parallel sweep across many files, the user can run the `/adf:deep-context-
 ## Verification
 
 - [ ] Every file in scope was read; nested `AGENTS.md` files were included
+- [ ] Spec folders were swept for personal names and quoted tracker text
 - [ ] Commands, paths, behavior claims, enforcement claims, and versions were checked against the repository
 - [ ] Cross-file contradictions name the winning file and the wrong action it would cause
 - [ ] Claims that couldn't be checked are listed as UNVERIFIED

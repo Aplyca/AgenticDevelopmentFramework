@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Write the spec.md of a spec folder with the multi-perspective spec model — or amend a delivered feature's spec with a change request (CR) — clarifying ambiguities and enforcing required sections before planning. Use when starting a new feature or changing existing behavior; /adf:write-plan follows and holds the approval gate.
+description: Write a spec folder's spec.md with the multi-perspective spec model — or amend a delivered feature with a change request (CR) — clarifying ambiguities and enforcing the required sections. Use when starting a new feature or changing existing behavior; /adf:write-plan follows and holds the approval gate.
 argument-hint: "[feature description, tracker link, or spec folder to amend]"
 ---
 
@@ -32,7 +32,7 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 
    | Always required | Conditionally required | Common optional (ask) |
    |---|---|---|
-   | Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications | Accessibility (if `ui` or `mixed`), Privacy (if `personal-data: yes`) | Design, Performance, SEO, Analytics, Localization, Constraints & prior decisions, Observability, Deployment |
+   | Business, Functional, Out of scope, Security, Testing, Documentation, Clarifications | Accessibility (if `ui` or `mixed`), Privacy (if `personal-data: yes`), Documentation › Usage guide (if the spec has a `tracker:` task), Documentation › End-user docs (with the `end-user-docs` module) | Design, Performance, SEO, Analytics, Localization, Constraints & prior decisions, Observability, Deployment |
 
    For optional sections, ask which apply. Don't fill speculative sections — an absent optional
    section is a feature.
@@ -47,7 +47,7 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - **Performance / SEO / Analytics / Localization** — targets that differ from project defaults?
    - **Constraints & prior decisions** — business rules, compliance, existing ADRs or PDRs to respect?
    - **Testing** — anything beyond "every AC has a test" (accessibility scans, visual regression, manual passes)?
-   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)?
+   - **Documentation** — what is pre-implementable (admin guides, API contracts, copy defaults) vs post-implementable (runbooks, troubleshooting)? For a tracker task: will the requester use what it delivers — and so need a usage guide (Usage guide)? With the `end-user-docs` module in the stamp: does the feature change what end users see or do, and which page of the end-user doc covers it (End-user docs)?
    - **Observability / Deployment** — logs, metrics, alerts; env vars, migrations, rollout, rollback?
 
    **Ask in rounds** (`AGENTS.md` § Working economically). A round holds every question that doesn't
@@ -67,7 +67,8 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    use or ask which is meant; when a new domain term is settled, add it to the glossary in the same
    change.
 
-   Record every question and answer in **Clarifications**, with the date and who answered.
+   Record every question and answer in **Clarifications**, with the date and the role that answered
+   (requester, tech lead, legal) — in your own words, never a name or a quote.
 
 5. **Create the folder** on the work branch `<type>/<slug>` (create it from the base branch if you're
    on a protected one): `cp -r specs/_templates specs/NNN-<slug>` with the next free number and a
@@ -82,12 +83,24 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    WHAT and WHY only: no file paths, components, or code. A constraint on HOW goes in *Constraints &
    prior decisions*, with its reason; the design itself goes in `plan.md`.
 
-7. **Frontmatter:** `feature-type`, `personal-data`, `tracker:` (a **link** — never copy the task's
-   text into the spec; the tracker and the repository have different audiences and access),
+   **Roles, not names.** Every decision — a clarification, an approval, a change request — is dated
+   and attributed to a role (requester, developer, tech lead, legal), never to a person's name. No
+   quotes or text copied from the tracker, and no "the requester said…": state the decision in your
+   own words. The `tracker:` link is where people's words live, and git history holds who committed
+   what (`specs/README.md` § Records name roles).
+
+   **A feature split across spec folders** (a provider and its consumers): before the split, write
+   the shared interface — parameter names, accepted values, field IDs, endpoints — in *Constraints &
+   prior decisions* of both specs; the consumer names the provider's folder in `related-specs`, and
+   the provider names its consumers (`specs/README.md` § Granularity).
+
+7. **Frontmatter:** `feature-type`, `personal-data`, `tracker:` (a **link** — never copy or quote the
+   task's text or its comments into the spec; the tracker and the repository have different audiences
+   and access),
    `owners:` per filled section, `references:`. `status: draft`.
 
-8. **Change-request mode** — amending a delivered feature. Two weights (`specs/README.md` §
-   Change requests):
+8. **Change-request mode** — amending a delivered feature, or one whose pull request is still open
+   (feedback before the merge). Two weights (`specs/README.md` § Change requests):
    - **Light** — a precise adjustment the requester already decided, in the fast or careful lane:
      append `# CR N — <title> (YYYY-MM-DD) · light` with the request's link, the Delivered → Change
      row, and any acceptance criterion it adds or changes, tagged `(CR N)`. No plan or tasks part,
@@ -97,12 +110,15 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - **Find the delta.** Compare the request now against what the spec records as delivered, plus
      the tracker comments since the spec last changed (`git log -1 --format=%cs -- specs/NNN-<slug>/`).
      Trackers rarely keep a description's revision history; the spec is the snapshot of what was built.
-   - **Append a `CR N` section** (template at the end of `spec.md`): where it was requested and by
-     whom, the intent, and a Delivered → Change table.
+   - **Append a `CR N` section** (template at the end of `spec.md`): where it was requested (the
+     link) and by which role, the intent in your words, and a Delivered → Change table.
    - **Add new ACs** with new numbers tagged `(CR N)`; strike through the ones it retires — don't
      delete them. Update only the sections the change touches; add to Clarifications, don't replace.
-   - Set `status: in-review`. A fresh branch named after the feature and the change
-     (`feat/newsletter-signup-topics`), a new pull request, the same folder.
+   - Set `status: in-review`. After the merge: a fresh branch named after the feature and the change
+     (`feat/newsletter-signup-topics`), a new pull request, the same folder. **Before the merge** —
+     the pull request is still open: the same branch and the same draft; the status goes
+     `implemented` → `in-review` now, `approved` at the CR's gate, and back to `implemented` with its
+     gate results (`specs/README.md` § Before the merge). A light one changes no status, either way.
    - **If the delta can't be recovered** — no folder, or a description rewritten without a trace — say
      so and ask. Never reconstruct the old requirement from the code and present it as fact.
 
@@ -112,13 +128,21 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
    - [ ] Functional has at least one numbered acceptance criterion
    - [ ] Out of scope has at least one item, or says "nothing intentionally excluded for this iteration"
    - [ ] Security and Testing are filled
-   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable
+   - [ ] Documentation has **both** Pre-implementable and Post-implementable filled or Not applicable — Usage guide too, for a tracker task: its text, or Not applicable — and End-user docs when the stamp names `end-user-docs`
    - [ ] Clarifications exists (may be empty)
    - [ ] `feature-type: ui | mixed` → Accessibility filled; `personal-data: yes` → Privacy filled
 
    **If any is empty, refuse to hand off to planning.** Name the gaps and offer to walk through them.
    Also read the spec against `docs/CONSTITUTION.md`: flag any conflict, and don't proceed until it's
    resolved or an explicit exception is recorded in the spec.
+
+   **The usage guide is written now, with the spec** — for a tracker task whose requester will use
+   what it delivers: how they'll do it, step by step, in their terms and their language, as
+   *Documentation › Usage guide*. It's the requester's docs-first: approved with the spec at the
+   gate, then posted on the task as a draft (`/adf:stakeholder-update guide`), so they can say
+   "that's not how we'd use it" before the build. Nothing they'll use — a fix that restores what
+   worked, an internal change — is `Not applicable`, with the reason. With the `end-user-docs`
+   module, the doc tool's page is the guide: say so here, and fill End-user docs.
 
 10. **Requirements review (optional).** For client-facing work the requester may want to agree the
     ACs before planning: set `status: in-review` and offer to share them. Posting to the tracker is a
@@ -136,6 +160,8 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 | "The requirements are clear enough, I'll skip clarification" | Ambiguities always exist. Uncovered gaps leak into tests and code as bugs. |
 | "There's no task or written requirement, so I'll infer what they want" | Stop and ask. Plausible invented requirements are the failure this workflow exists to prevent. |
 | "I'll copy the tracker description in for completeness" | Link it. The spec lives in git with a different audience and access than the tracker. |
+| "Quoting the requester's comment is the most faithful record" | A quote copies the tracker into a repository with another audience, and a name outlives the role. State the decision in your words, attribute it to the role, and link the tracker. |
+| "The pull request is still open — I'll just edit the spec in place" | After the gate, a change is a change request, merged or not: a `CR N` section on the same branch, so the delta stays visible. |
 | "This change request is basically new — I'll start a new folder" | Splitting a feature's record destroys the before/after the delta is computed from. Amend the folder. |
 | "I'll reconstruct what was delivered by reading the code" | If the delta isn't recoverable from the spec and the thread, ask. A reconstruction presented as fact is an invented requirement. |
 | "I'll combine these into one acceptance criterion" | Each AC must be independently testable — and keeps its own number for tasks and tests to reference. |
@@ -149,13 +175,15 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 
 - [ ] Requirements came from the tracker task or the requester — none invented
 - [ ] Every acceptance criterion is numbered and testable by an automated test
-- [ ] Clarifications record every ambiguity resolved, with date and who
+- [ ] Clarifications record every ambiguity resolved, with date and role
+- [ ] No personal name and no quoted or copied tracker text anywhere in the folder — decisions are attributed to roles
 - [ ] Concepts use the glossary's terms; a newly settled domain term was added to `docs/GLOSSARY.md`
 - [ ] Edge cases cover empty states, error states, and boundaries
 - [ ] Out of scope excludes adjacent features explicitly
 - [ ] All always-required sections are filled; conditional ones filled or Not applicable with a reason
 - [ ] Frontmatter `feature-type`, `personal-data`, `tracker` (a link), and `owners` are set
-- [ ] For a change request: `CR N` section with the Delivered → Change table; new ACs tagged `(CR N)`
+- [ ] For a change request: `CR N` section with the Delivered → Change table; new ACs tagged `(CR N)`; before the merge, on the open branch and draft
+- [ ] For a split feature: the shared contract is in both specs, and `related-specs` links them
 - [ ] No conflict with `docs/CONSTITUTION.md`, or the conflict is explicitly resolved
 - [ ] Status is `draft` or `in-review` — `approved` is recorded only at `/adf:write-plan`'s gate, after the developer's explicit sign-off
 
@@ -163,6 +191,6 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 
 - WHAT and WHY here; HOW in `plan.md`.
 - Requirements come from people, never from plausible assumptions.
-- Link the tracker; don't copy it.
+- Link the tracker; don't copy or quote it. Decisions name roles, not people.
 - Delivered features are amended, never re-specified from scratch.
 - Empty optional sections are fine; empty required sections block planning.

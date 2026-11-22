@@ -4,7 +4,7 @@ Thanks for helping improve the framework. This repository is not an application 
 
 ## Ways to contribute
 
-- **Report a problem** — open an issue describing what you expected, what the AI or the template did instead, and which tool you used (Claude Code, Cursor, Copilot, Antigravity, …).
+- **Report a problem** — open an issue from the *Field report* template: what the AI or the template did, what you expected, and where you saw it (the release, the install, the modules, the tool — Claude Code, Cursor, Copilot, Antigravity, …). Ideas take the *Proposal* template. In a project that uses the framework, `/adf:framework-feedback` drafts either one in the framework's terms, checks it for anything that names the project, and posts it on your yes ([decision 0080](docs/decisions/0080-framework-feedback-from-adopting-projects.md)). Name the project nowhere: say "an adopting project".
 - **Improve the skeleton** — clearer rules, better skill instructions, missing spec sections, hooks, tool-compatibility fixes.
 - **Improve a module** — or propose a new one in `modules/` for harness that depends on a Git host, a stack or service, a specialty, or a way of working. A module's `module.json` names the plugin that carries its skills and agents — `adf` for the process, `adf-dev` for development ([decision 0023](docs/decisions/0023-plugins-by-concern.md)).
 - **Add worked material** — new playbooks in `docs/scenarios/` or end-to-end examples in `docs/examples/`.
@@ -14,8 +14,8 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 
 ## Ground rules
 
-1. **Keep `skeleton/` and `modules/*/files/` generic.** No project-specific stacks, paths, conventions, company names, or client names — a module may target a named public product (GitHub, ClickUp, Docker), never one project's setup. Agents and skills learn project context from the adopting repo's `AGENTS.md`, `CLAUDE.md`, and rules at runtime — never hardcode it.
-2. **Never include real client, customer, or internal project names** anywhere in the repository, including examples, commit messages, and PR descriptions. Use the fictional newsletter feature from `docs/examples/` when you need a concrete example.
+1. **Keep `skeleton/` and `modules/*/files/` generic.** No project-specific stacks, paths, conventions, company names, or client names — a module may target a named public product (GitHub, ClickUp, Docker), never one project's setup. Agents and skills learn project context from the adopting repo's `AGENTS.md` and rules at runtime — never hardcode it.
+2. **Never include real client, customer, or internal project names** anywhere in the repository, including examples, commit messages, PR descriptions, and issues — an issue's edit history keeps every version. Use the fictional newsletter feature from `docs/examples/` when you need a concrete example.
 3. **Preserve `<!-- CUSTOMIZE -->` markers** in customizable rules and templates; adopting teams rely on them to find what to tailor.
 4. **Write in the adopting project's voice** inside `skeleton/`. Files copied into a target repo shouldn't narrate "the framework"; that voice belongs in the root `docs/` only.
 5. **Keep always-loaded files lean.** `skeleton/AGENTS.md` and `skeleton/.claude/rules/claude-code.md` load on every turn in every adopting project, so prefer pointers to detail files over adding bulk there (the static checks fail `AGENTS.md` over 200 lines).
@@ -29,7 +29,7 @@ For anything larger than a focused fix, open an issue first so we can agree on t
 1. Fork the repository and create a branch from `main` (`feat/…`, `fix/…`, `docs/…`, `chore/…`).
 2. Make one logical change per pull request.
 3. **Add a `CHANGELOG.md` entry** under `Unreleased`. Adopting teams upgrade by reading it, so classify every skeleton file you touched against the three-bucket taxonomy in [`docs/UPGRADING.md`](docs/UPGRADING.md): *Overwrite*, *Merge*, or *Additive*. Mark changes that don't land in adopted repos as framework-internal.
-4. **Rebuild the plugins** if you changed a module's scripts or `module.json`, `plugins/adf/docs/SPEC-MODEL.md`, the checklist of an agent a workflow carries (`security-reviewer`, `ux-reviewer`), or a `plugin.json`: run `scripts/build-plugins.sh` and commit `plugins/` and `.claude-plugin/marketplace.json` with the change. Leave every plugin's `"version"` alone — it changes only in a release ([decision 0017](docs/decisions/0017-semantic-versioning.md)).
+4. **Rebuild the plugins** if you changed a module's scripts or `module.json`, `plugins/adf/docs/SPEC-MODEL.md`, the checklist of an agent or the steps of a skill a workflow carries (`security-reviewer`, `ux-reviewer`, `spec-drift`), `scripts/adf-upgrade.sh`, or a `plugin.json`: run `scripts/build-plugins.sh` and commit `plugins/` and `.claude-plugin/marketplace.json` with the change. Leave every plugin's `"version"` alone — it changes only in a release ([decision 0017](docs/decisions/0017-semantic-versioning.md)).
 5. Run the checks below.
 6. Open a pull request that explains what changed and *why*, and lists the checks you ran.
 
@@ -53,7 +53,7 @@ a bare `/triage`, a local `docs/` path, a Step 0 for the wrong name — fails, a
 `python3 scripts/build-committed.py --check` shows what it should read.
 
 Two parts are generated by `scripts/build-plugins.sh`: each plugin's `bin/` (the commands its modules
-list, built from the modules' scripts, decision 0027), and the lines in `adf`'s workflows that carry
+list, built from the modules' scripts, decision 0027, and `adf-upgrade`, a copy of `scripts/adf-upgrade.sh`, decision 0046), and the lines in `adf`'s workflows that carry
 the spec model, the agents' checklists, and the skills' steps (decisions 0019, 0029, and 0030). A plugin's `.generated` file lists the paths that are the script's; never edit those, change the source,
 run the script, and commit its output with the change.
 

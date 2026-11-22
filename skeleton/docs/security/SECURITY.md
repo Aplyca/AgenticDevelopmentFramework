@@ -79,7 +79,7 @@
 ## Dependency security
 
 - Review new dependencies before adding (maintained? known vulns? trusted?)
-- Run `[npm audit / pip audit / go vet]` in CI and before releases
+- Run `[npm audit / pip-audit / govulncheck]` in CI and before releases
 - Automated dependency updates via [e.g., Dependabot, Renovate]
 - Critical vulnerabilities block the CI pipeline
 

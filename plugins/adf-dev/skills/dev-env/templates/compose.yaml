@@ -10,6 +10,18 @@
 #   Docker picks a free host port each time the service starts (`make urls` shows it); set it to
 #   pin one.
 # - Images are pinned, and a service another one waits for has a healthcheck.
+# - A service with pages a person opens is labeled claude.browser: "true". While it runs, Claude
+#   Desktop's Browser lists it on a new tab (ops/docker/launch-json.sh).
+# - The checks and `make run` start the tools service, so the host needs Docker, git, and make and
+#   nothing else; dependencies live in volumes, never in the checkout.
+
+# The app's variables, in container form: the app's service, the tools, and the production build
+# all read them, from this one list (D6).
+x-app-environment: &app-environment
+  # CUSTOMIZE: every variable the app reads, in container form (service names, container ports)
+  REDIS_URL: redis://redis:6379
+  # A credential passes through from .env, e.g.
+  # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
 
 services:
   # CUSTOMIZE: the app — e.g. the newsletter site's web app
@@ -21,14 +33,73 @@ services:
     ports:
       # CUSTOMIZE: the port the app listens on inside the container
       - "127.0.0.1:${APP_PORT:-}:3000"
-    environment:
-      # CUSTOMIZE: every variable the app reads, in container form (service names, container ports)
-      REDIS_URL: redis://redis:6379
-      # A credential passes through from .env, e.g.
-      # MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY:-}
+    labels:
+      claude.browser: "true"
+    environment: *app-environment
     volumes:
-      # CUSTOMIZE: the source, for reloads — keep dependency and build folders out of the mount
+      # CUSTOMIZE: the source, for reloads — the dependencies are the volume below, and build
+      # folders stay out of the mount. The checkout and named volumes only, never the Docker socket
+      # or a path outside the checkout (D5).
       - .:/app
+      # This checkout's dependencies, which the tools service shares (D7). CUSTOMIZE: the folder the
+      # install writes — e.g. node_modules for the newsletter site's Node.js app
+      - deps:/app/node_modules
+    tmpfs:
+      # The worktrees nested in this checkout, hidden behind an empty folder: in the main checkout,
+      # this container reaches no other worktree's files or .env (D5)
+      - /app/.claude/worktrees
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # The tools: what make deps, test, lint, format, typecheck, and run start, one container per
+  # command, removed when it ends — the stack needn't be up (D6). The tools profile keeps `make up`
+  # from starting it. The checkout and named volumes only, never the Docker socket or a path outside
+  # the checkout (D5): `make run` runs any command here without a prompt. A tool that needs the
+  # Docker socket gets a service of its own, and its task an ask rule (D8).
+  tools:
+    profiles: [tools]
+    build:
+      context: .
+      dockerfile: ops/docker/web/Dockerfile
+      target: tools
+    environment:
+      # The app's variables, so a test or a migration reaches what the app does
+      <<: *app-environment
+      # CUSTOMIZE: point the package manager's cache at the shared volume — e.g. for npm:
+      # npm_config_cache: /cache
+    volumes:
+      # The whole checkout, where the app mounts it, so the checks see every file as it is on disk
+      - .:/app
+      - deps:/app/node_modules
+      - deps-cache:/cache
+    tmpfs:
+      # As in the app's service: no nested worktree (D5)
+      - /app/.claude/worktrees
+    depends_on:
+      # CUSTOMIZE: the backing services the tests reach. make deps, lint, format, and typecheck
+      # start none (--no-deps).
+      redis:
+        condition: service_healthy
+
+  # Optional: the app's production build, served beside the dev server by `make prod` only — the prod
+  # profile keeps `make up` from starting it. Delete it, with the prod task and the Dockerfile's prod
+  # stage, if the project has no production-like run.
+  web-prod:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: ops/docker/web/Dockerfile
+      target: prod
+    ports:
+      # CUSTOMIZE: the port the production server listens on inside the container
+      - "127.0.0.1:${APP_PROD_PORT:-}:3000"
+    labels:
+      claude.browser: "true"
+    environment:
+      # The app's variables. CUSTOMIZE: add what only the production build reads — no source mount:
+      # it serves what the image built
+      <<: *app-environment
     depends_on:
       redis:
         condition: service_healthy
@@ -49,3 +120,13 @@ services:
 
 volumes:
   redis-data:
+  # This checkout's dependencies (D7). The app mounts them, so `docker compose down -v` (make reset,
+  # a worktree's STOP_CMD) removes them with the checkout.
+  deps:
+  # The package manager's cache, which every checkout of this repository shares (D7). External, so
+  # no checkout's `docker compose down -v` removes it and none owns it; the tasks that start the
+  # tools create it first (ops/docker/Makefile's deps-cache), reading its name from here.
+  deps-cache:
+    external: true
+    # CUSTOMIZE: the repository's name
+    name: newsletter-deps-cache

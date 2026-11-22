@@ -1,7 +1,9 @@
 ---
 name: cost-report
-description: Report what Claude Code sessions on a project cost — calls, active time, context size, tokens, and estimated cost per session from Claude Code's local transcripts, with what Opus sessions would have cost on Sonnet — and flag the patterns that make sessions expensive (long context, pauses past the cache lifetime, browser loops, spec-heavy small changes). Use when asked how much agent work costs, why a session was expensive, or whether a change to the lanes or habits paid off.
+description: Report what Claude Code sessions on a project cost — calls, context, tokens, estimated cost, the Sonnet comparison — from the local transcripts, and flag what made them expensive. Use when asked what agent work costs, why a session was expensive, or whether a change to the lanes or habits paid off.
 argument-hint: "[project path — default: this repository] [--days N] [--siblings]"
+context: fork
+model: sonnet
 ---
 
 # Cost report
@@ -18,26 +20,34 @@ stays local: the script reads `~/.claude/projects/` and prints a report; nothing
    python3 <this skill's base directory>/session_cost.py <project path> --days 30
    ```
 
-   - `--siblings` also counts sibling worktrees (`../<type>-<slug>`, from the parallel-agents
-     module); worktrees under `.claude/worktrees/` are always included.
+   - Worktrees under `.claude/worktrees/` are always included. `--siblings` also counts the folders
+     beside the project, where the parallel-agents module put its worktrees before decision 0083.
    - `--days 0` reads every session; `--top N` lists more; `--json` gives every session's numbers.
 
 2. **Present the result:** totals, the most expensive sessions, the size bands, the model line, and
    the flags.
 
-3. **Explain the drivers** with the cost model — `docs/COST-MODEL.md` in a committed project, the
-   plugin's `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` in a packaged one:
+3. **Explain the drivers.** The lines below are enough for the report; open the cost model
+   (`docs/COST-MODEL.md` in a committed project, the plugin's
+   `${CLAUDE_PLUGIN_ROOT}/docs/COST-MODEL.md` in a packaged one) only when the developer asks why a
+   price or ratio is what it is:
    - **Calls × context** — cost grows with the number of steps and with how much each step re-reads.
    - **The model** — the `on sonnet` column re-prices an Opus or Fable session's tokens at Sonnet's
      prices. Where the session's work had a clear spec and a way to check it — the fast and careful
      lanes, bug fixes, reviews, an approved plan — Sonnet fits: pick it in the desktop app's model
      picker or with `/model`, since the picker overrides the project's `"model"` setting. Cache reads
-     cost the same on both, so in long sessions the context is as large a lever.
+     cost the same on Sonnet, Opus 5.5, and Fable 5.2 — not on older Opus or Fable — so in long
+     sessions on those the context is as large a lever.
    - **`long-context`** — one task per session, `/clear` between tasks; a 1M-context model lets
-     routine sessions grow far past what they need.
+     routine sessions grow far past what they need. Check that `.claude/settings.json` caps them
+     with `"autoCompactWindow"` (the skeleton sets 300000).
    - **`pauses`** — each wait longer than the cache lifetime wrote the whole context again; batch
-     questions into one message.
-   - **`browser`** — agent browser loops; prefer tests and leave visual QC to the human check.
+     questions into one message. The lifetime is 5 minutes, or an hour where Claude Code used the
+     longer cache (a subscription's main conversation) — whose writes cost twice the input price.
+   - **Forked, resumed, or moved sessions** — a call copied into a later transcript counts once, in
+     the session that made it.
+   - **`browser`** — agent browser loops; walk the changed flow once locally and once on the
+     preview, and let tests cover the rest.
    - **`spec-heavy`** — a small change with more spec edits than code edits: was the full lane
      needed, or was it a fast-lane change with a light change request?
 

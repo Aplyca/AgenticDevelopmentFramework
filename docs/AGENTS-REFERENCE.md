@@ -9,8 +9,8 @@ For the routing decision (skill vs agent vs workflow), see **Skills, agents, and
 | Agent | Purpose | Tool access | Model tier |
 |---|---|---|---|
 | `@spec-writer` | Drafts or amends a spec folder's `spec.md` from business requirements using the multi-perspective spec model, including change-request (`CR N`) amendments | Read + Write | Sonnet |
-| `@spec-analyzer` | Adversarial pre-gate analysis of a spec folder: ACs without tasks or tests, change-surface gaps found in the code, constitution conflicts, contradictions, unstated assumptions, invented requirements. Returns a readiness verdict | Read-only | Opus |
-| `@code-reviewer` | Reviews code for quality, conventions (including the comments rule), change-surface compliance, and test evidence against the spec folder | Read-only | Sonnet |
+| `@spec-analyzer` | Adversarial pre-gate analysis of a spec folder: ACs without tasks or tests, change-surface gaps found in the code, contract changes a consumer spec relies on, constitution conflicts, contradictions, unstated assumptions, invented requirements, personal names or quoted tracker text. Returns a readiness verdict | Read-only | Opus |
+| `@code-reviewer` | Reviews code for quality, conventions (including the comments rule), change-surface compliance, and test evidence against the spec folder; lists what it notices outside the diff apart (`[outside]`) | Read-only | Sonnet |
 | `@security-reviewer` | Audits for injection, credential exposure, loosened authorization, unsafe data handling, and OWASP-style issues | Read-only | Sonnet |
 | `@test-runner` | Writes the tests a spec folder's tasks name, runs them red for the right reason before the code exists and green after, and reports the evidence for the gate results | Full edit + Bash | Sonnet |
 | `@architect` | Reviews a plan's architecture, change surface, data flow, component boundaries, and system design | Read-only | Opus |

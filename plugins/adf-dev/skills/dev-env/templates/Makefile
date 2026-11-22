@@ -11,6 +11,9 @@ COMPOSE ?= docker compose
 DEFAULT_MODE = docker
 # CUSTOMIZE: the app's Compose service
 APP ?= web
+# Lists the web services that run now in Claude Desktop's Browser (P8): each mode runs it once a
+# task starts or stops one. ops/native/native.sh runs it too, for the app on the host.
+LAUNCH_JSON = APP='$(APP)' COMPOSE='$(COMPOSE)' ops/docker/launch-json.sh
 
 # One setting from .env, unquoted and without a trailing comment; empty when it isn't there. A
 # setting given on the command line or in the shell wins over it.
