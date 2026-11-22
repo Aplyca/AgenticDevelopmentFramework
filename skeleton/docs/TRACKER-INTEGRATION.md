@@ -73,7 +73,11 @@ folders; one spec folder is one feature.
   developer makes the edit in the tracker.
 - **Move the status on your own, at three moments** — in progress when work starts, in review once
   the pull request is ready, delivered once the change is live or the answer is given
-  (§ Stakeholder updates). Forward only, one line to say so. **The statuses between review and
+  (§ Stakeholder updates). Use the task's own status that § Stakeholder updates maps to the moment —
+  one it lacks is a question, never a guess; on issues, a label, and delivered closes the issue
+  (§ Issues as the tracker). Forward
+  only, one line to say so. **The status alone, in a call of its own:** any other field in the same
+  call brings the permission prompt back (§ Permissions: reads allowed, writes asked). **The statuses between review and
   delivered — quality control, acceptance testing, release — are the developer's:** never move a
   task to one, or back from one.
 - **Confirm before changing any other task state** — assignee, priority, due date, time entries.

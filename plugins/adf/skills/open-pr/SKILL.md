@@ -212,12 +212,10 @@ and skip the steps below.
 9. **Update the tracker task** — a ClickUp task, a GitHub or GitLab issue — once the pull request
    is ready. A draft that stays one leaves the task where it is, with no review update.
    - **The status:** move the task to the project's review status on your own — no yes needed, and
-     no skill to load. Use the status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to
-     the moment, from the task's own statuses (one it lacks is a question; on issues it's a label,
-     § Issues as the tracker), written as its § Rules for agents says — through the project's
-     tracker tool, as the developer, and read back; forward only; the status alone, in a call of
-     its own: any other field in the same call brings the permission prompt back. The task the
-     developer handed this session is theirs to move, assigned to them or not. One line says so.
+     no skill to load — as `docs/TRACKER-INTEGRATION.md` § Rules for agents says: the task's own
+     status for the moment, through the project's tracker tool, read back,
+     forward only; the status alone, in a call of its own. The task the developer handed this session is theirs to move,
+     assigned to them or not. One line says so.
    - **The review update** (`/adf:stakeholder-update review`): the business outcome, for the
      requester — what changes for them, the preview and what to test there — with the pull request
      link for reference, which relates the two. It posts on its own, and the report shows its text

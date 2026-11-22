@@ -17,6 +17,36 @@ how a team runs its agents — useful, proven in real projects, but not universa
 | [`time-tracking/`](time-tracking/MODULE.md) | `docs/TIME-TRACKING.md`, the project's settings, and the `/track-time` skill — one tracker time entry per outcome of a task (a milestone, a completed task, value delivered), in whole units: the AI-assisted time (the sessions, measured, plus the work outside them, estimated), a senior developer's estimate without AI, or a midpoint set by the activities, as the developer picks. Packaged, the skill comes with `adf` | The team measures the time its tasks take, as an internal productivity measure |
 | [`end-user-docs/`](end-user-docs/MODULE.md) | `docs/END-USER-DOCS.md`, the project's settings, and the `/end-user-docs` skill — a feature's end-user page, written in the doc tool end users read and never in the repository: drafted before implementation where end users can't see it, published once the feature ships, each page on the developer's yes. Packaged, the skill comes with `adf` | Stakeholders (users, editors, administrators) read the system's guides in a doc tool — ClickUp Docs, Confluence, Notion |
 
+## Recommending a module
+
+`/adopt` and `/upgrade` offer the modules a project doesn't have, from this list — recommending each
+one the repository's facts support, saying why it fits and what it costs. The developer chooses.
+
+- **`github`** — the repository is on GitHub (`origin`'s URL).
+- **`gitlab`** — it's on GitLab, GitLab.com or self-managed (`origin`'s URL, a `.gitlab-ci.yml`); an
+  existing `.gitlab-ci.yml` takes the module's three blocks as a merge.
+- **`git-hooks`** — the team wants local gates that every git client runs.
+- **`clickup`** — requirements arrive as ClickUp tasks: `app.clickup.com` links in pull requests,
+  commits, or the README, or a `clickup` server in `.mcp.json`.
+- **`parallel-agents`** — whenever several agent sessions may work on the repository at once: each
+  task gets its own worktree, branch, pull request, and session, and the main checkout takes no edits.
+  Ports and start commands only where each worktree runs a server.
+- **`docker`** — the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the team
+  wants a containerized local environment. A `.devcontainer/` alone is worth mentioning, not
+  recommending.
+- **`e2e`** — people use the app in a browser. An existing suite (`playwright.config.*`, `cypress/`)
+  is good evidence; with `docker`, it runs in Docker.
+- **`unit`** — a JavaScript or TypeScript app. An existing runner (`jest.config.*`,
+  `vitest.config.*`) is evidence. Recommend it with `e2e` for an app with a browser: they share the
+  tiers.
+- **`time-tracking`** — only when the team says it measures the time its tasks take. Without the
+  module, the project never sees it.
+- **`end-user-docs`** — the product's end users read its documentation in a doc tool (ClickUp Docs,
+  Confluence, Notion). The doc tool needs its MCP server — `clickup` for ClickUp Docs.
+
+The `adf-connect` plugin is offered the same way when the project works with a tracker other than
+ClickUp or GitHub or GitLab issues (Jira, Linear), or with services agents should read.
+
 ## Installing a module
 
 Each module has a `MODULE.md` (what it adds, prerequisites, how to customize — not copied) and a

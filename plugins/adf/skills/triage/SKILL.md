@@ -128,12 +128,10 @@ not a research project.
 
    **A tracker task — a ClickUp task, a GitHub or GitLab issue — gets its started update.** First
    the status: move the task to the project's in-progress status now, on your own — no yes needed,
-   and no skill to load. Use the status `docs/TRACKER-INTEGRATION.md` § Stakeholder updates maps to
-   the moment, from the task's own statuses (one it lacks is a question; on issues it's a label,
-   § Issues as the tracker), written as its § Rules for agents says — through the project's tracker
-   tool, as the developer, and read back; forward only; the status alone, in a call of its own:
-   any other field in the same call brings the permission prompt back. The task the developer
-   handed this session is theirs to move, assigned to them or not. One line says so. With no
+   and no skill to load — as `docs/TRACKER-INTEGRATION.md` § Rules for agents says: the task's own
+   status for the moment, through the project's tracker tool, read back,
+   forward only; the status alone, in a call of its own. The task the developer handed this session is theirs to move,
+   assigned to them or not. One line says so. With no
    tracker tool, or only one built into the host app, you can't write: open your message with the
    status for the developer to set. Then a message (`/adf:stakeholder-update started`), only when
    it's worth the requester's time — what you understood and will deliver, the questions only they

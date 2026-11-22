@@ -438,11 +438,9 @@ under a name of its own, or goes upstream as a change to the framework.
 ### "We adopted before the modules existed"
 
 Your stamp has no `modules:` part, so nothing optional was installed. `/upgrade` lists the modules
-you don't have and recommends the ones your repository's facts support — `parallel-agents` when
-several agent sessions may work at once (each task gets its own worktree, branch, pull request, and
-session; the main checkout takes no edits), `clickup` when requirements arrive as ClickUp tasks,
-`docker` when the local stack runs on Docker Compose, `e2e` when people use the app in a browser, `unit` for a JavaScript or TypeScript app's unit and integration tests, `time-tracking` when the team measures the time its tasks take, `end-user-docs` when end users read the product's documentation in a doc tool, `github` on GitHub, `gitlab` on GitLab, `git-hooks` for local
-gates. The ones you choose join the same upgrade pull
+you don't have and recommends the ones your repository's facts support
+([`modules/README.md`](../modules/README.md) § Recommending a module). The ones you choose join the
+same upgrade pull
 request, with their customize steps. Choosing `parallel-agents` moves the upgrade itself into a
 worktree, so the main checkout stays clean from the start. By hand: `cp -Rn modules/<name>/files/.` (no
 overwrite) and follow its `MODULE.md`.

@@ -153,57 +153,19 @@ Present the table before going further. Wrong facts here poison every file downs
   they agree.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
   common case — delete `evals/`.
-- **Offer the modules** (`modules/README.md`), recommending from the facts:
-  - `github` — when the repo is on GitHub
-  - `gitlab` — when the repo is on GitLab, GitLab.com or self-managed (`origin`'s URL, a
-    `.gitlab-ci.yml`): the same harness as `github`, with its gates as a CI include
-  - `git-hooks` — when the team wants local gates for every git client
-  - `clickup` — when requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests,
-    commits, or the README are good evidence)
-  - `parallel-agents` — recommend it whenever several agent sessions may work on the repository at once: each task gets its own worktree, branch, pull request, and session, and the main checkout takes no edits: the session that takes a task moves to its worktree with `/dispatch` (ports and start commands only if each worktree runs a server)
-  - `docker` — when the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the
-    team wants a containerized local environment: `/dev-env` writes the stack from its templates or
-    moves an existing one to the conventions (`compose.yaml` and a `Makefile` at the root, `ops/`,
-    ports Docker picks, decision 0032), runs the app natively, gives each worktree its own stack with
-    `parallel-agents`, and diagnoses or resets it; docker and make commands run without a prompt. A
-    `.devcontainer/` alone is worth mentioning, not recommending
-  - `e2e` — when people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in
-    `e2e/` to the specification it carries, run with `make e2e` and `make smoke` against the
-    checkout's own stack, with one smoke test per critical flow (decision 0037). An existing suite
-    (`playwright.config.*`, `cypress/`) is good evidence; with `docker`, it runs in Docker
-  - `unit` — for a JavaScript or TypeScript app: `/unit` sets up Vitest unit and integration
-    tests to the specification it carries, run by tier (`@smoke`, `@critical`, regression) and by
-    feature suite (a folder per feature, listed in `docs/TEST-SUITES.md`), the same tiers the `e2e`
-    module's suite uses (decision 0058). An existing runner (`jest.config.*`, `vitest.config.*`) is
-    evidence. Recommend it with `e2e` for an app with a browser
-  - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time`
-    logs each outcome of a task in the tracker, in whole units, as the AI-assisted time, a senior
-    developer's estimate without AI, or a midpoint (decisions 0043, 0092). Without the module, the
-    project never sees it
-  - `end-user-docs` — when the product's end users read its documentation in a doc tool (ClickUp
-    Docs, Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
-    implementation, where end users can't see it, and publishes it once the feature ships (decision
-    0048). The doc tool needs its MCP server — `clickup` for ClickUp Docs
-  Install each chosen one with `cp -Rn modules/<name>/files/. <repo>/` — `-n` overwrites nothing;
-  merge by hand each of the module's files that already existed —
-  except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
-  `modules/clickup/install.sh <repo>`. `gitlab` copies, and merges into an existing `.gitlab-ci.yml`
-  the three blocks its `MODULE.md` § Install names. `docker` has no files to copy: `modules/docker/install.sh <repo>`
-  merges its permission rules into `.claude/settings.json`, and `/dev-env set up` writes the stack;
-  `e2e` has none either: `modules/e2e/install.sh <repo>` merges its rules, and `/e2e set up` writes
-  the suite; likewise `unit`: `modules/unit/install.sh <repo>`, and `/unit set up`. Run `docker`'s
-  installer before theirs: with its rules in place, they leave out the commands that run tests on
-  the host.
-  A module's skills are its plugin's: `<framework-root>/modules/<name>/module.json` names the plugin
-  and the skills (decision 0023) — `adf` for the process (`/dispatch`, decision 0020; `/track-time`, decision 0043; `/end-user-docs`, decision 0048), `adf-dev` for
-  development (`docker`'s `/dev-env`, `e2e`'s `/e2e`, `unit`'s `/unit`). A committed install writes them with `build-committed.py`
-  above and leaves that plugin off. **Turn on the plugin that carries a module** in a packaged
-  install when it isn't `adf`, once however many of its modules the project has: `"<plugin>@aplyca": true` in
-  `enabledPlugins`, and `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`.
-  Packaged, too: leave out the scripts the pinned release's plugin carries as commands — the
-  `commands` in `module.json`, in `<framework-root>/plugins/adf/bin/` (decision 0027). For
-  `parallel-agents`, that's every file in `ops/agent/` but `worktree.conf`, which stays: it's the
-  project's settings, and what shows the module is installed.
+- **Offer the modules** by `<framework-root>/modules/README.md` § Recommending a module: recommend
+  each one the facts support, with why it fits and what it costs; the developer chooses. Install each
+  chosen one as its § Installing a module says: `cp -Rn modules/<name>/files/. <repo>/`, then merge
+  by hand each of the module's files that already existed; `clickup` by `modules/clickup/install.sh`;
+  `docker`, `e2e`, and `unit` by their installers (`modules/docker/install.sh`,
+  `modules/e2e/install.sh`, `modules/unit/install.sh`), `docker`'s first. Their `set up` runs are
+  follow-ups (Step 7).
+  **Turn on the plugin that carries a module** in a packaged install when it isn't `adf` — its
+  `module.json` names it (§ Modules and plugins): `"<plugin>@aplyca": true` in `enabledPlugins` and
+  `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`, once however many of its
+  modules the project has; and leave out the scripts it carries as commands — for `parallel-agents`,
+  every file in `ops/agent/` but `worktree.conf`, the project's settings. A committed install writes
+  the skills with `build-committed.py` above and leaves that plugin off.
 - **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than ClickUp or GitHub or
   GitLab issues (Jira, Linear), or connected services: turn on `"adf-connect@aplyca": true` in
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
