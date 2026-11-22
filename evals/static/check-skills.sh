@@ -776,6 +776,7 @@ check_practices() {
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'One entry per outcome' || missing+=("/track-time: one entry per outcome, not per session or day (0092)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'no half units, no decimals, no minutes' || missing+=("/track-time: every time shown or written is a whole unit (0092)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'The unit is one hour, in every project' && ! file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^- \*\*Unit:\*\*' || missing+=("/track-time: the unit is one hour, not a setting (0094)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'Set the midpoint' || missing+=("/track-time: a midpoint between the AI-assisted time and the manual estimate, set by activity (0092)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '\| Activity \| Evidence it looks for \| Midpoint \|' || missing+=("time-tracking module: § Activities says where each activity's midpoint sits (0092)")
     file_contains "$SKILLS_DIR/wrap-up/modules.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")

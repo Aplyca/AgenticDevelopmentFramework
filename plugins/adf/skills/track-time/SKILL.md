@@ -23,9 +23,10 @@ it found, settled, or unblocked. An outcome that took three days is one entry; t
 afternoon are two.
 
 The numbers are **ballpark figures in whole units, rounded up**, resting on the activities actually
-worked on — not a timesheet counted by the minute. **Every time the draft shows and every entry
-carries is a whole number of units:** no half units, no decimals, no minutes. The developer picks one number per entry, and only
-what they approve is written. **The time tracking tool is the only record:** nothing about the time
+worked on — not a timesheet counted by the minute. **The unit is one hour, in every project:** it
+isn't a setting, so every team's entries compare. **Every time the draft shows and every entry
+carries is a whole number of units:** no half units, no decimals, no minutes — never a half hour.
+The developer picks one number per entry, and only what they approve is written. **The time tracking tool is the only record:** nothing about the time
 goes into the repository, the spec folder, the pull request, or a memory. The tool also tells the
 skill what's already logged, so it can run at each milestone without logging an outcome twice.
 
@@ -34,7 +35,7 @@ skill what's already logged, so it can run at each milestone without logging an 
 1. **Check the module.** Read the stamp on the first line of `AGENTS.md` (`head -1 AGENTS.md`).
    Unless its `modules:` list names `time-tracking`, say "this project doesn't track time — the
    time-tracking module isn't installed" and stop: offer nothing, draft nothing. Then read
-   `docs/TIME-TRACKING.md`: the unit, how time entries are read and written, the labels, the
+   `docs/TIME-TRACKING.md`: how time entries are read and written, the labels, the
    activities with their evidence and where each one's midpoint sits, and any convention for the
    descriptions. Placeholders left in it are questions for the developer before going on.
 
@@ -124,7 +125,7 @@ skill what's already logged, so it can run at each milestone without logging an 
 
 8. **Round and build the entries.** One entry per outcome:
    - **The numbers:** each is the outcome's total in whole units, rounded up: an outcome with 1h 10m
-     in the sessions and an hour of estimated review is 3 units at one hour (2h 10m → 3). The
+     in the sessions and an hour of estimated review is 3 hours (2h 10m → 3h). The
      midpoint is the sum of its activities' midpoints, rounded up once: halfway between 3h and 8h is
      6h, not 5.5h. Every number is a whole unit: never a half unit, a decimal, or minutes.
    - **The description** — what the entry says in the tracker: what the outcome delivered, in
@@ -170,6 +171,7 @@ skill what's already logged, so it can run at each milestone without logging an 
 | "Each commit or session is an outcome" | A commit and a session are steps. An outcome is what the people the task serves recognize as done or settled. |
 | "The midpoint is the average of the two totals" | It's set activity by activity: a meeting stays as spent, debugging sits nearer the manual estimate, routine code nearer the AI-assisted time. |
 | "1h 10m is closer to 1 than to 2" | Numbers round up to a whole unit. A ballpark that rounds down undercounts every outcome. |
+| "The project's docs set the unit to 30 minutes, so I'll use half hours" | The unit is one hour in every project. Round up to whole hours, and say the setting is no longer read. |
 | "I'll log the estimate to the minute, to be precise" | The measure is a ballpark in whole units. Minutes suggest a precision the estimate doesn't have. |
 | "The midpoint of 3h and 8h is 5.5h, so I'll show that" | Every time is a whole unit, rounded up: 6h. A half unit or a decimal is never shown or written. |
 | "An edited value of 2.5h is what the developer meant" | Round it up to 3h and say so, or ask. The tracker gets whole units only. |

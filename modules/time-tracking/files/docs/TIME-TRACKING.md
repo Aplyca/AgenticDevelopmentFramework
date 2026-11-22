@@ -5,7 +5,7 @@
 The team logs the time its tasks take as an internal productivity measure. `/track-time` drafts a
 task's entries, one per outcome — a milestone reached, a completed task of the plan, value delivered,
 or what an investigation found or settled — never one per session or day. Each entry has three
-numbers in whole units:
+numbers in whole hours, rounded up — never a half hour, a decimal, or minutes:
 
 - **AI-assisted** — the time actually spent: the task's Claude Code sessions, measured, plus the work
   done outside them, estimated.
@@ -22,8 +22,6 @@ goes into the repository, the spec folders, or the pull requests.
 
 <!-- CUSTOMIZE: fill these in. -->
 
-- **Unit:** [1 hour] — every number is a whole number of units, rounded up: no half units, decimals,
-  or minutes.
 - **Time entries:** [how to read and write a task's time entries with the tracker's tools — e.g. the
   time-tracking tools listed by `/mcp`; each entry has a start, a duration, and a description]
 - **Labels:** [what marks the number an entry carries — e.g. the tag `ai-assisted` for the time spent,
