@@ -225,8 +225,9 @@ fill("AGENTS.md", [
     ("[existing migrations in `db/migrations/`]", "existing migrations in `db/migrations/`"),
     ("[`main`]", "`main`"), ("[`.env.example`]", "`.env.example`"),
     ("- Install: `[command]`", "- Install: `pnpm install`"),
-    ("- Dev server: `[command]` (port [XXXX])", "- Dev server: `pnpm dev` (port 3000)"),
-    ("- Tests: `[command]` (port [YYYY])", "- Tests: `pnpm test`"),
+    ("- Dev server: `[command, e.g. make up]` · stop (keeps containers and data): `[command, e.g. make stop]` · down (removes containers; data stays): `[command, e.g. make down]` · where it runs: `[command, e.g. make urls]`",
+     "- Dev server: `pnpm dev` (port 3000) · stop (keeps containers and data): Ctrl-C, or end its background command · down (removes containers; data stays): nothing to remove · where it runs: http://localhost:3000"),
+    ("- Tests: `[command]` (on their own port)", "- Tests: `pnpm test`"),
     ("- Lint: `[command]` · one file: `[e.g. npm run lint -- <file> — or \"none\"]` · Typecheck: `[command]`", "- Lint: `pnpm lint` · Typecheck: `pnpm typecheck`"),
     ("- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `[command]`", "- Full gate — every test layer this environment can run, lint, and typecheck, once before a pull request: `pnpm lint && pnpm typecheck && pnpm test`"),
 ])
