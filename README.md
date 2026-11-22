@@ -181,14 +181,14 @@ Updates are deliberate: `/adf:upgrade` moves a project from one release to the n
 pull request and keeps its customizations. Read the **Upgrade impact** of each release in
 [CHANGELOG.md](CHANGELOG.md) first. From v1.0.0, releases follow semantic versioning ([decision
 0017](docs/decisions/0017-semantic-versioning.md)), so a major release asks something of your team.
-The latest, **v2.11.0** (2026-11-21), is a minor release: four skills run a prose pass on what they
-draft for readers outside the team; after an upgrade, each machine adds the marketplace again at the
-new pin, so the release reaches every machine; and the Claude Code rule leaves the one-file test and
-lint commands to `AGENTS.md` § Quick reference. **v2.10.1** (2026-11-19), a patch release: no hook
-decides `make run`, so a chained or quoted `make run` line follows the session's permission mode,
-and in native mode its command runs on the host without a prompt unless the project adds
-`Bash(make run *)` to `permissions.ask`; reading `git config`, a release, or the secrets' names runs
-without a prompt. This README describes `main`: what has landed
+The latest, **v2.12.0** (2026-11-22), is a minor release from a review of the whole framework: each
+step has one owner — `/review` runs once, inside `/open-pr`, and a fast-lane commit carries its test
+evidence; the hooks stop only where the risk is and stay silent on what they can't read; each rule is
+stated once; the largest skills read only what a run needs; and a time entry is an outcome, in whole
+hours. **v2.11.0** (2026-11-21), a minor release: four skills run a prose pass on what they draft for
+readers outside the team; after an upgrade, each machine adds the marketplace again at the new pin,
+so the release reaches every machine; and the Claude Code rule leaves the one-file test and lint
+commands to `AGENTS.md` § Quick reference. This README describes `main`: what has landed
 since the latest release is under **Unreleased** in the changelog, and reaches projects with the next
 one.
 

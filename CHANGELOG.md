@@ -11,6 +11,75 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.12.0 — 2026-11-22 — Each step has one owner, and the hooks stop only where the risk is
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. It brings the fixes from a review of the whole framework. Some behaviors change on
+upgrade:
+- `/adf:open-pr` runs `/adf:review` once, after the local check.
+- A fast- or careful-lane commit carries its test evidence in its body.
+- Skills state their plans and go on, instead of waiting for a yes.
+- The hooks stay silent on what they can't read, and the careful-lane reminder covers CI and Claude
+  Code's own settings by default.
+- A time entry is an outcome, in whole hours.
+
+- **Each step has one owner** (0095). Review runs once, and the lane moves for risk, not for a diff
+  past its stated files. `/adf:review` runs the careful-lane checklist and `@adf:security-reviewer`.
+  `/adf:spec-workflow` routes instead of copying the flow, and the always-loaded files have a
+  character budget.
+- **The hooks stop only where the risk is** (0096). `guard-git` is silent on a folder or a
+  `git config` form it can't read, unless the form names `core.hooksPath`. Other hooks narrow too:
+  - `triage-first` looks only at project files and real commands;
+  - `careful-paths` passes once the replies name careful or full;
+  - `check-env-declared` checks only the names an edit wrote;
+  - `auth status` runs without a prompt.
+
+  Protected branches are globs, and `CAREFUL_GLOBS` ships with defaults.
+- **Install and upgrade fixes:**
+  - module files never overwrite the project's (`cp -Rn`);
+  - the upgrade's dry run lists what the real run would refuse, the docker installer runs first, and
+    the scripted steps run in an order that works;
+  - the newest release is found by version;
+  - adoption follow-ups reach `/adf:wrap-up`;
+  - each module verifies itself.
+- **One home for each rule:** "ready", the tracker's no-yes list, the status moves, and the module
+  recommendations are each stated once. The full gate's loop in `/adf:open-pr` is fixed. "Gate" has
+  one meaning at a time. The Cursor rules carry the safety rules, and three agents point to the
+  skills they follow.
+- **Less text per run:**
+  - a dev-env `diagnose` reads about 3,000 words instead of 10,400;
+  - an upgrade reads about 5,000 instead of 10,000;
+  - `/adf:open-pr` is 15% shorter, and track-time, wrap-up, and stakeholder-update are trimmed.
+- **Time entries are outcomes, with a midpoint, in whole hours** (0092, 0094).
+- **Sonnet 5.5's cache reads cost $0.10,** and a static check ties the cost prose to
+  `session_cost.py`.
+
+**Upgrading from v2.11.0:**
+
+1. **Run `/adf:upgrade`.** One draft pull request moves the pin to `v2.12.0` and merges the changed
+   lines the entries below list:
+   - `AGENTS.md`;
+   - `.claude/rules/claude-code.md`, `git-workflow.md`, and `architecture.md`;
+   - `.claude/settings.json` — the `gh auth` and `glab auth` ask rules;
+   - `.claude/hooks/config.sh` — the `CAREFUL_GLOBS` defaults;
+   - `CONTRIBUTING.md`, `docs/TRACKER-INTEGRATION.md`, and `specs/README.md`;
+   - with `time-tracking`, the Unit line goes from `docs/TIME-TRACKING.md`;
+   - with `git-hooks`, `.githooks/pre-push`.
+
+   The Cursor rules are overwritten, and `git-workflow.mdc` is new. In a committed install, it also
+   writes the skills, agents, workflows, and hook scripts.
+2. **After the merge, run the upgrade report's commands on each machine,** from the project's
+   folder. They add the marketplace at `v2.12.0`, update each plugin, restore
+   `.claude/settings.json`, and list the plugins' versions.
+3. **Check two settings:**
+   - a project that set its own `CAREFUL_GLOBS` adds the defaults it wants;
+   - a `PROTECTED_BRANCHES` word such as `release/*` now protects every branch it matches.
+
+   A team that logged time in units other than an hour logs its next entries in whole hours.
+
+From v2.10.1 or earlier, one upgrade takes every release since, and each release's own upgrade steps
+still apply.
+
 - **Three agents point to the skills they follow, and the cost prose is checked against the script.**
   - **What:**
     - **`@adf:debugger`, `@adf:test-runner`, and `@adf:spec-writer` follow their skill's steps**
