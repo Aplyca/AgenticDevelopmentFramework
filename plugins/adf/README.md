@@ -179,7 +179,7 @@ the project's release, the plugin may not download; the README's
 {
   "extraKnownMarketplaces": {
     "aplyca": {
-      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.10.1" },
+      "source": { "source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v2.11.0" },
       "autoUpdate": true
     }
   },

@@ -11,6 +11,44 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+## v2.11.0 — 2026-11-21 — A prose pass, and every machine on the project's release
+
+A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working
+until a team acts. Some behaviors change on upgrade: four skills run a prose pass on what they draft
+for readers outside the team; the commands for each machine after an upgrade add the marketplace
+again at the new pin; and `.claude/rules/claude-code.md` names no task variable, pointing at
+`AGENTS.md` § Quick reference instead.
+
+- **A prose pass for the text people read outside the team** (0086). `PROSE-PATTERNS.md` lists the
+  patterns that make text read as machine-written, and `/adf:stakeholder-update`,
+  `/adf:end-user-docs`, `/adf:write-docs`, and `/adf:framework-feedback` run it on each draft.
+- **A release reaches every machine** (0090, 0091; fixes
+  [issue 174](https://github.com/aplyca/AgenticDevelopmentFramework/issues/174)). After an upgrade,
+  each machine adds the marketplace again at the new pin, so `claude plugin update` no longer keeps
+  the release it first registered. A new install adds the marketplace at the newest release, and
+  `/adf:adopt` checks this machine's copy against the pin.
+- **The Claude Code rule names no task variable** (fixes
+  [issue 175](https://github.com/aplyca/AgenticDevelopmentFramework/issues/175)). § Quick reference
+  writes the one-file test and lint commands the project's own tasks take.
+- **The plugin install line no longer reads as turning a plugin on** (fixes
+  [issue 176](https://github.com/aplyca/AgenticDevelopmentFramework/issues/176)). Turning one on is
+  a one-line `enabledPlugins` change, made on a work branch.
+
+**Upgrading from v2.10.1:**
+
+1. **Run `/adf:upgrade`.** One draft pull request moves the pin to `v2.11.0` and merges the changed
+   lines in `AGENTS.md` (§ Quick reference's tests and lint lines gain a "one file" slot),
+   `.claude/rules/claude-code.md` (the **Use the project's tasks** line), and
+   `docs/getting-started/DEV-SETUP.md`. Fill the two slots with what the project's tasks take, or
+   "none": the upgrade's plan lists the step. In a committed install, it also writes the four skills
+   and `docs/PROSE-PATTERNS.md`.
+2. **After the merge, run the upgrade report's commands on each machine,** from the project's
+   folder. They add the marketplace at `v2.11.0`, update each plugin, restore
+   `.claude/settings.json`, and list the plugins' versions. This also moves a machine that stayed on
+   an earlier release, or that installed from `main` with no ref.
+
+From v2.10.0, one upgrade takes both releases; from v2.9.0, v2.10.0's steps 2 and 3 still apply.
+
 - **A prose pass for the text people read outside the team**
   ([#79](https://github.com/aplyca/AgenticDevelopmentFramework/issues/79); decision
   [0086](docs/decisions/0086-one-prose-pass-for-text-people-read.md)). A new reference doc,
