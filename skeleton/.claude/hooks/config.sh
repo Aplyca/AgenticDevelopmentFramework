@@ -63,6 +63,12 @@ PR_WATCH_HOURS="8"
 # set (/rename, --name, or a rename in the desktop app) stays. Empty disables.
 SESSION_TITLE="1"
 
+# "1" adds one line to a session's context when a newer framework release is out than the one this
+# project is on (the stamp on AGENTS.md's first line) — run /adf:upgrade. The check asks the framework
+# repository for its newest release tag at most once a day, caches it outside the repository, and
+# says nothing offline. Empty disables.
+UPDATE_CHECK="1"
+
 # The env template that declares (names only, no values) every environment variable the code
 # reads. Empty = auto-detect .env.example, .env.sample, .env.template or .env.dist at the root.
 ENV_TEMPLATE=""
