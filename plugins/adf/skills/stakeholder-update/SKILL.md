@@ -33,11 +33,11 @@ shows where the task is, without the developer remembering to move it.
 
 Tracker-originated work — light changes included — updates its task at three moments.
 
-| Moment | When | Task status | Message |
-|---|---|---|---|
-| **Started** | Right after `/adf:triage`, once you understand the task | The project's in-progress status — moved by the triage | A draft, only when it's worth the client's time: what we understood and will deliver, a question that blocks the work, a finding — it exists already, it was declined before, a risk. "We've started" alone isn't: the status says it |
-| **In review** | Once `/adf:open-pr` marks the pull request ready, its preview walked | The project's review status — moved by `/adf:open-pr` at ready, not here | Always, posted on its own: the business outcome — what changes for visitors or users, the preview and what to test there — and the pull request, for reference |
-| **Delivered** | Once the change is merged **and live** (§ Live), or the answer is given | The project's delivered status — moved then, not at the merge | Always, posted on its own: why it wasn't working or what was needed, what we did, that it's live, findings, next steps. The usage guide is brought up to date with it |
+| Moment | When | Message |
+|---|---|---|
+| **Started** | Right after `/adf:triage`, once you understand the task | A draft, only when it's worth the client's time: what we understood and will deliver, a question that blocks the work, a finding — it exists already, it was declined before, a risk. "We've started" alone isn't: the status says it |
+| **In review** | Once `/adf:open-pr` marks the pull request ready, its preview walked | Always, posted on its own: the business outcome — what changes for visitors or users, the preview and what to test there — and the pull request, for reference |
+| **Delivered** | Once the change is merged **and live** (§ Live), or the answer is given | Always, posted on its own: why it wasn't working or what was needed, what we did, that it's live, findings, next steps. The usage guide is brought up to date with it |
 
 **Between review and delivered, the task is the developer's.** Quality control, acceptance testing,
 and release are statuses they set: never move the task to one, or back from one.
@@ -59,16 +59,13 @@ session.
 
 ## Status moves
 
-The status follows the work, on its own — the developer isn't asked each time. The skill that
-reaches the moment makes the move in a step of its own, without loading this skill: `/adf:triage`
-to the in-progress status once the triage is stated, `/adf:open-pr` to the review status once the
-pull request is ready, `/adf:wrap-up` to the delivered status once the change is live or an answer
-is delivered. `/adf:stakeholder-update status <moment>` makes a move too, when asked or when one
-didn't happen at its moment — the delivered one after a release, with the delivered update.
-
-The rules for a move — the task's own statuses, forward only, the session's own task, the status
-alone, through the project's tracker tool, one line to say so — are in
-`<this skill's base directory>/status.md`. Read it for a move made here.
+The status follows the work, on its own, by `docs/TRACKER-INTEGRATION.md` § Rules for agents. The
+skill that reaches the moment makes the move in a step of its own, without loading this skill:
+`/adf:triage` to the in-progress status once the triage is stated, `/adf:open-pr` to the review
+status once the pull request is ready, `/adf:wrap-up` to the delivered status once the change is
+live or an answer is delivered. `/adf:stakeholder-update status <moment>` makes a move too, when
+asked or when one didn't happen at its moment — the delivered one after a release, with the
+delivered update. For a move made here, read `<this skill's base directory>/status.md`.
 
 ## Project settings
 
@@ -101,14 +98,8 @@ moves) — no draft, no message — and stop.
 2. **Verify every claim.** Check each statement and finding against the live site, the preview, the
    CMS, or the pull request before including it. A finding you couldn't verify is left out or
    flagged to the developer — never stated to the client. State the status as it actually is, in the
-   project's status words. Typical mapping:
-   - work started → "in progress"
-   - pull request ready for review → "in review"
-   - merged to the integration or preview branch for combined testing → "in acceptance testing"
-   - merged or released to production → "live"
-
-   A delivered update needs "live" verified (§ Live); merged alone isn't its moment. Don't give
-   dates unless the developer provides one.
+   project's status words (§ Project settings) — "live" only as § Live verifies it. Don't give dates
+   unless the developer provides one.
 
 3. **Write the update** for its moment, following the style rules and the moment's template (step 1),
    in the language the client uses on the task. A started moment with nothing worth saying has no
@@ -145,14 +136,10 @@ moves) — no draft, no message — and stop.
    - **Can't post** — no tracker tool, or only a built-in connector: open your report with that, the
      text ready to paste and the status to set. Don't leave it for the end.
    - **Assign** a comment to the requester only when it asks them a question or needs an action or a
-     decision from them — never one that posts on its own. Mention people with the tracker's mention
-     syntax (§ Stakeholder updates); a bare `@Name` may notify no one. Where the tracker moves
-     mentions, greet by name in plain text and put the mentions where it places them.
-   - **Links to other tasks or comments** go out as plain links when the tools can't make the
-     tracker's preview (§ Stakeholder updates): ask the developer to paste each one that should show
-     as a preview in the tracker's editor, and read the comment again once they have.
-   - **Images:** as `<this skill's base directory>/screenshots.md` § Posting them says — in a draft
-     the developer approved, they paste each one over its placeholder.
+     decision from them — never one that posts on its own.
+   - **Mentions, links to other tasks or comments, and images** depend on the tracker: when the
+     comment has one, read `<this skill's base directory>/posting.md` before posting — the tracker's
+     mention syntax, and the links and images the developer pastes when the tools can't carry them.
    - **Read it back** after posting: fetch the comment and confirm the author, the text, and the
      assignee came out as written — mentions, links, formatting. A correction edits that comment, so
      the client reads one version — through the tools only when the comment holds nothing an edit

@@ -789,11 +789,11 @@ check_practices() {
     done
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'time tracking tool is the only record' || missing+=("/track-time: the time tracking tool is the only record (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'names `time-tracking`' || missing+=("/track-time: acts only where the stamp names the time-tracking module (0043)")
-    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'whole units, rounded up' || missing+=("/track-time: numbers in whole units, rounded up (0043)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'whole hours, rounded up' || missing+=("/track-time: numbers in whole hours, rounded up (0043, 0094)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'An activity with no\s*$|evidence isn.t in the draft' || missing+=("/track-time: each off-session activity rests on its evidence (0043)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^## Activities' || missing+=("time-tracking module: docs/TIME-TRACKING.md lists the activities (0043)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'One entry per outcome' || missing+=("/track-time: one entry per outcome, not per session or day (0092)")
-    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'no half units, no decimals, no minutes' || missing+=("/track-time: every time shown or written is a whole unit (0092)")
+    file_contains "$SKILLS_DIR/track-time/SKILL.md" 'never a half hour, a decimal, or minutes' || missing+=("/track-time: every time shown or written is whole hours (0092, 0094)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'The unit is one hour, in every project' && ! file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '^- \*\*Unit:\*\*' || missing+=("/track-time: the unit is one hour, not a setting (0094)")
     file_contains "$SKILLS_DIR/track-time/SKILL.md" 'Set the midpoint' || missing+=("/track-time: a midpoint between the AI-assisted time and the manual estimate, set by activity (0092)")
     file_contains "$MODULES_DIR/time-tracking/files/docs/TIME-TRACKING.md" '\| Activity \| Evidence it looks for \| Midpoint \|' || missing+=("time-tracking module: § Activities says where each activity's midpoint sits (0092)")

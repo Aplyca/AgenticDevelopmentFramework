@@ -34,22 +34,12 @@ the close-up only once it resumes and ends.
 1. **Check where you are.**
    - **The main checkout, with the parallel-agents module** (`ops/agent/worktree.conf` or
      `scripts/agent/worktree.conf` exists, and `git rev-parse --git-dir` equals
-     `git rev-parse --git-common-dir`): this session never moved to a worktree, so its task was an
-     **answer**, or it has none of its own — a change it took went to a worktree, whose session wraps
-     it up. Close it up as an answer, from here:
-     - **No pull request, branch, or worktree is this task's.** Skip the pull request's read in step 2
-       and steps 6.2, 6.4, and 6.5. The branch checked out here is the base, or the developer's: never
-       switch it, pull it, or delete it, here or on origin.
-     - **The main checkout is shared.** Its uncommitted changes, stashes, commits, and running
-       environment belong to the developer or to other sessions. Only what this session made counts
-       as left over, and only what it started is stopped: a stash it created, a background command or
-       environment it started, a follow-up it promised. Name anything else once, in the close-up, and
-       leave it.
-     - **The ending** is `The answer is delivered`, or, with no task of its own,
-       `Nothing is left in this session`.
-
-     A worktree whose session is gone is removed from here with `adf-worktree-rm <branch>`, only when
-     the developer asks.
+     `git rev-parse --git-common-dir`): this session's task was an **answer**, or it has none of its
+     own. Close it up as an answer, from here, as `<this skill's base directory>/main-checkout.md`
+     says — read it with step 2's reads. No pull request, branch, or worktree is this task's: skip
+     step 2's pull request read; the branch checked out here is the base, or the developer's —
+     never switch it, pull it, or delete it, here or on origin. The main checkout is shared.
+     Only what this session made counts as left over, and only what it started is stopped.
    - **Anywhere else** — a task worktree, Claude Code's own worktree, or the main checkout of a
      project without the module — go on.
 
@@ -103,20 +93,18 @@ the close-up only once it resumes and ends.
    **The delivered step,** for a tracker task — a ClickUp task, a GitHub or GitLab issue — once
    the check finds the answer delivered, or the pull request merged **and the change live**. It runs
    whether or not something is left over: it needs no worktree. With the `end-user-docs` module, the
-   page's publish offer comes first (`modules.md` § End-user docs), so the update can link the page;
-   an end-user page waiting to be published isn't work left over.
+   page's publish offer comes first (`modules.md` § End-user docs).
    Delivered means the requester can use it: `docs/TRACKER-INTEGRATION.md` § Stakeholder updates ›
    *Live when* says whether that's on the merge, on a release, or when the developer says (no line:
    ask once). Verify it — the live site shows the change, or the release's deploy finished.
    - **Live, or an answer delivered:** run `/adf:stakeholder-update delivered` — the outcome update,
      posted on its own and shown in your report, with the usage guide brought up to date when the
-     task has one; an answer that isn't on the task yet is a draft, for the developer's yes. Then move the task to the project's delivered status, on your own — no yes
-     needed, and no skill to load for the move. Use the status § Stakeholder updates maps to `delivered`, from the task's own statuses
-     (one it lacks is a question; an issue is closed, § Issues as the tracker), written as its
-     § Rules for agents says — through the project's tracker tool, as the developer, and read back;
-     forward only; the status alone, in a call of its own: any other field in the same call brings
-     the permission prompt back. The task the developer handed this session is theirs to move,
-     assigned to them or not. One line says so.
+     task has one; an answer that isn't on the task yet is a draft, for the developer's yes. Then
+     move the task to the project's delivered status on your own — no yes needed, and
+     no skill to load — as `docs/TRACKER-INTEGRATION.md` § Rules for agents says: the status
+     § Stakeholder updates maps to `delivered` (an issue is closed), through the project's tracker
+     tool, read back, forward only; the status alone, in a call of its own. The task the developer
+     handed this session is theirs to move, assigned to them or not. One line says so.
    - **Merged, not live yet:** post nothing and move nothing. Quality control, acceptance testing,
      and release are the developer's statuses. Say once, in one line, that the delivered step waits
      for the release, and that `/adf:stakeholder-update delivered <task>` runs it then, from any
@@ -128,9 +116,7 @@ the close-up only once it resumes and ends.
    None of it holds up the close-up.
 
 4. **Ask about the time, before the close-up.** Only when the stamp names the `time-tracking`
-   module: ask as `modules.md` § Time says — a question of its own, before the close-up's — and wait
-   for the answer; on a yes, `/adf:track-time` runs to its end before step 5. Without the module, say
-   nothing about time.
+   module: ask as `modules.md` § Time says, and settle it before step 5.
 
 5. **Ask once, unless the developer's own word ended the task.** When the developer said it in this
    session — "merged", "it's in", "close up" — the pull request merged by the host's state, the

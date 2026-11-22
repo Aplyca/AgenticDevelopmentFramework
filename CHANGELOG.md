@@ -11,6 +11,33 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Repeated text trimmed, with one home for each rule.**
+  - **What:**
+    - **The status-move rules live in `docs/TRACKER-INTEGRATION.md` § Rules for agents:** the task's
+      own status for the moment (a missing one is a question; on issues a label, and delivered closes
+      the issue), forward only, and the status alone in a call of its own. `/adf:triage`,
+      `/adf:open-pr`, and `/adf:wrap-up` keep their own move (decision 0063) in a few lines that point
+      there, and `/adf:stakeholder-update`'s § Status moves and `status.md` keep only what the skill adds.
+    - **`modules/README.md` § Recommending a module** is the one list of when to recommend each module
+      and what evidence to look for. `/adf:adopt`, `/adf:upgrade`, `docs/SETUP.md`, and
+      `docs/UPGRADING.md` point to it instead of keeping their own copies, which had drifted.
+    - **`/adf:track-time` states the whole-hours rule once,** in decision 0094's words, with one
+      reminder where a step acts on it; the legacy Unit setting and sibling worktrees move to
+      `legacy.md`.
+    - **Case-only text moves beside the skills** (decision 0063): `/adf:wrap-up`'s main-checkout
+      ending to `main-checkout.md`, and `/adf:stakeholder-update`'s mentions, links, and images to
+      `posting.md`. Its "typical mapping" of status words points to the project's settings instead.
+  - **Where:** `skeleton/docs/TRACKER-INTEGRATION.md`, `modules/README.md`,
+    `plugins/adf/skills/{triage,open-pr,wrap-up,stakeholder-update,track-time,adopt,upgrade}/`,
+    `docs/SETUP.md`, `docs/UPGRADING.md`, `evals/static/check-skills.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/{triage,open-pr,wrap-up,stakeholder-update}/`,
+    and with `time-tracking`, `.claude/skills/track-time/` — new reference files included — as
+    `/adf:upgrade` writes them; packaged, they come with the plugin.
+  - **Merge:** `docs/TRACKER-INTEGRATION.md` — § Rules for agents' "Move the status on your own"
+    bullet.
+
 - **Smaller fixes from the framework review.**
   - **What:**
     - **`/adf:wrap-up`'s delivered step is its own part of step 3,** and runs whether or not something

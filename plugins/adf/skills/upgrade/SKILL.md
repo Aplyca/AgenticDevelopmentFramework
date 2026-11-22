@@ -85,35 +85,8 @@ manual procedure (Steps 1–6) is for what it refuses.
 
 ## What to offer
 
-**Offer the modules the project doesn't have.** List the modules at NEW_SHA (`modules/README.md`)
-that aren't installed — a project adopted before modules existed has none — and recommend from the
-repository's facts, by the same rules as `/adf:adopt` Step 3:
-
-- `github` — the repository is on GitHub
-- `gitlab` — the repository is on GitLab (an existing `.gitlab-ci.yml` takes the module's three
-  blocks as a merge)
-- `git-hooks` — the team wants local gates that every git client runs
-- `clickup` — requirements arrive as ClickUp tasks (`app.clickup.com` links in pull requests, commits,
-  or the README; a `clickup` server in `.mcp.json`)
-- `parallel-agents` — several agent sessions may work on the repository at once: each task gets its
-  own worktree, branch, pull request, and session, and the main checkout takes no edits
-- `docker` — the local stack runs on Docker Compose (a Compose file or a Dockerfile), or the team
-  wants a containerized local environment: `/dev-env` writes the stack or moves it to the
-  conventions (`compose.yaml` and a `Makefile` at the root, `ops/`, ports Docker picks), runs the app
-  natively, gives each worktree its own stack, and diagnoses or resets it; docker and make
-  commands run without a prompt
-- `e2e` — people use the app in a browser: `/e2e` sets up Playwright end-to-end tests in `e2e/`,
-  run with `make e2e` and `make smoke` against the checkout's own stack, with one smoke test per
-  critical flow (decision 0037). An existing suite (`playwright.config.*`, `cypress/`) is good
-  evidence
-- `unit` — a JavaScript or TypeScript app: `/unit` sets up Vitest unit and integration tests,
-  run by tier (`@smoke`, `@critical`, regression) and by feature suite, like `e2e`'s (decision 0058).
-  An existing runner (`jest.config.*`, `vitest.config.*`) is good evidence
-- `time-tracking` — only when the team says it measures the time its tasks take: `/track-time` logs
-  each outcome of a task in the tracker, in whole units (decisions 0043, 0092)
-- `end-user-docs` — the product's end users read its documentation in a doc tool (ClickUp Docs,
-  Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
-  implementation and publishes it once the feature ships (decision 0048)
+**Offer the modules the project doesn't have** — a project adopted before modules existed has none —
+by `<framework-root>/modules/README.md` § Recommending a module, at NEW_SHA.
 
 Say why each recommendation fits, and what each one costs. The chosen ones join this upgrade. Offer
 `adf-connect` (decision 0023) the same way when the project works with a
