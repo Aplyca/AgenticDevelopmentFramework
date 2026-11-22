@@ -42,6 +42,11 @@
   estimate; the rest halfway — and the team may move them. The evidence may move one too, with the
   reason in the draft. Never below the AI-assisted time or above the manual estimate. The midpoint
   is the sum of its activities' midpoints, rounded up once.
+- **Every time is a whole number of units,** as 0043 set for the two numbers, now everywhere: each
+  activity's estimate, the three numbers, the totals, a time beside an activity in the draft, and an
+  edited value. No half units, decimals, or minutes are shown or written. The activities' midpoints
+  are arithmetic toward the outcome's, never shown: rounding each up would put most small activities
+  at their manual estimate.
 - **The developer picks one of the three, an edited value, or skip,** and the entry is labelled
   with the number it carries; the label for the midpoint is the project's setting.
 

@@ -25,6 +25,10 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       manual estimate for debugging and code review; halfway for the rest. The evidence may move an
       activity, with the reason in the draft. The developer picks AI-assisted, midpoint, manual
       estimate, an edited value, or skip.
+    - **Whole units everywhere:** every time the draft shows and every entry carries — each
+      activity's estimate, the three numbers, the totals, a session time beside an activity, an
+      edited value — is a whole number of units, rounded up. No half units, decimals, or minutes:
+      halfway between 3h and 8h is 6h.
   - **Where:** `plugins/adf/skills/track-time/SKILL.md`, `modules/time-tracking/` (`MODULE.md` and
     `docs/TIME-TRACKING.md`: the outcomes, the `midpoint` label, and § Activities' new Midpoint
     column), `README.md`, `docs/SKILLS-REFERENCE.md`, `docs/SETUP.md`, `modules/README.md`, and

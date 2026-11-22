@@ -22,7 +22,8 @@ goes into the repository, the spec folders, or the pull requests.
 
 <!-- CUSTOMIZE: fill these in. -->
 
-- **Unit:** [1 hour] — every number is a whole number of units, rounded up.
+- **Unit:** [1 hour] — every number is a whole number of units, rounded up: no half units, decimals,
+  or minutes.
 - **Time entries:** [how to read and write a task's time entries with the tracker's tools — e.g. the
   time-tracking tools listed by `/mcp`; each entry has a start, a duration, and a description]
 - **Labels:** [what marks the number an entry carries — e.g. the tag `ai-assisted` for the time spent,

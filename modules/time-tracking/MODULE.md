@@ -38,7 +38,8 @@ feature off.
 
 In `docs/TIME-TRACKING.md`:
 
-1. **Unit** — a whole hour by default. Every number in a draft is a whole number of units, rounded up.
+1. **Unit** — a whole hour by default. Every number in a draft is a whole number of units, rounded up:
+   no half units, decimals, or minutes.
 2. **Time entries** — the tracker's tools that read and write a task's time entries. With the
    `clickup` module, they're ClickUp's time-tracking tools (`/mcp` lists them): reading falls under
    its read-only allowlist, and writing prompts.

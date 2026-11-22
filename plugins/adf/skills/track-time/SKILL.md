@@ -23,7 +23,8 @@ it found, settled, or unblocked. An outcome that took three days is one entry; t
 afternoon are two.
 
 The numbers are **ballpark figures in whole units, rounded up**, resting on the activities actually
-worked on — not a timesheet counted by the minute. The developer picks one number per entry, and only
+worked on — not a timesheet counted by the minute. **Every time the draft shows and every entry
+carries is a whole number of units:** no half units, no decimals, no minutes. The developer picks one number per entry, and only
 what they approve is written. **The time tracking tool is the only record:** nothing about the time
 goes into the repository, the spec folder, the pull request, or a memory. The tool also tells the
 skill what's already logged, so it can run at each milestone without logging an outcome twice.
@@ -101,6 +102,7 @@ skill what's already logged, so it can run at each milestone without logging an 
    - Base it on the outcome's work: the diff and commits, the tests, the spec and docs, the
      investigation and debugging, and the off-session activities from step 5. A meeting or a manual
      test takes about as long without AI; writing, researching, and debugging usually take longer.
+   - Estimate each activity in whole units, rounded up.
    - Never below the AI-assisted number without saying why.
 
 7. **Set the midpoint** for each outcome, activity by activity, where `docs/TIME-TRACKING.md` §
@@ -117,11 +119,14 @@ skill what's already logged, so it can run at each milestone without logging an 
    - A project whose § Activities has no midpoint column: halfway, and as spent for a meeting or a
      manual test.
    - Never below the AI-assisted time, never above the manual estimate.
+   - The activities' midpoints are a step toward the outcome's midpoint, which step 8 rounds up to a
+     whole unit; a fraction of one is never shown or written.
 
 8. **Round and build the entries.** One entry per outcome:
    - **The numbers:** each is the outcome's total in whole units, rounded up: an outcome with 1h 10m
      in the sessions and an hour of estimated review is 3 units at one hour (2h 10m → 3). The
-     midpoint is the sum of its activities' midpoints, rounded up once.
+     midpoint is the sum of its activities' midpoints, rounded up once: halfway between 3h and 8h is
+     6h, not 5.5h. Every number is a whole unit: never a half unit, a decimal, or minutes.
    - **The description** — what the entry says in the tracker: what the outcome delivered, in
      business terms, for the people the task serves. Take it from the task's goal (the tracker task,
      the spec's Business section) and what the outcome achieved toward it. For work that delivered
@@ -129,19 +134,20 @@ skill what's already logged, so it can run at each milestone without logging an 
      or component names, commands, branches, or tool names. `docs/TIME-TRACKING.md` § Descriptions
      may set the team's own convention.
    - **The activities:** the work behind the numbers, in a few words, so the developer can check
-     them. They stay in the draft.
+     them. They stay in the draft. A time given beside one is in whole units too: sessions of 1h 50m
+     read "sessions 2h".
 
 9. **Show the full draft** of the entries, as the last text of your turn:
 
    ```
    | # | Delivered | Description | Activities | AI-assisted | Midpoint | Manual estimate |
    |---|-----------|-------------|------------|-------------|----------|-----------------|
-   | 1 | 2026-10-15 | Readers can subscribe to the newsletter from the article they're reading | Understanding the task, signup form and its tests (sessions 1h 50m over two days), manual test | 3h | 6h | 8h |
-   | 2 | 2026-10-16 | New subscribers get their confirmation email; the requester confirmed it on the preview | Debugging the confirmation email (sessions 40m), call with the requester, PR review | 2h | 4h | 5h |
+   | 1 | 2026-10-15 | Readers can subscribe to the newsletter from the article they're reading | Understanding the task, signup form and its tests (sessions 2h over two days), manual test | 3h | 6h | 8h |
+   | 2 | 2026-10-16 | New subscribers get their confirmation email; the requester confirmed it on the preview | Debugging the confirmation email (sessions 1h), call with the requester, PR review | 2h | 4h | 5h |
    ```
 
-   Then the totals of each column, and the questions: **anything else done outside the sessions?**
-   And for each entry: **AI-assisted, midpoint, manual estimate, an edited value, or skip?** — with
+   Then the totals of each column, in whole units, and the questions: **anything else done outside the sessions?**
+   And for each entry: **AI-assisted, midpoint, manual estimate, an edited value in whole units, or skip?** — with
    any change to its description. One answer may cover them all ("midpoint for all, skip 2").
 
 10. **Write the approved entries** — ask before posting, and post only what the developer approved,
@@ -165,6 +171,8 @@ skill what's already logged, so it can run at each milestone without logging an 
 | "The midpoint is the average of the two totals" | It's set activity by activity: a meeting stays as spent, debugging sits nearer the manual estimate, routine code nearer the AI-assisted time. |
 | "1h 10m is closer to 1 than to 2" | Numbers round up to a whole unit. A ballpark that rounds down undercounts every outcome. |
 | "I'll log the estimate to the minute, to be precise" | The measure is a ballpark in whole units. Minutes suggest a precision the estimate doesn't have. |
+| "The midpoint of 3h and 8h is 5.5h, so I'll show that" | Every time is a whole unit, rounded up: 6h. A half unit or a decimal is never shown or written. |
+| "An edited value of 2.5h is what the developer meant" | Round it up to 3h and say so, or ask. The tracker gets whole units only. |
 | "No evidence of a meeting, but there's usually one, so I'll add an hour" | Every activity rests on evidence or on what the developer says. Ask in the draft instead. |
 | "The off-session work isn't measured, so I'll leave it out" | It's part of the task's time. Estimate each activity the evidence shows, and the developer corrects it. |
 | "I'll keep the breakdown in the spec folder, so the estimate is traceable" | The time tracking tool is the only record. The breakdown stays in the conversation. |
@@ -178,7 +186,8 @@ skill what's already logged, so it can run at each milestone without logging an 
 
 - The stamp doesn't name `time-tracking`, and you're about to draft or offer anything.
 - An entry that covers a day, a session, or a commit instead of an outcome.
-- A number with a fraction of a unit, or one rounded down.
+- A time anywhere in the draft or the entries with a half unit, a decimal, or minutes, or one rounded
+  down.
 - A midpoint below the AI-assisted time or above the manual estimate, or an activity moved from its
   default with no reason given.
 - An activity in the draft with no evidence behind it and no word from the developer.
@@ -192,7 +201,7 @@ skill what's already logged, so it can run at each milestone without logging an 
 - [ ] The task's existing entries were read first, and the window starts after the latest one
 - [ ] Session time came from the script; each off-session activity has its evidence
 - [ ] One entry per outcome, each with its delivery; every block and activity in the window belongs to one, or waits for the next run
-- [ ] Three numbers per entry in whole units rounded up, the midpoint set activity by activity between the other two, with the activities behind them
+- [ ] Three numbers per entry in whole units rounded up — no half units, decimals, or minutes anywhere in the draft or the entries — the midpoint set activity by activity between the other two, with the activities behind them
 - [ ] Each description says what the outcome delivered in business terms, with no technical names
 - [ ] The full draft was shown, and the developer chose a number, an edit, or skip for each entry
 - [ ] Only the approved entries were written, through the project's server as the developer, each ending at its delivery and labelled with the number it carries, and read back
