@@ -11,6 +11,35 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A time entry is an outcome, with a midpoint between the two numbers**
+  ([decision 0092](docs/decisions/0092-time-entries-are-outcomes-with-a-midpoint.md)).
+  - **What:**
+    - **One entry per outcome,** not per day worked: a milestone reached, a completed task of the
+      plan, value delivered — or, for work that delivered nothing yet, what it found, settled, or
+      unblocked. `/adf:track-time` assigns each working block and off-session activity to the
+      outcome it served, and each entry ends at its outcome's delivery, so the latest entry still
+      marks where the next run starts. Work after the latest delivery waits for the next run, unless
+      it's the wrap-up's run or the developer asks to log it now.
+    - **A third number, the midpoint,** between the AI-assisted time and the manual estimate, set
+      activity by activity: as spent for meetings, manual testing, and task management; nearer the
+      manual estimate for debugging and code review; halfway for the rest. The evidence may move an
+      activity, with the reason in the draft. The developer picks AI-assisted, midpoint, manual
+      estimate, an edited value, or skip.
+  - **Where:** `plugins/adf/skills/track-time/SKILL.md`, `modules/time-tracking/` (`MODULE.md` and
+    `docs/TIME-TRACKING.md`: the outcomes, the `midpoint` label, and § Activities' new Midpoint
+    column), `README.md`, `docs/SKILLS-REFERENCE.md`, `docs/SETUP.md`, `modules/README.md`, and
+    `/adf:adopt` and `/adf:upgrade`'s module lists.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install with the `time-tracking` module: `.claude/skills/track-time/`,
+    as `/adf:upgrade` writes it; packaged, it comes with the plugin.
+  - **Merge:** `docs/TIME-TRACKING.md` — the intro's outcomes and three numbers, a `midpoint` label
+    in § Settings' **Labels**, § Descriptions' "outcome" wording, and § Activities' Midpoint column
+    (keep any activities the team added, and give each a midpoint). Without the column, the skill
+    uses halfway, and as spent for a meeting or a manual test.
+  - **Migration:** by hand — if the team's reports filter on labels, add the midpoint's label to them.
+    Entries already logged per day stay as they are; the next run starts after the latest one.
+
 ## v2.11.0 — 2026-11-21 — A prose pass, and every machine on the project's release
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

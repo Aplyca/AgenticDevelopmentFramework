@@ -177,8 +177,9 @@ Present the table before going further. Wrong facts here poison every file downs
     module's suite uses (decision 0058). An existing runner (`jest.config.*`, `vitest.config.*`) is
     evidence. Recommend it with `e2e` for an app with a browser
   - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time`
-    logs each day of a task in the tracker, in whole units, as the AI-assisted time or a senior
-    developer's estimate without AI (decision 0043). Without the module, the project never sees it
+    logs each outcome of a task in the tracker, in whole units, as the AI-assisted time, a senior
+    developer's estimate without AI, or a midpoint (decisions 0043, 0092). Without the module, the
+    project never sees it
   - `end-user-docs` — when the product's end users read its documentation in a doc tool (ClickUp
     Docs, Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
     implementation, where end users can't see it, and publishes it once the feature ships (decision
