@@ -94,9 +94,9 @@ check "cost-report: prices Opus calls at list prices (\$0.25 for the quick fix, 
 sonnet=$(printf '%s' "$json" | python3 -c 'import json,sys; s={x["title"]: x for x in json.load(sys.stdin)}; print(s["Spec heavy"]["model"])')
 check "cost-report: recognizes the model tier (got $sonnet)" "[ '$sonnet' = 'sonnet' ]"
 on_sonnet=$(printf '%s' "$json" | python3 -c 'import json,sys; s={x["title"]: x for x in json.load(sys.stdin)}; print(s["Quick fix"]["cost_on_sonnet"], s["Spec heavy"]["cost_on_sonnet"] == s["Spec heavy"]["cost"])')
-# The same tokens at Sonnet's prices: 10×(10×2 + 500×10 + 50,000×0.20 + 1,000×2.5)/1e6 = 0.18
-check "cost-report: re-prices an Opus session at Sonnet's prices (\$0.18; a Sonnet session unchanged — got $on_sonnet)" "[ '$on_sonnet' = '0.18 True' ]"
-check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals it" "echo \"\$out\" | grep 'Quick fix' | grep -q '≈0.18' && echo \"\$out\" | grep 'Spec heavy' | grep -q ' - ' && echo \"\$out\" | grep -q '^Model: 3 sessions ran above Sonnet'"
+# The same tokens at Sonnet 5.5's prices: 10×(10×2 + 500×10 + 50,000×0.10 + 1,000×2.5)/1e6 = 0.13
+check "cost-report: re-prices an Opus session at Sonnet's prices (\$0.13; a Sonnet session unchanged — got $on_sonnet)" "[ '$on_sonnet' = '0.13 True' ]"
+check "cost-report: shows the Sonnet estimate for Opus sessions only, and totals it" "echo \"\$out\" | grep 'Quick fix' | grep -q '≈0.13' && echo \"\$out\" | grep 'Spec heavy' | grep -q ' - ' && echo \"\$out\" | grep -q '^Model: 3 sessions ran above Sonnet'"
 other=$(python3 "$REPORT" "$OTHER_PROJECT" --projects-dir "$WORK/projects" --days 0 --json)
 oq() { printf '%s' "$other" | python3 -c "import json,sys; s={x['title']: x for x in json.load(sys.stdin)}; print($1)"; }
 # 10 calls on Opus 5.5, writes at the 1-hour rate (2× input): 10×(10×4 + 500×20 + 50,000×0.20 + 1,000×8)/1e6 = 0.28

@@ -10,7 +10,7 @@ dynamic/
   check-packaged.sh          - checks a project's packaged layout (adopt's and upgrade's inspect.sh use it)
   run-dynamic.md             - manual + automated execution patterns
   fixtures/
-    write-spec/
+    <suite>/
       <case-name>.input.md         - what to give the AI (prompt + context)
       <case-name>.expected.md      - invariants the output must satisfy
     triage/

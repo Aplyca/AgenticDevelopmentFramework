@@ -11,6 +11,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Sonnet 5.5's cache reads are priced at $0.10 per million tokens.**
+  - **What:** `/adf:cost-report` priced Sonnet 5.5's cache reads at Sonnet 5's $0.20, so it
+    overstated Sonnet sessions and the "on Sonnet" estimate for Opus ones; `COST-MODEL.md` said cache
+    reads cost the same on Sonnet and Opus. Opus costs twice Sonnet on every kind of token.
+  - **Where:** `plugins/adf/skills/cost-report/session_cost.py`, `plugins/adf/docs/COST-MODEL.md`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/cost-report/` and `docs/COST-MODEL.md`, as
+    `/adf:upgrade` writes them; packaged, they come with the plugin.
+
 - **The time unit is one hour, in every project**
   ([decision 0094](docs/decisions/0094-the-time-unit-is-one-hour.md)).
   - **What:** `docs/TIME-TRACKING.md` loses its Unit setting. Every number `/adf:track-time` shows or

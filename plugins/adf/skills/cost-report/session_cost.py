@@ -32,13 +32,14 @@ PRICES = (
     ("mythos", (10.00, 50.00, 1.00)),
     ("opus-5-5", (4.00, 20.00, 0.20)),
     ("opus", (5.00, 25.00, 0.50)),
+    ("sonnet-5-5", (2.00, 10.00, 0.10)),
     ("sonnet-4", (3.00, 15.00, 0.30)),
     ("sonnet", (2.00, 10.00, 0.20)),
     ("haiku-4", (1.00, 5.00, 0.10)),
     ("haiku", (0.10, 0.50, 0.01)),
 )
 HAIKU_LONG = (0.50, 2.50, 0.05)  # Haiku 5.5 on a prompt over 100k tokens
-SONNET = dict(PRICES)["sonnet"]
+SONNET = dict(PRICES)["sonnet-5-5"]
 CACHE_LIFETIME = {"5m": 300, "1h": 3600}  # seconds; a longer pause means the next call writes the context again
 IDLE_CAP = 300        # gaps longer than this don't count as active time
 BROWSER = re.compile(r"(browser|chrome|playwright|puppeteer)", re.I)

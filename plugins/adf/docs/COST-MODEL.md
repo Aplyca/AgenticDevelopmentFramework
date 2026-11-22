@@ -38,8 +38,8 @@ What drives the bill, in order:
    input price instead of 1.25×. After a longer wait — an
    unanswered question, a gate, a meeting — the next call writes the whole context again: about
    $0.75–1.20 for 150k tokens on Opus 5.5.
-4. **The model** — Opus costs twice Sonnet for output and uncached input; cache reads cost the same
-   (see the tiers below).
+4. **The model** — Opus costs twice Sonnet for output, uncached input, and cache reads (see the
+   tiers below).
 
 The framework's fixed overhead is small by comparison: its ~11k always-loaded tokens add about a
 fifth of a cent per call once cached, and under $0.10 to write at a session's start on Opus, and the guardrail hooks take 60–140 ms per tool call against 5–10
@@ -206,7 +206,7 @@ This framework is built around three Claude model tiers. Use the right tier for 
 
 Configure models with these aliases everywhere Claude Code takes one: `.claude/settings.json` (`"model": "sonnet"`), agent frontmatter (`model: haiku`), and `/model`. They're version-less — each resolves to the current model of its tier and moves forward as Claude Code updates, so keep Claude Code current with `claude update` (Sonnet 5.5 needs v2.1.284+, Opus 5.5 v2.1.280+, Haiku 5.5 v2.1.293+). On Amazon Bedrock, Google Cloud, and Microsoft Foundry an alias can resolve to an older model (e.g. `sonnet` → Sonnet 4.5); pin the provider's model ID there with `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Pin a full model ID (e.g. `claude-sonnet-5-5`) only when your team needs a fixed version.
 
-> **Pricing changes** — ratios are from list prices per million input / output tokens as of October 2026: Haiku 5.5 $0.10 / $0.50 for prompts up to 100k tokens ($0.50 / $2.50 beyond), Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Cache reads cost $0.20 / MTok on both Sonnet 5.5 and Opus 5.5, so in cache-heavy sessions the Sonnet–Opus difference is in output, uncached input, and cache writes — 1.25× input for the 5-minute cache, 2× for the 1-hour one. `fable` (Fable 5.2, $8 / $40, 80× Haiku; cache reads $0.20) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
+> **Pricing changes** — ratios are from list prices per million input / output tokens as of October 2026: Haiku 5.5 $0.10 / $0.50 for prompts up to 100k tokens ($0.50 / $2.50 beyond), Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20. Cache reads cost $0.10 / MTok on Sonnet 5.5 and $0.20 on Opus 5.5, so Opus costs twice Sonnet on every kind of token, cache hits included; a cache write costs 1.25× input for the 5-minute cache, 2× for the 1-hour one. `fable` (Fable 5.2, $8 / $40, 80× Haiku; cache reads $0.20) sits above these tiers; the decision rules below stop at Opus. Always check [current Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) before doing detailed cost projections. The decision rules below stay valid even as absolute prices shift.
 
 ### Decision rules
 
