@@ -19,20 +19,25 @@ instead: separate reviewers per dimension, each finding independently verified.
    filled section, `plan.md` change surface and test strategy, `tasks.md` and its gate results),
    `docs/CONSTITUTION.md`, and — when the change touches them — `docs/ARCHITECTURE.md` and
    `docs/security/SECURITY.md`. Fast and careful lanes: the request, the triage's "done when" and
-   file list, the light `CR N` entry on delivered work, and the docs for any risk area touched.
+   file list — the commit bodies carry them (`/adf:commit`) once the triage is out of context — the
+   light `CR N` entry on delivered work, and the docs for any risk area touched.
 
 2. **See what changed:** `git diff <base>...HEAD` and `git log --oneline <base>..HEAD`.
 
 3. **Check the lane** (from the triage or the pull request body) against the diff:
-   - **Fast** — the diff stays within the files stated, touches no escalation trigger or sensitive
-     area (`specs/README.md` § Lanes, `AGENTS.md` § Sensitive areas), a test proves the change, and
-     delivered work has its light `CR N` entry.
-   - **Careful** — the area's checklist shows in the diff and the tests, and the risky part is
-     clear enough for the developer's test to start there. A lane lowered by the developer is stated
-     in the pull request.
-   - **Full** — a spec folder with an `approvals:` line covering this scope.
+   - **Fast** — the diff touches no escalation trigger or sensitive area (`specs/README.md` § Lanes,
+     `AGENTS.md` § Sensitive areas), a test proves the change, and delivered work has its light
+     `CR N` entry. Files beyond the ones stated, with no trigger among them, are a **Warning** until
+     a commit body or the triage states them (decision 0079).
+   - **Careful** — the area's checklist (`specs/README.md` § Careful-lane checklists) shows in the
+     diff and the tests, and the risky part is clear enough for the developer's test to start there.
+     For authorization, personal data, or payments, run `@adf:security-reviewer` with the diff and
+     the changed files, and carry its findings into this report. A lane lowered by the developer is
+     stated in the pull request.
+   - **Full** — a spec folder with an `approvals:` line covering this scope. A careful trigger in
+     the diff gets that area's checklist and reviewer too, as in the careful lane.
 
-   A diff that doesn't fit its lane is a **Critical** finding: name the trigger and the lane it needs.
+   A trigger the lane doesn't cover is a **Critical** finding: name the trigger and the lane it needs.
 
 4. **Scope and traceability:**
    - Every changed file is inside the approved change surface — or the extension is recorded in
@@ -64,8 +69,8 @@ instead: separate reviewers per dimension, each finding independently verified.
 
 10. **Test evidence:** every AC and testable requirement has a test; `tasks.md` § Gate results shows
    red-then-green per task, the commands that ran, and what didn't run and why — in the fast and
-   careful lanes, the commit body or the pull request's "Verified / not verified", which shows the
-   test failing before the change and passing after it. Claims without
+   careful lanes, the commit body's `Red:` and `Green:` lines (`/adf:commit`), which show the test
+   failing before the change and passing after it. Claims without
    evidence are findings.
 
 11. **Doc accuracy:** committed docs match what was built; divergences were reconciled in `docs:`
@@ -97,7 +102,7 @@ instead: separate reviewers per dimension, each finding independently verified.
 
 ## Red flags (stop and reassess)
 
-- The change touches authentication, authorization, payments, or personal data — escalate (`/adf:deep-review`, `@adf:security-reviewer`).
+- The change touches authentication, authorization, payments, or personal data and `@adf:security-reviewer` hasn't run — run it (step 3), and suggest `/adf:deep-review` to the developer for a large diff.
 - A new dependency appeared that the plan didn't approve.
 - Errors are caught and silenced.
 - The diff is far larger than the plan's change surface suggested.
@@ -106,12 +111,13 @@ instead: separate reviewers per dimension, each finding independently verified.
 ## Verification
 
 - [ ] Every finding has `file:line`, severity, and a suggested fix
-- [ ] The lane was checked against the diff — a diff that outgrew its lane is a Critical finding
+- [ ] The lane was checked against the diff — a trigger the lane doesn't cover is a Critical finding
+- [ ] Careful lane, or a careful trigger in the full lane: the area's checklist checked, and `@adf:security-reviewer` run for authorization, personal data, or payments
 - [ ] Change-surface compliance stated explicitly
 - [ ] Each AC and each filled-section requirement checked against the code
 - [ ] Constitution principles walked against the diff
 - [ ] Security reviewed for every file that handles data or external input
-- [ ] Test evidence checked (`tasks.md` § Gate results, or the commit and pull request in the fast and careful lanes)
+- [ ] Test evidence checked (`tasks.md` § Gate results, or the commit bodies in the fast and careful lanes)
 - [ ] Doc accuracy confirmed, and the pull request description compared with the diff (if one exists)
 
 ## Principles

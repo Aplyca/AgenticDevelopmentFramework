@@ -426,6 +426,20 @@ check_agents_md_workflow() {
     else
         fail "AGENTS.md: $lines lines — keep the always-loaded file under 200"
     fi
+    # Lines can run long, so the budget that holds is in characters: the always-loaded text is read on
+    # every call (decision 0065). Raise a budget only with a reason in the CHANGELOG.
+    local chars; chars=$(wc -c < "$AGENTS_MD" | tr -d ' ')
+    if [ "$chars" -le 21000 ]; then
+        pass "AGENTS.md: $chars characters (≤ 21,000)"
+    else
+        fail "AGENTS.md: $chars characters — over its 21,000 budget: move procedure into the skill that runs it"
+    fi
+    local layer; layer=$(cat "$SKELETON/.claude/rules/claude-code.md" "$SKELETON/.claude/rules/git-workflow.md" | wc -c | tr -d ' ')
+    if [ "$layer" -le 10500 ]; then
+        pass "claude-code.md + git-workflow.md: $layer characters (≤ 10,500 — both load in every session)"
+    else
+        fail "claude-code.md + git-workflow.md: $layer characters — over their 10,500 budget"
+    fi
 }
 
 check_git_workflow_prefixes() {
@@ -939,17 +953,17 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Ask how to install' || missing+=("/adopt: committed or packaged (0016)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Packaged\*\* — the default' || missing+=("/adopt: packaged is the default (0018)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Adopt from a release' || missing+=("/adopt: takes the framework at the release it pins")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "sort=-v:refname" || missing+=("/upgrade: moves a packaged project to the newest release tag")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'aplyca-framework@aplyca' || missing+=("/upgrade: migrates the plugin's old name")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'aplyca-adf@aplyca' || missing+=("/upgrade: renames aplyca-adf to adf (v2.0.0, 0023)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" "sort=-v:refname" || missing+=("/upgrade: moves a packaged project to the newest release tag")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" 'aplyca-framework@aplyca' || missing+=("/upgrade: migrates the plugin's old name")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" 'aplyca-adf@aplyca' || missing+=("/upgrade: renames aplyca-adf to adf (v2.0.0, 0023)")
     python3 -c 'import json, sys; sys.exit(0 if json.load(open(sys.argv[1])).get("renames") == {"aplyca-framework": "aplyca-adf", "aplyca-adf": "adf"} else 1)' "$REPO_ROOT/.claude-plugin/marketplace.json" || missing+=("marketplace: renames aplyca-framework → aplyca-adf → adf, append-only")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/switch-install.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Offer `adf-connect`' || missing+=("/adopt: offers adf-connect (0023)")
     file_contains "$HOOKS_DIR/session-context.sh" "replaces this project's AGENTS.md" || missing+=("session-context.sh: warns when a CLAUDE.md replaces AGENTS.md (0024)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'From `CLAUDE.md` to `AGENTS.md`' || missing+=("/upgrade: moves CLAUDE.md into AGENTS.md and the rule (0024)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" 'From `CLAUDE.md` to `AGENTS.md`' || missing+=("/upgrade: moves CLAUDE.md into AGENTS.md and the rule (0024)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `CLAUDE.md`' || missing+=("/adopt: merges an existing CLAUDE.md (0024)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '\*\*No `GEMINI.md`\*\*' || missing+=("/upgrade: removes GEMINI.md (0025)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" '\*\*No `GEMINI.md`\*\*' || missing+=("/upgrade: removes GEMINI.md (0025)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `GEMINI.md`' || missing+=("/adopt: merges an existing GEMINI.md (0025)")
     [ ! -e "$REPO_ROOT/CLAUDE.md" ] || missing+=("this repository: its instructions are AGENTS.md, with no CLAUDE.md (0024)")
     local connect="$REPO_ROOT/plugins/adf-connect/skills/connect/SKILL.md"
@@ -962,7 +976,7 @@ check_practices() {
     file_contains_literal "$connect" '`mcp__contentful-<project>__<tool>`' || missing+=("/connect: a Contentful server is named after its project (0068)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'this is the main checkout, which takes no edits' || missing+=("/dev-env: in the main checkout, moves to the task's worktree first (0042)")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'without `--quiet`' || missing+=("/dev-env: never prints a resolved Compose config")
@@ -995,7 +1009,7 @@ check_practices() {
     file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'name each task and what it takes (C3)' || missing+=("/dev-env: the audit names a test or lint that doesn't take C3's variable (issue 175)")
     ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'this is the main checkout' || missing+=("/e2e: stops in the hub")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'Prove each test can fail' || missing+=("/e2e: each smoke test is seen failing before it's committed (0037)")
@@ -1013,7 +1027,7 @@ check_practices() {
         || missing+=("e2e: no run in each local mode — only the configured one (0037, amended)")
     file_contains "$SKELETON/.claude/rules/testing.md" '^## End-to-end' || missing+=("testing rule: § End-to-end, which every session follows (0037)")
     file_contains "$SKILLS_DIR/write-tests/SKILL.md" '§ End-to-end' || missing+=("/write-tests: an end-to-end test follows testing.md § End-to-end (0037)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" 'git mv scripts/agent ops/agent' || missing+=("/upgrade: moves the parallel-agents module to ops/agent/ (0032)")
     file_contains "$SKELETON/.claude/rules/deployment.md" '^  - "compose.yaml"$' || missing+=("deployment.md: its paths name compose.yaml (0032)")
     file_contains "$SKELETON/.claude/rules/deployment.md" 'env_file:' || missing+=("deployment.md: the three levels of variables, no env_file: (0032)")
     ! grep -rqF '.env.example .env.local' "$SKELETON" || missing+=("skeleton: copies .env.example to .env, which Compose reads, not .env.local (0032)")
@@ -1419,7 +1433,7 @@ check_marketplace_auto_update() {
     grep -qE '^[[:space:]]+"autoUpdate": true$' "$REPO_ROOT/docs/SETUP.md" || missing+=("SETUP.md's settings snippet")
     grep -qE '^[[:space:]]+"autoUpdate": true$' "$REPO_ROOT/plugins/adf/README.md" || missing+=("adf README's team snippet")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '"autoUpdate": true' || missing+=("/adopt's plugin setting")
-    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '"autoUpdate": true' || missing+=("/upgrade's pin step")
+    file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" '"autoUpdate": true' || missing+=("/upgrade's pin step")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" 'claude plugin install <plugin>@aplyca --scope project' \
         || missing+=("/upgrade's commands for each machine")
     file_contains "$REPO_ROOT/docs/SETUP.md" 'claude plugin update adf-dev@aplyca' || missing+=("SETUP.md § Updating updates adf-dev")

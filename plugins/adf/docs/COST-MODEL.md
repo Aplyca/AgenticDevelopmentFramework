@@ -48,7 +48,8 @@ seconds of model time.
 ## Lanes and what they cost
 
 The lane (`specs/README.md` § Lanes) is the biggest lever a team controls. Typical ranges on Opus 5.5
-at the measured $0.06–0.09 per call; Sonnet runs about 25–35% less:
+at the measured $0.06–0.09 per call; Sonnet 5.5 costs half as much on every kind of token, so about
+half at the same number of calls:
 
 | Work | Lane | Calls | Agent time | Cost |
 |---|---|---|---|---|
@@ -261,7 +262,7 @@ Agents have a `model:` field in their frontmatter, so the framework CAN enforce 
 
 | Agent | Current frontmatter | Why |
 |---|---|---|
-| `@adf:spec-writer` | `model: sonnet` | Drafts in its own context from the requirements it's given; the clarifying questions and decisions — what the full lane pays Opus for — stay in the session running `/adf:write-spec`. Override it to `opus` (§ Agent model overrides) to draft from raw requirements |
+| `@adf:spec-writer` | `model: sonnet` | Drafts in its own context from the requirements its caller gives it (`/adf:orchestrate`); the clarifying questions and decisions — what the full lane pays Opus for — stay in the calling session. Override it to `opus` (§ Agent model overrides) to draft from raw requirements |
 | `@adf:code-reviewer` | `model: sonnet` | Review is well-defined, repeatable work — where Anthropic's guidance places Sonnet |
 | `@adf:security-reviewer` | `model: sonnet` | Security review in the careful lane needs real reasoning about data flow; escalate to Opus for novel attack surfaces |
 | `@adf:test-runner` | `model: sonnet` | Test writing requires understanding the spec and matching patterns |

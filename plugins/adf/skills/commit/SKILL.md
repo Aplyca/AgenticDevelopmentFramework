@@ -20,13 +20,13 @@ approved spec folder, a docs-first doc, or one task from `tasks.md` (its test an
 
    | Commit | Prefix | Must be true first |
    |---|---|---|
-   | Approved spec folder (or an amendment: CR, plan correction) | `spec:` | `status: approved` with an `approvals:` line; required sections filled. Exception: a draft saved before the gate at the developer's request — `spec: draft <slug>`, status still `draft` |
+   | Approved spec folder, a full CR's approved spec, plan, and tasks, or a plan correction made outside a task | `spec:` | `status: approved` with an `approvals:` line; required sections filled. Exception: a draft saved before the gate at the developer's request — `spec: draft <slug>`, status still `draft` |
    | Docs-first doc | `docs:` | It's in the plan's documentation plan; claims trace to ACs and planned tests |
    | One task | `feat:` / `fix:` / `refactor:` | Its test went red, then green; the task is ticked in `tasks.md` |
    | Contract-first acceptance tests, or characterization tests | `test:` | Acceptance tests fail for the right reason (red — pending implementation); characterization tests pass and were each seen failing once against a deliberately broken copy |
    | Doc reconciliation, backfill, ADR/PDR, gate results | `docs:` | Claims match what was built |
    | Tooling, dependencies, CI | `chore:` | Nothing to decide, no behavior change |
-   | A fast- or careful-lane change | `feat:` / `fix:` / `chore:` | A test proves it (a bug's regression test failed first); the diff stays within the files stated at triage — or the lane moved up; on delivered work, the light `CR N` entry is in this commit; careful lane: the area's checklist is done, and the risky part is noted for the pull request's Lane line |
+   | A fast- or careful-lane change | `feat:` / `fix:` / `chore:` | A test proves it (a bug's regression test failed first); the diff stays within the files stated at triage, or the ones stated after triaging again; on delivered work, the light `CR N` entry is in this commit; careful lane: the area's checklist is done, and the risky part is noted for the pull request's Lane line |
 
    ```
    spec: approve newsletter-signup scope and plan
@@ -44,8 +44,18 @@ approved spec folder, a docs-first doc, or one task from `tasks.md` (its test an
    - **Task commits:** the test and the code for exactly one task; the test failed before the code
      and passes now; the task is ticked; committed docs still true (or the doc fix is in this commit,
      called out in the body).
-   - **Fast- and careful-lane commits:** the triage's "done when" holds; the files match the ones it
-     stated; the lane and any assumption go in the body when they aren't obvious.
+   - **Fast- and careful-lane commits:** the triage's "done when" holds, and the body carries the
+     evidence `/adf:review` and the pull request read, since the triage leaves the context at a
+     compaction:
+     ```
+     Lane: <fast|careful> — <why>
+     Done when: <check>
+     Files: <the files stated at triage, and any added after triaging again>
+     Red: <command> → <the assertion that failed>
+     Green: <command>
+     ```
+     Add any assumption. A change with no behavior to test — docs, copy, configuration — says so in
+     place of Red and Green.
 
 4. **Stage files by name** — never `git add .` or `git add -A`.
 

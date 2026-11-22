@@ -141,10 +141,11 @@ not a research project.
    goes on meanwhile. If the pull request turns ready in the same turn, the review update replaces
    it.
 
-7. **Keep checking while you work.** If the diff grows past the files you stated, a test outside the
-   area fails, a trigger appears, or no test can prove the change — move up a lane, keeping what's
-   done, and tell the developer. Into careful, carry on with its checklist; into full, stop: the
-   spec and the approval gate come before more code.
+7. **Keep checking while you work.** If a trigger appears, a test outside the area fails, or no test
+   can prove a behavior change — move up a lane, keeping what's done, and tell the developer. Into
+   careful, carry on with its checklist; into full, stop: the spec and the approval gate come before
+   more code. If the diff grows past the files you stated, triage again: a new trigger moves the
+   lane; otherwise state the new files and carry on.
 
 ## Routing
 
@@ -163,7 +164,7 @@ one a new session (`/adf:dispatch` too).
 | Change · full lane, new feature | `/adf:write-spec` → `/adf:write-plan` → approval gate |
 | Change · full lane, change request | `/adf:write-spec` in amend mode (full `CR N`) → `/adf:write-plan` → approval gate |
 | Change · bug, root cause unclear | `/adf:debug`, then the lane the fix needs |
-| Change · hotfix (production broken) | Careful lane, without delay: `/adf:debug` → fix + regression test → ship; backfill the spec if behavior changed |
+| Change · hotfix (production broken) | Careful lane, without delay: `/adf:debug` → regression test, watched failing → fix → the draft pull request (`/adf:open-pr`); backfill the spec if behavior changed |
 | Change · refactor (no behavior change) | `/adf:refactor` — tests green throughout. A structure others must follow takes the full lane, or an ADR (`/adf:record-decision`) |
 | Answer | Investigate read-only; deliver where the task asks. A recommended change gets a lane once someone approves it |
 | Process change | `/adf:record-decision` (PDR) |

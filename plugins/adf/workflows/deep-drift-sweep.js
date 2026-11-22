@@ -81,17 +81,20 @@ Return the findings in the response schema, one per divergence, instead of writi
   (drift) =>
     parallel(
       drift.findings.map((finding) => () => {
-        if (finding.category !== 'CONTRADICTION' && finding.category !== 'MISSING') return Promise.resolve({ ...finding, verdict: null })
+        if (finding.category !== 'CONTRADICTION' && finding.category !== 'MISSING') return Promise.resolve({ ...finding, verify: false, verdict: null })
         return agent(
           `Try to REFUTE this drift finding for ${drift.spec}. ${READ_ONLY}
 ${finding.category} — ${finding.reference}: ${finding.observed}
 Refute it if the code, tests, or a later change request in the spec actually agree. Default to refuted=true when you cannot confirm it.`,
           { label: `verify:${drift.spec}`, phase: 'Verify', schema: VERDICT_SCHEMA, model: 'sonnet' },
-        ).then((verdict) => ({ ...finding, verdict }))
+        ).then((verdict) => ({ ...finding, verify: true, verdict }))
       }),
     ).then((findings) => ({
       ...drift,
-      findings: findings.filter(Boolean).filter((finding) => !finding.verdict || !finding.verdict.refuted),
+      // Unverified categories are kept as reported; a verified one stands only when its verifier confirmed it.
+      findings: findings.filter(Boolean).filter((finding) => !finding.verify || (finding.verdict && !finding.verdict.refuted)),
+      unverified: findings.filter(Boolean).filter((finding) => finding.verify && !finding.verdict),
+      refuted: findings.filter(Boolean).filter((finding) => finding.verify && finding.verdict && finding.verdict.refuted).length,
     })),
 )
 
@@ -107,7 +110,17 @@ const table = results
   }))
   .sort((a, b) => b.score - a.score)
 
-if (results.length < specs.length) log(`${specs.length - results.length} specs could not be audited.`)
-log(`${table.filter((row) => row.score > 0).length} of ${results.length} specs show drift.`)
+const notAudited = specs.filter((spec) => !results.some((result) => result.spec === spec))
+const unverified = results.flatMap((result) => result.unverified.map((finding) => ({ spec: result.spec, ...finding })))
+const refuted = results.reduce((sum, result) => sum + result.refuted, 0)
+if (notAudited.length > 0) log(`${notAudited.length} specs could not be audited: ${notAudited.join(', ')}.`)
+if (unverified.length > 0) log(`${unverified.length} contradictions or missing items not verified: the verifier did not return.`)
+log(`${table.filter((row) => row.score > 0).length} of ${results.length} specs show drift; ${refuted} findings refuted by verification.`)
 
-return { table, findings: results.map((result) => ({ spec: result.spec, findings: result.findings })) }
+return {
+  table,
+  findings: results.map((result) => ({ spec: result.spec, findings: result.findings })),
+  unverified,
+  notAudited,
+  refuted,
+}

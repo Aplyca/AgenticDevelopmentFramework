@@ -89,7 +89,7 @@ Optional: contract-first acceptance tests — end-to-end tests encoding the crit
 | A new feature, or a change request with something to decide | Full | The full flow; a change request amends the folder with a `CR N` section, same gate | New / amend |
 | A bug restoring documented behavior | Fast (careful in a risk area) | Regression test (watch it fail) → fix → `fix:`; `/debug` first if the cause is unclear | None |
 | A bug whose fix changes documented behavior | By the change | A change request — light or full | Amend |
-| A hotfix — production is broken now | Careful, without delay | `/debug` → fix + regression test → ship via the hotfix path in `CONTRIBUTING.md` | Backfill |
+| A hotfix — production is broken now | Careful, without delay | `/debug` → regression test, seen failing → fix → ship via the hotfix path in `CONTRIBUTING.md` | Backfill |
 | A refactor | Fast, or full for a structure others follow | `/refactor`, green after every step → `refactor:` | None |
 | An investigation, impact analysis, or estimate | — | Deliver the answer where the task asks | None |
 | A change to how the team works | — | `/record-decision` (a PDR) | None |

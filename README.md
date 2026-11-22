@@ -440,8 +440,9 @@ machine unless a human asks — except the work branch's push and its draft pull
 local check, marking it ready once the agent's own tests and review pass, requesting the reviewers
 the project names, keeping it current, and the tracker task's status moves and outcome updates. No push to another branch,
 no pull request merged or reviewed, no release, and no message that asks the requester for something goes out on its own, and the hooks and permissions
-enforce the rules that must hold every time. The full reference is the `/spec-workflow` skill and
-[`skeleton/specs/README.md`](skeleton/specs/README.md).
+enforce the rules that must hold every time. The full reference is
+[`skeleton/specs/README.md`](skeleton/specs/README.md); the `/spec-workflow` skill routes each kind of
+task to the skill and section that hold its steps.
 
 ## Team onboarding
 

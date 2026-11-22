@@ -1,6 +1,6 @@
 # 0065: The always-loaded text says each rule once, and a phase's procedure stays in its skill
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0095](0095-each-step-has-one-owner.md) (a character budget in the static checks backs the rule)
 - **Date:** 2026-11-02
 - **Amends:** [0055](0055-lean-context-and-acting-model-routing.md) — the same principle, applied
   again to the text added since

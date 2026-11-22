@@ -11,13 +11,14 @@ approved at the gate; this puts it where the requester reads it.
    comment on the task (the default, and with no line), or a section of its description.
 3. **Before the build — once the gate approved the spec:** post the text as it is in the spec, under
    a first line that says what it is: `**Usage guide (draft) — how this will work once it's
-   delivered.**` It posts on its own: the developer approved its text with the spec. With **Updates
-   post: on the developer's yes**, show it and ask first. Tick its Phase 1 task in `tasks.md` with
-   the comment's link, and commit the tick.
+   delivered.**` As a comment it posts on its own: the developer approved its text with the spec.
+   Show it and ask first with **Updates post: on the developer's yes**, or when it goes in the
+   description — that edits the requester's text (`docs/TRACKER-INTEGRATION.md` § Rules for
+   agents). Tick its Phase 1 task in `tasks.md` with the comment's link, and commit the tick.
 4. **At delivered — the change is live:** update the guide where it lives, from the spec's text as
    it merged — the same comment, edited, with the first line now `**Usage guide**` — and link it
    from the delivered update. The spec's text was reconciled with what the build changed before the
-   merge, with the other docs (`/adf:implement`, Phase 5); if it wasn't, say so and post what
+   merge, with the other docs (`tasks.md`, Phase 5); if it wasn't, say so and post what
    shipped. Add screenshots as `<this skill's base directory>/screenshots.md` says.
 5. **Write as the post is written** (`SKILL.md` step 6): through the project's tracker tool, as the
    developer; read it back. A description is rewritten whole, so where it holds something an edit

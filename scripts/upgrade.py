@@ -593,20 +593,24 @@ class Upgrade:
         }
 
     def preconditions(self):
-        if self.dry:
-            return
+        """What the real run refuses. A dry run runs anywhere and lists them under Before the real run."""
+        problems = []
         if git(self.repo, "status", "--porcelain"):
-            raise Refusal("the working tree has uncommitted changes: commit or stash them first")
+            problems.append("the working tree has uncommitted changes: commit or stash them first")
         branch = git(self.repo, "rev-parse", "--abbrev-ref", "HEAD")
         default = git(self.repo, "symbolic-ref", "--short", "-q", "refs/remotes/origin/HEAD", check=False)
         default = default.split("/", 1)[1] if default else "main"
         if branch in (default, "main", "master", "HEAD"):
-            raise Refusal(f"on {branch}: run the upgrade on its own branch (chore/skeleton-upgrade-{self.new.commit[:7]})")
+            problems.append(f"on {branch}: run the upgrade on its own branch (chore/skeleton-upgrade-{self.new.commit[:7]})")
         hub = any(os.path.isfile(os.path.join(self.repo, d, "worktree.conf")) for d in ("ops/agent", "scripts/agent"))
         common = os.path.abspath(os.path.join(self.repo, git(self.repo, "rev-parse", "--git-common-dir")))
         gitdir = os.path.abspath(os.path.join(self.repo, git(self.repo, "rev-parse", "--git-dir")))
         if hub and common == gitdir:
-            raise Refusal("this is the hub's main checkout: run the upgrade in the task's worktree (/adf:dispatch)")
+            problems.append("this is the hub's main checkout: run the upgrade in the task's worktree (/adf:dispatch)")
+        if self.dry:
+            self.report["header"]["before_the_run"] = problems
+        elif problems:
+            raise Refusal(problems[0])
 
     # ── the releases in between ──
     def releases(self):
@@ -787,7 +791,9 @@ class Upgrade:
 
     # ── installers ──
     def installers(self):
-        for module in self.modules:
+        # docker's installer goes first: with its rules in place, e2e's and unit's leave out the
+        # commands that run tests on the host (modules/README.md).
+        for module in sorted(self.modules, key=lambda m: m != "docker"):
             script = os.path.join(FRAMEWORK, "modules", module, "install.sh")
             if not os.path.isfile(script):
                 continue
@@ -1080,6 +1086,8 @@ def render(r):
     lines = [f"# Framework upgrade {h['old']['version']} ({h['old']['commit']}) → {new} ({h['new']['commit']})", "",
              f"`{h['old']['version']} ({h['old']['commit']}) → {new} ({h['new']['commit']}) · install: {h['install']} · "
              f"modules: {', '.join(h['modules']) or 'none'}`" + (" — **dry run: nothing changed**" if h["dry_run"] else ""), ""]
+    if h.get("before_the_run"):
+        lines += ["**Before the real run** — it refuses until these are fixed:", ""] + [f"- {p}" for p in h["before_the_run"]] + [""]
     lines += ["## Releases", ""]
     for rel in r["releases"]:
         lines.append(f"- **{rel['title']}**")

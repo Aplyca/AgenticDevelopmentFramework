@@ -5,6 +5,7 @@ model: sonnet
 tools:
   - Read
   - Write
+  - Edit
   - Glob
   - Grep
 ---

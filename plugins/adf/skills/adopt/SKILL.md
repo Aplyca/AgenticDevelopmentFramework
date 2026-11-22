@@ -96,7 +96,7 @@ Build a facts table (`fact → evidence file:line`):
   `main`, optional never-merged integration branch) or **Model B** (integration branch, release
   merge, tag ships) from the skeleton's `CONTRIBUTING.md` — or note a third shape
 - **History that must stay append-only** — migrations directories; **generated files** — lockfiles, generated types
-- **Requirements source** — ask: which tracker (ClickUp, GitHub issues, GitLab issues, Jira, Linear, none)? Its MCP endpoint, if any; on issues, the labels that mean in progress and in review. When a merged change is live — on the merge, on a release, or when someone says
+- **Requirements source** — ask: which tracker (ClickUp, GitHub issues, GitLab issues, Jira, Linear, none)? Its MCP endpoint, if any; on issues, the labels that mean in progress and in review; and when a merged change is live — on the merge, on a release, or when someone says? Recommend the answer the branching model suggests (Model A deploying `main`: on the merge; a tag that ships: on a release)
 - **Connected services** — ask: which services does the stack use that agents should read — a database, hosting, a CMS (Supabase, Vercel, Contentful…)? Each one with an official MCP server is a later `/adf-connect:connect`
 - **Git host** — GitHub, GitLab, other (from `git remote -v`)
 - **Containers** — `Dockerfile*`, Compose files (`compose.yaml`, `compose.yml`, `docker-compose.y*ml`), a `Makefile`, `ops/`, `.devcontainer/`; what the local stack runs, and how
@@ -184,7 +184,8 @@ Present the table before going further. Wrong facts here poison every file downs
     Docs, Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
     implementation, where end users can't see it, and publishes it once the feature ships (decision
     0048). The doc tool needs its MCP server — `clickup` for ClickUp Docs
-  Install each chosen one with `cp -R modules/<name>/files/. <repo>/` (same no-overwrite rule) —
+  Install each chosen one with `cp -Rn modules/<name>/files/. <repo>/` — `-n` overwrites nothing;
+  merge by hand each of the module's files that already existed —
   except `clickup`, which merges into `.mcp.json` and `.claude/settings.json`:
   `modules/clickup/install.sh <repo>`. `gitlab` copies, and merges into an existing `.gitlab-ci.yml`
   the three blocks its `MODULE.md` § Install names. `docker` has no files to copy: `modules/docker/install.sh <repo>`
@@ -246,7 +247,7 @@ Present the table before going further. Wrong facts here poison every file downs
   module, fill the values its `MODULE.md` § Customize lists (task links, statuses via
   `clickup_get_task` with `expand_statuses: true`, where PR links go). On GitHub or GitLab issues,
   there's no server: name the labels for in progress and in review in *Status at each moment*, and
-  keep § Issues as the tracker. Fill *Live when* from the branching model, and leave *Updates post*
+  keep § Issues as the tracker. Fill *Live when* from the answer in Step 2, and leave *Updates post*
   at `on their own` unless the team wants every update approved first. Delete the page if there is
   no tracker.
 - **Modules** — `ops/agent/worktree.conf`; the PR template's quality and constitution checklists;
@@ -307,7 +308,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
 - [ ] This machine's copy of the marketplace is at the pin: `aplyca`'s `ref` in `claude plugin marketplace list --json` equals the settings' `"ref"`. A GAP when it differs or is missing (added without a release, it follows the default branch): after the merge, from the project's folder, `claude plugin marketplace add <source>#v<X.Y.Z> --scope project`, then `claude plugin uninstall` and `claude plugin install` (`--scope project`) for each plugin the settings turn on, then `git restore .claude/settings.json`. `claude plugin update` isn't enough: at the release's version it keeps the files it installed from the default branch (decision 0091)
-- [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with `CLAUDE_PROJECT_DIR` set (`docs/SETUP.md` § Packaged install)
+- [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with both variables set — `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/adf <marketplace folder>/plugins/adf/hooks/guard-git.sh`, the marketplace folder being `aplyca`'s `installLocation` in `claude plugin marketplace list --json` (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
 - [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
 - [ ] Packaged, with `parallel-agents`: `ops/agent/` holds only `worktree.conf`, and in a new session `adf-worktree-ls` lists the main checkout

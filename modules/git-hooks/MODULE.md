@@ -16,7 +16,7 @@ exists, so the agent guard and the git hook can't disagree. Otherwise the hook d
 ## Install
 
 ```bash
-cp -R modules/git-hooks/files/. /path/to/your-repo/
+cp -Rn modules/git-hooks/files/. /path/to/your-repo/   # -n: overwrites nothing
 git config core.hooksPath .githooks   # once per clone — add this line to DEV-SETUP.md
 ```
 

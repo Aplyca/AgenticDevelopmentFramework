@@ -42,7 +42,7 @@ links it at the release it pins; a committed one gets `docs/PARALLEL-AGENTS.md` 
 ## Install
 
 ```bash
-cp -R modules/parallel-agents/files/. /path/to/your-repo/
+cp -Rn modules/parallel-agents/files/. /path/to/your-repo/   # -n: overwrites nothing
 chmod +x ops/agent/*.sh
 python3 scripts/build-committed.py /path/to/your-repo --modules parallel-agents   # committed install: /dispatch, the guide
 ```

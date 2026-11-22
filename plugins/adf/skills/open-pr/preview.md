@@ -36,3 +36,10 @@ fix goes under *Not verified*, with why. Both, test and review:
 
 Your test and review here are part of what lets you mark the pull request ready (step 8). The
 developer's review on the preview comes after it, and decides.
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "The criteria pass on the preview, so I've reviewed it" | Walking the criteria is the test. The review looks at what a person sees: the page at a phone's width and a desktop's, its copy, the console, basic accessibility. |
+| "It works locally; I'll mark it ready before the preview deploys" | When the project has previews, the preview is part of your test: the production build, on the platform, with its configuration. Ready waits for its walk and for CI. |

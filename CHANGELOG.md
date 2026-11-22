@@ -11,6 +11,141 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Each delivery rule is stated once, and the copies that drifted agree again.**
+  - **What:**
+    - **Ready** is defined once, in `AGENTS.md` § Delivery rules. The ground rules, the full lane's
+      step 7, `claude-code.md`, `git-workflow.md`, and `CONTRIBUTING.md` point to it instead of
+      restating a weaker "once your own tests pass".
+    - **A hotfix is test-first:** reproduce it in a regression test, watch it fail, fix it, and
+      deliver it through the draft pull request — in `AGENTS.md`, `/adf:triage`, and the onboarding
+      guide. "Ship" no longer reads as a deploy.
+    - **The tracker's no-yes list is one list:** the status moves, the review and delivered updates,
+      and the usage guide's draft as a comment — unless **Updates post** says `on the developer's
+      yes`. An answer-only task's answer waits for a yes in `AGENTS.md` too, and a guide that goes in
+      the description asks first, since it edits the requester's text.
+    - **Tick, then commit, together:** `AGENTS.md` and `specs/README.md` now match `git-workflow.md`
+      and `/adf:implement`.
+    - **`spec:` carries** the approved folder, a full change request's approved parts, a plan
+      correction made outside a task, and the PR link; a light `CR N` or a task's plan fix rides the
+      task's commit (`git-workflow.md`, `/adf:commit`).
+    - **Cost facts match the script:** `/adf:cost-report` no longer says cache reads cost the same on
+      Sonnet and Opus, and `COST-MODEL.md`'s lane table says Sonnet costs about half.
+  - **Where:** `skeleton/AGENTS.md`, `skeleton/.claude/rules/{claude-code,git-workflow}.md`,
+    `skeleton/CONTRIBUTING.md`, `skeleton/docs/TRACKER-INTEGRATION.md`, `skeleton/specs/README.md`,
+    `plugins/adf/skills/{triage,commit,cost-report}/`, `plugins/adf/skills/stakeholder-update/guide.md`,
+    `plugins/adf/docs/{COST-MODEL,PARALLEL-AGENTS}.md`, `docs/ONBOARDING.md`,
+    `docs/scenarios/change-request.md`.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` — the ground rules' "Nothing leaves this machine" line, § 3 steps 5 and 7,
+    § 5's hotfix line, and § Requirements & traceability's sentence on what posts on its own;
+    `.claude/rules/claude-code.md` — the **No prompt** line; `.claude/rules/git-workflow.md` — the
+    `spec:` row and § Pull requests and outward actions' first paragraph; `CONTRIBUTING.md` — the
+    draft-and-ready line; `docs/TRACKER-INTEGRATION.md` — the **Yours** bullet;
+    `specs/README.md` — the Flow table's Implement row.
+  - **Overwrite:** committed install: `.claude/skills/{triage,commit,cost-report,stakeholder-update}/`,
+    `docs/COST-MODEL.md`, and with `parallel-agents`, `docs/PARALLEL-AGENTS.md`, as `/adf:upgrade`
+    writes them; packaged, they come with the plugin.
+
+- **Each step has one owner**
+  ([decision 0095](docs/decisions/0095-each-step-has-one-owner.md)).
+  - **What:**
+    - **`/adf:open-pr` runs `/adf:review`, once,** after the local check. `/adf:implement` ends with a
+      self-review and the local check; the lane table in `claude-code.md` and `AGENTS.md` § 3 say
+      the same.
+    - **The lane moves for risk, not size** (as 0079 meant): a trigger, a test outside the area
+      failing, or a behavior change no test can prove moves it up; a diff past its stated files is
+      triaged again. `/adf:review` makes a trigger the lane lacks Critical, and unstated files a
+      Warning.
+    - **A fast- or careful-lane commit body carries its evidence** — `Lane`, `Done when`, `Files`,
+      `Red`, `Green` — and `/adf:review` reads it from the history, so it survives a compaction.
+    - **`/adf:review` runs the careful lane's checks:** the area's checklist, and
+      `@adf:security-reviewer` for authorization, personal data, or payments, in the full lane too when
+      the diff hits a careful trigger. The security reviewer audits the diff its caller gives it.
+    - **Skills state their plans and go on:** `/adf:write-tests` (standalone), `/adf:write-docs`
+      (update mode), and `/adf:refactor` no longer wait for a yes; `/adf:orchestrate` waits only for
+      a `custom` plan or one that departs from its table.
+  - **Where:** `skeleton/AGENTS.md`, `skeleton/.claude/rules/claude-code.md`,
+    `skeleton/specs/README.md`, `plugins/adf/skills/{implement,review,commit,triage,write-tests,write-docs,refactor,orchestrate}/`,
+    `plugins/adf/agents/security-reviewer.md`, `docs/decisions/0065…`, `0079…` (amended).
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` — § 2's "Move up a lane" sentence and § 3 steps 6 and 7;
+    `.claude/rules/claude-code.md` — the Fast and Full rows of § Lanes; `specs/README.md` — § Lanes'
+    paragraph after the trigger table.
+  - **Overwrite:** committed install: the skills above and `.claude/agents/security-reviewer/`, as
+    `/adf:upgrade` writes them; packaged, they come with the plugin.
+
+- **Install, upgrade, and workflow fixes.**
+  - **What:**
+    - **A module's files never overwrite the project's:** `/adf:adopt`, `modules/README.md`, and the
+      `gitlab`, `git-hooks`, and `parallel-agents` modules copy with `cp -Rn`, then merge by hand what
+      already existed. `cp -R` silently replaced an existing `.gitlab-ci.yml`, PR template, or
+      `.gitleaks.toml`.
+    - **The upgrade's dry run lists what the real run will refuse** — uncommitted changes, the
+      default branch, the hub's main checkout — under **Before the real run**, instead of passing and
+      letting the real run refuse after the developer approved everything.
+    - **The upgrade runs `docker`'s installer first,** so `e2e`'s and `unit`'s leave out the host test
+      commands, as the module docs require.
+    - **`/adf:upgrade`'s scripted steps run in an order that works:** dry run, read the new release's
+      skill, choose the modules, then branch — in a worktree when `parallel-agents` is installed or
+      chosen — with the install's settings change committed on the branch. Its bucket table, which
+      had drifted, points to `scripts/upgrade-buckets.json`.
+    - **`/adf:adopt` asks when a merged change is live** (the question was cut off mid-sentence), and
+      its packaged hook check sets `CLAUDE_PLUGIN_ROOT` as well.
+    - **The deep workflows report INCOMPLETE work:** `/adf:deep-spec-analysis` no longer says READY
+      FOR THE GATE when its analyzers failed; all three list what an agent or verifier that didn't
+      return left unchecked, and `/adf:deep-review` no longer counts a missing verdict as refuted.
+    - **`docs/UPGRADING.md`'s commands run:** `git show OLD_SHA:…` reads the framework checkout, and
+      the shopping-list diff covers `modules/` and `plugins/`.
+  - **Where:** `plugins/adf/skills/{adopt,upgrade}/`, `modules/README.md`,
+    `modules/{gitlab,git-hooks,parallel-agents}/MODULE.md`, `scripts/upgrade.py`,
+    `plugins/adf/workflows/deep-{spec-analysis,review,drift-sweep}.js`, `docs/UPGRADING.md`,
+    `evals/static/test-upgrade.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/workflows/deep-*.js`, as `/adf:upgrade` writes them;
+    packaged, they come with the plugin. The upgrade script and the install docs are the framework's.
+
+- **Less text on every call, and on every run of the largest skills**
+  ([decision 0095](docs/decisions/0095-each-step-has-one-owner.md)).
+  - **What:**
+    - **The always-loaded files have a budget:** the static checks hold `AGENTS.md` to 21,000
+      characters and `claude-code.md` with `git-workflow.md` to 10,500. `AGENTS.md` § Delivery rules
+      keeps the policy — the local check, the preview, ready — and leaves the procedure (what to look
+      at on the preview, stopping the environment) to `/adf:open-pr`; the two human-review bullets in
+      the ground rules are one. `git-workflow.md` points to § Delivery rules instead of restating it.
+    - **`/adf-dev:dev-env`, `/adf-dev:e2e`, and `/adf-dev:unit` read one file per mode,** and the
+      specification only in the modes that check against it. A dev-env `diagnose` loads about 3,000
+      words instead of 10,400; `reset`, about 2,700.
+    - **`/adf:upgrade` keeps the scripted path:** the manual procedure, the migrations from before
+      v2.0.0, and switching installs move to `manual.md`, `before-v2.md`, and `switch-install.md`
+      beside it. The skill goes from about 5,000 words to 2,450, and an upgrade, which reads the
+      pinned copy and then the new release's, from about 10,000 to 5,000.
+    - **`/adf:open-pr` is 15% shorter:** the fix-after-review loop moves to `refresh.md`, and the
+      preview-only rationalizations to `preview.md`; the rationalizations and red flags that repeated
+      a step or a verification item go. A reference to a heading `preview.md` doesn't have is fixed.
+    - **`/adf:spec-workflow` routes:** one row per kind of task, pointing to the skill or section
+      that holds its steps, instead of a fourth copy of the lanes and the flow that had drifted.
+    - **The agents that copy a skill agree with it:** `@adf:test-runner` no longer calls green tests
+      "done", and proves a test that passes first by breaking the behavior; its rules point to
+      `testing.md`. `@adf:spec-writer` can edit, and `@adf:debugger` says where a reproduction script
+      goes.
+  - **Where:** `skeleton/AGENTS.md`, `skeleton/.claude/rules/git-workflow.md`,
+    `plugins/adf-dev/skills/{dev-env,e2e,unit}/`, `plugins/adf/skills/{upgrade,open-pr,spec-workflow,init-project}/`,
+    `plugins/adf/agents/{test-runner,spec-writer,debugger}.md`, `plugins/adf/docs/COST-MODEL.md`,
+    `modules/{docker,e2e,unit}/MODULE.md`, `README.md`, `docs/SKILLS-REFERENCE.md`,
+    `docs/AGENTS-REFERENCE.md`, `evals/static/check-skills.sh`.
+
+  **Upgrade impact:**
+  - **Merge:** `AGENTS.md` — § Ground rules' "Agents implement and review" bullet (the "No merge
+    without human review" bullet joins it) and § Delivery rules' local-check, preview, and pull-request
+    bullets; `.claude/rules/git-workflow.md` — § Pull requests and outward actions' first paragraph.
+  - **Overwrite:** committed install: `.claude/skills/{upgrade,open-pr,spec-workflow,init-project}/`,
+    `.claude/agents/{test-runner,spec-writer,debugger}/`, and with the `docker`, `e2e`, or `unit`
+    module, `.claude/skills/{dev-env,e2e,unit}/` — new mode files included — as `/adf:upgrade` writes
+    them; packaged, they come with the plugins.
+
 - **Sonnet 5.5's cache reads are priced at $0.10 per million tokens.**
   - **What:** `/adf:cost-report` priced Sonnet 5.5's cache reads at Sonnet 5's $0.20, so it
     overstated Sonnet sessions and the "on Sonnet" estimate for Opus ones; `COST-MODEL.md` said cache

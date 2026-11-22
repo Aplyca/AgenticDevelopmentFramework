@@ -17,9 +17,11 @@ placed as `.claude/rules/testing.md` § Tiers and feature suites says.
 ## The specification
 
 **`<this skill's base directory>/SPECIFICATION.md` is what the suite must be** — the engine, its
-layout, the tiers (T), the feature suites (U), and the test-first flow, each requirement with an ID. Read it
-before any mode below. **There are no templates:** write the project's configuration to it. A suite
-is done when its runs prove it. Name the requirement's ID whenever you report a gap.
+layout, the tiers (T), the feature suites (U), and the test-first flow, each requirement with an ID.
+Every mode below checks against it — set up and audit the whole of it, tag the tiers (T1–T5),
+feature suites the list (U1) — so step 3 reads it. **There are no templates:** write the project's
+configuration to it. A suite is done when its runs prove it. Name the requirement's ID whenever you
+report a gap.
 
 ## Safety (always)
 
@@ -41,7 +43,8 @@ is done when its runs prove it. Name the requirement's ID whenever you report a 
    `chore/unit` as the branch, without asking first.
 3. **Read the facts, running nothing yet:** the app's `package.json`, any test runner already
    there (`jest.config.*`, `vitest.config.*`, `mocha`), where tests live now, the `Makefile` and
-   `ops/` when the stamp names `docker`, `.claude/rules/testing.md`, and `AGENTS.md`. A project
+   `ops/` when the stamp names `docker`, `.claude/rules/testing.md`, and `AGENTS.md`, with the
+   specification — and, when the argument is `set up`, its file (§ Mode: set up). A project
    that isn't a JavaScript or TypeScript app: say the module doesn't apply and stop (§ The engine).
 4. **Name the mode** in one line, from the argument or the situation: no Vitest → set up; Vitest
    there that doesn't meet the specification → audit; a feature that needs tier tags → tag; test
@@ -49,22 +52,10 @@ is done when its runs prove it. Name the requirement's ID whenever you report a 
 
 ## Mode: set up
 
-1. **Triage it.** `/adf:triage`, the careful lane at least, done when "`test:smoke`,
-   `test:critical`, and `test` pass, and one test per tier was seen failing".
-2. **Agree on the feature suites.** From the folders and the delivered features, propose the feature suite list — name,
-   folders, what it covers — and the developer decides (U1). Wait.
-3. **Write the configuration (S1–S5, T3).** Add Vitest at the chosen version to `devDependencies`,
-   pinned exactly; `vitest.config.ts` with the `unit` and `integration` projects; the five scripts;
-   and `docs/TEST-SUITES.md`. With the `docker` module, add `make test tier= suite=` to each mode's
-   `Makefile`, running the scripts in that mode, and `make help` lists it. Never over a file that's
-   there: when another runner exists, say what moving to Vitest changes and ask first.
-4. **Tag what exists.** For each feature suite, pick one test per critical behavior as `@smoke` and each
-   delivered feature's main criterion as `@critical` — a title change, never a body change.
-5. **Prove it.** Run `test:smoke`, `test:critical`, `test`, and a feature suite run. For one test per tier,
-   break its assertion, watch it fail, restore it.
-6. **Fill the project's copies:** `.claude/rules/testing.md` § Tiers and feature suites (its commands and any
-   departure, with why), `AGENTS.md` § Quick reference (the tier and feature suite commands), and
-   `docs/getting-started/DEV-SETUP.md`.
+Read `<this skill's base directory>/set-up.md` — with step 3's reads when the argument names the
+mode, or as soon as step 4 names it — and follow it: through `/adf:triage`, the feature suites the
+developer chooses, the configuration (S1–S5, T3), the tags on what exists, each tier seen failing,
+and the project's copies filled in.
 
 ## Mode: audit
 

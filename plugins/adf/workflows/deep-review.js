@@ -103,7 +103,7 @@ const reviewed = await pipeline(
   DIMENSIONS,
   (dimension) =>
     agent(`${context}\n\n${dimension.prompt}`, { label: `review:${dimension.key}`, phase: 'Review', schema: FINDINGS_SCHEMA, model: 'sonnet' }).then(
-      (result) => ({ dimension: dimension.key, checked: result ? result.checked : 'reviewer did not return', findings: result ? result.findings : [] }),
+      (result) => ({ dimension: dimension.key, returned: Boolean(result), checked: result ? result.checked : 'reviewer did not return', findings: result ? result.findings : [] }),
     ),
   (review) =>
     parallel(
@@ -127,6 +127,7 @@ const all = reviews.flatMap((review) => review.findings)
 const seen = new Set()
 const confirmed = []
 const refuted = []
+const unverified = []
 const nits = []
 const followUps = []
 for (const finding of all) {
@@ -135,19 +136,24 @@ for (const finding of all) {
   seen.add(key)
   if (finding.severity === 'nit') nits.push(finding)
   else if (finding.severity === 'outside') followUps.push(finding)
-  else if (finding.verdict && !finding.verdict.refuted) confirmed.push({ ...finding, severity: finding.verdict.severity })
+  else if (!finding.verdict) unverified.push(finding)
+  else if (!finding.verdict.refuted) confirmed.push({ ...finding, severity: finding.verdict.severity })
   else refuted.push(finding)
 }
 const rank = { critical: 0, warning: 1, nit: 2 }
 confirmed.sort((a, b) => rank[a.severity] - rank[b.severity] || a.file.localeCompare(b.file) || a.line - b.line)
 
-log(`${confirmed.length} confirmed, ${refuted.length} refuted by verification, ${nits.length} nits (not verified), ${followUps.length} follow-ups outside the diff.`)
+const incomplete = DIMENSIONS.filter((dimension) => !reviews.some((review) => review.dimension === dimension.key && review.returned)).map((dimension) => dimension.key)
+log(`${confirmed.length} confirmed, ${refuted.length} refuted by verification, ${unverified.length} not verified, ${nits.length} nits (not verified), ${followUps.length} follow-ups outside the diff.`)
+if (incomplete.length > 0) log(`Dimensions that did not return — not reviewed: ${incomplete.join(', ')}.`)
 
 return {
   scope,
   dimensions: reviews.map((review) => ({ dimension: review.dimension, checked: review.checked, findings: review.findings.length })),
   confirmed,
-  refuted: refuted.map((finding) => ({ file: finding.file, line: finding.line, title: finding.title, reason: finding.verdict ? finding.verdict.reason : 'verifier did not return' })),
+  refuted: refuted.map((finding) => ({ file: finding.file, line: finding.line, title: finding.title, reason: finding.verdict.reason })),
+  unverified,
+  incomplete,
   nits,
   followUps,
 }

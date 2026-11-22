@@ -134,9 +134,9 @@ adjustment — updating the doc is a normal part of this phase, not an exception
     pull request, so the folder reads as built and nothing of this task is left to commit after it.
     A change request gets its own gate-results block under its part, and sets `implemented` again.
     Commit (`docs: record <slug> gate results`, or `… CR N gate results`).
-14. **Self-review**, then `/adf:review`. Don't push. Then the local check (`AGENTS.md` § Delivery rules):
-    start the change on the local environment and walk every acceptance criterion yourself. Once it
-    works, run `/adf:open-pr`: it opens the draft and tells the developer where to test it. For a
+14. **Self-review.** Don't push. Then the local check (`AGENTS.md` § Delivery rules): start the
+    change on the local environment and walk every acceptance criterion yourself. Once it works, run
+    `/adf:open-pr`: it runs `/adf:review`, opens the draft, and tells the developer where to test it. For a
     change request on an open pull request, the push goes to the same draft, and `/adf:open-pr` keeps
     its description current.
 

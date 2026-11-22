@@ -77,8 +77,9 @@ Use it when implementation has surfaced a meaningful revision — a new section,
 behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it into the task's commit.
 
 1. Read the committed docs and what has actually been built (the implementation commits).
-2. List what is wrong, missing, or misleading, and present a short **doc-update plan** — which
-   sections of which files change, and what gets removed. Wait for approval.
+2. List what is wrong, missing, or misleading, and state a short **doc-update plan** — which
+   sections of which files change, and what gets removed — then go on. Stop only when the revision
+   changes what the spec promised: that's a change request (`/adf:write-spec`).
 3. Write the updates and run the prose pass on them; commit `docs: update <doc> for <what changed>`.
 
 ## Rationalizations (do not accept these)

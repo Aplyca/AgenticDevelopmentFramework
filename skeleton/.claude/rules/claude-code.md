@@ -14,7 +14,7 @@
 Hooks and permissions hold whatever the instructions say; their values live in `.claude/hooks/config.sh` and `.claude/settings.json`:
 
 - **Ask first:** merging, approving, or reviewing a pull request, creating or changing a release, pushing a tag, changing `git config`, `gh auth` and `glab auth`, setting or deleting a GitHub secret, any GitLab CI/CD variable or secure file (a read shows the value), and `gh api` and `glab api` writes. Reading `git config`, a GitHub release, or the secrets' names runs.
-- **No prompt:** commits, the work branch's push, its draft, and marking it ready once your own tests pass and requesting its reviewers — and keeping that pull request current. They are a standing go-ahead: never ask for them, in a reply or in the desktop app's next-step box.
+- **No prompt:** commits, the work branch's push, its draft, and marking it ready (`AGENTS.md` § Delivery rules) and requesting its reviewers — and keeping that pull request current. They are a standing go-ahead: never ask for them, in a reply or in the desktop app's next-step box.
 - **Never:** `--no-verify`; a commit, push, or force-push on a protected branch; a pull request that isn't a draft; a hand edit to generated files or append-only history; reading secret env files; with parallel-agents, an edit in the main checkout (`/dispatch` first).
 - **Stops once, as a reminder:** a session's first edit or new branch with no lane stated in your replies; the first edit in a sensitive area.
 - **Tells you:** the branch, worktree role, and spec folder at session start; when this branch's pull request merges or closes (offer `/wrap-up`, or ask whether the task is dropped); an environment variable missing from the env template.
@@ -44,9 +44,9 @@ Lane definitions are in `AGENTS.md` § How work flows; in Claude Code:
 
 | Lane | Workflow | Model |
 |---|---|---|
-| Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit` → `/review` | `sonnet` |
+| Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit` → local check → `/open-pr` (runs `/review`) | `sonnet` |
 | Careful | Fast, plus the area's checklist; `@security-reviewer` for authorization, personal data, or payments | `sonnet`, high effort |
-| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → `/review` | `opus`, high effort, up to the gate; then `/compact` and `sonnet` in the same session |
+| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → local check → `/open-pr` (runs `/review`) | `opus`, high effort, up to the gate; then `/compact` and `sonnet` in the same session |
 | Bug, cause unknown | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
 | Refactor | `/refactor` (full when it sets a structure others must follow) | `sonnet` |
 | Answer | `/triage` → the answer | `sonnet`; `opus` for architecture-level questions |

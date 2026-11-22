@@ -8,7 +8,7 @@ argument-hint: "[project name]"
 
 # Initialize Project
 
-Set up the AI configuration for this repository: Workflow 1 in `/adf:spec-workflow`. The output is
+Set up the AI configuration for this repository, once. The output is
 context every agent reads before every design review, security audit, and implementation — invest
 in it now. **Facts need evidence:** fill each placeholder from a file you read (manifest, lockfile,
 CI config, code). What you can't evidence becomes `<!-- TODO(team): <concrete question> -->` — an
