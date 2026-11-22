@@ -40,7 +40,8 @@ safety net; a refactor without them is a gamble.
 4. **Run those tests after every step** — by name or path; the full gate runs once, before
    delivery (`.claude/rules/testing.md` § Verification budget). A failure means the last step changed behavior: fix it or
    revert it before going on. Never edit an assertion to get back to green — a refactor that needs
-   a test changed isn't one.
+   an assertion changed isn't one. A rename or a move updates the tests' imports and references with
+   it; that changes no assertion.
 
 5. **Commit each green step** (`refactor: <what got simpler>`). Small commits keep review easy and
    any single step revertible.

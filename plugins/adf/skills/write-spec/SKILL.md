@@ -1,7 +1,7 @@
 ---
 name: write-spec
 description: Write a spec folder's spec.md with the multi-perspective spec model — or amend a delivered feature with a change request (CR) — clarifying ambiguities and enforcing the required sections. Use when starting a new feature or changing existing behavior; /adf:write-plan follows and holds the approval gate.
-argument-hint: "[feature description, tracker link, or spec folder to amend]"
+argument-hint: "[feature description, tracker link, or spec folder to amend] [optional: light | full]"
 ---
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/write-spec/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
@@ -17,7 +17,8 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
 ## Steps
 
 1. **Check existing specs.** Search `specs/` by tracker link, feature name, and keywords. If a folder
-   already covers this feature and it was delivered, this is a **change request** — go to step 8. A
+   already covers this feature and it was delivered, or its pull request is still open, this is a
+   **change request** — go to step 8. A
    single-file spec from an older framework version (`specs/<name>.md`) is moved into a folder the
    first time it is amended.
 
@@ -105,7 +106,8 @@ comes next, in `plan.md`, from `/adf:write-plan` — which also holds the approv
      append `# CR N — <title> (YYYY-MM-DD) · light` with the request's link, the Delivered → Change
      row, and any acceptance criterion it adds or changes, tagged `(CR N)`. No plan or tasks part,
      no gate, status stays `implemented`; the entry is committed **with the change it records**. If
-     the adjustment turns out to need a decision, it becomes a full change request.
+     the adjustment turns out to need a decision, it becomes a full change request. A light one ends
+     here: steps 9–11 are for a new spec or a full change request.
    - **Full** — the request leaves something to decide. The rest of this step:
    - **Find the delta.** Compare the request now against what the spec records as delivered, plus
      the tracker comments since the spec last changed (`git log -1 --format=%cs -- specs/NNN-<slug>/`).

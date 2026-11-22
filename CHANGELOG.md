@@ -11,6 +11,46 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Low-priority review findings.**
+  - **What:**
+    - **`/adf:deep-review` verifies a finding once:** two reviewers raising the same one cost one
+      checker, and each dimension's checkers stop at 12, highest severity first — the rest come back
+      unverified. It logs the fan-out first. `claude-code.md` no longer says `/adf:deep-context-audit`
+      verifies adversarially; the other three do.
+    - **"Forward only" has an order:** the tracker's own list of statuses. A task at a status outside
+      it — blocked, waiting on the requester, on hold — stays there, and the agent says so
+      (`docs/TRACKER-INTEGRATION.md`, `/adf:stakeholder-update`'s `status.md`).
+    - **`/adf:write-spec`'s change-request mode has one name,** light or full, in its argument hint
+      too, and a light change request ends at step 8; triage and the workflow router say the same.
+    - **`AGENTS.md` names the "a person marks it ready" opt-out** `/adf:open-pr` already honored.
+    - **The reviewers speak `/adf:review`'s severities:** `@adf:security-reviewer` maps
+      CRITICAL/HIGH/MEDIUM/LOW onto critical, warning, and nit, and `@adf:ux-reviewer` gives each
+      finding one. `@adf:code-reviewer`'s lane check follows decision 0095: a trigger is critical,
+      unstated files a warning.
+    - **Agent checklists are stack-neutral:** no page files, bundles, `onClick`, or `tabIndex` in
+      `@adf:architect`, `@adf:code-reviewer`, or `@adf:ux-reviewer`.
+    - **`_lib.sh`'s defaults match the skeleton's `config.sh`,** so a project file that lacks a key
+      behaves as the default does; a static check compares the two.
+    - **The ~300-line split has a trigger:** propose it as a follow-up, unless the task's change is
+      what pushes the file past it (`architecture.md`).
+    - **`/adf:refactor` allows a rename's test updates:** a refactor that needs an *assertion* changed
+      isn't one; updating tests' imports and references for a rename or a move is.
+  - **Where:** `plugins/adf/workflows/deep-review.js`, `skeleton/.claude/rules/{claude-code,architecture}.md`,
+    `skeleton/docs/TRACKER-INTEGRATION.md`, `skeleton/AGENTS.md`,
+    `plugins/adf/skills/{write-spec,triage,spec-workflow,refactor}/SKILL.md`,
+    `plugins/adf/skills/stakeholder-update/status.md`,
+    `plugins/adf/agents/{architect,code-reviewer,security-reviewer,ux-reviewer}.md`,
+    `plugins/adf/hooks/_lib.sh`, `evals/static/check-skills.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: the skills, agents, and workflow above, and the hook scripts in
+    `.claude/hooks/` (all but `config.sh`), as `/adf:upgrade` writes them; packaged, they come with
+    the plugin.
+  - **Merge:** `AGENTS.md` — the CUSTOMIZE note after § Delivery rules' pull-request bullet;
+    `.claude/rules/claude-code.md` — the Workflows bullet; `.claude/rules/architecture.md` — the
+    component guideline on splitting files; `docs/TRACKER-INTEGRATION.md` — the status bullet's
+    forward-only sentence.
+
 - **Small review findings.**
   - **What:**
     - **Each module verifies itself:** every `MODULE.md` now has a § Verify — `github`, `gitlab`,

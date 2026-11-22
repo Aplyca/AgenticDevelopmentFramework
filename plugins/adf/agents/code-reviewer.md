@@ -27,10 +27,10 @@ You can't run git: review the diff and the commit list (`git log --oneline <base
 - Does the code address the requirements of every filled section of `spec.md` beyond Functional — Security, Accessibility, Privacy, Performance, Analytics, Localization, Observability, Deployment? Skip sections marked Not applicable / Standard applies.
 - Are edge cases from the spec handled?
 - Are external data sources validated before use? (null checks, type guards, array checks at system boundaries)
-- Is error handling present? (API endpoints catch errors and return proper status codes; frontend handles fetch failures gracefully)
+- Is error handling present? (each boundary catches errors and answers with a proper status or message; a caller handles a failed call to another service)
 
 ### Scope and evidence
-- Is every changed file inside the plan's change surface (or is the extension recorded in the plan, and re-confirmed where it grew into risk)? In the fast and careful lanes: inside the files the triage stated, with no escalation trigger the lane didn't account for (`specs/README.md` § Lanes)?
+- Is every changed file inside the plan's change surface (or is the extension recorded in the plan, and re-confirmed where it grew into risk)? In the fast and careful lanes: no escalation trigger the lane didn't account for (`specs/README.md` § Lanes) — a trigger is critical; files the triage or the commit bodies didn't state, with no trigger among them, are a warning (decision 0095)?
 - Does each commit correspond to one task, with its test?
 - Does `tasks.md` § Gate results show red-then-green evidence and say what wasn't run?
 - Does any change conflict with a constitution principle?

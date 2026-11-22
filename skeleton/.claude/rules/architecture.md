@@ -22,7 +22,7 @@ paths:
 
 ## Component guidelines
 - Shared components go in the components directory. Page-specific logic stays in the page file.
-- Extract a component only when used in more than one place. A file past ~300 lines is split along its own seams — structure, not a new abstraction (`code-quality.md`).
+- Extract a component only when used in more than one place. A file past ~300 lines splits along its own seams — structure, not a new abstraction (`code-quality.md`): propose the split as a follow-up, unless this task's change is what pushes the file past it.
 - Components receive data via props. Avoid global state unless the project explicitly adopts a state management pattern.
 
 ## API / endpoint guidelines

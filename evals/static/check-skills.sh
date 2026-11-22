@@ -367,6 +367,23 @@ PY
     fi
 }
 
+check_hook_defaults() {
+    # A project config.sh that lacks a key gets _lib.sh's default, so the two must agree.
+    local report
+    report=$(python3 - "$REPO_ROOT/plugins/adf/hooks/_lib.sh" "$SKELETON/.claude/hooks/config.sh" <<'PY'
+import re, sys
+lib = dict(re.findall(r'^([A-Z_]+)="([^"]*)"$', open(sys.argv[1]).read(), re.M))
+cfg = dict(re.findall(r'^([A-Z_]+)="([^"]*)"$', open(sys.argv[2]).read(), re.M))
+print("; ".join(f"{k}: _lib.sh '{lib[k]}', config.sh '{cfg[k]}'" for k in sorted(lib.keys() & cfg.keys()) if lib[k] != cfg[k]))
+PY
+)
+    if [ -z "$report" ]; then
+        pass "hooks: _lib.sh's defaults match the skeleton's config.sh"
+    else
+        fail "hooks: _lib.sh's defaults differ from config.sh" "$report"
+    fi
+}
+
 check_hook_scripts_syntax() {
     local script bad=""
     for script in "$HOOKS_DIR"/*.sh; do
@@ -1826,6 +1843,7 @@ done
 echo ""
 check_settings
 check_hook_scripts_syntax
+check_hook_defaults
 check_instruction_files
 check_agents_md_workflow
 check_git_workflow_prefixes

@@ -64,4 +64,4 @@ Report findings with severity levels:
 - **[MEDIUM]** `file:line` — fix when possible, defense-in-depth
 - **[LOW]** `file:line` — informational, hardening suggestion
 
-End with **Not checked** — what needed a tool you don't have, such as a dependency audit — then **PASS** (no critical/high), **CONDITIONAL PASS** (high issues with mitigations noted), or **FAIL** (critical issues found).
+End with **Not checked** — what needed a tool you don't have, such as a dependency audit — then **PASS** (no critical/high), **CONDITIONAL PASS** (high issues with mitigations noted), or **FAIL** (critical issues found). For a caller that merges findings, as `/adf:review` does: CRITICAL and HIGH are its **critical**, MEDIUM a **warning**, LOW a **nit**.

@@ -15,15 +15,17 @@ if [ -n "${CLAUDE_PROJECT_DIR:-}" ] &&
   exit 0
 fi
 
+# The skeleton config.sh's values, so a project file that lacks a key behaves as the default does
+# (the static checks compare the two).
 PROTECTED_BRANCHES="main master"
 APPEND_ONLY_GLOBS=""
-GENERATED_GLOBS=""
+GENERATED_GLOBS="package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock bun.lock bun.lockb poetry.lock uv.lock Pipfile.lock Gemfile.lock composer.lock Cargo.lock go.sum"
 ENV_TEMPLATE=""
-ENV_IGNORE=""
-ENV_CHECK_EXCLUDE=""
-CAREFUL_GLOBS=""
-TRIAGE_FIRST=""
-HUB_READONLY=""
+ENV_IGNORE="NODE_ENV CI HOME PATH PWD USER SHELL TERM TZ LANG MODE DEV PROD SSR BASE_URL"
+ENV_CHECK_EXCLUDE="*.test.* *.spec.* *_test.* test_*.py tests/* */tests/* */__tests__/* docs/* *.md"
+CAREFUL_GLOBS=".github/workflows/* .gitlab-ci.yml .gitlab/ci/* .githooks/* .husky/* .claude/settings.json .claude/hooks/*"
+TRIAGE_FIRST="1"
+HUB_READONLY="1"
 APPROVE_WORKTREE_MOVE="1"
 PR_STATE="1"
 PR_WATCH_HOURS="8"
