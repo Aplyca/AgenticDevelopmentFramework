@@ -11,6 +11,45 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Smaller fixes from the framework review.**
+  - **What:**
+    - **`/adf:wrap-up`'s delivered step is its own part of step 3,** and runs whether or not something
+      is left over. With `end-user-docs`, the page's publish offer comes first, so the delivered update
+      can link it — and only once the change is live: merged but not live, the page waits with the
+      delivered step.
+    - **`/adf:track-time` splits session time by activity,** so each activity's midpoint has an
+      AI-assisted time to start from; the minutes stay unrounded until the outcome's totals.
+    - **`/adf:deep-review` reads the lane.** In the fast and careful lanes it looks for the evidence in
+      the commit bodies (decision 0095), not in a `tasks.md` the lane doesn't have, and checks that the
+      lane fits the diff.
+    - **`@adf:ux-reviewer` and `@adf:security-reviewer` say what their tools can't check** — a
+      contrast ratio, a layout at a phone's width, a dependency audit — under **Not checked**, instead
+      of guessing.
+    - **The Cursor rules carry the safety rules the Claude rules have:** `testing.mdc` gains an
+      end-to-end section (never on a preview — a preview can share real backends — and on this
+      checkout's own stack), and a new `git-workflow.mdc` holds staging by name, never discarding work,
+      and merging rather than rebasing pushed history.
+    - **"Gate" means one thing at a time.** In the always-loaded files, a bare "gate" became "approval
+      gate" or "checks"; "Ask a person only at a gate" became "only for a decision, an approval, or a
+      confirmation these rules call for"; the constitution is read before a spec, a plan, or a review,
+      not "always"; and § Quick reference defines the full gate.
+  - **Where:** `plugins/adf/skills/wrap-up/{SKILL,modules}.md`, `plugins/adf/skills/track-time/SKILL.md`,
+    `plugins/adf/workflows/deep-review.js`, `plugins/adf/agents/{ux-reviewer,security-reviewer}.md`,
+    `skeleton/.cursor/rules/{testing,git-workflow}.mdc`, `skeleton/AGENTS.md`,
+    `skeleton/.claude/rules/{claude-code,git-workflow}.md`, `evals/dynamic/`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/{wrap-up,track-time}/`,
+    `.claude/agents/{ux-reviewer,security-reviewer}/`, `.claude/workflows/deep-review.js`, and the
+    Cursor rules in `.cursor/rules/`, as `/adf:upgrade` writes them; packaged, the skills, agents, and
+    workflow come with the plugin.
+  - **Additive:** `.cursor/rules/git-workflow.mdc`, for a team that kept Cursor.
+  - **Merge:** `AGENTS.md` — § Ground rules' "Never bypass the checks", § 2 and § 4's "approval gate",
+    § AI interaction rules' "Ask a person only for…", the constitution's row in § Project
+    documentation, and § Quick reference's **Full gate** line (keep your command);
+    `.claude/rules/claude-code.md` — the Full row of § Lanes; `.claude/rules/git-workflow.md` — the
+    `spec:` row.
+
 - **Hooks stay silent on what they can't read, and stop only where the risk is**
   ([decision 0096](docs/decisions/0096-hooks-stay-silent-on-what-they-cannot-read.md)).
   - **What:**

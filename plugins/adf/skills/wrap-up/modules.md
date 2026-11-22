@@ -7,9 +7,11 @@ the `time-tracking` module. Without them, say nothing about end-user docs or tim
 
 An end-user page waiting to be published isn't work left over. Only when the stamp names
 the `end-user-docs` module, the pull request merged, the spec lists an end-user page whose draft
-isn't retired yet, and `docs/END-USER-DOCS.md` publishes after the merge, offer
-`/adf:end-user-docs publish` once, before the close-up. The developer may skip it: a release
-publishes it later.
+isn't retired yet, `docs/END-USER-DOCS.md` publishes after the merge, and the change is live
+(`docs/TRACKER-INTEGRATION.md` › *Live when*, as the delivered step checks it), offer
+`/adf:end-user-docs publish` once, before the delivered update, so the update can link the page.
+Merged but not live, the page waits with the delivered step: a page for a feature end users can't
+use yet misleads them. The developer may skip it: a release publishes it later.
 
 ## Time (step 4)
 

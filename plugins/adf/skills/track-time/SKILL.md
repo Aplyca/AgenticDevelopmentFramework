@@ -78,6 +78,10 @@ skill what's already logged, so it can run at each milestone without logging an 
    - **Assign the time:** each working block goes to the outcome it served, by the commits it made
      and the tasks it ticked. A block that served two is split by what it did; each minute counts
      once.
+   - **And to its activity,** from the list in `docs/TIME-TRACKING.md`, by what the block did —
+     implementation, debugging, research and investigation, code review, reporting — read from its
+     commands, its edits, and what was said. Step 7 sets each activity's midpoint from this
+     AI-assisted time; the minutes stay unrounded until step 8's totals.
    - **Work toward an outcome not delivered yet:** before the latest delivery, it's an outcome of its
      own — what it found, settled, or unblocked. After it, it waits for the next run, which starts
      there — unless this run is the wrap-up's or the developer asks to log it now: then it's an
@@ -106,7 +110,8 @@ skill what's already logged, so it can run at each milestone without logging an 
    - Estimate each activity in whole units, rounded up.
    - Never below the AI-assisted number without saying why.
 
-7. **Set the midpoint** for each outcome, activity by activity, where `docs/TIME-TRACKING.md` §
+7. **Set the midpoint** for each outcome, activity by activity — its AI-assisted time from step 4's
+   blocks and step 5's estimate, against step 6's manual estimate — where `docs/TIME-TRACKING.md` §
    Activities puts each one:
    - **As spent:** the AI-assisted time — for work that takes as long either way, such as a meeting
      or a manual test.
