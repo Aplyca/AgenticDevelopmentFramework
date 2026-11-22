@@ -40,7 +40,7 @@ if [ -f "$root/AGENTS.md" ] && ! grep -q '^@AGENTS.md' "$root/CLAUDE.md" 2>/dev/
   done
 fi
 
-if in_words "$branch" "$PROTECTED_BRANCHES"; then
+if is_protected_branch "$branch"; then
   echo "- $branch is protected: create a work branch (<type>/<slug>) before changing anything."
 fi
 

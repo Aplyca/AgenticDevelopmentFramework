@@ -50,7 +50,7 @@ mkdir -p "$G" && git init -q --bare "$G/origin.git" && new_repo "$G/repo"
 R="$G/repo"
 cp -R "$MODULES/git-hooks/files/." "$R/" && chmod +x "$R/.githooks/pre-push"
 git -C "$R" config core.hooksPath .githooks
-mkdir -p "$R/.claude/hooks" && printf 'PROTECTED_BRANCHES="main staging"\n' > "$R/.claude/hooks/config.sh"
+mkdir -p "$R/.claude/hooks" && printf 'PROTECTED_BRANCHES="main staging release/*"\n' > "$R/.claude/hooks/config.sh"
 echo a > "$R/a" && git -C "$R" add -A && git -C "$R" commit -qm init
 git -C "$R" remote add origin "$G/origin.git"
 pushes() { git -C "$R" push -q origin "$@" >/dev/null 2>&1; }
@@ -60,6 +60,8 @@ git -C "$R" switch -q -c feat/x
 check "pre-push: allows a work branch" "pushes feat/x"
 check "pre-push: refuses feat/x:staging (protected list read from .claude/hooks/config.sh)" "! pushes feat/x:staging"
 check "pre-push: refuses HEAD:refs/heads/main" "! pushes HEAD:refs/heads/main"
+check "pre-push: refuses feat/x:release/1.0 (a protected name is a glob)" "! pushes feat/x:release/1.0"
+check "pre-push: a glob doesn't catch feat/x:feat/release" "pushes feat/x:feat/release"
 replace "$R/.githooks/pre-push" 'FAST_CHECKS=""' 'FAST_CHECKS="true
 false"'
 echo b > "$R/b" && git -C "$R" add -A && git -C "$R" commit -qm b

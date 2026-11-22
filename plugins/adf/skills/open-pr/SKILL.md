@@ -43,8 +43,11 @@ and skip the steps below.
    `CONTRIBUTING.md` (or use the argument).
 
 2. **Check the evidence and the record.** Read `tasks.md` § Gate results in the spec folder. If the
-   full gate hasn't run since the last commit, run it now (commands in `AGENTS.md` § Quick reference)
-   and update the gate results. Anything you can't run — needs a preview, needs a shared service — is
+   full gate hasn't run since the last commit that changed app files — source, tests, package
+   manifests, the app framework's configuration — run it now (commands in `AGENTS.md` § Quick
+   reference) and update the gate results. A commit that only records gate results, ticks tasks,
+   links the pull request, or edits the spec folder or docs doesn't count, so recording the gate
+   never calls for another run; a merge from the base follows `/adf:open-pr sync`'s rule. Anything you can't run — needs a preview, needs a shared service — is
    listed as *not verified*, with the reason.
 
    Then the record, when there's a spec folder: every task in `tasks.md` ticked, or struck through as a follow-up with why (it
@@ -168,7 +171,7 @@ and skip the steps below.
    failing check, never a green one, so only this command's exit brings you back to mark it ready. A
    failure both wake you for is one fix. Then, once all of these hold, write the review
    instructions (below) and run `gh pr ready <n>` — no prompt, no question:
-   - the full gate passed since the last commit (step 2);
+   - the full gate passed, with no commit that changed app files after it (step 2);
    - every acceptance criterion, or the "done when", worked on a test environment — locally, and on
      the preview when there is one — or, with nothing to run, the full gate passed;
    - `/adf:review` came back clean, or its findings were fixed — and so did your review on the
@@ -260,7 +263,7 @@ and skip the steps below.
 ## Red flags (stop and reassess)
 
 - The branch is protected, or the diff contains files outside the change surface the plan didn't record.
-- The gate hasn't run since the last commit and you were about to describe it as passing.
+- The gate hasn't run since the last commit that changed app files, and you were about to describe it as passing.
 - The diff includes `.env` files, credentials, lockfile churn unrelated to the change, or debug code.
 - You're about to stop the environment with `make down`, `make reset`, `STOP_CMD`, `-v`, or anything else that removes containers, volumes, or data — or to stop one this session didn't start.
 

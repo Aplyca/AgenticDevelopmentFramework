@@ -11,6 +11,35 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **The full gate's loop, protected-branch globs, the release lookup, and adoption follow-ups.**
+  - **What:**
+    - **Recording the gate no longer calls for another run.** `/adf:open-pr` reran the full gate when
+      it "hasn't run since the last commit" — and recording the results is a commit, so the rule
+      could never hold. Only a commit that changes app files (source, tests, package manifests, the
+      app framework's configuration) after the gate counts; gate results, ticks, the pull request
+      link, and spec or doc edits don't.
+    - **Protected branches are globs, as `config.sh` says:** `PROTECTED_BRANCHES="main release/*"`
+      protects every release branch, in the guard hook, the session context, the pull-request watcher,
+      and the `git-hooks` module's pre-push. Before, each word matched one exact name, so `release/*`
+      silently protected nothing.
+    - **The newest release is found by version:** `/adf:adopt`, `docs/SETUP.md`, and
+      `/adf:framework-feedback` sort with `--sort=-v:refname`. Sorted by name, v2.10.0 comes before
+      v2.9.0, and an adoption could pin the older release.
+    - **Adoption follow-ups reach `/adf:wrap-up`:** the adoption's pull request, and a manual upgrade's,
+      carry a `## Follow-ups` section — one `- [ ] \`<command>\` — <why>` line per `set up` or
+      `connect` — which is what the close-up reads after the merge.
+  - **Where:** `plugins/adf/skills/open-pr/SKILL.md`, `plugins/adf/hooks/{_lib,guard-git,session-context,pr-state}.sh`,
+    `skeleton/.claude/hooks/config.sh`, `modules/git-hooks/files/.githooks/pre-push`,
+    `plugins/adf/skills/{adopt,upgrade,framework-feedback}/SKILL.md`, `docs/SETUP.md`,
+    `evals/static/{test-hooks,test-modules}.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/open-pr/` and the hook scripts in
+    `.claude/hooks/` (all but `config.sh`), as `/adf:upgrade` writes them; packaged, they come with
+    the plugin.
+  - **Merge:** `.claude/hooks/config.sh` — the `PROTECTED_BRANCHES` comment only; your value stays.
+    With `git-hooks`, `.githooks/pre-push` — the loop that matches each protected name.
+
 - **Each delivery rule is stated once, and the copies that drifted agree again.**
   - **What:**
     - **Ready** is defined once, in `AGENTS.md` § Delivery rules. The ground rules, the full lane's

@@ -41,8 +41,8 @@ lands, run `/init-project` to replace the planned entries with verified facts.
 
 ## 1. Copy the skeleton (on a branch)
 
-Copy from the newest release, which the project will pin: `git ls-remote --tags
-https://github.com/aplyca/AgenticDevelopmentFramework 'v*'` lists them, and
+Copy from the newest release, which the project will pin: `git ls-remote --tags --refs
+--sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1` names it, and
 `git clone --depth 1 --branch v<X.Y.Z> https://github.com/aplyca/AgenticDevelopmentFramework` gets one.
 
 ```bash
@@ -219,7 +219,7 @@ Choose it when the team works in Claude Code only. Cursor, Copilot, and Gemini u
 `AGENTS.md` and the rules but no skills, and Claude Code's cloud sessions don't load the plugin.
 
 It pins a release tag ([decision 0017](decisions/0017-semantic-versioning.md)):
-`git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`. Pick the newest,
+`git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*'` lists them newest first. Pick the newest,
 v1.0.0 or later; its entry in [`CHANGELOG.md`](../CHANGELOG.md) says what it brings.
 
 **What changes from the steps above:**

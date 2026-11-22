@@ -30,8 +30,8 @@ read the source doc (locations in step 1).
 Adopt from a release, never from whatever commit a checkout is at: the project pins that release
 (Step 5), and its committed files and the plugin's copies have to be the same release (decision 0016).
 
-1. **The newest release:** `git ls-remote --tags https://github.com/aplyca/AgenticDevelopmentFramework 'v*'`
-   — the highest `vX.Y.Z`, ignoring the `^{}` lines.
+1. **The newest release:** `git ls-remote --tags --refs --sort=-v:refname https://github.com/aplyca/AgenticDevelopmentFramework 'v*' | head -1`
+   — sorted by version, so v2.10.0 comes before v2.9.0, which a sort by name gets wrong.
 2. **The framework at that tag**, as `<framework-root>`, in a scratch folder outside the target:
    - from a local checkout of the framework repository that has the tag — the marketplace's
      `installLocation` in `claude plugin marketplace list --json`, when the marketplace was added from
@@ -328,5 +328,8 @@ GAPs go in the PR description; they're findings, not failures to hide.
 
 1. Commit on the feature branch: `docs: adopt the Agentic Development Framework (skeleton <SHA>)`.
 2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, open TODOs as
-   a checklist, verification results.
+   a checklist, verification results — and a `## Follow-ups` section, the one `/adf:wrap-up` reads
+   after the merge: one `- [ ] \`<command>\` — <why> (adoption)` line for each follow-up Steps 3–4
+   named (`/adf-dev:dev-env set up`, `/adf-dev:e2e set up`, `/adf-dev:unit set up`,
+   `/adf-connect:connect <service>` — the committed names in a committed install), or `- none`.
 3. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request installs the rules that grant it.

@@ -37,6 +37,20 @@ in_words() {
   return 1
 }
 
+# is_protected_branch <branch> — whether a word of PROTECTED_BRANCHES matches it, each word a shell
+# glob: "main release/*" protects release/1.0 too.
+is_protected_branch() {
+  local branch="$1" pattern
+  [ -n "$branch" ] || return 1
+  set -f
+  for pattern in $PROTECTED_BRANCHES; do
+    # shellcheck disable=SC2254 # the pattern is meant to match as a glob
+    case "$branch" in $pattern) set +f; return 0 ;; esac
+  done
+  set +f
+  return 1
+}
+
 # read_settings <file> <KEY>… — set each listed KEY from its KEY=value line. The file is data and
 # never runs: double- or single-quoted or bare values, indentation and trailing comments.
 read_settings() {
