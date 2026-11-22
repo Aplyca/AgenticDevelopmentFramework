@@ -23,7 +23,7 @@ These apply whatever the project's branching and release model is (`CONTRIBUTING
 
 | Prefix | When | What it captures |
 |---|---|---|
-| `spec:` | After the approval gate, before any other work | The approved spec folder; later amendments (change requests, plan corrections) and the pull request link. A draft saved before the gate at the developer's request: `spec: draft <slug>` |
+| `spec:` | After the approval gate, before any other work | The approved spec folder; a full change request's approved spec, plan, and tasks; a plan correction made outside a task; the pull request link. A draft saved before the gate at the developer's request: `spec: draft <slug>`. A light `CR N` entry, or a plan fix a task needs, rides that task's commit |
 | `docs:` | Before implementation, when the plan lists pre-implementable docs | Admin guides, API contracts, end-user copy |
 | `test:` | Contract-first acceptance tests, or a task that only adds tests | Acceptance tests committed red ahead of the code, or tests of existing behavior committed green once each is proven able to fail |
 | `feat:` / `fix:` | One per task, after its test went red then green | The test and the code that makes it pass, together |
@@ -46,12 +46,9 @@ the body.
 
 ## Pull requests and outward actions
 
-Pushing, opening, readying, merging, or reviewing a pull request, tagging, releasing, and commenting
-on a pull request, issue, or tracker task happen **only when a human asks** — except the work
-branch's own pull request, and its tracker task's status moves and outcome updates (`AGENTS.md`
-§ Requirements & traceability). That pull request follows `AGENTS.md` § Delivery rules: a draft
-opened after the local check and kept current, marked ready once your own tests and review pass,
-then its reviewers requested; reviewing, approving, and merging stay people's. The git guard hook
+The work branch's pull request — a draft, opened after the local check —
+follows `AGENTS.md` § Delivery rules; every other outward action — a push elsewhere, a tag, a
+release, a comment — happens only when a human asks (§ Ground rules). The git guard hook
 refuses a pull request that isn't a draft and any push to a protected branch, and asks before a
 tag is pushed.
 

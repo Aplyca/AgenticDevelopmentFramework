@@ -106,7 +106,7 @@ pull request's review approves the diff, and its URL joins `pull-requests:` as `
    existing doc gains a section. `docs:` commit.
 
 8. **Implement task by task** (`/implement`): write the test, watch it fail, write the code, watch
-   it pass, commit, tick. Tests for unchanged behavior stay as they are, and stay green. A test that
+   it pass, tick, commit. Tests for unchanged behavior stay as they are, and stay green. A test that
    pins behavior the CR must not break passes on its first run — expected for a test-only task
    (`test:`): break that behavior on purpose to see it fail, restore it, and say so in the gate
    results.

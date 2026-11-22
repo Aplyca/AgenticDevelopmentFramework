@@ -1,6 +1,6 @@
 # 0079: No file count in the lanes — the lane depends on whether there is something to decide
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0095](0095-each-step-has-one-owner.md) (`/review` and the lane rules triage a grown diff again instead of moving it up)
 - **Date:** 2026-11-13
 - **Amends:** [0011](0011-lanes-ceremony-follows-risk.md) — the fast lane's "about 3 files or fewer"
   and the full lane's "more than ~3 files" go

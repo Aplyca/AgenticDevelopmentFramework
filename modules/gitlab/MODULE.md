@@ -21,7 +21,7 @@ over it.
 
 ## Install
 
-`cp -R modules/gitlab/files/. <repo>/`, never overwriting. **With a `.gitlab-ci.yml` of your own,**
+`cp -Rn modules/gitlab/files/. <repo>/` — `-n` overwrites nothing. **With a `.gitlab-ci.yml` of your own,**
 merge the module's three blocks into it:
 
 - **`include:`** the local `.gitlab/ci/adf.yml`.

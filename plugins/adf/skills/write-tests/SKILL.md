@@ -17,7 +17,7 @@ test that never failed proves nothing: it may test something that already exists
 |---|---|---|---|
 | **Task** | Inside `/adf:implement`, for the next task in `tasks.md` | Already approved — the task names its test | With the task's code, after green |
 | **Acceptance (contract-first)** | `plan.md` asks for end-to-end tests encoding the ACs before implementation | Already approved in `plan.md` § Test strategy | `test:` — committed red, ahead of the code |
-| **Standalone** | Covering existing untested code, reproducing a bug, or a test-only change | Present a test plan and wait (Phase 1 below) | `test:` (or with the fix, for a bug) |
+| **Standalone** | Covering existing untested code, reproducing a bug, or a test-only change | Stated in your report, then written — no wait (Phase 1 below) | `test:` (or with the fix, for a bug) |
 
 ## Phase 1: Plan (standalone mode — the other modes take their plan from `plan.md`)
 
@@ -43,7 +43,8 @@ test that never failed proves nothing: it may test something that already exists
    FROM Accessibility:
      "inline errors use role=alert"                      → 'announces the inline error with role=alert'
    ```
-   Name the files to create or modify and the mocks needed. **Wait for approval.**
+   Name the files to create or modify and the mocks needed, then go on — the developer can redirect
+   you. Stop and ask only when a requirement is unclear.
 
 ## Phase 2: Write and watch them fail (all modes)
 
@@ -92,7 +93,7 @@ test that never failed proves nothing: it may test something that already exists
 | "This AC is too simple to test" | Simple ACs break too. If it's in the spec, it gets a test. |
 | "I'll combine several ACs in one test" | Each AC needs its own test so a failure names the broken requirement. |
 | "This service is reliable — no need to mock it" | Tests must not depend on external services. A flaky suite is worse than none. |
-| "The test plan is obvious, skip approval" | In standalone mode the plan is the contract; skipping approval means missing coverage is found later. |
+| "The test plan is obvious, skip stating it" | In standalone mode the plan is the contract: stated in the report, it lets the developer catch missing coverage before the tests land. |
 
 ## Red flags (stop and reassess)
 

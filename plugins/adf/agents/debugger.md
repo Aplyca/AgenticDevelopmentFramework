@@ -30,7 +30,7 @@ The order is the discipline: a signal that fails on this bug, then hypotheses, t
 - Is it consistent or intermittent, and since when?
 
 ### 2. Get a failing signal
-- One command that fails on *this* bug — the reported symptom, the same verdict every run, in seconds. You can't edit the repository, so use an existing test invocation, a request against the running app, or a script in a temporary directory.
+- One command that fails on *this* bug — the reported symptom, the same verdict every run, in seconds. You can't edit the repository, so use an existing test invocation, a request against the running app, or a script in a temporary directory outside the repository — writing it through Bash may prompt, which is expected for a reproduction.
 - Run it and include the command and its output, secrets replaced by `<REDACTED>`.
 - If none can be built, say what you tried and what would help: access to where it reproduces, a captured artifact, or temporary instrumentation.
 

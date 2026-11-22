@@ -30,9 +30,9 @@ safety net; a refactor without them is a gamble.
    the code it covers on purpose (and putting it back). Commit them first (`test:`), green.
 
 2. **Plan the steps.** Name the goal (what gets simpler, and how you'll know), the sequence of small
-   steps, and the files each step touches. For a refactor across several files or layers, show the
-   developer this plan and its file list before starting — the same change-surface check a feature
-   gets at its gate.
+   steps, and the files each step touches. State the plan and its file list in your report, and go
+   on — the developer can redirect you. A refactor that sets a structure others must follow takes
+   the full lane instead (decision 0079).
 
 3. **One step at a time.** Each step is small enough to understand at a glance, leaves the tests
    green, and is reversible.

@@ -29,7 +29,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 
 - **Not a "build the whole feature" command.** The approval gate comes before any code, and this skill never crosses it. Orchestration is for analytical and review work.
 - **Not a replacement for `/adf:review`.** `/adf:review` is a single-context multi-perspective review (lighter, faster). `/adf:orchestrate review` dispatches separate agents (heavier, more thorough). Pick based on diff size and stakes.
-- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve the plan. The `/deep-*` workflows are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
+- **Not a dynamic workflow.** This skill is model-driven: Claude plans, dispatches, and synthesizes in this conversation, and you approve a plan that departs from the table. The `/deep-*` workflows are deterministic scripts — a fixed fan-out with adversarial verification of every finding — for when coverage and confidence matter more than cost: `/adf:deep-review` (diff review), `/adf:deep-spec-analysis` (pre-gate spec folder analysis), `/adf:deep-context-audit`, `/adf:deep-drift-sweep`.
 
 ## Built-in task types
 
@@ -71,7 +71,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
    present a unified report.
    ```
 
-6. **Get approval** — wait for the user to approve the plan before dispatching. They can adjust agents, parallelism, or scope.
+6. **Ask only when the plan is yours** — a `custom` type, or a plan that departs from the table: wait for the user's yes, and they can adjust agents, parallelism, or scope. A built-in type the table decides dispatches at once; say so, and the user can still stop it.
 
 ### Phase 2: Execute
 
@@ -92,7 +92,7 @@ Dispatch specialized agents in parallel for analytical tasks where independent p
 | Agent says... | Why it's wrong |
 |---|---|
 | "I'll run them sequentially since it's simpler" | Sequential defeats the purpose of orchestration. If you wanted sequential, use `/adf:review`. Parallel is the point — both for speed and for context isolation. |
-| "I'll skip the plan and just dispatch" | The plan is the gate. The user needs to approve which agents and what scope before tokens are spent on multi-agent invocation. |
+| "I'll skip the plan and just dispatch" | Say the plan first, always: the user sees which agents and what scope before tokens are spent, and can stop it. A `custom` plan or a departure from the table waits for their yes. |
 | "I'll auto-run /adf:implement after the review passes" | This skill ends with a report. What follows it goes through the normal workflow. |
 | "I'll add `@adf:spec-writer` to the review since it 'might catch something'" | Speculative agent inclusion is waste. Dispatch only the agents whose perspective is genuinely needed. Each agent costs tokens. |
 | "I'll invoke the same agent twice for different angles" | If you need two perspectives, use two different agents. If only one agent applies, run it once. Re-invoking doesn't add signal; it just costs tokens. |
@@ -112,7 +112,7 @@ Orchestration costs more than `/adf:review`, which runs in this conversation and
 
 ## Verification
 
-- [ ] Orchestration plan was presented and approved before dispatch
+- [ ] The plan was stated before dispatch, and approved when it was `custom` or departed from the table
 - [ ] Agents were dispatched in parallel where independent (single message with multiple Agent calls)
 - [ ] All dispatched agents returned before synthesis began
 - [ ] Findings are deduplicated, sorted by severity, grouped by file
@@ -122,7 +122,7 @@ Orchestration costs more than `/adf:review`, which runs in this conversation and
 
 ## Principles
 
-- **Plan before dispatch.** Multi-agent invocations cost real tokens; the user approves the plan first.
+- **Plan before dispatch.** Multi-agent invocations cost real tokens; the user sees the plan first.
 - **Parallel is the point.** If you'd run them sequentially, use `/adf:review` instead.
 - **Synthesize, don't filter.** Combine all findings; surface disagreements; let the user judge.
 - **Stop at the report.** This skill ends with findings. Action goes through the normal workflow.

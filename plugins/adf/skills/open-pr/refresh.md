@@ -5,6 +5,12 @@ ready — changes what its description says:
 a fix or a change request the developer asked for, a sync with the base branch, new gate results.
 Editing your own pull request's description is upkeep: it takes no prompt.
 
+**A fix the developer or a reviewer asks for** goes on the same branch: start the environment
+again, walk it locally, keep the record current (`/adf:open-pr` step 2), push, refresh the
+description (the steps below), test and review the preview again, and stop the environment once
+the checks pass; a pull request already ready stays ready, and the reviewer who asked is requested
+again (step 7).
+
 1. **Check the pull request:** `gh pr view <n> --json state,isDraft,body`. Merged or closed: stop and
    say so — never edit it or push to its branch. Ready or draft, it's still yours to keep current:
    the markers say which sections are.

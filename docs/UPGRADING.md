@@ -218,7 +218,7 @@ For finer detail (or if the changelog hasn't been updated for a recent commit), 
 
 ```bash
 git -C /path/to/AgenticDevelopmentFramework log --oneline OLD_SHA..NEW_SHA
-git -C /path/to/AgenticDevelopmentFramework diff --stat OLD_SHA..NEW_SHA -- skeleton/
+git -C /path/to/AgenticDevelopmentFramework diff --stat OLD_SHA..NEW_SHA -- skeleton/ modules/ plugins/
 ```
 
 This is your shopping list. Cross-reference each commit against the three buckets above.
@@ -252,7 +252,7 @@ Inspect the diff for surprise (removed files, renamed files). Adjust if the fram
 **Bucket 2 — 3-way merge**: for each file, you need three versions: the old skeleton's, the new skeleton's, and your project's. Use `git merge-file` or your editor's 3-way merge:
 
 ```bash
-git show OLD_SHA:skeleton/AGENTS.md > /tmp/agents-old.md
+git -C /path/to/AgenticDevelopmentFramework show OLD_SHA:skeleton/AGENTS.md > /tmp/agents-old.md
 cp /path/to/AgenticDevelopmentFramework/skeleton/AGENTS.md /tmp/agents-new.md
 git merge-file --diff3 -p AGENTS.md /tmp/agents-old.md /tmp/agents-new.md > /tmp/agents-merged.md
 ```
@@ -476,7 +476,7 @@ time it changes.
 
 ```bash
 # Generate the 3-way diff
-git show OLD_SHA:skeleton/.claude/rules/architecture.md > /tmp/arch-old.md
+git -C /path/to/AgenticDevelopmentFramework show OLD_SHA:skeleton/.claude/rules/architecture.md > /tmp/arch-old.md
 diff /tmp/arch-old.md /path/to/AgenticDevelopmentFramework/skeleton/.claude/rules/architecture.md
 # Manually paste the new "Module boundaries" section into your project's
 # architecture.md, preserving your "Custom: API client patterns" section.

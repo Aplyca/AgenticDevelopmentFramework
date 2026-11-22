@@ -86,7 +86,7 @@ const analyzed = await pipeline(
   LENSES,
   (lens) =>
     agent(`${context}\n\n${lens.prompt}`, { label: `analyze:${lens.key}`, phase: 'Analyze', schema: FINDINGS_SCHEMA, model: 'opus' }).then(
-      (result) => ({ lens: lens.key, checked: result ? result.checked : 'analyzer did not return', findings: result ? result.findings : [] }),
+      (result) => ({ lens: lens.key, returned: Boolean(result), checked: result ? result.checked : 'analyzer did not return', findings: result ? result.findings : [] }),
     ),
   (analysis) =>
     parallel(
@@ -107,17 +107,28 @@ const analyses = analyzed.filter(Boolean)
 const all = analyses.flatMap((analysis) => analysis.findings)
 const questions = all.filter((finding) => finding.severity === 'question')
 const confirmed = all.filter((finding) => finding.severity !== 'question' && finding.verdict && !finding.verdict.refuted)
-const refutedCount = all.length - questions.length - confirmed.length
+const unverified = all.filter((finding) => finding.severity !== 'question' && !finding.verdict)
+const refutedCount = all.filter((finding) => finding.severity !== 'question' && finding.verdict && finding.verdict.refuted).length
 const critical = confirmed.filter((finding) => finding.severity === 'critical')
+// A lens that didn't return, or a gap no verifier answered, is not a clean bill: say what wasn't checked.
+const incomplete = LENSES.filter((lens) => !analyses.some((analysis) => analysis.lens === lens.key && analysis.returned)).map((lens) => lens.key)
 
-const verdict = critical.length > 0 ? 'NOT READY' : confirmed.length > 0 ? 'READY WITH GAPS' : 'READY FOR THE GATE'
+const verdict =
+  critical.length > 0 ? 'NOT READY'
+  : incomplete.length > 0 || unverified.length > 0 ? 'INCOMPLETE'
+  : confirmed.length > 0 ? 'READY WITH GAPS'
+  : 'READY FOR THE GATE'
 log(`${verdict}: ${critical.length} critical, ${confirmed.length - critical.length} gaps, ${questions.length} questions; ${refutedCount} findings refuted by verification.`)
+if (incomplete.length > 0) log(`Lenses that did not return: ${incomplete.join(', ')}.`)
+if (unverified.length > 0) log(`${unverified.length} findings not verified: the verifier did not return.`)
 
 return {
   specFolder: folder,
   verdict,
   lenses: analyses.map((analysis) => ({ lens: analysis.lens, checked: analysis.checked })),
   confirmed,
+  unverified,
+  incomplete,
   questions,
   refutedCount,
 }

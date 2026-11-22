@@ -172,6 +172,12 @@ upgrade "$P" --dry-run > "$WORK/dry.md"; rc=$?
 check "dry run: exits 0" "[ $rc -eq 0 ]"
 check "dry run: changes nothing in the project" "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
 check "dry run: the report says it's a dry run" "grep -q 'dry run: nothing changed' '$WORK/dry.md'"
+check "dry run: a clean branch has nothing before the real run" "! grep -q 'Before the real run' '$WORK/dry.md'"
+touch "$P/scratch.txt"
+upgrade "$P" --dry-run > "$WORK/dry-dirty.md"; rc=$?
+check "dry run: lists what the real run would refuse" \
+    "[ $rc -eq 0 ] && grep -q 'Before the real run' '$WORK/dry-dirty.md' && grep -q 'uncommitted changes' '$WORK/dry-dirty.md'"
+rm -f "$P/scratch.txt"
 
 upgrade "$P" > "$WORK/run.md" 2>"$WORK/run.err"; rc=$?
 check "run: exits 0" "[ $rc -eq 0 ] || { cat '$WORK/run.err'; false; }"

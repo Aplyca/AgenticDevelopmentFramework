@@ -23,10 +23,11 @@ Each module has a `MODULE.md` (what it adds, prerequisites, how to customize —
 `files/` tree that mirrors the target repository's layout:
 
 ```bash
-cp -R modules/<module>/files/. /path/to/your-repo/
+cp -Rn modules/<module>/files/. /path/to/your-repo/
 ```
 
-Nothing is overwritten that you didn't mean to — check `git status` and merge any file that already
+`-n` overwrites nothing (GNU `cp` 9.2 and later exits 1 when it skips a file). List the module's
+files — `(cd modules/<module>/files && find . -type f)` — and merge by hand any that already
 existed (a pull request template, or the `gitlab` module's `.gitlab-ci.yml`, for example). The `clickup` module is the exception: it changes
 files a repository usually has already (`.mcp.json`, `.claude/settings.json`), so it installs with
 `modules/clickup/install.sh <repo>`, which merges instead of copying. The `docker` module has no

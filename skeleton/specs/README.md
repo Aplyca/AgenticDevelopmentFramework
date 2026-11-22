@@ -48,10 +48,11 @@ Answers (investigations, impact analyses, estimates) and changes to how the team
 | A migration or schema change; authentication, authorization, or row-level security; personal data; payments; a public API or contract; code that other features use; infrastructure, CI, or deploy configuration | Careful |
 | A path in the project's sensitive areas — `AGENTS.md` § Sensitive areas, mirrored in `CAREFUL_GLOBS` (`.claude/hooks/config.sh`) | Careful |
 
-Triggers are checked at triage **and again while working**. When the diff grows past the files
-stated at triage, a test outside the area fails, or no test can prove the change: move up a lane,
-keeping what's done, and tell the developer. Into careful, carry on with its checklist; into full,
-stop: the spec and the approval gate come before more code.
+Triggers are checked at triage **and again while working**. When a trigger appears, a test outside
+the area fails, or no test can prove a behavior change: move up a lane, keeping what's done, and
+tell the developer. Into careful, carry on with its checklist; into full, stop: the spec and the
+approval gate come before more code. When the diff grows past the files stated at triage, triage
+again: a new trigger moves the lane; otherwise state the new files and carry on.
 
 ### Careful-lane checklists
 
@@ -107,7 +108,7 @@ triage → specify → (clarify) → plan → tasks → (analyze) → APPROVE �
 | **Analyze** | (report) | Read-only consistency check: every AC → task → test, no constitution conflict, change surface complete (`@spec-analyzer`, or `/deep-spec-analysis` for high-stakes work) |
 | **Approve** | `spec.md` `status: approved` | **Stop.** The developer sees the scope, the change surface, and every assumption, and signs off. No implementation code before this. |
 | **Docs first** | pre-implementable docs | Written from the spec and plan, committed before implementation (`/write-docs`; skips cleanly when there are none). A tracker task's usage guide — written in the spec — is posted on the task as a draft (`/stakeholder-update guide`). With the end-user-docs module, an end-user page is drafted in the doc tool (`/end-user-docs`) and published once the feature ships |
-| **Implement** | one commit per task | Write the test, watch it fail, write the code, watch it pass, commit, tick the task (`/implement`) |
+| **Implement** | one commit per task | Write the test, watch it fail, write the code, watch it pass, tick the task, and commit them together (`/implement`) |
 | **Verify** | `tasks.md` § Gate results | Full gate run; `/implement` records the red-then-green evidence and what could not be run; `/review` checks it |
 | **Local check** | the agent's walk and review | The agent runs the change on the local environment and walks the changed flow before any push (`AGENTS.md` § Delivery rules) — when it alters something a person can see or use — and runs `/review`, in every lane |
 | **Deliver** | draft PR | Once the local check and review pass (with nothing to run, the gate and review): push and open a **draft** PR naming the spec folder and tracker task, test and review it on the preview, and mark it ready once that and CI pass — its description carrying the review instructions — then request the reviewers and post the outcome on the tracker task (`/open-pr`). The reviewers review it on the preview, approve it, and merge. Once it's live, the task gets its delivered update and status. |

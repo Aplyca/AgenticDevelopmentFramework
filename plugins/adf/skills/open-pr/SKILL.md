@@ -64,7 +64,8 @@ and skip the steps below.
      walk every other criterion here, then push, and walk that one on the preview (step 7) before
      the pull request is ready. With no preview, stop before pushing and say what blocks it. A walk
      that writes beyond a test sandbox — it reaches a person or real shared data — waits for the
-     developer's yes (`preview.md` § Read-only).
+     developer's yes (`<this skill's base directory>/preview.md`, *A criterion only a shared service
+     can run, whose walk writes*).
    - **Keep the environment running until the pull request is ready** (step 8): the preview walk or
      CI can still send you back to fix the change.
 
@@ -72,8 +73,8 @@ and skip the steps below.
    the local check.
 
    **Careful lane: no stop before the push.** It pushes once the local check passes, like every
-   lane. The risky part — the area, what the checklist found, what you walked — goes in the
-   description's Lane line and leads the report, so the developer's test starts there.
+   lane; the risky part goes in the description's Lane line (step 4) and leads the report, so the
+   developer's test starts there.
 
 3. **Review it, then verify the pull request.**
    - **Run `/adf:review`, in every lane** — it reads in proportion to the lane — and fix what it
@@ -184,10 +185,9 @@ and skip the steps below.
 
    **Write the review instructions first.** The description is how you talk to the developer who
    reviews it. Just before marking it ready, rebuild two of its sections, as
-   `<this skill's base directory>/refresh.md` steps 3–6 say: *How to review and test* — where (the
-   preview), the steps to try and what to expect, what deserves their attention, the tests — and
-   *Verified / not verified*, the summary of what you tested and reviewed, and what you couldn't.
-   The reviewers you request next find them there.
+   `<this skill's base directory>/refresh.md` steps 3–6 say: *How to review and test* and
+   *Verified / not verified*, every line of step 4's template filled in. The reviewers you request
+   next find them there.
 
    **Then request the reviewers** — the people who decide — from the **Reviewers** line in
    `CONTRIBUTING.md` § Pull requests: `gh pr edit <n> --add-reviewer <name>,<name>`, right after
@@ -199,13 +199,12 @@ and skip the steps below.
    **Once it's ready, stop the local environment you started,** to free this machine's memory and
    CPU — stop, never down, kill, or remove ([decision 0071](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0071-stop-the-local-environment-once-ready.md)):
    end the background commands you started (the dev server), and stop the services with the
-   project's stop task (`make stop` with the docker module; `AGENTS.md` § Quick reference).
-   Containers, volumes, data, dependencies, and the worktree stay, so `make up` resumes it for the
-   next adjustment. Never `make down`, `make reset`, the worktree's `STOP_CMD`, or anything that
-   removes containers, volumes, or data; when the project's only stop command does, end just your
-   background commands and say what still runs. Kill only a process you started that ignores the
-   stop. An environment that ran before this session is the
-   developer's: leave it. A draft keeps its environment running.
+   project's stop task (`make stop` with the docker module; `AGENTS.md` § Quick reference), so
+   `make up` resumes it for the next adjustment. Never `make down`, `make reset`, the worktree's
+   `STOP_CMD`, or anything that removes containers, volumes, data, dependencies, or the worktree;
+   when the project's only stop command does, end just your background commands and say what still
+   runs. Kill only a process you started that ignores the stop. An environment that ran before this
+   session is the developer's: leave it. A draft keeps its environment running.
 
 9. **Update the tracker task** — a ClickUp task, a GitHub or GitLab issue — once the pull request
    is ready. A draft that stays one leaves the task where it is, with no review update.
@@ -234,12 +233,11 @@ and skip the steps below.
    local environment is yours, stopped since ready: don't send them there. With no
    preview, they review the pull request itself — the diff and the evidence — so say there's none,
    and give the command that runs it locally if they want to (`make up`, which prints where). While
-   it's a draft, say what holds it; the local URL only when they must see that for themselves. Say
-   in a line what you tested and reviewed, locally and on the preview, and what you could not. A fix they or a
-   reviewer ask for goes on the same branch: start the environment again, walk it locally, keep the
-   record current (step 2), push, refresh the description (`/adf:open-pr refresh`), test and review
-   the preview again, and stop the environment once the checks pass; a pull request already ready
-   stays ready, and the reviewer who asked is requested again (`refresh`).
+   it's a draft, give the local URL only when they must see that for themselves. Say in a line what
+   you tested and reviewed, locally and on the preview, and what you could not. A fix they or a
+   reviewer ask for goes on the same branch, walked locally before the push: follow
+   `<this skill's base directory>/refresh.md`, which keeps the record, the description, and the
+   preview current — a pull request already ready stays ready.
    Close with their next step, once: review it on the preview; approving and merging are theirs;
    you'll wrap up after the merge (`/adf:wrap-up`). Don't remind them on later turns or offer to merge it: when that happens
    is theirs. Request no one beyond the Reviewers line. For a tracker task, say what you did on it
@@ -250,40 +248,20 @@ and skip the steps below.
 
 | Agent says... | Why it's wrong |
 |---|---|
-| "I'll remind them to review it each time they come back" | Their next step is named once, in the report. A reminder on every turn is noise, and an offer to merge is a question they didn't ask. Review and merge are theirs. |
 | "CI is green, so I'll mark it ready" | CI is one condition, not the gate. Ready follows the walk of every criterion — locally, then on the preview — and green tests aren't a working flow. |
-| "I'll leave the environment running in case they test locally" | It holds memory and CPU for as long as the review takes, and the preview is where they review. The local environment is yours: stop it once it's ready. |
-| "It's a fast-lane change; it doesn't need a review" | Agents review in every lane. The lane sets how much `/adf:review` reads, not whether it runs. |
-| "The criteria pass on the preview, so I've reviewed it" | Walking the criteria is the test. The review looks at what a person sees: the page at a phone's width and a desktop's, its copy, the console, basic accessibility. |
-| "I'll request the developer who ran this session" | They're the author: GitHub refuses it, and a self-review decides nothing. Request the Reviewers line; the report names the developer's next step. |
-| "The preview is up — I'll request reviewers now, while it's a draft" | A draft means you're still testing. A person asked now reviews work that may change. Request them once it's ready. |
 | "I'll `make down` to clean up properly" | Down removes the containers, and the next adjustment pays to recreate them. A stop keeps everything; down is `/adf:wrap-up`'s, after the merge. |
-| "It works locally; I'll mark it ready before the preview deploys" | When the project has previews, the preview is part of your test: the production build, on the platform, with its configuration. Ready waits for its walk and for CI. |
 | "I couldn't test one criterion, but the rest works — I'll mark it ready and list the gap" | Ready says your tests passed. A criterion you couldn't test keeps it a draft; the report names it, and the developer decides. |
 | "The developer should promote it, so I'll leave it a draft" | Ready is yours once your tests pass; a draft left after a clean report stalls silently. Only a rule in `AGENTS.md` § Delivery rules makes the promotion a person's. |
-| "I'll tick every checklist box" | Ticking what you didn't verify is false certification. Unchecked with a reason is honest. |
-| "The tests pass, so I'll push now" | The push waits for your own local check — the changed flow walked on this checkout's environment — or, with nothing to walk, for the full gate, and for `/adf:review` in every lane. |
 | "It's outward — I'll ask before I commit, push, and open the draft" | Your local check is what lets them, in every lane: it's the team's standing go-ahead. The question only delays the developer's test, which comes after your report. Review and merge are where they decide. |
-| "It's the careful lane, so I'll wait for a yes on the risky part" | The careful lane adds its checklist, not a stop. Put the risky part in the Lane line and first in the report; the developer's test starts there. |
-| "The environment won't start — I'll push and check it on the preview" | Then nothing has run the change. Stop and tell the developer what blocks the local run; the preview is the second check, and the place for what only a shared service has — not a substitute for the first. |
 | "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
 | "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy and CI wait in the background, so waiting costs them nothing: report once, with both URLs and the pull request's state. |
-| "The host app says not to poll CI — I'll mark it ready the next time I'm here" | Its watch wakes you for a failing check, not a green one, so nothing brings you back and the draft stalls. One `gh pr checks <n> --watch` in the background isn't a poll: its exit is what wakes you. |
-| "The status is only bookkeeping; it can go in after the merge" | After the merge, bookkeeping needs a pull request of its own. Everything the task changes in the repository rides this one. |
-| "I'll put what changes for the client in the description too" | That's the ticket's. The description is for the developer: how to review and test it, and what you tested. |
-| "The report already says what to try — the description can keep its first draft" | Reviewers open the pull request, not this chat. The review instructions go in the description, rebuilt just before ready. |
 | "I'll draft the review update and let the developer post it" | An outcome report posts on its own, with the pull request link, and the report shows its text. Only a question for the requester waits for a yes. |
-| "The issue is the requester's — I'll write `Closes #12` so it closes itself" | Then it closes at the merge, before the change is live and before the outcome is written. `Refs #12`; the delivered step closes it. |
 
 ## Red flags (stop and reassess)
 
 - The branch is protected, or the diff contains files outside the change surface the plan didn't record.
 - The gate hasn't run since the last commit and you were about to describe it as passing.
 - The diff includes `.env` files, credentials, lockfile churn unrelated to the change, or debug code.
-- A task in `tasks.md` is neither ticked nor struck through as a follow-up, or `spec.md` isn't at `implemented` with the work done, and you're about to push.
-- The change alters something a person can see or use, and you haven't walked it on the local environment.
-- You're about to run `gh pr ready` with a criterion untested, CI failing or still running, or a *Not verified* line a criterion depends on.
-- You're about to push without `/adf:review` having run, or to request a reviewer on a draft or the pull request's author.
 - You're about to stop the environment with `make down`, `make reset`, `STOP_CMD`, `-v`, or anything else that removes containers, volumes, or data — or to stop one this session didn't start.
 
 ## Verification
@@ -309,9 +287,8 @@ and skip the steps below.
 
 ## Principles
 
-- The draft opens once your own local check passes, and turns ready once your own tests pass — locally, on the preview, and CI. Once it's ready, the reviewer request, the task's status move, and the review update need no yes in chat. Reviewing, approving, merging, and any message that asks the requester for something wait for a person.
+- The draft opens once your own local check passes, and turns ready once your own tests and review pass — locally, on the preview, and CI. Once it's ready, the reviewer request, the task's status move, and the review update need no yes in chat. Reviewing, approving, merging, and any message that asks the requester for something wait for a person.
 - Agents implement and review; humans decide. Local is yours to build, test, and review; the preview is yours to test and review, and the developer's to review, approve, and merge.
-- A draft while you're testing or blocked; ready once your tests pass.
 - Say what you verified and what you could not — evidence, not confidence.
 - The description speaks to the developer who reviews it; the ticket speaks to the people who asked.
 - The description must be true to the diff.

@@ -72,7 +72,8 @@ schema back).
   and tested; the preview is where its author — an agent, usually — tests and reviews it, and where
   people review, approve, and merge it.
 - **Open every pull request as a draft,** and mark it ready once your own tests and review pass —
-  the changed flow walked locally and on its preview, CI green. "Ready" means ready for review: its
+  the full gate and the review, the changed flow walked locally and on its preview, CI green
+  (`AGENTS.md` § Delivery rules). "Ready" means ready for review: its
   author has tested and reviewed it, and a person's review comes next. AI agents mark their own the
   same way, request the reviewers below, and never merge.
 - **Reviewers:** [`@username`, … — usernames work on GitHub and GitLab; on GitHub, an `@org/team`
