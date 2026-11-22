@@ -6,6 +6,8 @@ argument-hint: "[what happened, or the idea]"
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/framework-feedback/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Framework feedback
 
 The projects that use the framework are where its problems show: a step that misleads, a case a skill
@@ -62,6 +64,9 @@ naming the project, its people, or its code.
    The **Seen in** line: `An adopting project (adf <release>, <install>, modules: <modules>, <surface>
    <Claude Code version>, <OS>)`, with the surface the CLI, the desktop app, an IDE extension, or the
    web. Add the counts or the frequency when you have them.
+
+   Then run the prose pass, `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`: the shape's section
+   headings stay.
 
 5. **Check the draft** — the gate, run on every version you'd post:
 
@@ -134,6 +139,7 @@ naming the project, its people, or its code.
 - [ ] The target is `check_report.py context`'s `repo`, or the developer filed by hand
 - [ ] The release check ran, or the developer heard it couldn't
 - [ ] The draft is in English, in the problem or idea shape, with the Seen in line, and pastes nothing from the project
+- [ ] The prose pass ran on the draft before the check
 - [ ] `check_report.py check` passed, with only the `--allow`s the developer named, and its warnings were shown
 - [ ] Existing issues were searched, and a match got a comment instead
 - [ ] The full draft was shown, and nothing was posted before the developer's yes

@@ -469,7 +469,8 @@ skeleton/                 Portable project skeleton — the layer an adopting re
 
 plugins/adf/              The source of the framework's machinery, written by hand: 22 workflow skills,
                           8 agents, 4 dynamic workflows, 12 guardrail hooks, the reference docs
-                          (SPEC-MODEL, COST-MODEL, MEMORY-STRATEGY, MCP-INTEGRATION, PARALLEL-AGENTS),
+                          (SPEC-MODEL, COST-MODEL, MEMORY-STRATEGY, MCP-INTEGRATION, PROSE-PATTERNS,
+                          PARALLEL-AGENTS),
                           the process modules' skills, the installer (/adf:adopt, :upgrade,
                           :cost-report), and bin/ commands (generated)
 plugins/adf-dev/          The development plugin: the skills of the docker, e2e, and unit modules

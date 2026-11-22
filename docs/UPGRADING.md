@@ -72,6 +72,7 @@ committed one takes the new release's copies from `scripts/build-committed.py` (
 | `docs/COST-MODEL.md` | Framework reference doc — a packaged project has none: the plugin carries it |
 | `docs/MEMORY-STRATEGY.md` | Framework reference doc — a packaged project has none: the plugin carries it |
 | `docs/MCP-INTEGRATION.md` | Framework reference doc — a packaged project has none: the plugin carries it |
+| `docs/PROSE-PATTERNS.md` | Framework reference doc — a packaged project has none: the plugin carries it |
 | `docs/PARALLEL-AGENTS.md` | The `parallel-agents` module's guide, a framework reference doc — a packaged project has none: the plugin carries it ([decision 0044](decisions/0044-parallel-agents-guide-in-the-plugin.md)). Up to v2.4.0 the module copied it into the project, to merge: the first upgrade past that splits the copy, and keeps what the team recorded in `docs/SHARED-SERVICES.md` |
 | `docs/process/0000-pdr-template.md` | The PDR template |
 | `.cursor/rules/*.mdc` | Cursor mirrors of the rules |

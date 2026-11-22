@@ -6,6 +6,8 @@ argument-hint: "[spec folder, e.g. specs/007-newsletter-signup — or 'update' f
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/write-docs/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Write Docs (Docs-First)
 
 Write the user-facing documentation the plan calls for **before** the code exists. Writing docs first
@@ -59,6 +61,9 @@ job; they're Phase 5 tasks.
      screenshots, sample output, or anything you'd have had to run;
    - cross-reference the spec folder, related ADRs, and related docs.
 
+   Then run the prose pass, `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`: the existing docs'
+   tone and structure, from step 2, win over it.
+
 4. **Validate** — every claim backed by an AC, an edge case, or a planned test; nothing contradicts
    the spec; no implementation details that aren't defined yet; glossary terms used.
 
@@ -74,7 +79,7 @@ behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it
 1. Read the committed docs and what has actually been built (the implementation commits).
 2. List what is wrong, missing, or misleading, and present a short **doc-update plan** — which
    sections of which files change, and what gets removed. Wait for approval.
-3. Write the updates; commit `docs: update <doc> for <what changed>`.
+3. Write the updates and run the prose pass on them; commit `docs: update <doc> for <what changed>`.
 
 ## Rationalizations (do not accept these)
 
@@ -101,6 +106,7 @@ behavior change. For a one-line fix (a renamed field), `/adf:implement` folds it
 - [ ] Every claim is backed by an AC, an edge case, or a planned test
 - [ ] Nothing describes implementation details that don't exist yet; nothing is fabricated
 - [ ] Terminology matches `docs/GLOSSARY.md`; tone and structure match existing docs
+- [ ] The prose pass ran on every doc written or updated
 - [ ] Phase 1 tasks are ticked and the docs are committed with `docs:` before any implementation commit
 
 ## Principles

@@ -124,7 +124,8 @@ Present the table before going further. Wrong facts here poison every file downs
   out, the settings, the names in `.claude/rules/claude-code.md` and `DEV-SETUP.md`, the stamp, and the
   checks.
   **The reference docs** (decision 0019) — `COST-MODEL.md`, `MCP-INTEGRATION.md`,
-  `MEMORY-STRATEGY.md`, `SPEC-MODEL.md` — come from the plugin. Once the files are in, run
+  `MEMORY-STRATEGY.md`, `PROSE-PATTERNS.md`, `SPEC-MODEL.md` — come from the plugin. Once the
+  files are in, run
   `python3 <framework-root>/scripts/link-reference-docs.py <repo> --packaged <tag>`: it points the
   files that name a reference doc at the pinned release, and lists any other file that still names
   one — one the team wrote follows by hand.

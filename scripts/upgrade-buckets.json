@@ -47,6 +47,7 @@
     "docs/MCP-INTEGRATION.md",
     "docs/MEMORY-STRATEGY.md",
     "docs/PARALLEL-AGENTS.md",
+    "docs/PROSE-PATTERNS.md",
     "docs/SPEC-MODEL.md",
     "docs/process/0000-pdr-template.md",
     ".cursor/rules/*.mdc",

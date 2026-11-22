@@ -6,6 +6,8 @@ argument-hint: "[status] [started | review | delivered] | guide [tracker task li
 
 > **Step 0 — which copy.** This is the packaged copy ([decision 0016](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0016-packaged-install.md)). Unless this project's instructions say "This project uses the packaged install", stop here: open `.claude/skills/stakeholder-update/SKILL.md` and follow that file instead — it's the version this project upgraded to. If it doesn't exist, the project doesn't use this skill: say so and stop.
 
+> **The reference docs this file names are the plugin's copies,** in `${CLAUDE_PLUGIN_ROOT}/docs/` — outside this project, which keeps none in its own `docs/`. Read them at the full paths given.
+
 # Stakeholder Update
 
 Write the messages that keep the client informed on their tracker task — a ClickUp task, a GitHub
@@ -193,6 +195,7 @@ moves) — no draft, no message — and stop.
   handling each one.
 - **Keep it short.** Don't over-explain, and leave out anything obvious, such as asking the client
   to click the links to check them.
+- **Run the prose pass** on every message before it's shown or posted: `${CLAUDE_PLUGIN_ROOT}/docs/PROSE-PATTERNS.md`.
 
 ## Rationalizations (do not accept these)
 
@@ -232,6 +235,7 @@ moves) — no draft, no message — and stop.
 - [ ] Status uses the project's status words and gives no unconfirmed dates
 - [ ] The moment was named; the status moved to the one § Stakeholder updates maps to it, from the task's valid statuses, forward only, and said in one line — to delivered only once the change was verified live
 - [ ] A review update gives what changes for them, the preview, what to test there, and the pull request for reference; a delivered update says it's live, and the usage guide matches what shipped
+- [ ] The prose pass ran on the text before it was shown or posted
 - [ ] No technical detail or internal links in the client text — the pull request only in the review update; nothing was posted on the pull request
 - [ ] A review or delivered update that only reports was posted on its own, and the report shows its text and link; a message that asks the requester for something, the started message, an answer, or any message under *Updates post: on the developer's yes* was a draft, posted only on a yes to its exact text and assignee
 - [ ] Screenshots, if any, were taken read-only, of single elements, shown to the developer, and handed over as files
