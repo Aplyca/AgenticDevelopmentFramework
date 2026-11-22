@@ -30,11 +30,18 @@
   read only when text is written.
 - **The destination wins:** a template's fixed headings and labels, the voice of the page or docs
   being updated, and the project's conventions stay, whatever the list says.
-- **The pass only cuts.** A pass that adds text went wrong.
+- **The pass cuts words, never facts.** A pass that adds text went wrong, and so did one that drops
+  a fact the draft gave.
 
 ## Consequences
 
-- **The four skills read one more file** when they write: about 700 tokens, once per draft.
+- **The four skills read one more file** when they write: about 750 tokens, once per draft.
+- **A blind comparison on the newsletter example backed it for end-user pages**
+  ([report](../../evals/dynamic/reports/2026-11-21-prose-pass.md)): three pages with the pass were
+  a third shorter, had none of the patterns, matched the existing page's voice, and scored higher
+  for their reader. Stakeholder updates barely changed, since the skill's style rules already cover
+  most of the list. One page dropped a fact its reader needed, which is why the pass now says to
+  keep every fact.
 - **The list is advice, not a gate.** The static checks confirm each skill names the pass; nothing
   can check the prose itself.
 - **A committed project gets `docs/PROSE-PATTERNS.md`,** overwritten at each upgrade like the other

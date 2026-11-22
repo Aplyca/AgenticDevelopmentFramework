@@ -11,10 +11,12 @@ any language; the examples are English.
 
 1. Read the draft once against each table below.
 2. Cut the pattern; don't reword around it. A sentence with nothing left said nothing.
-3. Keep what the destination does on purpose: a template's fixed headings and labels (an issue's
+3. Cut words, not facts. Every fact the draft gave is still there after the pass: a limit, a step,
+   something the reader no longer has to do. If a cut took one with it, put the fact back, plainly.
+4. Keep what the destination does on purpose: a template's fixed headings and labels (an issue's
    **What happens** and **Seen in**), the voice of the page or the docs being updated, and the
    project's own conventions win over this list.
-4. The draft comes out shorter. A pass that adds a sentence went wrong.
+5. The draft comes out shorter. A pass that adds a sentence went wrong.
 
 ## Openings and closings
 

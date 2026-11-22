@@ -19,7 +19,9 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
   behavior, puffery, a bold lead-in on every bullet, one-row tables. `/adf:stakeholder-update`,
   `/adf:end-user-docs`, `/adf:write-docs`, and `/adf:framework-feedback` run it on each draft
   before showing or posting it. A template's headings and labels and the destination's own voice
-  win over the list, and the pass only cuts.
+  win over the list, and the pass cuts words, never facts. A blind comparison on the newsletter
+  example ([report](evals/dynamic/reports/2026-11-21-prose-pass.md)) found end-user pages a third
+  shorter and free of the patterns, and stakeholder updates little changed.
   - **Upgrade impact:** overwrite for the plugins. Committed install: overwrite
     `.claude/skills/stakeholder-update/`, `.claude/skills/end-user-docs/` (with the end-user-docs
     module), `.claude/skills/write-docs/`, and `.claude/skills/framework-feedback/`; additive
