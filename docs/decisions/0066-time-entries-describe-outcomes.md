@@ -1,6 +1,6 @@
 # 0066: A time entry's description says what the day delivered, in business terms
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0092](0092-time-entries-are-outcomes-with-a-midpoint.md) (an entry is an outcome, so its description says what the outcome delivered)
 - **Date:** 2026-11-02
 - **Amends:** [0043](0043-track-time-in-the-tracker.md) — what an entry's description says
 

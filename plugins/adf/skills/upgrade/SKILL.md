@@ -144,7 +144,7 @@ repository's facts, by the same rules as `/adf:adopt` Step 3:
   run by tier (`@smoke`, `@critical`, regression) and by feature suite, like `e2e`'s (decision 0058).
   An existing runner (`jest.config.*`, `vitest.config.*`) is good evidence
 - `time-tracking` — only when the team says it measures the time its tasks take: `/track-time` logs
-  each day of a task in the tracker, in whole units (decision 0043)
+  each outcome of a task in the tracker, in whole units (decisions 0043, 0092)
 - `end-user-docs` — the product's end users read its documentation in a doc tool (ClickUp Docs,
   Confluence, Notion): `/end-user-docs` drafts a feature's end-user page there before
   implementation and publishes it once the feature ships (decision 0048)
