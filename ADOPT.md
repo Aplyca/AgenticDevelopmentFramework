@@ -61,4 +61,8 @@ The plugin's skills load when a session starts, so this session doesn't have `/a
 
 Its ground rules hold either way: every filled placeholder traces to a file you read, nothing is
 committed to the default branch (except a new repository's first commit, with the developer's yes),
-and nothing is pushed until the developer approves.
+and nothing is pushed until the developer approves. The project's own `AGENTS.md`, `CLAUDE.md`,
+`GEMINI.md`, and rules go through its compatibility pass (`adopt/compatibility.md`, beside the skill)
+before they're merged. A process line of their own, such as "ask before each commit", is dropped or
+recorded as an override, never kept beside the framework's
+([decision 0099](docs/decisions/0099-a-compatibility-pass-for-legacy-instructions.md)).

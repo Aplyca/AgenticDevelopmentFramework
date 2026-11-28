@@ -16,6 +16,8 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the ones
 - [ ] (auto) `main` is untouched; the upgrade is committed on its own branch, and the tree is clean
 - [ ] (auto) `AGENTS.md` keeps the team's line, and its stamp moved past v2.3.0 and still says
       `install: packaged` and `modules: docker`
+- [ ] (auto) The compatibility pass dropped "Ask me before every commit" from `AGENTS.md`, though it
+      merged cleanly
 - [ ] (auto) `.claude/rules/deployment.md` keeps the team's comment
 - [ ] (auto) `.claude/settings.json` parses, has no `hooks` block, and has `autoUpdate` on the
       `aplyca` entry
@@ -25,8 +27,9 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the ones
 - [ ] (auto) The report exists in the git directory
 - [ ] (auto) Nothing was pushed
 - [ ] The pull request body is shown: the releases, the conflicts and how they were resolved, each
-      clean merge with its hunk count, the dropped rules with the rules that cover them, the checks,
-      the commands for each machine, and the follow-ups
+      clean merge with its hunk count, the dropped rules with the rules that cover them, the
+      compatibility table under `## Compatibility`, the checks, the commands for each machine, and the
+      follow-ups
 
 ## Always
 

@@ -1,6 +1,6 @@
 # 0025: No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0099](0099-a-compatibility-pass-for-legacy-instructions.md) — an existing `GEMINI.md` goes through the compatibility pass before it's moved
 - **Date:** 2026-10-08
 - **Builds on:** [0024](0024-agents-md-only.md) — one instruction file at the root
 

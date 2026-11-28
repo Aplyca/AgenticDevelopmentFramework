@@ -2,7 +2,8 @@
 #
 # Prints an adopt run's end state for grading: commits per branch, what was added, the version stamp,
 # the planned entries, the decision records, and whether the settings parse; for the packaged case,
-# checks the packaged layout (../../check-packaged.sh). Read-only.
+# checks the packaged layout (../../check-packaged.sh); for the legacy-instructions case, checks where
+# each line of the project's CLAUDE.md went (decision 0099). Read-only.
 #
 cd "$1" || exit 1
 if ! head -1 AGENTS.md 2>/dev/null | grep -q 'Skeleton source:'; then
@@ -59,4 +60,31 @@ if [ "${3:-}" = packaged ]; then
   bash "$(dirname "$0")/../../check-packaged.sh" . "$release" "$(git -C "$FW" rev-parse --short "$release^{commit}")" "$FW"
   if grep -q -i 'packaged' docs/process/0001-*.md 2>/dev/null; then echo "- ✓ PDR-0001 records the packaged install"
   else echo "- ✘ PDR-0001 records the packaged install"; fi
+fi
+if [ "${3:-}" = legacy-instructions ]; then
+  echo "### Checks — the compatibility pass (decision 0099)"
+  mark() { if [ "$1" = 0 ]; then echo "- ✓ $2"; else echo "- ✘ $2"; fi; }
+  adoption=$(git for-each-ref --format='%(refname:short)' refs/heads | grep -vx main | head -1)
+  [ "$(git rev-list --count main 2>/dev/null)" = 1 ] && [ -n "$adoption" ] && [ "$(git rev-list --count "main..$adoption")" -ge 1 ]
+  mark $? "main keeps its one commit; the adoption is on its own branch${adoption:+ ($adoption)}"
+  [ -z "$(git status --porcelain)" ]; mark $? "everything is committed"
+  [ ! -e CLAUDE.md ]; mark $? "no CLAUDE.md"
+  ! grep -rqiE 'before every commit|confirm each step' AGENTS.md .claude/rules 2>/dev/null
+  mark $? "no instruction file asks before each commit or confirms each step"
+  grep -qF 'pnpm test' AGENTS.md && grep -qF 'legacy/' AGENTS.md; mark $? "AGENTS.md names \`pnpm test\` and \`legacy/\`"
+  python3 - <<'PY'
+import re, sys
+text = re.sub(r"<!--.*?-->", "", open("AGENTS.md", encoding="utf-8").read(), flags=re.S)
+def section(name):
+    m = re.search(r"^## " + name + r"\n(.*?)(?=^## |\Z)", text, re.S | re.M)
+    return m.group(1) if m else ""
+ready = re.search(r"(person|people|human|developer|tech lead)\w*\s+(marks?|moves?|sets?|flips?)\b[^.\n]{0,40}\bready\b",
+                  section("Delivery rules"), re.I)
+print(("- ✓" if ready else "- ✘") + " § Delivery rules says a person marks pull requests ready")
+sensitive = "src/newsletter" in section("Sensitive areas")
+config = open(".claude/hooks/config.sh", encoding="utf-8").read()
+careful = re.search(r'^CAREFUL_GLOBS="[^"]*src/newsletter', config, re.M)
+print(("- ✓" if sensitive and careful else "- ✘") + " `src/newsletter/` is in § Sensitive areas and CAREFUL_GLOBS")
+PY
+  echo "- AGENTS.md: $(wc -c < AGENTS.md | tr -d ' ') characters (the skeleton's budget is 21,000)"
 fi

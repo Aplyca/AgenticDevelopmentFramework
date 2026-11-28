@@ -11,6 +11,39 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **A compatibility pass brings the project's own instructions in line with the framework** (0099).
+  - **What:**
+    - **`/adf:adopt` sorts each project line before it merges** an existing `AGENTS.md`, `CLAUDE.md`,
+      `GEMINI.md`, or rule, into one of four classes:
+      - a project fact moves into its section;
+      - process the framework owns (when to ask or stop, approvals, the commit, branch, and
+        pull-request flow, testing, review, model and session handling) is dropped;
+      - a deliberate override is kept where the framework honors it, or recorded as a PDR;
+      - a line it can't classify is asked about once.
+
+      The developer approves the table before anything is written, and the pull request's body
+      carries it under `## Compatibility`. Before, a line such as "ask before each commit" merged in
+      beside the framework's process, and agents followed it or stalled between the two.
+    - **`/adf:upgrade` runs the same pass on every upgrade,** on the merged files against the new
+      release's rules. Its pull request's body lists what the pass found and what was decided.
+    - **`/adf:context-audit` and `/adf:deep-context-audit` report a PROCESS finding:** a project line
+      that asks for a stop, an approval, or a flow the framework's process doesn't have, or that
+      contradicts it.
+    - **The pass is one reference file beside `/adf:adopt`,** so it loads only when a run reaches it,
+      and it never adds process to `AGENTS.md`.
+  - **Where:** `plugins/adf/skills/adopt/{SKILL,compatibility}.md`,
+    `plugins/adf/skills/upgrade/{SKILL,manual}.md`, `plugins/adf/skills/context-audit/SKILL.md`,
+    `plugins/adf/workflows/deep-context-audit.js`, `ADOPT.md`, `docs/SETUP.md`, `docs/UPGRADING.md`,
+    `evals/static/check-skills.sh`, `evals/dynamic/fixtures/adopt/`, `evals/dynamic/fixtures/upgrade/`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/skills/context-audit/` and
+    `.claude/workflows/deep-context-audit.js`, as `/adf:upgrade` writes them; packaged, they come with
+    the plugin. `/adf:adopt` and `/adf:upgrade` run from the plugin in either install.
+  - **Migration:** none by hand. The upgrade that brings this runs the pass and shows its table:
+    approve each row, move it to another class, or answer its question. Nothing in the skeleton
+    changes.
+
 ## v2.12.0 — 2026-11-22 — Each step has one owner, and the hooks stop only where the risk is
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

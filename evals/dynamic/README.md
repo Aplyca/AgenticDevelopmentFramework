@@ -21,7 +21,8 @@ dynamic/
     adopt/
       project.sh                   - builds a new project (no commits, nothing built) in place of the newsletter one
       inspect.sh                   - records each run's end state: commits, stamp, planned entries, decision records
-      ...                          - adopting from one line with the framework's address; /adopt in a new project; on the packaged install
+      ...                          - adopting from one line with the framework's address; /adopt in a new project; on the packaged install;
+                                     a project whose own CLAUDE.md carries a process of its own (the compatibility pass)
     upgrade/
       project.sh                   - builds a committed adoption at v1.0.0, from that tag
       inspect.sh                   - records the end state; checks the switch to the packaged install

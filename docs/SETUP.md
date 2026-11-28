@@ -129,6 +129,15 @@ from `.claude/rules/claude-code.md`. A `CLAUDE.md` or `CLAUDE.local.md` in the p
 it makes Claude Code read that file *instead of* `AGENTS.md` ([decision 0024](decisions/0024-agents-md-only.md)). Merge an existing
 `CLAUDE.md` into those two files, then delete it.
 
+**The project's own process lines don't carry over.** Instructions written before the adoption often
+say "ask before each commit" or "confirm every step", and an agent follows that line over the
+framework's process, or stalls between the two. `/adf:adopt`'s compatibility pass sorts each line of
+the existing `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and rules into one of four classes. A project fact
+moves into its section. A process line the framework owns is dropped. A deliberate override is kept
+where the framework honors it, or recorded as a PDR. A line nobody can classify is asked about once.
+You approve the table before anything is written
+([decision 0099](decisions/0099-a-compatibility-pass-for-legacy-instructions.md)).
+
 ## 4. Write the constitution
 
 `docs/CONSTITUTION.md`: 5–10 real non-negotiables, who approves amendments. It overrides `AGENTS.md`
