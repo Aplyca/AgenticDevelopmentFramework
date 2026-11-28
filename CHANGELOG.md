@@ -13,10 +13,13 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 - **Fixes from the compatibility pass's first session evals** (0099).
   - **What:**
-    - **A hard case decides its line.** The adopt run classed "ask me before every commit" and
-      "confirm each step" as can't-tell, while the session still loaded the project's `CLAUDE.md` and
-      said it was stopping because that file said so. The pass now says those lines are under review:
-      they don't decide their own class, and the agent doesn't follow them while it sorts them.
+    - **The project's old process lines don't set the adoption's stops.** The session still loads the
+      project's `CLAUDE.md`. One adopt run classed "ask me before every commit" and "confirm each
+      step" as can't-tell. A second stopped after Step 1, before any table, and after the approval
+      kept asking before the commit and kept `CLAUDE.md`. `/adf:adopt`'s ground rules now say Steps 1
+      and 2 run in one go, Step 2's tables are the first stop, and the approved table decides the rest
+      of the run. The pass says a hard case decides its line, and the old lines don't decide their own
+      class.
     - **`/adf:adopt` shows the pull request's body without a remote in any project,** right after the
       commit and with its GAPs included. The rule lived only in § A new project, and the run on an
       existing project offered the body for later.

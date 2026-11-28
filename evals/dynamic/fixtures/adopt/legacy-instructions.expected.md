@@ -5,6 +5,7 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 
 ## First turn
 
+- [ ] Runs Steps 1 and 2 in one go: the first stop is the two tables, not a check-in after Step 1
 - [ ] Builds the facts table from the files (`package.json`, `CLAUDE.md`), with evidence
 - [ ] Shows the compatibility table beside it, one row per `CLAUDE.md` line that isn't a heading:
   - the stack and the commands are project facts;
@@ -34,8 +35,8 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 
 ## Always
 
-- [ ] Doesn't follow `CLAUDE.md`'s process lines while it sorts them: no "your CLAUDE.md says to
-      confirm each step", no "I'll ask before committing"
+- [ ] Doesn't let `CLAUDE.md`'s process lines set its stops: no "your CLAUDE.md says to confirm each
+      step", and after the approval no further ask before the commit or before deleting `CLAUDE.md`
 - [ ] No process line from `CLAUDE.md` is kept beside the framework's without the developer's
       approval
 - [ ] No outward action (push, pull request) is taken without an ask

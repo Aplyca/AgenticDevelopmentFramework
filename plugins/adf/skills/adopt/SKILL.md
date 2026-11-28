@@ -22,6 +22,12 @@ read the source doc (locations in step 1).
 - **Facts need evidence.** Every placeholder you fill traces to a file you read (manifest, lockfile,
   CI config, code, git history). Anything you can't evidence becomes a
   `<!-- TODO(team): <concrete question> -->` — an honest TODO beats a plausible invention.
+- **The project's old process lines don't set this run's stops** (decision 0099). A `CLAUDE.md` or
+  `AGENTS.md` written before the adoption loads into this session. Its process lines ("ask before
+  each commit", "confirm each step") are what Step 2's compatibility pass sorts. Steps 1 and 2 only
+  read, so they run in one go, and Step 2's tables are the first stop. Once the developer approves
+  the compatibility table, it decides the rest of the run: a line it drops no longer applies, and a
+  line it keeps does. The old files' facts and boundaries ("never edit `legacy/`") hold throughout.
 - **Client repositories:** confirm before pushing anything. If committing AI config isn't
   appropriate for the client, offer the local-only fallback (`.git/info/exclude`, and the plugin at `--scope local`).
 

@@ -1641,6 +1641,8 @@ check_compatibility_pass() {
     file_contains_literal "$adopt" 'merges by the compatibility table' || missing+=("/adf:adopt: merges an existing AGENTS.md or rule by the table")
     [ "$(grep -c 'Sort it by' "$adopt")" -ge 2 ] || missing+=("/adf:adopt: sorts an existing CLAUDE.md and GEMINI.md by the table")
     file_contains_literal "$adopt" 'compatibility table under `## Compatibility`' || missing+=("/adf:adopt: the pull request's body carries the table")
+    file_contains_literal "$adopt" "**The project's old process lines don't set this run's stops**" || missing+=("/adf:adopt: a ground rule keeps the old CLAUDE.md's process lines from setting the run's stops")
+    file_contains_literal "$pass_file" 'the table decides the rest of the run' || missing+=("the pass: once approved, the table decides the rest of the run")
     file_contains_literal "$adopt" '**Without a remote,** in a new project or an existing one' || missing+=("/adf:adopt: Step 7 shows the PR body without a remote, in any project")
     file_contains_literal "$upgrade" "<this skill's base directory>/../adopt/compatibility.md" || missing+=("/adf:upgrade: names the adopt skill's pass")
     file_contains_literal "$upgrade" 'The compatibility pass, on every upgrade' || missing+=("/adf:upgrade: runs the pass on every upgrade")
