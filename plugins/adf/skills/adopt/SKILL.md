@@ -74,9 +74,6 @@ applies, with these changes:
 - **Globs point at planned paths or stay empty** — `CAREFUL_GLOBS`, `APPEND_ONLY_GLOBS`,
   `GENERATED_GLOBS`, the rules' `paths:` — and no nested `AGENTS.md` yet.
 - **Step 6:** commands that can't run yet are a GAP — "no code yet" — not a failure.
-- **Step 7 without a remote:** commit on the adoption branch, then put the full PR body in your reply —
-  not an offer to draft it — with the steps that follow: add the remote, push the branch, and open
-  the draft pull request with that body.
 - **After the adoption,** the scaffold — the framework's init, the first test — is the first task
   through the lanes; usually full, since it sets the structure others follow. Once that code lands,
   run `/init-project` to replace the planned entries with verified facts, and `/context-audit` to find
@@ -302,3 +299,6 @@ GAPs go in the PR description; they're findings, not failures to hide.
    named (`/adf-dev:dev-env set up`, `/adf-dev:e2e set up`, `/adf-dev:unit set up`,
    `/adf-connect:connect <service>` — the committed names in a committed install), or `- none`.
 3. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request installs the rules that grant it.
+   **Without a remote,** in a new project or an existing one, put the full PR body in your reply
+   right after the commit, GAPs included — not an offer to draft it once they're resolved — with the
+   steps that follow: add the remote, push the branch, and open the draft pull request with that body.

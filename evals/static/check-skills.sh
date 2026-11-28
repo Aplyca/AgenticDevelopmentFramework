@@ -1635,11 +1635,13 @@ check_compatibility_pass() {
         file_contains_literal "$pass_file" 'is a PDR in' || missing+=("the pass: records any other override as a PDR")
         file_contains_literal "$pass_file" '`## Compatibility`' || missing+=("the pass: its table goes in the pull request's body")
         file_contains_literal "$pass_file" 'At an upgrade:' || missing+=("the pass: says which lines an upgrade checks")
+        file_contains_literal "$pass_file" "they don't decide their own class" || missing+=("the pass: a hard case decides its line, whatever the session loads")
     fi
     file_contains_literal "$adopt" "<this skill's base directory>/compatibility.md" || missing+=("/adf:adopt: names the pass in Step 2, beside the facts table")
     file_contains_literal "$adopt" 'merges by the compatibility table' || missing+=("/adf:adopt: merges an existing AGENTS.md or rule by the table")
     [ "$(grep -c 'Sort it by' "$adopt")" -ge 2 ] || missing+=("/adf:adopt: sorts an existing CLAUDE.md and GEMINI.md by the table")
     file_contains_literal "$adopt" 'compatibility table under `## Compatibility`' || missing+=("/adf:adopt: the pull request's body carries the table")
+    file_contains_literal "$adopt" '**Without a remote,** in a new project or an existing one' || missing+=("/adf:adopt: Step 7 shows the PR body without a remote, in any project")
     file_contains_literal "$upgrade" "<this skill's base directory>/../adopt/compatibility.md" || missing+=("/adf:upgrade: names the adopt skill's pass")
     file_contains_literal "$upgrade" 'The compatibility pass, on every upgrade' || missing+=("/adf:upgrade: runs the pass on every upgrade")
     [ "$(grep -c '## Compatibility' "$upgrade")" -ge 2 ] || missing+=("/adf:upgrade: both deliveries list the table in the pull request's body")
