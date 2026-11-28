@@ -97,10 +97,9 @@ a way to check the result?**
 
 - **Switch where the cache is cold or small.** Each model has its own prompt cache: after a switch,
   the next call re-reads the whole conversation uncached. Switch when the session starts, right
-  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or
-  after the approval gate, right after a compaction — in the same session (§ Between phases): the
-  spec folder carries the detail, so the switch re-reads only the summary. Don't switch for a single
-  step.
+  after triage (the context is still small — `/adf:triage` says when the model doesn't fit), or at
+  the approval gate, in the same session (§ Between phases): after the developer's optional
+  compaction, the switch re-reads only the summary. Don't switch for a single step.
 - **Effort before model.** Within Sonnet, `/effort high` for harder or longer work is often enough.
   `xhigh` and `max` make Sonnet think longer and cost more — at that point Opus is usually the
   better trade.
@@ -157,8 +156,7 @@ loses the thread. Ask in order; the first yes wins.
 4. **Can the next step run unattended?** Give it to an agent (`@adf:code-reviewer`, `/adf:deep-review`): it
    works in its own context and returns a report, and this session stays as it is.
 5. **Otherwise, `/compact`** — with an instruction about what the next phase needs
-   (`/compact keep the open questions and the change surface`). The full lane's approval gate lands
-   here: the spec folder carries the detail, the summary keeps the thread, and the session stays one.
+   (`/compact keep the open questions and the change surface`).
 
 Switching the model follows the same logic: `/model opus` in place re-reads the conversation once,
 uncached, but keeps all of it; after a compaction it re-reads only the summary — so compact first,
@@ -167,18 +165,29 @@ then switch.
 **A phase never moves to another session** unless the developer asks. Compacting keeps the session —
 its folder, branch, title, and thread — and shrinks what each call carries. A second session on the
 same task splits it: two places to talk to, two sessions on one branch, and the one waiting re-reads
-its whole conversation, at its own model's price, each time it's woken. The switch after the gate,
-by client (`/adf:write-plan` step 12):
+its whole conversation, at its own model's price, each time it's woken.
+
+**The approval gate is the full lane's one stop** (`/adf:write-plan` steps 9 and 12). On approval, the
+agent goes straight on to the docs and the implementation, in the same session and the same turn:
+
+- **The model:** the next phases fit Sonnet. In the desktop app the agent sets it itself where the
+  app allows it; elsewhere, or where the app refuses, it keeps the current model and says so. A
+  switch is never a reason to stop.
+- **The conversation:** no manual compaction. The 300k cap compacts it when it grows, and the spec
+  folder carries the task.
+
+The cheaper run is the developer's option, taken at the gate before approving; the gate's message
+names it:
 
 | Client | Compact | Model | Then |
 |---|---|---|---|
-| Terminal | `/compact <what the next phases need>` | `/model sonnet` | The next command: `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` |
-| Desktop app | The same, in the prompt box | The model menu | The same |
-| Another tool | Its compaction; with none, starting the conversation over — the folder carries the task | Its model picker | The same |
+| Terminal | `/compact <what the next phases need>` | `/model sonnet` | Approve |
+| Desktop app | The same, in the prompt box | The model menu | Approve |
+| Another tool | Its compaction; with none, skip it — the folder carries the task | Its model picker | Approve |
 
-The developer takes all three steps: no tool compacts a session from inside it, and the desktop app
-doesn't let a session re-price its own turns. Compact soon after approval — the summary's read of the
-conversation is then mostly from the cache.
+No tool compacts a session from inside it. Taken while the developer is at the gate, the summary's
+read of the conversation comes mostly from the cache. A plain approval skips it: each later call
+carries the planning conversation until the automatic compaction, on the session's model.
 
 **Skip the compaction when it can't pay back.** The summary call costs about what 10–40 later calls
 pay to carry a long planning conversation, so it's worth it when dozens of calls follow. With a task
@@ -232,7 +241,7 @@ Skills run in your conversation, on its model — except the three that fork ont
 | `/adf:init-project` | Sonnet | Multi-perspective setup decisions; one-time so cost is small |
 | `/adf:triage` | Sonnet | Reading a task in full and deciding what it needs; cheap, and it prevents the most expensive mistakes |
 | `/adf:write-spec` | Opus | Full lane: ambiguity, clarification, and the decisions the spec records — judgment work |
-| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then compact and switch to Sonnet, in the same session |
+| `/adf:write-plan` | Opus | The change surface and test strategy decide everything downstream; the gate follows — then Sonnet, in the same session, with no stop |
 | `/adf:write-tests` | Sonnet | AC → test mapping is moderate complexity |
 | `/adf:write-docs` | Sonnet | Synthesis from spec + tests; matters for tone and accuracy |
 | `/adf:implement` | Sonnet | An approved plan with named tests is a clear spec with a way to check the result; Opus for a task that turns out genuinely hard |

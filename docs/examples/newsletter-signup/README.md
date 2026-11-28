@@ -60,7 +60,7 @@ Triage — Newsletter signup on article pages (https://tracker.example.com/t/MKT
 - Kind: new feature — no spec folder mentions newsletters or MKT-412; no branch or open PR touches it
 - Lane: full — a new feature with plenty to decide: failure behavior, rate limiting, personal data
   (source: triggers)
-- Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
+- Model: opus for the spec and plan; sonnet after the gate, in this session
 - Environment: not yet — the spec and the plan only read code; tests start with /implement
 - Open questions (for /write-spec's clarification round): 1) An address already on the list — its
   own message? 2) Mailchimp down — what does the reader see? 3) Contentful down — hide the form?
@@ -248,6 +248,9 @@ is only known once the plan exists. The agent stops and shows:
 > **Docs first.** The admin guide and the copy defaults for marketing, and the usage guide's draft
 > on MKT-412. After the code: the runbook and a paragraph in `docs/ARCHITECTURE.md`.
 >
+> **What follows.** On approval I go straight on to the docs and the implementation. To run them
+> cheaper, first compact and pick Sonnet (the two commands below), then approve.
+>
 > No implementation code until you approve. Reply with changes, or approve.
 
 Sam read the change surface and the assumptions, and corrected two things:
@@ -284,16 +287,20 @@ git commit -m "spec: approve newsletter-signup scope and plan"
 The `spec:` commit records intent **and** the approved change surface. Every later diff is reviewed
 against it.
 
-The rest runs in this same session, on another model and from a compacted conversation. Planning
+The rest runs in this same session, in the same turn: the approval was Sam's one stop. Planning
 needed Opus; an approved plan with named tests is work for Sonnet, and the committed folder now
-carries what the long planning conversation held. The agent can't compact itself or change its own
-model, so it names three steps for Sam, in order — compact, pick Sonnet, send the next command,
-which opens Step 5:
+carries what the long planning conversation held. The agent can't compact itself, so its gate
+message offered Sam an optional step before approving, to run the rest cheaper — the two commands
+it named:
 
 ```
-/compact Keep the lane, the approved spec folder specs/007-newsletter-signup/, the gate's decisions and open questions, and the next step: /write-docs, then /implement
+/compact Keep the lane, the spec folder specs/007-newsletter-signup/ awaiting approval at the gate, its decisions and open questions, and the next steps: /write-docs, then /implement
 /model sonnet
 ```
+
+Sam took it, then approved. Had Sam simply approved, the agent would have switched to Sonnet itself
+where the app allows it, or kept its model and said so, and gone on either way; the project's 300k
+cap compacts the conversation when it grows. Step 5 starts at once.
 
 ---
 

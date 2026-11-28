@@ -171,7 +171,7 @@ Triage — Newsletter signup: show the chosen topics after signing up (https://t
 - Deliverable: change
 - Kind: change request on specs/007-newsletter-signup/ — CR 1 recorded a generic success message as the requester's decision
 - Lane: full — the copy's home and the empty case are open (source: triggers)
-- Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
+- Model: opus for the spec and plan; sonnet after the gate, in this session
 - Environment: needed later, for the TDD loop — not for planning
 - Spec folder: amend specs/007-newsletter-signup/ as CR 2
 - Open questions: 1) Is the lead-in ("You'll hear about:") editable in Contentful like the rest of the copy?

@@ -13,6 +13,18 @@ commit: the test that proves the task, then the code that satisfies it, together
 plan is the contract for **where** code goes (the change surface); the tests are the contract for
 **what** it does.
 
+**One run, from the approval to a pull request ready for review.** The approval gate authorized
+every task in `tasks.md`, the reconcile, the full gate, the local check, and `/adf:open-pr` through
+marking the pull request ready — or, where `AGENTS.md` § Delivery rules has a person mark it ready,
+the draft with every check passed. Run it in one go: don't end your turn, report, or ask to continue
+between tasks or phases. The commits and the ticks in `tasks.md` are the progress record, and the
+developer can interrupt at any time. CI and the preview deploy are waits, not stops: `/adf:open-pr`
+waits in the background, and a failure that's yours to fix, you fix. **Stop only for a decision:**
+the cases that say stop under *When reality departs from the plan*, a test that passes before any
+code when you can't tell why (step 6), an environment that won't start, and `/adf:open-pr`'s own —
+a walk that would reach a person or real shared data, a criterion you couldn't test. Everything else
+goes in the final report and the pull request.
+
 ## Prerequisites — refuse to start without them
 
 - `spec.md` reads `status: approved`, with an `approvals:` line covering this scope (the CR, for a
@@ -36,9 +48,10 @@ plan is the contract for **where** code goes (the change surface); the tests are
    where the task stands — compacted after the gate, or started anew — open with one line on it:
    `Full lane — specs/007-newsletter-signup/, approved; implementing T003 next`.
 2. **Mind the model.** Implementing an approved plan is well-specified work — `sonnet` handles it.
-   If this session is on Opus and still carries the whole planning conversation, suggest the gate's
-   switch, in this session: compact, pick Sonnet, send this command again (`/adf:write-plan` step 12).
-   Never start another session for it. Keep Opus for a task that turns out genuinely hard.
+   On Opus, switch the way the gate does (`/adf:write-plan` step 12): set Sonnet yourself where the
+   client allows it; otherwise keep the model, say so in one line, and go on. Never stop for a switch
+   or a compaction, and never start another session for it. Keep Opus for a task that turns out
+   genuinely hard.
 3. **Run the tests the task touches** to know the baseline — a run as small as its question
    (`.claude/rules/testing.md` § Tiers and feature suites). Widen it — neighboring suites, a tier,
    the whole suite — when the task calls for it: shared code, configuration, a migration, or a
@@ -145,6 +158,8 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 | Agent says... | Why it's wrong |
 |---|---|
 | "The spec is approved in spirit — I'll start" | No `status: approved` and no `approvals:` line means no gate happened. Run `/adf:write-plan`'s gate first. |
+| "T003 is committed — I'll check in before T004" | The approval covered every task, through a ready pull request. A check-in with no decision in it is a stop the developer has to come back for; the commits and ticks already show the progress. |
+| "The tests pass — I'll report and let the developer run `/adf:open-pr`" | The run ends at a pull request ready for review. The local check and `/adf:open-pr` are part of it. |
 | "I'll write all the code, then the tests" | Then no test ever failed — and a test that never failed proves nothing. One red → green cycle per task. |
 | "The test failed with an import error — that counts as red" | Red means the assertion failed because the behavior is missing. Fix the scaffolding until it fails for the right reason. |
 | "The test passed first, but the typecheck fails until I make the change — that's my red" | A type error shows the code doesn't build, not that the behavior is missing. Keep the test as a pin: break the behavior on purpose and watch it fail. |
@@ -170,6 +185,7 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 ## Verification
 
 - [ ] `status: approved` and an `approvals:` line existed before the first line of code
+- [ ] The run went from the first task to a pull request ready for review, with no stop but for a decision
 - [ ] Every task went red (for the right reason) then green — a test-only task or a pin by breaking the behavior on purpose, never by a type error — and landed as its own commit (docs-first tasks share one)
 - [ ] Each task ran its own tests by name; each phase ran its feature suite once, at its end
 - [ ] Every task in `tasks.md` is ticked, or struck through as a follow-up with why, and `spec.md` reads `status: implemented`
@@ -182,6 +198,7 @@ adjustment — updating the doc is a normal part of this phase, not an exception
 
 ## Principles
 
+- The approval authorizes the whole run, to a pull request ready for review; stop only for a decision.
 - One task, one red → green cycle, one commit.
 - A test that never failed proves nothing.
 - The change surface is a contract; growth is recorded, and growth into risk is the developer's call.

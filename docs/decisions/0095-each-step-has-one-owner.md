@@ -1,6 +1,6 @@
 # 0095: Each step has one owner
 
-- **Status:** accepted
+- **Status:** accepted; refined by [0097](0097-the-agent-goes-on-after-the-gate.md) (the approval gate authorizes the run to a pull request ready for review, with no stop but for a decision)
 - **Date:** 2026-11-22
 - **Amends:** [0065](0065-always-loaded-text-says-each-rule-once.md) — a character budget backs it;
   [0079](0079-no-file-count-in-the-lanes.md) — the review and the lane rules follow it
