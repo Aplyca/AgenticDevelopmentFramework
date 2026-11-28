@@ -11,6 +11,36 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **After the approval gate, the agent goes on** ([decision 0097](docs/decisions/0097-the-agent-goes-on-after-the-gate.md)).
+  - **What:**
+    - **No stop after approval.** `/adf:write-plan` commits the spec folder and starts
+      `/adf:write-docs`, then `/adf:implement`, in the same turn. It no longer gives the developer
+      three steps (compact, pick Sonnet, send the next command) and waits for them: the approval is
+      the full lane's one stop.
+    - **The model switch never stops the work.** On Opus, the agent sets Sonnet itself in the
+      desktop app (`set_session_model` on `self`), as `/adf:triage` does. Where the app refuses, and
+      in a terminal or another tool, it keeps the current model, says so in one line, and goes on.
+      `/adf:implement` follows the same rule.
+    - **No manual compaction.** The project's 300k cap (`autoCompactWindow`) compacts the
+      conversation when it grows; the spec folder carries the task.
+    - **The cheaper run is offered at the gate.** The gate's message ends with an optional step,
+      taken before approving: `/compact` with what the next phases need, and pick Sonnet. A plain
+      approval takes the unattended path, at the cost of carrying the planning conversation until
+      the automatic compaction.
+    - `COST-MODEL.md` § Between phases, `/adf:handoff`, `/adf:dispatch`, the triage examples, the
+      README, and the newsletter-signup walkthrough say the same.
+  - **Where:** `plugins/adf/skills/{write-plan,implement,triage,handoff,dispatch}/SKILL.md`,
+    `plugins/adf/docs/COST-MODEL.md`, `skeleton/AGENTS.md`, `skeleton/.claude/rules/claude-code.md`,
+    `README.md`, `docs/examples/`, `docs/scenarios/change-request.md`, `docs/decisions/0062-…`,
+    `evals/static/check-skills.sh`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: the five skills above, as `/adf:upgrade` writes them;
+    packaged, they come with the plugin.
+  - **Merge:** `AGENTS.md` — § 3's approval-gate step ends "and go on", and § Working economically's
+    session bullet says to go on after the gate with no stop; `.claude/rules/claude-code.md` — the
+    Full row's Model cell and the § Cost model sentence on where to switch.
+
 ## v2.12.0 — 2026-11-22 — Each step has one owner, and the hooks stop only where the risk is
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

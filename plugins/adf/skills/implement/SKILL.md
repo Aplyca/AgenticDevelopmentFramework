@@ -36,9 +36,10 @@ plan is the contract for **where** code goes (the change surface); the tests are
    where the task stands — compacted after the gate, or started anew — open with one line on it:
    `Full lane — specs/007-newsletter-signup/, approved; implementing T003 next`.
 2. **Mind the model.** Implementing an approved plan is well-specified work — `sonnet` handles it.
-   If this session is on Opus and still carries the whole planning conversation, suggest the gate's
-   switch, in this session: compact, pick Sonnet, send this command again (`/adf:write-plan` step 12).
-   Never start another session for it. Keep Opus for a task that turns out genuinely hard.
+   On Opus, switch the way the gate does (`/adf:write-plan` step 12): set Sonnet yourself where the
+   client allows it; otherwise keep the model, say so in one line, and go on. Never stop for a switch
+   or a compaction, and never start another session for it. Keep Opus for a task that turns out
+   genuinely hard.
 3. **Run the tests the task touches** to know the baseline — a run as small as its question
    (`.claude/rules/testing.md` § Tiers and feature suites). Widen it — neighboring suites, a tier,
    the whole suite — when the task calls for it: shared code, configuration, a migration, or a

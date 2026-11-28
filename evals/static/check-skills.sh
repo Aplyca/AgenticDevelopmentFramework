@@ -868,9 +868,11 @@ check_practices() {
     file_contains "$SKILLS_DIR/wrap-up/modules.md" 'names the `time-tracking` module, ask whether to log' || missing+=("/wrap-up: asks to log the time before the close-up, only with the time-tracking module (0043, 0061)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'the follow-ups start before it' || missing+=("/wrap-up: starts the follow-ups before the worktree is removed (0061)")
     file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Never start another' || missing+=("/write-plan: the phases after the gate stay in this session (0062)")
-    file_contains "$SKILLS_DIR/write-plan/SKILL.md" '/compact Keep the lane, the approved spec folder' || missing+=("/write-plan: compact, then switch, after the gate (0062)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" "Don't wait for a command, a compaction, or a model" || missing+=("/write-plan: goes on after the approval, with no stop for a compaction or a model switch (0097)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" '/compact Keep the lane, the spec folder' || missing+=("/write-plan: the gate offers the compaction and the switch before approving (0097)")
+    ! file_contains "$SKILLS_DIR/implement/SKILL.md" 'send this command again' || missing+=("/implement: never stops for a model switch (0097)")
     python3 -c 'import json,sys; sys.exit(json.load(open(sys.argv[1])).get("autoCompactWindow") != 300000)' "$SETTINGS" || missing+=("settings.json: caps the conversation with autoCompactWindow 300000 (0062)")
-    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'Skip the compaction when it can.t pay back' || missing+=("/write-plan: skips the compaction when it can't pay back (0062)")
+    file_contains "$SKILLS_DIR/write-plan/SKILL.md" 'When the compaction can.t pay back' || missing+=("/write-plan: offers only the model switch when the compaction can't pay back (0062, 0097)")
     file_contains "$REPO_ROOT/plugins/adf/docs/COST-MODEL.md" '^\*\*A phase never moves to another session\*\*' || missing+=("COST-MODEL.md: a phase never moves to another session (0062)")
     file_contains "$SKILLS_DIR/triage/SKILL.md" 'refuses a session.s change to itself' || missing+=("/triage: names the switch where the desktop app refuses it (0062)")
     for file in "$REPO_ROOT"/plugins/adf/skills/*/SKILL.md "$REPO_ROOT"/plugins/adf/docs/*.md "$SKELETON/AGENTS.md" "$SKELETON/.claude/rules/claude-code.md" "$REPO_ROOT/README.md"; do

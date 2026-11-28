@@ -93,6 +93,13 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Assumptions and risks** — every one, plainly.
    - **Verification** — the test strategy in a few lines, a test layer the project lacks, and what will be checked manually.
    - **Docs** — what will be written before code.
+   - **What follows** — on approval you go straight on to the docs and the implementation. When the
+     session is on Opus and dozens of calls will follow, offer the optional cost step, taken before
+     approving: *"To run the rest cheaper, first `/compact Keep the lane, the spec folder
+     specs/<NNN>-<slug>/ awaiting approval at the gate, its decisions and open questions, and the
+     next steps: /adf:write-docs, then /adf:implement`, and pick Sonnet (`/model sonnet`, or the
+     model menu in the desktop app); then approve."* When the compaction can't pay back — a task or
+     two, or a planning conversation that's still short — name only the model.
    - End with: *"No implementation code until you approve. Reply with changes, or approve."*
 
 10. **Wait.** Fold every change the developer asks for into the files, and show the result again.
@@ -103,28 +110,22 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
     - commit the folder: `spec: approve <slug> scope and plan` (or `spec: approve <slug> CR N`). Don't push.
       A CR on an open pull request is committed on that same branch.
 
-12. **Hand off — in this session:** `/adf:write-docs` when Phase 1 has tasks — and `/adf:end-user-docs` for an end-user page, `/adf:stakeholder-update guide` for the spec's usage guide — then `/adf:implement`. They run on
-    **`sonnet`, from a compacted conversation**: an approved plan with named tests is a clear spec
-    with a way to check the result, the committed folder carries the detail, and the whole planning
-    conversation would be re-read on every later call. Give the developer three steps, in order:
-    1. **Compact, right away** — the sooner after approval, the more of the summary's read comes
-       from the cache: `/compact Keep the lane, the approved spec folder specs/<NNN>-<slug>/, the
-       gate's decisions and open questions, and the next step: /adf:write-docs, then /adf:implement`.
-    2. **Pick Sonnet:** `/model sonnet` in a terminal, the model menu in the desktop app, the picker
-       in another tool.
-    3. **Send the next command:** `/adf:write-docs specs/<NNN>-<slug>/`, or `/adf:implement …` when
-       Phase 1 has no tasks.
-
-    Compacting first means the switch re-reads only the summary. Name the steps rather than taking
-    them: no tool compacts a session from inside it, and the desktop app doesn't let a session change
-    its own model. A tool with no compaction starts the conversation over instead — the folder
-    carries the task. **Skip the compaction when it can't pay back** — a task or two left in
-    `tasks.md`, or a planning conversation that's still short: name only the model switch, made in
-    place. If the developer keeps the whole conversation, the model switches in place
-    (one uncached re-read) or stays — their call. **Never start another
-    session for these phases** — not a new one, not a child — unless the developer asks: two
-    sessions on one branch split the task, and the waiting one wakes, at its own model's price, each
-    time the other finishes a turn.
+12. **Go on — in this session, in this turn:** `/adf:write-docs specs/<NNN>-<slug>/` when Phase 1
+    has tasks — and `/adf:end-user-docs` for an end-user page, `/adf:stakeholder-update guide` for
+    the spec's usage guide — then `/adf:implement`. Don't wait for a command, a compaction, or a model
+    switch: the approval was the developer's one stop, and the committed folder carries the detail.
+    - **The model.** These phases fit `sonnet`: an approved plan with named tests is a clear spec
+      with a way to check the result. When the session is on Opus, dozens of calls follow, and the
+      developer didn't choose Opus for the whole task: in the desktop app, set Sonnet yourself
+      (`set_session_model` on `self`) and say so in a line. Where the app refuses, and in a terminal
+      or another tool, keep the current model, say so in one line, and go on — never stop for it. A
+      switch re-reads the conversation once, uncached, so skip it with a task or two left.
+    - **The conversation.** No manual compaction: the project's 300k cap compacts it when it grows,
+      and the folder, the ticks in `tasks.md`, and the commits carry the task through. A developer
+      who wanted the cheaper run took the gate's optional step before approving (step 9).
+    - **Never start another session for these phases** — not a new one, not a child — unless the
+      developer asks: two sessions on one branch split the task, and the waiting one wakes, at its
+      own model's price, each time the other finishes a turn.
 
 ## After approval
 
@@ -144,6 +145,7 @@ outside the table, is recorded in `plan.md` and the pull request, and work goes 
 | "I'll keep the assumptions in mind" | An assumption that isn't written down can't be checked at the gate — it becomes an invented requirement. |
 | "The developer approved the spec earlier, so the plan is approved too" | The gate approves scope **and** change surface together. Spec-level agreement isn't sign-off on the files. |
 | "This change request is small — I'll reuse the old plan" | Add the CR's own plan and tasks to the folder; the delta is what gets approved. |
+| "Approved — I'll stop so the developer can compact and switch the model" | The approval was the one stop. Switch the model yourself where the client allows it, otherwise keep it; the 300k cap compacts the conversation. Go on to the next phase. |
 
 ## Red flags (stop and reassess)
 
@@ -163,6 +165,7 @@ outside the table, is recorded in `plan.md` and the pull request, and work goes 
 - [ ] `@adf:spec-analyzer` (or `/adf:deep-spec-analysis`) ran for non-trivial work, and its confirmed gaps are fixed
 - [ ] The gate was presented — scope, change surface, assumptions — and the developer explicitly approved
 - [ ] `status: approved` and an `approvals:` line naming a role are set; the folder is committed with `spec:`, not pushed
+- [ ] The next phase started in the same turn — no stop for a compaction or a model switch
 - [ ] No personal name and no quoted tracker text in `plan.md` or `tasks.md`; a shared contract is named, with the consumer's re-check after each base sync
 
 ## Principles

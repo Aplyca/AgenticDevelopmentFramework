@@ -1,6 +1,6 @@
 # 0062: A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0097](0097-the-agent-goes-on-after-the-gate.md) (after the approval gate the agent goes on: the compaction and the model switch become an optional step before approving, and the agent switches the model itself where the client lets it)
 - **Date:** 2026-11-01
 - **Amends:** [0012](0012-choose-the-model-by-the-work.md) — the switch after the gate happens in the
   task's session, after a compaction, not in a fresh session;

@@ -106,7 +106,7 @@ Triage — Newsletter signup on article pages, round two (https://tracker.exampl
     Unchanged: placement, copy, validation, rate limit, failure behavior (AC1–AC3, AC5, AC6).
 - Lane: full — the request leaves things to decide: topics for an address already on the list,
   who maps each topic to its Mailchimp group (source: triggers)
-- Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
+- Model: opus for the spec and plan; sonnet after the gate, in this session
 - Environment: needed later, for the TDD loop — not for the spec or the plan
 - Open questions: 1) A reader already on the list picks topics — add them? 2) Who maps each topic
   to its Mailchimp group? 3) Topic order, and a maximum?

@@ -46,7 +46,7 @@ Lane definitions are in `AGENTS.md` § How work flows; in Claude Code:
 |---|---|---|
 | Fast | `/triage` (one line) → the test first, seen failing → edit → green → `/commit` → local check → `/open-pr` (runs `/review`) | `sonnet` |
 | Careful | Fast, plus the area's checklist; `@security-reviewer` for authorization, personal data, or payments | `sonnet`, high effort |
-| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → local check → `/open-pr` (runs `/review`) | `opus`, high effort, up to the approval gate; then `/compact` and `sonnet` in the same session |
+| Full | `/triage` → `/write-spec` → `/write-plan` → approval → `/write-docs` → `/implement` → local check → `/open-pr` (runs `/review`) | `opus`, high effort, up to the approval gate; then `sonnet` in the same session, with no stop |
 | Bug, cause unknown | `/debug`, then the lane the fix needs | `sonnet`; `opus` after two disproven hypotheses |
 | Refactor | `/refactor` (full when it sets a structure others must follow) | `sonnet` |
 | Answer | `/triage` → the answer | `sonnet`; `opus` for architecture-level questions |
@@ -56,8 +56,8 @@ Lane definitions are in `AGENTS.md` § How work flows; in Claude Code:
 A session costs roughly *calls × context* (`AGENTS.md` § Working economically). Choose the model by
 the work: `sonnet` when the task has a clear spec and a way to check the result, `opus` for judgment.
 Each model has its own prompt cache, so switch where it's cheap — at the start, right after triage
-(`/triage` fits the session or names the switch), or right after the gate's `/compact` (`/write-plan`
-gives the steps). Agents carry their own model; the `/deep-…` workflows pin theirs. The project
+(`/triage` fits the session or names the switch), or at the gate (`/write-plan` switches where the app
+allows it, and offers a `/compact` before approving). Agents carry their own model; the `/deep-…` workflows pin theirs. The project
 default is `"model": "sonnet"`, but the desktop app's picker and `/model` decide for a session. Keep
 this file, `AGENTS.md`, and the rules stable — an edit busts the cache. Details: `docs/COST-MODEL.md`.
 

@@ -73,7 +73,7 @@ projects.
 | [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) | A task's status follows the work on its own, every session is named after its task, and end-user docs are stakeholder guides | accepted; amended by 0063, 0070, 0073, 0076 |
 | [0060](0060-retire-the-local-environment-band.md) | The local-environment band is retired — Desktop's Browser lists the running app | accepted |
 | [0061](0061-wrap-up-starts-follow-ups-first-and-asks-about-time.md) | The wrap-up starts the follow-ups before the worktree goes, and asks about the time before the close-up | accepted; amended by 0082 |
-| [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted |
+| [0062](0062-one-session-per-task-compact-at-the-gate.md) | A task's phases stay in its session — after the approval gate, compact the conversation and switch to Sonnet there | accepted; amended by 0097 |
 | [0063](0063-reference-files-and-status-moves-in-the-calling-skill.md) | A skill's case-only steps load from reference files beside its `SKILL.md`, and the skill that reaches a moment moves the task's status itself | accepted; amended by 0073 |
 | [0064](0064-tracker-writes-through-the-projects-server.md) | Tracker writes go through the project's server as the developer, and a correction an edit would damage is the developer's | accepted; amended by 0073 |
 | [0065](0065-always-loaded-text-says-each-rule-once.md) | The always-loaded text says each rule once, and a phase's procedure stays in its skill | accepted; amended by 0095 |
@@ -107,6 +107,7 @@ projects.
 | [0094](0094-the-time-unit-is-one-hour.md) | The time unit is one hour, in every project: `docs/TIME-TRACKING.md` has no Unit setting, and every number `/track-time` shows or writes is a whole number of hours, rounded up | accepted |
 | [0095](0095-each-step-has-one-owner.md) | Each step has one owner: `/open-pr` runs `/review` once, after the local check; the lane moves for risk, and a diff past its stated files is triaged again; a fast- or careful-lane commit body carries its evidence; `/review` runs the careful checklist and `@security-reviewer`; skills state plans and go on; `/spec-workflow` routes; the always-loaded files have a character budget | accepted |
 | [0096](0096-hooks-stay-silent-on-what-they-cannot-read.md) | Hooks stay silent on what they can't read and stop only where the risk is: guard-git knows no branch for an unreadable folder and lets an unknown `git config` form run unless it names `core.hooksPath`; triage-first looks only at project files and real commands and accepts an answer's triage; careful-paths passes after a careful or full lane; check-env-declared checks the edit's names; `auth status` runs | accepted |
+| [0097](0097-the-agent-goes-on-after-the-gate.md) | After the approval gate, the agent goes on: no manual compaction or model switch; the agent switches to Sonnet where the client lets it and otherwise keeps its model; the gate's message offers the compaction and the switch as an optional step before approving | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).
