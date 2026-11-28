@@ -24,3 +24,13 @@ over, so the developer may skip it.
 - **On a skip,** go on.
 
 Don't ask when `/adf:track-time` already ran in this session after the task's last work.
+
+Before the close-up, check:
+
+- [ ] With the time-tracking module, the developer was asked about logging the time before the close-up, and `/adf:track-time` ran to its end on a yes
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "The developer said 'merged', so I'll skip the time question" | With the time-tracking module, the time is asked about before every close-up: once the worktree goes, so does what measures it. Their word answers the close-up, not the time. |

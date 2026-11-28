@@ -14,9 +14,10 @@ Each unchecked line under `## Follow-ups`, up to the next heading, is one:
   `github` or `gitlab` ([decision 0082](https://github.com/aplyca/AgenticDevelopmentFramework/blob/main/docs/decisions/0082-follow-ups-found-along-the-way-are-filed-as-issues.md));
   otherwise, a session.
 
-- **The record the merge left short** (step 3), offered only after a merge: a `docs:` branch that
-  ticks the tasks the developer says were done and sets `status: implemented`. A session. A task not
-  done is its own follow-up, for the work.
+- **The record the merge left short** (step 3), offered only after a merge. Ask whether each open
+  task was done: done, or only the status unset, is a fix to the record — a `docs:` branch that
+  ticks those tasks and sets `status: implemented`, a session; a task not done is its own
+  follow-up, for the work.
 
 For an answer, the follow-ups are the ones its answer listed.
 
@@ -57,3 +58,10 @@ the project's environment or tests and goes through its own review.
 - **In a terminal:** print each command, for the developer to run in a new session from the main
   checkout.
 - If the base branch wasn't updated, say so: the follow-up would start without the merge.
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "Every follow-up gets a session of its own" | With the `github` or `gitlab` module, a finding is filed as an issue, where the team decides when it's done; a session is for one the developer wants now. The commands an upgrade wrote still start as sessions. |
+| "The status is one line; I'll commit it on the merged branch" | The merged branch takes no more pushes, and the base branch is protected. The fix is a pull request of its own, and the miss was the task's pull request's: say so. |

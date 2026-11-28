@@ -1,6 +1,7 @@
 # 0097: After the approval gate, the agent runs to a pull request ready for review — the cost step moves into the gate
 
-- **Status:** accepted
+- **Status:** accepted; refined by [0098](0098-a-compaction-keeps-the-run-on-course.md) — the run
+  goes through an automatic compaction on course
 - **Date:** 2026-11-28
 - **Amends:** [0062](0062-one-session-per-task-compact-at-the-gate.md) — the developer no longer
   takes three steps after approval; the compaction and the model switch become an optional step

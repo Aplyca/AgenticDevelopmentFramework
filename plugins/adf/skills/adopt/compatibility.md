@@ -96,3 +96,6 @@ had one.
 
 The table goes in the pull request's body under `## Compatibility`, with each row's outcome, or
 `- none found`. At adoption, PDR-0001 also names each override kept and links its PDR.
+
+Before the report, check that the pass held: no line its table dropped is left in an instruction file,
+and each override kept is where the table put it.

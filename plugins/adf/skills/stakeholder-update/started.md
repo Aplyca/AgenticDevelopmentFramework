@@ -17,3 +17,9 @@ sentences.>
 
 Thanks!
 ```
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "I'll post 'we've started' so they know" | The status change says that. A started message earns its place with what we understood, a question, or a finding — and it's a draft. |

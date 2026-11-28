@@ -43,3 +43,5 @@ developer's review on the preview comes after it, and decides.
 |---|---|
 | "The criteria pass on the preview, so I've reviewed it" | Walking the criteria is the test. The review looks at what a person sees: the page at a phone's width and a desktop's, its copy, the console, basic accessibility. |
 | "It works locally; I'll mark it ready before the preview deploys" | When the project has previews, the preview is part of your test: the production build, on the platform, with its configuration. Ready waits for its walk and for CI. |
+| "I'll check it on the preview instead of starting the local stack" | Local first: the preview costs a deploy round-trip, is shared, and may reach real services. Check locally, then confirm on the preview. |
+| "I'll report the draft now and send the preview when it deploys" | Two reports split the developer's test in two. The deploy and CI wait in the background, so waiting costs them nothing: report once, with both URLs and the pull request's state. |

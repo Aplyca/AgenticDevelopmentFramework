@@ -1,6 +1,8 @@
 # 0063: A skill's case-only steps load from reference files, and the skill that reaches a moment moves the task's status itself
 
-- **Status:** accepted; amended by [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) — the delivered move waits until the change is live, and the session's own task needs no assignment check
+- **Status:** accepted; amended by [0073](0073-the-ticket-for-stakeholders-the-pull-request-for-the-developer.md) — the delivered move waits until the change is live, and the session's own task needs no assignment check; refined by
+  [0098](0098-a-compaction-keeps-the-run-on-course.md) — a case also moves so the `SKILL.md` stays
+  whole after a compaction
 - **Date:** 2026-11-01
 - **Amends:** [0059](0059-task-status-follows-the-work-and-stakeholder-guides.md) — the status moves
   stay where they are, but `/adf:triage`, `/adf:open-pr`, and `/adf:wrap-up` make them in a step of

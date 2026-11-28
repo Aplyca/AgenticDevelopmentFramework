@@ -83,6 +83,48 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
     approve each row, move it to another class, or answer its question. Nothing in the skeleton
     changes.
 
+- **After a compaction, the run goes on as the framework says** ([decision 0098](docs/decisions/0098-a-compaction-keeps-the-run-on-course.md)).
+  - **What:**
+    - **The session-context hook says where the run stands.** Claude Code runs it again after a
+      compaction (`"source": "compact"`). With the branch's spec folder, it now adds the next
+      unticked task in `tasks.md` — or, with every task ticked, that the reconcile, the full gate,
+      the local check, and `/adf:open-pr` follow — and, with `status: approved`, that the approval
+      authorizes the run to a pull request ready for review: re-read the running skill's
+      `SKILL.md`, continue, and stop only for a decision. It says nothing it can't read, and
+      nothing more for another source.
+    - **Every skill comes back whole.** Claude Code re-attaches a skill after a compaction whole
+      only within 20,000 characters, and cuts the rest. A new static check keeps every
+      `plugins/*/skills/*/SKILL.md` within 19,000 bytes. Four skills were over or near it, and move
+      cases only some runs reach into reference files beside them:
+      - `/adf:open-pr`: `body.md` (the description's template, for a repository with none) and
+        `tracker.md` (the tracker task's update); two preview rationalizations join `preview.md`.
+        Its Principles section, which repeated its opening, goes, and its verification list is
+        merged without dropping a check.
+      - `/adf:adopt`: `new-project.md`, `modules.md` (a project already adopted, and the modules'
+        install, settings, and checks), `ai-tools.md`, `committed.md`, and
+        `plugin-scope.md`.
+      - `/adf:wrap-up`: the main checkout's, the time-tracking module's, and the follow-ups' rows,
+        checks, and red flag join `main-checkout.md`, `modules.md`, and `follow-ups.md`. Its
+        Principles section goes too.
+      - `/adf:stakeholder-update`: one moment's rationalizations join `started.md`, `delivered.md`,
+        and `status.md`.
+    - **`/adf:implement` and `/adf:open-pr` re-read themselves** in a compacted conversation.
+    - `COST-MODEL.md`'s "What a compaction keeps" says what comes back, what doesn't, and what the
+      hook adds.
+  - **Where:** `plugins/adf/hooks/session-context.sh` and its README row,
+    `plugins/adf/skills/{open-pr,adopt,wrap-up,stakeholder-update,implement}/`,
+    `plugins/adf/docs/COST-MODEL.md`, `evals/static/{check-skills,test-hooks}.sh`,
+    `docs/decisions/{0063,0097,0098}-…`.
+
+  **Upgrade impact:**
+  - **Overwrite:** committed install: `.claude/hooks/session-context.sh`, and the `open-pr`,
+    `wrap-up`, `stakeholder-update`, and `implement` skills with their reference files, as
+    `/adf:upgrade` writes them;
+    packaged, they come with the plugin, and so does `/adf:adopt`.
+  - **Additive:** committed install: the new reference files `open-pr/body.md`,
+    `open-pr/tracker.md`.
+  - No skeleton file changes, and nothing to migrate.
+
 ## v2.12.0 — 2026-11-22 — Each step has one owner, and the hooks stop only where the risk is
 
 A minor release ([decision 0017](docs/decisions/0017-semantic-versioning.md)): nothing stops working

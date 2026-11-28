@@ -16,7 +16,7 @@ read the source doc (locations in step 1).
 
 - **Never commit to the default branch.** Work on a feature branch (suggest `docs/agentic-adoption`);
   the deliverable is a reviewable draft PR. The one exception is a new repository's first commit
-  (§ A new project).
+  (`new-project.md`).
 - **Docs and config only.** Adoption adds no dependencies, no runtime code, and no build changes. The
   hook and worktree scripts are dev tooling; if anything seems to need more, stop and ask.
 - **Facts need evidence.** Every placeholder you fill traces to a file you read (manifest, lockfile,
@@ -45,42 +45,12 @@ Record the release (the tag), its commit (`git -C <framework-root> rev-parse --s
 commit's date (`git -C <framework-root> log -1 --format=%ad --date=short`).
 
 **Already adopted?** If the first line of the target's `AGENTS.md` — or of `CLAUDE.md`, in a project
-adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer
-to install modules (steps 3–4 for the chosen modules only, then update the `modules:` list in the
-stamp) or point to `/adf:upgrade`. When the parallel-agents module is already installed, the main
-checkout takes no edits: started there, run `/adf:dispatch` with `chore/add-modules` as the branch,
-without asking first. It creates the task's worktree under `.claude/worktrees/` and moves this session
-there, where you go on.
+adopted before v2.0.0 — is a `Skeleton source:` stamp, don't re-adopt: offer to install modules, as
+`<this skill's base directory>/modules.md` § Already adopted says, or point to `/adf:upgrade`.
 
-### A new project
-
-No git repository, no commits, or nothing to inspect yet (no manifest, no source code): adopting
-before the first line of code puts the process and the guardrails in place first. Every other step
-applies, with these changes:
-
-- **No repository:** offer `git init -b <default branch>` — ask for the name; suggest `main`.
-- **No commits:** there is no default branch to branch from. With the developer's yes, make exactly
-  one commit on it, holding everything already there — check `git status` first, so no secret goes
-  in — with `git add -A && git commit -m "chore: initial commit"` (add `--allow-empty` when the folder
-  is empty). Then branch as usual; nothing else lands on the default branch.
-- **Step 2 asks instead of reads.** There are no facts to evidence yet. Ask for the planned ones in one
-  round, with your recommendations: language and framework, package manager, test runner, hosting,
-  branching model (Model A is the usual start), tracker, ways of working, sensitive areas. Mark each
-  answer in `AGENTS.md` as planned — `<!-- planned: not in the repository yet -->` — so no one mistakes
-  it for a verified fact. A command nobody has run yet stays a `TODO(team)`.
-- **The stack is a decision.** Record it as ADR-0001 in `docs/architecture/decisions/` from the
-  template, status `proposed`, with the alternatives the developer considered; the adoption's review
-  accepts it.
-- **Globs point at planned paths or stay empty** — `CAREFUL_GLOBS`, `APPEND_ONLY_GLOBS`,
-  `GENERATED_GLOBS`, the rules' `paths:` — and no nested `AGENTS.md` yet.
-- **Step 6:** commands that can't run yet are a GAP — "no code yet" — not a failure.
-- **Step 7 without a remote:** commit on the adoption branch, then put the full PR body in your reply —
-  not an offer to draft it — with the steps that follow: add the remote, push the branch, and open
-  the draft pull request with that body.
-- **After the adoption,** the scaffold — the framework's init, the first test — is the first task
-  through the lanes; usually full, since it sets the structure others follow. Once that code lands,
-  run `/init-project` to replace the planned entries with verified facts, and `/context-audit` to find
-  what's stale.
+**A new project** — no git repository, no commits, or nothing to inspect yet (no manifest, no source
+code): read `<this skill's base directory>/new-project.md`. Every step applies, with the changes it
+lists.
 
 ## Step 2 — Discover the repo (read-only, before copying anything)
 
@@ -106,9 +76,7 @@ Build a facts table (`fact → evidence file:line`):
 - **CI & enforcement** — what pipelines exist, what branch protection is known; if none, record that as a fact
 - **The project's own instructions** (decision 0099) — an existing `AGENTS.md`, `CLAUDE.md`,
   `GEMINI.md`, `.cursor/rules/`, or `.claude/rules/`: read `<this skill's base directory>/compatibility.md`
-  and run its pass. Its table goes beside the facts table, with its questions in the same round. A
-  line with a process of its own ("ask before each commit", "confirm every step") is dropped or
-  recorded as an override, never merged beside the framework's
+  and run its pass. Its table goes beside the facts table, with its questions in the same round.
 
 Present the table before going further. Wrong facts here poison every file downstream.
 
@@ -139,45 +107,24 @@ Present the table before going further. Wrong facts here poison every file downs
   keep the project's content, add the skeleton's missing sections. **An existing `AGENTS.md`, or a
   rule in `.cursor/rules/` or `.claude/rules/`, merges by the compatibility table** Step 2 showed and
   the developer approved: each line where the table put it.
-- **Committed: write the machinery** from the plugins, its source (decision 0028):
-  `python3 <framework-root>/scripts/build-committed.py <repo> --modules <the chosen modules, comma-separated>`
-  — the skills, agents, workflows, hook scripts, and reference docs, with the chosen modules' skills.
-  It never overwrites a file, and lists the ones it kept: merge each, or keep the project's under a
-  name of its own. Packaged: skip it.
-- **An existing `CLAUDE.md`** (decision 0024): Claude Code reads it *instead of* `AGENTS.md`. Sort it by
-  the compatibility table: its project facts into `AGENTS.md` and its Claude-specific
-  instructions into `.claude/rules/claude-code.md`, show the developer where each part went, and
-  delete it once they agree. A team that keeps one makes `@AGENTS.md` its first line.
+- **Committed:** write the machinery from the plugins, as
+  `<this skill's base directory>/committed.md` says. Packaged: skip it.
+- **An existing `CLAUDE.md` or `GEMINI.md`** (decisions 0024, 0025): sort each by the compatibility
+  table, as `<this skill's base directory>/ai-tools.md` says.
 - Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `.claude/` (Claude
   Code, with its layer in `.claude/rules/claude-code.md`), `.gemini/` (Gemini CLI, which it points at
   `AGENTS.md`), `.cursor/` (Cursor).
-  `AGENTS.md` always stays, and there's no `GEMINI.md`: Antigravity reads `AGENTS.md` natively
-  (decision 0025). For Antigravity, link its skills folder to Claude Code's — the framework
-  ships no symlinks: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills`.
-- **An existing `GEMINI.md`** (decision 0025): Antigravity loads it beside `AGENTS.md`. Sort it by
-  the compatibility table: what's shared into `AGENTS.md` and what only Antigravity needs into
-  `.agents/rules/antigravity.md` (with `trigger: always_on` frontmatter), show the developer where
-  each part went, and delete it once they agree.
+  `AGENTS.md` always stays. For Antigravity, link its skills folder as `ai-tools.md` says.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
   common case — delete `evals/`.
 - **Offer the modules** by `<framework-root>/modules/README.md` § Recommending a module: recommend
-  each one the facts support, with why it fits and what it costs; the developer chooses. Install each
-  chosen one as its § Installing a module says: `cp -Rn modules/<name>/files/. <repo>/`, then merge
-  by hand each of the module's files that already existed; `clickup` by `modules/clickup/install.sh`;
-  `docker`, `e2e`, and `unit` by their installers (`modules/docker/install.sh`,
-  `modules/e2e/install.sh`, `modules/unit/install.sh`), `docker`'s first. Their `set up` runs are
-  follow-ups (Step 7).
-  **Turn on the plugin that carries a module** in a packaged install when it isn't `adf` — its
-  `module.json` names it (§ Modules and plugins): `"<plugin>@aplyca": true` in `enabledPlugins` and
-  `Read(~/.claude/plugins/cache/aplyca/<plugin>/**)` in `permissions.allow`, once however many of its
-  modules the project has; and leave out the scripts it carries as commands — for `parallel-agents`,
-  every file in `ops/agent/` but `worktree.conf`, the project's settings. A committed install writes
-  the skills with `build-committed.py` above and leaves that plugin off.
+  each one the facts support, with why it fits and what it costs; the developer chooses. Install
+  each chosen one, and turn on the plugin that carries it, as
+  `<this skill's base directory>/modules.md` § Installing says.
 - **Offer `adf-connect`** (decision 0023) when the facts name a tracker other than ClickUp or GitHub or
   GitLab issues (Jira, Linear), or connected services: turn on `"adf-connect@aplyca": true` in
   `enabledPlugins`, in either install. Connecting each service is a follow-up for the pull request:
-  `/adf-connect:connect <service>` in a new session after the merge, since it writes configuration the
-  team reviews on its own.
+  `/adf-connect:connect <service>` in a new session after the merge.
 - Make sure `.gitignore` covers `.env` files, `.claude/settings.local.json`, `CLAUDE.local.md`, and
   `.claude/worktrees/`.
 
@@ -200,8 +147,7 @@ Present the table before going further. Wrong facts here poison every file downs
 - **`.claude/hooks/config.sh`** — `APPROVE_STATUS_MOVE` (the tracker tool that moves a task's status, when the tracker has an MCP server), `PROTECTED_BRANCHES` (every permanent branch), `APPEND_ONLY_GLOBS`
   (migrations), `GENERATED_GLOBS` (add generated types/clients), `CAREFUL_GLOBS` (the sensitive
   areas, as path globs), `ENV_TEMPLATE` if not auto-detected, `LOCAL_URL` (the URL the agent
-  walks for the local check — from the facts' dev server and port; `${APP_PORT}` in it with the
-  parallel-agents module, or leave it empty there and let `READY_URL` serve).
+  walks for the local check — from the facts' dev server and port).
 - **`.claude/settings.json`** — extend `permissions.allow` with the repo's routine read-only commands;
   keep the `ask` rules for outward actions, the `glab` ones beside the `gh` ones on either host.
   Packaged: no `hooks` block, since the plugin wires them, and
@@ -213,33 +159,11 @@ Present the table before going further. Wrong facts here poison every file downs
   and an honest "what's enforced" section.
 - **`docs/TRACKER-INTEGRATION.md`** — the tracker, `.mcp.json` (if it has an MCP server), and a
   read-only `mcp__<server>__…` allowlist from the server's real tool names. With the `clickup`
-  module, fill the values its `MODULE.md` § Customize lists (task links, statuses via
-  `clickup_get_task` with `expand_statuses: true`, where PR links go). On GitHub or GitLab issues,
-  there's no server: name the labels for in progress and in review in *Status at each moment*, and
-  keep § Issues as the tracker. Fill *Live when* from the answer in Step 2, and leave *Updates post*
-  at `on their own` unless the team wants every update approved first. Delete the page if there is
-  no tracker.
-- **Modules** — `ops/agent/worktree.conf`; the PR template's quality and constitution checklists;
-  `branch-policy.yml` (`GUARDED_BASE`, `ALLOWED_HEADS` or `FORBIDDEN_HEADS`) — with `gitlab`, the
-  merge request template, `issue_templates/Default.md`'s tracker link, and the `ADF_` variables in
-  `.gitlab-ci.yml`; `FAST_CHECKS` in
-  `.githooks/pre-push`; the `AGENTS.md` "Parallel sessions" line per the module's `MODULE.md`, and its
-  Quick reference lines — packaged, the commands' names (`adf-worktree-new`, `adf-worktree-ls`,
-  `adf-worktree-rm`), as `DEV-SETUP.md` has the skills' full names. For
-  `docker`, the pull request's first follow-up is `/dev-env set up` (packaged:
-  `/adf-dev:dev-env set up`) in a new session, once the stamp names the module — it writes the
-  stack to the local environment specification it carries (its templates are an example of it), or
-  audits the existing one against it and proposes the move, and fills `DEV-SETUP.md`,
-  the Quick reference's start, stop, and one-file lines, `LOCAL_URL`, and `deployment.md`'s
-  `paths:` from what it verifies. For `e2e`, the next follow-up is `/e2e set up` (packaged:
-  `/adf-dev:e2e set up`), after `/dev-env set up` when the project has `docker`: the developer picks
-  the critical flows, and it writes the suite and their smoke tests. For `unit`, the follow-up is
-  `/unit set up` (packaged: `/adf-dev:unit set up`): the developer picks the feature suites, and it
-  writes the configuration, the tier scripts, and `docs/TEST-SUITES.md`. For `time-tracking`, fill
-  `docs/TIME-TRACKING.md` — the tracker's time-entry tools, the labels — from the tracker's
-  real tools, or leave a `TODO(team)` for each. For `end-user-docs`, fill `docs/END-USER-DOCS.md` —
-  the doc tool, the end-user doc, the drafts location, its page tools, the end users and their
-  language — from what the team says and the tool's real tools, or leave a `TODO(team)` for each.
+  module, `modules.md` § Filling in has its values. On GitHub or GitLab issues, there's no server:
+  name the labels for in progress and in review in *Status at each moment*, and keep § Issues as the
+  tracker. Fill *Live when* from the answer in Step 2, and leave *Updates post* at `on their own`
+  unless the team wants every update approved first. Delete the page if there is no tracker.
+- **Modules** — each chosen module's settings, as `modules.md` § Filling in says.
 - **`.claudeignore`** — prune entries that can't apply (keep its header); add generated/secret paths.
 - Every unknown: `<!-- TODO(team): <question> -->`. Fill each doc's `owner · last_updated · scope`.
 
@@ -258,18 +182,14 @@ Present the table before going further. Wrong facts here poison every file downs
   `docs/process/README.md`.
 - **The plugin setting.** The documented install (`--scope project`, at the newest release) already wrote
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>"}}}`
-  and `"enabledPlugins": {"adf@aplyca": true}` into `.claude/settings.json`: keep both when
-  merging the skeleton's settings, so they're committed with the adoption and teammates get the
-  plugin and `/adf:upgrade`. If they're missing — a user- or local-scope install — offer to add them
-  (the marketplace key must be `aplyca`, the name `enabledPlugins` refers to), and for a user-scope
-  install, give the commands that remove it (the plugin's README § Install). **Pin the release** the
-  skeleton came from in the marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed
-  project then gets the plugin's copies at the same release as its own files, and a packaged one gets
-  its machinery from that release. Add
-  `"autoUpdate": true` to the same entry. A pin that later moves reaches each machine through the
-  commands `/adf:upgrade` gives (decision 0090). Writing the pin doesn't move this machine's copy of
-  the marketplace: Claude Code keeps it at the ref it was first added with, which Step 6 checks
-  (decision 0091).
+  and `"enabledPlugins": {"adf@aplyca": true}` into `.claude/settings.json`: keep both when merging
+  the skeleton's settings, so they're committed with the adoption and teammates get the plugin and
+  `/adf:upgrade`. If they're missing — a user- or local-scope install — read
+  `<this skill's base directory>/plugin-scope.md`. **Pin the release** the skeleton came from in the
+  marketplace entry, `"ref": "v<X.Y.Z>"`, in either install: a committed project then gets the
+  plugin's copies at the same release as its own files, and a packaged one gets its machinery from
+  that release. Add `"autoUpdate": true` to the same entry. Writing the pin doesn't move this
+  machine's copy of the marketplace, which Step 6 checks (`plugin-scope.md`).
 
 ## Step 6 — Verify
 
@@ -277,15 +197,14 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 
 - [ ] `.claude/settings.json` is valid JSON (`python3 -m json.tool .claude/settings.json`) and every hook entry uses the nested `hooks` array
 - [ ] `.claude/settings.json` turns the plugin on for the project (`enabledPlugins` and the `aplyca` marketplace) — unless the team chose the local-only fallback
-- [ ] This machine's copy of the marketplace is at the pin: `aplyca`'s `ref` in `claude plugin marketplace list --json` equals the settings' `"ref"`. A GAP when it differs or is missing (added without a release, it follows the default branch): after the merge, from the project's folder, `claude plugin marketplace add <source>#v<X.Y.Z> --scope project`, then `claude plugin uninstall` and `claude plugin install` (`--scope project`) for each plugin the settings turn on, then `git restore .claude/settings.json`. `claude plugin update` isn't enough: at the release's version it keeps the files it installed from the default branch (decision 0091)
+- [ ] This machine's copy of the marketplace is at the pin: `aplyca`'s `ref` in `claude plugin marketplace list --json` equals the settings' `"ref"`. A GAP when it differs or is missing, fixed as `plugin-scope.md` says: `claude plugin update` isn't enough (decision 0091)
 - [ ] Packaged: in a new session, `/adf:triage` is offered; run the hook samples below against the plugin's scripts with both variables set — `CLAUDE_PROJECT_DIR="$PWD" CLAUDE_PLUGIN_ROOT=<marketplace folder>/plugins/adf <marketplace folder>/plugins/adf/hooks/guard-git.sh`, the marketplace folder being `aplyca`'s `installLocation` in `claude plugin marketplace list --json` (`docs/SETUP.md` § Packaged install)
 - [ ] Packaged: none of the reference docs is in `docs/`, `link-reference-docs.py` run again rewrites nothing, and `permissions.allow` has the plugin's read rule
-- [ ] Packaged, with a module whose skills another plugin carries (`adf-dev`): that plugin is turned on with its read rule, the module's skills aren't committed, and `/<plugin>:<skill>` is offered in a new session
-- [ ] Each installed module passes its own `MODULE.md` § Verify (`<framework-root>/modules/<name>/MODULE.md`)
+- [ ] Each installed module passes the checks in `modules.md` § Checking them
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
-- [ ] The compatibility pass held: no line its table dropped is left in an instruction file, and each override kept is where the table put it
+- [ ] The compatibility pass held, by `compatibility.md`'s check
 - [ ] Skill frontmatter uses hyphenated keys only (no `user_invocable` and the like)
 - [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones) — in a new project, a GAP until the first code lands
 - [ ] Readiness checklist (Agentic Development Guide §9): `README.md` + `AGENTS.md` current; constitution; `specs/` scaffold; `docs/` with architecture and ADRs; skills/MCP versioned; nested `AGENTS.md` where needed (or explicitly not needed); boundaries section; CI gates before merge (GAP if none — don't invent one); written "no merge without human review"
@@ -299,6 +218,5 @@ GAPs go in the PR description; they're findings, not failures to hide.
    compatibility table under `## Compatibility` (or `- none found`), open TODOs as a checklist,
    verification results — and a `## Follow-ups` section, the one `/adf:wrap-up` reads
    after the merge: one `- [ ] \`<command>\` — <why> (adoption)` line for each follow-up Steps 3–4
-   named (`/adf-dev:dev-env set up`, `/adf-dev:e2e set up`, `/adf-dev:unit set up`,
-   `/adf-connect:connect <service>` — the committed names in a committed install), or `- none`.
+   named (the committed names in a committed install), or `- none`.
 3. Push and open the PR **as a draft, only after the user approves** — the standing go-ahead for drafts (`AGENTS.md` § Delivery rules) covers task work, and this pull request installs the rules that grant it.
