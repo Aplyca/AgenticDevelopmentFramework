@@ -53,8 +53,9 @@ give a reason for is process the framework owns.
 **Hard cases:**
 
 - "Ask before each commit", "confirm every step", "wait for my OK before each task": process. The
-  plan's approval is the gate, and commits, the branch's push, and its draft are the standing
-  go-ahead (`AGENTS.md` § Delivery rules).
+  approval gate authorizes the run to a pull request ready for review, stopping only for a decision
+  (`AGENTS.md` § How work flows, decision 0097), and commits, the branch's push, and its draft are
+  the standing go-ahead (§ Delivery rules).
 - "Never push to main": the framework already says it. Drop it as a duplicate.
 - "Run `pnpm test` before committing": the command is a fact for § Quick reference; when it runs is
   process the lanes own.

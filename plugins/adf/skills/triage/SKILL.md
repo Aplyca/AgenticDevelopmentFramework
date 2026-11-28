@@ -78,7 +78,7 @@ not a research project.
    - Deliverable: change — the signup form must accept a second email field
    - Kind: change request on specs/007-newsletter-signup/ (delivered in <PR link>; this changes AC3)
    - Lane: full — the request leaves open who receives the confirmation (source: triggers)
-   - Model: opus for the spec and plan; after the gate, /compact and sonnet in this session
+   - Model: opus for the spec and plan; sonnet after the gate, in this session
    - Branch: feat/newsletter-signup-second-email
    - Environment: needed later, for the TDD loop — not for planning
    - Open questions: 1) Is the second email optional? 2) Does it receive the confirmation email?
@@ -93,8 +93,8 @@ not a research project.
    fix/signup-company-optional`). Without the module, leave it out.
 
    When the session runs on the other model, say so in that line: `model: sonnet — this session is
-   on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; after
-   the gate, /compact and back to sonnet` (on Sonnet, full lane).
+   on Opus; /model sonnet` (fast lane), or `Model: opus for the spec and plan — /model opus; sonnet
+   after the gate` (on Sonnet, full lane).
 
 5. **Name the session after the task — always,** once the triage is on the page, for every task in
    every lane, an answer included: it's the first thing you do after the triage text, before the

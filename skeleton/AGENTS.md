@@ -51,11 +51,11 @@ Every lane gets the tests, the hooks, CI, your local check and `/review` before 
 
 1. **Spec** — `specs/NNN-<slug>/spec.md` from `specs/_templates/`, its required sections filled.
 2. **Plan and tasks** — `plan.md`, with its **change surface**, and `tasks.md`: one task per commit, each naming its test.
-3. **Approval gate — stop.** Show the developer the scope, the files and layers the change touches, and every assumption. Write no implementation code until they sign off and `spec.md` reads `status: approved`. Then commit the folder (`spec:`).
+3. **Approval gate — stop.** Show the developer the scope, the files and layers the change touches, and every assumption. Write no implementation code until they sign off and `spec.md` reads `status: approved`. Then commit the folder (`spec:`): the approval authorizes steps 4–7, run with no stop but for a decision.
 4. **Docs first** — write the pre-implementable docs the plan lists and commit them (`docs:`). Skip when there are none.
 5. **Implement one task at a time** — write the test, run it and **watch it fail**, write the code, run it to **green**, tick the task, and commit them together. When reality departs from the plan, `/implement` says what to do.
 6. **Reconcile and verify** — committed docs in line with what was built, the full gate's evidence under *Gate results* in `tasks.md`.
-7. **Local check, then deliver** — walk the changed flow on the local environment, then open the **draft** pull request (`/open-pr`, which runs `/review` first) without waiting to be asked, and mark it ready when § Delivery rules says.
+7. **Local check, then deliver** — walk the changed flow on the local environment, then open the **draft** pull request (`/open-pr`, which runs `/review` first), and mark it ready when § Delivery rules says.
 
 ### 4. Change request on delivered work
 
@@ -109,7 +109,7 @@ tracker task (WHAT — the requester's channel) → specs/NNN-<slug>/ (record of
 
 Every call re-reads the whole conversation, so cost and time grow with how long a session runs and how much it has printed.
 
-- **One task per session, one session per task** — `/clear` before the next task, and never start another session for a phase of this one unless the developer asks. Between phases, continue while the next phase needs this conversation; otherwise clear or compact it — after the approval gate, compact it (`/write-plan` gives the steps).
+- **One task per session, one session per task** — `/clear` before the next task, and never start another session for a phase of this one unless the developer asks. Between phases, continue while the next phase needs this conversation; otherwise clear or compact it — after the approval gate, go on (§ 3).
 - **Keep output small** — quiet test reporters, `| tail -n 40`, read the lines you need; whatever a command prints stays in context.
 - **Targeted tests while iterating; the full gate once**, before delivery.
 - **Ask questions in rounds.** A round holds every question that doesn't depend on another open answer, numbered, each with your recommended answer and why — so the developer can reply "as recommended" or correct one. Look facts up yourself (code, docs, the tracker) instead of asking. Ask about *what* is wanted; state minor implementation choices as assumptions in the pull request instead of waiting.
