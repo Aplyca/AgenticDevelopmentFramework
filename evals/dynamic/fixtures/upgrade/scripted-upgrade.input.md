@@ -13,7 +13,8 @@ hunk count, and the follow-ups. It pushes nothing.
 A project adopted at v2.3.0 on the packaged install with the `docker` module: the skeleton, the
 `adf` plugin turned on and pinned to `v2.3.0`, the stamp, a Makefile whose `wipe-db` task deletes
 data, `Bash(make *)` allowed beside two rules it covers, and the team's lines in `AGENTS.md` and
-`.claude/rules/deployment.md` — all committed on `main`. The plugin is loaded from this checkout for
+`.claude/rules/deployment.md` — all committed on `main`. One of the team's lines, "Ask me before every
+commit", is process the framework owns, which the compatibility pass drops (decision 0099). The plugin is loaded from this checkout for
 the session only (`--plugin-dir`), and `ADF_FRAMEWORK` names the checkout, so `adf-upgrade` needs no
 network. There is no remote.
 
@@ -27,8 +28,8 @@ network. There is no remote.
 
 ```
 No new modules; the benefit is the fixes since v2.3.0. Go ahead with the run. Approve the conflict
-resolutions you proposed, if any, and the permission changes, including an ask rule for any project
-task that deletes data. Commit on the branch and show me the pull request body. Don't push.
+resolutions you proposed, if any, the compatibility table's drops of process the framework owns, and
+the permission changes, including an ask rule for any project task that deletes data. Commit on the branch and show me the pull request body. Don't push.
 ```
 
 ## What to do with this fixture

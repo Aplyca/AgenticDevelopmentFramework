@@ -29,7 +29,7 @@ const FILE_SCHEMA = {
         type: 'object',
         required: ['category', 'line', 'claim', 'evidence', 'fix'],
         properties: {
-          category: { type: 'string', enum: ['FALSE CLAIM', 'STALE', 'UNVERIFIED', 'HYGIENE'] },
+          category: { type: 'string', enum: ['PROCESS', 'FALSE CLAIM', 'STALE', 'UNVERIFIED', 'HYGIENE'] },
           line: { type: 'integer' },
           claim: { type: 'string' },
           evidence: { type: 'string' },
@@ -119,6 +119,7 @@ const checked = await pipeline(files, (file) =>
 - What it says hooks, CI, and git hooks do matches the scripts and workflow files.
 - Enforcement claims ("required", "protected", "blocked"): check what you can read-only; report the rest as UNVERIFIED, never as true.
 - Versions and environment variables match the version files, manifests, and env template.
+- PROCESS (decision 0099): a project line that asks for a stop, an approval, or a flow the framework's process doesn't have, or contradicts it ("ask before each commit", "confirm every step"). The framework's process is AGENTS.md § How work flows and § Delivery rules, the lanes, and the skills. Not a finding when a PDR records it as a deliberate override or the framework honors it (the § Delivery rules CUSTOMIZE note for a person marking pull requests ready). The fix drops the line or records it as a PDR.
 - Hygiene: owner/last_updated/scope metadata present and not older than the file's last meaningful change (git log -1 --format=%cs -- ${file}); leftover template placeholders; generic advice; over ~200 lines for always-loaded files; instructions the agent follows by default anyway; copies of what one command or file already shows (script lists, trees, versions); material only some tasks need in an always-loaded file; a "don't" with no statement of what to do instead.
 Also extract every POLICY statement it makes (base branch, protected branches, merge method, release process, review rule, pull request draft/ready state, commit convention, branch naming, when a spec is required, the approval gate, outward actions), with line numbers.`,
     { label: `check:${file}`, phase: 'Check', schema: FILE_SCHEMA, model: 'sonnet' },
@@ -153,7 +154,7 @@ const findings = [
   ...results.flatMap((result) => result.findings.map((finding) => ({ file: result.file, ...finding }))),
   ...(specRecords ? specRecords.findings.map((finding) => ({ category: 'HYGIENE', ...finding })) : []),
 ]
-const order = { 'FALSE CLAIM': 0, STALE: 1, UNVERIFIED: 2, HYGIENE: 3 }
+const order = { PROCESS: 0, 'FALSE CLAIM': 1, STALE: 2, UNVERIFIED: 3, HYGIENE: 4 }
 findings.sort((a, b) => order[a.category] - order[b.category] || a.file.localeCompare(b.file))
 const contradictions = crossCheck ? crossCheck.contradictions : []
 

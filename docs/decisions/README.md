@@ -35,8 +35,8 @@ projects.
 | [0021](0021-sibling-worktree-and-chip.md) | `/dispatch` hands every task to a new session that creates its worktree beside the main checkout and moves into it (parallel-agents module) | accepted; amended 2026-10-07, by 0035; amended by 0040, 0042, 0083 |
 | [0022](0022-local-check-before-the-pull-request.md) | The developer approves a change on the local environment, and the approval opens its draft pull request | accepted; amended by 0033, 0039, 0045 |
 | [0023](0023-plugins-by-concern.md) | One plugin per concern — the process, development, connections — and modules as each project's switches | accepted; amended by 0027, 0028; refined by 0057 |
-| [0024](0024-agents-md-only.md) | No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule | accepted |
-| [0025](0025-no-gemini-md.md) | No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it | accepted |
+| [0024](0024-agents-md-only.md) | No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule | accepted; amended by 0099 |
+| [0025](0025-no-gemini-md.md) | No `GEMINI.md` — Antigravity reads `AGENTS.md`, and Gemini CLI is pointed at it | accepted; amended by 0099 |
 | [0026](0026-display-only-mods.md) | The framework's mods are display-only — the first shows the local environment's URL | superseded by 0060 |
 | [0027](0027-worktree-scripts-as-plugin-commands.md) | The worktree scripts are the plugin's commands — `adf-worktree-new`, `-ls`, `-rm` (parallel-agents module) | accepted; amended by 0032, 0046 |
 | [0028](0028-plugins-are-the-source.md) | The plugins are the machinery's source, and a committed install is written from them | accepted; amended by 0029, 0046 |
@@ -108,6 +108,7 @@ projects.
 | [0095](0095-each-step-has-one-owner.md) | Each step has one owner: `/open-pr` runs `/review` once, after the local check; the lane moves for risk, and a diff past its stated files is triaged again; a fast- or careful-lane commit body carries its evidence; `/review` runs the careful checklist and `@security-reviewer`; skills state plans and go on; `/spec-workflow` routes; the always-loaded files have a character budget | accepted; refined by 0097 |
 | [0096](0096-hooks-stay-silent-on-what-they-cannot-read.md) | Hooks stay silent on what they can't read and stop only where the risk is: guard-git knows no branch for an unreadable folder and lets an unknown `git config` form run unless it names `core.hooksPath`; triage-first looks only at project files and real commands and accepts an answer's triage; careful-paths passes after a careful or full lane; check-env-declared checks the edit's names; `auth status` runs | accepted |
 | [0097](0097-the-agent-goes-on-after-the-gate.md) | The approval authorizes the run to a pull request ready for review, with no check-ins and no stop but for a decision; no manual compaction or model switch after it; the agent switches to Sonnet where the client lets it and otherwise keeps its model; the gate's message offers the compaction and the switch as an optional step before approving | accepted |
+| [0099](0099-a-compatibility-pass-for-legacy-instructions.md) | A compatibility pass for the project's own instructions: at adoption and on every upgrade, each project line of `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and the rules is sorted into a project fact (moved to its section), process the framework owns (dropped), a deliberate override (kept where the framework honors it, or a PDR), or can't tell (asked once), in a table the developer approves first; `/adf:context-audit` reports a PROCESS finding | accepted |
 
 Changes that follow from these records are listed, with their upgrade impact, in
 [`CHANGELOG.md`](../../CHANGELOG.md).

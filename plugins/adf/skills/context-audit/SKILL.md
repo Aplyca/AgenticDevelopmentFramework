@@ -64,14 +64,22 @@ agent tool, not only Claude Code.
    root for its folder) and what an agent following that precedence would wrongly do.
 8. **Decision records vs instructions** — accepted ADRs and PDRs are reflected in the instruction
    files; superseded ones are not still described as current.
+9. **Process the framework owns** (decision 0099) — a project line that asks for a stop, an
+   approval, or a flow the framework's process doesn't have, or that contradicts it: "ask before each
+   commit", "confirm every step", "open pull requests ready for review". The framework's process is
+   `AGENTS.md` § How work flows and § Delivery rules, the lanes, and the skills. An agent follows the
+   stricter or more specific line, or stalls between the two. Report it as PROCESS, unless a PDR
+   records it as a deliberate override or the framework honors it (the § Delivery rules CUSTOMIZE note
+   for a person marking pull requests ready). The fix drops the line or records it as a PDR, which
+   `/adf:upgrade`'s compatibility pass does.
 
 ### Phase 4: Hygiene
 
-9. **Freshness** — each context file has its `owner · last_updated · scope` header, and
-   `last_updated` isn't older than the file's last meaningful change (`git log -1 --format=%cs -- <file>`).
-10. **Coverage** — modules with their own conventions but no nested `AGENTS.md`; reference pages
+10. **Freshness** — each context file has its `owner · last_updated · scope` header, and
+    `last_updated` isn't older than the file's last meaningful change (`git log -1 --format=%cs -- <file>`).
+11. **Coverage** — modules with their own conventions but no nested `AGENTS.md`; reference pages
     whose linked code has moved.
-11. **Bloat** — always-loaded files over ~200 lines; the same rule stated in several files (each copy
+12. **Bloat** — always-loaded files over ~200 lines; the same rule stated in several files (each copy
     drifts separately); generic advice ("follow best practices") that guides nothing; leftover
     template placeholders (`[...]`, `TODO(team)`). Also:
     - **No-ops** — an instruction the agent already follows by default. The test is whether
@@ -91,12 +99,14 @@ agent tool, not only Claude Code.
 
 ### Phase 5: Report
 
-12. Group findings by severity, each with `file:line`, the evidence, and a recommended fix:
+13. Group findings by severity, each with `file:line`, the evidence, and a recommended fix:
 
     ```
     CONTRADICTION  docs/CONSTITUTION.md:14 vs AGENTS.md:62 — merge target: constitution says
                    feature PRs target main, AGENTS.md says staging. Constitution wins, so an agent
                    would open feature PRs into main. Fix: amend the constitution (PDR).
+    PROCESS        AGENTS.md:24 — "ask me before every commit"; § Delivery rules makes commits the
+                   standing go-ahead, so an agent stops at each one. Fix: drop the line, or a PDR.
     FALSE CLAIM    AGENTS.md:58 — "pre-push runs typecheck"; the hook runs lint only.
     STALE          CONTRIBUTING.md:40 — `npm run e2e` no longer exists (now `npm run test:e2e`).
     UNVERIFIED     CONTRIBUTING.md:88 — "approvals are required"; host rulesets not readable here.
@@ -104,10 +114,10 @@ agent tool, not only Claude Code.
     HYGIENE        specs/007-newsletter-signup/spec.md:9 — approvals line names a person; use the role
                    ("2026-06-09 · tech lead · initial scope").
 
-    Summary: 1 contradiction, 1 false claim, 1 stale, 1 unverified, 2 hygiene.
+    Summary: 1 contradiction, 1 process, 1 false claim, 1 stale, 1 unverified, 2 hygiene.
     ```
 
-13. **Offer the fix** as one `docs:` pull request — and a PDR when the fix changes a rule rather than
+14. **Offer the fix** as one `docs:` pull request — and a PDR when the fix changes a rule rather than
     restating it. Don't start until the developer says so.
 
 For a parallel sweep across many files, the user can run the `/adf:deep-context-audit` workflow.
@@ -134,6 +144,7 @@ For a parallel sweep across many files, the user can run the `/adf:deep-context-
 - [ ] Spec folders were swept for personal names and quoted tracker text
 - [ ] Commands, paths, behavior claims, enforcement claims, and versions were checked against the repository
 - [ ] Cross-file contradictions name the winning file and the wrong action it would cause
+- [ ] Each project line with a stop, an approval, or a flow the framework's process doesn't have is a PROCESS finding, unless a PDR or the framework honors it
 - [ ] Claims that couldn't be checked are listed as UNVERIFIED
 - [ ] No file was modified
 - [ ] The report ends with counts per severity and a recommended next step

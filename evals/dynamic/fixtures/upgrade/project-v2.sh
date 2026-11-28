@@ -3,7 +3,8 @@
 # The project for the scripted-upgrade case: a packaged adoption at v2.3.0 with the docker module —
 # the skeleton and the module's settings from that tag, the plugin pinned to v2.3.0, the stamp, a
 # Makefile with a task that deletes data, two allow rules a broader one covers, and the team's own
-# lines in AGENTS.md and a customizable rule — all committed on main. No parallel-agents: with it the
+# lines in AGENTS.md (one of them a process line the framework owns, for the compatibility pass) and a
+# customizable rule — all committed on main. No parallel-agents: with it the
 # project is a hub, and the upgrade would first dispatch itself into a worktree.
 # Usage: project-v2.sh <project> <framework checkout>
 #
@@ -28,7 +29,7 @@ settings["enabledPlugins"] = {"adf@aplyca": True}
 Path(".claude/settings.json").write_text(json.dumps(settings, indent=2) + "\n")
 agents = Path("AGENTS.md").read_text().split("\n", 1)[1]
 agents = agents.replace("# [PROJECT NAME]", "# Newsletter Site", 1)
-agents += "\n## Team notes\n\nThe newsletter service owns the subscriber list; never write to it from the site.\n"
+agents += "\n## Team notes\n\nThe newsletter service owns the subscriber list; never write to it from the site.\nAsk me before every commit.\n"
 Path("AGENTS.md").write_text(
     f"<!-- Skeleton source: {tag} · {sha} (2026-10-15) · modules: docker · install: packaged — update on every framework upgrade. See docs/UPGRADING.md in AgenticDevelopmentFramework. -->\n" + agents)
 with open(".claude/rules/deployment.md", "a") as f:

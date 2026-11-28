@@ -1614,6 +1614,46 @@ check_install_at_release() {
     fi
 }
 
+check_compatibility_pass() {
+    # A project's own instructions written before the adoption keep a process of their own ("ask
+    # before each commit"), and agents follow it or stall. One pass, beside /adf:adopt, sorts each
+    # project line into four classes and shows its table before writing; /adf:adopt runs it where it
+    # merges an existing AGENTS.md, CLAUDE.md, or GEMINI.md, /adf:upgrade on every upgrade, and
+    # /adf:context-audit reports what it would catch (decision 0099).
+    local missing=() pass_file="$REPO_ROOT/plugins/adf/skills/adopt/compatibility.md" class
+    local adopt="$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" upgrade="$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md"
+    if [ ! -f "$pass_file" ]; then
+        missing+=("plugins/adf/skills/adopt/compatibility.md is missing")
+    else
+        for class in '**Project fact**' '**Process the framework owns**' '**Deliberate override**' "**Can't tell**"; do
+            file_contains_literal "$pass_file" "| $class |" || missing+=("the pass: the class $class in its table")
+        done
+        file_contains_literal "$pass_file" '## Show the table, then write' || missing+=("the pass: shows its table before writing")
+        file_contains_literal "$pass_file" 'changes no line before that approval' || missing+=("the pass: writes only after the approval")
+        file_contains_literal "$pass_file" '## Keep the always-loaded budget' || missing+=("the pass: never grows AGENTS.md with process")
+        file_contains_literal "$pass_file" 'CUSTOMIZE note after `AGENTS.md` § Delivery rules' || missing+=("the pass: honors the person-marks-ready override")
+        file_contains_literal "$pass_file" 'is a PDR in' || missing+=("the pass: records any other override as a PDR")
+        file_contains_literal "$pass_file" '`## Compatibility`' || missing+=("the pass: its table goes in the pull request's body")
+        file_contains_literal "$pass_file" 'At an upgrade:' || missing+=("the pass: says which lines an upgrade checks")
+    fi
+    file_contains_literal "$adopt" "<this skill's base directory>/compatibility.md" || missing+=("/adf:adopt: names the pass in Step 2, beside the facts table")
+    file_contains_literal "$adopt" 'merges by the compatibility table' || missing+=("/adf:adopt: merges an existing AGENTS.md or rule by the table")
+    [ "$(grep -c 'Sort it by' "$adopt")" -ge 2 ] || missing+=("/adf:adopt: sorts an existing CLAUDE.md and GEMINI.md by the table")
+    file_contains_literal "$adopt" 'compatibility table under `## Compatibility`' || missing+=("/adf:adopt: the pull request's body carries the table")
+    file_contains_literal "$upgrade" "<this skill's base directory>/../adopt/compatibility.md" || missing+=("/adf:upgrade: names the adopt skill's pass")
+    file_contains_literal "$upgrade" 'The compatibility pass, on every upgrade' || missing+=("/adf:upgrade: runs the pass on every upgrade")
+    [ "$(grep -c '## Compatibility' "$upgrade")" -ge 2 ] || missing+=("/adf:upgrade: both deliveries list the table in the pull request's body")
+    file_contains_literal "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" 'compatibility pass' || missing+=("/adf:upgrade manual procedure: runs the pass")
+    file_contains_literal "$SKILLS_DIR/context-audit/SKILL.md" '**Process the framework owns** (decision 0099)' || missing+=("/adf:context-audit: the PROCESS finding")
+    file_contains_literal "$WORKFLOWS_DIR/deep-context-audit.js" "'PROCESS'" || missing+=("/adf:deep-context-audit: the PROCESS finding")
+    file_contains_literal "$REPO_ROOT/ADOPT.md" 'compatibility pass' || missing+=("ADOPT.md: in step with /adf:adopt's pass")
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "the compatibility pass: four classes, the table before writing, run by /adf:adopt and every /adf:upgrade, reported by /adf:context-audit (0099)"
+    else
+        fail "compatibility pass (decision 0099): ${missing[*]}"
+    fi
+}
+
 check_english() {
     # Everything in the repository is in English (CONTRIBUTING.md § Ground rules): adopting teams of
     # any language read it, and agents follow one language more consistently.
@@ -1923,6 +1963,7 @@ check_module_plugins
 check_install_scope
 check_install_prompt
 check_install_at_release
+check_compatibility_pass
 check_lanes
 check_practices
 check_spec_records

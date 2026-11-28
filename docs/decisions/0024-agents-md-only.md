@@ -1,6 +1,6 @@
 # 0024: No `CLAUDE.md` — Claude Code reads `AGENTS.md`, and its own layer is a rule
 
-- **Status:** accepted
+- **Status:** accepted; amended by [0099](0099-a-compatibility-pass-for-legacy-instructions.md) — an existing `CLAUDE.md` goes through the compatibility pass before it's moved
 - **Date:** 2026-10-08
 - **Amends:** [0016](0016-packaged-install.md) — where the stamp and the packaged names note live
 

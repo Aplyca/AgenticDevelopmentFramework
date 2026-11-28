@@ -69,13 +69,18 @@ manual procedure (Steps 1–6) is for what it refuses.
    - **Files to decide** and **Migrations** that need the developer: the choices they list.
    - **Each new module's** `MODULE.md` § Customize steps; an install switch with its PDR
      (*What to offer*).
-7. **One approval** covers the conflict resolutions, the permission changes — each rule the report or
-   you added or removed that changes what runs without a prompt — and the draft pull request. Revert a
-   rule the developer rejects. Dropped allow rules a broader one covers change nothing that runs, and
-   need none.
+   - **The compatibility pass, on every upgrade** (decision 0099): read
+     `<this skill's base directory>/../adopt/compatibility.md` and run it on the merged files against
+     this release's rules. A rule the release adds can collide with a project line that merged
+     cleanly.
+7. **One approval** covers the conflict resolutions, the compatibility table, the permission
+   changes — each rule the report or you added or removed that changes what runs without a prompt —
+   and the draft pull request. Revert a rule the developer rejects. Dropped allow rules a broader one
+   covers change nothing that runs, and need none.
 8. **Deliver** (*Verify and deliver*, 2–5): commit, write the PR body from the report — the
    releases, what needs a person and how it was resolved, each clean merge with its hunk count, the
-   migrations, the dropped rules, the checks — and push the draft. Give the developer **On each
+   migrations, the dropped rules, the compatibility table under `## Compatibility` (what the pass
+   found and what was decided, or `- none found`), the checks — and push the draft. Give the developer **On each
    machine** as the report lists it.
    - **Follow-ups ride in the PR body:** copy the report's `## Follow-ups` section into it
      as it stands, the heading and one `- [ ] \`<command>\` — <why> (<source>)` line per item, or
@@ -153,7 +158,7 @@ project's `Makefile` and mode files for a task that follows or waits for input (
    none of the module's skills is committed.
 2. Commit with a `docs:` or `chore:` prefix, e.g. `chore: upgrade framework skeleton OLD_SHA → NEW_SHA`.
 3. PR body: changelog summary, each file's action with each clean merge's hunk count, migration steps done, customizations
-   reapplied, the modules added and why, the plugin setting if added (with the commands that remove a
+   reapplied, the compatibility table under `## Compatibility`, the modules added and why, the plugin setting if added (with the commands that remove a
    user-scope copy), an install switch and its PDR, anything needing human judgment — and a
    `## Follow-ups` section, as the scripted path's step 8 writes it: one
    `- [ ] \`<command>\` — <why> (<source>)` line per follow-up (a new module's `set up`, a service to

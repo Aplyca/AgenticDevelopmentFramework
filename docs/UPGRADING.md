@@ -159,6 +159,12 @@ merge with its hunk count, so you know where to look), the checks, the commands 
 the follow-ups to run after the merge. Review the diff, resolve the conflicts, and approve the
 permission changes; nothing lands without the pull request's review.
 
+On every upgrade, `/adf:upgrade` also runs the compatibility pass: it checks the project's own lines
+in `AGENTS.md`, the rules, and any `CLAUDE.md` or `GEMINI.md` against the new release's rules. A new
+framework rule can collide with an old project line that merged cleanly. You approve its table with
+the conflict resolutions, and the pull request's body lists it under `## Compatibility`
+([decision 0099](decisions/0099-a-compatibility-pass-for-legacy-instructions.md)).
+
 A project below v2.0.0, or a release before the script, follows the procedure below.
 
 ## On each machine, after the merge

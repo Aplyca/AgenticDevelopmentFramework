@@ -104,6 +104,11 @@ Build a facts table (`fact → evidence file:line`):
 - **Boundaries & antipatterns** — frozen or legacy directories, deliberate deviations (ask; rarely has file evidence)
 - **Sensitive areas** — ask: which parts of the code need care whatever the size of the change (billing, auth, migrations, data exports…)? Past incidents and fragile modules are good evidence
 - **CI & enforcement** — what pipelines exist, what branch protection is known; if none, record that as a fact
+- **The project's own instructions** (decision 0099) — an existing `AGENTS.md`, `CLAUDE.md`,
+  `GEMINI.md`, `.cursor/rules/`, or `.claude/rules/`: read `<this skill's base directory>/compatibility.md`
+  and run its pass. Its table goes beside the facts table, with its questions in the same round. A
+  line with a process of its own ("ask before each commit", "confirm every step") is dropped or
+  recorded as an override, never merged beside the framework's
 
 Present the table before going further. Wrong facts here poison every file downstream.
 
@@ -131,26 +136,28 @@ Present the table before going further. Wrong facts here poison every file downs
   one — one the team wrote follows by hand.
 - Copy `skeleton/` into the repo **without overwriting existing files**: it's the layer the project
   owns. For collisions (`README.md`, `CONTRIBUTING.md`, `.claude/settings.json` are common), merge:
-  keep the project's content, add the skeleton's missing sections.
+  keep the project's content, add the skeleton's missing sections. **An existing `AGENTS.md`, or a
+  rule in `.cursor/rules/` or `.claude/rules/`, merges by the compatibility table** Step 2 showed and
+  the developer approved: each line where the table put it.
 - **Committed: write the machinery** from the plugins, its source (decision 0028):
   `python3 <framework-root>/scripts/build-committed.py <repo> --modules <the chosen modules, comma-separated>`
   — the skills, agents, workflows, hook scripts, and reference docs, with the chosen modules' skills.
   It never overwrites a file, and lists the ones it kept: merge each, or keep the project's under a
   name of its own. Packaged: skip it.
-- **An existing `CLAUDE.md`** (decision 0024): Claude Code reads it *instead of* `AGENTS.md`. Move its
-  project facts into `AGENTS.md` and its Claude-specific instructions into
-  `.claude/rules/claude-code.md`, show the developer where each part went, and delete it once they
-  agree. A team that keeps one makes `@AGENTS.md` its first line.
+- **An existing `CLAUDE.md`** (decision 0024): Claude Code reads it *instead of* `AGENTS.md`. Sort it by
+  the compatibility table: its project facts into `AGENTS.md` and its Claude-specific
+  instructions into `.claude/rules/claude-code.md`, show the developer where each part went, and
+  delete it once they agree. A team that keeps one makes `@AGENTS.md` its first line.
 - Ask which AI tools the team uses; delete unused layers per `docs/SETUP.md`: `.claude/` (Claude
   Code, with its layer in `.claude/rules/claude-code.md`), `.gemini/` (Gemini CLI, which it points at
   `AGENTS.md`), `.cursor/` (Cursor).
   `AGENTS.md` always stays, and there's no `GEMINI.md`: Antigravity reads `AGENTS.md` natively
   (decision 0025). For Antigravity, link its skills folder to Claude Code's — the framework
   ships no symlinks: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills`.
-- **An existing `GEMINI.md`** (decision 0025): Antigravity loads it beside `AGENTS.md`. Move what's
-  shared into `AGENTS.md` and what only Antigravity needs into `.agents/rules/antigravity.md` (with
-  `trigger: always_on` frontmatter), show the developer where each part went, and delete it once
-  they agree.
+- **An existing `GEMINI.md`** (decision 0025): Antigravity loads it beside `AGENTS.md`. Sort it by
+  the compatibility table: what's shared into `AGENTS.md` and what only Antigravity needs into
+  `.agents/rules/antigravity.md` (with `trigger: always_on` frontmatter), show the developer where
+  each part went, and delete it once they agree.
 - Ask whether the team writes custom skills, rules, or hooks that need automated checks. If not — the
   common case — delete `evals/`.
 - **Offer the modules** by `<framework-root>/modules/README.md` § Recommending a module: recommend
@@ -246,8 +253,9 @@ Present the table before going further. Wrong facts here poison every file downs
 - Write **`docs/process/0001-adopt-ai-assisted-workflow.md`** from the PDR template: why the
   team is adopting, what it adds (files, gates, modules, and the install — committed or packaged, and
   why), the costs (docs to keep fresh, more tokens
-  for phased work, the approval gate on the critical path), alternatives considered. Ask who the
-  deciders are. Add it to the index in `docs/process/README.md`.
+  for phased work, the approval gate on the critical path), alternatives considered, and each
+  override the compatibility pass kept. Ask who the deciders are. Add it to the index in
+  `docs/process/README.md`.
 - **The plugin setting.** The documented install (`--scope project`, at the newest release) already wrote
   `"extraKnownMarketplaces": {"aplyca": {"source": {"source": "github", "repo": "aplyca/AgenticDevelopmentFramework", "ref": "v<X.Y.Z>"}}}`
   and `"enabledPlugins": {"adf@aplyca": true}` into `.claude/settings.json`: keep both when
@@ -277,6 +285,7 @@ Run these checks and report each as PASS / GAP with one line of evidence:
 - [ ] Hook scripts are executable and behave: pipe a sample event to each — e.g. `printf '{"cwd":".","tool_input":{"command":"git push origin main"}}' | .claude/hooks/guard-git.sh` exits 2; a `git status` event exits 0
 - [ ] No `CLAUDE.md` or `CLAUDE.local.md` in the repository; ask the user to start a new session and confirm with `/memory` that `AGENTS.md` and `.claude/rules/claude-code.md` load, and that the session-context hook prints no warning about a `CLAUDE.md`
 - [ ] No `[bracketed placeholders]` remain in `AGENTS.md`, `CONSTITUTION.md`, `CONTRIBUTING.md`; every unknown is a `TODO(team)` question
+- [ ] The compatibility pass held: no line its table dropped is left in an instruction file, and each override kept is where the table put it
 - [ ] Skill frontmatter uses hyphenated keys only (no `user_invocable` and the like)
 - [ ] Build/test/lint commands documented AND runnable by an agent (actually run the safe ones) — in a new project, a GAP until the first code lands
 - [ ] Readiness checklist (Agentic Development Guide §9): `README.md` + `AGENTS.md` current; constitution; `specs/` scaffold; `docs/` with architecture and ADRs; skills/MCP versioned; nested `AGENTS.md` where needed (or explicitly not needed); boundaries section; CI gates before merge (GAP if none — don't invent one); written "no merge without human review"
@@ -286,8 +295,9 @@ GAPs go in the PR description; they're findings, not failures to hide.
 ## Step 7 — Deliver
 
 1. Commit on the feature branch: `docs: adopt the Agentic Development Framework (skeleton <SHA>)`.
-2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, open TODOs as
-   a checklist, verification results — and a `## Follow-ups` section, the one `/adf:wrap-up` reads
+2. Draft the PR body: facts table summary, tool layers kept/removed, modules installed, the
+   compatibility table under `## Compatibility` (or `- none found`), open TODOs as a checklist,
+   verification results — and a `## Follow-ups` section, the one `/adf:wrap-up` reads
    after the merge: one `- [ ] \`<command>\` — <why> (adoption)` line for each follow-up Steps 3–4
    named (`/adf-dev:dev-env set up`, `/adf-dev:e2e set up`, `/adf-dev:unit set up`,
    `/adf-connect:connect <service>` — the committed names in a committed install), or `- none`.

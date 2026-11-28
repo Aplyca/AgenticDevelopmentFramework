@@ -58,6 +58,7 @@ PY
   check "everything is committed" "[ -z \"\$(git status --porcelain)\" ] && [ \"\$(git rev-list --count HEAD)\" -gt 1 ]"
   check "nothing was pushed" "! printf '%s\n' \"\$cmds\" | grep -q 'git push'"
   check "AGENTS.md keeps the team's line" "grep -q 'never write to it from the site' AGENTS.md"
+  check "the compatibility pass dropped the team's process line (0099)" "! grep -qi 'before every commit' AGENTS.md"
   check "the stamp moved past v2.3.0 and keeps install: packaged and the docker module" \
     "head -1 AGENTS.md | grep -q 'install: packaged' && head -1 AGENTS.md | grep -q 'modules: docker' && ! head -1 AGENTS.md | grep -q 'v2.3.0'"
   check "deployment.md keeps the team's comment" "grep -q 'newsletter pipeline' .claude/rules/deployment.md"

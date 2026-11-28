@@ -120,8 +120,8 @@ module's `scripts/agent/` → `ops/agent/`) follow the changelog's migration not
 ## Step 4 — Present what needs a person
 
 The manual procedure keeps the same gate as the script (decision 0046). Before Step 5, the developer
-approves the module choices. After it, before the commit, they approve the conflict resolutions and
-the permission changes, with the changelog's migration steps, the newly chosen modules' customize
+approves the module choices. After it, before the commit, they approve the conflict resolutions, the
+compatibility table, and the permission changes, with the changelog's migration steps, the newly chosen modules' customize
 steps, the plugin setting when it's being added, and an install switch with its PDR. List each clean
 merge with its hunk count, and the customizations each merge kept (the target file vs the OLD_SHA
 version), so the reviewer knows where to look; they need no plan row.
@@ -196,6 +196,8 @@ version), so the reviewer knows where to look; they need no plan row.
   the team edited), and give its skills their full names in `DEV-SETUP.md` (`/adf-dev:dev-env`).
 - Restamp: `Skeleton source:` → `<new version> · NEW_SHA (<date>) · modules: <list>` — the list includes
   the new ones; a packaged project keeps `· install: packaged`.
+- The compatibility pass on the merged files, as `SKILL.md`'s scripted step 6 says (decision 0099).
+  Its table joins Step 4's approval, before the commit.
 
 ## Step 6 — Verify and deliver
 
