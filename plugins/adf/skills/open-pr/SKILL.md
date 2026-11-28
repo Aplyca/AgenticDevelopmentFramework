@@ -10,8 +10,9 @@ argument-hint: "[base branch — defaults to the one in CONTRIBUTING.md] | refre
 
 Pushing and opening a pull request leave this machine. Your own local check is what lets them:
 once the changed flow works on this checkout's environment, open the draft without asking, in
-every lane: it's the team's standing go-ahead. Work with nothing to run — docs, CI — opens it once
-the full gate and `/adf:review` pass. The git guard hook refuses a `gh pr create` without `--draft`.
+every lane: it's the team's standing go-ahead. In the full lane, it's the end of the run the
+approval gate authorized (`/adf:implement`): go on to ready with no stop but for a decision. Work
+with nothing to run — docs, CI — opens it once the full gate and `/adf:review` pass. The git guard hook refuses a `gh pr create` without `--draft`.
 
 The pull request opens as a **draft** — the window where the preview deploys and CI runs before
 anyone is asked to look — and you **mark it ready** once your own tests pass: every criterion worked

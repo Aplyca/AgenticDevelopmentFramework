@@ -11,8 +11,16 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
-- **After the approval gate, the agent goes on** ([decision 0097](docs/decisions/0097-the-agent-goes-on-after-the-gate.md)).
+- **After the approval gate, the agent runs to a pull request ready for review** ([decision 0097](docs/decisions/0097-the-agent-goes-on-after-the-gate.md)).
   - **What:**
+    - **The approval authorizes the whole run:** every task, the docs, the full gate, the local
+      check, and `/adf:open-pr` through marking the pull request ready (or the draft with every
+      check passed, where a person marks it ready). `/adf:implement` runs it in one go: no check-in,
+      report, or "continue with T004?" between tasks or phases. CI and the preview deploy are
+      waits, not stops. The agent stops only for a decision: the change surface growing into risk,
+      a wrong or ambiguous requirement, a test that passes before any code for no clear reason, an
+      environment that won't start, a walk that would reach a person or real data, a criterion it
+      couldn't test, or a review finding that needs the developer's call.
     - **No stop after approval.** `/adf:write-plan` commits the spec folder and starts
       `/adf:write-docs`, then `/adf:implement`, in the same turn. It no longer gives the developer
       three steps (compact, pick Sonnet, send the next command) and waits for them: the approval is
@@ -29,16 +37,17 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
       the automatic compaction.
     - `COST-MODEL.md` § Between phases, `/adf:handoff`, `/adf:dispatch`, the triage examples, the
       README, and the newsletter-signup walkthrough say the same.
-  - **Where:** `plugins/adf/skills/{write-plan,implement,triage,handoff,dispatch}/SKILL.md`,
+  - **Where:** `plugins/adf/skills/{write-plan,implement,open-pr,triage,handoff,dispatch}/SKILL.md`,
     `plugins/adf/docs/COST-MODEL.md`, `skeleton/AGENTS.md`, `skeleton/.claude/rules/claude-code.md`,
-    `README.md`, `docs/examples/`, `docs/scenarios/change-request.md`, `docs/decisions/0062-…`,
+    `README.md`, `docs/examples/`, `docs/scenarios/change-request.md`, `docs/decisions/{0062,0095}-…`,
     `evals/static/check-skills.sh`.
 
   **Upgrade impact:**
-  - **Overwrite:** committed install: the five skills above, as `/adf:upgrade` writes them;
+  - **Overwrite:** committed install: the six skills above, as `/adf:upgrade` writes them;
     packaged, they come with the plugin.
-  - **Merge:** `AGENTS.md` — § 3's approval-gate step ends "and go on", and § Working economically's
-    session bullet says to go on after the gate with no stop; `.claude/rules/claude-code.md` — the
+  - **Merge:** `AGENTS.md` — § 3's approval-gate step says the approval authorizes steps 4–7 with
+    no stop but for a decision, step 7 drops "without waiting to be asked", and § Working
+    economically's session bullet says to go on after the gate; `.claude/rules/claude-code.md` — the
     Full row's Model cell and the § Cost model sentence on where to switch.
 
 ## v2.12.0 — 2026-11-22 — Each step has one owner, and the hooks stop only where the risk is

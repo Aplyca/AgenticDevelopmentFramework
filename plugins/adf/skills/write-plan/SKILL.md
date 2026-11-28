@@ -93,9 +93,9 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
    - **Assumptions and risks** — every one, plainly.
    - **Verification** — the test strategy in a few lines, a test layer the project lacks, and what will be checked manually.
    - **Docs** — what will be written before code.
-   - **What follows** — on approval you go straight on to the docs and the implementation. When the
-     session is on Opus and dozens of calls will follow, offer the optional cost step, taken before
-     approving: *"To run the rest cheaper, first `/compact Keep the lane, the spec folder
+   - **What follows** — on approval you run on, with no stop but for a decision, through the docs
+     and the implementation to a pull request ready for review. When the session is on Opus and
+     dozens of calls will follow, offer the optional cost step, taken before approving: *"To run the rest cheaper, first `/compact Keep the lane, the spec folder
      specs/<NNN>-<slug>/ awaiting approval at the gate, its decisions and open questions, and the
      next steps: /adf:write-docs, then /adf:implement`, and pick Sonnet (`/model sonnet`, or the
      model menu in the desktop app); then approve."* When the compaction can't pay back — a task or
@@ -112,8 +112,9 @@ cheaper but checks the wrong thing — the change surface isn't known until the 
 
 12. **Go on — in this session, in this turn:** `/adf:write-docs specs/<NNN>-<slug>/` when Phase 1
     has tasks — and `/adf:end-user-docs` for an end-user page, `/adf:stakeholder-update guide` for
-    the spec's usage guide — then `/adf:implement`. Don't wait for a command, a compaction, or a model
-    switch: the approval was the developer's one stop, and the committed folder carries the detail.
+    the spec's usage guide — then `/adf:implement`, which runs on through `/adf:open-pr` to a pull
+    request ready for review. Don't wait for a command, a compaction, or a model switch: the approval
+    was the developer's one stop, and the committed folder carries the detail.
     - **The model.** These phases fit `sonnet`: an approved plan with named tests is a clear spec
       with a way to check the result. When the session is on Opus, dozens of calls follow, and the
       developer didn't choose Opus for the whole task: in the desktop app, set Sonnet yourself
