@@ -46,7 +46,9 @@ goes in the final report and the pull request.
    how the feature will be used and should drive your thinking.
    The folder is the record, not a summary of the conversation. In a conversation that doesn't show
    where the task stands — compacted after the gate, or started anew — open with one line on it:
-   `Full lane — specs/007-newsletter-signup/, approved; implementing T003 next`.
+   `Full lane — specs/007-newsletter-signup/, approved; implementing T003 next`. In a compacted
+   conversation, re-read this `SKILL.md` before going on: the summary keeps where the run stood, not
+   these steps.
 2. **Mind the model.** Implementing an approved plan is well-specified work — `sonnet` handles it.
    On Opus, switch the way the gate does (`/adf:write-plan` step 12): set Sonnet yourself where the
    client allows it; otherwise keep the model, say so in one line, and go on. Never stop for a switch

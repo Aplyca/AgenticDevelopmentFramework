@@ -193,10 +193,6 @@ moves) — no draft, no message — and stop.
 | "I'll also put it on the pull request, so the team has it" | The pull request is for the developer: review instructions and tests. A second copy of the client's text drifts from the one they read. |
 | "I'll add how I tested it, so they trust the result" | That's technical communication, and it lives in the pull request. The ticket says what changes for them and what to try. |
 | "I'll link the PR in every update so they can see the work" | Only the review update carries it, for reference. Elsewhere, link pages they can act on. |
-| "I'll post 'we've started' so they know" | The status change says that. A started message earns its place with what we understood, a question, or a finding — and it's a draft. |
-| "It merged, so I'll post the delivered update and close the task" | Delivered means live. Until § Live says it is, post nothing and move nothing: acceptance testing and release are the developer's statuses. |
-| "The developer moved it to acceptance testing — I'll move it on once the checks pass" | Those statuses say a person checked or released it. Leave them; your next move is delivered, once it's live. |
-| "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |
 | "The developer isn't assigned to the task, so I'll leave it alone" | The task they handed this session is theirs to move and update. Only another task asks first. |
 | "The tracker isn't connected — I'll mention it at the end" | Then the ticket stays empty and nobody notices. Open the report with what to set and the text to paste. |
 | "It posted without an error, so it's right" | Read it back. Mentions, links, and formatting can come out differently from what you wrote. |

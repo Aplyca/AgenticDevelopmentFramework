@@ -301,6 +301,28 @@ if echo "$out" | grep -q 'main is protected'; then
 else
     FAIL=$((FAIL+1)); echo "✘ session-context.sh: protected-branch warning missing"; echo "    $out"
 fi
+# After a compaction, the spec folder says where the run stands; other sources print no more (0098).
+check_source() { # check_source <description> <source> <must match> <must not match>
+    local out; out="$(printf '{"cwd":"%s","hook_event_name":"SessionStart","source":"%s"}' "$T" "$2" | "$H/session-context.sh")"
+    if echo "$out" | grep -q -- "$3" && ! echo "$out" | grep -q -- "$4"; then
+        PASS=$((PASS+1)); echo "✓ session-context.sh: $1"
+    else
+        FAIL=$((FAIL+1)); echo "✘ session-context.sh: $1"; echo "$out" | sed 's/^/    /'
+    fi
+}
+git -C "$T" switch -q feat/newsletter-signup-topics
+printf -- '- [x] T000 — Spec folder approved\n- [ ] ~~T005 — Export~~ — follow-up: needs the API\n- [ ] T021 [P] — Subscribe endpoint (test: `route.test.ts`)\n- [ ] T022 — Rate limit\n\n- [ ] Lint clean\n' > "$T/specs/007-newsletter-signup/tasks.md"
+check_source "after a compaction: the next unticked task, past a struck-through one" compact "next task in tasks.md is T021 — Subscribe endpoint\.$" "T005\|T022\|every task"
+check_source "after a compaction, approved: the approval authorizes the run to a ready pull request" compact "approval authorizes the run to a pull request ready for review: re-read the running skill's SKILL.md" "every task"
+check_source "a source other than compact prints no more than before" startup "specs/007-newsletter-signup/ (status: approved)" "After the compaction\|approval authorizes"
+sed -i.bak 's/^- \[ \] T/- [x] T/' "$T/specs/007-newsletter-signup/tasks.md"
+check_source "after a compaction, every task ticked: the reconcile, the full gate, the local check, and open-pr come next" compact "every task in tasks.md is ticked. The run goes on with the reconcile, the full gate, the local check, and /open-pr" "next task in"
+printf -- '---\nstatus: in-review\n---\n' > "$T/specs/007-newsletter-signup/spec.md"
+rm -f "$T/specs/007-newsletter-signup/tasks.md"*
+check_source "after a compaction, not yet approved and no tasks.md: only the folder line" compact "specs/007-newsletter-signup/ (status: in-review)" "After the compaction\|approval authorizes"
+git -C "$T" checkout -q -- specs && git -C "$T" switch -q feat/newsletter
+check_source "after a compaction with no spec folder: nothing about a run" compact "No spec folder matches" "After the compaction\|approval authorizes"
+git -C "$T" switch -q main
 
 # With the parallel-agents module, each session learns its route from where it runs: in the main
 # checkout, triage first, then its own worktree (decision 0042); a worker in any linked worktree (0015). In a worktree the scripts didn't

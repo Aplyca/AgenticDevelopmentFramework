@@ -2,12 +2,14 @@
 # SessionStart hook. Prints a few lines of orientation that Claude Code adds to the session's
 # context: which checkout this is, the branch, and the spec folder that branch belongs to — the
 # facts an agent needs for its first step (triage) and that it would otherwise guess or re-derive.
+# Claude Code runs it again after a compaction, when it also says where the run stands (decision 0098).
 set -uo pipefail
 source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib.sh"
 
 cwd="$(json_get '.cwd')"
 [ -d "$cwd" ] || cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
 root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)" || exit 0
+event_source="$(json_get '.source')" # startup, resume, clear, or compact
 
 branch="$(git -C "$root" symbolic-ref --short -q HEAD 2>/dev/null || echo "detached HEAD")"
 git_dir="$(git -C "$root" rev-parse --absolute-git-dir 2>/dev/null)"
@@ -65,6 +67,27 @@ if [ "$slug" != "$branch" ] && [ -d "$root/$SPECS_DIR" ]; then
     status="" status_line='^status:[[:space:]]*([a-z-]+)'
     [[ "$(grep -m 1 -E "$status_line" "$spec_dir/spec.md")" =~ $status_line ]] && status="${BASH_REMATCH[1]}"
     echo "- Spec folder for this branch: ${spec_dir#"$root"/}/ (status: ${status:-unknown})"
+    # A compaction drops which phase or skill was running; the folder still says where the run stands
+    # (decision 0098). A line it can't read stays unsaid (0096).
+    if [ "$event_source" = "compact" ]; then
+      next="" ticked="" task_line='^- \[([ xX])\] (T[0-9]+)(.*)$'
+      while IFS= read -r line || [ -n "$line" ]; do
+        [[ $line =~ $task_line ]] || continue # a struck-through task (~~T005~~) is neither
+        if [ "${BASH_REMATCH[1]}" != " " ]; then ticked=1 && continue; fi
+        title="${BASH_REMATCH[3]# \[P\]}"
+        title="${title# — }" && title="${title%% (test:*}" && title="${title%% (→*}"
+        next="${BASH_REMATCH[2]}${title:+ — $title}"
+        break
+      done < <(cat "$spec_dir/tasks.md" 2>/dev/null)
+      if [ -n "$next" ]; then
+        echo "- After the compaction: the next task in tasks.md is $next."
+      elif [ -n "$ticked" ]; then
+        echo "- After the compaction: every task in tasks.md is ticked. The run goes on with the reconcile, the full gate, the local check, and /adf:open-pr — whichever hasn't happened yet."
+      fi
+      if [ "$status" = "approved" ]; then
+        echo "- The approval authorizes the run to a pull request ready for review: re-read the running skill's SKILL.md, continue, and stop only for a decision."
+      fi
+    fi
   else
     echo "- No spec folder matches '$slug' — triage decides whether this work needs one."
   fi

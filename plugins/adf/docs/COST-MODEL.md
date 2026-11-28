@@ -123,11 +123,19 @@ a way to check the result?**
   developer who needs more sets it in `.claude/settings.local.json` or passes `--autocompact` for one
   launch; the project file outranks `/autocompact`.
 - **What a compaction keeps** (Claude Code's docs, "What survives compaction"): the instructions and
-  unscoped rules, re-read from disk; the five most recently changed files; the first 5,000 tokens of
-  each invoked skill, 25,000 in all; and the session-start hooks' output. The conversation itself —
-  tool output, exact errors, and anything agreed only in chat — survives only as the summary keeps
-  it. So write a decision where it lasts (the spec, `plan.md`, the pull request) before a
-  compaction can take it.
+  unscoped rules, re-read from disk; the five most recently changed files; each invoked skill, the
+  most recent first, 25,000 tokens in all; and the session-start hooks' output.
+  - **A skill comes back whole** while Claude Code's estimate of it — characters divided by four — is
+    5,000 tokens or less; a longer one is cut at 20,000 characters. Every `SKILL.md` stays within
+    19,000 bytes, and a case only some runs reach waits in a reference file, read at its step
+    (decision 0098).
+  - **The session-context hook says where the run stands:** the next task in `tasks.md`, or what
+    follows the last one, and, after approval, that the run goes on to a pull request ready for
+    review. `/adf:implement` and `/adf:open-pr` re-read their `SKILL.md`.
+  - **Lost, or kept only as the summary keeps it:** tool output, exact errors, anything agreed only
+    in chat, which skill was running, and the path-scoped rules until a matching file is read. So
+    write a decision where it lasts (the spec, `plan.md`, the pull request) before a compaction can
+    take it.
 - **Keep output short.** Quiet test reporters, `| tail -n 40`, reading the lines you need. A log
   printed once is paid for on every later call.
 - **Targeted tests while iterating, the full gate once** (`.claude/rules/testing.md` § Verification

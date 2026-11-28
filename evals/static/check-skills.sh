@@ -191,6 +191,38 @@ check_outward_skills_user_invoked() {
     done
 }
 
+check_skill_size() {
+    # After a compaction, Claude Code attaches each skill the session ran again — whole only while its
+    # estimate, characters / 4, is 5,000 tokens or less: 20,000 characters. A longer one is cut there
+    # and loses its end, the verification and the last steps (decision 0098). What it attaches is the
+    # body without the frontmatter, after a "Base directory for this skill:" line, with
+    # ${CLAUDE_PLUGIN_ROOT} spelled out as the plugin's path. Bytes count the frontmatter and each em
+    # dash's three bytes, so they never undercount those characters; the 1,000 left over covers the
+    # base directory line (about 150) and the paths (about 50 more each). A case only some runs reach
+    # goes in a reference file beside the skill (decision 0063).
+    local limit=19000 file size over=()
+    for file in "$REPO_ROOT"/plugins/*/skills/*/SKILL.md; do
+        size=$(wc -c < "$file" | tr -d ' ')
+        [ "$size" -le "$limit" ] || over+=("${file#"$REPO_ROOT"/}: $size bytes")
+    done
+    if [ ${#over[@]} -eq 0 ]; then
+        pass "skills: every SKILL.md is within 19,000 bytes, so a compaction keeps it whole (0098)"
+    else
+        fail "skills: over 19,000 bytes, which a compaction cuts — move a case only some runs reach into a reference file (0063, 0098)" "$(printf '%s; ' "${over[@]}")"
+    fi
+    # The run's two long skills say to re-read themselves after a compaction (0098).
+    local name missing=()
+    for name in implement open-pr; do
+        tr -s ' \n' ' ' < "$REPO_ROOT/plugins/adf/skills/$name/SKILL.md" | grep -q 'compacted conversation, re-read this `SKILL.md` before going on' \
+            || missing+=("/$name")
+    done
+    if [ ${#missing[@]} -eq 0 ]; then
+        pass "skills: /implement and /open-pr re-read themselves in a compacted conversation (0098)"
+    else
+        fail "skills: no re-read after a compaction (0098)" "${missing[*]}"
+    fi
+}
+
 # ─── Agents ────────────────────────────────────────────────────────────────
 
 check_agent() {
@@ -829,7 +861,7 @@ check_practices() {
     file_contains "$AGENTS_MD" 'Ask questions in rounds' || missing+=("AGENTS.md: question rounds")
     file_contains "$SKILLS_DIR/write-spec/SKILL.md" 'Ask in rounds' || missing+=("/write-spec: question rounds")
     file_contains "$SKELETON/docs/GLOSSARY.md" '\*\*Avoid:\*\*' || missing+=("GLOSSARY.md: Avoid list")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '## Merge danger' || missing+=("/open-pr: merge danger")
+    file_contains "$SKILLS_DIR/open-pr/body.md" '^## Merge danger' || missing+=("/open-pr body.md: merge danger")
     file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '## Merge danger' || missing+=("PR template: merge danger")
     file_contains "$SKELETON/.claude/rules/testing.md" 'Expected values come from outside the code' || missing+=("testing rule: independent expected values")
     file_contains "$SKILLS_DIR/record-decision/SKILL.md" 'hard to reverse' || missing+=("/record-decision: threshold")
@@ -965,7 +997,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/stakeholder-update/review.md" 'For reference, the change is in this' || missing+=("/stakeholder-update review.md: the pull request, for reference (0073)")
     file_contains "$SKILLS_DIR/stakeholder-update/guide.md" 'Usage guide \(draft\)' || missing+=("/stakeholder-update guide.md: the usage guide's draft on the task (0073)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" 'Write the review instructions first' || missing+=("/open-pr: the review instructions go in the description before ready (0073)")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## How to review and test' || missing+=("/open-pr: the description's How to review and test section (0073)")
+    file_contains "$SKILLS_DIR/open-pr/body.md" '^## How to review and test' || missing+=("/open-pr body.md: the description's How to review and test section (0073)")
     file_contains "$SKILLS_DIR/open-pr/SKILL.md" '`Refs #N`, never `Closes`' || missing+=("/open-pr: a requester's issue is referenced, never closed by the merge (0073)")
     file_contains "$SKILLS_DIR/wrap-up/SKILL.md" 'Merged, not live yet' || missing+=("/wrap-up: merged but not live posts nothing and moves nothing (0073)")
     for name in triage open-pr wrap-up; do
@@ -1025,7 +1057,7 @@ check_practices() {
     file_contains "$SKILLS_DIR/stakeholder-update/status.md" 'Send the status alone' || missing+=("/stakeholder-update status.md: the status goes alone, in a call of its own (0076)")
     file_contains "$MODULES_DIR/clickup/MODULE.md" 'APPROVE_STATUS_MOVE="mcp__clickup__clickup_update_task"' || missing+=("clickup module: names its status tool for APPROVE_STATUS_MOVE (0076)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "Offer the modules the project doesn't have" || missing+=("/upgrade: offers missing modules")
-    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" '### A new project' || missing+=("/adopt: new-project mode")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/new-project.md" '^# Adopting into a new project' || missing+=("/adopt: new-project mode")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" "don't follow into the worktree" || missing+=("/upgrade: carries uncommitted changes into the hub's worktree")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Ask how to install' || missing+=("/adopt: committed or packaged (0016)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Packaged\*\* — the default' || missing+=("/adopt: packaged is the default (0018)")
@@ -1035,13 +1067,13 @@ check_practices() {
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" 'aplyca-adf@aplyca' || missing+=("/upgrade: renames aplyca-adf to adf (v2.0.0, 0023)")
     python3 -c 'import json, sys; sys.exit(0 if json.load(open(sys.argv[1])).get("renames") == {"aplyca-framework": "aplyca-adf", "aplyca-adf": "adf"} else 1)' "$REPO_ROOT/.claude-plugin/marketplace.json" || missing+=("marketplace: renames aplyca-framework → aplyca-adf → adf, append-only")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/switch-install.md" 'Record the switch' || missing+=("/upgrade: records an install switch as a PDR")
-    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/modules.md" 'Turn on the plugin that carries a module' || missing+=("/adopt: turns on the plugin that carries a module in a packaged install (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'Offer `adf-connect`' || missing+=("/adopt: offers adf-connect (0023)")
     file_contains "$HOOKS_DIR/session-context.sh" "replaces this project's AGENTS.md" || missing+=("session-context.sh: warns when a CLAUDE.md replaces AGENTS.md (0024)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" 'From `CLAUDE.md` to `AGENTS.md`' || missing+=("/upgrade: moves CLAUDE.md into AGENTS.md and the rule (0024)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `CLAUDE.md`' || missing+=("/adopt: merges an existing CLAUDE.md (0024)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/ai-tools.md" 'An existing `CLAUDE.md`' || missing+=("/adopt: merges an existing CLAUDE.md (0024)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/before-v2.md" '\*\*No `GEMINI.md`\*\*' || missing+=("/upgrade: removes GEMINI.md (0025)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'An existing `GEMINI.md`' || missing+=("/adopt: merges an existing GEMINI.md (0025)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/ai-tools.md" 'An existing `GEMINI.md`' || missing+=("/adopt: merges an existing GEMINI.md (0025)")
     [ ! -e "$REPO_ROOT/CLAUDE.md" ] || missing+=("this repository: its instructions are AGENTS.md, with no CLAUDE.md (0024)")
     local connect="$REPO_ROOT/plugins/adf-connect/skills/connect/SKILL.md"
     file_contains_literal "$connect" 'No credentials in the repository.' || missing+=("/connect: no credentials committed")
@@ -1051,7 +1083,7 @@ check_practices() {
     file_contains_literal "$connect" '**Deny reads that return secrets.**' || missing+=("/connect: denies reads that return secrets (0057)")
     file_contains_literal "$connect" '## Read-only profiles' || missing+=("/connect: read-only profiles for Vercel and Contentful (0057)")
     file_contains_literal "$connect" '`mcp__contentful-<project>__<tool>`' || missing+=("/connect: a Contentful server is named after its project (0068)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/modules.md" 'modules/docker/install.sh' || missing+=("/adopt: offers and installs the docker module")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/SKILL.md" '<plugin>@aplyca' || missing+=("/upgrade: turns on the plugin that carries a module (0023)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" 'modules/docker/install.sh' || missing+=("/upgrade: reruns and installs the docker module")
     file_contains "$SKILLS_DIR/dev-env/SKILL.md" 'list names `docker`' || missing+=("/dev-env: stops without the module, since a plugin carries it (0023)")
@@ -1085,7 +1117,7 @@ check_practices() {
     file_contains "$AGENTS_MD" '^- Tests: .* · one file: ' && file_contains "$AGENTS_MD" '^- Lint: .* · one file: ' || missing+=("AGENTS.md: Quick reference writes one test and one file's lint (issue 175)")
     file_contains_literal "$SKILLS_DIR/dev-env/SKILL.md" 'name each task and what it takes (C3)' || missing+=("/dev-env: the audit names a test or lint that doesn't take C3's variable (issue 175)")
     ! grep -q 'DEV_MODE=native`$' "$SKELETON/.claude/rules/claude-code.md" || missing+=("claude-code rule: no DEV_MODE override as an example for agents (M10)")
-    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/SKILL.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
+    file_contains "$REPO_ROOT/plugins/adf/skills/adopt/modules.md" 'modules/e2e/install.sh' || missing+=("/adopt: offers and installs the e2e module (0037)")
     file_contains "$REPO_ROOT/plugins/adf/skills/upgrade/manual.md" 'modules/e2e/install.sh' || missing+=("/upgrade: reruns and installs the e2e module (0037)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'list names `e2e`' || missing+=("/e2e: stops without the module, since a plugin carries it (0023)")
     file_contains "$SKILLS_DIR/e2e/SKILL.md" 'this is the main checkout' || missing+=("/e2e: stops in the hub")
@@ -1168,7 +1200,7 @@ check_found_along_the_way() {
     file_contains "$SKILLS_DIR/debug/SKILL.md" 'Other bugs you met on the way' || missing+=("/debug: routes other bugs")
     file_contains "$AGENTS_DIR/code-reviewer/agent.md" '\[outside\]' || missing+=("@code-reviewer: [outside] findings")
     file_contains "$WORKFLOWS_DIR/deep-review.js" 'followUps' || missing+=("/deep-review: returns follow-ups apart")
-    file_contains "$SKILLS_DIR/open-pr/SKILL.md" '^   ## Follow-ups' || missing+=("/open-pr: the body has ## Follow-ups")
+    file_contains "$SKILLS_DIR/open-pr/body.md" '^## Follow-ups' || missing+=("/open-pr body.md: the body has ## Follow-ups")
     file_contains "$MODULES_DIR/github/files/.github/pull_request_template.md" '^## Follow-ups' || missing+=("PR template: ## Follow-ups")
     file_contains "$SKILLS_DIR/wrap-up/follow-ups.md" 'Offered after any ending' || missing+=("/wrap-up: offers findings after any ending")
     file_contains "$SKILLS_DIR/handoff/SKILL.md" '^   Found: ' || missing+=("/handoff: carries findings not yet in a pull request")
@@ -1638,7 +1670,7 @@ check_compatibility_pass() {
     fi
     file_contains_literal "$adopt" "<this skill's base directory>/compatibility.md" || missing+=("/adf:adopt: names the pass in Step 2, beside the facts table")
     file_contains_literal "$adopt" 'merges by the compatibility table' || missing+=("/adf:adopt: merges an existing AGENTS.md or rule by the table")
-    [ "$(grep -c 'Sort it by' "$adopt")" -ge 2 ] || missing+=("/adf:adopt: sorts an existing CLAUDE.md and GEMINI.md by the table")
+    [ "$(grep -c 'Sort it by' "$(dirname "$adopt")/ai-tools.md")" -ge 2 ] || missing+=("/adf:adopt: sorts an existing CLAUDE.md and GEMINI.md by the table (ai-tools.md, 0098)")
     file_contains_literal "$adopt" 'compatibility table under `## Compatibility`' || missing+=("/adf:adopt: the pull request's body carries the table")
     file_contains_literal "$upgrade" "<this skill's base directory>/../adopt/compatibility.md" || missing+=("/adf:upgrade: names the adopt skill's pass")
     file_contains_literal "$upgrade" 'The compatibility pass, on every upgrade' || missing+=("/adf:upgrade: runs the pass on every upgrade")
@@ -1924,6 +1956,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     check_skill_discipline "$skill_dir"
 done
 check_outward_skills_user_invoked
+check_skill_size
 
 echo ""
 for agent_file in "$AGENTS_DIR"/*/agent.md; do

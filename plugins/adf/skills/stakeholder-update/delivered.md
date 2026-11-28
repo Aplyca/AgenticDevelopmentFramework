@@ -24,3 +24,10 @@ Thanks!
   and leave the task's status where it is.
 - **Questions for the requester** aren't part of this update: it posts on its own. They're a second
   message, a draft for the developer's yes, as in `review.md`.
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "It merged, so I'll post the delivered update and close the task" | Delivered means live. Until § Live says it is, post nothing and move nothing: acceptance testing and release are the developer's statuses. |
+| "It's probably live by now" | State the status you verified, in the project's words. A wrong "live" costs more than a correct "in review". |

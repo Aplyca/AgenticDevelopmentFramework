@@ -30,6 +30,7 @@ leave out:
 | "The task is at Review already — I'll set it to In progress anyway" | Forward only. A task past the target stays where it is. |
 | "I'm moving the status, so I'll change the assignee too" | Status moves on its own; the assignee, priority, due date, and time entries still need a yes. |
 | "It merged — I'll move it to done" | Delivered means live. Between review and delivered, the statuses are the developer's. |
+| "The developer moved it to acceptance testing — I'll move it on once the checks pass" | Those statuses say a person checked or released it. Leave them; your next move is delivered, once it's live. |
 | "The repository has no 'in review' label — I'll create it" | Labels are the team's vocabulary. Ask which one to use. |
 
 ## Red flags (stop and reassess)

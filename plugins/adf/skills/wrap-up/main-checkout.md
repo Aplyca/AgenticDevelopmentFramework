@@ -19,3 +19,19 @@ change it took went to a worktree, whose session wraps it up. Close it up as an 
 
 A worktree whose session is gone is removed from here with `adf-worktree-rm <branch>`, only when
 the developer asks.
+
+Before the report, check:
+
+- [ ] Closed up as an answer, with no branch switched, pulled, or deleted; only what this session made counted as left over, and only what it started was stopped
+
+## Rationalizations (do not accept these)
+
+| Agent says... | Why it's wrong |
+|---|---|
+| "This is the main checkout, so there's nothing to wrap up" | An answer that only reads ends here. It still gets the check, the delivered step for a tracker task, and the archive; only the branch, the worktree, and the base update are skipped. |
+| "The main checkout has a stash, so the answer left work behind" | The main checkout is shared. A stash, a change, or a container this session didn't make is the developer's or another session's: name it once, and neither block on it nor clear it. |
+
+## Red flags (stop and reassess)
+
+- You're about to switch, pull, or delete the branch checked out here, locally or on origin, or to
+  stop or drop something this session didn't start.
