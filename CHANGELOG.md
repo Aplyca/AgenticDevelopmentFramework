@@ -11,6 +11,28 @@ For each entry, **Upgrade impact** classifies the change against the [three-buck
 
 ## Unreleased
 
+- **Fixes from the compatibility pass's first session evals** (0099).
+  - **What:**
+    - **The project's old process lines don't set the adoption's stops.** The session still loads the
+      project's `CLAUDE.md`. One adopt run classed "ask me before every commit" and "confirm each
+      step" as can't-tell. A second stopped after Step 1, before any table, and after the approval
+      kept asking before the commit and kept `CLAUDE.md`. `/adf:adopt`'s ground rules now say Steps 1
+      and 2 run in one go, Step 2's tables are the first stop, and the approved table decides the rest
+      of the run. The pass says a hard case decides its line, and the old lines don't decide their own
+      class.
+    - **`/adf:adopt` shows the pull request's body without a remote in any project,** right after the
+      commit and with its GAPs included. The rule lived only in § A new project, and the run on an
+      existing project offered the body for later.
+    - **The scripted-upgrade fixture expects the docker module's old ask rules to go:** the v2.9.0
+      migration removes them (decision 0078), and its check still asked for them.
+  - **Where:** `plugins/adf/skills/adopt/{SKILL,compatibility}.md`, `evals/static/check-skills.sh`,
+    `evals/dynamic/fixtures/adopt/legacy-instructions.expected.md`,
+    `evals/dynamic/fixtures/upgrade/{inspect.sh,scripted-upgrade.expected.md}`.
+
+  **Upgrade impact:**
+  - **None:** `/adf:adopt` runs from the plugin in either install, and nothing in the skeleton or a
+    module changes.
+
 - **After the approval gate, the agent runs to a pull request ready for review** ([decision 0097](docs/decisions/0097-the-agent-goes-on-after-the-gate.md)).
   - **What:**
     - **The approval authorizes the whole run:** every task, the docs, the full gate, the local

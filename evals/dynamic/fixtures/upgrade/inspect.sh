@@ -68,7 +68,7 @@ PY
   rules() { python3 -c 'import json,sys; print(json.dumps(json.load(open(".claude/settings.json"))["permissions"].get(sys.argv[1], [])))' "$1"; }
   check "covered allow rules are gone; the covering ones stay" \
     "! rules allow | grep -q 'Bash(make test)' && ! rules allow | grep -q 'Bash(git status)' && rules allow | grep -q 'Bash(make \*)' && rules allow | grep -q 'Bash(git \*)'"
-  check "the docker ask rules are still there" "rules ask | grep -q 'docker rm \*'"
+  check "the docker module's old ask rules are gone (v2.9.0 migration, 0078)" "! rules ask | grep -q 'docker rm \*'"
   check "the task that deletes data has an ask rule" "rules ask | grep -q 'make wipe-db'"
   check "the report was written" "[ -f '$gd/adf-upgrade/report.md' ] && [ -f '$gd/adf-upgrade/report.json' ]"
   check "the Follow-ups section is in the report" "grep -q '^## Follow-ups' '$gd/adf-upgrade/report.md'"

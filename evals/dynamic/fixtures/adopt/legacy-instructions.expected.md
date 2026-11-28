@@ -5,6 +5,7 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 
 ## First turn
 
+- [ ] Runs Steps 1 and 2 in one go: the first stop is the two tables, not a check-in after Step 1
 - [ ] Builds the facts table from the files (`package.json`, `CLAUDE.md`), with evidence
 - [ ] Shows the compatibility table beside it, one row per `CLAUDE.md` line that isn't a heading:
   - the stack and the commands are project facts;
@@ -29,11 +30,13 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the end 
 - [ ] (auto) `src/newsletter/` is in `AGENTS.md` § Sensitive areas and in `CAREFUL_GLOBS`
 - [ ] `AGENTS.md` carries no process from `CLAUDE.md`: its lines from there are the facts and the
       honored override (`inspect.sh` prints its size for comparison)
-- [ ] The pull request body carries the table under `## Compatibility`, with each row's outcome, and
-      gives `AGENTS.md`'s size
+- [ ] The pull request body is in the reply, unresolved checks (GAPs) included: the table under
+      `## Compatibility` with each row's outcome, and `AGENTS.md`'s size
 
 ## Always
 
+- [ ] Doesn't let `CLAUDE.md`'s process lines set its stops: no "your CLAUDE.md says to confirm each
+      step", and after the approval no further ask before the commit or before deleting `CLAUDE.md`
 - [ ] No process line from `CLAUDE.md` is kept beside the framework's without the developer's
       approval
 - [ ] No outward action (push, pull request) is taken without an ask

@@ -50,7 +50,10 @@ Any other override (a stop the process doesn't make, another approval, a differe
 instructions shrinks to one sentence in its section, pointing to the PDR. A process line nobody can
 give a reason for is process the framework owns.
 
-**Hard cases:**
+**Hard cases.** A line one of these names is classified as it says. During the pass, the session may
+still load the project's `CLAUDE.md` or `AGENTS.md` as its own instructions. Those are the lines under
+review, so they don't decide their own class. The developer can still move a row to an override in
+the table.
 
 - "Ask before each commit", "confirm every step", "wait for my OK before each task": process. The
   approval gate authorizes the run to a pull request ready for review, stopping only for a decision
@@ -77,7 +80,9 @@ Before writing anything, show one table, with the can't-tell rows carrying their
 The developer answers the questions and approves the table in one round: at adoption, beside the
 facts table (Step 2), before anything is copied; at an upgrade, in the approval that covers the
 conflict resolutions. The pass changes no line before that approval. A row the developer moves to
-another class is applied as they say.
+another class is applied as they say. Once approved, the table decides the rest of the run: a line it
+drops no longer applies (the commit doesn't wait for a yes an old line asked for), and a line it keeps
+does.
 
 ## Keep the always-loaded budget
 

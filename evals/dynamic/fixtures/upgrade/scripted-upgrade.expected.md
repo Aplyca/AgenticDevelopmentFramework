@@ -22,7 +22,9 @@ The session should satisfy ALL of these invariants. `inspect.sh` checks the ones
 - [ ] (auto) `.claude/settings.json` parses, has no `hooks` block, and has `autoUpdate` on the
       `aplyca` entry
 - [ ] (auto) `Bash(make test)` and `Bash(git status)` are gone from `allow`; `Bash(make *)` and
-      `Bash(git *)` stay; `ask` and `deny` lost nothing
+      `Bash(git *)` stay
+- [ ] (auto) The docker module's old ask rules are gone (the v2.9.0 migration, decision 0078);
+      `ask` and `deny` lost nothing else
 - [ ] (auto) The project's `wipe-db` task has an ask rule (`Bash(make wipe-db*)`)
 - [ ] (auto) The report exists in the git directory
 - [ ] (auto) Nothing was pushed
